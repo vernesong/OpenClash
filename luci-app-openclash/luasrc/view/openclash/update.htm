@@ -141,7 +141,8 @@
 	var _versionsLoading = false;
 	var _updateTimer     = null;
 	var _updateRetryTimer = null;
-	var _startLogTimer   = null;
+	var _startLogXHR     = null;
+	var _startLogReconnect = null;
 	var _lastVersionTimer = null;
 
 	var NORMAL_INTERVAL = 10000;
@@ -182,7 +183,8 @@
 
 	function stopAllTimers() {
 		clearUpdateTimers();
-		if (_startLogTimer)   { clearInterval(_startLogTimer);   _startLogTimer = null; }
+		if (_startLogXHR) { _startLogXHR.abort(); _startLogXHR = null; }
+		if (_startLogReconnect) { clearTimeout(_startLogReconnect); _startLogReconnect = null; }
 		if (_lastVersionTimer) { clearInterval(_lastVersionTimer); _lastVersionTimer = null; }
 	}
 
@@ -216,8 +218,81 @@
 		});
 	}
 
-	function fetchStartLog() {
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', null, handleStartLog);
+	function _startPollingLog() {
+		if (_startLogXHR) { _startLogXHR.abort(); _startLogXHR = null; }
+		if (_startLogReconnect) { clearTimeout(_startLogReconnect); _startLogReconnect = null; }
+
+		var xhr = new XMLHttpRequest();
+		xhr.timeout = 5000;
+		xhr.open('GET', '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', true);
+		xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+		xhr.onload = function() {
+			_startLogXHR = null;
+			if (xhr.status != 200) { _scheduleLogReconnect(); return; }
+			var text = xhr.responseText || '';
+			if (text.indexOf('##FINISH##') >= 0) {
+				_showRandomTip();
+				if (text.match('level=fatal')) {
+					XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function() {});
+					var msg = (text.split('msg=')[1] || '').replace('##FINISH##', '').trim();
+					if (msg) alert('<%:OpenClash Start Failed%> :\n\n' + msg);
+				}
+				return;
+			}
+			if (text.match('level=fatal')) {
+				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function() {});
+				var msg = (text.split('msg=')[1] || '').replace('##FINISH##', '').trim();
+				if (msg) alert('<%:OpenClash Start Failed%> :\n\n' + msg);
+				return;
+			}
+			var lines = text.split('\n');
+			var lastLine = '';
+			for (var i = lines.length - 1; i >= 0; i--) {
+				var t = lines[i].replace('##FINISH##', '').trim();
+				if (t) { lastLine = t; break; }
+			}
+			if (lastLine) {
+				var colored = false;
+				for (var lk in window.levelTranslations) {
+					if (lastLine.indexOf('[' + window.levelTranslations[lk] + ']') >= 0) {
+						update_tip.innerHTML = '<b style=color:var(--' + lk + '-color)>' + lastLine + '</b>';
+						colored = true;
+						break;
+					}
+				}
+				if (!colored) {
+					update_tip.innerHTML = '<b style=color:var(--info-color)>' + lastLine + '</b>';
+				}
+			} else {
+				_showRandomTip();
+			}
+			_scheduleLogReconnect();
+		};
+		xhr.onerror = function() {
+			_startLogXHR = null;
+			_scheduleLogReconnect();
+		};
+		xhr.ontimeout = function() {
+			_startLogXHR = null;
+			xhr.abort();
+			_scheduleLogReconnect();
+		};
+		xhr.send();
+		_startLogXHR = xhr;
+	}
+
+	function _scheduleLogReconnect() {
+		if (_startLogReconnect) clearTimeout(_startLogReconnect);
+		_startLogReconnect = setTimeout(_startPollingLog, 3000);
+	}
+
+	function _showRandomTip() {
+		var tips = [
+			'<b style=color:var(--info-color)><%:Note: if the update fails, you can manually download and upload%></b>',
+			'<b style=color:var(--info-color)><%:Note: the client may not support update, because the firmware with squashfs format will not release flash space after updating%></b>',
+			'<b style=color:var(--info-color)><%:Note: options will auto-save when you click to update or download%></b>'
+		];
+		update_tip.innerHTML = tips[Math.floor(Math.random() * 3)];
 	}
 
 	function updateStatus(x, status) {
@@ -274,33 +349,6 @@
 		}
 	}
 
-	function handleStartLog(x, status) {
-		if (x && x.status == 200) {
-			var log = status.startlog;
-			if (log == '\n' || log == '' || log == '##FINISH##\n') {
-				var tips = [
-					'<b style=color:var(--info-color)><%:Note: if the update fails, you can manually download and upload%></b>',
-					'<b style=color:var(--info-color)><%:Note: the client may not support update, because the firmware with squashfs format will not release flash space after updating%></b>',
-					'<b style=color:var(--info-color)><%:Note: options will auto-save when you click to update or download%></b>'
-				];
-				update_tip.innerHTML = tips[Math.floor(Math.random() * 3)];
-			} else if (log.match('level=fatal')) {
-				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function() {});
-				if (log.match('level=fatal')) {
-					alert('<%:OpenClash Start Failed%> :\n\n' + log.split('msg=')[1]);
-				}
-			} else {
-				for (var lk in window.levelTranslations) {
-					if (log.match('[' + window.levelTranslations[lk] + ']')) {
-						update_tip.innerHTML = '<b style=color:var(--' + lk + '-color)>' + log + '</b>';
-						return;
-					}
-				}
-				update_tip.innerHTML = '<b style=color:var(--info-color)>' + log + '</b>';
-			}
-		}
-	}
-
 	function saveUpdateOptions() {
 		_versionsLoading = true;
 		clearUpdateTimers();
@@ -322,6 +370,7 @@
 	}
 
 	function core_update(btn, type) {
+		_startPollingLog();
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "coreupdate")%>', { core_type: type }, function() {
 			btn.value = '<%:Check And Update%>';
 			btn.disabled = false;
@@ -329,6 +378,7 @@
 	}
 
 	function op_update(btn) {
+		_startPollingLog();
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "opupdate")%>', null, function() {
 			btn.value = '<%:Check And Update%>';
 			btn.disabled = false;
@@ -394,6 +444,7 @@
 	function all_one_key_update_cdn(btn) {
 		btn.value = '<%:Check Update%>';
 		btn.disabled = false;
+		_startPollingLog();
 		return select_git_cdn('one_key_update');
 	}
 
@@ -403,8 +454,6 @@
 		_lastVersionTimer = setInterval(fetchLastVersion, 300000);
 
 		startNormalPolling();
-		fetchStartLog();
-		_startLogTimer = setInterval(fetchStartLog, 3000);
 	}
 
 	window.addEventListener('beforeunload', stopAllTimers);

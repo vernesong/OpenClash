@@ -3291,6 +3291,21 @@ msgstr "Descargando:"
 msgid "Downloading..."
 msgstr "Descargando..."
 
+msgid "Downloading config..."
+msgstr "Descargando configuración..."
+
+msgid "Downloading core..."
+msgstr "Descargando núcleo..."
+
+msgid "Fetching subscription..."
+msgstr "Obteniendo suscripción..."
+
+msgid "Logging in..."
+msgstr "Iniciando sesión..."
+
+msgid "Saving token..."
+msgstr "Guardando token..."
+
 msgid "Sniff the domain name of the traffics to avoid rule-based proxy failure"
 msgstr "Analiza los dominios del tráfico para evitar fallos de proxy basados en reglas"
 
@@ -4043,6 +4058,15 @@ msgstr "¡Fallo al iniciar sesión en oixCloud! Verifica los datos e inténtalo 
 
 msgid "oixCloud Account Login Failed, The Error Info is"
 msgstr "Fallo al iniciar sesión en oixCloud, el error es"
+
+msgid "invalid token"
+msgstr "token inválido"
+
+msgid "login failed"
+msgstr "inicio de sesión fallido"
+
+msgid "email or passwd is wrong"
+msgstr "correo electrónico o contraseña incorrectos"
 
 msgid "oixCloud Checkin Failed! Please Check And Try Again..."
 msgstr "¡Fallo al registrar en oixCloud! Inténtalo de nuevo más tarde."

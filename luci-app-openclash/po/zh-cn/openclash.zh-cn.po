@@ -3300,6 +3300,21 @@ msgstr "下载进度："
 msgid "Downloading..."
 msgstr "下载中..."
 
+msgid "Downloading config..."
+msgstr "正在下载配置..."
+
+msgid "Downloading core..."
+msgstr "正在下载内核..."
+
+msgid "Fetching subscription..."
+msgstr "正在获取订阅..."
+
+msgid "Logging in..."
+msgstr "正在登录..."
+
+msgid "Saving token..."
+msgstr "正在保存令牌..."
+
 msgid "Sniff the domain name of the traffics to avoid rule-based proxy failure"
 msgstr "嗅探流量的域名信息，避免基于规则的代理失败"
 
@@ -4052,6 +4067,15 @@ msgstr "oixCloud 账户登录失败！请检查账户信息并重试..."
 
 msgid "oixCloud Account Login Failed, The Error Info is"
 msgstr "oixCloud 账户登录失败，错误信息"
+
+msgid "invalid token"
+msgstr "无效的令牌"
+
+msgid "login failed"
+msgstr "登录失败"
+
+msgid "email or passwd is wrong"
+msgstr "邮箱或密码错误"
 
 msgid "oixCloud Checkin Failed! Please Check And Try Again..."
 msgstr "oixCloud 签到失败，请稍后再试！"

@@ -11,6 +11,7 @@
 	local idname = math.random(1000)..(string.match(filename, "[%w_]+") or "")
 %>
 
+<div class="oc">
 <div class="sub_div oc">
     <span id='<%=idname%>' class="sub_tab"></span>
     <button type="button" class="sub_setting" title='<%:Refresh%>' alt='<%:Refresh%>' onclick='return sub_info_refresh_<%=idname%>(true)'>
@@ -278,4 +279,5 @@ function uploadConfig_<%=idname%>() {
 }
 
 //]]></script>
+</div>
 <%+cbi/valuefooter%>

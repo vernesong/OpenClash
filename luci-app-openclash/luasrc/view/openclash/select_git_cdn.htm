@@ -196,6 +196,64 @@
         }
     }
 
+    function updateCDNRow(row, cdnUrl, info) {
+        var smart = smart_enable_cdn.value || '0';
+        var latencyEl = row.querySelector('.cdn-status');
+        var verSpans = row.querySelectorAll('.cdn-ver-text');
+        var pluginEl = verSpans[0];
+        var coreEl = verSpans[1];
+
+        if (info.latency != null && info.latency > 0) {
+            var ms = parseInt(info.latency);
+            latencyEl.textContent = ms + ' ms';
+            latencyEl.className = 'cdn-status ' + (ms <= 500 ? 'fast' : ms <= 1000 ? 'medium' : 'slow');
+            latencyEl.title = '';
+        } else if (info.latency === -1) {
+            latencyEl.textContent = '<%:Access Timed Out%>';
+            latencyEl.className = 'cdn-status err';
+            latencyEl.title = '';
+        } else if (info.latency === -2) {
+            latencyEl.textContent = '<%:Access Denied%>';
+            latencyEl.className = 'cdn-status err';
+            latencyEl.title = '';
+        } else {
+            latencyEl.textContent = '--';
+            latencyEl.className = 'cdn-status';
+            latencyEl.title = '';
+        }
+
+        if (pluginEl) {
+            if (info.plugin_ver) {
+                pluginEl.textContent = info.plugin_ver;
+                pluginEl.classList.add('has-data');
+                pluginEl.classList.remove('err');
+            } else if (info.latency === -1 || info.latency === -2) {
+                pluginEl.textContent = info.latency === -1 ? '<%:Access Timed Out%>' : '<%:Access Denied%>';
+                pluginEl.classList.add('has-data', 'err');
+            } else {
+                pluginEl.textContent = '--';
+                pluginEl.classList.remove('has-data', 'err');
+            }
+        }
+        if (coreEl) {
+            var coreVer = (smart === '1' && info.core_smart_ver) ? info.core_smart_ver : info.core_meta_ver;
+            if (coreVer) {
+                coreEl.textContent = coreVer;
+                coreEl.classList.add('has-data');
+                coreEl.classList.remove('err');
+            } else if (info.core_error) {
+                coreEl.textContent = info.core_error === 'timeout' ? '<%:Access Timed Out%>' : '<%:Access Denied%>';
+                coreEl.classList.add('has-data', 'err');
+            } else if (info.latency === -1 || info.latency === -2) {
+                coreEl.textContent = info.latency === -1 ? '<%:Access Timed Out%>' : '<%:Access Denied%>';
+                coreEl.classList.add('has-data', 'err');
+            } else {
+                coreEl.textContent = '--';
+                coreEl.classList.remove('has-data', 'err');
+            }
+        }
+    }
+
     function initAllData() {
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_info")%>', null, function(x, st) {
             if (x && x.status == 200) {
@@ -227,49 +285,108 @@
 
         pluginSelect.disabled = true;
         coreSelect.disabled = true;
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "version_history")%>', params, function(x, status) {
 
-            if (x && x.status == 200 && status && !status.error) {
-                if (versionRetryTimer) { clearInterval(versionRetryTimer); versionRetryTimer = null; }
-                hint.classList.remove('show');
-                pluginSelect.disabled = false;
-                coreSelect.disabled = false;
+        pluginSelect.innerHTML = '<option value="__latest__"><%:Latest%></option>';
+        coreSelect.innerHTML = '<option value="__latest__"><%:Latest%></option>';
 
-                pluginSelect.innerHTML = '<option value="__latest__"><%:Latest%></option>';
-                if (status.plugin) {
-                    status.plugin.forEach(function(v) {
-                        if (v.version) {
-                            pluginSelect.innerHTML += '<option value="' + v.sha + '" data-ver="' + v.version + '">' + v.version + ' (<%:Date%>: ' + (v.date||'').substring(0,10) + ')</option>';
+        var url = '<%=luci.dispatcher.build_url("admin", "services", "openclash", "version_history")%>?' +
+            Object.keys(params).map(function(k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
+        var xhr = new XMLHttpRequest();
+        xhr.timeout = 0;
+        xhr.open('GET', url, true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        var lastLen = 0;
+        xhr.onprogress = function() {
+            if (xhr.status != 200) return;
+            var text = xhr.responseText;
+            if (text.length <= lastLen) return;
+            var newText = text.substring(lastLen);
+            lastLen = text.length;
+            var lines = newText.split('\n');
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
+                if (!line) continue;
+                try {
+                    var entry = JSON.parse(line);
+                    if (entry._complete) {
+                        if (entry.error) {
+                            hint.innerHTML = '<svg><use href="#oc-icon-alert-circle"/></svg><span><%:Failed to get version history%></span>';
+                            hint.classList.add('show');
+                            pluginSelect.disabled = true;
+                            coreSelect.disabled = true;
+                            if (!versionRetryTimer) {
+                                versionRetryTimer = setInterval(fetchVersionHistory, 10000);
+                            }
+                        } else {
+                            pluginSelect.disabled = false;
+                            coreSelect.disabled = false;
+                            hint.classList.remove('show');
+                            if (versionRetryTimer) { clearInterval(versionRetryTimer); versionRetryTimer = null; }
                         }
-                    });
-                }
-
-                coreSelect.innerHTML = '<option value="__latest__"><%:Latest%></option>';
-                var coreList = (smart_enable_cdn.value === '1' && status.core_smart && status.core_smart.length > 0) ? status.core_smart : status.core_meta;
-                if (coreList) {
-                    coreList.forEach(function(v) {
-                        coreSelect.innerHTML += '<option value="' + v.sha + '" data-ver="' + v.version + '">' + v.version + ' (<%:Date%>: ' + (v.date||'').substring(0,10) + ')</option>';
-                    });
-                }
-            } else {
-                pluginSelect.disabled = true;
-                coreSelect.disabled = true;
+                        continue;
+                    }
+                    if (entry.type === 'plugin' && entry.version) {
+                        pluginSelect.innerHTML += '<option value="' + entry.sha + '" data-ver="' + entry.version + '">' + entry.version + ' (<%:Date%>: ' + (entry.date||'').substring(0,10) + ')</option>';
+                    } else if ((entry.type === 'core_meta' || entry.type === 'core_smart') && entry.version) {
+                        coreSelect.innerHTML += '<option value="' + entry.sha + '" data-ver="' + entry.version + '">' + entry.version + ' (<%:Date%>: ' + (entry.date||'').substring(0,10) + ')</option>';
+                    }
+                } catch(e) {}
+            }
+        };
+        xhr.onload = function() {
+            if (xhr.status != 200 || !xhr.responseText) {
                 hint.innerHTML = '<svg><use href="#oc-icon-alert-circle"/></svg><span><%:Failed to get version history%></span>';
                 hint.classList.add('show');
-                var shouldFastRetry = false;
-                if (!x || x.status != 200 || !status) {
-                    shouldFastRetry = true;
-                } else if (status.error === 'network_error' || status.error === 'parse_error') {
-                    shouldFastRetry = true;
+                if (!versionRetryTimer) {
+                    versionRetryTimer = setInterval(fetchVersionHistory, 10000);
                 }
-                if (shouldFastRetry) {
-                    if (versionPollTimer) { clearInterval(versionPollTimer); versionPollTimer = null; }
-                    if (!versionRetryTimer) {
-                        versionRetryTimer = setInterval(fetchVersionHistory, 10000);
-                    }
+                return;
+            }
+            var text = xhr.responseText;
+            if (text.length > lastLen) {
+                var newText = text.substring(lastLen);
+                lastLen = text.length;
+                var lines = newText.split('\n');
+                for (var i = 0; i < lines.length; i++) {
+                    var line = lines[i].trim();
+                    if (!line) continue;
+                    try {
+                        var entry = JSON.parse(line);
+                        if (entry._complete) {
+                            if (entry.error) {
+                                hint.innerHTML = '<svg><use href="#oc-icon-alert-circle"/></svg><span><%:Failed to get version history%></span>';
+                                hint.classList.add('show');
+                                pluginSelect.disabled = true;
+                                coreSelect.disabled = true;
+                                if (!versionRetryTimer) {
+                                    versionRetryTimer = setInterval(fetchVersionHistory, 10000);
+                                }
+                            } else {
+                                pluginSelect.disabled = false;
+                                coreSelect.disabled = false;
+                                hint.classList.remove('show');
+                                if (versionRetryTimer) { clearInterval(versionRetryTimer); versionRetryTimer = null; }
+                            }
+                            continue;
+                        }
+                        if (entry.type === 'plugin' && entry.version) {
+                            pluginSelect.innerHTML += '<option value="' + entry.sha + '" data-ver="' + entry.version + '">' + entry.version + ' (<%:Date%>: ' + (entry.date||'').substring(0,10) + ')</option>';
+                        } else if ((entry.type === 'core_meta' || entry.type === 'core_smart') && entry.version) {
+                            coreSelect.innerHTML += '<option value="' + entry.sha + '" data-ver="' + entry.version + '">' + entry.version + ' (<%:Date%>: ' + (entry.date||'').substring(0,10) + ')</option>';
+                        }
+                    } catch(e) {}
                 }
             }
-        });
+
+        };
+        xhr.onerror = function() {
+            hint.innerHTML = '<svg><use href="#oc-icon-alert-circle"/></svg><span><%:Failed to get version history%></span>';
+            hint.classList.add('show');
+            if (!versionRetryTimer) {
+                versionRetryTimer = setInterval(fetchVersionHistory, 10000);
+            }
+        };
+        xhr.send();
     }
 
     function saveOptions() {
@@ -337,82 +454,86 @@
                 });
             });
         }
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "cdn_info")%>', params, function(x, status) {
-            if (x && x.status == 200 && status && !status.error) {
-                document.querySelectorAll('#cdn-list-body .cdn-row').forEach(function(row) {
-                    var cdnUrl = row.dataset.value;
-                    var info = status[cdnUrl];
-                    if (!info) return;
-
-                    var latencyEl = row.querySelector('.cdn-status');
-                    var verSpans = row.querySelectorAll('.cdn-ver-text');
-                    var pluginEl = verSpans[0];
-                    var coreEl = verSpans[1];
-
-                    if (info.latency != null && info.latency > 0) {
-                        var ms = parseInt(info.latency);
-                        latencyEl.textContent = ms + ' ms';
-                        latencyEl.className = 'cdn-status ' + (ms <= 500 ? 'fast' : ms <= 1000 ? 'medium' : 'slow');
-                        latencyEl.title = '';
-                    } else if (info.latency === -1) {
-                        latencyEl.textContent = '<%:Access Timed Out%>';
-                        latencyEl.className = 'cdn-status err';
-                        latencyEl.title = '';
-                    } else if (info.latency === -2) {
-                        latencyEl.textContent = '<%:Access Denied%>';
-                        latencyEl.className = 'cdn-status err';
-                        latencyEl.title = '';
-                    } else {
-                        latencyEl.textContent = '--';
-                        latencyEl.className = 'cdn-status';
-                        latencyEl.title = '';
-                    }
-
-                    if (pluginEl) {
-                        if (info.plugin_ver) {
-                            pluginEl.textContent = info.plugin_ver;
-                            pluginEl.classList.add('has-data');
-                            pluginEl.classList.remove('err');
-                        } else if (info.latency === -1 || info.latency === -2) {
-                            pluginEl.textContent = info.latency === -1 ? '<%:Access Timed Out%>' : '<%:Access Denied%>';
-                            pluginEl.classList.add('has-data', 'err');
-                        } else {
-                            pluginEl.textContent = '--';
-                            pluginEl.classList.remove('has-data', 'err');
+        var url = '<%=luci.dispatcher.build_url("admin", "services", "openclash", "cdn_info")%>?' +
+            Object.keys(params).map(function(k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
+        var xhr = new XMLHttpRequest();
+        xhr.timeout = 0;
+        xhr.open('GET', url, true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        var lastLen = 0;
+        var hasComplete = false;
+        xhr.onprogress = function() {
+            if (xhr.status != 200) return;
+            var text = xhr.responseText;
+            if (text.length <= lastLen) return;
+            var newText = text.substring(lastLen);
+            lastLen = text.length;
+            var lines = newText.split('\n');
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
+                if (!line) continue;
+                try {
+                    var info = JSON.parse(line);
+                    if (info._complete) {
+                        hasComplete = true;
+                        if (info.error === 'version_stale') {
+                            fetchVersionHistory(true);
                         }
+                        continue;
                     }
-                    if (coreEl) {
-                        var coreVer = (smart === '1' && info.core_smart_ver) ? info.core_smart_ver : info.core_meta_ver;
-                        if (coreVer) {
-                            coreEl.textContent = coreVer;
-                            coreEl.classList.add('has-data');
-                            coreEl.classList.remove('err');
-                        } else if (info.core_error) {
-                            coreEl.textContent = info.core_error === 'timeout' ? '<%:Access Timed Out%>' : '<%:Access Denied%>';
-                            coreEl.classList.add('has-data', 'err');
-                        } else if (info.latency === -1 || info.latency === -2) {
-                            coreEl.textContent = info.latency === -1 ? '<%:Access Timed Out%>' : '<%:Access Denied%>';
-                            coreEl.classList.add('has-data', 'err');
-                        } else {
-                            coreEl.textContent = '--';
-                            coreEl.classList.remove('has-data', 'err');
-                        }
-                    }
-                });
+                    var cdnUrl = info.cdn;
+                    if (!cdnUrl) continue;
+                    var rows = document.querySelectorAll('#cdn-list-body .cdn-row[data-value="' + CSS.escape(cdnUrl) + '"]');
+                    rows.forEach(function(row) { updateCDNRow(row, cdnUrl, info); });
+                } catch(e) {}
+            }
+        };
+        xhr.onload = function() {
+            if (xhr.status != 200 || !xhr.responseText) {
                 if (cdnRetryTimer) { clearInterval(cdnRetryTimer); cdnRetryTimer = null; }
-                if (!refreshTimer) {
-                    refreshTimer = setInterval(refreshCDNInfo, Math.floor(Math.random()*(20-10+1)+10)*1000);
-                }
-            } else if (!x || x.status != 200 || !status || status.error) {
-                if (status && status.error === 'version_stale') {
-                    fetchVersionHistory(true);
-                }
                 if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
                 if (!cdnRetryTimer) {
                     cdnRetryTimer = setInterval(refreshCDNInfo, 10000);
                 }
+                return;
             }
-        });
+            var text = xhr.responseText;
+            if (text.length > lastLen) {
+                var newText = text.substring(lastLen);
+                lastLen = text.length;
+                var lines = newText.split('\n');
+                for (var i = 0; i < lines.length; i++) {
+                    var line = lines[i].trim();
+                    if (!line) continue;
+                    try {
+                        var info = JSON.parse(line);
+                        if (info._complete) {
+                            hasComplete = true;
+                            if (info.error === 'version_stale') {
+                                fetchVersionHistory(true);
+                            }
+                            continue;
+                        }
+                        var cdnUrl = info.cdn;
+                        if (!cdnUrl) continue;
+                        var rows = document.querySelectorAll('#cdn-list-body .cdn-row[data-value="' + CSS.escape(cdnUrl) + '"]');
+                        rows.forEach(function(row) { updateCDNRow(row, cdnUrl, info); });
+                    } catch(e) {}
+                }
+            }
+
+            if (cdnRetryTimer) { clearInterval(cdnRetryTimer); cdnRetryTimer = null; }
+            if (!refreshTimer) {
+                refreshTimer = setInterval(refreshCDNInfo, Math.floor(Math.random()*(20-10+1)+10)*1000);
+            }
+        };
+        xhr.onerror = function() {
+            if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+            if (!cdnRetryTimer) {
+                cdnRetryTimer = setInterval(refreshCDNInfo, 10000);
+            }
+        };
+        xhr.send();
     }
 
     function select_git_cdn(btn, type) {
@@ -429,13 +550,7 @@
 
         selectPopup.classList.remove('hidden');
         selectPopup.onclick = function(event) { cdn_click_handler(event); };
-        document.addEventListener('click', cdn_outside_click);
         initAllData();
-    }
-
-    function cdn_outside_click(event) {
-        var popup = document.getElementById('selectPopup');
-        if (!popup.contains(event.target)) closeSelectPopup();
     }
 
     function cdn_click_handler(event) {
@@ -519,7 +634,6 @@
         if (cdnRetryTimer) { clearInterval(cdnRetryTimer); cdnRetryTimer = null; }
         customInput.style.display = 'none';
         addBtn.style.display = 'none';
-        document.removeEventListener('click', cdn_outside_click);
     }
 //]]>
 </script>

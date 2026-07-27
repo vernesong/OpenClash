@@ -2060,131 +2060,93 @@
     };
 
     var LogManager = {
-        isPolling: false,
-        pollTimer: null,
-        maxPollTime: 60000,
-        pollInterval: 1000,
-        startTime: 0,
-        lastLogContent: '',
+        streamingXHR: null,
         retryCount: 0,
         maxRetries: 3,
         retryDelay: 1000,
 
         startLogDisplay: function(initialMessage) {
-            if (initialMessage) {
-                if (this.isPolling) {
-                    this.stopLogDisplay();
-                }
-            } else {
-                if (this.isPolling) {
-                    return;
-                }
+            if (this.streamingXHR) {
+                if (!initialMessage) return;
+                this.stopLogDisplay();
             }
-            if (this.pollTimer) {
-                clearTimeout(this.pollTimer);
-                this.pollTimer = null;
-            }
+            this.retryCount = 0;
 
-            StateManager.clearCache('<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>');
+            StateManager.clearCache('<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>?wait=1');
 
             if (DOMCache.oclog && initialMessage) {
                 DOMCache.oclog.style.display = 'inline-flex';
                 DOMCache.oclog.innerHTML = '<b style="color:var(--tip-color)">' + initialMessage + '</b>';
             }
 
-            this.isPolling = true;
-            this.startTime = Date.now();
-            this.lastLogContent = '';
-            this.retryCount = 0;
-
-            var self = this;
-            setTimeout(function() {
-                if (self.isPolling) {
-                    self.pollLog();
-                }
-            }, 2000);
+            this.startStreaming();
         },
 
         stopLogDisplay: function() {
-            this.isPolling = false;
-            if (this.pollTimer) {
-                clearTimeout(this.pollTimer);
-                this.pollTimer = null;
-            }
-            this.lastLogContent = '';
             this.retryCount = 0;
+            var xhr = this.streamingXHR;
+            this.streamingXHR = null;
+            if (xhr) {
+                xhr.abort();
+            }
             if (DOMCache.oclog) {
                 setTimeout(function() {
-                    if (!LogManager.isPolling) {
+                    if (!LogManager.streamingXHR) {
                         DOMCache.oclog.style.display = 'none';
                     }
                 }, 1000);
             }
         },
 
-        pollLog: function() {
-            if (!this.isPolling) return;
-
-            if (Date.now() - this.startTime > this.maxPollTime) {
-                this.stopLogDisplay();
-                return;
-            }
-
+        startStreaming: function() {
             var self = this;
-            StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', function(x, status) {
-                if (!self.isPolling) return;
+            if (this.streamingXHR) {
+                this.streamingXHR.abort();
+                this.streamingXHR = null;
+            }
+            var xhr = new XMLHttpRequest();
+            xhr.timeout = 0;
+            xhr.open('GET', '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>?wait=1', true);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            var _stopTimer = null;
 
-                if (x && x.status == 200 && status && typeof status.startlog !== 'undefined') {
-                    var logContent = (status.startlog || '').trim();
-
-                    if (self.checkForErrors(logContent)) {
-                        self.stopLogDisplay();
-                        return;
-                    }
-
-                    var contentToDisplay = logContent.replace('##FINISH##', '').trim();
-                    if (contentToDisplay && contentToDisplay !== self.lastLogContent) {
-                        self.displayLog(contentToDisplay);
-                    }
-
-                    if (logContent.includes('##FINISH##')) {
-                        setTimeout(function() {
-                            self.stopLogDisplay();
-                        }, 3000);
-                        return;
-                    }
-
-                    if (logContent !== '') {
-                        self.retryCount = 0;
-                        self.scheduleNextPoll(self.pollInterval);
-                    } else {
-                        self.handleEmptyResponse();
-                    }
-                } else {
-                    self.handleFailure();
+            xhr.onprogress = function() {
+                if (!self.streamingXHR) return;
+                var text = xhr.responseText;
+                if (text && self.checkForErrors(text)) {
+                    self.stopLogDisplay();
+                    return;
                 }
-            }, true);
-        },
+                var raw = (text || '').replace('##FINISH##', '');
+                if (raw.trim()) {
+                    if (_stopTimer) { clearTimeout(_stopTimer); _stopTimer = null; }
+                    self.displayLog(raw);
+                }
+                if (text.indexOf('##FINISH##') >= 0) {
+                    if (_stopTimer) clearTimeout(_stopTimer);
+                    _stopTimer = setTimeout(function() { self.stopLogDisplay(); }, 3000);
+                }
+            };
 
-        handleEmptyResponse: function() {
-            this.scheduleNextPoll(this.pollInterval);
-        },
+            xhr.onload = function() {
+                if (self.streamingXHR !== xhr) return;
+                self.stopLogDisplay();
+            };
 
-        handleFailure: function() {
-            if (this.retryCount < this.maxRetries) {
-                this.retryCount++;
-                var delay = Math.min(this.retryDelay * Math.pow(2, this.retryCount - 1), 5000);
-                this.scheduleNextPoll(delay);
-            } else {
-                this.stopLogDisplay();
-            }
-        },
+            xhr.onerror = function() {
+                if (self.streamingXHR !== xhr) return;
+                self.stopLogDisplay();
+                if (self.retryCount < self.maxRetries) {
+                    self.retryCount++;
+                    var delay = Math.min(self.retryDelay * Math.pow(2, self.retryCount - 1), 5000);
+                    setTimeout(function() {
+                        if (!self.streamingXHR) self.startLogDisplay();
+                    }, delay);
+                }
+            };
 
-        scheduleNextPoll: function(delay) {
-            var self = this;
-            this.pollTimer = setTimeout(function() {
-                self.pollLog();
-            }, delay);
+            xhr.send();
+            this.streamingXHR = xhr;
         },
 
         checkForErrors: function(log) {
@@ -2193,7 +2155,7 @@
                 XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function(x) {});
 
                 var msgParts = log.split('msg=');
-                var errorMsg = msgParts.length > 1 ? msgParts[1].replace(/"/g, '') : log;
+                var errorMsg = msgParts.length > 1 ? msgParts[1].replace(/"/g, '').trim() : log.trim();
 
                 setTimeout(function() {
                     alert('<%:OpenClash Start Failed%>:\n\n' + errorMsg);
@@ -2205,28 +2167,33 @@
         },
 
         displayLog: function(logContent) {
-            if (!this.isPolling || !DOMCache.oclog) return;
+            if (!this.streamingXHR || !DOMCache.oclog) return;
 
-            var cleanLog = this.cleanLogContent(logContent);
-            this.lastLogContent = cleanLog;
+            var lines = logContent.split('\n');
+            var lastLine = '';
+            // Skip potentially incomplete last line from ucode 4096-byte chunking
+            var lastComplete = lines.length - 1;
+            if (logContent.charAt(logContent.length - 1) !== '\n') {
+                lastComplete = lines.length - 2;
+            }
+            if (lastComplete < 0) return;
+            for (var i = lastComplete; i >= 0; i--) {
+                var t = lines[i].replace('##FINISH##', '').trim();
+                if (t) { lastLine = t; break; }
+            }
+            if (!lastLine) return;
 
-            var color = this.getLogColor(cleanLog);
-            var displayText = this.formatLogText(cleanLog);
+            var color = this.getLogColor(lastLine);
+            var displayText = this.formatLogText(lastLine);
 
             DOMCache.oclog.style.display = 'inline-flex';
             DOMCache.oclog.innerHTML = '<b style="color:' + color + '">' + displayText + '</b>';
         },
 
-        cleanLogContent: function(content) {
-            return content ? content.replace(/[\r\n]+/g, ' ').replace('##FINISH##', '').trim() : '';
-        },
-
         getLogColor: function(log) {
             for (var levelKey in window.levelTranslations) {
                 var translatedText = '[' + window.levelTranslations[levelKey] + ']';
-                if (log.includes(translatedText)) {
-                    return "var(--" + levelKey + "-color)";
-                }
+                if (log.indexOf(translatedText) >= 0) return "var(--" + levelKey + "-color)";
             }
             return "var(--info-color)";
         },
@@ -2239,9 +2206,7 @@
                             .replace(/^level=\w+\s*/, '')
                             .replace(/^msg="?([^"]*)"?\s*/, '$1');
 
-            if (cleanText.length > 60) {
-                cleanText = cleanText.substring(0, 57) + '...';
-            }
+            if (cleanText.length > 60) cleanText = cleanText.substring(0, 57) + '...';
 
             return this.escapeHtml(cleanText) || '<%:Processing...%>';
         },
@@ -3899,8 +3864,6 @@
         }
         StateManager.current_status.clash = isEnabled;
 
-        LogManager.startLogDisplay(isEnabled ? '<%:Starting...%>' : '<%:Stopping...%>');
-
         var requestParams = { action: action };
 
         if (isEnabled) {
@@ -3911,6 +3874,8 @@
                 requestParams.config_file = selectedConfig;
             }
         }
+
+        LogManager.startLogDisplay(isEnabled ? '<%:Starting...%>' : '<%:Stopping...%>');
 
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "action")%>', requestParams, function(x, status) {
             if (x && x.status == 200) {
@@ -4057,8 +4022,6 @@
             toggleElement.disabled = true;
         }
 
-        LogManager.startLogDisplay('<%:Restarting...%>');
-
         var requestParams = { action: 'restart' };
 
         var currentConfigValue = ConfigFileManager.getCurrentConfig();
@@ -4067,6 +4030,8 @@
         if (!currentConfigValue && selectedConfig) {
             requestParams.config_file = selectedConfig;
         }
+
+        LogManager.startLogDisplay('<%:Restarting...%>');
 
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "action")%>', requestParams, function(x, status) {
             if (x && x.status == 200) {

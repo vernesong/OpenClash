@@ -225,6 +225,21 @@ function download_log(){
     return;
 };
 
+function restoreDebugEditor() {
+    var wrapper = document.getElementById('debug-render-wrapper');
+    var rendered = document.getElementById('debug-rendered');
+    if (wrapper) { wrapper.style.display = 'none'; }
+    if (rendered) { rendered.innerHTML = ''; }
+    dl.value = "";
+    if (typeof editor_debug !== 'undefined' && editor_debug) {
+        editor_debug.setValue("");
+        if (editor_debug.dom) {
+            editor_debug.dom.style.setProperty('display', '', 'important');
+        }
+        editor_debug.refresh();
+    }
+}
+
 function del_log() {
     var activeTabId = 0;
     var titles = document.getElementsByName('tab-header');
@@ -236,20 +251,12 @@ function del_log() {
     }
 
     if (activeTabId === 2) {
+        restoreDebugEditor();
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_log")%>', {type: "debug"}, function(x, data){
-            dl.value = "";
-            var wrapper = document.getElementById('debug-render-wrapper');
-            var rendered = document.getElementById('debug-rendered');
-            if (wrapper) { wrapper.style.display = 'none'; }
-            if (rendered) { rendered.innerHTML = ''; }
-            if (typeof editor_debug !== 'undefined' && editor_debug) {
-                editor_debug.setValue("");
-                if (editor_debug.dom) {
-                    editor_debug.dom.style.setProperty('display', '', 'important');
+            if (typeof editor_debug === 'undefined' || !editor_debug) {
+                if (typeof markdown_editor === 'function' && dl) {
+                    markdown_editor(dl, 'debug', true, '100%', '540px');
                 }
-                editor_debug.refresh();
-            } else if (typeof markdown_editor === 'function' && dl) {
-                markdown_editor(dl, 'debug', true, '100%', '540px');
             }
         });
     } else {
@@ -393,17 +400,76 @@ function gen_debug_logs()
     if (loading_el) { loading_el.style.display = 'inline'; }
     if (btn) { btn.value = '<%:Generating...%>'; btn.disabled = true; }
 
-    XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "gen_debug_logs")%>', null, function(x, status) {
+    restoreDebugEditor();
+
+    if (typeof editor_debug === 'undefined' || !editor_debug) {
+        if (typeof markdown_editor === 'function' && dl) {
+            markdown_editor(dl, 'debug', true, '100%', '540px');
+        }
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.timeout = 0;
+    xhr.open('GET', '<%=luci.dispatcher.build_url("admin", "services", "openclash", "gen_debug_logs")%>', true);
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+    xhr.onprogress = function() {
+        var text = xhr.responseText.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l !== ''; }).join('\n');
+        if (editor_debug && editor_debug.setValue) {
+            editor_debug.setValue(text);
+            if (editor_debug.scrollDOM) editor_debug.scrollDOM.scrollTop = editor_debug.scrollDOM.scrollHeight;
+        } else {
+            dl.value = text;
+        }
+    };
+
+    xhr.onload = function() {
         if (loading_el) { loading_el.style.display = 'none'; }
         if (btn) { btn.value = originalText; btn.disabled = false; }
-        dl.value = x.responseText || '<%:Some error occurred!%>';
-        if (typeof editor_debug !== 'undefined' && editor_debug) {
-            editor_debug.setValue(dl.value);
-            setCursorToFirstLineEnd(editor_debug);
-        }
-        renderDebugView();
-    });
 
+        if (editor_debug && editor_debug.setValue) {
+            editor_debug.setValue(xhr.responseText.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l !== ''; }).join('\n'));
+            setCursorToFirstLineEnd(editor_debug);
+        } else {
+            dl.value = xhr.responseText || '<%:Some error occurred!%>';
+        }
+
+        if (xhr.status != 200 && xhr.responseText == "") {
+            if (editor_debug && editor_debug.setValue) {
+                editor_debug.setValue('<%:Some error occurred!%>');
+            } else {
+                dl.value = '<%:Some error occurred!%>';
+            }
+        }
+
+        renderDebugView();
+    };
+
+    xhr.ontimeout = function() {
+        if (loading_el) { loading_el.style.display = 'none'; }
+        if (btn) { btn.value = originalText; btn.disabled = false; }
+        if (xhr.responseText == "") {
+            if (editor_debug && editor_debug.setValue) {
+                editor_debug.setValue('<%:Request Timeout...%>');
+            } else {
+                dl.value = '<%:Request Timeout...%>';
+            }
+        }
+    };
+
+    xhr.onerror = function() {
+        if (loading_el) { loading_el.style.display = 'none'; }
+        if (btn) { btn.value = originalText; btn.disabled = false; }
+        if (xhr.responseText == "") {
+            if (editor_debug && editor_debug.setValue) {
+                editor_debug.setValue('<%:Some error occurred!%>');
+            } else {
+                dl.value = '<%:Some error occurred!%>';
+            }
+        }
+    };
+
+    xhr.send();
     return;
 };
 
@@ -412,7 +478,7 @@ function load_existing_debug_log()
     XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_debug_logs")%>', null, function(x, status) {
         if (x && x.status == 200 && x.responseText != "")
         {
-            dl.value = x.responseText;
+            dl.value = x.responseText.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l !== ''; }).join('\n');
             if (typeof editor_debug !== 'undefined' && editor_debug) {
                 setCursorToFirstLineEnd(editor_debug);
             }

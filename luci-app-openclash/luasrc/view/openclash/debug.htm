@@ -24,7 +24,7 @@ local dns_host = "www.instagram.com"
 					output.innerHTML = '';
 					var ta = document.createElement('textarea');
 					ta.style.width = '100%';
-					ta.value = x.responseText;
+					ta.value = x.responseText.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l !== ''; }).join('\n');
 					output.appendChild(ta);
 					_cmWhenReady(function() {
 						other_editor(ta, true, '100%', '400px');
@@ -112,7 +112,7 @@ local dns_host = "www.instagram.com"
 					output.innerHTML = '';
 					var ta = document.createElement('textarea');
 					ta.style.width = '100%';
-					ta.value = x.responseText;
+					ta.value = x.responseText.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l !== ''; }).join('\n');
 					output.appendChild(ta);
 					_cmWhenReady(function() {
 						other_editor(ta, true, '100%', '400px');

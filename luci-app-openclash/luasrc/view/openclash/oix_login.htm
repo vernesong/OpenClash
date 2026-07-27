@@ -325,35 +325,73 @@ var OixCloud = {
 		data.checkin = document.getElementById('oix-checkin-enable').checked ? '1' : '0'; data.interval = document.getElementById('oix-checkin-interval').value || '1'; data.multiple = document.getElementById('oix-checkin-multiple').value || '1';
 		var self = this, btns = document.querySelectorAll('#oix-login-section .oix-btn-primary');
 		btns.forEach(function(b){ b._origHTML = b.innerHTML; b.disabled = true; var svg = b.querySelector('svg'); b.innerHTML = (svg ? svg.outerHTML : '') + ' <%:Login...%>'; });
+
+		var updateBtnText = function(text) {
+			btns.forEach(function(b){
+				var svg = b.querySelector('svg');
+				b.innerHTML = (svg ? svg.outerHTML : '') + ' ' + text;
+			});
+		};
+
+		var onLoginSuccess = function() {
+			btns.forEach(function(b){ b.disabled = false; b.innerHTML = b._origHTML; });
+			var info = '<%:oixCloud Login Successful%>' + ', <%:Note: oixCloud need a specific core installed, OpenClash will auto download, After the core start, an oixCloud nodes provider will be added, which you can customize as needed%>';
+			OixMsg.show(info, 'success', 20000);
+			self.loggedIn = true; self.showLoggedIn(); self.loadAccountInfo(); self.startPolling(); self.fetchParams();
+		};
+
+		var onLoginError = function(msg) {
+			btns.forEach(function(b){ b.disabled = false; b.innerHTML = b._origHTML; });
+			OixMsg.show('<%:oixCloud Login Failed:%> ' + msg, 'error');
+		};
+
+		var doStreamLogin = function(loginData) {
+			var xhr = new XMLHttpRequest();
+			var url = OIX_URLS.login;
+			var sep = url.indexOf('?') >= 0 ? '&' : '?';
+			if (loginData) {
+				url += sep + Object.keys(loginData).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(loginData[k]); }).join('&');
+			}
+			xhr.open('GET', url, true);
+			xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+			var lastIndex = 0;
+			xhr.onprogress = function() {
+				var newText = xhr.responseText.substring(lastIndex);
+				lastIndex = xhr.responseText.length;
+				var lines = newText.split('\n');
+				for (var i = 0; i < lines.length; i++) {
+					var line = lines[i].trim();
+					if (!line) continue;
+					try {
+						var obj = JSON.parse(line);
+						if (obj.stage === 'done') {
+							onLoginSuccess();
+						} else if (obj.stage === 'error') {
+							onLoginError(obj.result || '<%:oixCloud Login Failed%>');
+						} else if (obj.text) {
+							updateBtnText(obj.text);
+						}
+					} catch(e) {}
+				}
+			};
+			xhr.onload = function() {
+				if (xhr.status !== 200) {
+					onLoginError('<%:Network request failed, please check your connection and try again%>');
+				}
+			};
+			xhr.onerror = function() {
+				onLoginError('<%:Network request failed, please check your connection and try again%>');
+			};
+			xhr.send();
+		};
+
 		XHR.get(OIX_URLS.save, data, function(x, status) {
 			if (!x || x.status != 200) { OixMsg.show('<%:Network request failed, please check your connection and try again%>', 'error'); btns.forEach(function(b){b.disabled=false;b.innerHTML=b._origHTML;}); return; }
 
-			var onLoginSuccess = function() {
-				var info = '<%:oixCloud Login Successful%>' + ', <%:Note: oixCloud need a specific core installed, OpenClash will auto download, After the core start, an oixCloud nodes provider will be added, which you can customize as needed%>';
-				OixMsg.show(info, 'success', 20000);
-				self.loggedIn = true; self.showLoggedIn(); self.loadAccountInfo(); self.startPolling(); self.fetchParams();
-			};
-
 			if (isToken) {
-				XHR.get(OIX_URLS.login, {token: data.token}, function(x2, s2) {
-					btns.forEach(function(b){ b.disabled = false; b.innerHTML = b._origHTML; });
-					if (x2 && x2.status == 200 && s2.result == 200) {
-						onLoginSuccess();
-					} else {
-						var msg = (s2 && s2.result) ? s2.result : '<%:oixCloud Login Failed%>';
-						OixMsg.show('<%:oixCloud Login Failed:%> ' + msg, 'error');
-					}
-				});
+				doStreamLogin({token: data.token});
 			} else {
-				XHR.get(OIX_URLS.login, null, function(x2, s2) {
-					btns.forEach(function(b){ b.disabled = false; b.innerHTML = b._origHTML; });
-					if (x2 && x2.status == 200 && s2.result == 200) {
-						onLoginSuccess();
-					} else {
-						var msg = (s2 && s2.result) ? s2.result : '<%:oixCloud Login Failed%>';
-						OixMsg.show('<%:oixCloud Login Failed:%> ' + msg, 'error');
-					}
-				});
+				doStreamLogin(null);
 			}
 		});
 	},

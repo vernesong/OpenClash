@@ -187,17 +187,6 @@ local function check_lastversion()
 	return SYS.exec("sed -n '/^https:/,$p' /tmp/openclash_last_version 2>/dev/null")
 end
 
-local function startlog()
-	local info = ""
-	if fs.access("/tmp/openclash_start.log") then
-		info = SYS.exec("sed -n '$p' /tmp/openclash_start.log 2>/dev/null")
-		if string.len(info) > 0 then
-			info = trans_line(info)
-		end
-	end
-	return info
-end
-
 local function coremodel()
 	if opkg and opkg.info("libc") and opkg.info("libc")["libc"] then
 		return opkg.info("libc")["libc"]["Architecture"]
@@ -1674,11 +1663,72 @@ function action_lastversion()
 	})
 end
 
+--[[
+    write_padded(data)
+    Prefix data with a newline, then pad with 4096 spaces + newline to
+    force-flush luci-compat's internal buffer (~4096 bytes).
+    Do NOT use io.popen + tail -f — C stdio full-buffers when stdout is a pipe.
+    Use ltn12_popen (nixio pipe) + shell polling instead.
+]]
+local function write_padded(data)
+	HTTP.write(data .. "\n" .. string.rep(" ", 4096) .. "\n")
+end
+
 function action_start()
-	HTTP.prepare_content("application/json")
-	HTTP.write_json({
-		startlog = startlog();
-	})
+	HTTP.prepare_content("text/plain; charset=utf-8")
+	local logfile = "/tmp/openclash_start.log"
+	local wait_mode = HTTP.formvalue("wait") == "1"
+
+	if not wait_mode then
+		if fs.access(logfile) then
+			local content = fs.readfile(logfile)
+			if content then
+				content = content:gsub("^%s+", ""):gsub("%s+$", "")
+				if content ~= "" then
+					write_padded(trans_line(content))
+				end
+			end
+		end
+		return
+	end
+
+	local cmd = string.format(
+		"old=''; while true; do content=$(cat '%s' 2>/dev/null); " ..
+		"if [ \"$content\" != \"$old\" ]; then " ..
+		"printf '%%s\\n' \"$content\"; old=\"$content\"; " ..
+		"case \"$content\" in *##FINISH##*) exit 0;; esac; " ..
+		"fi; sleep 0.5; done",
+		logfile
+	)
+	local reader = ltn12_popen(cmd)
+	if not reader then return end
+
+	local buf = ""
+	local first_read = true
+
+	while true do
+		local chunk = reader()
+		if not chunk then break end
+		buf = buf .. chunk
+		while true do
+			local nl = buf:find("\n")
+			if not nl then break end
+			local line = buf:sub(1, nl - 1)
+			buf = buf:sub(nl + 1)
+			line = line:gsub("^%s+", ""):gsub("%s+$", "")
+			if line ~= "" then
+				if first_read and line == "##FINISH##" then
+					-- stale marker from previous run, skip
+				else
+					write_padded(trans_line(line))
+					if line:find("##FINISH##") then
+						return
+					end
+				end
+				first_read = false
+			end
+		end
+	end
 end
 
 local function refresh_version_info(force)
@@ -1927,8 +1977,7 @@ function action_diag_connection()
 			while true do
 				local ln = util:read("*l")
 				if not ln then break end
-				HTTP.write(ln)
-				HTTP.write("\n")
+				write_padded(ln)
 			end
 			util:close()
 		end
@@ -1947,8 +1996,7 @@ function action_diag_dns()
 			while true do
 				local ln = util:read("*l")
 				if not ln then break end
-				HTTP.write(ln)
-				HTTP.write("\n")
+				write_padded(ln)
 			end
 			util:close()
 		end
@@ -1958,15 +2006,42 @@ function action_diag_dns()
 end
 
 function action_gen_debug_logs()
-	local gen_log = SYS.call("/usr/share/openclash/openclash_debug.sh")
-	if not gen_log then return end
-	local logfile = "/tmp/openclash_debug.log"
-	if not fs.access(logfile) then
-		return
-	end
 	HTTP.prepare_content("text/plain; charset=utf-8")
-	local reader = ltn12_popen("cat '" .. logfile .. "'")
-	luci.ltn12.pump.all(reader, HTTP.write)
+	local logfile = "/tmp/openclash_debug.log"
+
+	local cmd = string.format(
+		": > '%s'; " ..
+		"/usr/share/openclash/openclash_debug.sh >/dev/null 2>&1 & DEBUG_PID=$!; " ..
+		"bytes=0; stable=0; while true; do " ..
+		"new_bytes=$(wc -c < '%s' 2>/dev/null); " ..
+		"if [ \"$new_bytes\" -gt \"$bytes\" ] 2>/dev/null; then " ..
+		"tail -c +$((bytes + 1)) '%s'; bytes=$new_bytes; stable=0; " ..
+		"else stable=$((stable + 1)); fi; " ..
+		"if ! kill -0 $DEBUG_PID 2>/dev/null; then " ..
+		"if [ $stable -ge 2 ]; then exit 0; fi; " ..
+		"fi; sleep 0.5; done",
+		logfile, logfile, logfile
+	)
+	local reader = ltn12_popen(cmd)
+	if not reader then return end
+
+	local buf = ""
+
+	while true do
+		local chunk = reader()
+		if not chunk then break end
+		buf = buf .. chunk
+		while true do
+			local nl = buf:find("\n")
+			if not nl then break end
+			local line = buf:sub(1, nl - 1)
+			buf = buf:sub(nl + 1)
+			line = line:gsub("^%s+", ""):gsub("%s+$", "")
+			if line ~= "" then
+				HTTP.write(line .. "\n")
+			end
+		end
+	end
 end
 
 function action_get_debug_logs()
@@ -1975,13 +2050,13 @@ function action_get_debug_logs()
 		return
 	end
 	HTTP.prepare_content("text/plain; charset=utf-8")
-	local reader = ltn12_popen("cat '" .. logfile .. "'")
+	local reader = ltn12_popen("exec cat '" .. logfile .. "'")
 	luci.ltn12.pump.all(reader, HTTP.write)
 end
 
 function action_backup()
 	local config = SYS.call("cp /etc/config/openclash /etc/openclash/openclash >/dev/null 2>&1")
-	local reader = ltn12_popen("tar -C '/etc/openclash/' -cz . 2>/dev/null")
+	local reader = ltn12_popen("exec tar -C '/etc/openclash/' -cz . 2>/dev/null")
 
 	HTTP.header(
 		'Content-Disposition', 'attachment; filename="Backup-OpenClash-%s-%s-%s.tar.gz"' %{
@@ -1995,7 +2070,7 @@ end
 
 function action_backup_ex_core()
 	local config = SYS.call("cp /etc/config/openclash /etc/openclash/openclash >/dev/null 2>&1")
-	local reader = ltn12_popen("echo 'core' > /tmp/oc_exclude.txt && tar -C '/etc/openclash/' -X '/tmp/oc_exclude.txt' -cz . 2>/dev/null")
+	local reader = ltn12_popen("echo 'core' > /tmp/oc_exclude.txt && exec tar -C '/etc/openclash/' -X '/tmp/oc_exclude.txt' -cz . 2>/dev/null")
 
 	HTTP.header(
 		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Exclude-Cores-%s-%s-%s.tar.gz"' %{
@@ -2008,7 +2083,7 @@ function action_backup_ex_core()
 end
 
 function action_backup_only_config()
-	local reader = ltn12_popen("tar -C '/etc/openclash' -cz './config' 2>/dev/null")
+	local reader = ltn12_popen("exec tar -C '/etc/openclash' -cz './config' 2>/dev/null")
 
 	HTTP.header(
 		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Config-%s-%s-%s.tar.gz"' %{
@@ -2020,7 +2095,7 @@ function action_backup_only_config()
 end
 
 function action_backup_only_core()
-	local reader = ltn12_popen("tar -C '/etc/openclash' -cz './core' 2>/dev/null")
+	local reader = ltn12_popen("exec tar -C '/etc/openclash' -cz './core' 2>/dev/null")
 
 	HTTP.header(
 		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Cores-%s-%s-%s.tar.gz"' %{
@@ -2032,7 +2107,7 @@ function action_backup_only_core()
 end
 
 function action_backup_only_rule()
-	local reader = ltn12_popen("tar -C '/etc/openclash' -cz './rule_provider' 2>/dev/null")
+	local reader = ltn12_popen("exec tar -C '/etc/openclash' -cz './rule_provider' 2>/dev/null")
 
 	HTTP.header(
 		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Only-Rule-Provider-%s-%s-%s.tar.gz"' %{
@@ -2044,7 +2119,7 @@ function action_backup_only_rule()
 end
 
 function action_backup_only_proxy()
-	local reader = ltn12_popen("tar -C '/etc/openclash' -cz './proxy_provider' 2>/dev/null")
+	local reader = ltn12_popen("exec tar -C '/etc/openclash' -cz './proxy_provider' 2>/dev/null")
 
 	HTTP.header(
 		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Proxy-Provider-%s-%s-%s.tar.gz"' %{
@@ -2056,32 +2131,68 @@ function action_backup_only_proxy()
 end
 
 function ltn12_popen(command)
-
 	local fdi, fdo = nixio.pipe()
+	if not fdi or not fdo then return nil end
+
 	local pid = nixio.fork()
 
 	if pid > 0 then
 		fdo:close()
-		local close
-		return function()
-			local buffer = fdi:read(2048)
-			local wpid, stat = nixio.waitpid(pid, "nohang")
-			if not close and wpid and stat == "exited" then
-				close = true
-			end
+		local reaped = false
 
+		local function _read()
+			-- Always drain pipe first — child may have exited after writing
+			-- data that is still buffered.
+			local buffer = fdi:read(16384)
 			if buffer and #buffer > 0 then
 				return buffer
-			elseif close then
-				fdi:close()
+			end
+
+			-- No data ready: check whether child is still alive
+			if not reaped then
+				local wpid = nixio.waitpid(pid, "nohang")
+				if wpid then
+					reaped = true
+				end
+			end
+
+			if reaped then
+				-- Child gone and pipe drained → true EOF
+				pcall(fdi.close, fdi)
 				return nil
+			else
+				-- Child alive, pipe temporarily empty → caller should retry
+				nixio.nanosleep(0, 50000000)
+				return ""
 			end
 		end
+
+		local function _kill()
+			if not reaped then
+				pcall(nixio.kill, pid, nixio.const.SIGTERM)
+				nixio.nanosleep(0, 100000000)
+				pcall(nixio.kill, pid, nixio.const.SIGKILL)
+				nixio.waitpid(pid, 0)
+				reaped = true
+			end
+			pcall(fdi.close, fdi)
+		end
+
+		-- Lua 5.1 does not allow setting fields on functions.
+		-- Use a callable table: reader() invokes __call, reader.kill() is a table field.
+		local wrapper = { kill = _kill }
+		setmetatable(wrapper, { __call = function(_, ...) return _read(...) end })
+		return wrapper
 	elseif pid == 0 then
 		nixio.dup(fdo, nixio.stdout)
 		fdi:close()
 		fdo:close()
 		nixio.exec("/bin/sh", "-c", command)
+		os.exit(127)
+	else
+		fdi:close()
+		fdo:close()
+		return nil
 	end
 end
 
@@ -2130,9 +2241,9 @@ function manual_stream_unlock_test()
 	if util and util ~= "" then
 		while true do
 			local ln = util:read("*l")
-			if ln then
-				HTTP.write(trans_line(ln))
-				HTTP.write("\n")
+			if not ln then break end
+			if ln ~= "" then
+				write_padded(trans_line(ln))
 			end
 			if not process_status("openclash_streaming_unlock.lua "..type) or not process_status("openclash_streaming_unlock.lua ") then
 				break
@@ -2152,9 +2263,9 @@ function all_proxies_stream_test()
 	if util and util ~= "" then
 		while true do
 			local ln = util:read("*l")
-			if ln then
-				HTTP.write(trans_line(ln))
-				HTTP.write("\n")
+			if not ln then break end
+			if ln ~= "" then
+				write_padded(trans_line(ln))
 			end
 			if not process_status("openclash_streaming_unlock.lua "..type) or not process_status("openclash_streaming_unlock.lua ") then
 				break
@@ -2259,6 +2370,7 @@ end
 function action_myip_check()
 	local result = {}
 	local random = math.random(100000000)
+	HTTP.prepare_content("text/plain; charset=utf-8")
 
 	local services = {
 		{
@@ -2404,13 +2516,21 @@ function action_myip_check()
 	end
 
 	local queries = {}
+	local pending_services = {}
+	local MAX_CONCURRENT = 3
 
 	for _, service in ipairs(services) do
-		local query = create_concurrent_query(service)
+		table.insert(pending_services, service)
+	end
+
+	for _ = 1, MAX_CONCURRENT do
+		if #pending_services == 0 then break end
+		local s = table.remove(pending_services, 1)
+		local query = create_concurrent_query(s)
 		if query then
-			queries[service.name] = {
+			queries[s.name] = {
 				query = query,
-				parser = service.parser,
+				parser = s.parser,
 				data = ""
 			}
 		end
@@ -2424,13 +2544,14 @@ function action_myip_check()
 		return
 	end
 
-	local max_iterations = 140
+	local max_iterations = 280
 	local iteration = 0
 	local delay = 50000000
 	local completed = {}
 
 	while iteration < max_iterations do
 		iteration = iteration + 1
+		local new_queries = {}
 
 		for name, info in pairs(queries) do
 			if not completed[name] then
@@ -2448,9 +2569,21 @@ function action_myip_check()
 					local parsed_result = info.parser(info.data)
 					if parsed_result then
 						result[name] = parsed_result
+						write_padded(json.stringify({ service = name, ip = parsed_result.ip, geo = parsed_result.geo }))
 					end
 
-					queries[name] = nil
+					while #pending_services > 0 do
+						local next_s = table.remove(pending_services, 1)
+						local next_q = create_concurrent_query(next_s)
+						if next_q then
+							new_queries[next_s.name] = {
+								query = next_q,
+								parser = next_s.parser,
+								data = ""
+							}
+							break
+						end
+					end
 				else
 					local still_running = SYS.call(string.format("kill -0 %d 2>/dev/null", info.query.pid)) == 0
 					if not still_running then
@@ -2460,20 +2593,36 @@ function action_myip_check()
 						local parsed_result = info.parser(info.data)
 						if parsed_result then
 							result[name] = parsed_result
+							write_padded(json.stringify({ service = name, ip = parsed_result.ip, geo = parsed_result.geo }))
 						end
 
-						queries[name] = nil
+						while #pending_services > 0 do
+							local next_s = table.remove(pending_services, 1)
+							local next_q = create_concurrent_query(next_s)
+							if next_q then
+								new_queries[next_s.name] = {
+									query = next_q,
+									parser = next_s.parser,
+									data = ""
+								}
+								break
+							end
+						end
 					end
 				end
 			end
 		end
 
-		local remaining_count = 0
-		for _ in pairs(queries) do
-			remaining_count = remaining_count + 1
+		for name, _ in pairs(queries) do
+			if completed[name] then
+				queries[name] = nil
+			end
+		end
+		for name, info in pairs(new_queries) do
+			queries[name] = info
 		end
 
-		if remaining_count == 0 then
+		if next(queries) == nil then
 			break
 		end
 
@@ -2484,13 +2633,14 @@ function action_myip_check()
 	for name, info in pairs(queries) do
 		if not completed[name] then
 			result[name] = { ip = "", geo = "", error = "timeout" }
+			write_padded(json.stringify({ service = name, error = "timeout" }))
 			pcall(nixio.kill, info.query.pid, nixio.const.SIGTERM)
 			pcall(nixio.waitpid, info.query.pid, 0)
 			pcall(info.query.close)
 		end
 	end
 
-	if result.ipify and result.ipify.ip then
+	if result.ipify and result.ipify.ip and result.ipify.ip ~= "" then
 		local geo_cmd = string.format(
 			'curl -sL -m 5 --retry 2 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "https://api-ipv4.ip.sb/geoip/%s" 2>/dev/null',
 			result.ipify.ip
@@ -2507,16 +2657,17 @@ function action_myip_check()
 				if geo_json.isp and geo_json.isp ~= "" then
 					table.insert(geo_parts, geo_json.isp)
 				end
-				result.ipify.geo = table.concat(geo_parts, " ")
+				local geo = table.concat(geo_parts, " ")
+				result.ipify.geo = geo
+				write_padded(json.stringify({ service = "ipify", geo = geo }))
 			end
 		end
 	end
 
-	HTTP.prepare_content("application/json")
-	HTTP.write_json(result)
+	write_padded(json.stringify({ _complete = true }))
 end
 
-function latency_test(addr)
+function latency_test(addr, on_result)
 	local result = { success = false, response_time = 0, error = "" }
 
 	if not addr then
@@ -2640,6 +2791,7 @@ function latency_test(addr)
 			result.success = true
 			result.response_time = first_success
 			result.error = ""
+			if on_result then on_result(result) end
 			return result
 		end
 
@@ -2664,13 +2816,26 @@ function latency_test(addr)
 	result.success = false
 	result.response_time = last_failure.response_time
 	result.error = last_failure.error
+	if on_result then on_result(result) end
 	return result
 end
 
 function action_website_check()
+	local domains_raw = HTTP.formvalue("domains")
 	local domain = HTTP.formvalue("domain")
 
-	if not domain then
+	-- Build domain list: prefer "domains" param, fall back to single "domain"
+	local domain_list = {}
+	if domains_raw and domains_raw ~= "" then
+		for d in domains_raw:gmatch("[^,]+") do
+			d = d:gsub("^%s+", ""):gsub("%s+$", "")
+			if d ~= "" then domain_list[#domain_list + 1] = d end
+		end
+	elseif domain and domain ~= "" then
+		domain_list[#domain_list + 1] = domain
+	end
+
+	if #domain_list == 0 then
 		HTTP.prepare_content("application/json")
 		HTTP.write_json({
 			success = false,
@@ -2680,10 +2845,198 @@ function action_website_check()
 		return
 	end
 
-	local result = latency_test(domain)
+	HTTP.prepare_content("text/plain; charset=utf-8")
 
-	HTTP.prepare_content("application/json")
-	HTTP.write_json(result)
+	-- Single domain: simple path
+	if #domain_list == 1 then
+		latency_test(domain_list[1], function(r)
+			write_padded(json.stringify(r))
+		end)
+		return
+	end
+
+	-- Multiple domains: limit concurrent domains, stream each result as it completes
+	local MAX_CONCURRENT_DOMAINS = 2
+	local pending_domains = {}
+	for _, d in ipairs(domain_list) do
+		table.insert(pending_domains, d)
+	end
+
+	local function launch_domain(d)
+		local urls = {
+			"https://" .. d .. "/favicon.ico",
+			"https://" .. d
+		}
+		local sub_queries = {}
+		for _, test_url in ipairs(urls) do
+			local fdi, fdo = nixio.pipe()
+			if fdi and fdo then
+				local pid = nixio.fork()
+				if pid > 0 then
+					fdo:close()
+					sub_queries[#sub_queries + 1] = { pid = pid, fdi = fdi, data = "", done = false }
+				elseif pid == 0 then
+					nixio.dup(fdo, nixio.stdout)
+					fdi:close()
+					fdo:close()
+					local cmd = string.format(
+						'curl -sI -m 5 --connect-timeout 3 --retry 2 -w "%%{http_code},%%{time_total},%%{time_connect},%%{time_appconnect}" "%s" -o /dev/null 2>/dev/null',
+						test_url
+					)
+					nixio.exec("/bin/sh", "-c", cmd)
+				else
+					if fdi then fdi:close() end
+					if fdo then fdo:close() end
+				end
+			end
+		end
+		return sub_queries
+	end
+
+	local function kill_domain_queries(sub_queries)
+		for _, sq in ipairs(sub_queries) do
+			if not sq.done then
+				pcall(nixio.kill, sq.pid, nixio.const.SIGTERM)
+				pcall(nixio.waitpid, sq.pid, 0)
+				pcall(sq.fdi.close, sq.fdi)
+				sq.done = true
+			end
+		end
+	end
+
+	local function parse_latency(data)
+		if not data or data == "" then return nil, "No response" end
+		local http_code, time_total, time_connect, time_appconnect =
+			data:match("(%d+),([%d%.]+),([%d%.]+),([%d%.]+)")
+		if not http_code then
+			http_code, time_total, time_appconnect = data:match("(%d+),([%d%.]+),([%d%.]+)")
+		end
+		if http_code and tonumber(http_code) then
+			local code = tonumber(http_code)
+			local rt = 0
+			if time_appconnect and tonumber(time_appconnect) > 0 then
+				rt = math.floor(tonumber(time_appconnect) * 1000)
+			elseif time_connect and tonumber(time_connect) > 0 then
+				rt = math.floor(tonumber(time_connect) * 1000)
+			else
+				rt = math.floor((tonumber(time_total) or 0) * 1000)
+			end
+			if (code >= 200 and code < 400) or code == 403 or code == 404 then
+				return rt, nil
+			else
+				return rt, "HTTP " .. code
+			end
+		end
+		return nil, "Invalid response"
+	end
+
+	local function check_sub_query(sq)
+		local buf = sq.fdi:read(4096)
+		if buf then sq.data = sq.data .. buf end
+		local wpid = nixio.waitpid(sq.pid, "nohang")
+		if wpid then
+			pcall(sq.fdi.close, sq.fdi)
+			sq.done = true
+			return parse_latency(sq.data)
+		else
+			local alive = SYS.call(string.format("kill -0 %d 2>/dev/null", sq.pid)) == 0
+			if not alive then
+				pcall(sq.fdi.close, sq.fdi)
+				sq.done = true
+				return parse_latency(sq.data)
+			end
+		end
+		return nil, nil  -- still running
+	end
+
+	local active_domains = {}  -- { [domain] = { sub_queries, domain_done } }
+	local domains_completed = {}
+	local delay = 50000000
+	local max_iter = 280  -- increased for batched execution
+	local iter = 0
+
+	-- Launch initial batch
+	while #pending_domains > 0 and #active_domains < MAX_CONCURRENT_DOMAINS do
+		local d = table.remove(pending_domains, 1)
+		local sqs = launch_domain(d)
+		if #sqs > 0 then
+			active_domains[d] = { sub_queries = sqs, domain_done = false }
+		else
+			domains_completed[d] = true
+			write_padded(json.stringify({ domain = d, success = false, response_time = 0, error = "Failed to launch" }))
+		end
+	end
+
+	while iter < max_iter do
+		iter = iter + 1
+
+		for d, ad in pairs(active_domains) do
+			if not ad.domain_done then
+				local first_success_result = nil
+				local last_failure_result = nil
+				local all_done = true
+
+				for _, sq in ipairs(ad.sub_queries) do
+					if not sq.done then
+						local rt, err = check_sub_query(sq)
+						if rt and not err then
+							first_success_result = { success = true, response_time = rt, error = "" }
+						elseif rt or err then
+							last_failure_result = { success = false, response_time = rt or 0, error = err or "No response" }
+						else
+							all_done = false
+						end
+					end
+				end
+
+				if first_success_result or all_done then
+					ad.domain_done = true
+					domains_completed[d] = true
+					kill_domain_queries(ad.sub_queries)
+
+					local result = first_success_result or last_failure_result or { success = false, response_time = 0, error = "No response" }
+					result.domain = d
+					write_padded(json.stringify(result))
+
+					-- Launch next pending domain
+					while #pending_domains > 0 do
+						local next_d = table.remove(pending_domains, 1)
+						local sqs = launch_domain(next_d)
+						if #sqs > 0 then
+							active_domains[next_d] = { sub_queries = sqs, domain_done = false }
+							break
+						else
+							domains_completed[next_d] = true
+							write_padded(json.stringify({ domain = next_d, success = false, response_time = 0, error = "Failed to launch" }))
+						end
+					end
+				end
+			end
+		end
+
+		local all_done = true
+		for _, d in ipairs(domain_list) do
+			if not domains_completed[d] then all_done = false; break end
+		end
+		if all_done then break end
+
+		nixio.nanosleep(0, delay)
+		delay = math.min(delay * 2, 200000000)
+	end
+
+	-- Timeout remaining active domains
+	for d, ad in pairs(active_domains) do
+		if not domains_completed[d] then
+			kill_domain_queries(ad.sub_queries)
+			domains_completed[d] = true
+			write_padded(json.stringify({ domain = d, success = false, response_time = 0, error = "timeout" }))
+		end
+	end
+
+	-- Timeout any pending domains that never launched
+	for _, d in ipairs(pending_domains) do
+		write_padded(json.stringify({ domain = d, success = false, response_time = 0, error = "timeout" }))
+	end
 end
 
 function action_version_history()
@@ -2701,13 +3054,37 @@ function action_version_history()
 			if ok and parsed and parsed._cached_at and parsed._oix == cur_oix then
 				local ttl = parsed._cache_ttl or 300
 				if (os.time() - parsed._cached_at) < ttl then
-					HTTP.prepare_content("application/json")
-					HTTP.write(cached)
+					HTTP.prepare_content("text/plain; charset=utf-8")
+					if parsed.plugin then
+						for _, entry in ipairs(parsed.plugin) do
+							entry.type = "plugin"
+							write_padded(json.stringify(entry))
+						end
+					end
+					if parsed.core_meta then
+						for _, entry in ipairs(parsed.core_meta) do
+							entry.type = "core_meta"
+							write_padded(json.stringify(entry))
+						end
+					end
+					if parsed.core_smart then
+						for _, entry in ipairs(parsed.core_smart) do
+							entry.type = "core_smart"
+							write_padded(json.stringify(entry))
+						end
+					end
+					local complete_line = {_complete = true}
+					if parsed.error then
+						complete_line.error = parsed.error
+					end
+					write_padded(json.stringify(complete_line))
 					return
 				end
 			end
 		end
 	end
+
+	HTTP.prepare_content("text/plain; charset=utf-8")
 
 	local function _fork_file_fetch(sha, file_path)
 		local fdi, fdo = nixio.pipe()
@@ -2817,17 +3194,21 @@ function action_version_history()
 				if raw and raw ~= "" then
 					ver = raw:match("^[^\n\r]*"):gsub("^%s+", ""):gsub("%s+$", "")
 				end
-				table.insert(result.plugin, {
+				local entry = {
+					type = "plugin",
 					version = (ver and ver ~= "") and ver or nil,
 					date = c.date,
 					sha = c.sha,
 					message = c.message
-				})
+				}
+				table.insert(result.plugin, entry)
+				write_padded(json.stringify(entry))
 			end
 		end
 	end
 
 	if not skip_core then
+		io.flush()
 		local core_raw = SYS.exec(
 			'curl -sL -m 10 -w "\\nHTTP_CODE:%{http_code}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/vernesong/OpenClash/commits?path=' .. branch .. '/core_version&sha=core&per_page=5" 2>/dev/null'
 		)
@@ -2859,13 +3240,17 @@ function action_version_history()
 						if meta_ver then
 							meta_ver = meta_ver:gsub("^%s+", ""):gsub("%s+$", "")
 							if meta_ver ~= "" then
-								table.insert(result.core_meta, { version = meta_ver, date = c.date, sha = c.sha })
+								local meta_entry = { type = "core_meta", version = meta_ver, date = c.date, sha = c.sha }
+								table.insert(result.core_meta, meta_entry)
+								write_padded(json.stringify(meta_entry))
 							end
 						end
 						if smart_ver then
 							smart_ver = smart_ver:gsub("^%s+", ""):gsub("%s+$", "")
 							if smart_ver ~= "" then
-								table.insert(result.core_smart, { version = smart_ver, date = c.date, sha = c.sha })
+								local smart_entry = { type = "core_smart", version = smart_ver, date = c.date, sha = c.sha }
+								table.insert(result.core_smart, smart_entry)
+								write_padded(json.stringify(smart_entry))
 							end
 						end
 					end
@@ -2894,29 +3279,37 @@ function action_version_history()
 	result._oix = cur_oix
 	fs.writefile(cache_file, json.stringify(result))
 
-	HTTP.prepare_content("application/json")
-	HTTP.write_json(result)
+	local complete_line = {_complete = true}
+	if result.error then
+		complete_line.error = result.error
+	end
+	write_padded(json.stringify(complete_line))
 end
 
 function action_cdn_info()
-	HTTP.prepare_content("application/json")
+	HTTP.prepare_content("text/plain; charset=utf-8")
 	local cdns_raw = HTTP.formvalue("cdns")
 	local branch = HTTP.formvalue("branch") or "dev"
 	local plugin_ver = HTTP.formvalue("plugin_ver") or ""
 	local core_ver = HTTP.formvalue("core_ver") or ""
 
 	if not cdns_raw or cdns_raw == "" then
-		HTTP.write_json({ error = "Missing cdns parameter" })
+		HTTP.write('{"_complete":true,"error":"Missing cdns parameter"}\n')
 		return
 	end
 
 	local cdns = {}
+	local seen = {}
 	for c in cdns_raw:gmatch("[^,]+") do
-		if c ~= "" then table.insert(cdns, c) end
+		c = c:gsub("^%s+", ""):gsub("%s+$", "")
+		if c ~= "" and not seen[c] then
+			seen[c] = true
+			table.insert(cdns, c)
+		end
 	end
 
 	if #cdns == 0 then
-		HTTP.write_json({ error = "No valid CDNs" })
+		HTTP.write('{"_complete":true,"error":"No valid CDNs"}\n')
 		return
 	end
 
@@ -2932,7 +3325,17 @@ function action_cdn_info()
 			if ok and parsed and parsed._cached_at and parsed._oix == cur_oix then
 				local ttl = parsed._cache_ttl or 300
 				if (os.time() - parsed._cached_at) < ttl then
-					HTTP.write_json(parsed.result)
+					if parsed.result then
+						for cdn, info in pairs(parsed.result) do
+							info.cdn = cdn
+							HTTP.write(json.stringify(info) .. "\n")
+						end
+					end
+					local complete_line = {_complete = true}
+					if parsed.result and parsed.result.error then
+						complete_line.error = parsed.result.error
+					end
+					HTTP.write(json.stringify(complete_line) .. "\n")
 					return
 				end
 			end
@@ -3084,7 +3487,7 @@ printf '{"plugin_ver":"%%s","core_meta_ver":"%%s","core_smart_ver":"%%s","latenc
 	end
 
 	if next(queries) == nil then
-		HTTP.write_json({ error = "Failed to create queries" })
+		HTTP.write('{"_complete":true,"error":"Failed to create queries"}\n')
 		return
 	end
 
@@ -3111,6 +3514,8 @@ printf '{"plugin_ver":"%%s","core_meta_ver":"%%s","core_smart_ver":"%%s","latenc
 					if not result[cdn] then
 						result[cdn] = { plugin_ver = "", core_meta_ver = "", latency = nil }
 					end
+					result[cdn].cdn = cdn
+					write_padded(json.stringify(result[cdn]))
 					queries[cdn] = nil
 				else
 					local alive = SYS.call(string.format("kill -0 %d 2>/dev/null", q.pid)) == 0
@@ -3127,6 +3532,8 @@ printf '{"plugin_ver":"%%s","core_meta_ver":"%%s","core_smart_ver":"%%s","latenc
 						if not result[cdn] then
 							result[cdn] = { plugin_ver = "", core_meta_ver = "", latency = nil }
 						end
+						result[cdn].cdn = cdn
+						write_padded(json.stringify(result[cdn]))
 						queries[cdn] = nil
 					end
 				end
@@ -3158,9 +3565,11 @@ printf '{"plugin_ver":"%%s","core_meta_ver":"%%s","core_smart_ver":"%%s","latenc
 	for cdn, q in pairs(queries) do
 		if not completed[cdn] then
 			result[cdn] = { plugin_ver = "", core_meta_ver = "", latency = nil }
+			result[cdn].cdn = cdn
 			pcall(nixio.kill, q.pid, nixio.const.SIGTERM)
 			pcall(nixio.waitpid, q.pid, 0)
 			pcall(q.fdi.close, q.fdi)
+			write_padded(json.stringify(result[cdn]))
 		end
 	end
 
@@ -3183,6 +3592,9 @@ printf '{"plugin_ver":"%%s","core_meta_ver":"%%s","core_smart_ver":"%%s","latenc
 	end
 	if all_stale and next(result) ~= nil then
 		result.error = "version_stale"
+		HTTP.write('{"_complete":true,"error":"version_stale"}\n')
+	else
+		HTTP.write('{"_complete":true}\n')
 	end
 
 	fs.writefile(cache_file, json.stringify({
@@ -3191,8 +3603,6 @@ printf '{"plugin_ver":"%%s","core_meta_ver":"%%s","core_smart_ver":"%%s","latenc
 		_cached_at = os.time(),
 		_oix = cur_oix
 	}))
-
-	HTTP.write_json(result)
 end
 
 function action_proxy_info(internal)
@@ -5352,6 +5762,8 @@ function oix_params_get()
 end
 
 local function fetch_oix_sub(token)
+	HTTP.write('{"stage":"fetching_sub","text":"' .. luci.i18n.translate("Fetching subscription...") .. '"}\n')
+	io.flush()
 	local get_sub = string.format("curl -sL -H 'Content-Type: application/json' -H 'Authorization: Bearer %s' -X POST https://oix-api.dler.io/api/v1/managed/clash", token)
 	local sub_info = SYS.exec(get_sub)
 	if sub_info then sub_info = json.parse(sub_info) end
@@ -5380,11 +5792,17 @@ local function fetch_oix_sub(token)
 				break
 			end
 			if sub_info[v] then
+				HTTP.write('{"stage":"downloading_config","text":"' .. luci.i18n.translate("Downloading config...") .. '"}\n')
+				io.flush()
 				SYS.exec(string.format('curl -sL -m 10 --retry 2 --user-agent "clash" "%s" -o "/etc/openclash/config/oixCloud - smart.yaml" >/dev/null 2>&1', sub_info[v]))
 				local core = coremetacv()
 				if core ~= "0" and not string.match(core, "oix") then
+					HTTP.write('{"stage":"downloading_core","text":"' .. luci.i18n.translate("Downloading core...") .. '"}\n')
+					io.flush()
 					SYS.exec("/usr/share/openclash/openclash_core.sh Oix")
 				else
+					HTTP.write('{"stage":"restarting","text":"' .. luci.i18n.translate("Restarting...") .. '"}\n')
+					io.flush()
 					SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
 				end
 			end
@@ -5395,24 +5813,29 @@ local function fetch_oix_sub(token)
 end
 
 function oix_login()
+	HTTP.prepare_content("text/plain; charset=utf-8")
 	local result, info, token
 	local input_token = HTTP.formvalue("token")
 	local email = fs.uci_get_config("config", "oix_email")
 	local passwd = fs.uci_get_config("config", "oix_passwd")
 	if input_token and input_token ~= "" then
 		-- Token direct login mode
+		write_padded('{"stage":"saving_token","text":"' .. luci.i18n.translate("Saving token...") .. '"}')
+		io.flush()
 		uci:set("openclash", "config", "oix_token", input_token)
 		uci:commit("openclash")
 		token = input_token
 		if fetch_oix_sub(token) then
-			result = 200
+			write_padded('{"stage":"done","result":200}')
 		else
-			result = "invalid token"
+			write_padded('{"stage":"error","result":' .. json.stringify(luci.i18n.translate("invalid token")) .. '}')
 		end
 	else
 		-- Email/password login mode
 		token = fs.uci_get_config("config", "oix_token")
 		if email and passwd then
+			write_padded('{"stage":"logging_in","text":"' .. luci.i18n.translate("Logging in...") .. '"}')
+			io.flush()
 			info = SYS.exec(string.format("curl -sL -H 'Content-Type: application/json' -H 'User-Agent: OpenClash for oixCloud' -d '{\"email\":\"%s\", \"passwd\":\"%s\", \"token_expire\":\"365\" }' -X POST https://oix-api.dler.io/api/v1/login", email, passwd))
 			if info then
 				info = json.parse(info)
@@ -5426,6 +5849,7 @@ function oix_login()
 				uci:commit("openclash")
 				result = info.ret
 				fetch_oix_sub(token)
+				write_padded('{"stage":"done","result":200}')
 			else
 				uci:delete("openclash", "config", "oix_token")
 				uci:commit("openclash")
@@ -5434,25 +5858,19 @@ function oix_login()
 				if info and info.msg then
 					result = info.msg
 				else
-					result = "login failed"
+					result = luci.i18n.translate("login failed")
 				end
-				HTTP.prepare_content("application/json")
-				HTTP.write_json({result = result})
-				return
+				write_padded('{"stage":"error","result":' .. json.stringify(result) .. '}')
 			end
 		else
 			uci:delete("openclash", "config", "oix_token")
 			uci:commit("openclash")
 			fs.unlink("/tmp/oix_checkin")
 			fs.unlink("/tmp/oix_info")
-			result = "email or passwd is wrong"
-			HTTP.prepare_content("application/json")
-			HTTP.write_json({result = result})
-			return
+			result = luci.i18n.translate("email or passwd is wrong")
+			write_padded('{"stage":"error","result":' .. json.stringify(result) .. '}')
 		end
 	end
-	HTTP.prepare_content("application/json")
-	HTTP.write_json({result = result})
 end
 
 function oix_logout(oldtoken)
