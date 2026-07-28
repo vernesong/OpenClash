@@ -24,10 +24,13 @@
     --primary-color: #3b82f6;
     --success-color: #059669;
     --success-dark: #047857;
+    --info-color: #0891b2;
     --tip-color: #f59e0b;
     --error-color: #dc2626;
     --warning-color: #ff00bb;
+    --debug-color: #2563eb;
     --watchdog-color: #b300ff;
+    --fatal-color: #dc2626;
 
     /* ── Shadows · Radii · Transitions ── */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -166,10 +169,13 @@ html[data-darkmode="true"] .oc {
     --primary-color: #3b82f6;
     --success-color: #34d399;
     --success-dark: #10b981;
+    --info-color: #22d3ee;
     --tip-color: #f9bb51;
     --error-color: #ff7070;
     --warning-color: #fa41c8;
+    --debug-color: #60a5fa;
     --watchdog-color: #c147f5;
+    --fatal-color: #ff7070;
 
     /* ── Stripe ── */
     --stripe-color: rgba(0, 0, 0, 0.255);

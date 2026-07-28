@@ -1695,6 +1695,24 @@ msgstr "Descargando lista CIDR de China (IPv4)..."
 msgid "Start Downloading The Chnroute6 Cidr List..."
 msgstr "Descargando lista CIDR de China (IPv6)..."
 
+msgid "Version info not ready, please wait and try again"
+msgstr "Información de versión no disponible, inténtelo de nuevo"
+
+msgid "Link access timed out, cannot download"
+msgstr "Tiempo de acceso al enlace agotado, no se puede descargar"
+
+msgid "Link access failed, cannot download"
+msgstr "Acceso al enlace fallido, no se puede descargar"
+
+msgid "Failed to get plugin version info from this link, please check again later"
+msgstr "No se pudo obtener la versión del plugin de este enlace, inténtelo más tarde"
+
+msgid "Failed to get core version info from this link, please check again later"
+msgstr "No se pudo obtener la versión del núcleo de este enlace, inténtelo más tarde"
+
+msgid "The selected version is the same as the installed version, no need to update"
+msgstr "La versión seleccionada es la misma que la instalada, no es necesario actualizar"
+
 msgid "Chnroute Cidr List Download Success, Check Updated..."
 msgstr "Lista CIDR de China (IPv4) descargada correctamente, comprobando actualizaciones..."
 

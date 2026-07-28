@@ -1677,27 +1677,16 @@ end
 function action_start()
 	HTTP.prepare_content("text/plain; charset=utf-8")
 	local logfile = "/tmp/openclash_start.log"
-	local wait_mode = HTTP.formvalue("wait") == "1"
-
-	if not wait_mode then
-		if fs.access(logfile) then
-			local content = fs.readfile(logfile)
-			if content then
-				content = content:gsub("^%s+", ""):gsub("%s+$", "")
-				if content ~= "" then
-					write_padded(trans_line(content))
-				end
-			end
-		end
-		return
-	end
 
 	local cmd = string.format(
-		"old=''; while true; do content=$(cat '%s' 2>/dev/null); " ..
+		"old=''; elapsed=0; while true; do content=$(cat '%s' 2>/dev/null); " ..
 		"if [ \"$content\" != \"$old\" ]; then " ..
-		"printf '%%s\\n' \"$content\"; old=\"$content\"; " ..
+		"printf '%%s\\n' \"$content\"; old=\"$content\"; elapsed=0; " ..
 		"case \"$content\" in *##FINISH##*) exit 0;; esac; " ..
-		"fi; sleep 0.5; done",
+		"fi; sleep 0.5; elapsed=$((elapsed + 1)); " ..
+		"if [ $elapsed -ge 120 ]; then " ..
+		"printf '%%s\\n' '##FINISH##'; exit 0; " ..
+		"fi; done",
 		logfile
 	)
 	local reader = ltn12_popen(cmd)
@@ -2012,14 +2001,15 @@ function action_gen_debug_logs()
 	local cmd = string.format(
 		": > '%s'; " ..
 		"/usr/share/openclash/openclash_debug.sh >/dev/null 2>&1 & DEBUG_PID=$!; " ..
-		"bytes=0; stable=0; while true; do " ..
+		"bytes=0; stable=0; elapsed=0; while true; do " ..
 		"new_bytes=$(wc -c < '%s' 2>/dev/null); " ..
 		"if [ \"$new_bytes\" -gt \"$bytes\" ] 2>/dev/null; then " ..
-		"tail -c +$((bytes + 1)) '%s'; bytes=$new_bytes; stable=0; " ..
+		"tail -c +$((bytes + 1)) '%s'; bytes=$new_bytes; stable=0; elapsed=0; " ..
 		"else stable=$((stable + 1)); fi; " ..
 		"if ! kill -0 $DEBUG_PID 2>/dev/null; then " ..
 		"if [ $stable -ge 2 ]; then exit 0; fi; " ..
-		"fi; sleep 0.5; done",
+		"fi; sleep 0.5; elapsed=$((elapsed + 1)); " ..
+		"if [ $elapsed -ge 120 ]; then exit 0; fi; done",
 		logfile, logfile, logfile
 	)
 	local reader = ltn12_popen(cmd)

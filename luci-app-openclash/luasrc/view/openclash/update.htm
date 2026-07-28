@@ -218,20 +218,29 @@
 		});
 	}
 
-	function _startPollingLog() {
+	function _startPollingLog(isButtonTrigger) {
 		if (_startLogXHR) { _startLogXHR.abort(); _startLogXHR = null; }
 		if (_startLogReconnect) { clearTimeout(_startLogReconnect); _startLogReconnect = null; }
 
+		if (isButtonTrigger) {
+			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function() {
+				_doStreamLog();
+			});
+		}
+	}
+
+	function _doStreamLog() {
 		var xhr = new XMLHttpRequest();
-		xhr.timeout = 5000;
+		xhr.timeout = 0;
 		xhr.open('GET', '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', true);
 		xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-		xhr.onload = function() {
-			_startLogXHR = null;
-			if (xhr.status != 200) { _scheduleLogReconnect(); return; }
+
+		xhr.onprogress = function() {
+			if (_startLogXHR !== xhr) return;
 			var text = xhr.responseText || '';
 			if (text.indexOf('##FINISH##') >= 0) {
-				_showRandomTip();
+				_startLogXHR = null;
+				setTimeout(function() { _showRandomTip(); }, 3000);
 				if (text.match('level=fatal')) {
 					XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function() {});
 					var msg = (text.split('msg=')[1] || '').replace('##FINISH##', '').trim();
@@ -240,15 +249,17 @@
 				return;
 			}
 			if (text.match('level=fatal')) {
+				_startLogXHR = null;
 				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function() {});
 				var msg = (text.split('msg=')[1] || '').replace('##FINISH##', '').trim();
 				if (msg) alert('<%:OpenClash Start Failed%> :\n\n' + msg);
 				return;
 			}
-			var lines = text.split('\n');
+			var raw = text.replace('##FINISH##', '');
+			var lines = raw.split('\n');
 			var lastLine = '';
 			for (var i = lines.length - 1; i >= 0; i--) {
-				var t = lines[i].replace('##FINISH##', '').trim();
+				var t = lines[i].trim();
 				if (t) { lastLine = t; break; }
 			}
 			if (lastLine) {
@@ -263,29 +274,30 @@
 				if (!colored) {
 					update_tip.innerHTML = '<b style=color:var(--info-color)>' + lastLine + '</b>';
 				}
-			} else {
-				_showRandomTip();
 			}
+			}
+		};
+
+		xhr.onload = function() {
+			if (_startLogXHR !== xhr) return;
+			_startLogXHR = null;
 			_scheduleLogReconnect();
 		};
+
 		xhr.onerror = function() {
+			if (_startLogXHR !== xhr) return;
 			_startLogXHR = null;
 			_scheduleLogReconnect();
 		};
-		xhr.ontimeout = function() {
-			_startLogXHR = null;
-			xhr.abort();
-			_scheduleLogReconnect();
-		};
+
 		xhr.send();
 		_startLogXHR = xhr;
 	}
 
 	function _scheduleLogReconnect() {
 		if (_startLogReconnect) clearTimeout(_startLogReconnect);
-		_startLogReconnect = setTimeout(_startPollingLog, 3000);
+		_startLogReconnect = setTimeout(function() { _startPollingLog(false); }, 3000);
 	}
-
 	function _showRandomTip() {
 		var tips = [
 			'<b style=color:var(--info-color)><%:Note: if the update fails, you can manually download and upload%></b>',
@@ -370,7 +382,7 @@
 	}
 
 	function core_update(btn, type) {
-		_startPollingLog();
+		_startPollingLog(true);
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "coreupdate")%>', { core_type: type }, function() {
 			btn.value = '<%:Check And Update%>';
 			btn.disabled = false;
@@ -378,7 +390,7 @@
 	}
 
 	function op_update(btn) {
-		_startPollingLog();
+		_startPollingLog(true);
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "opupdate")%>', null, function() {
 			btn.value = '<%:Check And Update%>';
 			btn.disabled = false;
@@ -444,7 +456,7 @@
 	function all_one_key_update_cdn(btn) {
 		btn.value = '<%:Check Update%>';
 		btn.disabled = false;
-		_startPollingLog();
+		_startPollingLog(true);
 		return select_git_cdn('one_key_update');
 	}
 

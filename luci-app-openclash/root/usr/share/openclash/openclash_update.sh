@@ -112,8 +112,6 @@ if [ -n "$3" ] && echo "$3" | grep -qE '^https?://'; then
       DOWNLOAD_PATH="/tmp/openclash.apk"
    fi
    LAST_VER=$(echo "$DOWNLOAD_URL" | grep -oE 'luci-app-openclash[_-][0-9]+(\.[0-9]+)*' | head -1 | sed 's/^luci-app-openclash[_-]//')
-   [ -z "$LAST_VER" ] && LAST_VER=$(echo "$DOWNLOAD_URL" | grep -oE 'v[0-9]+(\.[0-9]+)*' | head -1 | sed 's/^v//')
-   [ -z "$LAST_VER" ] && LAST_VER=" - selected"
    LOG_TIP "Start downloading【OpenClash - v$LAST_VER】..."
 elif [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && version_compare "$OP_CV" "$OP_LV" && [ -f "$LAST_OPVER" ]; then
    LOG_TIP "Start downloading【OpenClash - v$LAST_VER】..."

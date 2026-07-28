@@ -135,6 +135,7 @@
     var _fetchedBranch = null;
     var _isOix = false;
     var _cdnForceRefresh = false;
+    var _cdnInfoCache = {};
 
     function isValidURL(str) {
         var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
@@ -252,6 +253,14 @@
                 coreEl.classList.remove('has-data', 'err');
             }
         }
+
+        _cdnInfoCache[cdnUrl] = {
+            plugin_ver: info.plugin_ver || null,
+            core_meta_ver: info.core_meta_ver || null,
+            core_smart_ver: info.core_smart_ver || null,
+            latency: info.latency,
+            core_error: info.core_error || null
+        };
     }
 
     function initAllData() {
@@ -441,6 +450,7 @@
         if (_cdnForceRefresh) {
             params.force = '1';
             _cdnForceRefresh = false;
+            _cdnInfoCache = {};
             document.querySelectorAll('#cdn-list-body .cdn-row').forEach(function(row) {
                 var latencyEl = row.querySelector('.cdn-status');
                 var verSpans = row.querySelectorAll('.cdn-ver-text');
@@ -454,6 +464,7 @@
                 });
             });
         }
+        document.getElementById('version-hint').classList.remove('show');
         var url = '<%=luci.dispatcher.build_url("admin", "services", "openclash", "cdn_info")%>?' +
             Object.keys(params).map(function(k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
         var xhr = new XMLHttpRequest();
@@ -587,7 +598,25 @@
             }
         } else if (optionElem && optionElem.classList.contains('cdn-row')) {
             var cdn = optionElem.dataset.value;
-            if (cdn === 'https://raw.githubusercontent.com/') cdn = '';
+
+            var hint = document.getElementById('version-hint');
+            hint.classList.remove('show');
+
+            var cdnInfo = _cdnInfoCache[cdn];
+            if (!cdnInfo || cdnInfo.latency == null) {
+                var hint = document.getElementById('version-hint');
+                hint.innerHTML = '<svg><use href="#oc-icon-alert-circle"/></svg><span><%:Version info not ready, please wait and try again%></span>';
+                hint.classList.add('show');
+                return;
+            }
+            if (cdnInfo.latency === -1 || cdnInfo.latency === -2) {
+                var hint = document.getElementById('version-hint');
+                var cdnErrMsg = cdnInfo.latency === -1 ? '<%:Link access timed out, cannot download%>' : '<%:Link access failed, cannot download%>';
+                hint.innerHTML = '<svg><use href="#oc-icon-alert-circle"/></svg><span>' + cdnErrMsg + '</span>';
+                hint.classList.add('show');
+                return;
+            }
+
             var branch = _fetchedBranch || release_branch_cdn.value || 'dev';
             var arch = core_version_cdn.value;
             var v = core_version_cdn.value;
@@ -598,20 +627,60 @@
             var coreSel = document.getElementById('select-core-ver');
             var pluginOpt = pluginSel.options[pluginSel.selectedIndex];
             var coreOpt = coreSel.options[coreSel.selectedIndex];
-            var pluginVer = pluginOpt ? (pluginOpt.getAttribute('data-ver') || '') : '';
-            var pluginSHA = (pluginOpt && pluginOpt.value !== '__latest__') ? pluginOpt.value : '';
-            var coreVer = coreOpt ? (coreOpt.getAttribute('data-ver') || '') : '';
-            var coreSHA = (coreOpt && coreOpt.value !== '__latest__') ? coreOpt.value : '';
+            var isPluginLatest = !pluginOpt || pluginOpt.value === '__latest__';
+            var isCoreLatest = !coreOpt || coreOpt.value === '__latest__';
+
+            var pluginVer = isPluginLatest ? (cdnInfo.plugin_ver || '') : (pluginOpt ? (pluginOpt.getAttribute('data-ver') || '') : '');
+            var pluginSHA = (!isPluginLatest && pluginOpt) ? pluginOpt.value : '';
+            var coreVer = isCoreLatest
+                ? ((s === '1' && cdnInfo.core_smart_ver) ? cdnInfo.core_smart_ver : (cdnInfo.core_meta_ver || ''))
+                : (coreOpt ? (coreOpt.getAttribute('data-ver') || '') : '');
+            var coreSHA = (!isCoreLatest && coreOpt) ? coreOpt.value : '';
+
+            if (currentDownloadType !== 'core_download' && isPluginLatest && !pluginVer) {
+                var hint = document.getElementById('version-hint');
+                hint.innerHTML = '<svg><use href="#oc-icon-alert-circle"/></svg><span><%:Failed to get plugin version info from this link, please check again later%></span>';
+                hint.classList.add('show');
+                return;
+            }
+            if (currentDownloadType === 'core_download' && isCoreLatest && !coreVer) {
+                var hint = document.getElementById('version-hint');
+                hint.innerHTML = '<svg><use href="#oc-icon-alert-circle"/></svg><span><%:Failed to get core version info from this link, please check again later%></span>';
+                hint.classList.add('show');
+                return;
+            }
+
+            if (currentDownloadType !== 'core_download') {
+                var installedVer = (document.getElementById('installed-plugin').textContent || '').trim();
+                var targetVer = pluginVer.replace(/^v/, '');
+                if (installedVer && installedVer !== '--' && targetVer && installedVer === targetVer) {
+                    var hint = document.getElementById('version-hint');
+                    hint.innerHTML = '<svg><use href="#oc-icon-alert-circle"/></svg><span><%:The selected version is the same as the installed version, no need to update%></span>';
+                    hint.classList.add('show');
+                    return;
+                }
+            } else {
+                var installedCoreVer = (document.getElementById('installed-core').textContent || '').trim();
+                var targetCoreVer = coreVer.replace(/^v/, '');
+                if (installedCoreVer && installedCoreVer !== '--' && targetCoreVer && installedCoreVer === targetCoreVer) {
+                    var hint = document.getElementById('version-hint');
+                    hint.innerHTML = '<svg><use href="#oc-icon-alert-circle"/></svg><span><%:The selected version is the same as the installed version, no need to update%></span>';
+                    hint.classList.add('show');
+                    return;
+                }
+            }
 
             if (typeof LogManager !== 'undefined' && LogManager) {
                 LogManager.startLogDisplay('<%:Checking...%>');
             }
 
+            if (cdn === 'https://raw.githubusercontent.com/') cdn = '';
+
             XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function() {
                 if (currentDownloadType === 'core_download') {
                     var coreURL = buildDownloadURL(cdn, 'core', r, coreVer, coreSHA, arch);
                     var params = {download_url: coreURL};
-                    if (coreURL) params.url = cdn;
+                    if (cdn && cdn !== '') params.url = cdn;
                     XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "core_download")%>', params);
                 } else {
                     var pluginURL = buildDownloadURL(cdn, 'plugin', r, pluginVer, pluginSHA, arch);

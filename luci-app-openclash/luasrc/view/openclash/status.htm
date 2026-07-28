@@ -2072,14 +2072,26 @@
             }
             this.retryCount = 0;
 
-            StateManager.clearCache('<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>?wait=1');
+            StateManager.clearCache('<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>');
 
             if (DOMCache.oclog && initialMessage) {
                 DOMCache.oclog.style.display = 'inline-flex';
                 DOMCache.oclog.innerHTML = '<b style="color:var(--tip-color)">' + initialMessage + '</b>';
             }
 
-            this.startStreaming();
+            var self = this;
+            function _doStream() { self.startStreaming(); }
+            if (initialMessage) {
+                this.deleteLog(_doStream);
+            } else {
+                _doStream();
+            }
+        },
+
+        deleteLog: function(callback) {
+            XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function() {
+                if (callback) callback();
+            });
         },
 
         stopLogDisplay: function() {
@@ -2106,7 +2118,7 @@
             }
             var xhr = new XMLHttpRequest();
             xhr.timeout = 0;
-            xhr.open('GET', '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>?wait=1', true);
+            xhr.open('GET', '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', true);
             xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
             var _stopTimer = null;
 
@@ -2152,7 +2164,7 @@
         checkForErrors: function(log) {
             if (!log) return false;
             if (log.match(/level=(fatal|error)/)) {
-                XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function(x) {});
+                this.deleteLog();
 
                 var msgParts = log.split('msg=');
                 var errorMsg = msgParts.length > 1 ? msgParts[1].replace(/"/g, '').trim() : log.trim();
