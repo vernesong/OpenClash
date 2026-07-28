@@ -770,7 +770,7 @@
                 if (!line) continue;
                 try {
                     var obj = JSON.parse(line);
-                    if (obj._complete) {
+                    if (obj.complete) {
                         addTitleOnOverflow();
                         return;
                     }

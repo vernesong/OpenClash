@@ -360,9 +360,9 @@ local function prepare_oix_cdn_data()
 		local cached = fs.readfile(cache_file)
 		if cached then
 			local ok, parsed = pcall(json.parse, cached)
-			if ok and parsed and parsed._cached_at then
-				local ttl = parsed._cache_ttl or 300
-				if (os.time() - parsed._cached_at) < ttl then
+			if ok and parsed and parsed.cached_at then
+				local ttl = parsed.cache_ttl or 300
+				if (os.time() - parsed.cached_at) < ttl then
 					if parsed.error then
 						return true, "", parsed.error
 					end
@@ -372,7 +372,7 @@ local function prepare_oix_cdn_data()
 		end
 	end
 
-	local function _fork_oix_version(url, is_json)
+	local function fork_oix_version(url, is_json)
 		local fdi, fdo = nixio.pipe()
 		if not fdi or not fdo then return nil end
 		local child = nixio.fork()
@@ -398,9 +398,9 @@ local function prepare_oix_cdn_data()
 	end
 
 	local jobs = {}
-	local gh_job = _fork_oix_version("https://api.github.com/repos/vernesong/mihomo-oix/releases/tags/Pre-Alpha", true)
+	local gh_job = fork_oix_version("https://api.github.com/repos/vernesong/mihomo-oix/releases/tags/Pre-Alpha", true)
 	if gh_job then jobs[#jobs + 1] = gh_job end
-	local dl_job = _fork_oix_version("https://dl.dler.io/mihomo-oix/version.txt?tag=Pre-Alpha", false)
+	local dl_job = fork_oix_version("https://dl.dler.io/mihomo-oix/version.txt?tag=Pre-Alpha", false)
 	if dl_job then jobs[#jobs + 1] = dl_job end
 
 	if #jobs == 0 then
@@ -435,7 +435,7 @@ local function prepare_oix_cdn_data()
 								nixio.kill(j.pid, 9)
 							end
 						end
-						fs.writefile(cache_file, json.stringify({ ver = "", error = "rate_limit", _cache_ttl = 60, _cached_at = os.time() }))
+						fs.writefile(cache_file, json.stringify({ ver = "", error = "rate_limit", cache_ttl = 60, cached_at = os.time() }))
 						return true, "", "rate_limit"
 					end
 					ver = SYS.exec('echo \'' .. raw:gsub("'", "'\\''") .. '\' | jsonfilter -e \'@.tag_name\' 2>/dev/null | tr -d "\n\r"')
@@ -451,7 +451,7 @@ local function prepare_oix_cdn_data()
 					nixio.kill(job.pid, 9)
 				end
 			end
-			fs.writefile(cache_file, json.stringify({ ver = ver, _cache_ttl = 300, _cached_at = os.time() }))
+			fs.writefile(cache_file, json.stringify({ ver = ver, cache_ttl = 300, cached_at = os.time() }))
 			return true, ver, ""
 		end
 		local all_done = true
@@ -472,7 +472,7 @@ local function prepare_oix_cdn_data()
 
 	local err_type = "error"
 	local cache_ttl = 5
-	fs.writefile(cache_file, json.stringify({ ver = "", error = err_type, _cache_ttl = cache_ttl, _cached_at = os.time() }))
+	fs.writefile(cache_file, json.stringify({ ver = "", error = err_type, cache_ttl = cache_ttl, cached_at = os.time() }))
 	return true, "", err_type
 end
 
@@ -1038,7 +1038,7 @@ function sub_info_get()
 					end
 				end
 
-				local function _fork_provider_curl(url)
+				local function fork_provider_curl(url)
 					local fdi, fdo = nixio.pipe()
 					if not fdi or not fdo then return nil end
 					local child = nixio.fork()
@@ -1068,7 +1068,7 @@ function sub_info_get()
 				local jobs = {}
 
 				for i, provider in ipairs(providers) do
-					local job = _fork_provider_curl(provider.url)
+					local job = fork_provider_curl(provider.url)
 					if job then
 						job.idx = i
 						job.name = provider.name
@@ -1323,7 +1323,7 @@ function action_toolbar_show()
 		if not daip or not cn_port then return end
 
 		-- Parallel curl helper
-		local function _fork_curl(endpoint)
+		local function fork_curl(endpoint)
 			local fdi, fdo = nixio.pipe()
 			if not fdi or not fdo then return nil end
 			local child = nixio.fork()
@@ -1346,8 +1346,8 @@ function action_toolbar_show()
 			end
 		end
 
-		local t_job = _fork_curl("traffic")
-		local c_job = _fork_curl("connections")
+		local t_job = fork_curl("traffic")
+		local c_job = fork_curl("connections")
 
 		if t_job and c_job then
 			local t_done, c_done = false, false
@@ -1679,13 +1679,44 @@ function action_start()
 	local logfile = "/tmp/openclash_start.log"
 
 	local cmd = string.format(
-		"old=''; elapsed=0; while true; do content=$(cat '%s' 2>/dev/null); " ..
-		"if [ \"$content\" != \"$old\" ]; then " ..
-		"printf '%%s\\n' \"$content\"; old=\"$content\"; elapsed=0; " ..
-		"case \"$content\" in *##FINISH##*) exit 0;; esac; " ..
-		"fi; sleep 0.5; elapsed=$((elapsed + 1)); " ..
-		"if [ $elapsed -ge 120 ]; then " ..
-		"printf '%%s\\n' '##FINISH##'; exit 0; " ..
+		"logfile='%s'; " ..
+		"bytes=$(wc -c < \"$logfile\" 2>/dev/null); bytes=${bytes:-0}; " ..
+		"if [ \"$bytes\" -gt 0 ]; then " ..
+		"tail -c +1 \"$logfile\" 2>/dev/null; " ..
+		"if tail -n 1 \"$logfile\" 2>/dev/null | grep -q '##FINISH##'; then " ..
+		"finish_seen=1; else finish_seen=0; fi; " ..
+		"else finish_seen=0; fi; " ..
+		"if [ \"$bytes\" -eq 0 ]; then timeout=30; else timeout=60; fi; " ..
+		"elapsed=0; " ..
+		"finish_elapsed=0; " ..
+		"while true; do " ..
+		"new_bytes=$(wc -c < \"$logfile\" 2>/dev/null); new_bytes=${new_bytes:-0}; " ..
+		"if [ \"$new_bytes\" -gt \"$bytes\" ] 2>/dev/null; then " ..
+		"tail -c +$((bytes + 1)) \"$logfile\" 2>/dev/null; bytes=$new_bytes; elapsed=0; " ..
+		"timeout=120; " ..
+		"finish_seen=0; " ..
+		"finish_elapsed=0; " ..
+		"if tail -n 1 \"$logfile\" 2>/dev/null | grep -q '##FINISH##'; then " ..
+		"finish_seen=1; " ..
+		"fi; " ..
+		"elif [ \"$new_bytes\" -lt \"$bytes\" ] 2>/dev/null; then " ..
+		"echo '##TRUNCATED##'; " ..
+		"tail -c +1 \"$logfile\" 2>/dev/null; bytes=$new_bytes; elapsed=0; " ..
+		"timeout=120; " ..
+		"finish_seen=0; " ..
+		"finish_elapsed=0; " ..
+		"if tail -n 1 \"$logfile\" 2>/dev/null | grep -q '##FINISH##'; then " ..
+		"finish_seen=1; " ..
+		"fi; " ..
+		"fi; " ..
+		"sleep 1; elapsed=$((elapsed + 1)); " ..
+		"if [ \"$finish_seen\" -eq 1 ]; then " ..
+		"finish_elapsed=$((finish_elapsed + 1)); " ..
+		"if [ $finish_elapsed -ge 10 ]; then " ..
+		"exit 0; " ..
+		"fi; " ..
+		"elif [ $elapsed -ge $timeout ]; then " ..
+		"exit 0; " ..
 		"fi; done",
 		logfile
 	)
@@ -1693,7 +1724,6 @@ function action_start()
 	if not reader then return end
 
 	local buf = ""
-	local first_read = true
 
 	while true do
 		local chunk = reader()
@@ -1706,18 +1736,11 @@ function action_start()
 			buf = buf:sub(nl + 1)
 			line = line:gsub("^%s+", ""):gsub("%s+$", "")
 			if line ~= "" then
-				if first_read and line == "##FINISH##" then
-					-- stale marker from previous run, skip
-				else
-					write_padded(trans_line(line))
-					if line:find("##FINISH##") then
-						return
-					end
-				end
-				first_read = false
+				write_padded(trans_line(line))
 			end
 		end
 	end
+	reader.kill()
 end
 
 local function refresh_version_info(force)
@@ -1926,34 +1949,7 @@ function action_del_log()
 end
 
 function action_del_start_log()
-	SYS.exec("echo '##FINISH##' > /tmp/openclash_start.log")
-	return
-end
-
-function split(str,delimiter)
-	local dLen = string.len(delimiter)
-	local newDeli = ''
-	for i=1,dLen,1 do
-		newDeli = newDeli .. "["..string.sub(delimiter,i,i).."]"
-	end
-
-	local locaStart,locaEnd = string.find(str,newDeli)
-	local arr = {}
-	local n = 1
-	while locaStart ~= nil
-	do
-		if locaStart>0 then
-			arr[n] = string.sub(str,1,locaStart-1)
-			n = n + 1
-		end
-
-		str = string.sub(str,locaEnd+1,string.len(str))
-		locaStart,locaEnd = string.find(str,newDeli)
-	end
-	if str ~= nil then
-		arr[n] = str
-	end
-	return arr
+	fs.writefile("/tmp/openclash_start.log", "")
 end
 
 function action_diag_connection()
@@ -2008,7 +2004,7 @@ function action_gen_debug_logs()
 		"else stable=$((stable + 1)); fi; " ..
 		"if ! kill -0 $DEBUG_PID 2>/dev/null; then " ..
 		"if [ $stable -ge 2 ]; then exit 0; fi; " ..
-		"fi; sleep 0.5; elapsed=$((elapsed + 1)); " ..
+		"fi; sleep 1; elapsed=$((elapsed + 1)); " ..
 		"if [ $elapsed -ge 120 ]; then exit 0; fi; done",
 		logfile, logfile, logfile
 	)
@@ -2032,6 +2028,7 @@ function action_gen_debug_logs()
 			end
 		end
 	end
+	reader.kill()
 end
 
 function action_get_debug_logs()
@@ -2042,6 +2039,7 @@ function action_get_debug_logs()
 	HTTP.prepare_content("text/plain; charset=utf-8")
 	local reader = ltn12_popen("exec cat '" .. logfile .. "'")
 	luci.ltn12.pump.all(reader, HTTP.write)
+	reader.kill()
 end
 
 function action_backup()
@@ -2055,6 +2053,7 @@ function action_backup()
 
 	HTTP.prepare_content("application/x-targz")
 	luci.ltn12.pump.all(reader, HTTP.write)
+	reader.kill()
 	SYS.call("rm -rf /etc/openclash/openclash >/dev/null 2>&1")
 end
 
@@ -2069,6 +2068,7 @@ function action_backup_ex_core()
 
 	HTTP.prepare_content("application/x-targz")
 	luci.ltn12.pump.all(reader, HTTP.write)
+	reader.kill()
 	SYS.call("rm -rf /etc/openclash/openclash >/dev/null 2>&1")
 end
 
@@ -2082,6 +2082,7 @@ function action_backup_only_config()
 
 	HTTP.prepare_content("application/x-targz")
 	luci.ltn12.pump.all(reader, HTTP.write)
+	reader.kill()
 end
 
 function action_backup_only_core()
@@ -2094,6 +2095,7 @@ function action_backup_only_core()
 
 	HTTP.prepare_content("application/x-targz")
 	luci.ltn12.pump.all(reader, HTTP.write)
+	reader.kill()
 end
 
 function action_backup_only_rule()
@@ -2106,6 +2108,7 @@ function action_backup_only_rule()
 
 	HTTP.prepare_content("application/x-targz")
 	luci.ltn12.pump.all(reader, HTTP.write)
+	reader.kill()
 end
 
 function action_backup_only_proxy()
@@ -2118,6 +2121,7 @@ function action_backup_only_proxy()
 
 	HTTP.prepare_content("application/x-targz")
 	luci.ltn12.pump.all(reader, HTTP.write)
+	reader.kill()
 end
 
 function ltn12_popen(command)
@@ -2130,7 +2134,7 @@ function ltn12_popen(command)
 		fdo:close()
 		local reaped = false
 
-		local function _read()
+		local function pipe_read()
 			-- Always drain pipe first — child may have exited after writing
 			-- data that is still buffered.
 			local buffer = fdi:read(16384)
@@ -2157,12 +2161,12 @@ function ltn12_popen(command)
 			end
 		end
 
-		local function _kill()
+		local function pipe_kill()
 			if not reaped then
 				pcall(nixio.kill, pid, nixio.const.SIGTERM)
 				nixio.nanosleep(0, 100000000)
 				pcall(nixio.kill, pid, nixio.const.SIGKILL)
-				nixio.waitpid(pid, 0)
+				nixio.waitpid(pid)
 				reaped = true
 			end
 			pcall(fdi.close, fdi)
@@ -2170,8 +2174,8 @@ function ltn12_popen(command)
 
 		-- Lua 5.1 does not allow setting fields on functions.
 		-- Use a callable table: reader() invokes __call, reader.kill() is a table field.
-		local wrapper = { kill = _kill }
-		setmetatable(wrapper, { __call = function(_, ...) return _read(...) end })
+		local wrapper = { kill = pipe_kill }
+		setmetatable(wrapper, { __call = function(_, ...) return pipe_read(...) end })
 		return wrapper
 	elseif pid == 0 then
 		nixio.dup(fdo, nixio.stdout)
@@ -2654,7 +2658,7 @@ function action_myip_check()
 		end
 	end
 
-	write_padded(json.stringify({ _complete = true }))
+	write_padded(json.stringify({ complete = true }))
 end
 
 function latency_test(addr, on_result)
@@ -3041,9 +3045,9 @@ function action_version_history()
 		local cached = fs.readfile(cache_file)
 		if cached then
 			local ok, parsed = pcall(json.parse, cached)
-			if ok and parsed and parsed._cached_at and parsed._oix == cur_oix then
-				local ttl = parsed._cache_ttl or 300
-				if (os.time() - parsed._cached_at) < ttl then
+			if ok and parsed and parsed.cached_at and parsed.oix == cur_oix then
+				local ttl = parsed.cache_ttl or 300
+				if (os.time() - parsed.cached_at) < ttl then
 					HTTP.prepare_content("text/plain; charset=utf-8")
 					if parsed.plugin then
 						for _, entry in ipairs(parsed.plugin) do
@@ -3063,7 +3067,7 @@ function action_version_history()
 							write_padded(json.stringify(entry))
 						end
 					end
-					local complete_line = {_complete = true}
+					local complete_line = {complete = true}
 					if parsed.error then
 						complete_line.error = parsed.error
 					end
@@ -3076,7 +3080,7 @@ function action_version_history()
 
 	HTTP.prepare_content("text/plain; charset=utf-8")
 
-	local function _fork_file_fetch(sha, file_path)
+	local function fork_file_fetch(sha, file_path)
 		local fdi, fdo = nixio.pipe()
 		if not fdi or not fdo then return nil end
 		local child = nixio.fork()
@@ -3097,7 +3101,7 @@ function action_version_history()
 		end
 	end
 
-	local function _collect_fork_results(jobs, max_jobs)
+	local function collect_fork_results(jobs, max_jobs)
 		local results = {}
 		local active = 0
 		local delay = 50000000
@@ -3171,12 +3175,12 @@ function action_version_history()
 				if c.sha and c.commit and c.commit.committer then
 					local date = c.commit.committer.date or ""
 					table.insert(commits, { sha = c.sha, date = date, message = c.commit.message or "" })
-					local job = _fork_file_fetch(c.sha, branch .. "/version")
+					local job = fork_file_fetch(c.sha, branch .. "/version")
 					if job then table.insert(file_jobs, job) end
 				end
 			end
 
-			local file_results = _collect_fork_results(file_jobs, 3)
+			local file_results = collect_fork_results(file_jobs, 3)
 
 			for _, c in ipairs(commits) do
 				local raw = file_results[c.sha]
@@ -3214,12 +3218,12 @@ function action_version_history()
 					if c.sha and c.commit and c.commit.committer then
 						local date = c.commit.committer.date or ""
 						table.insert(commits, { sha = c.sha, date = date })
-						local job = _fork_file_fetch(c.sha, branch .. "/core_version")
+						local job = fork_file_fetch(c.sha, branch .. "/core_version")
 						if job then table.insert(file_jobs, job) end
 					end
 				end
 
-				local file_results = _collect_fork_results(file_jobs, 3)
+				local file_results = collect_fork_results(file_jobs, 3)
 
 				for _, c in ipairs(commits) do
 					local content = file_results[c.sha]
@@ -3264,12 +3268,12 @@ function action_version_history()
 		end
 	end
 
-	result._cache_ttl = cache_ttl
-	result._cached_at = os.time()
-	result._oix = cur_oix
+	result.cache_ttl = cache_ttl
+	result.cached_at = os.time()
+	result.oix = cur_oix
 	fs.writefile(cache_file, json.stringify(result))
 
-	local complete_line = {_complete = true}
+	local complete_line = {complete = true}
 	if result.error then
 		complete_line.error = result.error
 	end
@@ -3284,7 +3288,7 @@ function action_cdn_info()
 	local core_ver = HTTP.formvalue("core_ver") or ""
 
 	if not cdns_raw or cdns_raw == "" then
-		HTTP.write('{"_complete":true,"error":"Missing cdns parameter"}\n')
+		HTTP.write('{"complete":true,"error":"Missing cdns parameter"}\n')
 		return
 	end
 
@@ -3299,7 +3303,7 @@ function action_cdn_info()
 	end
 
 	if #cdns == 0 then
-		HTTP.write('{"_complete":true,"error":"No valid CDNs"}\n')
+		HTTP.write('{"complete":true,"error":"No valid CDNs"}\n')
 		return
 	end
 
@@ -3312,16 +3316,16 @@ function action_cdn_info()
 		local cached = fs.readfile(cache_file)
 		if cached then
 			local ok, parsed = pcall(json.parse, cached)
-			if ok and parsed and parsed._cached_at and parsed._oix == cur_oix then
-				local ttl = parsed._cache_ttl or 300
-				if (os.time() - parsed._cached_at) < ttl then
+			if ok and parsed and parsed.cached_at and parsed.oix == cur_oix then
+				local ttl = parsed.cache_ttl or 300
+				if (os.time() - parsed.cached_at) < ttl then
 					if parsed.result then
 						for cdn, info in pairs(parsed.result) do
 							info.cdn = cdn
 							HTTP.write(json.stringify(info) .. "\n")
 						end
 					end
-					local complete_line = {_complete = true}
+					local complete_line = {complete = true}
 					if parsed.result and parsed.result.error then
 						complete_line.error = parsed.result.error
 					end
@@ -3386,7 +3390,7 @@ function action_cdn_info()
 		table.insert(pending_cdns, cdn)
 	end
 
-	local function _launch_cdn(cdn)
+	local function launch_cdn(cdn)
 		local fdi, fdo = nixio.pipe()
 		if fdi and fdo then
 			local pid = nixio.fork()
@@ -3473,11 +3477,11 @@ printf '{"plugin_ver":"%%s","core_meta_ver":"%%s","core_smart_ver":"%%s","latenc
 			end
 		end
 		if not next_cdn then break end
-		_launch_cdn(next_cdn)
+		launch_cdn(next_cdn)
 	end
 
 	if next(queries) == nil then
-		HTTP.write('{"_complete":true,"error":"Failed to create queries"}\n')
+		HTTP.write('{"complete":true,"error":"Failed to create queries"}\n')
 		return
 	end
 
@@ -3540,7 +3544,7 @@ printf '{"plugin_ver":"%%s","core_meta_ver":"%%s","core_smart_ver":"%%s","latenc
 				end
 			end
 			if not next_cdn then break end
-			_launch_cdn(next_cdn)
+			launch_cdn(next_cdn)
 		end
 
 		local remaining = 0
@@ -3582,16 +3586,16 @@ printf '{"plugin_ver":"%%s","core_meta_ver":"%%s","core_smart_ver":"%%s","latenc
 	end
 	if all_stale and next(result) ~= nil then
 		result.error = "version_stale"
-		HTTP.write('{"_complete":true,"error":"version_stale"}\n')
+		HTTP.write('{"complete":true,"error":"version_stale"}\n')
 	else
-		HTTP.write('{"_complete":true}\n')
+		HTTP.write('{"complete":true}\n')
 	end
 
 	fs.writefile(cache_file, json.stringify({
 		result = result,
-		_cache_ttl = cache_ttl,
-		_cached_at = os.time(),
-		_oix = cur_oix
+		cache_ttl = cache_ttl,
+		cached_at = os.time(),
+		oix = cur_oix
 	}))
 end
 
@@ -4243,42 +4247,42 @@ function generate_pac_content(proxy_ip, proxy_port, auth_user, auth_pass)
 
 	local pac_script = string.format([[
 // OpenClash PAC File
-var _failureCount = 0;
-var _lastCheckTime = 0;
-var _isProxyDown = false;
-var _checkInterval = 300000; // 5分钟 = 300000毫秒
+var failureCount = 0;
+var lastCheckTime = 0;
+var isProxyDown = false;
+var checkInterval = 300000; // 5分钟 = 300000毫秒
 
 // Access Check
-function _checkNetworkConnectivity() {
+function checkNetworkConnectivity() {
 	var currentTime = Date.now();
 
-	if (currentTime - _lastCheckTime < _checkInterval) {
-		return !_isProxyDown;
+	if (currentTime - lastCheckTime < checkInterval) {
+		return !isProxyDown;
 	}
 
-	_lastCheckTime = currentTime;
+	lastCheckTime = currentTime;
 
 	try {
 		var test1 = dnsResolve("www.gstatic.com");
 		var test2 = dnsResolve("captive.apple.com");
 
 		if (test1 || test2) {
-			if (_isProxyDown) {
-				_isProxyDown = false;
-				_failureCount = 0;
+			if (isProxyDown) {
+				isProxyDown = false;
+				failureCount = 0;
 			}
 			return true;
 		} else {
-			_failureCount++;
-			if (_failureCount >= 3) {
-				_isProxyDown = true;
+			failureCount++;
+			if (failureCount >= 3) {
+				isProxyDown = true;
 			}
 			return false;
 		}
 	} catch (e) {
-		_failureCount++;
-		if (_failureCount >= 3) {
-			_isProxyDown = true;
+		failureCount++;
+		if (failureCount >= 3) {
+			isProxyDown = true;
 		}
 		return false;
 	}
@@ -4304,7 +4308,7 @@ function FindProxyForURL(url, host) {
 		%s
 	}
 
-	if (_checkNetworkConnectivity()) {
+	if (checkNetworkConnectivity()) {
 		return "%s";
 	} else {
 		return "DIRECT";

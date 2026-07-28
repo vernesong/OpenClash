@@ -611,18 +611,18 @@ end
 --- Returns the installed version of luci-app-openclash.
 -- Supports both opkg and apk package managers.
 -- @return String containing the version number, or "0" if not found
--- NOTE: The module-level cache (_oc_version_cache) provides per-request
+-- NOTE: The module-level cache (oc_version_cache) provides per-request
 -- deduplication. In OpenWrt LuCI CGI mode each HTTP request spawns a new Lua
 -- process, so cross-request caching is impossible.
 -- Since require() returns the same module instance (package.loaded), the
 -- first call caches the result and subsequent calls avoid redundant shell
 -- commands. No time-based expiration is needed — the version is immutable
 -- for the lifetime of a request.
-local _oc_version_cache = nil
+local oc_version_cache = nil
 
 function oc_version()
-	if _oc_version_cache ~= nil then
-		return _oc_version_cache
+	if oc_version_cache ~= nil then
+		return oc_version_cache
 	end
 	local v
 	if pkg_type() == "opkg" then
@@ -633,7 +633,7 @@ function oc_version()
 	if v == "" then
 		v = "0"
 	end
-	_oc_version_cache = v
+	oc_version_cache = v
 	return v
 end
 

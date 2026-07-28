@@ -138,12 +138,13 @@
 	remove_core.innerHTML      = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Remove Core%>" onclick="return remove_all_core(this)"/>';
 	backup.innerHTML            = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Backup File%>" onclick="return backup_file(this)"/>';
 
-	var _versionsLoading = false;
-	var _updateTimer     = null;
-	var _updateRetryTimer = null;
-	var _startLogXHR     = null;
-	var _startLogReconnect = null;
-	var _lastVersionTimer = null;
+	var versionsLoading = false;
+	var updateTimer     = null;
+	var updateRetryTimer = null;
+	var startLogXHR     = null;
+	var startLogReconnect = null;
+	var stopTimer       = null;
+	var lastVersionTimer = null;
 
 	var NORMAL_INTERVAL = 10000;
 	var RETRY_INTERVAL  = 5000;
@@ -164,28 +165,29 @@
 	}
 
 	function clearUpdateTimers() {
-		if (_updateTimer)      { clearInterval(_updateTimer);      _updateTimer = null; }
-		if (_updateRetryTimer) { clearInterval(_updateRetryTimer); _updateRetryTimer = null; }
+		if (updateTimer)      { clearInterval(updateTimer);      updateTimer = null; }
+		if (updateRetryTimer) { clearInterval(updateRetryTimer); updateRetryTimer = null; }
 	}
 
 	function startNormalPolling() {
 		clearUpdateTimers();
 		fetchUpdate();
-		_updateTimer = setInterval(fetchUpdate, NORMAL_INTERVAL);
+		updateTimer = setInterval(fetchUpdate, NORMAL_INTERVAL);
 	}
 
 	function startRetryPolling() {
 		clearUpdateTimers();
-		if (!_updateRetryTimer) {
-			_updateRetryTimer = setInterval(fetchUpdate, RETRY_INTERVAL);
+		if (!updateRetryTimer) {
+			updateRetryTimer = setInterval(fetchUpdate, RETRY_INTERVAL);
 		}
 	}
 
 	function stopAllTimers() {
 		clearUpdateTimers();
-		if (_startLogXHR) { _startLogXHR.abort(); _startLogXHR = null; }
-		if (_startLogReconnect) { clearTimeout(_startLogReconnect); _startLogReconnect = null; }
-		if (_lastVersionTimer) { clearInterval(_lastVersionTimer); _lastVersionTimer = null; }
+		if (startLogXHR) { startLogXHR.abort(); startLogXHR = null; }
+		if (startLogReconnect) { clearTimeout(startLogReconnect); startLogReconnect = null; }
+		if (stopTimer) { clearTimeout(stopTimer); stopTimer = null; }
+		if (lastVersionTimer) { clearInterval(lastVersionTimer); lastVersionTimer = null; }
 	}
 
 	function fetchUpdateInfo() {
@@ -210,7 +212,7 @@
 		var params = force ? { force: '1' } : null;
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', params, function(x, status) {
 			if (x && x.status == 200) {
-				if (_updateRetryTimer) { startNormalPolling(); }
+				if (updateRetryTimer) { startNormalPolling(); }
 			} else if (!x || x.status != 200) {
 				startRetryPolling();
 			}
@@ -218,44 +220,45 @@
 		});
 	}
 
-	function _startPollingLog(isButtonTrigger) {
-		if (_startLogXHR) { _startLogXHR.abort(); _startLogXHR = null; }
-		if (_startLogReconnect) { clearTimeout(_startLogReconnect); _startLogReconnect = null; }
+	function startPollingLog(isButtonTrigger) {
+		if (startLogXHR) { startLogXHR.abort(); startLogXHR = null; }
+		if (startLogReconnect) { clearTimeout(startLogReconnect); startLogReconnect = null; }
+		if (stopTimer) { clearTimeout(stopTimer); stopTimer = null; }
 
 		if (isButtonTrigger) {
-			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function() {
-				_doStreamLog();
-			});
+			doStreamLog();
 		}
 	}
 
-	function _doStreamLog() {
+	function doStreamLog() {
 		var xhr = new XMLHttpRequest();
 		xhr.timeout = 0;
 		xhr.open('GET', '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', true);
 		xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+		var _streamEnded = false;
+
+		function finalCleanup() {
+			if (stopTimer) { clearTimeout(stopTimer); stopTimer = null; }
+			if (startLogXHR === xhr) {
+				startLogXHR = null;
+			}
+			try { xhr.abort(); } catch(e) {}
+			showRandomTip();
+		}
 
 		xhr.onprogress = function() {
-			if (_startLogXHR !== xhr) return;
+			if (startLogXHR !== xhr) return;
+			if (_streamEnded) return;
 			var text = xhr.responseText || '';
-			if (text.indexOf('##FINISH##') >= 0) {
-				_startLogXHR = null;
-				setTimeout(function() { _showRandomTip(); }, 3000);
-				if (text.match('level=fatal')) {
-					XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function() {});
-					var msg = (text.split('msg=')[1] || '').replace('##FINISH##', '').trim();
-					if (msg) alert('<%:OpenClash Start Failed%> :\n\n' + msg);
-				}
-				return;
-			}
+			var hasFinish = text.indexOf('##FINISH##') >= 0;
 			if (text.match('level=fatal')) {
-				_startLogXHR = null;
-				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function() {});
-				var msg = (text.split('msg=')[1] || '').replace('##FINISH##', '').trim();
+				_streamEnded = true;
+				finalCleanup();
+				var msg = (text.split('msg=')[1] || '').replace(/##FINISH##/g, '').trim();
 				if (msg) alert('<%:OpenClash Start Failed%> :\n\n' + msg);
 				return;
 			}
-			var raw = text.replace('##FINISH##', '');
+			var raw = text.replace(/##FINISH##/g, '');
 			var lines = raw.split('\n');
 			var lastLine = '';
 			for (var i = lines.length - 1; i >= 0; i--) {
@@ -263,6 +266,7 @@
 				if (t) { lastLine = t; break; }
 			}
 			if (lastLine) {
+				if (stopTimer) { clearTimeout(stopTimer); stopTimer = null; }
 				var colored = false;
 				for (var lk in window.levelTranslations) {
 					if (lastLine.indexOf('[' + window.levelTranslations[lk] + ']') >= 0) {
@@ -275,30 +279,42 @@
 					update_tip.innerHTML = '<b style=color:var(--info-color)>' + lastLine + '</b>';
 				}
 			}
+			if (hasFinish) {
+				if (stopTimer) clearTimeout(stopTimer);
+				stopTimer = setTimeout(function() {
+					_streamEnded = true;
+					finalCleanup();
+				}, 5000);
 			}
 		};
 
 		xhr.onload = function() {
-			if (_startLogXHR !== xhr) return;
-			_startLogXHR = null;
-			_scheduleLogReconnect();
+			if (startLogXHR !== xhr) return;
+			if (_streamEnded) return;
+			if (!stopTimer) {
+				stopTimer = setTimeout(function() {
+					_streamEnded = true;
+					finalCleanup();
+				}, 5000);
+			}
 		};
 
 		xhr.onerror = function() {
-			if (_startLogXHR !== xhr) return;
-			_startLogXHR = null;
-			_scheduleLogReconnect();
+			if (startLogXHR !== xhr) return;
+			_streamEnded = true;
+			finalCleanup();
+			scheduleLogReconnect();
 		};
 
 		xhr.send();
-		_startLogXHR = xhr;
+		startLogXHR = xhr;
 	}
 
-	function _scheduleLogReconnect() {
-		if (_startLogReconnect) clearTimeout(_startLogReconnect);
-		_startLogReconnect = setTimeout(function() { _startPollingLog(false); }, 3000);
+	function scheduleLogReconnect() {
+		if (startLogReconnect) clearTimeout(startLogReconnect);
+		startLogReconnect = setTimeout(function() { startPollingLog(false); }, 3000);
 	}
-	function _showRandomTip() {
+	function showRandomTip() {
 		var tips = [
 			'<b style=color:var(--info-color)><%:Note: if the update fails, you can manually download and upload%></b>',
 			'<b style=color:var(--info-color)><%:Note: the client may not support update, because the firmware with squashfs format will not release flash space after updating%></b>',
@@ -309,9 +325,9 @@
 
 	function updateStatus(x, status) {
 		if (x && x.status == 200) {
-			if (_versionsLoading && status.corelv != 'loading...' && status.oplv != 'loading...') {
-				_versionsLoading = false;
-				if (!_updateTimer && !_updateRetryTimer) {
+			if (versionsLoading && status.corelv != 'loading...' && status.oplv != 'loading...') {
+				versionsLoading = false;
+				if (!updateTimer && !updateRetryTimer) {
 					startNormalPolling();
 				}
 			}
@@ -327,7 +343,7 @@
 				? '<b style=color:red><%:Unknown%></b>'
 				: '<b style=color:green>' + status.coremetacv + '</b>';
 
-			if (!_versionsLoading) {
+			if (!versionsLoading) {
 				var corelv = status.corelv;
 				if (corelv && corelv != 'loading...' && corelv != status.coremetacv) {
 					core_meta_lv.innerHTML = '<b style=color:green>' + corelv + ' <%:<New>%></b>';
@@ -362,7 +378,7 @@
 	}
 
 	function saveUpdateOptions() {
-		_versionsLoading = true;
+		versionsLoading = true;
 		clearUpdateTimers();
 		core_meta_lv.innerHTML = '<b style=color:green><%:Getting Last Version...%></b>';
 		op_lv.innerHTML        = '<b style=color:green><%:Getting Last Version...%></b>';
@@ -374,15 +390,15 @@
 			fetchUpdate(true);
 		});
 		setTimeout(function() {
-			if (_versionsLoading) {
-				_versionsLoading = false;
+			if (versionsLoading) {
+				versionsLoading = false;
 				startNormalPolling();
 			}
 		}, 60000);
 	}
 
 	function core_update(btn, type) {
-		_startPollingLog(true);
+		startPollingLog(true);
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "coreupdate")%>', { core_type: type }, function() {
 			btn.value = '<%:Check And Update%>';
 			btn.disabled = false;
@@ -390,7 +406,7 @@
 	}
 
 	function op_update(btn) {
-		_startPollingLog(true);
+		startPollingLog(true);
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "opupdate")%>', null, function() {
 			btn.value = '<%:Check And Update%>';
 			btn.disabled = false;
@@ -456,14 +472,14 @@
 	function all_one_key_update_cdn(btn) {
 		btn.value = '<%:Check Update%>';
 		btn.disabled = false;
-		_startPollingLog(true);
+		startPollingLog(true);
 		return select_git_cdn('one_key_update');
 	}
 
 	function startUpdatePage() {
 		fetchUpdateInfo();
 		fetchLastVersion();
-		_lastVersionTimer = setInterval(fetchLastVersion, 300000);
+		lastVersionTimer = setInterval(fetchLastVersion, 300000);
 
 		startNormalPolling();
 	}

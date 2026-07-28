@@ -6,7 +6,7 @@ LOG_FILE="/tmp/openclash.log"
 LOG_OUT()
 {
 	if [ -n "${1}" ]; then
-		echo -e "${1}" > $START_LOG
+		echo -e "${1}" >> $START_LOG
 		echo -e "$(date "+%Y-%m-%d %H:%M:%S") [Info] ${1}" >> $LOG_FILE
 	fi
 }
@@ -14,7 +14,7 @@ LOG_OUT()
 LOG_TIP()
 {
 	if [ -n "${1}" ]; then
-		echo -e "${1}" > $START_LOG
+		echo -e "${1}" >> $START_LOG
 		echo -e "$(date "+%Y-%m-%d %H:%M:%S") [Tip] ${1}" >> $LOG_FILE
 	fi
 }
@@ -22,7 +22,7 @@ LOG_TIP()
 LOG_WARN()
 {
 	if [ -n "${1}" ]; then
-		echo -e "${1}" > $START_LOG
+		echo -e "${1}" >> $START_LOG
 		echo -e "$(date "+%Y-%m-%d %H:%M:%S") [Warning] ${1}" >> $LOG_FILE
 	fi
 }
@@ -30,7 +30,7 @@ LOG_WARN()
 LOG_ERROR()
 {
 	if [ -n "${1}" ]; then
-		echo -e "${1}" > $START_LOG
+		echo -e "${1}" >> $START_LOG
 		echo -e "$(date "+%Y-%m-%d %H:%M:%S") [Error] ${1}" >> $LOG_FILE
 	fi
 }
@@ -57,5 +57,5 @@ LOG_ALERT()
 
 SLOG_CLEAN()
 {
-	echo "##FINISH##" > $START_LOG
+	echo "##FINISH##" >> $START_LOG
 }

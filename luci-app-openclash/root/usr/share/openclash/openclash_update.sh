@@ -59,7 +59,7 @@ run_with_timeout() {
    (
       sleep "$timeout_sec"
       kill $_pid 2>/dev/null
-      sleep 0.5
+      sleep 1
       kill -9 $_pid 2>/dev/null
    ) &
    local _watchdog=$!

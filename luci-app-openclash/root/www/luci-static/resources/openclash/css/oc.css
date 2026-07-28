@@ -24,7 +24,7 @@
     --primary-color: #3b82f6;
     --success-color: #059669;
     --success-dark: #047857;
-    --info-color: #0891b2;
+    --info-color: #3b82f6;
     --tip-color: #f59e0b;
     --error-color: #dc2626;
     --warning-color: #ff00bb;
@@ -169,7 +169,7 @@ html[data-darkmode="true"] .oc {
     --primary-color: #3b82f6;
     --success-color: #34d399;
     --success-dark: #10b981;
-    --info-color: #22d3ee;
+    --info-color: #3b82f6;
     --tip-color: #f9bb51;
     --error-color: #ff7070;
     --warning-color: #fa41c8;
@@ -904,6 +904,72 @@ html[data-darkmode="true"] .oc svg {
     white-space: nowrap;
     max-width: 100%;
     display: inline-block;
+}
+
+.oc #_oclog {
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    white-space: normal;
+    text-overflow: clip;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    line-height: 1.4;
+    position: relative;
+    padding-top: 0;
+    padding-bottom: 0;
+    min-width: 0;
+    transition: width 0.2s ease;
+}
+
+.oc #_oclog::before,
+.oc #_oclog::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: block;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.oc #_oclog::before {
+    top: 0;
+    height: 6px;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    background: linear-gradient(to bottom, var(--bg-white), transparent);
+}
+
+.oc #_oclog::after {
+    bottom: 0;
+    height: 6px;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    background: linear-gradient(to top, var(--bg-white), transparent);
+}
+
+.oc #_oclog > b {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    max-width: none;
+    display: block;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.oc #_oclog::-webkit-scrollbar {
+    display: none;
+}
+
+.oc #_oclog > div {
+    animation: oclogSlideIn 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@keyframes oclogSlideIn {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 .oc .help-link {

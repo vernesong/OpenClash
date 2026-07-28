@@ -317,7 +317,7 @@
                 if (!line) continue;
                 try {
                     var entry = JSON.parse(line);
-                    if (entry._complete) {
+                    if (entry.complete) {
                         if (entry.error) {
                             hint.innerHTML = '<svg><use href="#oc-icon-alert-circle"/></svg><span><%:Failed to get version history%></span>';
                             hint.classList.add('show');
@@ -361,7 +361,7 @@
                     if (!line) continue;
                     try {
                         var entry = JSON.parse(line);
-                        if (entry._complete) {
+                        if (entry.complete) {
                             if (entry.error) {
                                 hint.innerHTML = '<svg><use href="#oc-icon-alert-circle"/></svg><span><%:Failed to get version history%></span>';
                                 hint.classList.add('show');
@@ -485,7 +485,7 @@
                 if (!line) continue;
                 try {
                     var info = JSON.parse(line);
-                    if (info._complete) {
+                    if (info.complete) {
                         hasComplete = true;
                         if (info.error === 'version_stale') {
                             fetchVersionHistory(true);
@@ -518,7 +518,7 @@
                     if (!line) continue;
                     try {
                         var info = JSON.parse(line);
-                        if (info._complete) {
+                        if (info.complete) {
                             hasComplete = true;
                             if (info.error === 'version_stale') {
                                 fetchVersionHistory(true);
@@ -630,12 +630,25 @@
             var isPluginLatest = !pluginOpt || pluginOpt.value === '__latest__';
             var isCoreLatest = !coreOpt || coreOpt.value === '__latest__';
 
-            var pluginVer = isPluginLatest ? (cdnInfo.plugin_ver || '') : (pluginOpt ? (pluginOpt.getAttribute('data-ver') || '') : '');
-            var pluginSHA = (!isPluginLatest && pluginOpt) ? pluginOpt.value : '';
-            var coreVer = isCoreLatest
-                ? ((s === '1' && cdnInfo.core_smart_ver) ? cdnInfo.core_smart_ver : (cdnInfo.core_meta_ver || ''))
-                : (coreOpt ? (coreOpt.getAttribute('data-ver') || '') : '');
-            var coreSHA = (!isCoreLatest && coreOpt) ? coreOpt.value : '';
+            var pluginVer = cdnInfo.plugin_ver || (pluginOpt ? (pluginOpt.getAttribute('data-ver') || '') : '');
+            var coreVer = (s === '1' && cdnInfo.core_smart_ver)
+                ? cdnInfo.core_smart_ver
+                : (cdnInfo.core_meta_ver || (coreOpt ? (coreOpt.getAttribute('data-ver') || '') : ''));
+
+            function findSHAbyVersion(selectEl, targetVer) {
+                if (!targetVer || !selectEl) return '';
+                for (var i = 0; i < selectEl.options.length; i++) {
+                    if (selectEl.options[i].getAttribute('data-ver') === targetVer) {
+                        var v = selectEl.options[i].value;
+                        return (v && v !== '__latest__') ? v : '';
+                    }
+                }
+                return '';
+            }
+
+            var pluginSHA = (!isPluginLatest && cdnInfo.plugin_ver) ? findSHAbyVersion(pluginSel, cdnInfo.plugin_ver) : '';
+            var useCoreVer = (s === '1' && cdnInfo.core_smart_ver) ? cdnInfo.core_smart_ver : cdnInfo.core_meta_ver;
+            var coreSHA = (!isCoreLatest && useCoreVer) ? findSHAbyVersion(coreSel, useCoreVer) : '';
 
             if (currentDownloadType !== 'core_download' && isPluginLatest && !pluginVer) {
                 var hint = document.getElementById('version-hint');
