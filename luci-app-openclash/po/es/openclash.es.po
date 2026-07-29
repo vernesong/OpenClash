@@ -122,6 +122,9 @@ msgstr "Aplicar ajustes"
 msgid "Download Config"
 msgstr "Descargar configuración"
 
+msgid "Click to Download"
+msgstr "Clic para descargar"
+
 msgid "Copy Config"
 msgstr "Copiar configuración"
 

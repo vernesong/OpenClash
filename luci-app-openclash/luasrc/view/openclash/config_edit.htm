@@ -11,7 +11,7 @@
                     <span class="config-file-name" id="config-file-name"><%:Loading...%></span>
                 </div>
                 <div class="config-editor-actions">
-                    <button type="button" class="icon-btn" id="config-editor-layout" title="<%:Compare%>" style="display:none;">
+                    <button type="button" class="icon-btn oc-hidden" id="config-editor-layout" title="<%:Compare%>">
                         <svg width="14" height="14"><use href="#oc-icon-compare"/></svg>
                     </button>
                     <button type="button" class="icon-btn" id="config-editor-download" title="<%:Download%>">
@@ -26,39 +26,39 @@
                 </div>
             </div>
 
-            <div id="overwrite-banner" class="overwrite-banner" style="display:none;">
-                <svg style="flex-shrink:0;" width="20" height="20"><use href="#oc-icon-alert-circle"/></svg>
+            <div id="overwrite-banner" class="overwrite-banner oc-hidden">
+                <svg class="oc-svg-inline" width="20" height="20"><use href="#oc-icon-alert-circle"/></svg>
                 <span>
                     <%:You are editing the overwrite script, please note that some settings may cause the abnormal, be careful with the modification!%>
                 </span>
             </div>
 
-            <div id="config-mode-tabs" style="display:none;">
+            <div id="config-mode-tabs" class="oc-hidden">
                 <div class="mode-tabs">
                     <button type="button" class="mode-tab active" id="tab-original-config" data-mode="original">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;margin-right:4px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                             <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
                             <line x1="8" y1="8" x2="16" y2="8" stroke="currentColor" stroke-width="2"/>
                             <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/>
                             <line x1="8" y1="16" x2="12" y2="16" stroke="currentColor" stroke-width="2"/>
                         </svg>
-                        <%:Original Config%>
+                        <span><%:Original Config%></span>
                     </button>
                     <button type="button" class="mode-tab" id="tab-runtime-config" data-mode="runtime">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;margin-right:4px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                             <polygon points="13 2 3 14 12 14 11 22 21 10 13 10 13 2" stroke="currentColor" stroke-width="2" fill="none"/>
                         </svg>
-                        <%:Runtime Config%>
+                        <span><%:Runtime Config%></span>
                     </button>
                 </div>
             </div>
 
             <div class="config-editor-content">
-                <textarea id="config-editor-textarea" style="display: none;"></textarea>
-                <div id="config-mergeview-container" style="display:none;width:100%;height:100%;"></div>
+                <textarea id="config-editor-textarea" class="oc-hidden"></textarea>
+                <div id="config-mergeview-container" class="oc-hidden" style="width:100%;height:100%;"></div>
             </div>
 
-            <div id="overwrite-card-bar" style="display:none;position:relative;margin:12px;">
+            <div id="overwrite-card-bar" class="oc-hidden" style="position:relative;margin:12px;">
                 <div class="overwrite-card-row" id="overwrite-card-list"></div>
             </div>
 
@@ -228,20 +228,20 @@ var ConfigEditor = {
         var textarea = document.getElementById('config-editor-textarea');
         if (textarea) {
             textarea.value = '';
-            textarea.style.display = 'none';
+            textarea.classList.add('oc-hidden');
         }
         ocShowLoading(textarea.parentNode, '<%:Loading config file...%>');
         var mergeview = document.getElementById('config-mergeview-container');
-        if (mergeview) mergeview.style.display = 'none';
+        if (mergeview) mergeview.classList.add('oc-hidden');
 
         var banner = document.getElementById('overwrite-banner');
-        if (banner) banner.style.display = 'none';
+        if (banner) banner.classList.add('oc-hidden');
 
         var tabs = document.getElementById('config-mode-tabs');
-        if (tabs) tabs.style.display = 'flex';
+        if (tabs) tabs.classList.remove('oc-hidden');
 
         var layoutBtn = document.getElementById('config-editor-layout');
-        if (layoutBtn) layoutBtn.style.display = 'inline-flex';
+        if (layoutBtn) layoutBtn.classList.remove('oc-hidden');
 
         if (!configFile) {
             alert('<%:Please select a config file first%>');
@@ -286,20 +286,20 @@ var ConfigEditor = {
         var textarea = document.getElementById('config-editor-textarea');
         if (textarea) {
             textarea.value = '';
-            textarea.style.display = 'none';
+            textarea.classList.add('oc-hidden');
         }
         ocShowLoading(textarea.parentNode, '<%:Loading config file...%>');
         var mergeview = document.getElementById('config-mergeview-container');
-        if (mergeview) mergeview.style.display = 'none';
+        if (mergeview) mergeview.classList.add('oc-hidden');
 
         var banner = document.getElementById('overwrite-banner');
-        if (banner) banner.style.display = 'flex';
+        if (banner) banner.classList.remove('oc-hidden');
 
         var tabs = document.getElementById('config-mode-tabs');
-        if (tabs) tabs.style.display = 'none';
+        if (tabs) tabs.classList.add('oc-hidden');
 
         var layoutBtn = document.getElementById('config-editor-layout');
-        if (layoutBtn) layoutBtn.style.display = 'none';
+        if (layoutBtn) layoutBtn.classList.add('oc-hidden');
 
         if (!this.currentConfigFile) {
             this.currentConfigFile = '/etc/openclash/custom/openclash_custom_overwrite.sh';
@@ -314,7 +314,7 @@ var ConfigEditor = {
             editTitle.textContent = '<%:Overwrite Edit%>: ';
         }
 
-        if (this.overwriteCardBar) this.overwriteCardBar.style.display = 'block';
+        if (this.overwriteCardBar) this.overwriteCardBar.classList.remove('oc-hidden');
         this.loadOverwriteFiles();
 
         var configNameElement = document.getElementById('config-file-name');
@@ -341,7 +341,7 @@ var ConfigEditor = {
         }
         this._currentEditorMode = null;
         var textarea = document.getElementById('config-editor-textarea');
-        if (textarea) textarea.style.display = '';
+        if (textarea) textarea.classList.remove('oc-hidden');
     },
 
     toggleFullscreen: function(forceState) {
@@ -372,7 +372,7 @@ var ConfigEditor = {
 
         this.isModified = false;
         this.originalContent = '';
-        this.overwriteCardBar.style.display = 'none';
+        this.overwriteCardBar.classList.add('oc-hidden');
         if (!this.isOverwrite) {
             this.currentConfigFile = '';
         }
@@ -384,9 +384,9 @@ var ConfigEditor = {
 
         if (textarea) {
             ocHideLoading(textarea.parentNode);
-            textarea.style.display = 'none';
+            textarea.classList.add('oc-hidden');
         }
-        if (mergeview) mergeview.style.display = 'none';
+        if (mergeview) mergeview.classList.add('oc-hidden');
         if (layoutBtn) {
             layoutBtn.classList.remove('active');
             layoutBtn.title = "<%:Compare%>";
@@ -448,7 +448,7 @@ var ConfigEditor = {
         var statusText = document.getElementById('config-editor-status-text');
         var textarea = document.getElementById('config-editor-textarea');
         var mergeview = document.getElementById('config-mergeview-container');
-        if (mergeview) mergeview.style.display = 'none';
+        if (mergeview) mergeview.classList.add('oc-hidden');
 
         statusText.textContent = '<%:Loading...%>';
 
@@ -484,7 +484,7 @@ var ConfigEditor = {
                 });
                 self.isModified = false;
                 self.updateSaveButtonState();
-                textarea.style.display = 'none';
+                textarea.classList.add('oc-hidden');
                 ocHideLoading(textarea.parentNode);
                 return;
             }
@@ -552,7 +552,7 @@ var ConfigEditor = {
                 parent: parent
             });
 
-            textarea.style.display = 'none';
+            textarea.classList.add('oc-hidden');
             self.editorInstance.dom.style.height = '100%';
             ocHideLoading(textarea.parentNode);
 
@@ -611,12 +611,12 @@ var ConfigEditor = {
         var editor_help = document.getElementById('config-editor-help');
         var statusText = document.getElementById('config-editor-status-text');
 
-        if (tabs) tabs.style.display = 'none';
+        if (tabs) tabs.classList.add('oc-hidden');
         if (textarea) {
-            textarea.style.display = 'none';
+            textarea.classList.add('oc-hidden');
             ocHideLoading(textarea.parentNode);
         }
-        if (container) container.style.display = 'block';
+        if (container) container.classList.remove('oc-hidden');
         if (statusText) statusText.textContent = '<%:Loading...%>';
         if (editor_help) editor_help.innerHTML = '<%:Press%> <b style="color:var(--success-color)">F10</b> <%:to toggle differences,%> <b style="color:var(--success-color)">F11</b> <%:for fullscreen,%> <b style="color:var(--success-color)">Esc</b> <%:to exit fullscreen,%> <b style="color:var(--success-color)">Ctrl + <%:Mouse Wheel%></b> <%:to zoom%>';
 
@@ -702,10 +702,10 @@ var ConfigEditor = {
         var layoutBtn = document.getElementById('config-editor-layout');
         if (container) {
             container.innerHTML = '';
-            container.style.display = 'none';
+            container.classList.add('oc-hidden');
         }
-        if (textarea) textarea.style.display = 'block';
-        if (!this.isOverwrite && tabs) tabs.style.display = 'flex';
+        if (textarea) textarea.classList.remove('oc-hidden');
+        if (!this.isOverwrite && tabs) tabs.classList.remove('oc-hidden');
         this.mergeViewActive = false;
         window._mergeViewInstance = null;
         this.loadConfigContent();
@@ -1582,7 +1582,11 @@ var ConfigEditor = {
             ConfigEditor.overwriteDrag.isTouchDragging = false;
         });
 
-        bar.style.display = self.isOverwrite ? 'block' : 'none';
+        if (self.isOverwrite) {
+            bar.classList.remove('oc-hidden');
+        } else {
+            bar.classList.add('oc-hidden');
+        }
     },
 
     saveOverwriteSort: function() {
@@ -1836,7 +1840,7 @@ var ConfigEditor = {
         removeBtn.addEventListener('click', function() {
             row.parentNode.removeChild(row);
             if (container.children.length === 0) {
-                container.style.display = 'none';
+                container.classList.add('oc-hidden');
             }
         });
 
@@ -1844,7 +1848,7 @@ var ConfigEditor = {
         row.appendChild(valueInput);
         row.appendChild(removeBtn);
         container.appendChild(row);
-        container.style.display = 'block';
+        container.classList.remove('oc-hidden');
     },
 
     buildOverwriteParamRows: function(container, paramStr) {
@@ -1924,7 +1928,7 @@ var ConfigEditor = {
 
         var fileContent = `
             <form id="overwrite-upload-form-file" style="display:${activeTab==='file'?'block':'none'};">
-                <div class="form-group" style="margin-bottom:20px;">
+                <div class="form-group oc-mb-5">
                     <label for="overwrite-upload-config"><%:Config File%>:</label>
                     ${fileConfigDropdown}
                 </div>
@@ -1940,9 +1944,9 @@ var ConfigEditor = {
                         <p class="upload-primary"><%:Click to select file or drag and drop%></p>
                         <p class="upload-secondary"><%:Support txt,conf files, max size 10MB%></p>
                     </div>
-                    <input type="file" id="overwrite-upload-file-input" accept=".txt,.conf,*" style="display: none;">
+                    <input type="file" id="overwrite-upload-file-input" accept=".txt,.conf,*" class="oc-hidden">
                 </div>
-                <div class="filename-input-container" style="margin-top:20px;">
+                <div class="filename-input-container oc-mt-5">
                     <label for="overwrite-upload-filename-input"><%:File Name%>:</label>
                     <input type="text" id="overwrite-upload-filename-input" placeholder="<%:Please enter a filename%>" class="form-input" value="${name}" ${readonly ? 'readonly' : ''}/>
                 </div>
@@ -1999,10 +2003,10 @@ var ConfigEditor = {
                 <div class="form-group" id="overwrite-subscribe-param-group" style="display:'block';">
                     <label><%:Environment variable%>:</label>
                     <div class="form-help" style="margin-bottom: unset;"><%:Set environment variables for the overwrite script%></div>
-                    <div id="overwrite-subscribe-param-container" style="display:none;"></div>
-                    <button type="button" id="overwrite-subscribe-param-add" class="btn upload-btn" style="align-self: flex-start; margin-top: 4px; padding: 4px 12px; font-size: 13px; border: 1px solid var(--primary-color); border-radius: var(--radius-sm); cursor: pointer;">+ <%:Add Param%></button>
+                    <div id="overwrite-subscribe-param-container" class="oc-hidden"></div>
+                    <button type="button" id="overwrite-subscribe-param-add" class="add-row-btn"><svg><use href="#oc-icon-upload"/></svg><span><%:Add Param%></span></button>
                 </div>
-                <div class="upload-progress" id="overwrite-upload-progress" style="display:none;">
+                <div class="upload-progress oc-hidden" id="overwrite-upload-progress">
                     <div class="progress-bar">
                         <div class="progress-fill" id="overwrite-progress-fill" style="width:0%;"></div>
                     </div>
@@ -2295,7 +2299,7 @@ var ConfigEditor = {
                 var progressText = form.querySelector('#overwrite-progress-text');
                 if (type === 'http') {
                     statusText.textContent = '<%:Downloading subscription content...%>';
-                    progressContainer.style.display = 'block';
+                    progressContainer.classList.remove('oc-hidden');
                     var progress = 0;
                     var interval = setInterval(function() {
                         progress = Math.min(progress + Math.random() * 20, 90);
@@ -2505,7 +2509,7 @@ var ConfigEditor = {
             var statusText = model.querySelector('#overwrite-edit-status-text');
             if (type === 'http') {
                 statusText.textContent = '<%:Downloading subscription content...%>';
-                progressContainer.style.display = 'block';
+                progressContainer.classList.remove('oc-hidden');
                 var progress = 0;
                 var interval = setInterval(function() {
                     progress = Math.min(progress + Math.random() * 20, 90);

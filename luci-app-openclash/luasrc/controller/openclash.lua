@@ -3356,7 +3356,7 @@ function action_cdn_info()
 			return oix_url
 		end
 
-		local file = file_type == "plugin" and "dev/version" or "dev/core_version"
+		local file = file_type == "plugin" and branch .. "/version" or branch .. "/core_version"
 		local ref
 		if file_type == "plugin" then
 			ref = (plugin_ver ~= "" and plugin_ver ~= "__latest__") and plugin_ver or "package"

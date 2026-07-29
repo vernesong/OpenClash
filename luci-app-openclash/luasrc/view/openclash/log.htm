@@ -16,10 +16,10 @@
         </div>
         <div id="tab-content">
             <div class="dom" style="display: block;">
-                <textarea id="cbid.openclash.config.clog" class="cbi-input-textarea" style="width: 100%;display:inline" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
+                <textarea id="cbid.openclash.config.clog" class="cbi-input-textarea oc-w100" style="display:inline" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
             </div>
             <div class="dom">
-                <textarea id="core_log" class="cbi-input-textarea" style="width: 100%;display:inline" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
+                <textarea id="core_log" class="cbi-input-textarea oc-w100" style="display:inline" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
                 <div class="radio-button">
                     <input type="radio" id="info" name="radios" value="info" checked onclick="return switch_log_level(this.value)"/>
                     <label for="info"><%:Info%></label>
@@ -34,7 +34,7 @@
                 </div>
             </div>
             <div class="dom">
-                <textarea id="debug_log" class="cbi-input-textarea" style="width: 100%;display:none" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
+                <textarea id="debug_log" class="cbi-input-textarea oc-w100 oc-hidden" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
                 <div id="debug-render-wrapper">
                     <div id="debug-rendered"></div>
                     <div class="oc-usage-help-float" id="debug-copy-source" onclick="copyDebugSource()" title="<%:Copy Debug%>"><svg width="20" height="20"><use href="#oc-icon-copy"/></svg></div>
@@ -43,15 +43,15 @@
         </div>
     </div>
 
-<fieldset style="text-align: center; width: 100%" class="cbi-section">
+<fieldset class="cbi-section oc-text-center oc-w100">
     <div class="btn-group">
         <input type="button" class="btn cbi-button cbi-button-apply" id="stop_refresh_button" value="<%:Stop Refresh%>" onclick=" return stop_refresh() "/>
         <input type="button" class="btn cbi-button cbi-button-apply" id="start_refresh_button" value="<%:Start Refresh%>" onclick=" return start_refresh() "/>
         <input type="button" class="btn cbi-button cbi-button-apply" id="del_log_button" value="<%:Clean%>" onclick=" return del_log() " />
         <input type="button" class="btn cbi-button cbi-button-apply" id="down_log_button" value="<%:Download Log%>" onclick=" return download_log() " />
-        <span style="display:inline-flex; align-items:center; gap:4px;">
+        <span class="oc-flex-center" style="gap:4px;">
             <input type="button" class="btn cbi-button cbi-button-apply" id="gen_debug_button" value="<%:Generate Logs%>" onclick="return gen_debug_logs()" />
-            <span id="debug_loading" style="display:none; vertical-align:middle; line-height:1;"><img src="<%=resource%>/icons/loading.svg" onerror="this.onerror=null;this.src='<%=resource%>/icons/loading.gif'" alt="<%:Loading...%>" style="vertical-align:middle; height:1.6em; width:auto;" /></span>
+            <span id="debug_loading" class="oc-hidden" style="vertical-align:middle; line-height:1;"><img src="<%=resource%>/icons/loading.svg" onerror="this.onerror=null;this.src='<%=resource%>/icons/loading.gif'" alt="<%:Loading...%>" style="height:1.6em; width:auto; vertical-align:middle;" /></span>
         </span>
     </div>
 </fieldset>
@@ -397,7 +397,7 @@ function gen_debug_logs()
     var loading_el = document.getElementById('debug_loading');
     var btn = document.getElementById('gen_debug_button');
     var originalText = btn.value;
-    if (loading_el) { loading_el.style.display = 'inline'; }
+    if (loading_el) { loading_el.classList.remove('oc-hidden'); }
     if (btn) { btn.value = '<%:Generating...%>'; btn.disabled = true; }
 
     restoreDebugEditor();

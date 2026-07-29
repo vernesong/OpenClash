@@ -125,6 +125,9 @@ msgstr "应用配置"
 msgid "Download Config"
 msgstr "下载配置"
 
+msgid "Click to Download"
+msgstr "点击下载"
+
 msgid "Copy Config"
 msgstr "复制配置"
 

@@ -32,11 +32,11 @@
                             <div class="sub-card">
                                 <div class="card-title"><%:Running Status%></div>
                                 <div class="version-display-container">
-                                    <div class="version-display" id="plugin-version-display" style="display: none;">
+                                    <div class="version-display oc-hidden" id="plugin-version-display">
                                         <svg width="12" height="12"><use href="#oc-icon-package"/></svg>
                                         <span class="version-text" id="plugin-version-text">-</span>
                                     </div>
-                                    <div class="version-display" id="core-version-display" style="display: none;">
+                                    <div class="version-display oc-hidden" id="core-version-display">
                                         <svg width="12" height="12"><use href="#oc-icon-cpu"/></svg>
                                         <span class="version-text" id="core-version-text">-</span>
                                     </div>
@@ -44,7 +44,7 @@
                                 <div class="core-main-controls">
                                     <div class="core-status-toggle">
                                         <span id="_clash" class="value-indicator"><%:Collecting data...%></span>
-                                        <span id="_oclog" class="value-indicator" style="display: none;"><b><%:Collecting data...%></b></span>
+                                        <span id="_oclog" class="value-indicator oc-hidden"><b><%:Collecting data...%></b></span>
                                         <div class="plugin-toggle-container">
                                             <label class="plugin-toggle-switch">
                                                 <input type="checkbox" id="plugin_toggle" onchange="togglePlugin(this)">
@@ -65,8 +65,8 @@
                                 <div class="card-actions">
                                     <button type="button" class="icon-btn theme-toggle-btn" id="theme-toggle" onclick="toggleThemeMode()">
                                         <svg id="sun-icon" width="14" height="14"><use href="#oc-icon-sun"/></svg>
-                                        <svg id="moon-icon" width="14" height="14" style="display: none"><use href="#oc-icon-moon"/></svg>
-                                        <svg id="auto-icon" width="14" height="14" style="display: none"><use href="#oc-icon-auto-theme"/></svg>
+                                        <svg id="moon-icon" width="14" height="14" class="oc-hidden"><use href="#oc-icon-moon"/></svg>
+                                        <svg id="auto-icon" width="14" height="14" class="oc-hidden"><use href="#oc-icon-auto-theme"/></svg>
                                     </button>
                                     <button type="button" class="icon-btn action-btn" id="go_wiki" title="<%:Wiki%>" onclick="return wikipage()"><svg width="14" height="14"><use href="#oc-icon-wiki"/></svg></button>
                                     <button type="button" class="icon-btn action-btn" id="go_tutorials" title="<%:Tutorials%>" onclick="return gitbookpage()"><svg width="14" height="14"><use href="#oc-icon-book"/></svg></button>
@@ -88,7 +88,7 @@
                                 <div class="card-content">
                                     <div class="card-value"><span id="_mode" class="value-indicator"><%:Collecting data...%></span></div>
                                     <div class="card-controls">
-                                        <div id="radio-ru-mode" class="cbi-button-group" style="display: inline-flex;">
+                                        <div id="radio-ru-mode" class="cbi-button-group oc-inline-flex">
                                             <input type="radio" id="normal" name="radios-ru" value="" onclick="return switch_run_mode(this.value)"/><label for="normal" id="run_normal" class="cbi-button-option"><%:Compat%></label>
                                             <input type="radio" id="tun" name="radios-ru" value="-tun" onclick="return switch_run_mode(this.value)"/><label for="tun" class="cbi-button-option"><%:TUN%></label>
                                             <input type="radio" id="mix" name="radios-ru" value="-mix" onclick="return switch_run_mode(this.value)"/><label for="mix" class="cbi-button-option"><%:Mix%></label>
@@ -100,7 +100,7 @@
                                 <div class="card-title"><%:Proxy Mode%></div>
                                 <div class="card-content">
                                     <div class="card-controls">
-                                        <div id="radio-mode" class="cbi-button-group" style="display: inline-flex;">
+                                        <div id="radio-mode" class="cbi-button-group oc-inline-flex">
                                             <input type="radio" id="rule" name="radios" value="rule" onclick="return switch_rule_mode(this.value)"/><label for="rule" class="cbi-button-option"><%:Rule%></label>
                                             <input type="radio" id="global" name="radios" value="global" onclick="return switch_rule_mode(this.value)"/><label for="global" class="cbi-button-option"><%:Global%></label>
                                             <input type="radio" id="direct" name="radios" value="direct" onclick="return switch_rule_mode(this.value)"/><label for="direct" class="cbi-button-option"><%:Direct%></label>
@@ -116,7 +116,7 @@
                                 <div class="card-title"><%:Area Bypass%><div class="help-link" title="<%:Bypass Specified Regions Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option%>"><svg width="12" height="12"><use href="#oc-icon-help"/></svg></div></div>
                                 <div class="card-content">
                                     <div class="card-controls">
-                                        <div id="oc-setting-oversea" class="cbi-button-group" style="display: inline-flex;">
+                                        <div id="oc-setting-oversea" class="cbi-button-group oc-inline-flex">
                                             <input type="radio" id="oc_setting_oversea_1" name="oc-setting-oversea" value="1" onclick="return switch_oc_setting_oversea('1')"/><label for="oc_setting_oversea_1" class="cbi-button-option"><%:Mainland%></label>
                                             <input type="radio" id="oc_setting_oversea_2" name="oc-setting-oversea" value="2" onclick="return switch_oc_setting_oversea('2')"/><label for="oc_setting_oversea_2" class="cbi-button-option"><%:Oversea%></label>
                                             <input type="radio" id="oc_setting_oversea_0" name="oc-setting-oversea" value="0" onclick="return switch_oc_setting_oversea('0')"/><label for="oc_setting_oversea_0" class="cbi-button-option"><%:Off%></label>
@@ -128,7 +128,7 @@
                                 <div class="card-title"><%:Sniffer%><a href="javascript:void(0);" onclick="window.open('https://wiki.metacubex.one/config/sniff/?h=sniff#_1', '_blank');" class="help-link" title="<%:Sniff the domain name of the traffics to avoid rule-based proxy failure%>"><svg width="12" height="12"><use href="#oc-icon-help"/></svg></a></div>
                                 <div class="card-content">
                                     <div class="card-controls">
-                                        <div id="dns-setting-sniffer" class="cbi-button-group" style="display: inline-flex;">
+                                        <div id="dns-setting-sniffer" class="cbi-button-group oc-inline-flex">
                                             <input type="radio" id="meta_sniffer_on" name="meta-sniffer-radios" value="1" onclick="return switch_meta_sniffer('1')"/><label for="meta_sniffer_on" class="cbi-button-option"><%:On%></label>
                                             <input type="radio" id="meta_sniffer_off" name="meta-sniffer-radios" value="0" onclick="return switch_meta_sniffer('0')"/><label for="meta_sniffer_off" class="cbi-button-option"><%:Off%></label>
                                         </div>
@@ -139,7 +139,7 @@
                                 <div class="card-title"><%:DNS Proxy%><a href="javascript:void(0);" onclick="window.open('https://wiki.metacubex.one/config/dns/?h=res#respect-rules', '_blank');" class="help-link" title="<%:DNS querys respect-rules to preventing access failure%>"><svg width="12" height="12"><use href="#oc-icon-help"/></svg></a></div>
                                 <div class="card-content">
                                     <div class="card-controls">
-                                        <div id="dns-setting-respect" class="cbi-button-group" style="display: inline-flex;">
+                                        <div id="dns-setting-respect" class="cbi-button-group oc-inline-flex">
                                             <input type="radio" id="respect_rules_on" name="respect-rules-radios" value="1" onclick="return switch_respect_rules('1')"/><label for="respect_rules_on" class="cbi-button-option"><%:On%></label>
                                             <input type="radio" id="respect_rules_off" name="respect-rules-radios" value="0" onclick="return switch_respect_rules('0')"/><label for="respect_rules_off" class="cbi-button-option"><%:Off%></label>
                                         </div>
@@ -150,7 +150,7 @@
                                 <div class="card-title"><%:Stream Unlock%><div class="help-link" title="<%:Auto Select Proxy For Streaming Unlock, Support Netflix, Disney Plus, HBO And YouTube Premium, etc%>"><svg width="12" height="12"><use href="#oc-icon-help"/></svg></div></div>
                                 <div class="card-content">
                                     <div class="card-controls">
-                                        <div id="stream-unlock-setting" class="cbi-button-group" style="display: inline-flex;">
+                                        <div id="stream-unlock-setting" class="cbi-button-group oc-inline-flex">
                                             <input type="radio" id="stream_unlock_on" name="stream-unlock-radios" value="1" onclick="return switch_stream_unlock('1')"/><label for="stream_unlock_on" class="cbi-button-option"><%:On%></label>
                                             <input type="radio" id="stream_unlock_off" name="stream-unlock-radios" value="0" onclick="return switch_stream_unlock('0')"/><label for="stream_unlock_off" class="cbi-button-option"><%:Off%></label>
                                         </div>
@@ -164,28 +164,28 @@
                             <div class="sub-card">
                                 <div class="card-title"><%:Config File%></div>
                                 <div class="config-file-content">
-                                    <div id="subscription-info-display" class="subscription-info-container" style="display: none;">
+                                    <div id="subscription-info-display" class="subscription-info-container oc-hidden">
                                         <div class="subscription-nav-arrow left" id="subscription-prev-arrow" onclick="switchToPreviousConfig()" title="<%:Previous%>"></div>
                                         <div class="subscription-nav-arrow right" id="subscription-next-arrow" onclick="switchToNextConfig()" title="<%:Next%>"></div>
                                         <div class="subscription-info-main">
                                             <div class="subscription-info-header">
                                                 <div class="config-file-name-wrapper">
                                                     <div class="config-file-name" id="current-config-name"><%:No Config Selected%></div>
-                                                    <span id="age-file-icon" class="age-file-icon" style="display:none;"></span>
+                                                    <span id="age-file-icon" class="age-file-icon oc-hidden"></span>
                                                 </div>
                                                 <div class="file-info" id="file-info-section">
                                                     <span id="file-modify-time" class="file-info-item"><%:Modified: %> --</span>
                                                 </div>
                                             </div>
                                             <div class="subscription-info-details">
-                                                <div class="subscription-progress" id="subscription-progress-section" style="display: none;">
+                                                <div class="subscription-progress oc-hidden" id="subscription-progress-section">
                                                     <div class="subscription-progress-bar">
                                                         <div id="subscription-progress-fill" class="subscription-progress-fill high" style="width: 0%"></div>
                                                     </div>
                                                     <div id="subscription-info-text" class="subscription-info-text"><%:Collecting data...%></div>
                                                 </div>
                                                 <div class="card-actions subscription-actions-row">
-                                                    <div id="subscription-overwrite-tags" class="subscription-overwrite-tags" style="display: none;"></div>
+                                                    <div id="subscription-overwrite-tags" class="subscription-overwrite-tags oc-hidden"></div>
                                                     <div class="subscription-action-buttons">
                                                         <button type="button" class="icon-btn action-btn" id="refresh-subscription" title="<%:Refresh%>" onclick="return refreshSubscriptionInfo()">
                                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -207,7 +207,7 @@
                                         </div>
                                     </div>
 
-                                    <div id="config-file-empty-state" class="config-file-empty-state" style="display: none;">
+                                    <div id="config-file-empty-state" class="config-file-empty-state oc-hidden">
                                         <div class="config-file-empty-message"><%:No config files found, Please upload a config file to get started%></div>
                                         <button type="button" class="config-upload-btn-large" id="upload_config_large" onclick="return uploadConfig()">
                                             <svg width="20" height="20"><use href="#oc-icon-download"/></svg>
@@ -303,7 +303,7 @@
                 </div>
 
             <!-- Usage Help Model -->
-            <div class="config-upload-model-overlay" id="usage-help-overlay" style="display: none;">
+            <div class="config-upload-model-overlay" id="usage-help-overlay">
                 <div class="config-upload-model usage-help-model" id="usage-help-model">
                     <div class="config-upload-header">
                         <div class="config-upload-title"><%:Usage Help%></div>
@@ -314,8 +314,8 @@
                     <div class="config-upload-content">
                         <div class="form-group">
                             <label class="highlight-label"><%:Copy the following text to any AI (ChatGPT, DeepSeek, etc.) to get usage help for OpenClash:%></label>
-                            <textarea id="usage-help-textarea" class="form-textarea" style="display:none"></textarea>
-                            <div id="usage-help-editor" style="height: 400px;"></div>
+                            <textarea id="usage-help-textarea" class="form-textarea oc-hidden"></textarea>
+                            <div id="usage-help-editor"></div>
                         </div>
                     </div>
                     <div class="config-upload-footer">
@@ -400,16 +400,16 @@
             var autoIcon = document.getElementById('auto-icon');
             if (sunIcon && moonIcon && autoIcon) {
                 var theme = localStorage.getItem('oc-theme') || 'auto';
-                sunIcon.style.display = 'none';
-                moonIcon.style.display = 'none';
-                autoIcon.style.display = 'none';
+                sunIcon.classList.add('oc-hidden');
+                moonIcon.classList.add('oc-hidden');
+                autoIcon.classList.add('oc-hidden');
 
                 if (theme === 'light') {
-                    sunIcon.style.display = 'inline';
+                    sunIcon.classList.remove('oc-hidden');
                 } else if (theme === 'dark') {
-                    moonIcon.style.display = 'inline';
+                    moonIcon.classList.remove('oc-hidden');
                 } else {
-                    autoIcon.style.display = 'inline';
+                    autoIcon.classList.remove('oc-hidden');
                 }
             }
         }
@@ -969,10 +969,10 @@
 
             if (isEmpty) {
                 if (emptyStateElement) {
-                    emptyStateElement.style.display = 'flex';
+                    emptyStateElement.classList.remove('oc-hidden');
                 }
                 if (configFileBottom) {
-                    configFileBottom.style.display = 'none';
+                    configFileBottom.classList.add('oc-hidden');
                 }
                 if (configFileContent) {
                     configFileContent.classList.add('empty-state');
@@ -980,10 +980,10 @@
                 this.hideSubscriptionDisplay();
             } else {
                 if (emptyStateElement) {
-                    emptyStateElement.style.display = 'none';
+                    emptyStateElement.classList.add('oc-hidden');
                 }
                 if (configFileBottom) {
-                    configFileBottom.style.display = 'flex';
+                    configFileBottom.classList.remove('oc-hidden');
                 }
                 if (configFileContent) {
                     configFileContent.classList.remove('empty-state');
@@ -994,7 +994,7 @@
         hideSubscriptionDisplay: function() {
             var subscriptionDisplay = document.getElementById('subscription-info-display');
             if (subscriptionDisplay) {
-                subscriptionDisplay.style.display = 'none';
+                subscriptionDisplay.classList.add('oc-hidden');
             }
         },
 
@@ -1066,21 +1066,21 @@
             if (!container) return;
 
             if (this.configList.length === 0) {
-                container.style.display = 'none';
+                container.classList.add('oc-hidden');
                 return;
             }
 
             if (!configFile) {
-                container.style.display = 'none';
+                container.classList.add('oc-hidden');
                 return;
             }
 
             if (configFileContent && configFileContent.classList.contains('empty-state')) {
-                container.style.display = 'none';
+                container.classList.add('oc-hidden');
                 return;
             }
 
-            container.style.display = 'flex';
+            container.classList.remove('oc-hidden');
 
             if (configNameElement) {
                 var displayName = this.formatDisplayName(configFile);
@@ -1116,10 +1116,10 @@
                     if (fileInfo.age) {
                         ageFileIconElement.innerHTML = '<svg width="16" height="16"><use href="#oc-icon-shield-check"/></svg>';
                         ageFileIconElement.title = '<%:Age Encryption File%>';
-                        ageFileIconElement.style.display = 'inline-flex';
+                        ageFileIconElement.classList.remove('oc-hidden');
                     } else {
                         ageFileIconElement.innerHTML = '';
-                        ageFileIconElement.style.display = 'none';
+                        ageFileIconElement.classList.add('oc-hidden');
                     }
                 }
             } else {
@@ -1133,7 +1133,7 @@
 
                 if (ageFileIconElement) {
                     ageFileIconElement.innerHTML = '';
-                    ageFileIconElement.style.display = 'none';
+                    ageFileIconElement.classList.add('oc-hidden');
                 }
             }
         },
@@ -1512,7 +1512,7 @@
                 return;
             }
 
-            container.style.display = 'flex';
+            container.classList.remove('oc-hidden');
 
             if (data && data.providers && data.providers.length > 0) {
                 if (data.providers.length > 1 || data.providers[0].provider_name) {
@@ -1521,7 +1521,7 @@
                     this.displaySingleProvider(data.providers[0], progressSection);
                 }
             } else {
-                progressSection.style.display = 'none';
+                progressSection.classList.add('oc-hidden');
             }
 
             if (detailsSection) {
@@ -1533,7 +1533,7 @@
             if (!progressSection) return;
 
             progressSection.innerHTML = '';
-            progressSection.style.display = 'flex';
+            progressSection.classList.remove('oc-hidden');
             progressSection.className = 'subscription-progress';
 
             var progressBar = document.createElement('div');
@@ -1579,7 +1579,7 @@
             var providerCount = displayProviders.length;
 
             progressSection.innerHTML = '';
-            progressSection.style.display = 'flex';
+            progressSection.classList.remove('oc-hidden');
             progressSection.className = 'subscription-providers-grid';
             progressSection.setAttribute('data-count', providerCount);
 
@@ -1707,11 +1707,11 @@
                 return;
             }
 
-            container.style.display = 'flex';
+            container.classList.remove('oc-hidden');
 
             if (progressSection) {
                 progressSection.innerHTML = '<div class="subscription-no-info"><%:No Sub Info Found%></div>';
-                progressSection.style.display = 'flex';
+                progressSection.classList.remove('oc-hidden');
                 progressSection.className = 'subscription-progress';
             }
 
@@ -1744,11 +1744,11 @@
                 return;
             }
 
-            container.style.display = 'flex';
+            container.classList.remove('oc-hidden');
 
             if (progressSection) {
                 progressSection.innerHTML = '<div class="subscription-loading"><%:Collecting data...%></div>';
-                progressSection.style.display = 'flex';
+                progressSection.classList.remove('oc-hidden');
                 progressSection.className = 'subscription-progress';
             }
 
@@ -2032,7 +2032,7 @@
             this.container.innerHTML = '';
 
             if (enabledModules.length === 0) {
-                this.container.style.display = 'none';
+                this.container.classList.add('oc-hidden');
                 this.updateDragScrollState();
                 return;
             }
@@ -2053,7 +2053,7 @@
                 this.container.appendChild(tag);
             }
 
-            this.container.style.display = 'flex';
+            this.container.classList.remove('oc-hidden');
             this.updateDragScrollState();
         }
     };
@@ -2081,7 +2081,7 @@
 
             if (DOMCache.oclog) {
                 if (initialMessage) {
-                    DOMCache.oclog.style.display = 'inline-flex';
+                    DOMCache.oclog.classList.remove('oc-hidden');
                     DOMCache.oclog.innerHTML = '<b style="color:var(--tip-color)">' + initialMessage + '</b>';
                 }
             }
@@ -2104,7 +2104,7 @@
                 setTimeout(function() {
                     if (!LogManager.streamingXHR) {
                         DOMCache.oclog.style.width = '';
-                        DOMCache.oclog.style.display = 'none';
+                        DOMCache.oclog.classList.add('oc-hidden');
                         DOMCache.oclog.innerHTML = '';
                     }
                 }, 1000);
@@ -2136,7 +2136,7 @@
                     if (self.streamingXHR !== capturedXhr && !self.streamingXHR) {
                         if (DOMCache.oclog) {
                             DOMCache.oclog.style.width = '';
-                            DOMCache.oclog.style.display = 'none';
+                            DOMCache.oclog.classList.add('oc-hidden');
                             DOMCache.oclog.innerHTML = '';
                         }
                     }
@@ -2294,7 +2294,7 @@
                 DOMCache.oclog.insertBefore(spacer, DOMCache.oclog.firstChild);
             }
 
-            DOMCache.oclog.style.display = 'inline-flex';
+            DOMCache.oclog.classList.remove('oc-hidden');
             DOMCache.oclog.style.willChange = 'scroll-position';
 
             DOMCache.oclog.style.width = '';
@@ -2860,7 +2860,7 @@
                 document.body.appendChild(this._portal);
                 this._portal.appendChild(this.overlay);
             }
-            this.overlay.style.display = 'flex';
+            this.overlay.classList.add('show');
             if (this.statusEl) {
                 this.statusEl.textContent = '';
             }
@@ -2889,7 +2889,7 @@
 
         hide: function() {
             if (this.overlay) {
-                this.overlay.style.display = 'none';
+                this.overlay.classList.remove('show');
             }
         },
 
@@ -3705,7 +3705,7 @@
                     } else {
                         DOMCache.core_version_text.title = '';
                     }
-                    DOMCache.core_version_display.style.display = 'flex';
+                    DOMCache.core_version_display.classList.remove('oc-hidden');
 
                     var existingDot = DOMCache.core_version_display.querySelector('.update-dot');
 
@@ -3724,7 +3724,7 @@
                         DOMCache.core_version_display.title = '';
                     }
                 } else {
-                    DOMCache.core_version_display.style.display = 'none';
+                    DOMCache.core_version_display.classList.add('oc-hidden');
                     DOMCache.core_version_display.title = '';
                 }
 
@@ -3744,7 +3744,7 @@
                     } else {
                         DOMCache.plugin_version_text.title = '';
                     }
-                    DOMCache.plugin_version_display.style.display = 'flex';
+                    DOMCache.plugin_version_display.classList.remove('oc-hidden');
 
                     var existingDot = DOMCache.plugin_version_display.querySelector('.update-dot');
 
@@ -3763,7 +3763,7 @@
                         DOMCache.plugin_version_display.title = '';
                     }
                 } else {
-                    DOMCache.plugin_version_display.style.display = 'none';
+                    DOMCache.plugin_version_display.classList.add('oc-hidden');
                     DOMCache.plugin_version_display.title = '';
                 }
             }

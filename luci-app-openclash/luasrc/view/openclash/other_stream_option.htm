@@ -17,7 +17,7 @@ function act_manual_unlock_test_<%=stream_id_name%>(btn, type)
 				'<%:Waiting for command to complete...%>';
 
 			legend.textContent = '<%:Collecting data...%>';
-			legend.parentNode.style.display = 'block';
+			legend.parentNode.classList.remove('oc-hidden');
 			legend.style.display = 'block';
 		};
 
@@ -80,7 +80,7 @@ function act_all_proxies_test_<%=stream_id_name%>(btn, type)
 				'<%:Waiting for command to complete...%>';
 
 			legend.textContent = '<%:Collecting data...%>';
-			legend.parentNode.style.display = 'block';
+			legend.parentNode.classList.remove('oc-hidden');
 			legend.style.display = 'block';
 		};
 
@@ -135,11 +135,11 @@ function act_all_proxies_test_<%=stream_id_name%>(btn, type)
 <input type="button" class="btn cbi-button cbi-input-reload" value="<%:Unlock Test(Select)%>" onclick="return act_manual_unlock_test_<%=stream_id_name%>(this, '<%=self.value%>')" />
 <input type="button" class="btn cbi-button cbi-input-reload" value="<%:All Proxies Test%>" onclick="return act_all_proxies_test_<%=stream_id_name%>(this, '<%=self.value%>')" />
 <div class="oc">
-	<div class="diag-style" style="display:none">
+	<div class="diag-style oc-hidden">
 		<div id="manual-<%=stream_id_name%>-test-state" class="diag-legend"><%:Collecting data...%></div>
 		<div id="manual-<%=stream_id_name%>-test-output"></div>
 	</div>
-	<div class="diag-style" style="display:none">
+	<div class="diag-style oc-hidden">
 		<div id="all-<%=stream_id_name%>-test-state" class="diag-legend"><%:Collecting data...%></div>
 		<div id="all-<%=stream_id_name%>-test-output"></div>
 	</div>

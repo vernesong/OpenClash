@@ -14,13 +14,13 @@ end
 <div class="oc">
 	<script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
 	<fieldset class="cbi-section oix-panel">
-		<div id="oix-msg-bar" class="oix-msg-bar"></div>
-		<div id="oix-login-section"<%= logged_in and ' style="display:none;"' or '' %>>
+		<div id="oix-msg-bar" class="oix-msg-bar oc-hidden"></div>
+		<div id="oix-login-section" class="<%= logged_in and 'oc-hidden' or '' %>">
 			<div class="oix-login-box">
 
 				<%= oix_logo_img("oix-logo") %>
 
-				<div class="mode-tabs" style="margin-bottom:14px;" id="oix-tabs">
+				<div class="mode-tabs" id="oix-tabs">
 					<button type="button" class="mode-tab active" id="oix-tab-account" onclick="OixCloud.switchTab('account')">
 						<svg class="oc-icon" width="13" height="13"><use href="#oc-icon-user"/></svg>
 						<%:Account Login%>
@@ -32,15 +32,14 @@ end
 				</div>
 
 				<div id="oix-panel-account">
-					<div style="margin-bottom:10px;">
+					<div class="oix-field-group-sm">
 						<input type="text" id="oix-email" class="oix-input oix-input-ok" placeholder="<%:Account Email Address%>" autocomplete="email" inputmode="email"
 							value="<%= fs.uci_get_config('config', 'oix_email') or '' %>">
 						<span id="oix-email-hint" class="oix-field-hint oix-field-help"></span>
 					</div>
-					<div style="margin-bottom:14px;">
-						<div style="position:relative;">
-						<input type="password" id="oix-passwd" class="oix-input oix-input-ok" placeholder="<%:Account Password%>" autocomplete="current-password"
-							style="padding-right:36px;"
+				<div class="oix-field-group">
+					<div class="oix-input-wrap">
+					<input type="password" id="oix-passwd" class="oix-input oix-input-ok oix-input-has-icon" placeholder="<%:Account Password%>" autocomplete="current-password"
 							value="<%= fs.uci_get_config('config', 'oix_passwd') or '' %>">
 						<button type="button" class="oix-pwd-toggle" onclick="OixCloud.togglePwd('oix-passwd')"
 							data-show="<%:Show Password%>" data-hide="<%:Hide Password%>"
@@ -55,18 +54,18 @@ end
 						<%:Login Account%>
 					</button>
 
-					<div style="text-align:center;margin-top:12px;">
-						<button type="button" class="oix-btn oix-btn-ghost oix-btn-block" onclick="OixCloud.openWebsite();return false;">
-							<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-home"/></svg>
-							<%:oixCloud Website%>
-						</button>
-					</div>
+				<div class="oix-btn-row">
+					<button type="button" class="oix-btn oix-btn-ghost oix-btn-block" onclick="OixCloud.openWebsite();return false;">
+						<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-home"/></svg>
+						<%:oixCloud Website%>
+					</button>
 				</div>
-				<div id="oix-panel-token" style="display:none;">
-					<div style="margin-bottom:14px;">
-						<div style="position:relative;">
-						<input type="password" id="oix-token" class="oix-input oix-input-ok" placeholder="<%:Please enter your oixCloud token%>"
-							style="padding-right:36px;"
+			</div>
+			<div id="oix-panel-token" class="oc-hidden">
+				<div class="oix-field-group">
+					<div class="oix-input-wrap">
+					<input type="password" id="oix-token" class="oix-input oix-input-ok oix-input-has-icon" placeholder="<%:Please enter your oixCloud token%>"
+						autocomplete="section-oix token"
 							value="<%= fs.uci_get_config('config', 'oix_token') or '' %>">
 						<button type="button" class="oix-pwd-toggle" onclick="OixCloud.togglePwd('oix-token')"
 							data-show="<%:Show Token%>" data-hide="<%:Hide Token%>"
@@ -81,7 +80,7 @@ end
 						<%:Login Account%>
 					</button>
 
-					<div style="text-align:center;margin-top:12px;">
+				<div class="oix-btn-row">
 					<button type="button" class="oix-btn oix-btn-ghost oix-btn-block" onclick="OixCloud.openWebsite();return false;">
 						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-home"/></svg>
 						<%:oixCloud Website%>
@@ -94,7 +93,7 @@ end
 			</div>
 		</div>
 
-		<div id="oix-logged-section" style="display:<%= logged_in and 'block' or 'none' %>;">
+		<div id="oix-logged-section"<%= logged_in and '' or ' class="oc-hidden"' %>>
 			<div class="oix-header">
 				<div class="oix-header-left">
 					<span class="oix-status-badge">
@@ -108,7 +107,7 @@ end
 						<%:Checkin%>
 					</button>
 					<button type="button" class="oix-btn oix-btn-ghost-subtle oix-btn-sm" onclick="OixCloud.openWebsite();return false;">
-						<img src="<%= oix_logo_src %>" width="14" height="14" style="border-radius:50%;vertical-align:middle" alt="oixCloud">
+						<img class="oix-img-inline" src="<%= oix_logo_src %>" width="14" height="14" alt="oixCloud">
 						<%:oixCloud Website%>
 					</button>
 					<button type="button" class="oix-btn oix-btn-danger oix-btn-sm" onclick="OixCloud.doLogout();return false;">
@@ -118,14 +117,14 @@ end
 				</div>
 			</div>
 
-			<div class="oix-announce" id="oix-announce">
+			<div class="oix-announce oc-hidden" id="oix-announce">
 				<div class="oix-announce-header">
 					<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-bell"/></svg>
 					<%:Announcement%>
 				</div>
 				<div class="oix-announce-body oix-collapsed" id="oix-announce-body"></div>
-				<div class="oix-announce-arrow" id="oix-announce-arrow" style="display:none;" onclick="OixCloud.toggleAnnounce();return false;">
-					<svg class="oc-icon" width="18" height="18" style="color:var(--primary-color)"><use href="#oc-icon-chevron-oix"/></svg>
+				<div class="oix-announce-arrow oc-hidden" id="oix-announce-arrow" onclick="OixCloud.toggleAnnounce();return false;">
+					<svg class="oc-icon oix-icon-accent" width="18" height="18"><use href="#oc-icon-chevron-oix"/></svg>
 				</div>
 			</div>
 
@@ -213,10 +212,10 @@ end
 				</div>
 			</div>
 			<div class="oix-settings-grid">
-				<div class="oix-setting-card" style="grid-column: span 2;">
+				<div class="oix-setting-card oix-card-span-2">
 					<div class="oix-params-item">
 						<span><%:Optional Parameters%>:</span>
-						<input type="text" id="oix-params" style="min-width:140px;" value="<%= oix_params %>" onblur="OixCloud.saveParams()" oninput="OixCloud.validateParams(this)" class="oix-input-num oix-input-ok" placeholder="&type=love&tfo=true">
+						<input type="text" id="oix-params" class="oix-input-num oix-input-ok oix-input-wide" value="<%= oix_params %>" onblur="OixCloud.saveParams()" oninput="OixCloud.validateParams(this)" placeholder="&type=love&tfo=true">
 					</div>
 					<div class="oix-card-help">
 						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-help"/></svg>
@@ -302,8 +301,8 @@ var OixCloud = {
 		this._activeTab = tab;
 		document.getElementById('oix-tab-account').classList.toggle('active', tab === 'account');
 		document.getElementById('oix-tab-token').classList.toggle('active', tab === 'token');
-		document.getElementById('oix-panel-account').style.display = tab === 'account' ? 'block' : 'none';
-		document.getElementById('oix-panel-token').style.display = tab === 'token' ? 'block' : 'none';
+		document.getElementById('oix-panel-account').classList.toggle('oc-hidden', tab !== 'account');
+		document.getElementById('oix-panel-token').classList.toggle('oc-hidden', tab !== 'token');
 		OixMsg.clearAll();
 	},
 
@@ -413,14 +412,15 @@ var OixCloud = {
 	},
 
 	showLoggedIn: function() {
-		document.getElementById('oix-login-section').style.display = 'none';
-		document.getElementById('oix-logged-section').style.display = 'block';
+		document.getElementById('oix-login-section').classList.add('oc-hidden');
+		document.getElementById('oix-logged-section').classList.remove('oc-hidden');
 	},
 
 	showLoggedOut: function() {
-		document.getElementById('oix-login-section').style.display = 'block';
-		document.getElementById('oix-logged-section').style.display = 'none';
+		document.getElementById('oix-login-section').classList.remove('oc-hidden');
+		document.getElementById('oix-logged-section').classList.add('oc-hidden');
 		this.stopParamsRetry();
+		this.clearForm();
 		this.switchTab('account');
 	},
 
@@ -442,9 +442,9 @@ var OixCloud = {
 				self.renderAnnouncement(status.result);
 			} else {
 				var cards = document.getElementById('oix-cards');
-				if (cards) cards.style.display = 'none';
-				var ann = document.getElementById('oix-announce');
-				if (ann) ann.style.display = 'none';
+			if (cards) cards.classList.add('oc-hidden');
+			var ann = document.getElementById('oix-announce');
+			if (ann) ann.classList.add('oc-hidden');
 			}
 		});
 	},
@@ -455,7 +455,7 @@ var OixCloud = {
 			var body = document.getElementById('oix-announce-body');
 			var arrow = document.getElementById('oix-announce-arrow');
 			if (el && body) {
-				el.style.display = 'block';
+				el.classList.remove('oc-hidden');
 				body.innerHTML = '<strong>' + (result.announcement.date || '') + ': </strong>' + result.announcement.content;
 				body.classList.remove('oix-collapsed');
 				var ref = document.getElementById('oix-cards');
@@ -477,9 +477,9 @@ var OixCloud = {
 					ref.parentElement.removeChild(measure);
 					if (fullH > maxH + 4) {
 						body.classList.add('oix-collapsed');
-						if (arrow) arrow.style.display = 'flex';
+						if (arrow) arrow.classList.remove('oc-hidden');
 					} else {
-						if (arrow) arrow.style.display = 'none';
+						if (arrow) arrow.classList.add('oc-hidden');
 					}
 				};
 				if (ref && ref.offsetWidth > 0) {
@@ -497,7 +497,7 @@ var OixCloud = {
 			}
 		} else {
 			var el2 = document.getElementById('oix-announce');
-			if (el2) el2.style.display = 'none';
+			if (el2) el2.classList.add('oc-hidden');
 		}
 	},
 
@@ -674,13 +674,13 @@ var OixMsg = {
 			error:   '<svg width="15" height="15"><use href="#oc-icon-error"/></svg>',
 			info:    '<svg width="15" height="15"><use href="#oc-icon-info"/></svg>'
 		};
-		bar.style.display = 'flex'; bar.innerHTML = (icons[level] || icons.info) + '<span>' + msg + '</span>';
+		bar.classList.remove('oc-hidden'); bar.innerHTML = (icons[level] || icons.info) + '<span>' + msg + '</span>';
 		bar.className = 'oix-msg-bar oix-msg-' + (level || 'info');
 		clearTimeout(this._timer);
 		var t = (timeout !== undefined) ? timeout : (level === 'error' ? 6000 : 3000);
 		if (t > 0) { var s=this; this._timer=setTimeout(function(){s.hide();},t); }
 	},
-	hide: function() { document.getElementById('oix-msg-bar').style.display = 'none'; },
+	hide: function() { document.getElementById('oix-msg-bar').classList.add('oc-hidden'); },
 	field: function(id, msg) {
 		var hint = document.getElementById(id + '-hint'), inp = document.getElementById(id);
 		if (hint) { hint.textContent = msg || ''; hint.className = msg ? 'oix-field-hint oix-field-error' : 'oix-field-hint oix-field-help'; }

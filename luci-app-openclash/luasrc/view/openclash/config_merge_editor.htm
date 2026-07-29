@@ -7,23 +7,23 @@
 <script src="/luci-static/resources/openclash/js/cm6.min.js?v=<%=plugin_version%>"></script>
 <script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
 
-<div id="my_editor_div" style="display:flex;">
-	<div id="config-mode-tabs" style="display:flex;width:100%;">
+<div id="my_editor_div" class="oc-flex-center">
+	<div id="config-mode-tabs" class="oc-flex-center" style="width:100%;">
 		<div class="mode-tabs">
 			<button type="button" class="mode-tab active" id="tab-original-config">
-				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;margin-right:4px;">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="none">
 					<rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
 					<line x1="8" y1="8" x2="16" y2="8" stroke="currentColor" stroke-width="2"/>
 					<line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/>
 					<line x1="8" y1="16" x2="12" y2="16" stroke="currentColor" stroke-width="2"/>
 				</svg>
-				<%:Original Config%>
-			</button>
-			<button type="button" class="mode-tab" id="tab-runtime-config">
-				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;margin-right:4px;">
-					<polygon points="13 2 3 14 12 14 11 22 21 10 13 10 13 2" stroke="currentColor" stroke-width="2" fill="none"/>
-				</svg>
-				<%:Runtime Config%>
+			<span><%:Original Config%></span>
+		</button>
+		<button type="button" class="mode-tab" id="tab-runtime-config">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+				<polygon points="13 2 3 14 12 14 11 22 21 10 13 10 13 2" stroke="currentColor" stroke-width="2" fill="none"/>
+			</svg>
+			<span><%:Runtime Config%></span>
 			</button>
 		</div>
 	</div>
@@ -33,9 +33,9 @@
 	<svg width="24" height="24"><use href="#oc-icon-compare"/></svg>
 </button>
 
-<div id="oc-merge-help" style="display:none;">
+<div id="oc-merge-help" class="oc-hidden">
 	<span id="oc-merge-help-normal"><%:Press%> <b style="color:var(--success-color)">F11</b> <%:for fullscreen,%> <b style="color:var(--success-color)">Esc</b> <%:to exit fullscreen,%> <b style="color:var(--success-color)">Ctrl + <%:Mouse Wheel%></b> <%:to zoom%></span>
-	<span id="oc-merge-help-merge" style="display:none;"><%:Press%> <b style="color:var(--success-color)">F10</b> <%:to toggle differences,%> <b style="color:var(--success-color)">F11</b> <%:for fullscreen,%> <b style="color:var(--success-color)">Esc</b> <%:to exit fullscreen,%> <b style="color:var(--success-color)">Ctrl + <%:Mouse Wheel%></b> <%:to zoom%></span>
+	<span id="oc-merge-help-merge" class="oc-hidden"><%:Press%> <b style="color:var(--success-color)">F10</b> <%:to toggle differences,%> <b style="color:var(--success-color)">F11</b> <%:for fullscreen,%> <b style="color:var(--success-color)">Esc</b> <%:to exit fullscreen,%> <b style="color:var(--success-color)">Ctrl + <%:Mouse Wheel%></b> <%:to zoom%></span>
 </div>
 
 <script type="text/javascript">//<![CDATA[
@@ -88,7 +88,7 @@ function config_merge_editor(id, id2, target, target2, readOnly, readOnly2, wid,
 
 	var helpEl = document.getElementById('oc-merge-help');
 	if (helpEl) {
-		helpEl.style.display = 'inline';
+		helpEl.classList.remove('oc-hidden');
 		var footer = document.createElement('div');
 		footer.className = 'config-editor-footer';
 		footer.style.cssText = 'border-radius:var(--radius-sm);margin: 8px 0;';
@@ -171,7 +171,7 @@ function config_merge_editor(id, id2, target, target2, readOnly, readOnly2, wid,
 			if (state.isMerge) {
 				state.showUse = true;
 				_createSingleMergeEditor(state.useContent, false);
-				document.getElementById('my_editor_div').style.display = 'flex';
+				document.getElementById('my_editor_div').classList.remove('oc-hidden');
 			} else if (!state.showUse) {
 				state.showUse = true;
 				_switchSingleTab(state.useContent, false);
@@ -197,7 +197,7 @@ function config_merge_editor(id, id2, target, target2, readOnly, readOnly2, wid,
 			if (state.isMerge) {
 				state.showUse = false;
 				_createSingleMergeEditor(state.defContent, true);
-				document.getElementById('my_editor_div').style.display = 'flex';
+				document.getElementById('my_editor_div').classList.remove('oc-hidden');
 			} else if (state.showUse) {
 				state.showUse = false;
 				_switchSingleTab(state.defContent, true);
@@ -263,7 +263,7 @@ function _createSingleMergeEditor(content, readOnly) {
 	}));
 
 	var mergeStatus = document.querySelector('.config-editor-status');
-	if (mergeStatus) mergeStatus.style.display = 'none';
+	if (mergeStatus) mergeStatus.classList.add('oc-hidden');
 
 	var view = new CM6.EditorView({
 		state: CM6.EditorState.create({ doc: content, extensions: exts }),
@@ -338,9 +338,9 @@ function _renderMergeView() {
 	if (btn && mv.dom) mv.dom.appendChild(btn);
 
 	var mergeStatus = document.querySelector('.config-editor-status');
-	if (mergeStatus) mergeStatus.style.display = '';
+	if (mergeStatus) mergeStatus.classList.remove('oc-hidden');
 	var mergeLabel = document.getElementById('oc-merge-mode-label');
-	if (mergeLabel) mergeLabel.style.display = 'inline';
+	if (mergeLabel) mergeLabel.classList.remove('oc-hidden');
 
 	window._mergeViewInstance = mv;
 	window._ocMergeShowDifferences = true;
@@ -374,8 +374,14 @@ function _destroyMergeInstance() {
 function _updateMergeHelpText(isMerge) {
 	var helpNormal = document.getElementById('oc-merge-help-normal');
 	var helpMerge = document.getElementById('oc-merge-help-merge');
-	if (helpNormal) helpNormal.style.display = isMerge ? 'none' : 'inline';
-	if (helpMerge) helpMerge.style.display = isMerge ? 'inline' : 'none';
+	if (helpNormal) {
+		if (isMerge) helpNormal.classList.add('oc-hidden');
+		else helpNormal.classList.remove('oc-hidden');
+	}
+	if (helpMerge) {
+		if (isMerge) helpMerge.classList.remove('oc-hidden');
+		else helpMerge.classList.add('oc-hidden');
+	}
 }
 
 function _toggleMergeView() {
@@ -396,10 +402,10 @@ function _toggleMergeView() {
 	if (state.isMerge) {
 		state.showUse = true;
 		_createSingleMergeEditor(state.useContent, false);
-		document.getElementById('my_editor_div').style.display = 'flex';
+		document.getElementById('my_editor_div').classList.remove('oc-hidden');
 	} else {
 		_renderMergeView();
-		document.getElementById('my_editor_div').style.display = 'none';
+		document.getElementById('my_editor_div').classList.add('oc-hidden');
 	}
 	_updateMergeToggleBtn();
 	_updateMergeTabs(state.isMerge);
