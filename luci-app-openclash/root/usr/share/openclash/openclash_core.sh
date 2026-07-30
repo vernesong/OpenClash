@@ -96,7 +96,7 @@ fi
 
 if [ -n "$DIRECT_CORE_URL" ] || [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
    if [ "$CPU_MODEL" != 0 ]; then
-      LOG_TIP "【$CORE_TYPE】Core Downloading, Please Try to Download and Upload Manually If Fails"
+      LOG_TIP "【"$CORE_TYPE"】Core Downloading, Please Try to Download and Upload Manually If Fails"
       # If $2 is a full download URL, use it directly
       if [ -n "$2" ] && echo "$2" | grep -qE '^https?://'; then
          DOWNLOAD_URL="$2"
@@ -132,31 +132,32 @@ if [ -n "$DIRECT_CORE_URL" ] || [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" 
          DOWNLOAD_RESULT=$?
 
          if [ "$DOWNLOAD_RESULT" -eq 0 ]; then
-            gzip -t "$DOWNLOAD_FILE" >/dev/null 2>&1
+            gzip_test_err=$(gzip -t "$DOWNLOAD_FILE" 2>&1)
 
             if [ "$?" -eq 0 ]; then
                LOG_TIP "【"$CORE_TYPE"】Core Download Successful, Start Update..."
                extract_success=true
+               extract_err=""
                [ -s "$DOWNLOAD_FILE" ] && {
                   if [ "$CORE_TYPE" = "Oix" ]; then
-                     gzip -dc "$DOWNLOAD_FILE" > "$TMP_FILE" 2>/dev/null || extract_success=false
+                     extract_err=$(gzip -dc "$DOWNLOAD_FILE" > "$TMP_FILE" 2>&1) || extract_success=false
                   else
-                     tar zxvfo "$DOWNLOAD_FILE" -C /tmp >/dev/null 2>&1 || extract_success=false
-                     mv /tmp/clash "$TMP_FILE" >/dev/null 2>&1 || extract_success=false
+                     extract_err=$(tar zxvfo "$DOWNLOAD_FILE" -C /tmp 2>&1) || extract_success=false
+                     [ "$extract_success" = "true" ] && { extract_err=$(mv /tmp/clash "$TMP_FILE" 2>&1) || extract_success=false; }
                   fi
                   rm -rf "$DOWNLOAD_FILE" >/dev/null 2>&1
-                  chmod 4755 "$TMP_FILE" >/dev/null 2>&1 || extract_success=false
-                  "$TMP_FILE" -v >/dev/null 2>&1 || extract_success=false
+                  [ "$extract_success" = "true" ] && { extract_err=$(chmod 4755 "$TMP_FILE" 2>&1) || extract_success=false; }
+                  [ "$extract_success" = "true" ] && { extract_err=$("$TMP_FILE" -v 2>&1) || extract_success=false; }
                }
 
                if [ "$extract_success" != "true" ]; then
                   if [ "$retry_count" -lt "$max_retries" ]; then
-                     LOG_ERROR "【$retry_count/$max_retries】【"$CORE_TYPE"】Core Update Failed..."
+                     LOG_ERROR "【$retry_count/$max_retries】【"$CORE_TYPE"】Core Update Failed:【$(echo "$extract_err" | tr '\n' ' ' | head -c 300)】..."
                      rm -rf "$TMP_FILE" >/dev/null 2>&1
                      sleep 2
                      continue
                   else
-                     LOG_ERROR "【"$CORE_TYPE"】Core Update Failed, Please Make Sure Enough Flash Memory Space or Selected Correct Core Platform And Try Again!"
+                     LOG_ERROR "【"$CORE_TYPE"】Core Update Failed:【$(echo "$extract_err" | tr '\n' ' ' | head -c 300)】..."
                      rm -rf "$TMP_FILE" >/dev/null 2>&1
                      SLOG_CLEAN
                      del_lock
@@ -164,45 +165,45 @@ if [ -n "$DIRECT_CORE_URL" ] || [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" 
                   fi
                fi
 
-               mv -f "$TMP_FILE" "$TARGET_CORE_PATH" >/dev/null 2>&1
+               mv_err=$(mv -f "$TMP_FILE" "$TARGET_CORE_PATH" 2>&1)
 
                if [ "$?" == "0" ]; then
-                  LOG_TIP "【"$CORE_TYPE"】Core Update Successful!"
+                  LOG_TIP "【"$CORE_TYPE"】Core Update Successful"
                   SLOG_CLEAN
                   restart=1
                   break
                else
                   if [ "$retry_count" -lt "$max_retries" ]; then
-                     LOG_ERROR "【$retry_count/$max_retries】【"$CORE_TYPE"】Core Update Failed..."
+                     LOG_ERROR "【$retry_count/$max_retries】【"$CORE_TYPE"】Core Move Failed:【$(echo "$mv_err" | tr '\n' ' ' | head -c 300)】"
                      sleep 2
                      continue
                   else
-                     LOG_ERROR "【"$CORE_TYPE"】Core Update Failed, Please Make Sure Enough Flash Memory Space And Try Again!"
+                     LOG_ERROR "【"$CORE_TYPE"】Core Move Failed:【$(echo "$mv_err" | tr '\n' ' ' | head -c 300)】"
                      SLOG_CLEAN
                      break
                   fi
                fi
             else
                if [ "$retry_count" -lt "$max_retries" ]; then
-                  LOG_ERROR "【$retry_count/$max_retries】【"$CORE_TYPE"】Core Update Failed..."
+                  LOG_ERROR "【$retry_count/$max_retries】【"$CORE_TYPE"】Core Verification Failed:【$(echo "$gzip_test_err" | tr '\n' ' ' | head -c 300)】"
                   sleep 2
                   continue
                else
-                  LOG_ERROR "【"$CORE_TYPE"】Core Update Failed, Please Check The Network or Try Again Later!"
+                  LOG_ERROR "【"$CORE_TYPE"】Core Verification Failed:【$(echo "$gzip_test_err" | tr '\n' ' ' | head -c 300)】"
                   SLOG_CLEAN
                   break
                fi
             fi
          elif [ "$DOWNLOAD_RESULT" -eq 2 ]; then
-            LOG_TIP "【"$CORE_TYPE"】Core Has Not Been Updated, Stop Continuing Operation!"
+            LOG_TIP "【"$CORE_TYPE"】Core Has Not Been Updated, Stop Continuing Operation"
             SLOG_CLEAN
          else
             if [ "$retry_count" -lt "$max_retries" ]; then
-               LOG_ERROR "【$retry_count/$max_retries】【"$CORE_TYPE"】Core Download Failed..."
+               LOG_ERROR "【$retry_count/$max_retries】【"$CORE_TYPE"】Core Download Failed, Please Check The Network or Try Again Later..."
                sleep 2
                continue
             else
-               LOG_ERROR "【"$CORE_TYPE"】Core Download Failed, Please Check The Network or Try Again Later!"
+               LOG_ERROR "【"$CORE_TYPE"】Core Download Failed, Please Check The Network or Try Again Later"
                SLOG_CLEAN
                break
             fi
@@ -213,7 +214,7 @@ if [ -n "$DIRECT_CORE_URL" ] || [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" 
       SLOG_CLEAN
    fi
 else
-   LOG_TIP "【"$CORE_TYPE"】Core Has Not Been Updated, Stop Continuing Operation!"
+   LOG_TIP "【"$CORE_TYPE"】Core Has Not Been Updated, Stop Continuing Operation"
    SLOG_CLEAN
 fi
 

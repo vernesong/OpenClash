@@ -54,7 +54,7 @@ EOF
     if [ "$SHOW_DOWNLOAD_PROGRESS" = "1" ] || [ "$SHOW_DOWNLOAD_PROGRESS" = "true" ]; then
         TEMP_LOG="/tmp/curl_log_$$"
 
-        LOG_OUT "Downloading:【$(basename "$DOWNLOAD_PATH") - 0%】"
+        LOG_OUT "Downloading:【$(basename "$DOWNLOAD_PATH") - 0%】..."
 
         (
             if [ -n "$SECRET_KEY" ] && [ -n "$ETAG_HEADER" ]; then

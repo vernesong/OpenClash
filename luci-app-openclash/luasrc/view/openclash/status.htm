@@ -1747,7 +1747,7 @@
             container.classList.remove('oc-hidden');
 
             if (progressSection) {
-                progressSection.innerHTML = '<div class="subscription-loading"><%:Collecting data...%></div>';
+                progressSection.innerHTML = '<div class="subscription-loading"><span class="loading-spinner"></span><%:Collecting data...%></div>';
                 progressSection.classList.remove('oc-hidden');
                 progressSection.className = 'subscription-progress';
             }
@@ -2103,7 +2103,6 @@
             if (DOMCache.oclog) {
                 setTimeout(function() {
                     if (!LogManager.streamingXHR) {
-                        DOMCache.oclog.style.width = '';
                         DOMCache.oclog.classList.add('oc-hidden');
                         DOMCache.oclog.innerHTML = '';
                     }
@@ -2130,12 +2129,10 @@
                 if (self.streamingXHR === xhr) {
                     self.streamingXHR = null;
                 }
-                try { xhr.abort(); } catch(e) {}
                 var capturedXhr = xhr;
                 setTimeout(function() {
                     if (self.streamingXHR !== capturedXhr && !self.streamingXHR) {
                         if (DOMCache.oclog) {
-                            DOMCache.oclog.style.width = '';
                             DOMCache.oclog.classList.add('oc-hidden');
                             DOMCache.oclog.innerHTML = '';
                         }
@@ -2297,12 +2294,6 @@
             DOMCache.oclog.classList.remove('oc-hidden');
             DOMCache.oclog.style.willChange = 'scroll-position';
 
-            DOMCache.oclog.style.width = '';
-            var naturalWidth = DOMCache.oclog.scrollWidth;
-            if (naturalWidth > 0) {
-                DOMCache.oclog.style.width = naturalWidth + 'px';
-            }
-
             var self = this;
             function animateScroll() {
                 if (self.scrollAnimId) cancelAnimationFrame(self.scrollAnimId);
@@ -2399,7 +2390,7 @@
 
             var self = this;
             StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show_sys")%>', function(x, status) {
-                if (x && x.status == 200 && x.responseText != "") {
+                if (x && x.status == 200 && x.responseText != "" && status) {
                     self.retryCount = 0;
                     var cpuColor = status.cpu <= 50 ? "var(--success-color)" : (status.cpu <= 80 ? "var(--tip-color)" : "var(--error-color)");
                     var cpuValue = status.cpu <= 100 ? status.cpu + " %" : "0 %";
@@ -2478,7 +2469,7 @@
 
             var self = this;
             StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show")%>', function(x, status) {
-                if (x && x.status == 200 && x.responseText != "") {
+                if (x && x.status == 200 && x.responseText != "" && status) {
                     self.retryCount = 0;
                     self.updateNetworkStats(status);
                 } else {

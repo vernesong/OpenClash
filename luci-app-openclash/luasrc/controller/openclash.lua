@@ -1779,7 +1779,10 @@ function action_update_info()
 		corever = corever(),
 		release_branch = release_branch(),
 		smart_enable = smart_enable(),
-		oix_core = is_oix()
+		oix_core = is_oix(),
+		opcv = opcv(),
+		coremetacv = coremetacv(),
+		pkg_type = fs.pkg_type()
 	})
 end
 
@@ -2368,31 +2371,20 @@ function action_myip_check()
 
 	local services = {
 		{
-			name = "upaiyun",
-			url = string.format("https://pubstatic.b0.upaiyun.com/?_upnode&z=%d", random),
+			name = "myipcn",
+			url = string.format("https://my.ip.cn/?z=%d", random),
 			parser = function(data)
 				if data and data ~= "" then
-					local ok, upaiyun_json = pcall(json.parse, data)
-					if ok and upaiyun_json and upaiyun_json.remote_addr then
-						local geo_parts = {}
-						if upaiyun_json.remote_addr_location then
-							if upaiyun_json.remote_addr_location.country and upaiyun_json.remote_addr_location.country ~= "" then
-								table.insert(geo_parts, upaiyun_json.remote_addr_location.country)
-							end
-							if upaiyun_json.remote_addr_location.province and upaiyun_json.remote_addr_location.province ~= "" then
-								table.insert(geo_parts, upaiyun_json.remote_addr_location.province)
-							end
-							if upaiyun_json.remote_addr_location.city and upaiyun_json.remote_addr_location.city ~= "" then
-								table.insert(geo_parts, upaiyun_json.remote_addr_location.city)
-							end
-							if upaiyun_json.remote_addr_location.isp and upaiyun_json.remote_addr_location.isp ~= "" then
-								table.insert(geo_parts, upaiyun_json.remote_addr_location.isp)
-							end
-						end
+					local ip = string.match(data, "ip：([%x:%.]+)")
+					local geo = string.match(data, "归属地：(.+)")
+
+					if ip and geo then
+						geo = string.gsub(geo, "%s+", " ")
+						geo = string.gsub(geo, "^%s*(.-)%s*$", "%1")
 
 						return {
-							ip = upaiyun_json.remote_addr,
-							geo = table.concat(geo_parts, " ")
+							ip = ip,
+							geo = geo
 						}
 					end
 				end

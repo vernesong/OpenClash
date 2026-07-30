@@ -43,7 +43,7 @@
         </div>
     </div>
 
-<fieldset class="cbi-section oc-text-center oc-w100">
+<fieldset class="cbi-section oc oc-text-center oc-w100">
     <div class="btn-group">
         <input type="button" class="btn cbi-button cbi-button-apply" id="stop_refresh_button" value="<%:Stop Refresh%>" onclick=" return stop_refresh() "/>
         <input type="button" class="btn cbi-button cbi-button-apply" id="start_refresh_button" value="<%:Start Refresh%>" onclick=" return start_refresh() "/>
@@ -51,7 +51,7 @@
         <input type="button" class="btn cbi-button cbi-button-apply" id="down_log_button" value="<%:Download Log%>" onclick=" return download_log() " />
         <span class="oc-flex-center" style="gap:4px;">
             <input type="button" class="btn cbi-button cbi-button-apply" id="gen_debug_button" value="<%:Generate Logs%>" onclick="return gen_debug_logs()" />
-            <span id="debug_loading" class="oc-hidden" style="vertical-align:middle; line-height:1;"><img src="<%=resource%>/icons/loading.svg" onerror="this.onerror=null;this.src='<%=resource%>/icons/loading.gif'" alt="<%:Loading...%>" style="height:1.6em; width:auto; vertical-align:middle;" /></span>
+            <span id="debug_loading" class="oc-hidden" style="vertical-align:middle; line-height:1;"><span class="loading-spinner" style="vertical-align:middle"></span></span>
         </span>
     </div>
 </fieldset>

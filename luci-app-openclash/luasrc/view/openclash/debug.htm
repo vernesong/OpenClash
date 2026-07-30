@@ -51,7 +51,7 @@ local dns_host = "www.instagram.com"
 		if (legend && output)
 		{
 			output.innerHTML =
-				'<img src="<%=resource%>/icons/loading.svg" onerror="this.onerror=null;this.src=\'<%=resource%>/icons/loading.gif\'" alt="<%:Loading...%>" style="vertical-align:middle" /> ' +
+				'<span class="loading-spinner" style="vertical-align:middle"></span> ' +
 				'<%:Waiting for command to complete...%>';
 
 			legend.textContent = '<%:Collecting data...%>';
@@ -95,7 +95,7 @@ local dns_host = "www.instagram.com"
 		if (legend && output)
 		{
 			output.innerHTML =
-				'<img src="<%=resource%>/icons/loading.svg" onerror="this.onerror=null;this.src=\'<%=resource%>/icons/loading.gif\'" alt="<%:Loading...%>" style="vertical-align:middle" /> ' +
+				'<span class="loading-spinner" style="vertical-align:middle"></span> ' +
 				'<%:Waiting for command to complete...%>';
 
 			legend.textContent = '<%:Collecting data...%>';

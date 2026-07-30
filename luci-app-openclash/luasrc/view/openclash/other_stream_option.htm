@@ -13,7 +13,7 @@ function act_manual_unlock_test_<%=stream_id_name%>(btn, type)
 		if (legend && output)
 		{
 			output.innerHTML =
-				'<img src="<%=resource%>/icons/loading.svg" onerror="this.onerror=null;this.src=\'<%=resource%>/icons/loading.gif\'" alt="<%:Loading...%>" style="vertical-align:middle" /> ' +
+			'<span class="loading-spinner" style="vertical-align:middle"></span> ' +
 				'<%:Waiting for command to complete...%>';
 
 			legend.textContent = '<%:Collecting data...%>';
@@ -76,7 +76,7 @@ function act_all_proxies_test_<%=stream_id_name%>(btn, type)
 		if (legend && output)
 		{
 			output.innerHTML =
-				'<img src="<%=resource%>/icons/loading.svg" onerror="this.onerror=null;this.src=\'<%=resource%>/icons/loading.gif\'" alt="<%:Loading...%>" style="vertical-align:middle" /> ' +
+			'<span class="loading-spinner" style="vertical-align:middle"></span> ' +
 				'<%:Waiting for command to complete...%>';
 
 			legend.textContent = '<%:Collecting data...%>';

@@ -181,22 +181,25 @@ if [ -n "$DOWNLOAD_URL" ]; then
             max_update_retry=2
             while [ $update_retry -lt $max_update_retry ]; do
                update_retry=$((update_retry + 1))
-               run_with_timeout 30 opkg update >/dev/null 2>&1
+               opkg_update_err=$(run_with_timeout 30 opkg update 2>&1)
                opkg_ret=$?
                rm -f /var/lock/opkg.lock
                if [ $opkg_ret -eq 0 ]; then
                   break
                fi
                if [ $update_retry -lt $max_update_retry ]; then
-                  LOG_ERROR "【$update_retry/$max_update_retry】【OpenClash - v$LAST_VER】opkg update failed or timed out, retrying..."
+                  LOG_ERROR "【$update_retry/$max_update_retry】【OpenClash - v$LAST_VER】opkg update failed or timed out:【$(echo "$opkg_update_err" | tr '\n' ' ' | head -c 300)】, retrying..."
                   sleep 2
                else
-                  LOG_ERROR "【$update_retry/$max_update_retry】【OpenClash - v$LAST_VER】opkg update failed, trying pre update test..."
+                  LOG_ERROR "【$update_retry/$max_update_retry】【OpenClash - v$LAST_VER】opkg update failed:【$(echo "$opkg_update_err" | tr '\n' ' ' | head -c 300)】, trying pre update test..."
                fi
             done
             if [ -s "/tmp/openclash.ipk" ]; then
-               if [ -n "$(opkg --force-downgrade install /tmp/openclash.ipk --noaction 2>/dev/null |grep -E '(Upgrading|Downgrading) luci-app-openclash on root' 2>/dev/null)" ]; then
+               opkg_test_err=$(opkg --force-downgrade install /tmp/openclash.ipk --noaction 2>&1)
+               if [ -n "$(echo "$opkg_test_err" | grep -E '(Upgrading|Downgrading) luci-app-openclash on root')" ]; then
                   pre_test_success=true
+               else
+                  LOG_ERROR "【$retry_count/$max_retries】【OpenClash - v$LAST_VER】Pre update test failed:【$(echo "$opkg_test_err" | tr '\n' ' ' | head -c 500)】..."
                fi
             fi
          elif [ -x "/usr/bin/apk" ]; then
@@ -204,23 +207,25 @@ if [ -n "$DOWNLOAD_URL" ]; then
             max_update_retry=2
             while [ $update_retry -lt $max_update_retry ]; do
                update_retry=$((update_retry + 1))
-               run_with_timeout 30 apk update >/dev/null 2>&1
+               apk_update_err=$(run_with_timeout 30 apk update 2>&1)
                apk_ret=$?
                rm -f /lib/apk/db/lock
                if [ $apk_ret -eq 0 ]; then
                   break
                fi
                if [ $update_retry -lt $max_update_retry ]; then
-                  LOG_ERROR "【$update_retry/$max_update_retry】【OpenClash - v$LAST_VER】apk update failed or timed out, retrying..."
+                  LOG_ERROR "【$update_retry/$max_update_retry】【OpenClash - v$LAST_VER】apk update failed or timed out:【$(echo "$apk_update_err" | tr '\n' ' ' | head -c 300)】, retrying..."
                   sleep 2
                else
-                  LOG_ERROR "【$update_retry/$max_update_retry】【OpenClash - v$LAST_VER】apk update failed, trying pre update test..."
+                  LOG_ERROR "【$update_retry/$max_update_retry】【OpenClash - v$LAST_VER】apk update failed:【$(echo "$apk_update_err" | tr '\n' ' ' | head -c 300)】, trying pre update test..."
                fi
             done
             if [ -s "/tmp/openclash.apk" ]; then
-               apk add -s -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk >/dev/null 2>&1
+               apk_test_err=$(apk add -s -q --force-overwrite --clean-protected --allow-untrusted --allow-downgrade /tmp/openclash.apk 2>&1)
                if [ $? -eq 0 ]; then
                   pre_test_success=true
+               else
+                  LOG_ERROR "【$retry_count/$max_retries】【OpenClash - v$LAST_VER】Pre update test failed:【$(echo "$apk_test_err" | tr '\n' ' ' | head -c 500)】..."
                fi
             fi
          fi
@@ -235,9 +240,9 @@ if [ -n "$DOWNLOAD_URL" ]; then
                continue
             else
                if [ -x "/bin/opkg" ]; then
-                  LOG_ERROR "【OpenClash - v$LAST_VER】Pre update test failed after 3 attempts, the file is saved in /tmp/openclash.ipk, please try to update manually with【opkg install /tmp/openclash.ipk】"
+                  LOG_ERROR "【OpenClash - v$LAST_VER】Pre update test failed after 3 attempts, the file is saved in /tmp/openclash.ipk, please try to update manually with【opkg --force-downgrade install /tmp/openclash.ipk】"
                elif [ -x "/usr/bin/apk" ]; then
-                  LOG_ERROR "【OpenClash - v$LAST_VER】Pre update test failed after 3 attempts, the file is saved in /tmp/openclash.apk, please try to update manually with【apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk】"
+                  LOG_ERROR "【OpenClash - v$LAST_VER】Pre update test failed after 3 attempts, the file is saved in /tmp/openclash.apk, please try to update manually with【apk add -q --force-overwrite --clean-protected --allow-untrusted --allow-downgrade /tmp/openclash.apk】"
                fi
                SLOG_CLEAN
                dec_job_counter_and_restart "0"
@@ -326,9 +331,9 @@ install_missing_packages() {
          while [ $retry_count -lt $max_retries ]; do
             retry_count=$((retry_count + 1))
             if [ -x "/bin/opkg" ]; then
-               opkg install "$pkg"
+               pkg_err=$(opkg install "$pkg" 2>&1)
             elif [ -x "/usr/bin/apk" ]; then
-               apk add "$pkg"
+               pkg_err=$(apk add "$pkg" 2>&1)
             fi
             if [ $? -eq 0 ]; then
                break
@@ -336,7 +341,7 @@ install_missing_packages() {
                if [ $retry_count -lt $max_retries ]; then
                   sleep 2
                else
-                  LOG_ERROR "【$pkg】failed to install, please try to install it manually..."
+                  LOG_ERROR "【$pkg】failed to install:【$(echo "$pkg_err" | tr '\n' ' ' | head -c 300)】, please try to install it manually..."
                fi
             fi
          done
@@ -360,14 +365,16 @@ while [ $install_retry_count -lt $max_install_retries ]; do
             installed_before="$installed_before $pkg"
          fi
       done
-      opkg --force-downgrade install /tmp/openclash.ipk
+      opkg --force-downgrade install /tmp/openclash.ipk >/dev/null 2>&1
+      install_err=$(cat /tmp/openclash_install.log 2>/dev/null)
    elif [ -x "/usr/bin/apk" ]; then
       for pkg in $packages_to_check; do
          if apk list "$pkg" |grep "installed" >/dev/null 2>&1; then
             installed_before="$installed_before $pkg"
          fi
       done
-      apk add -q --force-overwrite --clean-protected --allow-untrusted --allow-downgrade /tmp/openclash.apk
+      apk add -q --force-overwrite --clean-protected --allow-untrusted --allow-downgrade /tmp/openclash.apk >/tmp/openclash_install.log 2>&1
+      install_err=$(cat /tmp/openclash_install.log 2>/dev/null)
    fi
 
    sleep 2
@@ -377,7 +384,7 @@ while [ $install_retry_count -lt $max_install_retries ]; do
       install_missing_packages "$installed_before"
       break
    else
-      LOG_ERROR "【$install_retry_count/$max_install_retries】Installation failed..."
+      LOG_ERROR "【$install_retry_count/$max_install_retries】Installation failed:【$(echo "$install_err" | tr '\n' ' ' | head -c 500)】..."
       if [ $install_retry_count -lt $max_install_retries ]; then
          sleep 3
       fi
@@ -392,9 +399,9 @@ if [ "$install_success" = true ]; then
    fi
 else
    if [ -x "/bin/opkg" ]; then
-      LOG_ERROR "OpenClash update failed after 3 attempts, the file is saved in /tmp/openclash.ipk, please try to update manually with【opkg install /tmp/openclash.ipk】"
+      LOG_ERROR "OpenClash update failed after 3 attempts, the file is saved in /tmp/openclash.ipk, please try to update manually with【opkg --force-downgrade install /tmp/openclash.ipk】【$(echo "$install_err" | tr '\n' ' ' | head -c 500)】"
    elif [ -x "/usr/bin/apk" ]; then
-      LOG_ERROR "OpenClash update failed after 3 attempts, the file is saved in /tmp/openclash.apk, please try to update manually with【apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk】"
+      LOG_ERROR "OpenClash update failed after 3 attempts, the file is saved in /tmp/openclash.apk, please try to update manually with【apk add -q --force-overwrite --clean-protected --allow-untrusted --allow-downgrade /tmp/openclash.apk】【$(echo "$install_err" | tr '\n' ' ' | head -c 500)】"
    fi
 fi
 dec_job_counter_and_restart "0"

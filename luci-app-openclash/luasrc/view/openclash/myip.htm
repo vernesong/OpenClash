@@ -9,11 +9,11 @@
 %>
 <script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
 <link rel="dns-prefetch" href="//whois.pconline.com.cn">
-<link rel="dns-prefetch" href="//pubstatic.b0.upaiyun.com">
+<link rel="dns-prefetch" href="//my.ip.cn">
 <link rel="dns-prefetch" href="//api.ip.sb">
 <link rel="dns-prefetch" href="//api.ipify.org">
 <link rel="dns-prefetch" href="//myip.ipip.net">
-<link rel="preconnect" href="https://pubstatic.b0.upaiyun.com">
+<link rel="preconnect" href="https://my.ip.cn">
 <link rel="preconnect" href="https://whois.pconline.com.cn">
 <link rel="preconnect" href="https://api.ip.sb">
 <link rel="preconnect" href="https://api.ipify.org">
@@ -51,9 +51,9 @@
 
                                 <div class="myip-ip-list">
                                     <div class="myip-card-item myip-ip-item">
-                                        <span class="myip-card-label">UpaiYun</span>
-                                        <span class="myip-ip-addr" id="ip-upaiyun"></span>
-                                        <span class="myip-ip-geo" id="ip-upaiyun-geo"></span>
+                                        <span class="myip-card-label">IP.CN</span>
+                                        <span class="myip-ip-addr" id="ip-myipcn"></span>
+                                        <span class="myip-ip-geo" id="ip-myipcn-geo"></span>
                                     </div>
 
                                     <div class="myip-card-item myip-ip-item">
@@ -167,7 +167,7 @@
     const $$ = document;
     var ip_ipip_ip;
     var ip_ipsb_ip;
-    var ip_upaiyun_ip;
+    var ip_myipcn_ip;
     var ip_ipify_ip;
 
     var INTERVAL = {
@@ -204,7 +204,7 @@
     var refresh_ip;
     $$.getElementById('ip-ipip').innerHTML = '<%:Querying...%>';
     $$.getElementById('ip-ipify').innerHTML = '<%:Querying...%>';
-    $$.getElementById('ip-upaiyun').innerHTML = '<%:Querying...%>';
+    $$.getElementById('ip-myipcn').innerHTML = '<%:Querying...%>';
     $$.getElementById('ip-ipsb').innerHTML = '<%:Querying...%>';
 
     var SpeedHistory = {
@@ -407,13 +407,20 @@
                     addTitleOnOverflow();
                 })
         },
-        getUpaiIP: () => {
-            IP.get(`https://pubstatic.b0.upaiyun.com/?_upnode&z=${random}`, 'json')
-                .then(resp => {
-                    if (localStorage.getItem('privacy_my_ip') != 'true') {
-                        $$.getElementById('ip-upaiyun').innerHTML = resp.data.remote_addr;
-                    };
-                    $$.getElementById('ip-upaiyun-geo').innerHTML = resp.data.remote_addr_location.country + ' '  + resp.data.remote_addr_location.province + ' '  + resp.data.remote_addr_location.city + ' '  + resp.data.remote_addr_location.isp;
+        getMyipcnIP: () => {
+            fetch(`https://my.ip.cn/?z=${random}`)
+                .then(response => response.text())
+                .then(data => {
+                    var ipMatch = data.match(/ip[：:](\S+)/);
+                    var geoMatch = data.match(/归属地[：:](.+)/);
+                    if (ipMatch && ipMatch[1]) {
+                        if (localStorage.getItem('privacy_my_ip') != 'true') {
+                            $$.getElementById('ip-myipcn').innerHTML = ipMatch[1];
+                        }
+                        if (geoMatch && geoMatch[1]) {
+                            $$.getElementById('ip-myipcn-geo').innerHTML = geoMatch[1].trim();
+                        }
+                    }
                     addTitleOnOverflow();
                 })
         },
@@ -581,7 +588,7 @@
     function myip_Load()
     {
         //IP.getPcolIP();
-        IP.getUpaiIP();
+        IP.getMyipcnIP();
         IP.getIpipIP();
         IP.getIpifyIP();
         IP.getIpsbIP();
@@ -592,11 +599,11 @@
             update_eye_icon(false);
             ip_ipip_ip = $$.getElementById('ip-ipip').innerHTML;
             ip_ipsb_ip = $$.getElementById('ip-ipsb').innerHTML;
-            ip_upaiyun_ip = $$.getElementById('ip-upaiyun').innerHTML;
+            ip_myipcn_ip = $$.getElementById('ip-myipcn').innerHTML;
             ip_ipify_ip = $$.getElementById('ip-ipify').innerHTML;
             $$.getElementById('ip-ipip').innerHTML = '***.***.***.***';
             $$.getElementById('ip-ipsb').innerHTML = '***.***.***.***';
-            $$.getElementById('ip-upaiyun').innerHTML = '***.***.***.***';
+            $$.getElementById('ip-myipcn').innerHTML = '***.***.***.***';
             $$.getElementById('ip-ipify').innerHTML = '***.***.***.***';
             addTitleOnOverflow();
         } else {
@@ -635,21 +642,21 @@
 
             ip_ipip_ip = $$.getElementById('ip-ipip').innerHTML;
             ip_ipsb_ip = $$.getElementById('ip-ipsb').innerHTML;
-            ip_upaiyun_ip = $$.getElementById('ip-upaiyun').innerHTML;
+            ip_myipcn_ip = $$.getElementById('ip-myipcn').innerHTML;
             ip_ipify_ip = $$.getElementById('ip-ipify').innerHTML;
             $$.getElementById('ip-ipip').innerHTML = '***.***.***.***';
             $$.getElementById('ip-ipsb').innerHTML = '***.***.***.***';
-            $$.getElementById('ip-upaiyun').innerHTML = '***.***.***.***';
+            $$.getElementById('ip-myipcn').innerHTML = '***.***.***.***';
             $$.getElementById('ip-ipify').innerHTML = '***.***.***.***';
             addTitleOnOverflow();
         } else {
             update_eye_icon(true);
             localStorage.removeItem('privacy_my_ip');
 
-            if (ip_ipip_ip && ip_ipsb_ip && ip_upaiyun_ip && ip_ipify_ip) {
+            if (ip_ipip_ip && ip_ipsb_ip && ip_myipcn_ip && ip_ipify_ip) {
                 $$.getElementById('ip-ipip').innerHTML = ip_ipip_ip;
                 $$.getElementById('ip-ipsb').innerHTML = ip_ipsb_ip;
-                $$.getElementById('ip-upaiyun').innerHTML = ip_upaiyun_ip;
+                $$.getElementById('ip-myipcn').innerHTML = ip_myipcn_ip;
                 $$.getElementById('ip-ipify').innerHTML = ip_ipify_ip;
             } else {
                 if (use_router_mode) {
@@ -721,7 +728,7 @@
         if (localStorage.getItem('privacy_my_ip') === 'true') {
             $$.getElementById('ip-ipip').innerHTML = '***.***.***.***';
             $$.getElementById('ip-ipsb').innerHTML = '***.***.***.***';
-            $$.getElementById('ip-upaiyun').innerHTML = '***.***.***.***';
+            $$.getElementById('ip-myipcn').innerHTML = '***.***.***.***';
             $$.getElementById('ip-ipify').innerHTML = '***.***.***.***';
         }
 
@@ -737,11 +744,11 @@
         if (localStorage.getItem('privacy_my_ip') === 'true') {
             $$.getElementById('ip-ipip').innerHTML = '***.***.***.***';
             $$.getElementById('ip-ipsb').innerHTML = '***.***.***.***';
-            $$.getElementById('ip-upaiyun').innerHTML = '***.***.***.***';
+            $$.getElementById('ip-myipcn').innerHTML = '***.***.***.***';
             $$.getElementById('ip-ipify').innerHTML = '***.***.***.***';
             $$.getElementById('ip-ipip-geo').innerHTML = '';
             $$.getElementById('ip-ipsb-geo').innerHTML = '';
-            $$.getElementById('ip-upaiyun-geo').innerHTML = '';
+            $$.getElementById('ip-myipcn-geo').innerHTML = '';
             $$.getElementById('ip-ipify-geo').innerHTML = '';
         } else {
             reset_display();
@@ -803,7 +810,7 @@
         var isPrivacy = localStorage.getItem('privacy_my_ip') === 'true';
 
         var fieldMap = {
-            'upaiyun': { id: 'ip-upaiyun', geo: 'ip-upaiyun-geo' },
+            'myipcn': { id: 'ip-myipcn', geo: 'ip-myipcn-geo' },
             'ipip': { id: 'ip-ipip', geo: 'ip-ipip-geo' },
             'ipsb': { id: 'ip-ipsb', geo: 'ip-ipsb-geo' },
             'ipify': { id: 'ip-ipify', geo: 'ip-ipify-geo' }
@@ -830,7 +837,7 @@
     }
 
     function has_ip_cache() {
-        const ip_ids = ['ip-ipip', 'ip-ipsb', 'ip-upaiyun', 'ip-ipify'];
+        const ip_ids = ['ip-ipip', 'ip-ipsb', 'ip-myipcn', 'ip-ipify'];
         for (let id of ip_ids) {
             let val = document.getElementById(id).innerHTML;
             if (
@@ -848,23 +855,23 @@
         if (localStorage.getItem('privacy_my_ip') === 'true') {
             $$.getElementById('ip-ipip').innerHTML = '***.***.***.***';
             $$.getElementById('ip-ipsb').innerHTML = '***.***.***.***';
-            $$.getElementById('ip-upaiyun').innerHTML = '***.***.***.***';
+            $$.getElementById('ip-myipcn').innerHTML = '***.***.***.***';
             $$.getElementById('ip-ipify').innerHTML = '***.***.***.***';
         } else {
             $$.getElementById('ip-ipip').innerHTML = '<%:Querying...%>';
             $$.getElementById('ip-ipsb').innerHTML = '<%:Querying...%>';
-            $$.getElementById('ip-upaiyun').innerHTML = '<%:Querying...%>';
+            $$.getElementById('ip-myipcn').innerHTML = '<%:Querying...%>';
             $$.getElementById('ip-ipify').innerHTML = '<%:Querying...%>';
         }
         $$.getElementById('ip-ipip-geo').innerHTML = '';
         $$.getElementById('ip-ipsb-geo').innerHTML = '';
-        $$.getElementById('ip-upaiyun-geo').innerHTML = '';
+        $$.getElementById('ip-myipcn-geo').innerHTML = '';
         $$.getElementById('ip-ipify-geo').innerHTML = '';
     }
 
     function update_ip_display(data) {
         const ipFields = [
-            { id: 'ip-upaiyun', geo: 'ip-upaiyun-geo', key: 'upaiyun' },
+            { id: 'ip-myipcn', geo: 'ip-myipcn-geo', key: 'myipcn' },
             { id: 'ip-ipip', geo: 'ip-ipip-geo', key: 'ipip' },
             { id: 'ip-ipsb', geo: 'ip-ipsb-geo', key: 'ipsb' },
             { id: 'ip-ipify', geo: 'ip-ipify-geo', key: 'ipify' }
@@ -909,12 +916,12 @@
     function reset_display() {
         $$.getElementById('ip-ipip').innerHTML = '<%:Querying...%>';
         $$.getElementById('ip-ipify').innerHTML = '<%:Querying...%>';
-        $$.getElementById('ip-upaiyun').innerHTML = '<%:Querying...%>';
+        $$.getElementById('ip-myipcn').innerHTML = '<%:Querying...%>';
         $$.getElementById('ip-ipsb').innerHTML = '<%:Querying...%>';
 
         $$.getElementById('ip-ipip-geo').innerHTML = '';
         $$.getElementById('ip-ipify-geo').innerHTML = '';
-        $$.getElementById('ip-upaiyun-geo').innerHTML = '';
+        $$.getElementById('ip-myipcn-geo').innerHTML = '';
         $$.getElementById('ip-ipsb-geo').innerHTML = '';
     }
 
@@ -937,11 +944,11 @@
             if (localStorage.getItem('privacy_my_ip') === 'true') {
                 $$.getElementById('ip-ipip-geo').innerHTML = '';
                 $$.getElementById('ip-ipsb-geo').innerHTML = '';
-                $$.getElementById('ip-upaiyun-geo').innerHTML = '';
+                $$.getElementById('ip-myipcn-geo').innerHTML = '';
                 $$.getElementById('ip-ipify-geo').innerHTML = '';
                 $$.getElementById('ip-ipip').innerHTML = '***.***.***.***';
                 $$.getElementById('ip-ipsb').innerHTML = '***.***.***.***';
-                $$.getElementById('ip-upaiyun').innerHTML = '***.***.***.***';
+                $$.getElementById('ip-myipcn').innerHTML = '***.***.***.***';
                 $$.getElementById('ip-ipify').innerHTML = '***.***.***.***';
             }
             myip_Load();

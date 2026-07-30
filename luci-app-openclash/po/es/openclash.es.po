@@ -1560,20 +1560,26 @@ msgstr "Iniciando descarga"
 msgid "Download successful, start pre update test..."
 msgstr "Descarga completa, iniciando pruebas previas a la actualización..."
 
-msgid "opkg update failed or timed out, retrying..."
-msgstr "opkg update falló o expiró, reintentando..."
+msgid "opkg update failed or timed out:"
+msgstr "opkg update falló o expiró:"
 
-msgid "opkg update failed, trying pre update test..."
-msgstr "opkg update falló, se sigue intentando la prueba previa..."
+msgid "apk update failed or timed out:"
+msgstr "apk update falló o expiró:"
 
-msgid "apk update failed or timed out, retrying..."
-msgstr "apk update falló o expiró, reintentando..."
+msgid "opkg update failed:"
+msgstr "opkg update falló:"
 
-msgid "apk update failed, trying pre update test..."
-msgstr "apk update falló, se sigue intentando la prueba previa..."
+msgid "apk update failed:"
+msgstr "apk update falló:"
 
-msgid "Pre update test failed..."
-msgstr "Las pruebas previas han fallado..."
+msgid "Pre update test failed:"
+msgstr "Las pruebas previas han fallado:"
+
+msgid ", retrying..."
+msgstr ", reintentando..."
+
+msgid ", trying pre update test..."
+msgstr ", se sigue intentando la prueba previa..."
 
 msgid "Pre update test failed after 3 attempts, the file is saved in /tmp/openclash.ipk, please try to update manually with"
 msgstr "Pruebas fallidas; archivo guardado en /tmp/openclash.ipk, actualiza manualmente con:"
@@ -1587,8 +1593,8 @@ msgstr "Pruebas previas superadas. Preparando actualización, no recargues la p�
 msgid "Installing the new version, please do not refresh the page or do other operations..."
 msgstr "Instalando nueva versión; no recargues la página ni realices acciones."
 
-msgid "Installation failed..."
-msgstr "Instalación fallida..."
+msgid "Installation failed:"
+msgstr "Instalación fallida:"
 
 msgid "OpenClash update failed after 3 attempts, the file is saved in /tmp/openclash.ipk, please try to update manually with"
 msgstr "Actualización fallida; archivo guardado en /tmp/openclash.ipk, intenta actualizar con:"
@@ -1617,31 +1623,28 @@ msgstr "Descargando núcleo; si falla, descárgalo y súbelo manualmente."
 msgid "Core Download Successful, Start Update..."
 msgstr "Núcleo descargado correctamente, iniciando actualización..."
 
-msgid "Core Download Failed, Please Check The Network or Try Again Later!"
-msgstr "Descarga del núcleo fallida; verifica la red o inténtalo más tarde."
-
-msgid "Core Update Failed, Please Check The Network or Try Again Later!"
-msgstr "Actualización del núcleo fallida; revisa la red o inténtalo de nuevo."
-
-msgid "Core Update Successful!"
+msgid "Core Update Successful"
 msgstr "¡Actualización del núcleo completada!"
 
-msgid "Core Update Failed, Please Make Sure Enough Flash Memory Space or Selected Correct Core Platform And Try Again!"
-msgstr "Error al actualizar el núcleo: verifica que haya espacio suficiente o que la plataforma seleccionada sea correcta."
+msgid "Core Update Failed:"
+msgstr "Error al actualizar el núcleo:"
 
-msgid "Core Update Failed..."
-msgstr "Error al actualizar el núcleo..."
+msgid "Core Download Failed, Please Check The Network or Try Again Later..."
+msgstr "Error al descargar el núcleo, comprueba la red..."
 
-msgid "Core Download Failed..."
-msgstr "Error al descargar el núcleo..."
+msgid "Core Download Failed, Please Check The Network or Try Again Later"
+msgstr "Error al descargar el núcleo, comprueba la red o inténtalo más tarde"
 
-msgid "Core Update Failed, Please Make Sure Enough Flash Memory Space And Try Again!"
-msgstr "Error al actualizar el núcleo: comprueba el espacio de flash."
+msgid "Core Move Failed:"
+msgstr "Error al mover el núcleo:"
+
+msgid "Core Verification Failed:"
+msgstr "Error al verificar el núcleo:"
 
 msgid "No Compiled Version Selected, Please Select In Update Page And Try Again!"
 msgstr "No se ha seleccionado ninguna versión compilada; selecciónala en la página de actualización."
 
-msgid "Core Has Not Been Updated, Stop Continuing Operation!"
+msgid "Core Has Not Been Updated, Stop Continuing Operation"
 msgstr "El núcleo no ha sido actualizado; proceso detenido."
 
 msgid "Update Successful!"
@@ -3981,8 +3984,11 @@ msgstr "Agente de usuario global"
 msgid "depended package reinstalling..."
 msgstr "reinstalando paquete dependiente..."
 
-msgid "failed to install, please try to install it manually..."
-msgstr "no se pudo instalar; por favor, intenta instalarlo manualmente."
+msgid "failed to install:"
+msgstr "no se pudo instalar:"
+
+msgid ", please try to install it manually..."
+msgstr ", por favor, intenta instalarlo manualmente..."
 
 msgid "Decrypted content empty or still encrypted"
 msgstr "Contenido descifrado vacío o aún cifrado para"

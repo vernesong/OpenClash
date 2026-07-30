@@ -1561,22 +1561,28 @@ msgid "Start downloading"
 msgstr "开始下载"
 
 msgid "Download successful, start pre update test..."
-msgstr "下载成功，开始进行更新前测试..."
+msgstr "下载成功，开始更新前测试..."
 
-msgid "opkg update failed or timed out, retrying..."
-msgstr "opkg update 失败或超时，正在重试..."
+msgid "opkg update failed or timed out:"
+msgstr "opkg update 失败或超时:"
 
-msgid "opkg update failed, trying pre update test..."
-msgstr "opkg update 失败，尝试进行预安装..."
+msgid "apk update failed or timed out:"
+msgstr "apk update 失败或超时:"
 
-msgid "apk update failed or timed out, retrying..."
-msgstr "apk update 失败或超时，正在重试..."
+msgid "opkg update failed:"
+msgstr "opkg update 失败:"
 
-msgid "apk update failed, trying pre update test..."
-msgstr "apk update 失败，尝试进行预安装..."
+msgid "apk update failed:"
+msgstr "apk update 失败:"
 
-msgid "Pre update test failed..."
-msgstr "更新前测试失败..."
+msgid "Pre update test failed:"
+msgstr "更新前测试失败:"
+
+msgid ", retrying..."
+msgstr "，正在重试..."
+
+msgid ", trying pre update test..."
+msgstr "，尝试进行预安装..."
 
 msgid "Pre update test failed after 3 attempts, the file is saved in /tmp/openclash.ipk, please try to update manually with"
 msgstr "更新前测试失败，文件保存在 /tmp/openclash.ipk，请尝试以下命令手动更新"
@@ -1585,13 +1591,13 @@ msgid "Pre update test failed after 3 attempts, the file is saved in /tmp/opencl
 msgstr "更新前测试失败，文件保存在 /tmp/openclash.apk，请尝试以下命令手动更新"
 
 msgid "Pre update test passed, ready to update and please do not refresh the page and other operations..."
-msgstr "更新前测试通过，准备开始更新，更新过程请不要刷新页面和进行其他操作..."
+msgstr "更新前测试通过，准备开始更新，更新过程请不要刷新页面..."
 
 msgid "Installing the new version, please do not refresh the page or do other operations..."
 msgstr "正在安装新版本，更新过程请不要刷新页面和进行其他操作..."
 
-msgid "Installation failed..."
-msgstr "软件包安装失败..."
+msgid "Installation failed:"
+msgstr "软件包安装失败:"
 
 msgid "OpenClash update failed after 3 attempts, the file is saved in /tmp/openclash.ipk, please try to update manually with"
 msgstr "OpenClash 更新失败，文件保存在 /tmp/openclash.ipk，请尝试以下命令手动更新"
@@ -1620,31 +1626,28 @@ msgstr "版本内核正在下载，如下载失败请尝试手动下载并上传
 msgid "Core Download Successful, Start Update..."
 msgstr "版本内核下载成功，开始更新..."
 
-msgid "Core Download Failed, Please Check The Network or Try Again Later!"
-msgstr "版本内核下载失败，请检查网络情况或稍后再试！"
-
-msgid "Core Update Failed, Please Check The Network or Try Again Later!"
-msgstr "版本内核更新失败，请检查网络或稍后再试！"
-
-msgid "Core Update Successful!"
+msgid "Core Update Successful"
 msgstr "版本内核更新成功！"
 
-msgid "Core Update Failed, Please Make Sure Enough Flash Memory Space or Selected Correct Core Platform And Try Again!"
-msgstr "版本内核更新失败，请确认设备闪存空间足够或内核平台正确后再试！"
+msgid "Core Update Failed:"
+msgstr "版本内核更新失败:"
 
-msgid "Core Update Failed..."
-msgstr "版本内核更新失败..."
+msgid "Core Download Failed, Please Check The Network or Try Again Later..."
+msgstr "版本内核下载失败，请检查网络情况或稍后再试！"
 
-msgid "Core Download Failed..."
-msgstr "版本内核下载失败..."
+msgid "Core Download Failed, Please Check The Network or Try Again Later"
+msgstr "版本内核下载失败，请检查网络情况或稍后再试"
 
-msgid "Core Update Failed, Please Make Sure Enough Flash Memory Space And Try Again!"
-msgstr "版本内核更新失败，请确认设备闪存空间足够后再试！"
+msgid "Core Move Failed:"
+msgstr "内核移动失败:"
+
+msgid "Core Verification Failed:"
+msgstr "内核校验失败:"
 
 msgid "No Compiled Version Selected, Please Select In Update Page And Try Again!"
 msgstr "未选择编译版本，请到升级页面选择后再试！"
 
-msgid "Core Has Not Been Updated, Stop Continuing Operation!"
+msgid "Core Has Not Been Updated, Stop Continuing Operation"
 msgstr "版本内核没有更新，停止继续操作！"
 
 msgid "Update Successful!"
@@ -2959,7 +2962,7 @@ msgid "Change The Delay Calculation Method To Remove Extra Delays Such as Handsh
 msgstr "更换延迟计算方式，通过去除握手等额外开销来降低延迟数值"
 
 msgid "If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
-msgstr "如果下载失败，您可以尝试在覆写设置 - 常规设置 - Github 地址修改选项中设置 CDN"
+msgstr "如果下载失败，您可以尝试在覆写设置中设置 CDN"
 
 msgid "Used for Downloading Subscriptions, Defaults to"
 msgstr "用于下载订阅时指定 UA，默认为"
@@ -3190,13 +3193,13 @@ msgid "Failed to create update script!"
 msgstr "创建插件升级进程失败！"
 
 msgid "Attempting to start update service..."
-msgstr "正在启动插件升级进程..."
+msgstr "正在启动升级进程..."
 
 msgid "Service start failed, retrying in 2 seconds..."
-msgstr "插件升级进程启动失败，将在 2 秒后重试..."
+msgstr "插件升级进程启动失败，将在2秒后重试..."
 
 msgid "Failed to start update service after 3 attempts, please check and try again later..."
-msgstr "插件升级进程启动失败，请检查日志并稍后再试..."
+msgstr "升级进程启动失败，请稍后再试..."
 
 msgid "Core Update"
 msgstr "内核版本更新"
@@ -3990,8 +3993,11 @@ msgstr "全局 User-Agent"
 msgid "depended package reinstalling..."
 msgstr "依赖正在重新安装..."
 
-msgid "failed to install, please try to install it manually..."
-msgstr "依赖安装失败，请重试手动安装..."
+msgid "failed to install:"
+msgstr "依赖安装失败:"
+
+msgid ", please try to install it manually..."
+msgstr "，请重试手动安装..."
 
 msgid "Decrypted content empty or still encrypted"
 msgstr "解密后内容为空或仍为加密状态"
