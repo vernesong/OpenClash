@@ -22,14 +22,15 @@ module YAML
 	end
 
 	def self.load_file(filename, *args, **kwargs)
-		yaml_content = File.read(filename, mode: "r:bom|utf-8")
-
 		secret = nil
 		if kwargs.key?(:secret)
 			secret = kwargs.delete(:secret)
 		end
 
-		if yaml_content.include?("BEGIN AGE ENCRYPTED FILE")
+		header = File.binread(filename, 512).to_s
+
+		if header.include?("BEGIN AGE ENCRYPTED FILE")
+			yaml_content = File.read(filename, mode: "r:bom|utf-8")
 			if secret && secret.to_s.strip != ""
 				decrypted = decrypt_content_with_secret(secret.to_s, yaml_content)
 				if decrypted && !decrypted.empty? && !decrypted.include?("BEGIN AGE ENCRYPTED FILE")
@@ -56,12 +57,51 @@ module YAML
 			raise "Encrypted file: decryption failed for [#{filename}]: [#{detail}]"
 		end
 
-		fix_and_load(yaml_content, *args, **kwargs)
+		base64, short_id, protocol_param = File.open(filename, "r:bom|utf-8") do |io|
+			scan_for_fixes(io)
+		end
+
+		if base64 || protocol_param
+			fix_and_load(File.read(filename, mode: "r:bom|utf-8"), *args, **kwargs)
+		elsif short_id
+			fixed = File.open(filename, "r:bom|utf-8") { |io| fix_short_id_text(io) }
+			begin
+				load(fixed, *args, **kwargs)
+			rescue => e
+				raise "fix short-id values type failed: #{e.message}"
+			end
+		else
+			result = File.open(filename, "r:bom|utf-8") do |io|
+				load(io, *args, **kwargs)
+			end
+			if result.nil? || result == false
+				result = fix_and_load(File.read(filename, mode: "r:bom|utf-8"), *args, **kwargs)
+			end
+			result
+		end
 	end
 
 	def self.dump(obj, io = nil, **options)
-		yaml_content = original_dump(obj, **options)
-		processed = yaml_content.include?('short-id:') ? fix_short_id_quotes(yaml_content) : yaml_content
+		if obj.nil? || obj == false
+			target = ""
+			if io.is_a?(String)
+				target = " [#{io}]"
+			elsif io && io.respond_to?(:path)
+				target = " [#{io.path}]"
+			elsif options.key?(:filename)
+				target = " [#{options[:filename]}]"
+			end
+			raise "YAML.dump: refusing to write nil/false config content#{target} (previous load may have failed)"
+		end
+
+		if io.is_a?(String)
+			dump_to_path(obj, io, **options)
+		else
+			dump_to_io(obj, io, **options)
+		end
+	end
+
+	def self.dump_to_io(obj, io = nil, **options)
 		public_key = nil
 		fname = nil
 		if options.key?(:public)
@@ -83,7 +123,11 @@ module YAML
 			end
 		end
 
+		needs_fix = contains_short_id?(obj)
+
 		if public_key && public_key.to_s.strip != ""
+			yaml_content = original_dump(obj, **options)
+			processed = needs_fix ? fix_short_id_quotes(yaml_content) : yaml_content
 			begin
 				encrypted = encrypt_content_with_public(public_key.to_s, processed)
 				if encrypted && !encrypted.empty?
@@ -105,13 +149,38 @@ module YAML
 		end
 
 		if io.nil?
-			processed
+			yaml_content = original_dump(obj, **options)
+			needs_fix ? fix_short_id_quotes(yaml_content) : yaml_content
 		elsif io.respond_to?(:write)
-			io.write(processed)
+			if needs_fix
+				io.write(fix_short_id_quotes(original_dump(obj, **options)))
+			else
+				original_dump(obj, io, **options)
+			end
 			io
 		else
-			processed
+			yaml_content = original_dump(obj, **options)
+			needs_fix ? fix_short_id_quotes(yaml_content) : yaml_content
 		end
+	end
+
+	def self.dump_to_path(obj, path, **options)
+		real = File.symlink?(path) ? File.realpath(path) : path
+		dir = File.dirname(real)
+		tmp = File.join(dir, ".#{File.basename(real)}.tmp#{Process.pid}.#{rand(1000)}")
+		mode = File.exist?(real) ? File.stat(real).mode & 07777 : nil
+		begin
+			File.open(tmp, 'w') { |f| dump_to_io(obj, f, **options.merge(filename: real)) }
+			File.chmod(mode, tmp) if mode
+			File.rename(tmp, real)
+		rescue Exception
+			begin
+				File.unlink(tmp) if File.exist?(tmp)
+			rescue
+			end
+			raise
+		end
+		path
 	end
 
 	def self.popen_stream(cmd, input, chunk_size: 64 * 1024)
@@ -226,83 +295,159 @@ module YAML
 	#   Input:  short-id: "1600e237"  -> Output: short-id: "1600e237"
 	#   Input:  short-id: null        -> Output: short-id: ""
 
-	def self.fix_short_id_ast!(stream)
-		traverse = lambda do |node|
-			case node
-			when Psych::Nodes::Mapping
-				children = node.children || []
-				i = 0
-				while i < children.length
-					key = children[i]
-					val = children[i + 1]
-					if key.is_a?(Psych::Nodes::Scalar) && key.value == 'short-id'
-						if val.is_a?(Psych::Nodes::Scalar)
-							is_null_scalar = (val.tag == 'tag:yaml.org,2002:null') || (val.tag == '!!null') || (val.value =~ /^\s*(~|null|NULL|Null)\s*$/)
-							unless is_null_scalar
-								val.tag = nil
-								val.style = defined?(Psych::Nodes::Scalar::DOUBLE_QUOTED) ? Psych::Nodes::Scalar::DOUBLE_QUOTED : 2
-							end
-						elsif val.is_a?(Psych::Nodes::Sequence)
-							val.children.each do |child|
-								if child.is_a?(Psych::Nodes::Scalar)
-									is_null_child = (child.tag == 'tag:yaml.org,2002:null') || (child.tag == '!!null') || (child.value =~ /^\s*(~|null|NULL|Null)\s*$/)
-									unless is_null_child
-										child.tag = nil
-										child.style = defined?(Psych::Nodes::Scalar::DOUBLE_QUOTED) ? Psych::Nodes::Scalar::DOUBLE_QUOTED : 2
-									end
-								end
-							end
-						end
-					else
-						traverse.call(key) if key.respond_to?(:children)
-						traverse.call(val) if val.respond_to?(:children)
-					end
-					i += 2
-				end
-			when Psych::Nodes::Sequence
-				(node.children || []).each { |c| traverse.call(c) }
-			when Psych::Nodes::Document, Psych::Nodes::Stream
-				(node.children || []).each { |c| traverse.call(c) }
-			else
-				if node.respond_to?(:children)
-					(node.children || []).each { |c| traverse.call(c) }
-				end
-			end
-		end
-
-		stream.children.each do |doc_node|
-			if doc_node.is_a?(Psych::Nodes::Document)
-				traverse.call(doc_node.root) if doc_node.root
-			end
-		end
-		stream
-	end
-
 	def self.fix_and_load(yaml_content, *args, **kwargs)
 		yaml_content = decode64(yaml_content)
 		# Fix bare protocol-param values that break YAML parsing (e.g. "1.2.3.4:8080#test")
-		yaml_content = yaml_content.gsub(/^(\s*protocol-param:\s+)([^\s"'][^"\n\r]*[#:][^"\n\r]*)$/, '\1"\2"')
+		yaml_content.gsub!(/^(\s*protocol-param:\s+)([^\s"'][^"\n\r]*[#:][^"\n\r]*)$/, '\1"\2"')
 		return load(yaml_content, *args, **kwargs) unless yaml_content.include?('short-id:')
 
-		# fallback: fix short-id quoting then load
-		fixed = fix_short_id_quotes(yaml_content)
-		load(fixed, *args, **kwargs)
+		begin
+			load(fix_short_id_text(yaml_content), *args, **kwargs)
+		rescue => e
+			raise "fix short-id values type failed: #{e.message}"
+		end
+	end
+
+	def self.quote_short_id_scalar(value)
+		v = value.strip
+		return value if v.empty?
+		return '""' if v =~ /\A(?:~|null|NULL|Null)\z/
+		if v.start_with?("'")
+			if (m = v.match(/\A'((?:[^']|'')*)'(\s+#.*)?\z/))
+				inner = m[1].gsub("''", "'")
+				return "\"#{inner.gsub(/["\\]/) { |c| "\\#{c}" }}\"#{m[2]}"
+			end
+			return value
+		end
+		return value if v.start_with?('"')
+		return value if v =~ /[:{}\[\],|>]/
+		if (m = v.match(/\A(\S+)(\s+#.*)?\z/))
+			"\"#{m[1].gsub('"', '\\"')}\"#{m[2]}"
+		else
+			"\"#{v.gsub('"', '\\"')}\""
+		end
+	end
+
+	def self.fix_short_id_text(yaml_content)
+		out = String.new
+		in_seq = false
+		seq_indent = -1
+		in_block = false
+		block_indent = -1
+		pending = nil
+
+		yaml_content.each_line do |line|
+			if in_block
+				if line.strip.empty? || (line =~ /^(\s*)/ && Regexp.last_match(1).length > block_indent)
+					out << line
+					next
+				else
+					in_block = false
+				end
+			end
+
+			if pending
+				if (m = line.match(/^(\s*)-(\s*)(.*?)(\r?\n)?\z/)) && m[1].length >= seq_indent
+					out << pending
+					in_seq = true
+				else
+					out << pending.sub(/^(\s*)short-id:.*?(\r?\n)?\z/, '\1short-id: ""\2')
+					in_seq = false
+				end
+				pending = nil
+			end
+
+			if (m = line.match(/^(\s*)short-id:(\s*)(.*?)(\r?\n)?\z/))
+				indent = m[1]
+				rest = m[3].to_s.strip
+				if rest.empty? || rest.start_with?('#')
+					in_seq = true
+					seq_indent = indent.length
+					pending = line
+				else
+					in_seq = false
+					out << indent + "short-id:" + m[2] + quote_short_id_scalar(rest) + m[4].to_s
+				end
+			elsif (m = line.match(/^(\s*)[^:\s][^:]*:\s*[|>](\s*.*)?$/))
+				in_block = true
+				in_seq = false
+				block_indent = m[1].length
+				out << line
+			elsif line.strip.empty?
+				out << line
+			elsif in_seq && (m = line.match(/^(\s*)-(\s*)(.*?)(\r?\n)?\z/)) && m[1].length >= seq_indent
+				out << m[1] + "-" + m[2] + quote_short_id_scalar(m[3]) + m[4].to_s
+			else
+				in_seq = false
+				out << line
+			end
+		end
+
+		if pending
+			out << pending.sub(/^(\s*)short-id:.*?(\r?\n)?\z/, '\1short-id: ""\2')
+		end
+
+		out
 	end
 
 	def self.fix_short_id_quotes(yaml_content)
 		begin
-			stream = Psych.parse_stream(yaml_content)
-			fix_short_id_ast!(stream)
-
-			if stream.respond_to?(:to_yaml)
-				processed_yaml = stream.to_yaml
-				processed_yaml = processed_yaml.gsub(/^([ \t]*short-id:\s*)!\s*/, "\\1")
-				processed_yaml
-			else
-				yaml_content
-			end
+			fix_short_id_text(yaml_content)
 		rescue => e
 			raise "fix short-id values type failed: #{e.message}"
+		end
+	end
+
+	def self.scan_for_fixes(io)
+		base64 = false
+		short_id = false
+		protocol_param = false
+		first_nonempty_seen = false
+		buffer = String.new
+		chunk_size = 64 * 1024
+
+		while (chunk = io.read(chunk_size))
+			buffer << chunk
+
+			unless first_nonempty_seen
+				if (idx = buffer.index("\n"))
+					stripped = buffer[0...idx].strip
+					if !stripped.empty?
+						first_nonempty_seen = true
+						base64 = stripped.match?(/\A[A-Za-z0-9+\/=]+\z/)
+					end
+				end
+			end
+
+			short_id ||= buffer.include?('short-id:')
+			protocol_param ||= buffer.include?('protocol-param:')
+
+			if first_nonempty_seen && buffer.bytesize > chunk_size + 4096
+				buffer = buffer[-4096, 4096]
+			end
+
+			break if base64 || short_id || protocol_param
+		end
+
+		unless first_nonempty_seen
+			stripped = buffer.strip
+			base64 = !stripped.empty? && stripped.match?(/\A[A-Za-z0-9+\/=]+\z/)
+		end
+
+		[base64, short_id, protocol_param]
+	end
+
+	def self.contains_short_id?(obj, depth = 0)
+		return false if depth > 64
+		case obj
+		when Hash
+			return true if obj.key?('short-id') || obj.key?(:"short-id")
+			obj.each_value { |v| return true if contains_short_id?(v, depth + 1) }
+			false
+		when Array
+			obj.any? { |v| contains_short_id?(v, depth + 1) }
+		else
+			false
 		end
 	end
 

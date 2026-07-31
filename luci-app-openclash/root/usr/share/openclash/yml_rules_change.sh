@@ -427,7 +427,7 @@ yml_other_set()
       YAML.LOG_ERROR('Config File Overwrite Failed,【%s】' % [e.message])
    ensure
       begin
-         File.open('$2','w') {|f| YAML.dump(Value, f)};
+         YAML.dump(Value, '$2');
       rescue Exception => e
          YAML.LOG_ERROR('Write file failed:【%s】' % [e.message])
       end

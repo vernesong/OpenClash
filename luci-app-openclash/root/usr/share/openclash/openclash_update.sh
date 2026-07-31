@@ -17,7 +17,7 @@ del_lock() {
 set_lock
 inc_job_counter
 
-if [ -n "$1" ] && [ "$1" != "one_key_update" ]; then
+if [ -n "$1" ] && [ "$1" != "one_key_update" ] && [ "$1" != "plugin_update" ]; then
    /usr/share/openclash/openclash_version.sh "$1" 2>/dev/null
 elif [ -n "$2" ]; then
    /usr/share/openclash/openclash_version.sh "$2" 2>/dev/null
@@ -83,18 +83,35 @@ github_address_mod=$(uci_get_config "github_address_mod" || echo 0)
 
 #一键更新
 if [ "$1" = "one_key_update" ]; then
-   if [ "$github_address_mod" = "0" ] && [ -z "$2" ]; then
-      LOG_TIP "If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
-   fi
    if [ -n "$2" ]; then
       /usr/share/openclash/openclash_core.sh "Meta" "$1" "$2" >/dev/null 2>&1
-      github_address_mod="$2"
    else
       /usr/share/openclash/openclash_core.sh "Meta" "$1" >/dev/null 2>&1
-      github_address_mod=0
    fi
-   if echo "$github_address_mod" | grep -q "raw\.githubusercontent\.com"; then
-      github_address_mod=0
+   if [ -z "$3" ] || ! echo "$3" | grep -qE '^https?://'; then
+      if [ "$github_address_mod" = "0" ] && [ -z "$2" ]; then
+         LOG_TIP "If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
+      fi
+      if [ -n "$2" ]; then
+         github_address_mod="$2"
+      else
+         github_address_mod=0
+      fi
+      if echo "$github_address_mod" | grep -q "raw\.githubusercontent\.com"; then
+         github_address_mod=0
+      fi
+   fi
+elif [ "$1" = "plugin_update" ]; then
+   if [ -z "$3" ] || ! echo "$3" | grep -qE '^https?://'; then
+      if [ "$github_address_mod" = "0" ] && [ -z "$2" ]; then
+         LOG_TIP "If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
+      fi
+      if [ -n "$2" ]; then
+         github_address_mod="$2"
+      fi
+      if echo "$github_address_mod" | grep -q "raw\.githubusercontent\.com"; then
+         github_address_mod=0
+      fi
    fi
 else
    if [ "$github_address_mod" = "0" ]; then
@@ -221,7 +238,7 @@ if [ -n "$DOWNLOAD_URL" ]; then
                fi
             done
             if [ -s "/tmp/openclash.apk" ]; then
-               apk_test_err=$(apk add -s -q --force-overwrite --clean-protected --allow-untrusted --allow-downgrade /tmp/openclash.apk 2>&1)
+               apk_test_err=$(apk add -s -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk 2>&1)
                if [ $? -eq 0 ]; then
                   pre_test_success=true
                else
@@ -242,7 +259,7 @@ if [ -n "$DOWNLOAD_URL" ]; then
                if [ -x "/bin/opkg" ]; then
                   LOG_ERROR "【OpenClash - v$LAST_VER】Pre update test failed after 3 attempts, the file is saved in /tmp/openclash.ipk, please try to update manually with【opkg --force-downgrade install /tmp/openclash.ipk】"
                elif [ -x "/usr/bin/apk" ]; then
-                  LOG_ERROR "【OpenClash - v$LAST_VER】Pre update test failed after 3 attempts, the file is saved in /tmp/openclash.apk, please try to update manually with【apk add -q --force-overwrite --clean-protected --allow-untrusted --allow-downgrade /tmp/openclash.apk】"
+                  LOG_ERROR "【OpenClash - v$LAST_VER】Pre update test failed after 3 attempts, the file is saved in /tmp/openclash.apk, please try to update manually with【apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk】"
                fi
                SLOG_CLEAN
                dec_job_counter_and_restart "0"
@@ -373,7 +390,7 @@ while [ $install_retry_count -lt $max_install_retries ]; do
             installed_before="$installed_before $pkg"
          fi
       done
-      apk add -q --force-overwrite --clean-protected --allow-untrusted --allow-downgrade /tmp/openclash.apk >/tmp/openclash_install.log 2>&1
+      apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk >/tmp/openclash_install.log 2>&1
       install_err=$(cat /tmp/openclash_install.log 2>/dev/null)
    fi
 
@@ -401,7 +418,7 @@ else
    if [ -x "/bin/opkg" ]; then
       LOG_ERROR "OpenClash update failed after 3 attempts, the file is saved in /tmp/openclash.ipk, please try to update manually with【opkg --force-downgrade install /tmp/openclash.ipk】【$(echo "$install_err" | tr '\n' ' ' | head -c 500)】"
    elif [ -x "/usr/bin/apk" ]; then
-      LOG_ERROR "OpenClash update failed after 3 attempts, the file is saved in /tmp/openclash.apk, please try to update manually with【apk add -q --force-overwrite --clean-protected --allow-untrusted --allow-downgrade /tmp/openclash.apk】【$(echo "$install_err" | tr '\n' ' ' | head -c 500)】"
+      LOG_ERROR "OpenClash update failed after 3 attempts, the file is saved in /tmp/openclash.apk, please try to update manually with【apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk】【$(echo "$install_err" | tr '\n' ' ' | head -c 500)】"
    fi
 fi
 dec_job_counter_and_restart "0"

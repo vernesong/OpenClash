@@ -101,7 +101,7 @@ EOF
 
                 if [ -n "$PROGRESS" ] && [ "$PROGRESS" -ne "$LAST_PROGRESS" ]; then
                     if [ "$PROGRESS" -gt "$LAST_PROGRESS" ]; then
-                        LOG_OUT "Downloading:【$(basename "$DOWNLOAD_PATH") - ${PROGRESS}%】"
+                        LOG_OUT "Downloading:【$(basename "$DOWNLOAD_PATH") - ${PROGRESS}%】..."
                         LAST_PROGRESS="$PROGRESS"
                     fi
                 fi

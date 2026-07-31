@@ -125,6 +125,9 @@ msgstr "Descargar configuración"
 msgid "Click to Download"
 msgstr "Clic para descargar"
 
+msgid "Failed to get download link"
+msgstr "No se pudo obtener el enlace de descarga"
+
 msgid "Copy Config"
 msgstr "Copiar configuración"
 
@@ -2180,6 +2183,9 @@ msgstr "ha sido modificado, pausa del inicio rápido..."
 
 msgid "Click to Update"
 msgstr "Actualizar reglas"
+
+msgid "Click to Install"
+msgstr "Instalar"
 
 msgid "Persistence Fake-IP"
 msgstr "Persistencia de Fake-IP"

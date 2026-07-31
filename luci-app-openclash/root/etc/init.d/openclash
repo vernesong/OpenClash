@@ -3420,9 +3420,7 @@ EOF
                Value = YAML.load_file('$CONFIG_FILE')
             end
             Overwrite_Value = YAML.overwrite(Value, yaml_data)
-            File.open('$CONFIG_FILE', 'w') do |f|
-               YAML.dump(Overwrite_Value, f)
-            end
+            YAML.dump(Overwrite_Value, '$CONFIG_FILE')
             File.open('/tmp/yaml_overwrite_marshal', 'wb') { |f| Marshal.dump(Overwrite_Value, f) }
          else
             YAML.LOG_WARN('Invalid YAML Override format, skipped...')
@@ -3450,9 +3448,7 @@ if [ -f "/tmp/yaml_openclash_ruby_parts/$OPENCLASH_OVERWRITE_SID" ]; then
          threads = []
          $ruby_code
          threads.each(&:join)
-         File.open('$CONFIG_FILE', 'w') do |f|
-            YAML.dump(Value, f)
-         end
+         YAML.dump(Value, '$CONFIG_FILE')
       rescue Exception => e
          YAML.LOG_ERROR('Set Custom Overwrite Script Failed,【%s】' % [e.message])
       end
@@ -3661,9 +3657,7 @@ start_service()
                            threads = []
                            $ruby_code
                            threads.each(&:join)
-                           File.open('$yaml_file', 'w') do |f|
-                              YAML.dump(Value, f)
-                           end
+                           YAML.dump(Value, '$yaml_file')
                         rescue Exception => e
                            YAML.LOG_ERROR('Set Custom Overwrite Script Failed,【%s】' % [e.message])
                         end
@@ -3699,7 +3693,7 @@ start_service()
                   end
                end
                threads.each(&:join)
-               File.open('$TMP_CONFIG_FILE', 'w') { |f| YAML.dump(Value, f) }
+               YAML.dump(Value, '$TMP_CONFIG_FILE')
             rescue Exception => e
                YAML.LOG_ERROR('Edit Provider Path Failed,【%s】' % [e.message])
             end

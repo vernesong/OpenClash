@@ -128,6 +128,9 @@ msgstr "下载配置"
 msgid "Click to Download"
 msgstr "点击下载"
 
+msgid "Failed to get download link"
+msgstr "获取下载链接失败"
+
 msgid "Copy Config"
 msgstr "复制配置"
 
@@ -2183,6 +2186,9 @@ msgstr "被修改，暂停快速启动..."
 
 msgid "Click to Update"
 msgstr "点击更新规则"
+
+msgid "Click to Install"
+msgstr "点击安装"
 
 msgid "Persistence Fake-IP"
 msgstr "Fake-IP 持久化"

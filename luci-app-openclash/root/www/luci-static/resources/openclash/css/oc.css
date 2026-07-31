@@ -6390,7 +6390,7 @@ html[data-darkmode="true"] .oc .cdn-ver-hint {
 .oc .cdn-row,
 .oc .cdn-header {
     display: grid;
-    grid-template-columns: 1fr 70px 120px 120px;
+    grid-template-columns: minmax(0, 1.6fr) 64px minmax(0, 0.8fr) minmax(0, 0.8fr);
     gap: 8px;
     align-items: center;
 }
@@ -6399,10 +6399,11 @@ html[data-darkmode="true"] .oc .cdn-ver-hint {
 }
 .oc .cdn-row-url {
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
+    word-break: break-all !important;
+    overflow-wrap: anywhere;
     font-size: 13px;
+    line-height: 1.45;
     color: var(--text-primary);
 }
 .oc .cdn-status {
@@ -6427,22 +6428,23 @@ html[data-darkmode="true"] .oc .cdn-ver-hint {
     box-sizing: border-box;
     font-variant-numeric: tabular-nums;
     justify-self: center;
+    min-width: 0;
+    max-width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
 }
 .oc .cdn-row .cdn-ver-text.has-data {
     border-radius: var(--radius-sm);
     transition: all var(--transition-fast);
 }
-.oc .cdn-row .cdn-ver-text.has-data:hover {
-    filter: brightness(1.15);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-sm);
-}
-.oc .cdn-row .cdn-ver-text.cdn-plugin.has-data {
+.oc .cdn-row .cdn-ver-text.cdn-plugin.has-data .cdn-ver-link {
     background: var(--primary-a20);
     color: var(--primary-color);
     font-weight: 500;
 }
-.oc .cdn-row .cdn-ver-text.cdn-core.has-data {
+.oc .cdn-row .cdn-ver-text.cdn-core.has-data .cdn-ver-link {
     background: var(--violet-a15);
     color: var(--violet);
     font-weight: 500;
@@ -6453,14 +6455,53 @@ html[data-darkmode="true"] .oc .cdn-ver-hint {
     font-weight: 500;
 }
 .oc .cdn-row .cdn-ver-link {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
+    display: inline-block;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     color: inherit;
     text-decoration: none;
     cursor: pointer;
+    line-height: 1.3;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: all var(--transition-fast);
+}
+.oc .cdn-row .cdn-ver-link:hover {
+    filter: brightness(1.15);
+    text-decoration: underline;
+}
+.oc .cdn-dl-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-white);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-decoration: none;
+    box-sizing: border-box;
+}
+.oc .cdn-dl-btn:hover {
+    background: var(--bg-light);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+.oc .cdn-dl-btn svg {
+    width: 11px;
+    height: 11px;
+    flex-shrink: 0;
+    display: block;
 }
 .oc .cdn-header {
     font-size: 12px;
@@ -6492,12 +6533,12 @@ html[data-darkmode="true"] .oc .cdn-ver-hint {
     color: var(--primary-color);
 }
 
-[data-darkmode=true] .oc .cdn-row .cdn-ver-text.cdn-plugin.has-data {
+[data-darkmode=true] .oc .cdn-row .cdn-ver-text.cdn-plugin.has-data .cdn-ver-link {
     color: var(--blue-300);
     background: var(--blue-a28);
     font-weight: 500;
 }
-[data-darkmode=true] .oc .cdn-row .cdn-ver-text.cdn-core.has-data {
+[data-darkmode=true] .oc .cdn-row .cdn-ver-text.cdn-core.has-data .cdn-ver-link {
     color: var(--violet-light);
     background: var(--violet-a25);
     font-weight: 500;
@@ -6506,6 +6547,16 @@ html[data-darkmode="true"] .oc .cdn-ver-hint {
     color: var(--error-color);
     background: var(--error-a10);
     font-weight: 500;
+}
+[data-darkmode=true] .oc .cdn-dl-btn {
+    background: var(--bg-white);
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+}
+[data-darkmode=true] .oc .cdn-dl-btn:hover {
+    background: var(--bg-light);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
 }
 [data-darkmode=true] .oc .cdn-status.fast {
     color: var(--success-color);
@@ -6585,6 +6636,11 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .config-grid > .config-item:first-child { grid-column: 1 / -1; }
     .oc .config-item { width: 100%; max-width: 100%; }
     .oc .select-class { max-width: 100%; font-size: 13px; }
+    .oc .cdn-row, .oc .cdn-header { grid-template-columns: minmax(0, 1.6fr) 56px minmax(0, 0.8fr) minmax(0, 0.8fr); gap: 6px; }
+    .oc .cdn-row-url { font-size: 12px; }
+    .oc .cdn-status { font-size: 11px; }
+    .oc .cdn-row .cdn-ver-text { font-size: 11px; }
+    .oc .cdn-header-label { font-size: 11px; }
 
     /* sub_info_show.htm tabs */
     .sub_tab, .sub_tab_show { font-size: 11px; }
@@ -6696,7 +6752,17 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .cdn-version-row { grid-template-columns: 1fr 1fr; gap: 8px; }
     .oc .cdn-version-card { margin-bottom: 6px; }
     .oc #cdn-list-body { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .oc .cdn-row, .oc .cdn-header, .oc #customOptionInput, .oc #addCustomOption, .oc #custom-cdn-option { min-width: 520px; }
+    .oc .cdn-row, .oc .cdn-header {
+        grid-template-columns: minmax(80px, 1.5fr) 50px minmax(88px, 0.8fr) minmax(88px, 0.8fr);
+        gap: 4px;
+    }
+    .oc .cdn-row, .oc .cdn-header, .oc #customOptionInput, .oc #addCustomOption, .oc #custom-cdn-option { min-width: 0; }
+    .oc .cdn-row-url { font-size: 11px; }
+    .oc .cdn-status { font-size: 10px; }
+    .oc .cdn-row .cdn-ver-text { font-size: 10px; padding: 2px 3px; gap: 3px; }
+    .oc .cdn-header-label { font-size: 10px; }
+    .oc .cdn-dl-btn { width: 18px; height: 18px; min-width: 18px; border-radius: 4px; }
+    .oc .cdn-dl-btn svg { width: 10px; height: 10px; }
 
     /* developer.htm */
     .oc .developer-grid { gap: 6px 25px; }
@@ -6826,6 +6892,16 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .cdn-version-row { grid-template-columns: 1fr 1fr; gap: 6px; }
     .oc .cdn-version-card { margin-bottom: 4px; }
     .oc .config-item { gap: 6px; }
+    .oc .cdn-row, .oc .cdn-header {
+        grid-template-columns: minmax(64px, 1.4fr) 44px minmax(76px, 0.8fr) minmax(76px, 0.8fr);
+        gap: 3px;
+    }
+    .oc .cdn-row-url { font-size: 10px; }
+    .oc .cdn-status { font-size: 9px; }
+    .oc .cdn-row .cdn-ver-text { font-size: 9px; padding: 1px 2px; }
+    .oc .cdn-header-label { font-size: 9px; }
+    .oc .cdn-dl-btn { width: 16px; height: 16px; min-width: 16px; }
+    .oc .cdn-dl-btn svg { width: 9px; height: 9px; }
 
     /* developer.htm */
     .oc .developer-grid { gap: 3px 15px; }

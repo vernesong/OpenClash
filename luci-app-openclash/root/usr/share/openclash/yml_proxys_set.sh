@@ -1871,7 +1871,7 @@ begin
       YAML.LOG_ERROR('Merge [' + key + '] Failed: ' + e.message)
     end
   end
-  File.open('$CONFIG_FILE', 'w') { |f| YAML.dump(Value, f) }
+  YAML.dump(Value, '$CONFIG_FILE')
   puts 'OK'
 rescue Exception => e
   YAML.LOG_ERROR('Update Config File Failed: ' + e.message)

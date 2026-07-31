@@ -820,7 +820,7 @@ rescue Exception => e
    YAML.LOG_ERROR('Config File Overwrite Failed,【%s】' % [e.message])
 ensure
    begin
-      File.open(config_file, 'w') { |f| YAML.dump(Value, f) }
+      YAML.dump(Value, config_file)
    rescue Exception => e
       YAML.LOG_ERROR('Write file failed:【%s】' % [e.message])
    end

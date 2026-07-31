@@ -84,8 +84,8 @@
                 <div class="select-option cdn-header">
                     <span class="cdn-header-label"><%:Address%></span>
                     <span class="cdn-header-label"><%:Latency%></span>
-                    <span class="cdn-header-label"><span><%:Plugin%></span> <svg width="12" height="12" class="cdn-header-icon"><use href="#oc-icon-download"/></svg></span>
-                    <span class="cdn-header-label"><span><%:Core%></span> <svg width="12" height="12" class="cdn-header-icon"><use href="#oc-icon-download"/></svg></span>
+                    <span class="cdn-header-label"><%:Plugin%></span>
+                    <span class="cdn-header-label"><%:Core%></span>
                 </div>
                 <div class="select-option cdn-row" data-value="https://raw.githubusercontent.com/">
                     <span class="cdn-row-url">https://raw.githubusercontent.com/ (<%:RAW address%>)</span>
@@ -236,35 +236,45 @@
         return '';
     }
 
-    function makeVerLink(cdnUrl, type, version) {
+    function escAttr(s) {
+        return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+    }
+
+    function makeVerCell(cdnUrl, type, version) {
         var branch = _fetchedBranch || release_branch_cdn.value || 'dev';
         var arch = core_version_cdn.value;
         var selectEl = type === 'plugin'
             ? document.getElementById('select-plugin-ver')
             : document.getElementById('select-core-ver');
+        var verText = version;
+        var isLatest = false;
 
-        if (!version) {
+        if (!verText) {
+            if (type === 'plugin') {
+                return null;
+            }
+
             var selectedOption = selectEl.options[selectEl.selectedIndex];
-            var isLatest = !selectedOption || selectedOption.value === '__latest__';
+            isLatest = !selectedOption || selectedOption.value === '__latest__';
 
             if (!isLatest) {
-                version = selectedOption.getAttribute('data-ver');
+                verText = selectedOption.getAttribute('data-ver');
             }
 
-            if (isLatest && type !== 'plugin' && !_isOix) {
-                var url = buildDownloadURL(cdnUrl, type, branch, '', '', arch);
-                if (url) {
-                    return '<a href="' + url + '" target="_blank" onclick="event.stopPropagation()" title="<%:Click to Download%>" class="cdn-ver-link">Latest</a>';
-                }
+            if (isLatest && type === 'core' && !_isOix) {
+                verText = 'Latest';
             }
 
-            if (!version) return null;
+            if (!verText) return null;
         }
 
-        var sha = findSHAbyVersion(selectEl, version);
-        var url = buildDownloadURL(cdnUrl, type, branch, version, sha, arch);
-        if (!url) return version;
-        return '<a href="' + url + '" target="_blank" onclick="event.stopPropagation()" title="<%:Click to Download%>" class="cdn-ver-link">' + version + '</a>';
+        var useVersion = (verText === 'Latest') ? '' : verText;
+        var sha = useVersion ? findSHAbyVersion(selectEl, useVersion) : '';
+        var dlUrl = buildDownloadURL(cdnUrl, type, branch, useVersion, sha, arch);
+        if (!dlUrl) return verText;
+
+        return '<a href="javascript:void(0)" class="cdn-ver-link" data-type="' + type + '" data-ver="' + escAttr(useVersion) + '" data-dl="' + escAttr(dlUrl) + '" title="<%:Click to Install%>">' + verText + '</a>' +
+            '<a href="' + escAttr(dlUrl) + '" target="_blank" rel="noopener" class="cdn-dl-btn" title="<%:Download%>"><svg width="11" height="11"><use href="#oc-icon-download"/></svg></a>';
     }
 
     function updateCDNRow(row, cdnUrl, info) {
@@ -295,11 +305,11 @@
 
         if (pluginEl) {
             if (info.plugin_ver) {
-                pluginEl.innerHTML = makeVerLink(cdnUrl, 'plugin', info.plugin_ver);
+                pluginEl.innerHTML = makeVerCell(cdnUrl, 'plugin', info.plugin_ver);
                 pluginEl.classList.add('has-data');
                 pluginEl.classList.remove('err');
             } else {
-                var selLink = makeVerLink(cdnUrl, 'plugin');
+                var selLink = makeVerCell(cdnUrl, 'plugin');
                 if (selLink) {
                     pluginEl.innerHTML = selLink;
                     pluginEl.classList.add('has-data');
@@ -316,20 +326,28 @@
         if (coreEl) {
             var coreVer = (smart === '1' && info.core_smart_ver) ? info.core_smart_ver : info.core_meta_ver;
             if (coreVer) {
-                coreEl.innerHTML = makeVerLink(cdnUrl, 'core', coreVer);
+                coreEl.innerHTML = makeVerCell(cdnUrl, 'core', coreVer);
                 coreEl.classList.add('has-data');
                 coreEl.classList.remove('err');
+            } else if (info.latency === -1 || info.latency === -2 || info.latency === -3 || info.latency == null) {
+                if (info.latency === -1) {
+                    coreEl.textContent = '<%:Access Timed Out%>';
+                    coreEl.classList.add('has-data', 'err');
+                } else if (info.latency === -2) {
+                    coreEl.textContent = '<%:Access Denied%>';
+                    coreEl.classList.add('has-data', 'err');
+                } else {
+                    coreEl.textContent = '--';
+                    coreEl.classList.remove('has-data', 'err');
+                }
             } else {
-                var selLink = makeVerLink(cdnUrl, 'core');
+                var selLink = makeVerCell(cdnUrl, 'core');
                 if (selLink) {
                     coreEl.innerHTML = selLink;
                     coreEl.classList.add('has-data');
                     coreEl.classList.remove('err');
                 } else if (info.core_error) {
                     coreEl.textContent = info.core_error === 'timeout' ? '<%:Access Timed Out%>' : '<%:Access Denied%>';
-                    coreEl.classList.add('has-data', 'err');
-                } else if (info.latency === -1 || info.latency === -2) {
-                    coreEl.textContent = info.latency === -1 ? '<%:Access Timed Out%>' : '<%:Access Denied%>';
                     coreEl.classList.add('has-data', 'err');
                 } else {
                     coreEl.textContent = '--';
@@ -372,6 +390,18 @@
         var coreSelect = document.getElementById('select-core-ver');
         var hint = document.getElementById('version-hint');
         var params = { branch: branch };
+        var smart = smart_enable_cdn.value || '0';
+
+        var appendHistoryEntry = function(entry) {
+            if (entry.type === 'plugin' && entry.version) {
+                pluginSelect.innerHTML += '<option value="' + entry.sha + '" data-ver="' + entry.version + '">' + entry.version + ' (<%:Date%>: ' + (entry.date||'').substring(0,10) + ')</option>';
+            } else if (!_isOix && entry.type === 'core_meta' && smart !== '1' && entry.version) {
+                coreSelect.innerHTML += '<option value="' + entry.sha + '" data-ver="' + entry.version + '">' + entry.version + ' (<%:Date%>: ' + (entry.date||'').substring(0,10) + ')</option>';
+            } else if (!_isOix && entry.type === 'core_smart' && smart === '1' && entry.version) {
+                coreSelect.innerHTML += '<option value="' + entry.sha + '" data-ver="' + entry.version + '">' + entry.version + ' (<%:Date%>: ' + (entry.date||'').substring(0,10) + ')</option>';
+            }
+        };
+
         if (force) params.force = '1';
 
         pluginSelect.disabled = true;
@@ -387,13 +417,16 @@
         xhr.open('GET', url, true);
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         var lastLen = 0;
+        var pendingBuf = '';
         xhr.onprogress = function() {
             if (xhr.status != 200) return;
             var text = xhr.responseText;
             if (text.length <= lastLen) return;
             var newText = text.substring(lastLen);
             lastLen = text.length;
-            var lines = newText.split('\n');
+            pendingBuf += newText;
+            var lines = pendingBuf.split('\n');
+            pendingBuf = lines.pop();
             for (var i = 0; i < lines.length; i++) {
                 var line = lines[i].trim();
                 if (!line) continue;
@@ -414,11 +447,7 @@
                         }
                         continue;
                     }
-                    if (entry.type === 'plugin' && entry.version) {
-                        pluginSelect.innerHTML += '<option value="' + entry.sha + '" data-ver="' + entry.version + '">' + entry.version + ' (<%:Date%>: ' + (entry.date||'').substring(0,10) + ')</option>';
-                    } else if ((entry.type === 'core_meta' || entry.type === 'core_smart') && entry.version) {
-                        coreSelect.innerHTML += '<option value="' + entry.sha + '" data-ver="' + entry.version + '">' + entry.version + ' (<%:Date%>: ' + (entry.date||'').substring(0,10) + ')</option>';
-                    }
+                    appendHistoryEntry(entry);
                 } catch(e) {}
             }
         };
@@ -434,7 +463,9 @@
             if (text.length > lastLen) {
                 var newText = text.substring(lastLen);
                 lastLen = text.length;
-                var lines = newText.split('\n');
+                pendingBuf += newText;
+                var lines = pendingBuf.split('\n');
+                pendingBuf = lines.pop();
                 for (var i = 0; i < lines.length; i++) {
                     var line = lines[i].trim();
                     if (!line) continue;
@@ -455,13 +486,32 @@
                             }
                             continue;
                         }
-                        if (entry.type === 'plugin' && entry.version) {
-                            pluginSelect.innerHTML += '<option value="' + entry.sha + '" data-ver="' + entry.version + '">' + entry.version + ' (<%:Date%>: ' + (entry.date||'').substring(0,10) + ')</option>';
-                        } else if ((entry.type === 'core_meta' || entry.type === 'core_smart') && entry.version) {
-                            coreSelect.innerHTML += '<option value="' + entry.sha + '" data-ver="' + entry.version + '">' + entry.version + ' (<%:Date%>: ' + (entry.date||'').substring(0,10) + ')</option>';
-                        }
+                        appendHistoryEntry(entry);
                     } catch(e) {}
                 }
+            }
+            if (pendingBuf && pendingBuf.trim()) {
+                var line = pendingBuf.trim();
+                pendingBuf = '';
+                try {
+                    var entry = JSON.parse(line);
+                    if (entry.complete) {
+                        if (entry.error) {
+                            showHint('<%:Failed to get version history%>');
+                            pluginSelect.disabled = true;
+                            coreSelect.disabled = true;
+                            if (!versionRetryTimer) {
+                                versionRetryTimer = setInterval(fetchVersionHistory, 10000);
+                            }
+                        } else {
+                            pluginSelect.disabled = false;
+                            coreSelect.disabled = false;
+                            if (versionRetryTimer) { clearInterval(versionRetryTimer); versionRetryTimer = null; }
+                        }
+                    } else {
+                        appendHistoryEntry(entry);
+                    }
+                } catch(e) {}
             }
 
         };
@@ -499,7 +549,7 @@
         refreshCDNInfo();
     }
 
-    function refreshCDNInfo() {
+    function refreshCDNInfo(opts) {
         var cdns = [];
         document.querySelectorAll('#cdn-list-body .cdn-row').forEach(function(row) {
             var v = row.dataset.value;
@@ -518,6 +568,9 @@
             plugin_ver: pluginVer || '',
             core_ver: coreVer || ''
         };
+        if (opts && opts.merge) {
+            params.merge = '1';
+        }
         if (_cdnForceRefresh) {
             params.force = '1';
             _cdnForceRefresh = false;
@@ -634,11 +687,89 @@
         initAllData();
     }
 
+    function handleVersionUpdate(verLink) {
+        var row = verLink.closest ? verLink.closest('.cdn-row') : null;
+        var cdnUrl = row ? row.dataset.value : '';
+        var type = verLink.getAttribute('data-type');
+        var ver = verLink.getAttribute('data-ver') || '';
+        var dlUrl = verLink.getAttribute('data-dl') || '';
+
+        if (!dlUrl) {
+            var branch = _fetchedBranch || release_branch_cdn.value || 'dev';
+            var arch = core_version_cdn.value;
+            var selectEl = type === 'plugin'
+                ? document.getElementById('select-plugin-ver')
+                : document.getElementById('select-core-ver');
+            var sha = ver ? findSHAbyVersion(selectEl, ver) : '';
+            dlUrl = buildDownloadURL(cdnUrl, type, branch, ver, sha, arch);
+        }
+
+        clearHint();
+
+        var cdnInfo = _cdnInfoCache[cdnUrl];
+        if (!cdnInfo || cdnInfo.latency == null) {
+            showHint('<%:Version info not ready, please wait and try again%>');
+            return;
+        }
+        if (cdnInfo.latency === -1 || cdnInfo.latency === -2 || cdnInfo.latency === -3) {
+            var cdnErrMsg = cdnInfo.latency === -1 ? '<%:Link access timed out, cannot download%>' : '<%:Link access failed, cannot download%>';
+            showHint(cdnErrMsg);
+            return;
+        }
+
+        if (!dlUrl) {
+            showHint('<%:Failed to get download link%>');
+            return;
+        }
+
+        if (type === 'plugin') {
+            var installedVer = (document.getElementById('installed-plugin').textContent || '').trim();
+            if (ver && installedVer && installedVer !== '--' && installedVer === ver) {
+                showHint('<%:The selected version is the same as the installed version, no need to update%>');
+                return;
+            }
+        } else {
+            var installedCoreVer = (document.getElementById('installed-core').textContent || '').trim();
+            if (ver && installedCoreVer && installedCoreVer !== '--' && installedCoreVer === ver) {
+                showHint('<%:The selected version is the same as the installed version, no need to update%>');
+                return;
+            }
+        }
+
+        if (typeof LogManager !== 'undefined' && LogManager) {
+            LogManager.startLogDisplay('<%:Checking...%>');
+        }
+
+        var cdn = cdnUrl;
+        if (cdn === 'https://raw.githubusercontent.com/') cdn = '';
+
+        if (type === 'core') {
+            var params = {download_url: dlUrl};
+            if (cdn && cdn !== '') params.url = cdn;
+            XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "core_download")%>', params, function() {});
+        } else {
+            var pParams = {url: cdn, download_url: dlUrl, update_type: 'plugin'};
+            XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update")%>', pParams, function() {});
+        }
+
+        closeSelectPopup();
+    }
+
     function cdn_click_handler(event) {
         var target = event.target;
         var customInput = document.getElementById('customOptionInput');
         var addBtn = document.getElementById('addCustomOption');
         var optionElem = target.closest ? target.closest('.select-option') : null;
+
+        var verLink = target.closest ? target.closest('.cdn-ver-link') : null;
+        if (verLink) {
+            handleVersionUpdate(verLink);
+            return;
+        }
+        var dlBtn = target.closest ? target.closest('.cdn-dl-btn') : null;
+        if (dlBtn) {
+            return;
+        }
 
         if (optionElem && optionElem.dataset.value === 'custom' && !customInput.classList.contains('oc-hidden')) {
             customInput.classList.add('oc-hidden');
@@ -661,8 +792,7 @@
                 listBody.insertBefore(div, document.getElementById('custom-cdn-option'));
                 customInput.classList.add('oc-hidden');
                 addBtn.classList.add('oc-hidden');
-                _cdnForceRefresh = true;
-                refreshCDNInfo();
+                refreshCDNInfo({merge: true});
             } else {
                 alert("<%:Please enter a valid URL!%>");
             }
@@ -705,7 +835,7 @@
             var coreSHA = (!isCoreLatest && useCoreVer) ? findSHAbyVersion(coreSel, useCoreVer) : '';
 
             if (currentDownloadType !== 'core_download') {
-                // One-key update: both plugin and core will be updated, check both
+                // One-key update: both plugin and core will be updated
                 if (!pluginVer) {
                     showHint('<%:Failed to get plugin version info from this link, please check again later%>');
                     return;
