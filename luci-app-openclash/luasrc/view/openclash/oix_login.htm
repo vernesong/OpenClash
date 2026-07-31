@@ -65,7 +65,7 @@ end
 				<div class="oix-field-group">
 					<div class="oix-input-wrap">
 					<input type="password" id="oix-token" class="oix-input oix-input-ok oix-input-has-icon" placeholder="<%:Please enter your oixCloud token%>"
-						autocomplete="section-oix token"
+						autocomplete="off"
 							value="<%= fs.uci_get_config('config', 'oix_token') or '' %>">
 						<button type="button" class="oix-pwd-toggle" onclick="OixCloud.togglePwd('oix-token')"
 							data-show="<%:Show Token%>" data-hide="<%:Hide Token%>"
@@ -168,7 +168,7 @@ end
 					<div class="oix-toggle-row">
 						<span><%:Show on Overview%></span>
 						<label class="oix-toggle" title="<%:Show on Overview%>">
-							<input type="checkbox" id="oix-show-info-page" onchange="OixCloud.toggleInfoPage()" <%= fs.uci_get_config('config', 'oix_show_info_page') ~= '0' and 'checked' or '' %>>
+							<input type="checkbox" id="oix-show-info-page" onchange="OixCloud.toggleInfoPage()" <%= fs.uci_get_config('config', 'oix_show_info_page') == '1' and 'checked' or '' %>>
 							<span class="oix-toggle-slider"></span>
 						</label>
 					</div>
@@ -321,7 +321,6 @@ var OixCloud = {
 			if (!passwd) { OixMsg.field('oix-passwd', '<%:Please enter password%>'); return; }
 			data.email = email; data.passwd = passwd;
 		}
-		data.checkin = document.getElementById('oix-checkin-enable').checked ? '1' : '0'; data.interval = document.getElementById('oix-checkin-interval').value || '1'; data.multiple = document.getElementById('oix-checkin-multiple').value || '1';
 		var self = this, btns = document.querySelectorAll('#oix-login-section .oix-btn-primary');
 		btns.forEach(function(b){ b._origHTML = b.innerHTML; b.disabled = true; var svg = b.querySelector('svg'); b.innerHTML = (svg ? svg.outerHTML : '') + ' <%:Login...%>'; });
 
@@ -342,6 +341,7 @@ var OixCloud = {
 		var onLoginError = function(msg) {
 			btns.forEach(function(b){ b.disabled = false; b.innerHTML = b._origHTML; });
 			OixMsg.show('<%:oixCloud Login Failed:%> ' + msg, 'error');
+			self.rebuildCredentials();
 		};
 
 		var doStreamLogin = function(loginData) {
@@ -354,10 +354,9 @@ var OixCloud = {
 			xhr.open('GET', url, true);
 			xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 			var lastIndex = 0;
-			xhr.onprogress = function() {
-				var newText = xhr.responseText.substring(lastIndex);
-				lastIndex = xhr.responseText.length;
-				var lines = newText.split('\n');
+
+			var parseLines = function(text) {
+				var lines = text.split('\n');
 				for (var i = 0; i < lines.length; i++) {
 					var line = lines[i].trim();
 					if (!line) continue;
@@ -373,9 +372,21 @@ var OixCloud = {
 					} catch(e) {}
 				}
 			};
+
+			xhr.onprogress = function() {
+				var newText = xhr.responseText.substring(lastIndex);
+				lastIndex = xhr.responseText.length;
+				parseLines(newText);
+			};
 			xhr.onload = function() {
+				if (lastIndex < xhr.responseText.length) {
+					parseLines(xhr.responseText.substring(lastIndex));
+				}
 				if (xhr.status !== 200) {
 					onLoginError('<%:Network request failed, please check your connection and try again%>');
+				} else if (xhr.responseText.indexOf('"stage":"done"') === -1 &&
+				           xhr.responseText.indexOf('"stage":"error"') === -1) {
+					onLoginError('<%:Server response error, please try again later%>');
 				}
 			};
 			xhr.onerror = function() {
@@ -384,15 +395,14 @@ var OixCloud = {
 			xhr.send();
 		};
 
-		XHR.get(OIX_URLS.save, data, function(x, status) {
-			if (!x || x.status != 200) { OixMsg.show('<%:Network request failed, please check your connection and try again%>', 'error'); btns.forEach(function(b){b.disabled=false;b.innerHTML=b._origHTML;}); return; }
-
-			if (isToken) {
-				doStreamLogin({token: data.token});
-			} else {
+		if (isToken) {
+			doStreamLogin({token: data.token});
+		} else {
+			XHR.get(OIX_URLS.save, data, function(x, status) {
+				if (!x || x.status != 200) { OixMsg.show('<%:Network request failed, please check your connection and try again%>', 'error'); btns.forEach(function(b){b.disabled=false;b.innerHTML=b._origHTML;}); return; }
 				doStreamLogin(null);
-			}
-		});
+			});
+		}
 	},
 
 	doLogout: function() {
@@ -422,6 +432,23 @@ var OixCloud = {
 		this.stopParamsRetry();
 		this.clearForm();
 		this.switchTab('account');
+		this.rebuildCredentials();
+	},
+
+	rebuildCredentials: function() {
+		var self = this;
+		setTimeout(function() {
+			if (self.loggedIn) return;
+			['oix-email', 'oix-passwd'].forEach(function(id) {
+				var oldEl = document.getElementById(id);
+				if (oldEl) {
+					var newEl = oldEl.cloneNode(false);
+					newEl.removeAttribute('value');
+					newEl.value = '';
+					oldEl.parentNode.replaceChild(newEl, oldEl);
+				}
+			});
+		}, 150);
 	},
 
 	clearForm: function() {
@@ -542,7 +569,9 @@ var OixCloud = {
 
 	toggleCheckin: function() {
 		var on = document.getElementById('oix-checkin-enable').checked;
-		XHR.get(OIX_URLS.save, {checkin: on?'1':'0'}, function(x, status) {
+		var interval = document.getElementById('oix-checkin-interval').value || '1';
+		var multiple = document.getElementById('oix-checkin-multiple').value || '1';
+		XHR.get(OIX_URLS.save, {checkin: on?'1':'0', interval: interval, multiple: multiple}, function(x, status) {
 			if (x && x.status == 200) { OixMsg.show('<%:Setting saved%>', 'success', 2000); }
 		});
 	},

@@ -370,9 +370,148 @@ html[data-darkmode="true"] .oc {
 .oc-mt-5 { margin-top: 20px; }
 .oc-svg-inline { vertical-align: middle; margin-right: 4px; flex-shrink: 0; }
 .oc-w100 { width: 100%; }
+.oc-w-auto { width: auto; }
 .oc-text-center { text-align: center; }
 /* Use classList to toggle; !important ensures it beats any component-level display rule */
 .oc-hidden { display: none !important; }
+
+/* ── Upload page bar (responsive 1/2/3 rows) ── */
+.oc .upload-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    width: auto;
+    max-width: 720px;
+    margin: 0 auto 12px auto;
+    line-height: normal;
+    overflow-x: visible;
+    border-radius: 0;
+    position: relative;
+    padding-bottom: 12px;
+}
+.oc .upload-bar::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background-color: var(--border-light);
+}
+.oc .upload-bar > label {
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.oc .upload-bar .form-select-wrapper {
+    flex-shrink: 0;
+    width: auto;
+}
+.oc .upload-bar .form-select {
+    width: auto;
+    min-width: 0;
+}
+.oc .upload-bar .form-file {
+    flex: 1 1 260px;
+    min-width: 180px;
+}
+.oc .upload-bar .config-upload-buttons {
+    flex-shrink: 0;
+}
+.oc .upload-bar .config-upload-buttons .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 14px;
+    background: var(--bg-white);
+    color: var(--text-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+.oc .upload-bar .config-upload-buttons .btn:hover {
+    background: var(--primary-a10);
+    color: var(--primary-color);
+}
+.oc .upload-bar .config-upload-buttons .btn svg {
+    flex-shrink: 0;
+    display: block;
+}
+
+/* ── Upload note / result ── */
+.oc .upload-note {
+    max-width: 720px;
+    margin: 12px auto 0 auto;
+    text-align: center;
+    line-height: 1.5;
+}
+.oc .upload-note-default,
+.oc .upload-result {
+    display: inline-block;
+    padding: 8px 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+.oc .upload-result {
+    color: var(--success-color);
+}
+
+/* ── File input (matches form-input / form-select height) ── */
+.oc .form-file {
+    flex: 1;
+    min-width: 200px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    background: var(--bg-white);
+    color: var(--text-secondary);
+    font-size: 14px;
+    transition: all var(--transition-fast);
+    cursor: pointer;
+}
+.oc .form-file::file-selector-button {
+    height: 100%;
+    padding: 0 14px;
+    margin-right: 12px;
+    border: none;
+    border-right: 1px solid var(--border-light);
+    border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+    background: var(--primary-color);
+    color: var(--text-on-primary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+.oc .form-file::file-selector-button:hover {
+    opacity: 0.9;
+}
+.oc .form-file:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-a10);
+}
+
+/* dark mode */
+html[data-darkmode="true"] .oc .form-file {
+    background: var(--bg-gray);
+    border-color: var(--border-light);
+    color: var(--text-secondary);
+}
+html[data-darkmode="true"] .oc .form-file::file-selector-button {
+    background: var(--primary-color);
+    border-color: var(--border-light);
+    color: var(--text-on-primary);
+}
+html[data-darkmode="true"] .oc .form-file::file-selector-button:hover {
+    background: var(--primary-a10);
+    color: var(--primary-color);
+}
 
 /* ==========================================================================
  * SECTION 1: status.htm
@@ -3119,8 +3258,10 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
     transform: translateX(16px);
 }
 .overwrite-add-icon {
-    font-size: 32px;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
     color: var(--primary-color);
 }
 .overwrite-title-row {
@@ -3827,17 +3968,25 @@ html[data-darkmode="true"] .oc .developer-label {
     position: relative;
     background: linear-gradient(45deg, var(--indigo) 0%, var(--grape) 100%);
     padding: 1px;
+    overflow: hidden;
 }
 
 .oc .developer-avatar::before {
     content: '';
     position: absolute;
-    top: -4px;
-    left: -4px;
-    right: -4px;
-    bottom: -4px;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     border-radius: 50%;
-    background: linear-gradient(45deg, var(--indigo), var(--grape), var(--pink-light), var(--coral));
+    background: conic-gradient(
+        var(--indigo),
+        var(--grape),
+        var(--pink-light),
+        var(--coral),
+        var(--indigo)
+    );
+    filter: blur(4px);
     opacity: 0;
     transition: opacity 0.3s ease;
     z-index: -1;
@@ -5674,7 +5823,7 @@ html[data-darkmode=true] .oc .oix-panel::after {
 .oix-btn-sm { padding: 5px 10px; font-size: 12px; }
 
 .oix-msg-bar {
-    align-items: center; gap: var(--card-grid-gap);
+    display: flex; align-items: center; gap: var(--card-grid-gap);
     padding: 8px 12px; margin: 0 0 12px 0;
     border-radius: var(--radius-sm); font-size: 13px;
     line-height: 1.5; border: 1px solid transparent; font-weight: 500;
@@ -6204,7 +6353,7 @@ html[data-darkmode=true] .oc .oix-msg-bar svg { color: inherit; }
     justify-content: center;
     align-items: center;
     gap: 8px;
-    margin: 6px 0 0 0;
+    margin: 8px 0 0 0;
     padding: 8px 12px;
     font-size: 12px;
     border-radius: var(--radius-sm);

@@ -4320,6 +4320,9 @@ msgstr "Error al guardar, inténtalo de nuevo"
 msgid "Network request failed, please check your connection and try again"
 msgstr "Error de red, revisa tu conexión"
 
+msgid "Server response error, please try again later"
+msgstr "Error de respuesta del servidor, inténtelo más tarde"
+
 msgid "Show on Overview"
 msgstr "Mostrar en resumen"
 

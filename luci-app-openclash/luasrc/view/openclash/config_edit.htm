@@ -916,7 +916,7 @@ var ConfigEditor = {
         var addCard = document.createElement('div');
         addCard.className = 'sub-card overwrite-item';
         addCard.style.cursor = 'pointer';
-        addCard.innerHTML = '<div class="overwrite-add-icon">+</div>';
+        addCard.innerHTML = '<div class="overwrite-add-icon"><svg width="20" height="20"><use href="#oc-icon-add"/></svg></div>';
         addCard.title = '<%:Add New File%>';
         addCard.onclick = function() {
             ConfigEditor.showAddOverwritemodel();
@@ -1906,11 +1906,7 @@ var ConfigEditor = {
             <div class="upload-mode-selector">
                 <div class="mode-tabs">
                     <button type="button" class="mode-tab${activeTab==='file'?' active':''}" id="overwrite-upload-mode-file" data-mode="file">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="17,11 12,6 7,11"></polyline>
-                            <line x1="12" y1="18" x2="12" y2="6"></line>
-                        </svg>
+                        <svg width="16" height="16"><use href="#oc-icon-upload"/></svg>
                         <%:Upload File%>
                     </button>
                     <button type="button" class="mode-tab${activeTab==='subscribe'?' active':''}" id="overwrite-upload-mode-subscribe" data-mode="subscribe">
@@ -2004,7 +2000,7 @@ var ConfigEditor = {
                     <label><%:Environment variable%>:</label>
                     <div class="form-help" style="margin-bottom: unset;"><%:Set environment variables for the overwrite script%></div>
                     <div id="overwrite-subscribe-param-container" class="oc-hidden"></div>
-                    <button type="button" id="overwrite-subscribe-param-add" class="add-row-btn"><svg><use href="#oc-icon-upload"/></svg><span><%:Add Param%></span></button>
+                    <button type="button" id="overwrite-subscribe-param-add" class="add-row-btn"><svg><use href="#oc-icon-add"/></svg><span><%:Add Param%></span></button>
                 </div>
                 <div class="upload-progress oc-hidden" id="overwrite-upload-progress">
                     <div class="progress-bar">

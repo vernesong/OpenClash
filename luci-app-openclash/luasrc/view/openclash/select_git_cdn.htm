@@ -131,7 +131,6 @@
     var smart_enable_cdn = document.getElementById('SMART_ENABLE_CDN');
     var currentDownloadType = 'one_key';
     var refreshTimer = null;
-    var versionPollTimer = null;
     var versionRetryTimer = null;
     var cdnRetryTimer = null;
     var hintTimer = null;
@@ -363,6 +362,7 @@
             fetchVersionHistory();
             refreshCDNInfo();
         });
+        if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
         refreshTimer = setInterval(refreshCDNInfo, Math.floor(Math.random()*(20-10+1)+10)*1000);
     }
 
@@ -485,7 +485,6 @@
     function onBranchChange() {
         _fetchedBranch = release_branch_cdn.value;
         if (versionRetryTimer) { clearInterval(versionRetryTimer); versionRetryTimer = null; }
-        if (versionPollTimer) { clearInterval(versionPollTimer); versionPollTimer = null; }
         if (cdnRetryTimer) { clearInterval(cdnRetryTimer); cdnRetryTimer = null; }
         saveOptions();
         fetchVersionHistory();
@@ -612,9 +611,8 @@
         };
         xhr.onerror = function() {
             if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
-            if (!cdnRetryTimer) {
-                cdnRetryTimer = setInterval(refreshCDNInfo, 10000);
-            }
+            if (cdnRetryTimer) { clearInterval(cdnRetryTimer); cdnRetryTimer = null; }
+            cdnRetryTimer = setInterval(refreshCDNInfo, 10000);
         };
         xhr.send();
     }
@@ -670,8 +668,6 @@
             }
         } else if (optionElem && optionElem.classList.contains('cdn-row')) {
             var cdn = optionElem.dataset.value;
-
-            initAllData();
 
             clearHint();
 
@@ -783,8 +779,8 @@
         var customInput = document.getElementById('customOptionInput');
         var addBtn = document.getElementById('addCustomOption');
         popup.classList.add('hidden');
+        clearHint();
         if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
-        if (versionPollTimer) { clearInterval(versionPollTimer); versionPollTimer = null; }
         if (versionRetryTimer) { clearInterval(versionRetryTimer); versionRetryTimer = null; }
         if (cdnRetryTimer) { clearInterval(cdnRetryTimer); cdnRetryTimer = null; }
         customInput.classList.add('oc-hidden');

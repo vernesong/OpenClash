@@ -1,20 +1,57 @@
 <%+cbi/valueheader%>
-<div class="oc oc-text-center oc-w100" style="white-space:nowrap;">
-	<label class="cbi-value" style="display:inline-block;width:100%;" for="ulfiles"><%:Upload File Type%>&nbsp;<%:(Click to select)%>&nbsp;&nbsp;&nbsp;
-	<select name="file_type" class="oc-w-auto">&nbsp;&nbsp;&nbsp;
-		<option value="config" selected="selected"><%:Config File%> (.yaml)</option>
-		<option value="proxy-provider"><%:Proxy Provider File%></option>
-		<option value="rule-provider"><%:Rule Provider File%></option>
-		<option value="clash_meta">[Meta] <%:Core File%> (.tar.gz)</option>
-		<option value="backup-file"><%:Backup File%> (.tar.gz)</option>
-	</select>
-  <input class="cbi-input-file" style="width:30%" type="file" id="ulfile" name="ulfile" />
-	<input type="submit" class="btn cbi-button cbi-input-reload" name="upload" value="<%:Upload%>" />
-	<input type="submit" class="btn cbi-button cbi-button-reset" value="<%:Backup%>" onclick="return backup_all_file(this)"/>
+<%
+    local fs = require "luci.openclash"
+    local plugin_version = fs.oc_version()
+%>
+<div class="oc">
+<div class="upload-bar">
+	<label for="file_type"><%:Upload File Type%>:</label>
+	<div class="form-select-wrapper oc-w-auto">
+		<select name="file_type" id="file_type" class="form-select">
+			<option value="config" selected="selected"><%:Config File%> (.yaml)</option>
+			<option value="proxy-provider"><%:Proxy Provider File%></option>
+			<option value="rule-provider"><%:Rule Provider File%></option>
+			<option value="clash_meta">[Meta] <%:Core File%> (.tar.gz)</option>
+			<option value="backup-file"><%:Backup File%> (.tar.gz)</option>
+		</select>
+	</div>
+	<input type="file" id="ulfile" name="ulfile" class="form-file" />
+	<div class="config-upload-buttons">
+		<button type="submit" class="btn" name="upload">
+			<svg width="14" height="14"><use href="#oc-icon-upload"/></svg>
+			<span><%:Upload%></span>
+		</button>
+		<button type="button" class="btn" onclick="return backup_all_file(this)">
+			<svg width="14" height="14"><use href="#oc-icon-download"/></svg>
+			<span><%:Backup%></span>
+		</button>
+	</div>
+</div>
+<%
+	local msg = self:cfgvalue(section) or ""
+%>
+<div class="upload-note" id="upload-note">
+	<div class="upload-note-default" id="upload-note-default"><%:Note: Please Upload File According To File Type, File Will Be Saved To The Prompt Path%></div>
+	<% if msg and msg ~= "" then %>
+	<div class="upload-result" id="upload-result"><%=pcdata(msg)%></div>
+	<% end %>
+</div>
 </div>
 <%+cbi/valuefooter%>
 
 <script type="text/javascript">//<![CDATA[
+
+(function() {
+	var result = document.getElementById('upload-result');
+	var defaultNote = document.getElementById('upload-note-default');
+	if (result && defaultNote) {
+		defaultNote.classList.add('oc-hidden');
+		setTimeout(function() {
+			result.classList.add('oc-hidden');
+			defaultNote.classList.remove('oc-hidden');
+		}, 10000);
+	}
+})();
 
 function backup_all_file(btn)
 {

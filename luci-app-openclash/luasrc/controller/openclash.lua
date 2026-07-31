@@ -188,14 +188,16 @@ local function check_lastversion()
 end
 
 local function coremodel()
-	if opkg and opkg.info("libc") and opkg.info("libc")["libc"] then
-		return opkg.info("libc")["libc"]["Architecture"]
-	else
-		if fs.pkg_type() == "opkg" then
-			return SYS.exec("rm -f /var/lock/opkg.lock && opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
-		else
-			return SYS.exec("rm -f /lib/apk/db/lock && apk list libc 2>/dev/null |awk '{print $2}'")
+	if opkg then
+		local info = opkg.info("libc")
+		if info and info["libc"] and info["libc"]["Architecture"] then
+			return info["libc"]["Architecture"]
 		end
+	end
+	if fs.pkg_type() == "opkg" then
+		return SYS.exec("rm -f /var/lock/opkg.lock && opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
+	else
+		return SYS.exec("rm -f /lib/apk/db/lock && apk list libc 2>/dev/null |awk '{print $2}'")
 	end
 end
 
@@ -1665,13 +1667,24 @@ end
 
 --[[
     write_padded(data)
-    Prefix data with a newline, then pad with 4096 spaces + newline to
-    force-flush luci-compat's internal buffer (~4096 bytes).
+    First call writes 4096 spaces + newline (to overflow luci-compat's ~4096B
+    internal buffer), then writes data + newline — no io.flush() needed.
+    Subsequent calls just write data + newline and call io.flush() —
+    the stream channel is already open.
     Do NOT use io.popen + tail -f — C stdio full-buffers when stdout is a pipe.
     Use ltn12_popen (nixio pipe) + shell polling instead.
 ]]
+local write_padded_first = true
+
 local function write_padded(data)
-	HTTP.write(data .. "\n" .. string.rep(" ", 4096) .. "\n")
+	if write_padded_first then
+		HTTP.write(string.rep(" ", 4096) .. "\n")
+		HTTP.write(data .. "\n")
+		write_padded_first = false
+	else
+		HTTP.write(data .. "\n")
+		io.flush()
+	end
 end
 
 function action_start()
@@ -2371,20 +2384,31 @@ function action_myip_check()
 
 	local services = {
 		{
-			name = "myipcn",
-			url = string.format("https://my.ip.cn/?z=%d", random),
+			name = "pcol",
+			url = string.format("https://whois.pconline.com.cn/ipJson.jsp?json=true&z=%d", random),
 			parser = function(data)
 				if data and data ~= "" then
-					local ip = string.match(data, "ip：([%x:%.]+)")
-					local geo = string.match(data, "归属地：(.+)")
-
-					if ip and geo then
-						geo = string.gsub(geo, "%s+", " ")
-						geo = string.gsub(geo, "^%s*(.-)%s*$", "%1")
-
+					-- json.parse tolerates GBK bytes in string values (JSON structure is ASCII)
+					local ok, parsed = pcall(json.parse, data)
+					if ok and parsed and parsed.ip then
+						local geo_parts = {}
+						if parsed.pro and parsed.pro ~= "" then
+							table.insert(geo_parts, parsed.pro)
+						end
+						if parsed.city and parsed.city ~= "" then
+							table.insert(geo_parts, parsed.city)
+						end
+						if parsed.addr and parsed.addr ~= "" then
+							local isp = string.match(parsed.addr, "%s(%S+)$")
+							if isp then
+								table.insert(geo_parts, isp)
+							end
+						end
+						local geo = table.concat(geo_parts, " ")
 						return {
-							ip = ip,
-							geo = geo
+							ip = parsed.ip,
+							geo = HTTP.urlencode(geo),
+							raw = true
 						}
 					end
 				end
@@ -2414,7 +2438,7 @@ function action_myip_check()
 		},
 		{
 			name = "ipsb",
-			url = string.format("https://api-ipv4.ip.sb/geoip?z=%d", random),
+			url = string.format("https://api.ip.sb/geoip?z=%d", random),
 			parser = function(data)
 				if data and data ~= "" then
 					local ok, ipsb_json = pcall(json.parse, data)
@@ -2555,7 +2579,12 @@ function action_myip_check()
 					local parsed_result = info.parser(info.data)
 					if parsed_result then
 						result[name] = parsed_result
-						write_padded(json.stringify({ service = name, ip = parsed_result.ip, geo = parsed_result.geo }))
+						write_padded(json.stringify({
+							service = name,
+							ip = parsed_result.ip,
+							geo = parsed_result.geo,
+							raw = parsed_result.raw
+						}))
 					end
 
 					while #pending_services > 0 do
@@ -2579,7 +2608,12 @@ function action_myip_check()
 						local parsed_result = info.parser(info.data)
 						if parsed_result then
 							result[name] = parsed_result
-							write_padded(json.stringify({ service = name, ip = parsed_result.ip, geo = parsed_result.geo }))
+							write_padded(json.stringify({
+								service = name,
+								ip = parsed_result.ip,
+								geo = parsed_result.geo,
+								raw = parsed_result.raw
+							}))
 						end
 
 						while #pending_services > 0 do
@@ -2628,7 +2662,7 @@ function action_myip_check()
 
 	if result.ipify and result.ipify.ip and result.ipify.ip ~= "" then
 		local geo_cmd = string.format(
-			'curl -sL -m 5 --retry 2 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "https://api-ipv4.ip.sb/geoip/%s" 2>/dev/null',
+			'curl -sL -m 5 --retry 2 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "https://api.ip.sb/geoip/%s" 2>/dev/null',
 			result.ipify.ip
 		)
 		local geo_data = SYS.exec(geo_cmd)
@@ -5748,8 +5782,7 @@ function oix_params_get()
 end
 
 local function fetch_oix_sub(token)
-	HTTP.write('{"stage":"fetching_sub","text":"' .. luci.i18n.translate("Fetching subscription...") .. '"}\n')
-	io.flush()
+	write_padded('{"stage":"fetching_sub","text":"' .. luci.i18n.translate("Fetching subscription...") .. '"}')
 	local get_sub = string.format("curl -sL -H 'Content-Type: application/json' -H 'Authorization: Bearer %s' -X POST https://oix-api.dler.io/api/v1/managed/clash", token)
 	local sub_info = SYS.exec(get_sub)
 	if sub_info then sub_info = json.parse(sub_info) end
@@ -5778,17 +5811,14 @@ local function fetch_oix_sub(token)
 				break
 			end
 			if sub_info[v] then
-				HTTP.write('{"stage":"downloading_config","text":"' .. luci.i18n.translate("Downloading config...") .. '"}\n')
-				io.flush()
+				write_padded('{"stage":"downloading_config","text":"' .. luci.i18n.translate("Downloading config...") .. '"}')
 				SYS.exec(string.format('curl -sL -m 10 --retry 2 --user-agent "clash" "%s" -o "/etc/openclash/config/oixCloud - smart.yaml" >/dev/null 2>&1', sub_info[v]))
 				local core = coremetacv()
 				if core ~= "0" and not string.match(core, "oix") then
-					HTTP.write('{"stage":"downloading_core","text":"' .. luci.i18n.translate("Downloading core...") .. '"}\n')
-					io.flush()
+					write_padded('{"stage":"downloading_core","text":"' .. luci.i18n.translate("Downloading core...") .. '"}')
 					SYS.exec("/usr/share/openclash/openclash_core.sh Oix")
 				else
-					HTTP.write('{"stage":"restarting","text":"' .. luci.i18n.translate("Restarting...") .. '"}\n')
-					io.flush()
+					write_padded('{"stage":"restarting","text":"' .. luci.i18n.translate("Restarting...") .. '"}')
 					SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
 				end
 			end
@@ -5807,11 +5837,10 @@ function oix_login()
 	if input_token and input_token ~= "" then
 		-- Token direct login mode
 		write_padded('{"stage":"saving_token","text":"' .. luci.i18n.translate("Saving token...") .. '"}')
-		io.flush()
-		uci:set("openclash", "config", "oix_token", input_token)
-		uci:commit("openclash")
 		token = input_token
 		if fetch_oix_sub(token) then
+			uci:set("openclash", "config", "oix_token", input_token)
+			uci:commit("openclash")
 			write_padded('{"stage":"done","result":200}')
 		else
 			write_padded('{"stage":"error","result":' .. json.stringify(luci.i18n.translate("invalid token")) .. '}')
@@ -5821,7 +5850,6 @@ function oix_login()
 		token = fs.uci_get_config("config", "oix_token")
 		if email and passwd then
 			write_padded('{"stage":"logging_in","text":"' .. luci.i18n.translate("Logging in...") .. '"}')
-			io.flush()
 			info = SYS.exec(string.format("curl -sL -H 'Content-Type: application/json' -H 'User-Agent: OpenClash for oixCloud' -d '{\"email\":\"%s\", \"passwd\":\"%s\", \"token_expire\":\"365\" }' -X POST https://oix-api.dler.io/api/v1/login", email, passwd))
 			if info then
 				info = json.parse(info)

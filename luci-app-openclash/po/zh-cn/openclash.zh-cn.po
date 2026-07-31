@@ -4329,6 +4329,9 @@ msgstr "签到设置保存失败，请重试"
 msgid "Network request failed, please check your connection and try again"
 msgstr "网络请求失败，请检查网络连接后重试"
 
+msgid "Server response error, please try again later"
+msgstr "服务器响应异常，请稍后重试"
+
 msgid "Show on Overview"
 msgstr "主页显示"
 
