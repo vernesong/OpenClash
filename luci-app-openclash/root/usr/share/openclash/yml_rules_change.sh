@@ -15,8 +15,10 @@ yml_other_set()
    ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    begin
       Value = YAML.load_file('$2');
+      raise 'Config root must be a mapping' unless Value.is_a?(Hash);
    rescue Exception => e
       YAML.LOG_ERROR('Load File Failed,【' + e.message + '】');
+      exit 1;
    end;
 
    begin
@@ -425,12 +427,14 @@ yml_other_set()
 
    rescue Exception => e
       YAML.LOG_ERROR('Config File Overwrite Failed,【%s】' % [e.message])
-   ensure
-      begin
-         File.open('$2','w') {|f| YAML.dump(Value, f)};
-      rescue Exception => e
-         YAML.LOG_ERROR('Write file failed:【%s】' % [e.message])
-      end
+      exit 1
+   end
+
+   begin
+      YAML.dump_file('$2', Value);
+   rescue Exception => e
+      YAML.LOG_ERROR('Write file failed:【%s】' % [e.message])
+      exit 1
    end" 2>/dev/null >> $LOG_FILE
 }
 

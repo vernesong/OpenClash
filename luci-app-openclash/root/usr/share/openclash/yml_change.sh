@@ -338,9 +338,10 @@ begin
    else
       Value = YAML.load_file(config_file)
    end
+   raise 'Config root must be a mapping' unless Value.is_a?(Hash)
 rescue Exception => e
    YAML.LOG_ERROR('Load File Failed,【%s】' % [e.message])
-   exit
+   exit 1
 end
 
 begin
@@ -784,7 +785,8 @@ begin
       end
 
       # proxy-server-nameserver
-      local_exclude = (%x{ls -l /sys/class/net/ |awk '{print \$9}'  2>&1}.each_line.map(&:strip) + ['h3=', 'skip-cert-verify=', 'ecs=', 'ecs-override=', 'disable-ipv6=', 'disable-ipv4=', 'disable-qtype-', 'disable-reuse='] + ['utun', 'tailscale0', 'docker0', 'tun163', 'br-lan', 'mihomo']).uniq.join('|')
+      interfaces = Dir.children('/sys/class/net')
+      local_exclude = (interfaces + ['h3=', 'skip-cert-verify=', 'ecs=', 'ecs-override=', 'disable-ipv6=', 'disable-ipv4=', 'disable-qtype-', 'disable-reuse='] + ['utun', 'tailscale0', 'docker0', 'tun163', 'br-lan', 'mihomo']).uniq.join('|')
       non_domain_reg = /^dhcp:\/\/|^system($|:\/\/)|([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/
       proxied_server_reg = /^[^#&]+#(?:(?:#{local_exclude})[^&]*&)*(?:(?!(?:#{local_exclude}))[^&]+)/
       servers_to_check = Value.dig('dns', 'nameserver').to_a | Value.dig('dns', 'fallback').to_a | Value.dig('dns', 'default-nameserver').to_a
@@ -818,12 +820,14 @@ begin
    end
 rescue Exception => e
    YAML.LOG_ERROR('Config File Overwrite Failed,【%s】' % [e.message])
-ensure
-   begin
-      File.open(config_file, 'w') { |f| YAML.dump(Value, f) }
-   rescue Exception => e
-      YAML.LOG_ERROR('Write file failed:【%s】' % [e.message])
-   end
-   File.delete('/tmp/yaml_change_marshal') rescue nil
+   exit 1
+end
+
+File.delete('/tmp/yaml_change_marshal') rescue nil
+begin
+   YAML.dump_file(config_file, Value)
+rescue Exception => e
+   YAML.LOG_ERROR('Write file failed:【%s】' % [e.message])
+   exit 1
 end
 " 2>/dev/null >> $LOG_FILE

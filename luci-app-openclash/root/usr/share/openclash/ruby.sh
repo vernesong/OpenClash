@@ -24,7 +24,7 @@ run_ruby_part()
   if [ "$show_error" = "false" ] || [ "$show_error" = "0" ]; then
     ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "begin $part; end" 2>/dev/null
   else
-    ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "begin $part; rescue Exception => e; YAML.LOG_ERROR('Set Custom Overwrite Script Failed,【%s】' % [e.message]); end" 2>/dev/null
+    ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "begin $part; rescue Exception => e; YAML.LOG_ERROR('Set Custom Overwrite Script Failed,【%s】' % [e.message]); exit 1; end" 2>/dev/null
   fi
 }
 
@@ -92,7 +92,7 @@ if openclash_custom_overwrite; then
   write_ruby_part "$RUBY_YAML_PARSE"
   return
 fi
-RUBY_YAML_PARSE="Value = YAML.load_file('$1'); Value$2=$3; File.open('$1','w') {|f| YAML.dump(Value, f)}"
+RUBY_YAML_PARSE="Value = YAML.load_file('$1'); Value$2=$3; YAML.dump_file('$1', Value)"
 run_ruby_part "$RUBY_YAML_PARSE"
 }
 
@@ -107,7 +107,7 @@ if openclash_custom_overwrite; then
   write_ruby_part "$RUBY_YAML_PARSE"
   return
 fi
-RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if File::exist?('$3') then Value_1 = YAML.load_file('$3'); if not '$4'.empty? then Value$2=Value_1['$4']; else Value$2=Value_1 end else if not '$4'.empty? then Value.delete('$4'); end; end; File.open('$1','w') {|f| YAML.dump(Value, f)}"
+RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if File::exist?('$3') then Value_1 = YAML.load_file('$3'); if not '$4'.empty? then Value$2=Value_1['$4']; else Value$2=Value_1 end else if not '$4'.empty? then Value.delete('$4'); end; end; YAML.dump_file('$1', Value)"
 run_ruby_part "$RUBY_YAML_PARSE"
 }
 
@@ -122,7 +122,7 @@ if openclash_custom_overwrite; then
   write_ruby_part "$RUBY_YAML_PARSE"
   return
 fi
-RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if File::exist?('$3') then Value_1 = YAML.load_file('$3'); if not Value$2 then Value$2 = {}; end; if Value_1$4 && Value_1$4.is_a?(Hash) then Value$2.merge!(Value_1$4) end end; File.open('$1','w') {|f| YAML.dump(Value, f)}"
+RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if File::exist?('$3') then Value_1 = YAML.load_file('$3'); if not Value$2 then Value$2 = {}; end; if Value_1$4 && Value_1$4.is_a?(Hash) then Value$2.merge!(Value_1$4) end end; YAML.dump_file('$1', Value)"
 run_ruby_part "$RUBY_YAML_PARSE"
 }
 
@@ -137,7 +137,7 @@ if openclash_custom_overwrite; then
   write_ruby_part "$RUBY_YAML_PARSE"
   return
 fi
-RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if Value$2 then Value$2=Value$2.uniq; end; File.open('$1','w') {|f| YAML.dump(Value, f)}"
+RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if Value$2 then Value$2=Value$2.uniq; end; YAML.dump_file('$1', Value)"
 run_ruby_part "$RUBY_YAML_PARSE"
 }
 
@@ -152,7 +152,7 @@ if openclash_custom_overwrite; then
   write_ruby_part "$RUBY_YAML_PARSE"
   return
 fi
-RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if not Value$2 then Value$2 = {}; end; Value$2.merge!({$3}); File.open('$1','w') {|f| YAML.dump(Value, f)}"
+RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if not Value$2 then Value$2 = {}; end; Value$2.merge!({$3}); YAML.dump_file('$1', Value)"
 run_ruby_part "$RUBY_YAML_PARSE"
 }
 
@@ -167,7 +167,7 @@ if openclash_custom_overwrite; then
   write_ruby_part "$RUBY_YAML_PARSE"
   return
 fi
-RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if File::exist?('$4') then Value_1 = YAML.load_file('$4'); if not Value$2 or Value$2.nil? then Value$2 = []; end; if Value_1$5 && Value_1$5.is_a?(Array) then idx = [$3.to_i, 0].max; idx = [idx, Value$2.length].min; Value_1$5.reverse.each{|x| Value$2.insert(idx,x); idx += 1}; Value$2=Value$2.uniq end end; File.open('$1','w') {|f| YAML.dump(Value, f)}"
+RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if File::exist?('$4') then Value_1 = YAML.load_file('$4'); if not Value$2 or Value$2.nil? then Value$2 = []; end; if Value_1$5 && Value_1$5.is_a?(Array) then idx = [$3.to_i, 0].max; idx = [idx, Value$2.length].min; Value_1$5.reverse.each{|x| Value$2.insert(idx,x); idx += 1}; Value$2=Value$2.uniq end end; YAML.dump_file('$1', Value)"
 run_ruby_part "$RUBY_YAML_PARSE"
 }
 
@@ -182,7 +182,7 @@ if openclash_custom_overwrite; then
   write_ruby_part "$RUBY_YAML_PARSE"
   return
 fi
-RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if File::exist?('$3') then Value_1 = YAML.load_file('$3'); if not Value$2 or Value$2.nil? then Value$2 = []; end; if Value_1$4 && Value_1$4.is_a?(Array) then Value$2=(Value_1$4+Value$2).uniq else Value$2=Value$2.uniq end end; File.open('$1','w') {|f| YAML.dump(Value, f)}"
+RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if File::exist?('$3') then Value_1 = YAML.load_file('$3'); if not Value$2 or Value$2.nil? then Value$2 = []; end; if Value_1$4 && Value_1$4.is_a?(Array) then Value$2=(Value_1$4+Value$2).uniq else Value$2=Value$2.uniq end end; YAML.dump_file('$1', Value)"
 run_ruby_part "$RUBY_YAML_PARSE"
 }
 
@@ -197,7 +197,7 @@ if openclash_custom_overwrite; then
   write_ruby_part "$RUBY_YAML_PARSE"
   return
 fi
-RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if not Value$2 or Value$2.nil? then Value$2 = []; end; idx = [$3.to_i, 0].max; idx = [idx, Value$2.length].min; Value$2=Value$2.insert(idx,'$4').uniq; File.open('$1','w') {|f| YAML.dump(Value, f)}"
+RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if not Value$2 or Value$2.nil? then Value$2 = []; end; idx = [$3.to_i, 0].max; idx = [idx, Value$2.length].min; Value$2=Value$2.insert(idx,'$4').uniq; YAML.dump_file('$1', Value)"
 run_ruby_part "$RUBY_YAML_PARSE"
 }
 
@@ -212,7 +212,7 @@ if openclash_custom_overwrite; then
   write_ruby_part "$RUBY_YAML_PARSE"
   return
 fi
-RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if not Value$2 or Value$2.nil? then Value$2 = []; end; idx = [$3.to_i, 0].max; idx = [idx, Value$2.length].min; Value$2=Value$2.insert(idx,$4).uniq; File.open('$1','w') {|f| YAML.dump(Value, f)}"
+RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if not Value$2 or Value$2.nil? then Value$2 = []; end; idx = [$3.to_i, 0].max; idx = [idx, Value$2.length].min; Value$2=Value$2.insert(idx,$4).uniq; YAML.dump_file('$1', Value)"
 run_ruby_part "$RUBY_YAML_PARSE"
 }
 
@@ -227,7 +227,7 @@ if openclash_custom_overwrite; then
   write_ruby_part "$RUBY_YAML_PARSE"
   return
 fi
-RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if not Value$2 or Value$2.nil? then Value$2 = []; end; if $4.is_a?(Array) then idx = [$3.to_i, 0].max; idx = [idx, Value$2.length].min; $4.reverse.each{|x| Value$2=Value$2.insert(idx,x); idx += 1}; Value$2=Value$2.uniq end; File.open('$1','w') {|f| YAML.dump(Value, f)}"
+RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if not Value$2 or Value$2.nil? then Value$2 = []; end; if $4.is_a?(Array) then idx = [$3.to_i, 0].max; idx = [idx, Value$2.length].min; $4.reverse.each{|x| Value$2=Value$2.insert(idx,x); idx += 1}; Value$2=Value$2.uniq end; YAML.dump_file('$1', Value)"
 run_ruby_part "$RUBY_YAML_PARSE"
 }
 
@@ -247,9 +247,9 @@ if openclash_custom_overwrite; then
   return
 fi
 if [ -z "$2" ]; then
-  RUBY_YAML_PARSE="Value = YAML.load_file('$1'); Value.delete('$3'); File.open('$1','w') {|f| YAML.dump(Value, f)}"
+  RUBY_YAML_PARSE="Value = YAML.load_file('$1'); Value.delete('$3'); YAML.dump_file('$1', Value)"
 else
-  RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if Value$2 then if Value$2.is_a?(Hash) then Value$2.delete('$3') elsif Value$2.is_a?(Array) then Value$2.delete('$3') end end; File.open('$1','w') {|f| YAML.dump(Value, f)}"
+  RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if Value$2 then if Value$2.is_a?(Hash) then Value$2.delete('$3') elsif Value$2.is_a?(Array) then Value$2.delete('$3') end end; YAML.dump_file('$1', Value)"
 fi
 run_ruby_part "$RUBY_YAML_PARSE"
 }
@@ -265,7 +265,7 @@ if openclash_custom_overwrite; then
   write_ruby_part "$RUBY_YAML_PARSE"
   return
 fi
-RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if Value$2 && Value$2.is_a?(Hash) then if Value$2['$3'] && Value$2['$3'].is_a?(Hash) then Value$2['$3']$4 = '$5' end end; File.open('$1','w') {|f| YAML.dump(Value, f)}"
+RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if Value$2 && Value$2.is_a?(Hash) then if Value$2['$3'] && Value$2['$3'].is_a?(Hash) then Value$2['$3']$4 = '$5' end end; YAML.dump_file('$1', Value)"
 run_ruby_part "$RUBY_YAML_PARSE"
 }
 
@@ -288,9 +288,9 @@ if openclash_custom_overwrite; then
   return
 fi
 if [ -n "$3" ] && [ -n "$4" ] && [ -n "$5" ] && [ -n "$6" ]; then
-  RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if Value$2 && Value$2.is_a?(Array) then Value$2.map!{|x| if x.is_a?(Hash) && x$3 == '$4' then x$5='$6' end; x}; Value$2.uniq! end; File.open('$1','w') {|f| YAML.dump(Value, f)}"
+  RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if Value$2 && Value$2.is_a?(Array) then Value$2.map!{|x| if x.is_a?(Hash) && x$3 == '$4' then x$5='$6' end; x}; Value$2.uniq! end; YAML.dump_file('$1', Value)"
 elif [ -z "$3" ] && [ -n "$4" ] && [ -z "$5" ] && [ -n "$6" ]; then
-  RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if Value$2 && Value$2.is_a?(Array) then Value$2.map!{|x| if x == '$4' then '$6' else x end}; Value$2.uniq! end; File.open('$1','w') {|f| YAML.dump(Value, f)}"
+  RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if Value$2 && Value$2.is_a?(Array) then Value$2.map!{|x| if x == '$4' then '$6' else x end}; Value$2.uniq! end; YAML.dump_file('$1', Value)"
 else
   return
 fi
