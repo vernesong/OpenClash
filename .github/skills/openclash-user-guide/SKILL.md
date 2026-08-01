@@ -1820,41 +1820,51 @@ fi
 
 ### 版本更新 (Version Update / version_update)
 
-此标签页使用自定义模板，提供核心/插件版本选择和更新操作。
+此标签页内嵌「检查更新」面板（update 模板的 version_tab 模式），以 **CDN 地址列表** 为核心，提供核心/插件版本选择、下载和更新操作。页面加载时通过 `/update`（action_update）、`/version_history`、`/addr_info` API 动态填充。
 
-**页面要素（页面加载时通过 `/update_info` 和 `/get_last_version` API 动态填充）**:
-
-| 要素 | 显示内容 | 说明 |
-|------|---------|------|
-| **处理器架构 (CPU Architecture)** | 当前设备 CPU 架构 | 自动检测，只读显示 |
-| **上次检查更新时间 (Last Check Update)** | 上次检查更新的时间 | 自动显示 |
-| **当前内核版本 ([Meta] Current Core)** | 当前 Meta 核心版本 | 执行 `clash_meta -v` 获取 |
-| **最新内核版本 ([Meta] Latest Core)** | 远程最新 Meta 核心版本 | 每 300 秒通过 `/get_last_version` 轮询刷新 |
-| **当前客户端版本 (Current Client)** | 当前插件版本 | 从 opkg/apk 数据库读取 |
-| **最新客户端版本 (Latest Client)** | 远程最新插件版本 | 同上轮询 |
-
-**版本选择（UCI 持久化）**:
+**顶部配置区（4 列，修改后自动保存）**:
 
 | 选项 | UCI Key | 类型 | 默认 | 说明 |
 |------|---------|------|------|------|
-| **编译版本 (Compiled Version)** | `core_version` | Select | `0`(未设置 (Not Set)) | 选择与 CPU 匹配的编译版本：`linux-amd64-v1/v2/v3`(x86-64)、`linux-arm64`(armv8)、`linux-armv7`、`linux-mips64` 等 ~18 种架构 |
-| **更新分支 (Release Branch)** | `release_branch` | Select | `master` | `master`(稳定版) / `dev`(开发版) |
-| **Smart 内核 (Smart Core)** | `smart_enable` | Select | `0` | `0`=禁用(使用 Meta 内核) / `1`=启用(使用 Smart 内核) |
+| **处理器架构 (CPU Arch)** | —（只读展示） | 文本 | — | 当前设备 CPU 架构，来自后端 `coremodel`（读 opkg/apk 包数据库 libc 架构），仅展示不可选 |
+| **编译版本 (Compiled Version)** | `core_version` | Select | `0`(未设置) | 选择与 CPU 匹配的编译版本：`linux-amd64-v1/v2/v3`(x86-64)、`linux-arm64`(armv8)、`linux-armv7`、`linux-mips64` 等 ~18 种架构。**未选择（0/空）时内核无法下载**，点击会提示 "No Compiled Version Selected" |
+| **更新分支 (Release Branch)** | `release_branch` | Select | `master` | `master`(稳定版) / `dev`(开发版)，决定插件/内核的下载分支 |
+| **Smart 内核 (Smart Core)** | `smart_enable` | Select | `0` | `0`=禁用(使用 Meta 内核) / `1`=启用(使用 Smart 内核)，决定内核下载的 meta/smart 子路径 |
 
-**操作按钮**（点击时先保存上述选择到 UCI，再触发对应脚本）:
+**版本卡片（Installed / Select Version）**:
 
-| 按钮 | 触发脚本 | 功能 |
-|------|----------|------|
-| **更新内核 (Update Core)** → Check And Update (检查并更新) | `openclash_core.sh` | 检查并更新 Meta/Smart 核心到最新版 |
-| **下载最新版本内核 (Download Latest Core)** | `openclash_core.sh` | 手动下载指定版本的核心（根据架构/分支/Smart选择） |
-| **更新客户端 (Update Client)** → Check And Update (检查并更新) | `openclash_update.sh` | 检查并更新 luci-app-openclash 插件版本 |
-| **下载最新版本客户端 (Download Latest Client)** | `openclash_update.sh` | 手动下载最新客户端 .ipk/.apk |
-| **备份 (Backup)** | 前端打包下载 | 备份配置文件（可选择备份范围：完整/排除核心/仅核心/仅配置/仅规则提供者/仅代理提供者） |
-| **还原默认 (Restore Default)** | 清除 UCI 配置 | 恢复 OpenClash 为默认出厂配置 |
-| **删除内核 (Remove Core)** | 删除文件 | 删除所有核心二进制文件 |
-| **检查更新 (Check Update)** | 在线检查 | 一键检查更新（走 CDN 加速） |
+| 要素 | 显示内容 | 说明 |
+|------|---------|------|
+| **Installed（插件）** | 已安装插件版本 | 只读，从 opkg/apk 包数据库读取（`opcv`） |
+| **Select Version（插件）** | 插件版本下拉 | 来自 `/version_history`（package 分支的 CI commit），选项值为对应 commit 的 sha，`Latest`=最新版 |
+| **Installed（内核）** | 已安装内核版本 | 只读，执行 `clash_meta -v` 获取（`coremetacv`） |
+| **Select Version（内核）** | 内核版本下拉 | 来自 `/version_history`（core 分支的 CI commit），`Latest`=最新版 |
 
-- **实现细节**: 所有更新按钮在触发对应脚本前，都会先通过 `/save_corever_branch` API 保存当前选择的架构、分支和 Smart 启用状态。核心更新通过 `openclash_core.sh` 从 GitHub Releases 下载对应架构的 `.tar.gz` 并替换 `/etc/openclash/core/clash_meta`。插件更新通过 `openclash_update.sh` 下载 .ipk/.apk 并通过 ubus 后台安装以避免 Web 界面断连。
+**hint 提示区**：默认显示随机提示（自动轮换）/ 操作错误提示 / 更新过程中的**流式日志**——点击更新后直接在提示区显示 `startlog` 日志（剥离时间戳，`[Info]`/`[Warning]`/`[Error]` 着色，固定高度滚动）。
+
+**CDN 地址列表**（Address / Latency / Plugin / Core 四列）:
+
+- 预设 CDN：`raw.githubusercontent.com`（RAW 直连）、`fastly.jsdelivr.net`、`testingcf.jsdelivr.net`、`cdn.jsdelivr.net`；也可在底部「Custom Your CDN URL」添加自定义 CDN（如 `https://ghfast.top/`，添加后只拉取新增 CDN）
+- 每行 Latency 列显示测速延迟（`xxx ms`，按快/中/慢着色）或「Access Timed Out / Access Denied」；Plugin/Core 列显示该 CDN 获取到的插件/内核版本号
+- **点击版本号链接** = 只安装该组件（插件→`one_key_update?update_type=plugin`，内核→`core_download`）；**点击右侧下载图标按钮** = 直接下载对应 .ipk/.apk 或 .tar.gz
+- **点击行其他区域** = 一键更新插件 + 内核，根据两个 Select Version 下拉决定更新到历史版本还是 Latest
+- 更新后面板保持打开，日志在 hint 区流式显示
+
+**底部操作区**:
+
+| 操作 | 功能 |
+|------|------|
+| **备份 (Backup File)** | 先选备份范围下拉（Backup File 完整 / Backup Exclude Cores 排除内核 / Backup Core 仅内核 / Backup Config 仅配置 / Backup Rule Provider 仅规则提供者 / Backup Proxy Provider 仅代理提供者），再点按钮下载备份 |
+| **还原默认 (Restore Default)** | 恢复 OpenClash 为默认出厂配置（确认后跳回设置页） |
+| **删除内核 (Remove Core)** | 删除所有核心二进制文件（红色危险按钮） |
+
+- **实现细节**: 
+  - 所有配置修改（编译版本/分支/Smart）通过 `/save_corever_branch` API 即时保存到 UCI。
+  - 内核下载：`core_download` 路由调用 `openclash_core.sh`，前端始终传入完整下载 URL（`download_url`）。文件名 `clash-{arch}.tar.gz`（arch 即 `core_version`，已带 `linux-` 前缀）；oix 内核为 `mihomo-{arch}-{version}.gz`（走 github release / dl.dler.io）。
+  - 插件下载：`openclash_update.sh`，文件名 `luci-app-openclash_{ver}_all.ipk`（opkg）或 `luci-app-openclash-{ver}.apk`（apk）。
+  - **下载 URL 结构**：`package`/`core` 是仓库**分支**（非目录）。Latest（无历史 sha）：`package/{branch}/luci-app-openclash_{ver}_all.ipk`、`core/{branch}/{meta|smart}/clash-{arch}.tar.gz`（把分支名作为 ref 段）；选择历史版本（带 sha，为对应分支的 CI commit）：`{sha}/{branch}/luci-app-openclash_{ver}_all.ipk`、`{sha}/{branch}/{meta|smart}/clash-{arch}.tar.gz`。jsdelivr CDN 前缀为 `gh/vernesong/OpenClash@{ref}/...`，自定义 CDN 前缀直接拼接 raw URL。
+  - **下载失败不会触发 OpenClash 重启**（`openclash_core.sh` 仅在内核真正更新成功后才置重启标志）。
+  - 插件更新通过 ubus 后台安装以避免 Web 界面断连。
 
 ### 开发者选项 (Developer Settings / developer)
 - **自定义防火墙规则** (`firewall_custom`): 在 LuCI 的「开发者设置」标签页中直接编辑的文本框，内容保存到 `/etc/openclash/custom/openclash_custom_firewall_rules.sh`。该脚本**不需要定义任何函数**——它是一个命令式 Shell 脚本，在所有 OpenClash 内置防火墙规则添加完毕后被直接执行（`chmod +x` 后运行）。可以在脚本中直接写 `iptables -I ...` 或 `nft add rule ...` 命令来追加自定义防火墙规则。
@@ -2821,11 +2831,8 @@ curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/get_run_mode
 # 实时流量统计（上下行速率、连接数、CPU、内存）
 curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/toolbar_show
 
-# 完整版本信息（CPU架构、当前/最新核心版本、当前/最新插件版本）
+# 版本信息与用户选择（编译版本 corever、发布分支 release_branch、Smart 状态 smart_enable、oix/pkg_type、CPU 架构 coremodel、已安装插件/内核版本 opcv/coremetacv）
 curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/update
-
-# 用户版本选择（编译版本、发布分支、Smart启用状态）
-curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/update_info
 
 # 配置文件列表及当前使用的配置
 curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/config_name
@@ -2876,7 +2883,12 @@ curl -s 'http://127.0.0.1/cgi-bin/luci/admin/services/openclash/website_check?do
 `/update` 返回的 JSON：
 | 字段 | 来源 | 含义 |
 |------|------|------|
-| `coremodel` | opkg/apk `libc` 架构 | CPU 架构 |
+| `coremodel` | opkg/apk `libc` 架构 | CPU 架构（只读展示） |
+| `corever` | UCI `core_version` | 编译版本选择，`"0"`=未设置 |
+| `release_branch` | UCI `release_branch` | 发布分支（master/dev） |
+| `smart_enable` | UCI `smart_enable` | Smart 内核启用状态 |
+| `oix_core` | UCI `oix_token` | 是否 oixCloud 内核 |
+| `pkg_type` | opkg/apk | 包管理器类型 |
 | `coremetacv` | `clash_meta -v` 解析 | 当前核心版本，`"0"`=核心文件不存在 |
 | `corelv` | `/tmp/clash_last_version` | 远程最新核心版本，`"loading..."`=尚未获取 |
 | `opcv` | opkg/apk 包数据库 | 当前插件版本，`"0"`=未安装 |
@@ -2947,9 +2959,9 @@ curl -s -X POST -d 'config_file=<文件名.yaml>' http://127.0.0.1/cgi-bin/luci/
 curl -s -X POST -d 'filename=<配置名>' http://127.0.0.1/cgi-bin/luci/admin/services/openclash/update_config
 
 # --- 更新操作 ---
-# 更新核心
-curl -s -X POST http://127.0.0.1/cgi-bin/luci/admin/services/openclash/coreupdate
-# 更新插件
+# 更新核心（按 uci 配置构建下载 URL，无完整 URL）
+curl -s -X POST -d 'core_type=Meta' http://127.0.0.1/cgi-bin/luci/admin/services/openclash/coreupdate
+# 更新插件（无参=只升级插件）
 curl -s -X POST http://127.0.0.1/cgi-bin/luci/admin/services/openclash/opupdate
 # 一键更新（核心+插件+订阅+GEO）
 curl -s -X POST http://127.0.0.1/cgi-bin/luci/admin/services/openclash/one_key_update

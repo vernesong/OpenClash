@@ -603,9 +603,6 @@ msgstr "Reglas personalizadas"
 msgid "Version Update"
 msgstr "Actualización de versión"
 
-msgid "Model Not Found"
-msgstr "No se ha podido identificar la arquitectura del procesador"
-
 msgid "Current Core Version"
 msgstr "Versión actual del núcleo"
 
@@ -617,9 +614,6 @@ msgstr "Error al comprobar actualización"
 
 msgid "<New>"
 msgstr "<Disponible>"
-
-msgid "Getting Last Version..."
-msgstr "Obteniendo la última versión..."
 
 msgid "Update Core File"
 msgstr "Actualizar núcleo"
@@ -1203,9 +1197,6 @@ msgstr "Comprobar actualización de GeoSite"
 msgid "You have not installed the core yet, do you want to download and install it now?"
 msgstr "Aún no has instalado el núcleo. ¿Deseas descargarlo e instalarlo ahora?"
 
-msgid "No Compiled Version is Selected, Please Select on The Top and Try Again!"
-msgstr "No se ha seleccionado ninguna versión compilada. Selecciónala arriba y vuelve a intentarlo."
-
 msgid "Checking..."
 msgstr "Comprobando..."
 
@@ -1272,50 +1263,17 @@ msgstr "Versión compilada"
 msgid "Release Branch"
 msgstr "Rama de actualización"
 
-msgid "Note: options will auto-save when you click to update or download"
-msgstr "Nota: las opciones se guardarán automáticamente al actualizar o descargar."
-
-msgid "CPU Architecture"
+msgid "CPU Arch"
 msgstr "Arquitectura de CPU"
 
 msgid "Last Check Update"
 msgstr "Última comprobación de actualización"
 
-msgid "Current Core"
-msgstr "Versión actual del núcleo"
-
-msgid "Latest Core"
-msgstr "Última versión del núcleo"
-
 msgid "Core path:"
 msgstr "Ruta del núcleo:"
 
-msgid "Update Core"
-msgstr "Actualizar núcleo"
-
-msgid "Download Latest Core"
-msgstr "Descargar última versión del núcleo"
-
-msgid "Client Update"
-msgstr "Actualización del cliente"
-
-msgid "Current Client"
-msgstr "Versión actual del cliente"
-
-msgid "Update Client"
-msgstr "Actualizar cliente"
-
-msgid "Latest Client"
-msgstr "Última versión del cliente"
-
-msgid "Download Latest Client"
-msgstr "Descargar última versión del cliente"
-
 msgid "Restore Default"
 msgstr "Restablecer por defecto"
-
-msgid "Failed to get the latest version. Please try again later!"
-msgstr "Error al obtener la última versión. Inténtalo más tarde."
 
 msgid "Are you sure want to restore the default config?"
 msgstr "¿Seguro que deseas restablecer la configuración por defecto?"
@@ -3197,9 +3155,6 @@ msgstr "No se pudo iniciar el servicio; reintentando en 2 segundos..."
 
 msgid "Failed to start update service after 3 attempts, please check and try again later..."
 msgstr "El servicio de actualización no pudo iniciarse tras 3 intentos. Revisa los registros."
-
-msgid "Core Update"
-msgstr "Actualización del núcleo"
 
 msgid "View core infos that support smart group"
 msgstr "Ver información del núcleo compatible con grupos Smart"

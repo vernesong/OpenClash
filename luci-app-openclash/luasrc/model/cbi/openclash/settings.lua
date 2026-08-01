@@ -76,9 +76,9 @@ s:tab("rules_update", translate("Rules Update"))
 s:tab("geo_update", translate("GEO Update"))
 s:tab("chnr_update", translate("Chnroute Update"))
 s:tab("auto_restart", translate("Auto Restart"))
-s:tab("version_update", translate("Version Update"))
-s:tab("developer", translate("Developer Settings"))
 s:tab("debug", translate("Core Tests"))
+s:tab("developer", translate("Developer Settings"))
+s:tab("version_update", translate("Version Update"))
 s:tab("oixcloud", translate("oixCloud"))
 
 o = s:taboption("op_mode", ListValue, "en_mode", font_red..bold_on..translate("Select Mode")..bold_off..font_off)
@@ -1394,8 +1394,9 @@ function o.write(self, section, value)
 end
 
 ---- version update
-core_update = s:taboption("version_update", DummyValue, "", nil)
-core_update.template = "openclash/update"
+version_update_panel = s:taboption("version_update", DummyValue, "", nil)
+version_update_panel.template = "openclash/update"
+version_update_panel.version_tab = true
 
 ---- developer
 o = s:taboption("developer", Value, "firewall_custom")
@@ -1464,8 +1465,7 @@ o.write = function()
 	HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
-m:append(Template("openclash/config_editor"))
 m:append(Template("openclash/toolbar_show"))
-m:append(Template("openclash/select_git_cdn"))
+m:append(Template("openclash/config_editor"))
 
 return m

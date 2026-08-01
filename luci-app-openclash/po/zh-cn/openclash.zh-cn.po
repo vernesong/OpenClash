@@ -605,9 +605,6 @@ msgstr "设置自定义规则（在上方规则设置中启用本功能后生效
 msgid "Version Update"
 msgstr "版本更新"
 
-msgid "Model Not Found"
-msgstr "处理器架构识别失败"
-
 msgid "Current Core Version"
 msgstr "当前内核版本"
 
@@ -619,9 +616,6 @@ msgstr "查询更新失败"
 
 msgid "<New>"
 msgstr "<可更新>"
-
-msgid "Getting Last Version..."
-msgstr "最新版本获取中..."
 
 msgid "Update Core File"
 msgstr "更新内核"
@@ -1206,9 +1200,6 @@ msgstr "GeoSite 数据库检查更新"
 msgid "You have not installed the core yet, do you want to download and install it now?"
 msgstr "您还未安装内核，是否立即下载安装？"
 
-msgid "No Compiled Version is Selected, Please Select on The Top and Try Again!"
-msgstr "未选择编译版本，请到上方标签选择后重试！"
-
 msgid "Checking..."
 msgstr "正在检查更新..."
 
@@ -1275,50 +1266,17 @@ msgstr "编译版本"
 msgid "Release Branch"
 msgstr "更新分支"
 
-msgid "Note: options will auto-save when you click to update or download"
-msgstr "注意：以下选项在点击更新或下载时将自动保存"
-
-msgid "CPU Architecture"
+msgid "CPU Arch"
 msgstr "处理器架构"
 
 msgid "Last Check Update"
 msgstr "上次检查更新时间"
 
-msgid "Current Core"
-msgstr "当前内核版本"
-
-msgid "Latest Core"
-msgstr "最新内核版本"
-
 msgid "Core path:"
 msgstr "内核路径："
 
-msgid "Update Core"
-msgstr "更新内核"
-
-msgid "Download Latest Core"
-msgstr "下载最新版本内核"
-
-msgid "Client Update"
-msgstr "客户端版本更新"
-
-msgid "Current Client"
-msgstr "当前客户端版本"
-
-msgid "Update Client"
-msgstr "更新客户端"
-
-msgid "Latest Client"
-msgstr "最新客户端版本"
-
-msgid "Download Latest Client"
-msgstr "下载最新版本客户端"
-
 msgid "Restore Default"
 msgstr "还原默认"
-
-msgid "Failed to get the latest version. Please try again later!"
-msgstr "最新版本获取失败，请稍后再试！"
 
 msgid "Are you sure want to restore the default config?"
 msgstr "确定要还原默认配置吗？"
@@ -3206,9 +3164,6 @@ msgstr "插件升级进程启动失败，将在2秒后重试..."
 
 msgid "Failed to start update service after 3 attempts, please check and try again later..."
 msgstr "升级进程启动失败，请稍后再试..."
-
-msgid "Core Update"
-msgstr "内核版本更新"
 
 msgid "View core infos that support smart group"
 msgstr "查看支持 smart 策略组的内核信息"

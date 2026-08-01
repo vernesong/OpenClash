@@ -608,32 +608,41 @@ function pkg_type()
 	end
 end
 
---- Returns the installed version of luci-app-openclash.
--- Supports both opkg and apk package managers.
--- @return String containing the version number, or "0" if not found
--- NOTE: The module-level cache (oc_version_cache) provides per-request
--- deduplication. In OpenWrt LuCI CGI mode each HTTP request spawns a new Lua
--- process, so cross-request caching is impossible.
--- Since require() returns the same module instance (package.loaded), the
--- first call caches the result and subsequent calls avoid redundant shell
--- commands. No time-based expiration is needed — the version is immutable
--- for the lifetime of a request.
-local oc_version_cache = nil
+--- Read a field of an installed package directly from the package database
+-- (/usr/lib/opkg/status or /lib/apk/db/installed), avoiding the opkg/apk
+-- binaries and their lock files (/var/lock/opkg.lock, /lib/apk/db/lock).
+-- Safe to call repeatedly/concurrently and never blocks on a lock.
+-- @param pkg   Package name, e.g. "luci-app-openclash" or "libc"
+-- @param field Field name; opkg: "Version"/"Architecture", apk: "V"/"A"
+-- @return String field value, or "" when not found
+function read_pkg_field(pkg, field)
+	local text
+	if pkg_type() == "opkg" then
+		text = fs.readfile("/usr/lib/opkg/status")
+	else
+		text = fs.readfile("/lib/apk/db/installed")
+	end
+	if not text then return "" end
+	text = text:gsub("\r\n", "\n")
+
+	local prefix = (pkg_type() == "opkg") and ("Package: " .. pkg .. "\n") or ("P:" .. pkg .. "\n")
+	local start = text:find(prefix, 1, true)
+	if not start then return "" end
+	local block_end = text:find("\n\n", start + #prefix, true) or #text
+	local block = text:sub(start + #prefix, block_end - 1)
+	local colon = (pkg_type() == "opkg") and ": " or ":"
+	local val = block:match("\n" .. field .. colon .. "([^\r\n]+)")
+	if not val then
+		val = block:match("^" .. field .. colon .. "([^\r\n]+)")
+	end
+	return val or ""
+end
 
 function oc_version()
-	if oc_version_cache ~= nil then
-		return oc_version_cache
-	end
-	local v
-	if pkg_type() == "opkg" then
-		v = SYS.exec("rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep '^Version:' |awk '{print $2}' |tr -d '\n'")
-	else
-		v = SYS.exec("rm -f /lib/apk/db/lock && apk info luci-app-openclash 2>/dev/null |grep '^luci-app-openclash-[0-9]' |sed 's/luci-app-openclash-//' |tr -d '\n'")
-	end
+	local v = read_pkg_field("luci-app-openclash", pkg_type() == "opkg" and "Version" or "V")
 	if v == "" then
 		v = "0"
 	end
-	oc_version_cache = v
 	return v
 end
 

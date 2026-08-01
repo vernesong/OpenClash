@@ -1,5 +1,4 @@
 // OpenClash shared utilities
-// Guard: skip if already loaded (handles multi-template page loads)
 _ocGuard: { if (window._ocCommonLoaded) break _ocGuard; window._ocCommonLoaded = true; }
 
 // ═══ Remove LuCI's global @media (prefers-reduced-motion: reduce) ═══
@@ -153,7 +152,7 @@ function ocUpdateTheme() {
 	ocApplyEditorTheme();
 }
 
-if (window.matchMedia) {
+if (window.matchMedia && !window._ocCommonLoaded) {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
         if ((localStorage.getItem('oc-theme') || 'auto') === 'auto') {
             ocApplyRootTheme();
@@ -170,6 +169,45 @@ function winOpen(url) {
 		window.location.href = url;
 	}
 	return false;
+}
+
+function ocGetLogColor(log) {
+	for (var levelKey in window.levelTranslations) {
+		var translatedText = '[' + window.levelTranslations[levelKey] + ']';
+		if (log.indexOf(translatedText) >= 0) return "var(--" + levelKey + "-color)";
+	}
+	return "var(--info-color)";
+}
+
+function imgerrorfuns(imgobj, imgSrc) {
+	setTimeout(function() {
+		imgobj.src = imgSrc;
+		imgobj.loading = "lazy";
+	}, 1000 * 10);
+}
+
+function ocAnimateScroll(element) {
+	if (!element) return;
+	if (element._ocScrollAnimId) cancelAnimationFrame(element._ocScrollAnimId);
+	var start = element.scrollTop;
+	var duration = 500;
+	var startTime = null;
+	function step(timestamp) {
+		if (!startTime) startTime = timestamp;
+		var elapsed = timestamp - startTime;
+		var progress = Math.min(elapsed / duration, 1);
+		var eased = 1 - (1 - progress) * (1 - progress);
+		var target = Math.max(0, element.scrollHeight - element.clientHeight);
+		var distance = target - start;
+		element.scrollTop = Math.round(start + distance * eased);
+		if (progress < 1) {
+			element._ocScrollAnimId = requestAnimationFrame(step);
+		} else {
+			element._ocScrollAnimId = null;
+			element.style.willChange = '';
+		}
+	}
+	element._ocScrollAnimId = requestAnimationFrame(step);
 }
 
 function ocFormatUnixTime(unixTimestamp) {

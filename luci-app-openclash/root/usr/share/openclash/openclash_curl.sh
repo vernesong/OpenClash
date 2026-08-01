@@ -114,7 +114,7 @@ EOF
         HTTP_CODE=$(grep -i "^HTTP" "$HEADER_TMP" 2>/dev/null | tail -1 | cut -d' ' -f2)
 
         if [ "$EXIR_CODE" -eq 0 ] && [ "$LAST_PROGRESS" -ne 100 ]; then
-            LOG_OUT "Downloading:【$(basename "$DOWNLOAD_PATH") - 100%】"
+            LOG_OUT "Downloading:【$(basename "$DOWNLOAD_PATH") - 100%】..."
         fi
 
         if [ "$EXIR_CODE" -ne 0 ]; then

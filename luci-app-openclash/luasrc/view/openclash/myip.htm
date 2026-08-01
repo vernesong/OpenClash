@@ -146,6 +146,9 @@
 </fieldset>
 
 <script>
+    function ocRandomInterval(min, max) {
+        return Math.floor(Math.random() * (max - min + 1) + min);
+    }
     function addTitleOnOverflow() {
         document.querySelectorAll('.myip-ip-addr, .myip-ip-geo').forEach(function (span) {
             if (span.scrollWidth > span.clientWidth && localStorage.getItem('privacy_my_ip') !== 'true') {
@@ -173,13 +176,9 @@
         IP_CHECK_MAX: 80 * 1000
     };
 
-    function randomInterval(minMs, maxMs) {
-        return Math.floor(Math.random() * (maxMs - minMs + 1) + minMs);
-    }
-
     function startHttpInterval() {
         if (refresh_http) clearInterval(refresh_http);
-        refresh_http = setInterval(HTTP.runcheck, randomInterval(INTERVAL.HTTP_CHECK_MIN, INTERVAL.HTTP_CHECK_MAX));
+        refresh_http = setInterval(HTTP.runcheck, ocRandomInterval(INTERVAL.HTTP_CHECK_MIN, INTERVAL.HTTP_CHECK_MAX));
     }
 
     function startIpInterval() {
@@ -187,7 +186,7 @@
         if (localStorage.getItem('privacy_my_ip') === 'true') return;
         refresh_ip = setInterval(
             use_router_mode ? get_router_ip_info : myip_Load,
-            randomInterval(INTERVAL.IP_CHECK_MIN, INTERVAL.IP_CHECK_MAX)
+            ocRandomInterval(INTERVAL.IP_CHECK_MIN, INTERVAL.IP_CHECK_MAX)
         );
     }
 

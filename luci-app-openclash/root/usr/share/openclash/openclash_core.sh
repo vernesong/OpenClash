@@ -19,6 +19,7 @@ set_lock
 inc_job_counter
 
 restart=0
+UPDATE_SUCCESS=0
 github_address_mod=$(uci_get_config "github_address_mod" || echo 0)
 DIRECT_CORE_URL=""
 if [ -n "$2" ] && echo "$2" | grep -qE '^https?://'; then
@@ -160,8 +161,7 @@ if [ -n "$DIRECT_CORE_URL" ] || [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" 
                      LOG_ERROR "【"$CORE_TYPE"】Core Update Failed:【$(echo "$extract_err" | tr '\n' ' ' | head -c 300)】..."
                      rm -rf "$TMP_FILE" >/dev/null 2>&1
                      SLOG_CLEAN
-                     del_lock
-                     exit 0
+                     break
                   fi
                fi
 
@@ -170,6 +170,7 @@ if [ -n "$DIRECT_CORE_URL" ] || [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" 
                if [ "$?" == "0" ]; then
                   LOG_TIP "【"$CORE_TYPE"】Core Update Successful"
                   SLOG_CLEAN
+                  UPDATE_SUCCESS=1
                   restart=1
                   break
                else
@@ -219,5 +220,6 @@ else
 fi
 
 rm -rf "$TMP_FILE" >/dev/null 2>&1
+[ "$UPDATE_SUCCESS" = "1" ] && restart=1 || restart=0
 dec_job_counter_and_restart "$restart"
 del_lock

@@ -1,5 +1,6 @@
 <%-
 local fs = require "luci.openclash"
+local plugin_version = fs.oc_version()
 local logged_in = fs.uci_get_config("config", "oix_token") and true or false
 local checkin_enabled = fs.uci_get_config("config", "oix_checkin") == "1"
 local checkin_interval = fs.uci_get_config("config", "oix_checkin_interval") or "1"
@@ -701,7 +702,7 @@ var OixMsg = {
 		var icons = {
 			success: '<svg width="15" height="15"><use href="#oc-icon-success"/></svg>',
 			error:   '<svg width="15" height="15"><use href="#oc-icon-error"/></svg>',
-			info:    '<svg width="15" height="15"><use href="#oc-icon-info"/></svg>'
+			info:    '<svg width="15" height="15"><use href="#oc-icon-alert-circle"/></svg>'
 		};
 		bar.classList.remove('oc-hidden'); bar.innerHTML = (icons[level] || icons.info) + '<span>' + msg + '</span>';
 		bar.className = 'oix-msg-bar oix-msg-' + (level || 'info');
