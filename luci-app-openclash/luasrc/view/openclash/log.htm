@@ -261,9 +261,10 @@ function del_log() {
         });
     } else {
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_log")%>', null, function(x, data){
-            lv.innerHTML="";
-            cl.innerHTML="";
+            lv.value = "";
+            cl.value = "";
             coreLogBuffer = [];
+            coreLogAccumulator = '';
             log_len = 0;
             if (typeof editor_oc !== 'undefined' && editor_oc) {
                 editor_oc.setValue(lv.value);
@@ -418,38 +419,38 @@ function gen_debug_logs()
     xhr.open('GET', '<%=luci.dispatcher.build_url("admin", "services", "openclash", "gen_debug_logs")%>', true);
     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 
+    var lastLen = 0;
     xhr.onprogress = function() {
-        var text = xhr.responseText.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l !== ''; }).join('\n');
+        var text = xhr.responseText;
+        if (text.length <= lastLen) return;
+        lastLen = text.length;
+        var lines = text.split('\n');
+        lines.pop();
+        var preview = lines.join('\n');
         if (editor_debug && editor_debug.setValue) {
-            editor_debug.setValue(text);
+            editor_debug.setValue(preview);
             if (editor_debug.scrollDOM) editor_debug.scrollDOM.scrollTop = editor_debug.scrollDOM.scrollHeight;
         } else {
-            dl.value = text;
+            dl.value = preview;
         }
     };
 
     xhr.onload = function() {
         if (loading_el) { loading_el.style.display = 'none'; }
         if (btn) { btn.value = originalText; btn.disabled = false; }
+        var finalText = xhr.responseText || '';
 
-        var finalText = xhr.responseText.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l !== ''; }).join('\n');
-
-        if (editor_debug && editor_debug.setValue) {
-            editor_debug.setValue(finalText);
-            setCursorToFirstLineEnd(editor_debug);
-        } else {
-            dl.value = xhr.responseText || '<%:Some error occurred!%>';
-        }
-
-        if (xhr.status != 200 && xhr.responseText == "") {
+        if (xhr.status != 200 && finalText == "") {
             if (editor_debug && editor_debug.setValue) {
                 editor_debug.setValue('<%:Some error occurred!%>');
             } else {
                 dl.value = '<%:Some error occurred!%>';
             }
+            return;
         }
 
-        renderDebugView(finalText);
+        // reload after sed, because log changed
+        load_debug_log();
     };
 
     xhr.ontimeout = function() {
@@ -480,13 +481,14 @@ function gen_debug_logs()
     return;
 };
 
-function load_existing_debug_log()
+function load_debug_log()
 {
     XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_debug_logs")%>', null, function(x, status) {
         if (x && x.status == 200 && x.responseText != "")
         {
-            dl.value = x.responseText.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l !== ''; }).join('\n');
-            if (typeof editor_debug !== 'undefined' && editor_debug) {
+            dl.value = x.responseText;
+            if (typeof editor_debug !== 'undefined' && editor_debug && editor_debug.setValue) {
+                editor_debug.setValue(x.responseText);
                 setCursorToFirstLineEnd(editor_debug);
             }
             renderDebugView();
@@ -961,7 +963,7 @@ window.onload = function(){
     get_log_level();
     poll_log();
     setTimeout(function() {
-        load_existing_debug_log();
+        load_debug_log();
     }, 500);
 };
 

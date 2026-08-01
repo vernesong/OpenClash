@@ -1579,38 +1579,36 @@ function action_start()
 		"bytes=$(wc -c < \"$logfile\" 2>/dev/null); bytes=${bytes:-0}; " ..
 		"if [ \"$bytes\" -gt 0 ]; then " ..
 		"tail -c +1 \"$logfile\" 2>/dev/null; " ..
-		"if tail -n 1 \"$logfile\" 2>/dev/null | grep -q '##FINISH##'; then " ..
-		"finish_seen=1; else finish_seen=0; fi; " ..
+		"if tail -n 1 \"$logfile\" 2>/dev/null | grep -q '##FINISH##'; then finish_seen=1; else finish_seen=0; fi; " ..
 		"else finish_seen=0; fi; " ..
 		"if [ \"$bytes\" -eq 0 ]; then timeout=30; else timeout=60; fi; " ..
-		"elapsed=0; " ..
-		"finish_elapsed=0; " ..
+		"elapsed=0; finish_elapsed=0; " ..
 		"while true; do " ..
 		"new_bytes=$(wc -c < \"$logfile\" 2>/dev/null); new_bytes=${new_bytes:-0}; " ..
+		"changed=0; " ..
 		"if [ \"$new_bytes\" -gt \"$bytes\" ] 2>/dev/null; then " ..
-		"tail -c +$((bytes + 1)) \"$logfile\" 2>/dev/null; bytes=$new_bytes; elapsed=0; " ..
-		"timeout=60; " ..
-		"finish_seen=0; " ..
-		"finish_elapsed=0; " ..
-		"if tail -n 1 \"$logfile\" 2>/dev/null | grep -q '##FINISH##'; then " ..
-		"finish_seen=1; " ..
+		"changed=1; " ..
+		"if [ \"$(tail -c 1 \"$logfile\" 2>/dev/null)\" = \"$(printf '\\n')\" ]; then " ..
+		"tail -c +$((bytes + 1)) \"$logfile\" 2>/dev/null; bytes=$new_bytes; " ..
+		"else tail -c +$((bytes + 1)) \"$logfile\" 2>/dev/null | awk '{ if (p) printf \"%%s\\n\", prev; prev = $0; p = 1 }'; " ..
+		"bytes=$((new_bytes - $(tail -c +$((bytes + 1)) \"$logfile\" 2>/dev/null | awk 'END { print length($0) }'))); " ..
 		"fi; " ..
 		"elif [ \"$new_bytes\" -lt \"$bytes\" ] 2>/dev/null; then " ..
-		"echo '##TRUNCATED##'; " ..
-		"tail -c +1 \"$logfile\" 2>/dev/null; bytes=$new_bytes; elapsed=0; " ..
-		"timeout=60; " ..
-		"finish_seen=0; " ..
-		"finish_elapsed=0; " ..
-		"if tail -n 1 \"$logfile\" 2>/dev/null | grep -q '##FINISH##'; then " ..
-		"finish_seen=1; " ..
+		"changed=1; " ..
+		"if [ \"$(tail -c 1 \"$logfile\" 2>/dev/null)\" = \"$(printf '\\n')\" ]; then " ..
+		"tail -c +1 \"$logfile\" 2>/dev/null; bytes=$new_bytes; " ..
+		"else tail -c +1 \"$logfile\" 2>/dev/null | awk '{ if (p) printf \"%%s\\n\", prev; prev = $0; p = 1 }'; " ..
+		"bytes=$((new_bytes - $(tail -c +1 \"$logfile\" 2>/dev/null | awk 'END { print length($0) }'))); " ..
 		"fi; " ..
+		"fi; " ..
+		"if [ $changed -eq 1 ]; then " ..
+		"elapsed=0; timeout=60; finish_seen=0; finish_elapsed=0; " ..
+		"if tail -n 1 \"$logfile\" 2>/dev/null | grep -q '##FINISH##'; then finish_seen=1; fi; " ..
 		"fi; " ..
 		"sleep 1; elapsed=$((elapsed + 1)); " ..
 		"if [ \"$finish_seen\" -eq 1 ]; then " ..
 		"finish_elapsed=$((finish_elapsed + 1)); " ..
-		"if [ $finish_elapsed -ge 10 ]; then " ..
-		"exit 0; " ..
-		"fi; " ..
+		"if [ $finish_elapsed -ge 10 ]; then exit 0; fi; " ..
 		"elif [ $elapsed -ge $timeout ]; then " ..
 		"exit 0; " ..
 		"fi; done",
@@ -1894,18 +1892,21 @@ function action_gen_debug_logs()
 	local logfile = "/tmp/openclash_debug.log"
 
 	local cmd = string.format(
-		": > '%s'; " ..
+		"logfile='%s'; : > \"$logfile\"; " ..
 		"/usr/share/openclash/openclash_debug.sh >/dev/null 2>&1 & DEBUG_PID=$!; " ..
-		"bytes=0; stable=0; elapsed=0; while true; do " ..
-		"new_bytes=$(wc -c < '%s' 2>/dev/null); " ..
+		"bytes=0; elapsed=0; while true; do " ..
+		"new_bytes=$(wc -c < \"$logfile\" 2>/dev/null); new_bytes=${new_bytes:-0}; " ..
 		"if [ \"$new_bytes\" -gt \"$bytes\" ] 2>/dev/null; then " ..
-		"tail -c +$((bytes + 1)) '%s'; bytes=$new_bytes; stable=0; elapsed=0; " ..
-		"else stable=$((stable + 1)); fi; " ..
+		"if [ \"$(tail -c 1 \"$logfile\" 2>/dev/null)\" = \"$(printf '\\n')\" ]; then " ..
+		"tail -c +$((bytes + 1)) \"$logfile\" 2>/dev/null; bytes=$new_bytes; " ..
+		"else tail -c +$((bytes + 1)) \"$logfile\" 2>/dev/null | awk '{ if (p) printf \"%%s\\n\", prev; prev = $0; p = 1 }'; " ..
+		"bytes=$((new_bytes - $(tail -c +$((bytes + 1)) \"$logfile\" 2>/dev/null | awk 'END { print length($0) }'))); " ..
+		"fi; elapsed=0; fi; " ..
 		"if ! kill -0 $DEBUG_PID 2>/dev/null; then " ..
-		"if [ $stable -ge 2 ]; then exit 0; fi; " ..
+		"exit 0; " ..
 		"fi; sleep 1; elapsed=$((elapsed + 1)); " ..
-		"if [ $elapsed -ge 120 ]; then exit 0; fi; done",
-		logfile, logfile, logfile
+		"if [ $elapsed -ge 60 ]; then exit 0; fi; done",
+		logfile
 	)
 	local reader = ltn12_popen(cmd)
 	if not reader then return end
@@ -1921,10 +1922,7 @@ function action_gen_debug_logs()
 			if not nl then break end
 			local line = buf:sub(1, nl - 1)
 			buf = buf:sub(nl + 1)
-			line = line:gsub("^%s+", ""):gsub("%s+$", "")
-			if line ~= "" then
-				HTTP.write(line .. "\n")
-			end
+			HTTP.write(line .. "\n")
 		end
 	end
 	reader.kill()

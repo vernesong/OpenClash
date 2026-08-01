@@ -2087,8 +2087,115 @@
             }
 
             var self = this;
+            var hasInitialMessage = !!initialMessage;
+            // Clear the log before streaming so the operation API is served first and the stream does not block it
             XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function() {
-                self.startStreaming(!!initialMessage);
+                if (self.streamingXHR) {
+                    self.streamingXHR.abort();
+                    self.streamingXHR = null;
+                }
+                var xhr = new XMLHttpRequest();
+                xhr.timeout = 0;
+                xhr.open('GET', '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', true);
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                var stopTimer = null;
+                var streamEnded = false;
+                var gotData = false;
+
+                function finalCleanup() {
+                    if (stopTimer) { clearTimeout(stopTimer); stopTimer = null; }
+                    if (self.streamingXHR === xhr) {
+                        self.streamingXHR = null;
+                    }
+                    var capturedXhr = xhr;
+                    setTimeout(function() {
+                        if (self.streamingXHR !== capturedXhr && !self.streamingXHR) {
+                            if (DOMCache.oclog) {
+                                DOMCache.oclog.classList.add('oc-hidden');
+                                DOMCache.oclog.innerHTML = '';
+                            }
+                        }
+                    }, 1000);
+                }
+
+                xhr.onprogress = function() {
+                    if (self.streamingXHR !== xhr) return;
+                    if (streamEnded) return;
+                    var text = xhr.responseText;
+                    var hasFinish = text.indexOf('##FINISH##') >= 0;
+                    if (text && self.checkForErrors(text)) {
+                        streamEnded = true;
+                        self.stopLogDisplay();
+                        return;
+                    }
+                    var raw = (text || '').replace(/##FINISH##/g, '');
+                    if (raw.trim()) {
+                        gotData = true;
+                        self.retryCount = 0;
+                        if (stopTimer) { clearTimeout(stopTimer); stopTimer = null; }
+                        self.displayLog(raw);
+                    }
+                    if (hasFinish) {
+                        gotData = true;
+                        if (stopTimer) clearTimeout(stopTimer);
+                        stopTimer = setTimeout(function() {
+                            streamEnded = true;
+                            finalCleanup();
+                        }, 10000);
+                    }
+                };
+
+                xhr.onload = function() {
+                    if (self.streamingXHR !== xhr) return;
+                    if (streamEnded) return;
+                    if (!gotData) {
+                        streamEnded = true;
+                        if (hasInitialMessage) {
+                            stopTimer = setTimeout(function() {
+                                self.stopLogDisplay();
+                                if (self.retryCount < self.maxRetries * 2) {
+                                    self.retryCount++;
+                                    var delay = Math.min(self.retryDelay * Math.pow(2, self.retryCount - 1), 5000);
+                                    setTimeout(function() {
+                                        if (!self.streamingXHR) self.startLogDisplay();
+                                    }, delay);
+                                }
+                            }, 5000);
+                            return;
+                        }
+                        self.stopLogDisplay();
+                        if (self.retryCount < self.maxRetries * 2) {
+                            self.retryCount++;
+                            var delay = Math.max(5000, Math.min(self.retryDelay * Math.pow(2, self.retryCount - 1), 10000));
+                            setTimeout(function() {
+                                if (!self.streamingXHR) self.startLogDisplay();
+                            }, delay);
+                        }
+                        return;
+                    }
+                    if (!stopTimer) {
+                        stopTimer = setTimeout(function() {
+                            streamEnded = true;
+                            finalCleanup();
+                        }, 5000);
+                    }
+                };
+
+                xhr.onerror = function() {
+                    if (self.streamingXHR !== xhr) return;
+                    streamEnded = true;
+                    self.stopLogDisplay();
+                    if (self.retryCount < self.maxRetries) {
+                        self.retryCount++;
+                        var delay = Math.min(self.retryDelay * Math.pow(2, self.retryCount - 1), 5000);
+                        setTimeout(function() {
+                            if (!self.streamingXHR) self.startLogDisplay();
+                        }, delay);
+                    }
+                };
+
+                xhr.send();
+                self.streamingXHR = xhr;
             });
         },
 
@@ -2108,116 +2215,6 @@
                     }
                 }, 1000);
             }
-        },
-
-        startStreaming: function(hasInitialMessage) {
-            var self = this;
-            if (this.streamingXHR) {
-                this.streamingXHR.abort();
-                this.streamingXHR = null;
-            }
-            var xhr = new XMLHttpRequest();
-            xhr.timeout = 0;
-            xhr.open('GET', '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', true);
-            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-            var stopTimer = null;
-            var streamEnded = false;
-            var gotData = false;
-
-            function finalCleanup() {
-                if (stopTimer) { clearTimeout(stopTimer); stopTimer = null; }
-                if (self.streamingXHR === xhr) {
-                    self.streamingXHR = null;
-                }
-                var capturedXhr = xhr;
-                setTimeout(function() {
-                    if (self.streamingXHR !== capturedXhr && !self.streamingXHR) {
-                        if (DOMCache.oclog) {
-                            DOMCache.oclog.classList.add('oc-hidden');
-                            DOMCache.oclog.innerHTML = '';
-                        }
-                    }
-                }, 1000);
-            }
-
-            xhr.onprogress = function() {
-                if (self.streamingXHR !== xhr) return;
-                if (streamEnded) return;
-                var text = xhr.responseText;
-                var hasFinish = text.indexOf('##FINISH##') >= 0;
-                if (text && self.checkForErrors(text)) {
-                    streamEnded = true;
-                    self.stopLogDisplay();
-                    return;
-                }
-                var raw = (text || '').replace(/##FINISH##/g, '');
-                if (raw.trim()) {
-                    gotData = true;
-                    self.retryCount = 0;
-                    if (stopTimer) { clearTimeout(stopTimer); stopTimer = null; }
-                    self.displayLog(raw);
-                }
-                if (hasFinish) {
-                    gotData = true;
-                    if (stopTimer) clearTimeout(stopTimer);
-                    stopTimer = setTimeout(function() {
-                        streamEnded = true;
-                        finalCleanup();
-                    }, 10000);
-                }
-            };
-
-            xhr.onload = function() {
-                if (self.streamingXHR !== xhr) return;
-                if (streamEnded) return;
-                if (!gotData) {
-                    streamEnded = true;
-                    if (hasInitialMessage) {
-                        stopTimer = setTimeout(function() {
-                            self.stopLogDisplay();
-                            if (self.retryCount < self.maxRetries * 2) {
-                                self.retryCount++;
-                                var delay = Math.min(self.retryDelay * Math.pow(2, self.retryCount - 1), 5000);
-                                setTimeout(function() {
-                                    if (!self.streamingXHR) self.startLogDisplay();
-                                }, delay);
-                            }
-                        }, 5000);
-                        return;
-                    }
-                    self.stopLogDisplay();
-                    if (self.retryCount < self.maxRetries * 2) {
-                        self.retryCount++;
-                        var delay = Math.max(5000, Math.min(self.retryDelay * Math.pow(2, self.retryCount - 1), 10000));
-                        setTimeout(function() {
-                            if (!self.streamingXHR) self.startLogDisplay();
-                        }, delay);
-                    }
-                    return;
-                }
-                if (!stopTimer) {
-                    stopTimer = setTimeout(function() {
-                        streamEnded = true;
-                        finalCleanup();
-                    }, 5000);
-                }
-            };
-
-            xhr.onerror = function() {
-                if (self.streamingXHR !== xhr) return;
-                streamEnded = true;
-                self.stopLogDisplay();
-                if (self.retryCount < self.maxRetries) {
-                    self.retryCount++;
-                    var delay = Math.min(self.retryDelay * Math.pow(2, self.retryCount - 1), 5000);
-                    setTimeout(function() {
-                        if (!self.streamingXHR) self.startLogDisplay();
-                    }, delay);
-                }
-            };
-
-            xhr.send();
-            this.streamingXHR = xhr;
         },
 
         checkForErrors: function(log) {
@@ -4153,6 +4150,10 @@
         if (toggleElement) {
             toggleElement.disabled = true;
         }
+        var restartBtn = document.getElementById('restart_core');
+        if (restartBtn) {
+            restartBtn.disabled = true;
+        }
 
         var requestParams = { action: 'restart' };
 
@@ -4166,6 +4167,9 @@
         LogManager.startLogDisplay('<%:Restarting...%>');
 
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "action")%>', requestParams, function(x, status) {
+            if (restartBtn) {
+                restartBtn.disabled = false;
+            }
             if (x && x.status == 200) {
                 setTimeout(function() {
                     pluginToggleUserAction = false;

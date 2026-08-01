@@ -9,16 +9,6 @@ local json = require "luci.jsonc"
 local datatype = require "luci.cbi.datatypes"
 local addr = arg[1]
 
-local function s(e)
-local t=0
-local a={' KB',' MB',' GB',' TB',' PB'}
-repeat
-e=e/1024
-t=t+1
-until(e<=1024)
-return string.format("%.1f",e)..a[t]
-end
-
 local function debug_getcon()
 	local info, ip, host, diag_info
 	ip = fs.lanip()
@@ -30,6 +20,7 @@ local function debug_getcon()
 			info = json.parse(info)
 		end
 		if info then
+			local conn_lines = {}
 			for i = 1, #(info.connections) do
 				if info.connections[i].metadata.host == "" then
 					host = "Empty"
@@ -37,13 +28,20 @@ local function debug_getcon()
 					host = info.connections[i].metadata.host
 				end
 				if not addr then
-					luci.sys.exec(string.format('echo "%s. SourceIP:【%s】 - Host:【%s】 - DestinationIP:【%s】 - Network:【%s】 - RulePayload:【%s】 - Lastchain:【%s】" >> /tmp/openclash_debug.log', i, (info.connections[i].metadata.sourceIP), host, (info.connections[i].metadata.destinationIP), (info.connections[i].metadata.network), (info.connections[i].rulePayload),(info.connections[i].chains[1])))
+					conn_lines[#conn_lines + 1] = string.format("%d. SourceIP:【%s】 - Host:【%s】 - DestinationIP:【%s】 - Network:【%s】 - RulePayload:【%s】 - Lastchain:【%s】\n",
+						i,
+						tostring(info.connections[i].metadata.sourceIP),
+						tostring(host),
+						tostring(info.connections[i].metadata.destinationIP),
+						tostring(info.connections[i].metadata.network),
+						tostring(info.connections[i].rulePayload),
+						tostring(info.connections[i].chains and info.connections[i].chains[1]))
 				else
 					if datatype.hostname(addr) and string.lower(addr) == host  or datatype.ipaddr(addr) and addr == (info.connections[i].metadata.destinationIP) then
 						print("id: "..(info.connections[i].id))
 						print("start: "..(info.connections[i].start))
-						print("download: "..s(info.connections[i].download))
-						print("upload: "..s(info.connections[i].upload))
+						print("download: "..fs.filesize(info.connections[i].download))
+						print("upload: "..fs.filesize(info.connections[i].upload))
 						print("rule: "..(info.connections[i].rule))
 						print("rulePayload: "..(info.connections[i].rulePayload))
 						print("chains: ")
@@ -61,6 +59,10 @@ local function debug_getcon()
 						print("")
 					end
 				end
+			end
+			if not addr and #conn_lines > 0 then
+				local existing = fs.readfile("/tmp/openclash_debug.log") or ""
+				fs.writefile("/tmp/openclash_debug.log", existing .. table.concat(conn_lines))
 			end
 		end
 	end
