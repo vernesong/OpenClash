@@ -1464,6 +1464,9 @@ msgstr "删除内核"
 msgid "Are you sure want to remove all core files?"
 msgstr "确定要删除所有内核文件吗？"
 
+msgid "Removing..."
+msgstr "正在删除..."
+
 msgid "Remove succeeded!"
 msgstr "删除成功！"
 
@@ -2096,6 +2099,9 @@ msgstr "连接测试"
 
 msgid "Connection Test Result"
 msgstr "连接测试结果"
+
+msgid "Backing up..."
+msgstr "正在备份..."
 
 msgid "Backup File"
 msgstr "备份文件"

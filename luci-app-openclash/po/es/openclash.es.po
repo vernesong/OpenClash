@@ -1464,6 +1464,9 @@ msgstr "¿Seguro que deseas eliminar todos los archivos del núcleo?"
 msgid "Remove succeeded!"
 msgstr "Eliminación completada."
 
+msgid "Removing..."
+msgstr "Eliminando..."
+
 msgid "Remove failed!"
 msgstr "Error al eliminar."
 
@@ -2093,6 +2096,9 @@ msgstr "Prueba de conexión"
 
 msgid "Connection Test Result"
 msgstr "Resultado de la prueba de conexión"
+
+msgid "Backing up..."
+msgstr "Creando copia de seguridad..."
 
 msgid "Backup File"
 msgstr "Archivo de copia de seguridad"

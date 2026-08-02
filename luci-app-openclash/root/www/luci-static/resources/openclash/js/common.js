@@ -197,7 +197,11 @@ function ocAnimateScroll(element) {
 		var elapsed = timestamp - startTime;
 		var progress = Math.min(elapsed / duration, 1);
 		var eased = 1 - (1 - progress) * (1 - progress);
-		var target = Math.max(0, element.scrollHeight - element.clientHeight);
+		var lastChild = element.lastElementChild || element.lastChild;
+		var lastLineH = (lastChild && lastChild.offsetHeight) ? lastChild.offsetHeight : 0;
+		var maxScroll = Math.max(0, element.scrollHeight - element.clientHeight);
+		var target = Math.max(0, element.scrollHeight - (element.clientHeight + lastLineH) / 2);
+		if (target > maxScroll) target = maxScroll;
 		var distance = target - start;
 		element.scrollTop = Math.round(start + distance * eased);
 		if (progress < 1) {
@@ -656,6 +660,36 @@ function ocFallbackCopy(text, btnElement, successMessage, failMessage) {
 		ocShowCopySuccess(btnElement);
 	} else if (failMessage) {
 		prompt(failMessage, text);
+	}
+}
+
+function ocSetBtnLoading(btn, loading) {
+	var svg = btn.querySelector('svg');
+	if (loading) {
+		if (svg && !btn.dataset.ocSvgHtml) {
+			btn.dataset.ocSvgHtml = svg.outerHTML;
+			var spinner = document.createElement('span');
+			spinner.className = 'loading-spinner oc-btn-spinner';
+			spinner.style.verticalAlign = 'middle';
+			var svgW = parseInt(svg.getAttribute('width'), 10);
+			var size = (!isNaN(svgW) && svgW > 0) ? svgW : 14;
+			spinner.style.width = size + 'px';
+			spinner.style.height = size + 'px';
+			btn.replaceChild(spinner, svg);
+		}
+		btn.disabled = true;
+	} else {
+		btn.disabled = false;
+		if (btn.dataset.ocSvgHtml) {
+			var holder = document.createElement('span');
+			holder.innerHTML = btn.dataset.ocSvgHtml;
+			var newSvg = holder.firstChild;
+			var cur = btn.querySelector('.loading-spinner');
+			if (cur && newSvg) {
+				btn.replaceChild(newSvg, cur);
+			}
+			delete btn.dataset.ocSvgHtml;
+		}
 	}
 }
 

@@ -3,6 +3,7 @@
     local fs = require "luci.openclash"
     local plugin_version = fs.oc_version()
 %>
+<script src="/luci-static/resources/openclash/js/common.js?v=<%=plugin_version%>"></script>
 <div class="oc">
 <div class="upload-bar">
 	<label for="file_type"><%:Upload File Type%>:</label>
@@ -55,10 +56,34 @@
 
 function backup_all_file(btn)
 {
-	btn.value    = '<%:Backup%>';
-	btn.disabled = true;
-	window.location.href='<%="backup"%>';
-	btn.disabled = false;
+	ocSetBtnLoading(btn, true);
+	var xhr = new XMLHttpRequest();
+	xhr.open('GET', '<%=luci.dispatcher.build_url("admin", "services", "openclash", "backup")%>', true);
+	xhr.responseType = 'blob';
+	xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+	xhr.onload = function() {
+		ocSetBtnLoading(btn, false);
+		if (xhr.status == 200 && xhr.response) {
+			var disposition = xhr.getResponseHeader('Content-Disposition') || '';
+			var match = disposition.match(/filename="?([^";]+)"?/);
+			var filename = match ? match[1] : 'Backup-OpenClash.tar.gz';
+			var blobUrl = URL.createObjectURL(xhr.response);
+			var a = document.createElement('a');
+			a.href = blobUrl;
+			a.download = filename;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 1000);
+		} else {
+			alert('<%:Backup failed!%>');
+		}
+	};
+	xhr.onerror = function() {
+		ocSetBtnLoading(btn, false);
+		alert('<%:Backup failed!%>');
+	};
+	xhr.send();
 	return false;
 };
 

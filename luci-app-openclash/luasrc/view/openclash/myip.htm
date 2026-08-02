@@ -17,6 +17,7 @@
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,minimal-ui">
 <title>IP 地址查询</title>
+<script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
 </head>
 
 <fieldset class="cbi-section">
@@ -32,15 +33,8 @@
                                     <span class="myip-toolbar">
                                         <svg id="eye-icon" class="myip-icon-btn" width="20" height="20" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" onclick="return privacy_my_ip(this)">
                                             <title><%:Hide IP%></title>
-                                            <path id="eye-open" d="M128,56C48,56,16,128,16,128s32,72,112,72,112-72,112-72S208,56,128,56Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"></path>
-                                            <circle id="eye-open-circle" cx="128" cy="128" r="40" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"></circle>
-                                            <g id="eye-closed" class="oc-hidden">
-                                                <line x1="48" y1="40" x2="208" y2="216" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"></line>
-                                                <path d="M154.9,157.6A39.6,39.6,0,0,1,128,168a40,40,0,0,1-26.9-69.6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"></path>
-                                                <path d="M74,68.6C33.2,89.2,16,128,16,128s32,72,112,72a117.9,117.9,0,0,0,54-12.6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"></path>
-                                                <path d="M208.6,169.1C230.4,149.6,240,128,240,128S208,56,128,56a123.9,123.9,0,0,0-20.7,1.7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"></path>
-                                                <path d="M135.5,88.7a39.9,39.9,0,0,1,32.3,35.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"></path>
-                                            </g>
+                                            <use id="eye-open" href="#oc-icon-eye"></use>
+                                            <use id="eye-closed" class="oc-hidden" href="#oc-icon-eye-off"></use>
                                         </svg>
                                     </span>
                                 </p>
@@ -197,6 +191,8 @@
 
     var refresh_http;
     var refresh_ip;
+    var ipCheckXHR = null;
+    var httpCheckXHR = null;
     $$.getElementById('ip-ipip').innerHTML = '<%:Querying...%>';
     $$.getElementById('ip-ipify').innerHTML = '<%:Querying...%>';
     $$.getElementById('ip-pcol').innerHTML = '<%:Querying...%>';
@@ -216,13 +212,15 @@
             var range = max - min || 1;
             var stepX = (w - pad * 2) / (this.max - 1);
             var endX, endY;
+            var points = [];
             var d = pts.map(function(v, i) {
                 var x = (pad + i * stepX).toFixed(1);
                 var y = (h - pad - (v - min) / range * (h - pad * 2)).toFixed(1);
+                points.push({ x: x, y: y, v: v });
                 if (i === pts.length - 1) { endX = x; endY = y; }
                 return (i === 0 ? 'M' : 'L') + x + ',' + y;
             }).join(' ');
-            return { d: d, w: w, h: h, endX: endX, endY: endY };
+            return { d: d, w: w, h: h, endX: endX, endY: endY, points: points, stepX: stepX };
         },
         renderSparkline: function(svc, el, lc) {
             var pts = this.data[svc];
@@ -255,6 +253,7 @@
             }
 
             var g = this._buildPath(pts);
+            var points = g.points || [];
 
             var ghostHTML = '';
             if (this._prevPath[svc] && pts.length >= 3) {
@@ -266,22 +265,113 @@
                 '<svg viewBox="0 0 ' + g.w + ' ' + g.h + '" class="myip-sparkline-svg">' +
                 ghostHTML +
                 '<path d="' + g.d + '" class="spark-line" style="stroke:' + stroke + '"/>' +
+                '<line x1="' + g.endX + '" y1="0" x2="' + g.endX + '" y2="' + g.h + '" class="spark-crosshair" stroke="' + stroke + '" stroke-width="1" vector-effect="non-scaling-stroke" style="display:none"/>' +
+                '<circle cx="' + g.endX + '" cy="' + g.endY + '" r="3" class="spark-hover-dot" style="fill:' + stroke + ';display:none"/>' +
                 '<circle cx="' + g.endX + '" cy="' + g.endY + '" r="3" class="spark-dot-glow" style="fill:' + stroke + '"/>' +
                 '<circle cx="' + g.endX + '" cy="' + g.endY + '" r="2.5" class="spark-dot" style="fill:' + stroke + '"/>' +
                 '</svg>';
 
             var lineEl = el.querySelector('.spark-line');
-            if (!lineEl) return;
-            var len = lineEl.getTotalLength();
-            if (len <= 0) return;
+            if (lineEl) {
+                var len = lineEl.getTotalLength();
+                if (len > 0) {
+                    lineEl.style.strokeDasharray = len;
+                    lineEl.style.strokeDashoffset = len;
+                    lineEl.getBoundingClientRect();
+                    lineEl.style.transition = 'stroke-dashoffset 3s ease-out';
+                    requestAnimationFrame(function() {
+                        lineEl.style.strokeDashoffset = '0';
+                    });
+                }
+            }
 
-            lineEl.style.strokeDasharray = len;
-            lineEl.style.strokeDashoffset = len;
-            lineEl.getBoundingClientRect();
-            lineEl.style.transition = 'stroke-dashoffset 3s ease-out';
-            requestAnimationFrame(function() {
-                lineEl.style.strokeDashoffset = '0';
-            });
+            var svgEl = el.querySelector('.myip-sparkline-svg');
+            var crosshair = el.querySelector('.spark-crosshair');
+            if (svgEl && crosshair && points.length >= 2) {
+                var hoverDot = el.querySelector('.spark-hover-dot');
+                var tip = document.createElement('div');
+                tip.className = 'spark-tip';
+                tip.style.display = 'none';
+                el.appendChild(tip);
+
+                function showAt(clientX, clientY) {
+                    // A naive (clientX - left) / width * w
+                    // mapping ignores those margins and drifts from the real
+                    // endpoint positions. getScreenCTM() returns the exact
+                    // user-space transform (scale + letterbox offset)
+                    var svgRect = svgEl.getBoundingClientRect();
+                    var ctm = null;
+                    try { ctm = svgEl.getScreenCTM(); } catch(err) {}
+                    var x = -1;
+                    if (ctm) {
+                        var pt = svgEl.createSVGPoint();
+                        pt.x = clientX;
+                        pt.y = clientY;
+                        x = pt.matrixTransform(ctm.inverse()).x;
+                    }
+                    if (x < 0) return;
+
+                    var nearest = points[0];
+                    var best = Math.abs(parseFloat(points[0].x) - x);
+                    for (var k = 1; k < points.length; k++) {
+                        var d = Math.abs(parseFloat(points[k].x) - x);
+                        if (d < best) { best = d; nearest = points[k]; }
+                    }
+
+                    var snapRadius = g.stepX / 2;
+                    if (best > snapRadius) {
+                        hideAll();
+                        return;
+                    }
+
+                    crosshair.setAttribute('x1', nearest.x);
+                    crosshair.setAttribute('x2', nearest.x);
+                    crosshair.setAttribute('y1', 0);
+                    crosshair.setAttribute('y2', g.h);
+                    crosshair.style.display = 'block';
+
+                    hoverDot.setAttribute('cx', nearest.x);
+                    hoverDot.setAttribute('cy', nearest.y);
+                    hoverDot.style.display = 'block';
+
+                    var elRect = el.getBoundingClientRect();
+                    var ep = svgEl.createSVGPoint();
+                    ep.x = parseFloat(nearest.x);
+                    ep.y = parseFloat(nearest.y);
+                    var epScreen = ep.matrixTransform(ctm);
+                    var px = epScreen.x - elRect.left;
+                    tip.textContent = nearest.v + ' ms';
+                    tip.style.color = latencyColor(getLatencyClass(nearest.v));
+                    tip.style.display = 'block';
+                    var tw = tip.offsetWidth;
+                    var left = px - tw / 2;
+                    left = Math.max(0, Math.min(left, el.clientWidth - tw));
+                    tip.style.left = left + 'px';
+                    tip.style.top = '-17px';
+                }
+
+                function hideAll() {
+                    crosshair.style.display = 'none';
+                    hoverDot.style.display = 'none';
+                    tip.style.display = 'none';
+                }
+
+                el.onmousemove = function(e) { showAt(e.clientX, e.clientY); };
+                el.onmouseleave = hideAll;
+
+                el.ontouchstart = function(e) {
+                    e.preventDefault();
+                    var t = e.touches && e.touches[0];
+                    if (t) showAt(t.clientX, t.clientY);
+                };
+                el.ontouchmove = function(e) {
+                    e.preventDefault();
+                    var t = e.touches && e.touches[0];
+                    if (t) showAt(t.clientX, t.clientY);
+                };
+                el.ontouchend = hideAll;
+                el.ontouchcancel = hideAll;
+            }
         },
         reset: function(svc) {
             this.data[svc] = [];
@@ -417,23 +507,6 @@
             };
             document.head.appendChild(script);
         },
-        getMyipcnIP: () => {
-            fetch(`https://my.ip.cn/?z=${random}`)
-                .then(response => response.text())
-                .then(data => {
-                    var ipMatch = data.match(/ip[：:](\S+)/);
-                    var geoMatch = data.match(/归属地[：:](.+)/);
-                    if (ipMatch && ipMatch[1]) {
-                        if (localStorage.getItem('privacy_my_ip') != 'true') {
-                            $$.getElementById('ip-pcol').innerHTML = ipMatch[1];
-                        }
-                        if (geoMatch && geoMatch[1]) {
-                            $$.getElementById('ip-pcol-geo').innerHTML = geoMatch[1].trim();
-                        }
-                    }
-                    addTitleOnOverflow();
-                })
-        },
         getIpipIP: () => {
             IP.get(`http://myip.ipip.net?z=${random}`, 'text')
             .then(resp => {
@@ -476,13 +549,6 @@
     };
 
     let HTTP = {
-        checker: function(svcName, domain, timeoutMs) {
-            if (use_router_mode) {
-                HTTP.checker_router(svcName, domain, timeoutMs);
-            } else {
-                HTTP.checker_browser(svcName, domain, timeoutMs);
-            }
-        },
         checker_browser: function(svcName, domain, timeoutMs) {
             var img = new Image;
             var img_start_time = (+new Date());
@@ -505,42 +571,6 @@
 
             img.src = 'https://' + domain + '/favicon.ico?' + (+(new Date));
         },
-        checker_router: function(svcName, domain, timeoutMs) {
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', '/cgi-bin/luci/admin/services/openclash/website_check?domain=' + encodeURIComponent(domain), true);
-            xhr.timeout = (timeoutMs || 10000);
-            var lastIndex = 0;
-
-            xhr.onprogress = function() {
-                var newText = xhr.responseText.substring(lastIndex);
-                lastIndex = xhr.responseText.length;
-                var lines = newText.split('\n');
-                for (var i = 0; i < lines.length; i++) {
-                    var line = lines[i].trim();
-                    if (!line) continue;
-                    try {
-                        var response = JSON.parse(line);
-                        if (response.success) {
-                            updateCheckCard(svcName, 'ok', response.response_time);
-                        } else if (response.error === 'timeout' || response.response_time === 0 && !response.success) {
-                            updateCheckCard(svcName, 'timeout');
-                        } else {
-                            updateCheckCard(svcName, 'denied');
-                        }
-                    } catch(e) {}
-                }
-            };
-
-            xhr.ontimeout = function() {
-                updateCheckCard(svcName, 'timeout');
-            };
-
-            xhr.onerror = function() {
-                updateCheckCard(svcName, 'denied');
-            };
-
-            xhr.send();
-        },
         runcheck: function() {
             if (!use_router_mode) {
                 HTTP.checker_browser('baidu', 'www.baidu.com');
@@ -560,15 +590,19 @@
             var domainToSvc = {};
             svcDomains.forEach(function(d) { domainToSvc[d.domain] = d.svc; });
 
+            if (httpCheckXHR) { try { httpCheckXHR.abort(); } catch(e) {} httpCheckXHR = null; }
             var xhr = new XMLHttpRequest();
             xhr.open('GET', '/cgi-bin/luci/admin/services/openclash/website_check?domains=' + domainParam, true);
             xhr.timeout = 0;
             var lastIndex = 0;
+            var pendingBuf = '';
 
             xhr.onprogress = function() {
                 var newText = xhr.responseText.substring(lastIndex);
                 lastIndex = xhr.responseText.length;
-                var lines = newText.split('\n');
+                pendingBuf += newText;
+                var lines = pendingBuf.split('\n');
+                pendingBuf = lines.pop();
                 for (var i = 0; i < lines.length; i++) {
                     var line = lines[i].trim();
                     if (!line) continue;
@@ -591,7 +625,9 @@
                 svcDomains.forEach(function(d) { updateCheckCard(d.svc, 'denied'); });
             };
 
+            xhr.onloadend = function() { if (httpCheckXHR === xhr) httpCheckXHR = null; };
             xhr.send();
+            httpCheckXHR = xhr;
         }
     };
 
@@ -603,46 +639,25 @@
         IP.getIpsbIP();
     };
 
-    function show_my_ip() {
-        if (localStorage.getItem('privacy_my_ip') == 'true') {
-            update_eye_icon(false);
-            ip_ipip_ip = $$.getElementById('ip-ipip').innerHTML;
-            ip_ipsb_ip = $$.getElementById('ip-ipsb').innerHTML;
-            ip_pcol_ip = $$.getElementById('ip-pcol').innerHTML;
-            ip_ipify_ip = $$.getElementById('ip-ipify').innerHTML;
-            $$.getElementById('ip-ipip').innerHTML = '***.***.***.***';
-            $$.getElementById('ip-ipsb').innerHTML = '***.***.***.***';
-            $$.getElementById('ip-pcol').innerHTML = '***.***.***.***';
-            $$.getElementById('ip-ipify').innerHTML = '***.***.***.***';
-            addTitleOnOverflow();
-        } else {
-            if (!refresh_http) startHttpInterval();
-            if (!refresh_ip) startIpInterval();
-        }
-    }
-
     function update_eye_icon(isOpen) {
         var eyeIcon = document.getElementById('eye-icon');
         var eyeOpen = document.getElementById('eye-open');
-        var eyeOpenCircle = document.getElementById('eye-open-circle');
         var eyeClosed = document.getElementById('eye-closed');
         var titleElement = eyeIcon.querySelector('title');
 
         if (isOpen) {
-            eyeOpen.style.display = '';
-            eyeOpenCircle.style.display = '';
-            eyeClosed.style.display = 'none';
+            eyeOpen.classList.remove('oc-hidden');
+            eyeClosed.classList.add('oc-hidden');
             if (titleElement) titleElement.textContent = '<%:Hide IP%>';
         } else {
-            eyeOpen.style.display = 'none';
-            eyeOpenCircle.style.display = 'none';
+            eyeOpen.classList.add('oc-hidden');
             eyeClosed.classList.remove('oc-hidden');
             if (titleElement) titleElement.textContent = '<%:Show IP%>';
         }
     };
 
     function privacy_my_ip(svgElement) {
-        var isCurrentlyOpen = document.getElementById('eye-open').style.display !== 'none';
+        var isCurrentlyOpen = !document.getElementById('eye-open').classList.contains('oc-hidden');
 
         if (isCurrentlyOpen) {
             if (refresh_ip) { clearInterval(refresh_ip); refresh_ip = null; }
@@ -772,15 +787,19 @@
     }
 
     function get_router_ip_info() {
+        if (ipCheckXHR) { try { ipCheckXHR.abort(); } catch(e) {} ipCheckXHR = null; }
         var xhr = new XMLHttpRequest();
         xhr.open('GET', '/cgi-bin/luci/admin/services/openclash/myip_check', true);
-        xhr.timeout = 15000;
+        xhr.timeout = 35000;
         var lastIndex = 0;
+        var pendingBuf = '';
 
         xhr.onprogress = function() {
             var newText = xhr.responseText.substring(lastIndex);
             lastIndex = xhr.responseText.length;
-            var lines = newText.split('\n');
+            pendingBuf += newText;
+            var lines = pendingBuf.split('\n');
+            pendingBuf = lines.pop();
             for (var i = 0; i < lines.length; i++) {
                 var line = lines[i].trim();
                 if (!line) continue;
@@ -810,7 +829,9 @@
             if (!has_ip_cache()) show_querying_state();
         };
 
+        xhr.onloadend = function() { if (ipCheckXHR === xhr) ipCheckXHR = null; };
         xhr.send();
+        ipCheckXHR = xhr;
     }
 
     function update_ip_single(obj) {
@@ -831,7 +852,7 @@
         if (obj.error) {
             var curIp = $$.getElementById(el.id).innerHTML;
             if (!curIp || curIp === '<%:Querying...%>' || curIp === '***.***.***.***') {
-                $$.getElementById(el.id).innerHTML = '<%:Querying...%>';
+                $$.getElementById(el.id).innerHTML = (obj.error === 'timeout') ? '<%:Timeout%>' : '<%:Querying...%>';
             }
             $$.getElementById(el.geo).innerHTML = '';
             return;
@@ -890,50 +911,6 @@
         $$.getElementById('ip-ipify-geo').innerHTML = '';
     }
 
-    function update_ip_display(data) {
-        const ipFields = [
-            { id: 'ip-pcol', geo: 'ip-pcol-geo', key: 'pcol' },
-            { id: 'ip-ipip', geo: 'ip-ipip-geo', key: 'ipip' },
-            { id: 'ip-ipsb', geo: 'ip-ipsb-geo', key: 'ipsb' },
-            { id: 'ip-ipify', geo: 'ip-ipify-geo', key: 'ipify' }
-        ];
-
-        if (localStorage.getItem('privacy_my_ip') === 'true') {
-            ipFields.forEach(f => {
-                $$.getElementById(f.id).innerHTML = '***.***.***.***';
-            });
-        } else {
-            ipFields.forEach(f => {
-                let ipVal = '';
-                if (data[f.key] && data[f.key].ip) {
-                    ipVal = data[f.key].ip;
-                } else {
-                    let curVal = $$.getElementById(f.id).innerHTML;
-                    if (curVal && curVal !== '<%:Querying...%>') {
-                        ipVal = curVal;
-                    } else {
-                        ipVal = '<%:Querying...%>';
-                    }
-                }
-                $$.getElementById(f.id).innerHTML = ipVal;
-
-                let geoVal = '';
-                if (data[f.key] && data[f.key].geo) {
-                    geoVal = data[f.key].geo;
-                } else {
-                    let curGeo = $$.getElementById(f.geo).innerHTML;
-                    if (curGeo && curGeo !== '' && ipVal == curVal && curVal !== '<%:Querying...%>') {
-                        geoVal = curGeo;
-                    } else {
-                        geoVal = '';
-                    }
-                }
-                $$.getElementById(f.geo).innerHTML = geoVal;
-            });
-        }
-        addTitleOnOverflow();
-    }
-
     function reset_display() {
         $$.getElementById('ip-ipip').innerHTML = '<%:Querying...%>';
         $$.getElementById('ip-ipify').innerHTML = '<%:Querying...%>';
@@ -947,17 +924,7 @@
     }
 
     function refresh_myip(svgElement) {
-        svgElement.style.transform = 'rotate(360deg)';
-        setTimeout(function() {
-            svgElement.style.transform = '';
-        }, 500);
-
         clearAllIntervals();
-        SpeedHistory.reset('baidu');
-        SpeedHistory.reset('163');
-        SpeedHistory.reset('github');
-        SpeedHistory.reset('youtube');
-        showAllGhosts();
 
         if (use_router_mode) {
             get_router_ip_info();
@@ -981,7 +948,6 @@
 
         return false;
     }
-
     function init_page() {
         var saved_mode = localStorage.getItem('myip_check_mode');
         if (saved_mode === 'true' || saved_mode === null) {

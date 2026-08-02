@@ -253,6 +253,7 @@ var ConfigEditor = {
 
         this.model.classList.remove('maximized');
         this.model.classList.remove('minimized');
+        this.resetModelStyles();
 
         var editTitle = document.getElementById('editTitle');
         if (editTitle) {
@@ -308,6 +309,7 @@ var ConfigEditor = {
 
         this.model.classList.remove('maximized');
         this.model.classList.remove('minimized');
+        this.resetModelStyles();
 
         var editTitle = document.getElementById('editTitle');
         if (editTitle) {
@@ -393,6 +395,20 @@ var ConfigEditor = {
             layoutBtn.innerHTML = _ocIcons.SVG_COMPARE;
         }
         if (editor_help) editor_help.innerHTML = '<%:Press%> <b style="color:var(--success-color)">F11</b> <%:for fullscreen,%> <b style="color:var(--success-color)">Esc</b> <%:to exit fullscreen,%> <b style="color:var(--success-color)">Ctrl + <%:Mouse Wheel%></b> <%:to zoom%>';
+    },
+
+    resetModelStyles: function() {
+        if (!this.model) return;
+        this.model.style.position = '';
+        this.model.style.left = '';
+        this.model.style.top = '';
+        this.model.style.right = '';
+        this.model.style.bottom = '';
+        this.model.style.margin = '';
+        this.model.style.transform = '';
+        this.model.style.transition = '';
+        this.model.style.width = '';
+        this.model.style.height = '';
     },
 
     formatDisplayName: function(fileName) {
@@ -2615,18 +2631,15 @@ var ConfigEditor = {
     makeDraggable: function() {
         var self = this;
         var header = this.model.querySelector('.config-editor-header');
-        var startX, startY, startLeft, startTop;
         var isDragging = false;
+        var startX = 0, startY = 0, startLeft = 0, startTop = 0;
 
-        header.addEventListener('mousedown', function(e) {
+        header.addEventListener('pointerdown', function(e) {
+            if (isDragging) return;
             var target = e.target && e.target.nodeType === 1 ? e.target : e.target.parentElement;
-            if (target && target.closest('.config-editor-actions')) {
-                return;
-            }
+            if (target && target.closest('.config-editor-actions')) return;
             var textEl = target ? target.closest('#editTitle, #config-file-name') : null;
-            if (textEl && self.isPointOnTextContent(textEl, e.clientX, e.clientY)) {
-                return;
-            }
+            if (textEl && self.isPointOnTextContent(textEl, e.clientX, e.clientY)) return;
 
             isDragging = true;
             startX = e.clientX;
@@ -2642,108 +2655,33 @@ var ConfigEditor = {
             self.model.style.margin = '0';
             self.model.style.transform = 'none';
             self.model.style.transition = 'none';
-
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
-
+            header.style.touchAction = 'none';
+            if (header.setPointerCapture) {
+                try { header.setPointerCapture(e.pointerId); } catch(err) {}
+            }
             e.preventDefault();
         });
 
-        function onMouseMove(e) {
+        header.addEventListener('pointermove', function(e) {
             if (!isDragging) return;
-
-            var deltaX = e.clientX - startX;
-            var deltaY = e.clientY - startY;
-
-            var newLeft = startLeft + deltaX;
-            var newTop = startTop + deltaY;
-
-            var modelRect = self.model.getBoundingClientRect();
-            var maxLeft = window.innerWidth - modelRect.width;
-            var maxTop = window.innerHeight - modelRect.height;
-
-            newLeft = Math.max(0, Math.min(newLeft, maxLeft));
-            newTop = Math.max(0, Math.min(newTop, maxTop));
-
+            var rect = self.model.getBoundingClientRect();
+            var newLeft = Math.max(0, Math.min(startLeft + (e.clientX - startX), window.innerWidth - rect.width));
+            var newTop = Math.max(0, Math.min(startTop + (e.clientY - startY), window.innerHeight - rect.height));
             self.model.style.left = newLeft + 'px';
             self.model.style.top = newTop + 'px';
-        }
-
-        function onMouseUp() {
-            isDragging = false;
-
-            setTimeout(function() {
-                self.model.style.transition = 'all 0.3s ease';
-            }, 50);
-
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-        }
-
-        header.addEventListener('touchstart', function(e) {
-            var target = e.target && e.target.nodeType === 1 ? e.target : e.target.parentElement;
-            if (target && target.closest('.config-editor-actions')) {
-                return;
-            }
-            var touch = e.touches && e.touches[0] ? e.touches[0] : null;
-            var textEl = target ? target.closest('#editTitle, #config-file-name') : null;
-            if (touch && textEl && self.isPointOnTextContent(textEl, touch.clientX, touch.clientY)) {
-                return;
-            }
-            if (e.touches.length !== 1) return;
-
-            isDragging = true;
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-
-            var rect = self.model.getBoundingClientRect();
-            startLeft = rect.left;
-            startTop = rect.top;
-
-            self.model.style.position = 'fixed';
-            self.model.style.left = startLeft + 'px';
-            self.model.style.top = startTop + 'px';
-            self.model.style.margin = '0';
-            self.model.style.transform = 'none';
-            self.model.style.transition = 'none';
-
-            document.addEventListener('touchmove', onTouchMove, {passive: false});
-            document.addEventListener('touchend', onTouchEnd);
-
-            e.preventDefault();
         });
 
-        function onTouchMove(e) {
-            if (!isDragging || e.touches.length !== 1) return;
-
-            var deltaX = e.touches[0].clientX - startX;
-            var deltaY = e.touches[0].clientY - startY;
-
-            var newLeft = startLeft + deltaX;
-            var newTop = startTop + deltaY;
-
-            var modelRect = self.model.getBoundingClientRect();
-            var maxLeft = window.innerWidth - modelRect.width;
-            var maxTop = window.innerHeight - modelRect.height;
-
-            newLeft = Math.max(0, Math.min(newLeft, maxLeft));
-            newTop = Math.max(0, Math.min(newTop, maxTop));
-
-            self.model.style.left = newLeft + 'px';
-            self.model.style.top = newTop + 'px';
-
-            e.preventDefault();
-        }
-
-        function onTouchEnd() {
+        function stopDrag(e) {
+            if (!isDragging) return;
             isDragging = false;
-            setTimeout(function() {
-                self.model.style.transition = 'all 0.3s ease';
-            }, 50);
-
-            document.removeEventListener('touchmove', onTouchMove);
-            document.removeEventListener('touchend', onTouchEnd);
+            header.style.touchAction = '';
+            self.model.style.transition = '';
+            if (header.releasePointerCapture) {
+                try { header.releasePointerCapture(e.pointerId); } catch(err) {}
+            }
         }
+        header.addEventListener('pointerup', stopDrag);
+        header.addEventListener('pointercancel', stopDrag);
     },
 
     makeResizable: function() {

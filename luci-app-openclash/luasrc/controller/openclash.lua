@@ -909,6 +909,13 @@ function sub_info_get()
 				local function fork_provider_curl(url)
 					local fdi, fdo = nixio.pipe()
 					if not fdi or not fdo then return nil end
+					local cmd = string.format(
+						'OUT=$(curl -sLI -X GET -m 5 --retry 2 -w "http_code=%%{http_code}" -H "User-Agent: %s"%s "%s" 2>/dev/null); '
+						.. 'CODE=$(echo "$OUT" | grep -o "http_code=[0-9]*" | head -1 | cut -d= -f2); '
+						.. 'if [ -n "$OUT" ] && [ "$CODE" = "200" ]; then echo "$OUT"; '
+						.. 'else curl -sLI -X GET -m 5 --retry 2 -w "http_code=%%{http_code}" -H "User-Agent: Quantumultx"%s "%s" 2>/dev/null; fi',
+						sub_ua, header_args, url, header_args, url
+					)
 					local child = nixio.fork()
 					if child > 0 then
 						fdo:close()
@@ -917,13 +924,6 @@ function sub_info_get()
 						nixio.dup(fdo, nixio.stdout)
 						fdi:close()
 						fdo:close()
-						local cmd = string.format(
-							'OUT=$(curl -sLI -X GET -m 5 --retry 2 -w "http_code=%%{http_code}" -H "User-Agent: %s"%s "%s" 2>/dev/null); '
-							.. 'CODE=$(echo "$OUT" | grep -o "http_code=[0-9]*" | head -1 | cut -d= -f2); '
-							.. 'if [ -n "$OUT" ] && [ "$CODE" = "200" ]; then echo "$OUT"; '
-							.. 'else curl -sLI -X GET -m 5 --retry 2 -w "http_code=%%{http_code}" -H "User-Agent: Quantumultx"%s "%s" 2>/dev/null; fi',
-							sub_ua, header_args, url, header_args, url
-						)
 						nixio.exec("/bin/sh", "-c", cmd)
 					else
 						if fdi then fdi:close() end
@@ -951,9 +951,14 @@ function sub_info_get()
 					for _ = 1, max_wait do
 						for _, job in ipairs(jobs) do
 							if not job.done then
-								local buf = job.fdi:read(4096)
+								local buf = try_read(job.fdi, 4096)
 								if buf then job.buf = job.buf .. buf end
 								if nixio.waitpid(job.pid, "nohang") then
+									while true do
+										local b = try_read(job.fdi, 4096)
+										if not b then break end
+										job.buf = job.buf .. b
+									end
 									pcall(job.fdi.close, job.fdi)
 									job.done = true
 									done_count = done_count + 1
@@ -1194,6 +1199,10 @@ function action_toolbar_show()
 		local function fork_curl(endpoint)
 			local fdi, fdo = nixio.pipe()
 			if not fdi or not fdo then return nil end
+			local cmd = string.format(
+				'curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET "http://%s:%s/%s"',
+				dase, daip, cn_port, endpoint
+			)
 			local child = nixio.fork()
 			if child > 0 then
 				fdo:close()
@@ -1202,10 +1211,6 @@ function action_toolbar_show()
 				nixio.dup(fdo, nixio.stdout)
 				fdi:close()
 				fdo:close()
-				local cmd = string.format(
-					'curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET "http://%s:%s/%s"',
-					dase, daip, cn_port, endpoint
-				)
 				nixio.exec("/bin/sh", "-c", cmd)
 			else
 				if fdi then fdi:close() end
@@ -1223,17 +1228,27 @@ function action_toolbar_show()
 			local max_wait = 40
 			for _ = 1, max_wait do
 				if not t_done then
-					local buf = t_job.fdi:read(4096)
+					local buf = try_read(t_job.fdi, 4096)
 					if buf then t_job.buf = t_job.buf .. buf end
 					if nixio.waitpid(t_job.pid, "nohang") then
+						while true do
+							local b = try_read(t_job.fdi, 4096)
+							if not b then break end
+							t_job.buf = t_job.buf .. b
+						end
 						pcall(t_job.fdi.close, t_job.fdi)
 						t_done = true
 					end
 				end
 				if not c_done then
-					local buf = c_job.fdi:read(4096)
+					local buf = try_read(c_job.fdi, 4096)
 					if buf then c_job.buf = c_job.buf .. buf end
 					if nixio.waitpid(c_job.pid, "nohang") then
+						while true do
+							local b = try_read(c_job.fdi, 4096)
+							if not b then break end
+							c_job.buf = c_job.buf .. b
+						end
 						pcall(c_job.fdi.close, c_job.fdi)
 						c_done = true
 					end
@@ -1531,26 +1546,55 @@ function action_lastversion()
 	})
 end
 
---[[
-    write_padded(data)
-    First call writes 4096 spaces + newline (to overflow luci-compat's ~4096B
-    internal buffer), then writes data + newline — no io.flush() needed.
-    Subsequent calls just write data + newline and call io.flush() —
-    the stream channel is already open.
-    Do NOT use io.popen + tail -f — C stdio full-buffers when stdout is a pipe.
-    Use ltn12_popen (nixio pipe) + shell polling instead.
-]]
+-- Streaming write.
+-- New LuCI: luci.http.write = L.print() (http.lua) is C-stdio buffered
+-- (musl 4096B / glibc 8192B), io.flush() can't reach it -> use L.http:write.
+-- Old LuCI (18.06): no L global; HTTP.write = coroutine.yield, immediate.
+-- CRITICAL: on old LuCI HTTP.write = coroutine.yield, and Lua 5.1 cannot
+-- yield across a C function boundary. Wrapping write_padded() in pcall()
+-- throws "attempt to yield across C-call boundary" -> pcall swallows the
+-- error and the chunk is silently lost while the rest of the script keeps
+-- running (backend logs look fine but the frontend receives nothing).
+-- Callers MUST call write_padded() directly, never through pcall.
+-- 8192-space first line only helps the old buffered path.
+-- Ref: openwrt/luci master: libs/luci-lib-base/luasrc/http.lua
+--      modules/luci-base/ucode/http.uc, htdocs/cgi-bin/luci
+--      immortalwrt/luci 18.06-k5.4: modules/luci-base/luasrc/http.lua
+--      jow-/ucode: vm.c (uc_vm_insn_print), lib/fs.c, main.c
 local write_padded_first = true
 
 local function write_padded(data)
 	if write_padded_first then
-		HTTP.write(string.rep(" ", 4096) .. "\n")
-		HTTP.write(data .. "\n")
+		if L and L.http then
+			L.http:write(string.rep(" ", 8192) .. "\n")
+			L.http:write(data .. "\n")
+		else
+			HTTP.write(string.rep(" ", 8192) .. "\n")
+			HTTP.write(data .. "\n")
+		end
 		write_padded_first = false
 	else
-		HTTP.write(data .. "\n")
-		io.flush()
+		if L and L.http then
+			L.http:write(data .. "\n")
+		else
+			HTTP.write(data .. "\n")
+		end
 	end
+	io.flush()
+end
+
+function try_read(fd, maxlen)
+	local pfds = {
+		{ fd = fd, events = nixio.poll_flags("in", "hup", "err") }
+	}
+	local nfds = nixio.poll(pfds, 0)
+	if nfds and nfds > 0 then
+		local buf = fd:read(maxlen or 4096)
+		if buf and #buf > 0 then
+			return buf
+		end
+	end
+	return nil
 end
 
 function action_start()
@@ -1885,7 +1929,7 @@ function action_gen_debug_logs()
 			if not nl then break end
 			local line = buf:sub(1, nl - 1)
 			buf = buf:sub(nl + 1)
-			HTTP.write(line .. "\n")
+			write_padded(line)
 		end
 	end
 	reader.kill()
@@ -1995,27 +2039,26 @@ function ltn12_popen(command)
 		local reaped = false
 
 		local function pipe_read()
-			-- Always drain pipe first — child may have exited after writing
-			-- data that is still buffered.
-			local buffer = fdi:read(16384)
-			if buffer and #buffer > 0 then
+			local ok_r, buffer = pcall(try_read, fdi, 16384)
+			if ok_r and buffer then
 				return buffer
 			end
 
-			-- No data ready: check whether child is still alive
 			if not reaped then
-				local wpid = nixio.waitpid(pid, "nohang")
-				if wpid then
+				local ok_w, wpid = pcall(nixio.waitpid, pid, "nohang")
+				if ok_w and wpid then
 					reaped = true
 				end
 			end
 
 			if reaped then
-				-- Child gone and pipe drained → true EOF
+				local ok_l, last = pcall(try_read, fdi, 16384)
+				if ok_l and last then
+					return last
+				end
 				pcall(fdi.close, fdi)
 				return nil
 			else
-				-- Child alive, pipe temporarily empty → caller should retry
 				nixio.nanosleep(0, 50000000)
 				return ""
 			end
@@ -2328,6 +2371,12 @@ function action_myip_check()
 			return nil
 		end
 
+		local ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+		local cmd = string.format(
+			'curl -SsL -m 10 -A "%s" "%s" 2>/dev/null',
+			ua, service.url
+		)
+
 		local pid = nixio.fork()
 
 		if pid > 0 then
@@ -2338,12 +2387,7 @@ function action_myip_check()
 				fdi = fdi,
 				closed = false,
 				reader = function()
-					local buffer = fdi:read(4096)
-					if buffer and #buffer > 0 then
-						return buffer
-					else
-						return nil
-					end
+					return try_read(fdi, 4096)
 				end,
 				close = function()
 					if fdi and not fdi.closed then
@@ -2357,10 +2401,6 @@ function action_myip_check()
 			fdi:close()
 			fdo:close()
 
-			local cmd = string.format(
-				'curl -SsL -m 5 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "%s" 2>/dev/null',
-				service.url
-			)
 			nixio.exec("/bin/sh", "-c", cmd)
 		else
 			if fdi then fdi:close() end
@@ -2398,7 +2438,7 @@ function action_myip_check()
 		return
 	end
 
-	local max_iterations = 280
+	local max_iterations = 150
 	local iteration = 0
 	local delay = 50000000
 	local completed = {}
@@ -2409,26 +2449,27 @@ function action_myip_check()
 
 		for name, info in pairs(queries) do
 			if not completed[name] then
-				local wpid, stat = nixio.waitpid(info.query.pid, "nohang")
-				local buffer = info.query.reader()
+				local ok_w, wpid = pcall(nixio.waitpid, info.query.pid, "nohang")
+				local ok_r, buffer = pcall(info.query.reader)
 
-				if buffer then
+				if ok_r and buffer then
 					info.data = info.data .. buffer
 				end
 
-				if wpid then
+				if ok_w and wpid then
 					pcall(info.query.close)
 					completed[name] = true
 
 					local parsed_result = info.parser(info.data)
 					if parsed_result then
 						result[name] = parsed_result
-						write_padded(json.stringify({
+						local ok_j, jdata = pcall(json.stringify, {
 							service = name,
 							ip = parsed_result.ip,
 							geo = parsed_result.geo,
 							raw = parsed_result.raw
-						}))
+						})
+						if ok_j and jdata then write_padded(jdata) end
 					end
 
 					while #pending_services > 0 do
@@ -2444,20 +2485,21 @@ function action_myip_check()
 						end
 					end
 				else
-					local still_running = SYS.call(string.format("kill -0 %d 2>/dev/null", info.query.pid)) == 0
-					if not still_running then
+					local ok_k, still_running = pcall(nixio.kill, info.query.pid, 0)
+					if not (ok_k and still_running) then
 						pcall(info.query.close)
 						completed[name] = true
 
 						local parsed_result = info.parser(info.data)
 						if parsed_result then
 							result[name] = parsed_result
-							write_padded(json.stringify({
+							local ok_j, jdata = pcall(json.stringify, {
 								service = name,
 								ip = parsed_result.ip,
 								geo = parsed_result.geo,
 								raw = parsed_result.raw
-							}))
+							})
+							if ok_j and jdata then write_padded(jdata) end
 						end
 
 						while #pending_services > 0 do
@@ -2499,14 +2541,29 @@ function action_myip_check()
 			result[name] = { ip = "", geo = "", error = "timeout" }
 			write_padded(json.stringify({ service = name, error = "timeout" }))
 			pcall(nixio.kill, info.query.pid, nixio.const.SIGTERM)
-			pcall(nixio.waitpid, info.query.pid, 0)
+			local reaped = false
+			for _ = 1, 20 do
+				local ok_w, wpid = pcall(nixio.waitpid, info.query.pid, "nohang")
+				if ok_w and wpid then reaped = true break end
+				local ok_k, alive = pcall(nixio.kill, info.query.pid, 0)
+				if not (ok_k and alive) then
+					pcall(nixio.waitpid, info.query.pid, 0)
+					reaped = true
+					break
+				end
+				nixio.nanosleep(0, 50000000)
+			end
+			if not reaped then
+				pcall(nixio.kill, info.query.pid, nixio.const.SIGKILL)
+				pcall(nixio.waitpid, info.query.pid, 0)
+			end
 			pcall(info.query.close)
 		end
 	end
 
 	if result.ipify and result.ipify.ip and result.ipify.ip ~= "" then
 		local geo_cmd = string.format(
-			'curl -sL -m 5 --retry 2 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "https://api.ip.sb/geoip/%s" 2>/dev/null',
+			'curl -sL -m 10 --retry 2 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "https://api.ip.sb/geoip/%s" 2>/dev/null',
 			result.ipify.ip
 		)
 		local geo_data = SYS.exec(geo_cmd)
@@ -2551,6 +2608,10 @@ function latency_test(addr, on_result)
 	for _, test_url in ipairs(urls) do
 		local fdi, fdo = nixio.pipe()
 		if fdi and fdo then
+			local cmd = string.format(
+				'curl -sI -m 10 --connect-timeout 3 -w "%%{http_code},%%{time_total},%%{time_connect},%%{time_appconnect}" "%s" -o /dev/null 2>/dev/null',
+				test_url
+			)
 			local pid = nixio.fork()
 			if pid > 0 then
 				fdo:close()
@@ -2559,10 +2620,6 @@ function latency_test(addr, on_result)
 				nixio.dup(fdo, nixio.stdout)
 				fdi:close()
 				fdo:close()
-				local cmd = string.format(
-					'curl -sI -m 5 --connect-timeout 3 --retry 2 -w "%%{http_code},%%{time_total},%%{time_connect},%%{time_appconnect}" "%s" -o /dev/null 2>/dev/null',
-					test_url
-				)
 				nixio.exec("/bin/sh", "-c", cmd)
 			else
 				if fdi then fdi:close() end
@@ -2610,10 +2667,15 @@ function latency_test(addr, on_result)
 		iter = iter + 1
 		for i, q in ipairs(queries) do
 			if not completed[i] then
-				local buf = q.fdi:read(4096)
-				if buf then q.data = q.data .. buf end
-				local wpid = nixio.waitpid(q.pid, "nohang")
-				if wpid then
+				local ok_r, buf = pcall(try_read, q.fdi, 4096)
+				if ok_r and buf then q.data = q.data .. buf end
+				local ok_w, wpid = pcall(nixio.waitpid, q.pid, "nohang")
+				if ok_w and wpid then
+					while true do
+						local ok_b, b = pcall(try_read, q.fdi, 4096)
+						if not ok_b or not b then break end
+						q.data = q.data .. b
+					end
 					pcall(q.fdi.close, q.fdi)
 					completed[i] = true
 					local rt, err = parse_output(q.data)
@@ -2626,8 +2688,13 @@ function latency_test(addr, on_result)
 						last_failure.error = err or "No response"
 					end
 				else
-					local alive = SYS.call(string.format("kill -0 %d 2>/dev/null", q.pid)) == 0
-					if not alive then
+					local ok_k, alive = pcall(nixio.kill, q.pid, 0)
+					if not (ok_k and alive) then
+						while true do
+							local ok_b, b = pcall(try_read, q.fdi, 4096)
+							if not ok_b or not b then break end
+							q.data = q.data .. b
+						end
 						pcall(q.fdi.close, q.fdi)
 						completed[i] = true
 						local rt, err = parse_output(q.data)
@@ -2648,7 +2715,22 @@ function latency_test(addr, on_result)
 			for i, q in ipairs(queries) do
 				if not completed[i] then
 					pcall(nixio.kill, q.pid, nixio.const.SIGTERM)
-					pcall(nixio.waitpid, q.pid, 0)
+					local reaped = false
+					for _ = 1, 20 do
+						local ok_w, wpid = pcall(nixio.waitpid, q.pid, "nohang")
+						if ok_w and wpid then reaped = true break end
+						local ok_k, alive = pcall(nixio.kill, q.pid, 0)
+						if not (ok_k and alive) then
+							pcall(nixio.waitpid, q.pid, 0)
+							reaped = true
+							break
+						end
+						nixio.nanosleep(0, 50000000)
+					end
+					if not reaped then
+						pcall(nixio.kill, q.pid, nixio.const.SIGKILL)
+						pcall(nixio.waitpid, q.pid, 0)
+					end
 					pcall(q.fdi.close, q.fdi)
 				end
 			end
@@ -2672,7 +2754,22 @@ function latency_test(addr, on_result)
 	for i, q in ipairs(queries) do
 		if not completed[i] then
 			pcall(nixio.kill, q.pid, nixio.const.SIGTERM)
-			pcall(nixio.waitpid, q.pid, 0)
+			local reaped = false
+			for _ = 1, 20 do
+				local ok_w, wpid = pcall(nixio.waitpid, q.pid, "nohang")
+				if ok_w and wpid then reaped = true break end
+				local ok_k, alive = pcall(nixio.kill, q.pid, 0)
+				if not (ok_k and alive) then
+					pcall(nixio.waitpid, q.pid, 0)
+					reaped = true
+					break
+				end
+				nixio.nanosleep(0, 50000000)
+			end
+			if not reaped then
+				pcall(nixio.kill, q.pid, nixio.const.SIGKILL)
+				pcall(nixio.waitpid, q.pid, 0)
+			end
 			pcall(q.fdi.close, q.fdi)
 		end
 	end
@@ -2732,6 +2829,10 @@ function action_website_check()
 		for _, test_url in ipairs(urls) do
 			local fdi, fdo = nixio.pipe()
 			if fdi and fdo then
+				local cmd = string.format(
+					'curl -sI -m 10 --connect-timeout 3 -w "%%{http_code},%%{time_total},%%{time_connect},%%{time_appconnect}" "%s" -o /dev/null 2>/dev/null',
+					test_url
+				)
 				local pid = nixio.fork()
 				if pid > 0 then
 					fdo:close()
@@ -2740,10 +2841,6 @@ function action_website_check()
 					nixio.dup(fdo, nixio.stdout)
 					fdi:close()
 					fdo:close()
-					local cmd = string.format(
-						'curl -sI -m 5 --connect-timeout 3 --retry 2 -w "%%{http_code},%%{time_total},%%{time_connect},%%{time_appconnect}" "%s" -o /dev/null 2>/dev/null',
-						test_url
-					)
 					nixio.exec("/bin/sh", "-c", cmd)
 				else
 					if fdi then fdi:close() end
@@ -2758,7 +2855,22 @@ function action_website_check()
 		for _, sq in ipairs(sub_queries) do
 			if not sq.done then
 				pcall(nixio.kill, sq.pid, nixio.const.SIGTERM)
-				pcall(nixio.waitpid, sq.pid, 0)
+				local reaped = false
+				for _ = 1, 20 do
+					local ok_w, wpid = pcall(nixio.waitpid, sq.pid, "nohang")
+					if ok_w and wpid then reaped = true break end
+					local ok_k, alive = pcall(nixio.kill, sq.pid, 0)
+					if not (ok_k and alive) then
+						pcall(nixio.waitpid, sq.pid, 0)
+						reaped = true
+						break
+					end
+					nixio.nanosleep(0, 50000000)
+				end
+				if not reaped then
+					pcall(nixio.kill, sq.pid, nixio.const.SIGKILL)
+					pcall(nixio.waitpid, sq.pid, 0)
+				end
 				pcall(sq.fdi.close, sq.fdi)
 				sq.done = true
 			end
@@ -2792,16 +2904,26 @@ function action_website_check()
 	end
 
 	local function check_sub_query(sq)
-		local buf = sq.fdi:read(4096)
-		if buf then sq.data = sq.data .. buf end
-		local wpid = nixio.waitpid(sq.pid, "nohang")
-		if wpid then
+		local ok_r, buf = pcall(try_read, sq.fdi, 4096)
+		if ok_r and buf then sq.data = sq.data .. buf end
+		local ok_w, wpid = pcall(nixio.waitpid, sq.pid, "nohang")
+		if ok_w and wpid then
+			while true do
+				local ok_b, b = pcall(try_read, sq.fdi, 4096)
+				if not ok_b or not b then break end
+				sq.data = sq.data .. b
+			end
 			pcall(sq.fdi.close, sq.fdi)
 			sq.done = true
 			return parse_latency(sq.data)
 		else
-			local alive = SYS.call(string.format("kill -0 %d 2>/dev/null", sq.pid)) == 0
-			if not alive then
+			local ok_k, alive = pcall(nixio.kill, sq.pid, 0)
+			if not (ok_k and alive) then
+				while true do
+					local ok_b, b = pcall(try_read, sq.fdi, 4096)
+					if not ok_b or not b then break end
+					sq.data = sq.data .. b
+				end
 				pcall(sq.fdi.close, sq.fdi)
 				sq.done = true
 				return parse_latency(sq.data)
@@ -2813,7 +2935,7 @@ function action_website_check()
 	local active_domains = {}  -- { [domain] = { sub_queries, domain_done } }
 	local domains_completed = {}
 	local delay = 50000000
-	local max_iter = 280  -- increased for batched execution
+	local max_iter = 150
 	local iter = 0
 
 	while #pending_domains > 0 and #active_domains < MAX_CONCURRENT_DOMAINS do
@@ -2929,6 +3051,7 @@ local function prepare_oix_cdn_data()
 	local function fork_oix_version(url)
 		local fdi, fdo = nixio.pipe()
 		if not fdi or not fdo then return nil end
+		local cmd = string.format('curl -sL -m 3 --connect-timeout 3 "%s" 2>/dev/null', url)
 		local child = nixio.fork()
 		if child > 0 then
 			fdo:close()
@@ -2937,7 +3060,6 @@ local function prepare_oix_cdn_data()
 			nixio.dup(fdo, nixio.stdout)
 			fdi:close()
 			fdo:close()
-			local cmd = string.format('curl -sL -m 5 --connect-timeout 3 --retry 2 "%s" 2>/dev/null', url)
 			nixio.exec("/bin/sh", "-c", cmd)
 		else
 			if fdi then fdi:close() end
@@ -2962,9 +3084,15 @@ local function prepare_oix_cdn_data()
 	for _ = 1, max_wait do
 		for _, job in ipairs(jobs) do
 			if not job.done then
-				local buf = job.fdi:read(4096)
-				if buf then job.buf = job.buf .. buf end
-				if nixio.waitpid(job.pid, "nohang") then
+				local ok_r, buf = pcall(try_read, job.fdi, 4096)
+				if ok_r and buf then job.buf = job.buf .. buf end
+				local ok_w, wpid = pcall(nixio.waitpid, job.pid, "nohang")
+				if ok_w and wpid then
+					while true do
+						local ok_b, b = pcall(try_read, job.fdi, 4096)
+						if not ok_b or not b then break end
+						job.buf = job.buf .. b
+					end
 					pcall(job.fdi.close, job.fdi)
 					job.done = true
 				end
@@ -3060,6 +3188,8 @@ function action_version_history()
 	local function fork_file_fetch(sha, file_path)
 		local fdi, fdo = nixio.pipe()
 		if not fdi or not fdo then return nil end
+		local url = "https://raw.githubusercontent.com/vernesong/OpenClash/" .. sha .. "/" .. file_path
+		local cmd = 'curl -sL -m 10 "' .. url .. '" 2>/dev/null'
 		local child = nixio.fork()
 		if child > 0 then
 			fdo:close()
@@ -3068,8 +3198,6 @@ function action_version_history()
 			nixio.dup(fdo, nixio.stdout)
 			fdi:close()
 			fdo:close()
-			local url = "https://raw.githubusercontent.com/vernesong/OpenClash/" .. sha .. "/" .. file_path
-			local cmd = 'curl -sL -m 5 "' .. url .. '" 2>/dev/null'
 			nixio.exec("/bin/sh", "-c", cmd)
 		else
 			if fdi then fdi:close() end
@@ -3082,7 +3210,7 @@ function action_version_history()
 		local results = {}
 		local active = 0
 		local delay = 50000000
-		local max_iter = 120
+		local max_iter = 150
 
 		for _ = 1, max_iter do
 			while active < max_jobs do
@@ -3100,9 +3228,15 @@ function action_version_history()
 
 			for _, job in ipairs(jobs) do
 				if job.launched and not job.done then
-					local buf = job.fdi:read(4096)
-					if buf then job.buf = job.buf .. buf end
-					if nixio.waitpid(job.pid, "nohang") then
+					local ok_r, buf = pcall(try_read, job.fdi, 4096)
+					if ok_r and buf then job.buf = job.buf .. buf end
+					local ok_w, wpid = pcall(nixio.waitpid, job.pid, "nohang")
+					if ok_w and wpid then
+						while true do
+							local ok_b, b = pcall(try_read, job.fdi, 4096)
+							if not ok_b or not b then break end
+							job.buf = job.buf .. b
+						end
 						pcall(job.fdi.close, job.fdi)
 						job.done = true
 						active = active - 1
@@ -3263,6 +3397,17 @@ function action_version_history()
 	write_padded(json.stringify(complete_line))
 end
 
+-- action_cdn_info: stream per-CDN plugin/core version + latency via forked
+-- subprocesses (text/plain JSON-lines, one line per CDN + a complete line).
+-- LuCI ucode-bridge caveats that were fixed here:
+--   * fork children must not call uci/fs.uci_get_config (inherits the parent
+--     uci lock -> deadlock); build all URLs and the shell cmd in the parent.
+--   * children must do zero Lua work and exec immediately, otherwise the
+--     leftover LuCI/ucode runtime renders a 500 page into the pipe.
+--   * MAX_CONCURRENT=4; curl -m 10 and max_iter=200 cover the worst case
+--     (6 CDNs / 2 waves x 2 curls x 10s = 40s, within the uhttpd 60s
+--     script_timeout); core curl falls back to raw.githubusercontent.com
+--     when the CDN fails.
 function action_cdn_info()
 	HTTP.prepare_content("text/plain; charset=utf-8")
 	local cdns_raw = HTTP.formvalue("addrs")
@@ -3271,7 +3416,7 @@ function action_cdn_info()
 	local core_ver = HTTP.formvalue("core_ver") or ""
 
 	if not cdns_raw or cdns_raw == "" then
-		HTTP.write('{"complete":true,"error":"Missing addrs parameter"}\n')
+		write_padded('{"complete":true,"error":"Missing addrs parameter"}')
 		return
 	end
 
@@ -3286,7 +3431,7 @@ function action_cdn_info()
 	end
 
 	if #cdns == 0 then
-		HTTP.write('{"complete":true,"error":"No valid CDNs"}\n')
+		write_padded('{"complete":true,"error":"No valid CDNs"}')
 		return
 	end
 
@@ -3314,14 +3459,14 @@ function action_cdn_info()
 		if parsed_cache.result then
 			for cdn, info in pairs(parsed_cache.result) do
 				info.addr = cdn
-				HTTP.write(json.stringify(info) .. "\n")
+				write_padded(json.stringify(info))
 			end
 		end
 		local complete_line = {complete = true}
 		if parsed_cache.result and parsed_cache.result.error then
 			complete_line.error = parsed_cache.result.error
 		end
-		HTTP.write(json.stringify(complete_line) .. "\n")
+		write_padded(json.stringify(complete_line))
 		return
 	end
 
@@ -3369,7 +3514,7 @@ function action_cdn_info()
 	local function parse_cdn_data(data)
 		if not data or data == "" then return nil end
 		local ok, parsed = pcall(json.parse, data)
-		if not ok then return nil end
+		if not ok or not parsed or type(parsed) ~= "table" then return nil end
 		if parsed.plugin_ver and not is_valid_version(parsed.plugin_ver) then parsed.plugin_ver = "" end
 		if parsed.core_meta_ver and not is_valid_version(parsed.core_meta_ver) then parsed.core_meta_ver = "" end
 		if parsed.core_smart_ver and not is_valid_version(parsed.core_smart_ver) then parsed.core_smart_ver = "" end
@@ -3379,11 +3524,11 @@ function action_cdn_info()
 	local queries = {}
 	local result = {}
 	local pending_cdns = {}
-	local MAX_CONCURRENT = 3
+	local MAX_CONCURRENT = 4
 	local active = 0
 	local completed = {}
 	local delay = 50000000
-	local max_iter = 280
+	local max_iter = 200
 	local iter = 0
 
 	local oix_mode, oix_core_ver, oix_core_error = prepare_oix_cdn_data()
@@ -3405,31 +3550,26 @@ function action_cdn_info()
 	end
 
 	local function launch_cdn(cdn)
-		local fdi, fdo = nixio.pipe()
-		if fdi and fdo then
-			local pid = nixio.fork()
-			if pid > 0 then
-				fdo:close()
-				queries[cdn] = { pid = pid, fdi = fdi, data = "" }
-				active = active + 1
-			elseif pid == 0 then
-				nixio.dup(fdo, nixio.stdout)
-				fdi:close()
-				fdo:close()
-
-				local plugin_url = build_version_url(cdn, "plugin")
-				local core_url = build_version_url(cdn, "core")
-
-				local cmd = string.format([[
+		pcall(io.flush)
+		local plugin_url = build_version_url(cdn, "plugin")
+		local core_url = build_version_url(cdn, "core")
+		local raw_core_url = ""
+		if not is_oix() then
+			local raw_ref = (core_ver ~= "" and core_ver ~= "__latest__") and core_ver or "core"
+			raw_core_url = "https://raw.githubusercontent.com/vernesong/OpenClash/" .. raw_ref .. "/" .. branch .. "/core_version"
+		end
+		local cmd = string.format([[
 PLUGIN_VER=""
 CORE_META_VER="%s"
 CORE_SMART_VER=""
 CORE_ERR="%s"
 OIX_MODE="%s"
+RAW_CORE_URL="%s"
 LATENCY="null"
 
-PLUGIN_RAW=$(curl -sL -m 5 --connect-timeout 3 --retry 2 -w $'\n%%{http_code} %%{time_starttransfer}' "%s" 2>/dev/null)
+PLUGIN_RAW=$(curl -sL -m 10 -w '\n%%{http_code} %%{time_starttransfer}' "%s" 2>/dev/null)
 P_EXIT=$?
+
 if [ $P_EXIT -eq 0 ] && [ -n "$PLUGIN_RAW" ]; then
 	P_CODE=$(echo "$PLUGIN_RAW" | tail -1 | awk '{print $1}')
 	P_TIME=$(echo "$PLUGIN_RAW" | tail -1 | awk '{printf "%%d", $2 * 1000}')
@@ -3445,34 +3585,47 @@ else
 	LATENCY=-2
 fi
 
-if [ "$LATENCY" != "-3" ]; then
-	CORE_RAW=$(curl -sL -m 5 --connect-timeout 3 --retry 2 -w $'\n%%{http_code} %%{time_starttransfer}' "%s" 2>/dev/null)
+CORE_RAW=$(curl -sL -m 10 -w '\n%%{http_code} %%{time_starttransfer}' "%s" 2>/dev/null)
+C_EXIT=$?
+if [ $C_EXIT -ne 0 ] && [ -n "$RAW_CORE_URL" ]; then
+	CORE_RAW=$(curl -sL -m 10 -w '\n%%{http_code} %%{time_starttransfer}' "$RAW_CORE_URL" 2>/dev/null)
 	C_EXIT=$?
-	if [ $C_EXIT -eq 0 ] && [ -n "$CORE_RAW" ]; then
-		C_CODE=$(echo "$CORE_RAW" | tail -1 | awk '{print $1}')
-		C_TIME=$(echo "$CORE_RAW" | tail -1 | awk '{printf "%%d", $2 * 1000}')
-		if [ "$C_CODE" -ge 200 ] 2>/dev/null && [ "$C_CODE" -lt 400 ] 2>/dev/null && [ "$C_TIME" -gt 0 ] 2>/dev/null; then
-			CORE_META_VER=$(echo "$CORE_RAW" | sed '$d' | sed -n '1p' | tr -d '\n\r')
-			CORE_SMART_VER=$(echo "$CORE_RAW" | sed '$d' | sed -n '2p' | tr -d '\n\r')
-			if [ "$LATENCY" = "null" ] || [ "$C_TIME" -lt "$LATENCY" ] 2>/dev/null; then
-				LATENCY=$C_TIME
-			fi
-		elif [ "$LATENCY" != "null" ] && [ "$LATENCY" != "-3" ]; then
-			:
-		else
-			[ "$C_CODE" = "404" ] && LATENCY=-3 || LATENCY=-2
+fi
+
+if [ $C_EXIT -eq 0 ] && [ -n "$CORE_RAW" ]; then
+	C_CODE=$(echo "$CORE_RAW" | tail -1 | awk '{print $1}')
+	C_TIME=$(echo "$CORE_RAW" | tail -1 | awk '{printf "%%d", $2 * 1000}')
+	if [ "$C_CODE" -ge 200 ] 2>/dev/null && [ "$C_CODE" -lt 400 ] 2>/dev/null && [ "$C_TIME" -gt 0 ] 2>/dev/null; then
+		CORE_META_VER=$(echo "$CORE_RAW" | sed '$d' | sed -n '1p' | tr -d '\n\r')
+		CORE_SMART_VER=$(echo "$CORE_RAW" | sed '$d' | sed -n '2p' | tr -d '\n\r')
+		if [ "$LATENCY" = "null" ] || [ "$C_TIME" -lt "$LATENCY" ] 2>/dev/null; then
+			LATENCY=$C_TIME
 		fi
-	elif [ $C_EXIT -ne 0 ]; then
-		[ "$LATENCY" = "null" ] && LATENCY=-1
+	elif [ "$LATENCY" != "null" ] && [ "$LATENCY" != "-3" ]; then
+		:
 	else
-		[ "$LATENCY" = "null" ] && LATENCY=-2
+		[ "$C_CODE" = "404" ] && LATENCY=-3 || LATENCY=-2
 	fi
+elif [ $C_EXIT -ne 0 ]; then
+	[ "$LATENCY" = "null" ] && LATENCY=-1
+else
+	[ "$LATENCY" = "null" ] && LATENCY=-2
 fi
 
 printf '{"plugin_ver":"%%s","core_meta_ver":"%%s","core_smart_ver":"%%s","latency":%%s,"core_error":"%%s"}\n' \
 	"$PLUGIN_VER" "$CORE_META_VER" "$CORE_SMART_VER" "${LATENCY:-null}" "$CORE_ERR"
-]], oix_core_ver, oix_core_error, oix_mode and "1" or "0", plugin_url, core_url)
-
+]], oix_core_ver, oix_core_error, oix_mode and "1" or "0", raw_core_url, plugin_url, core_url)
+		local fdi, fdo = nixio.pipe()
+		if fdi and fdo then
+			local pid = nixio.fork()
+			if pid > 0 then
+				fdo:close()
+				queries[cdn] = { pid = pid, fdi = fdi, data = "" }
+				active = active + 1
+			elseif pid == 0 then
+				nixio.dup(fdo, nixio.stdout)
+				fdi:close()
+				fdo:close()
 				nixio.exec("/bin/sh", "-c", cmd)
 			else
 				if fdi then fdi:close() end
@@ -3496,7 +3649,7 @@ printf '{"plugin_ver":"%%s","core_meta_ver":"%%s","core_smart_ver":"%%s","latenc
 
 	if next(queries) == nil then
 		if next(result) == nil then
-			HTTP.write('{"complete":true,"error":"Failed to create queries"}\n')
+			write_padded('{"complete":true,"error":"Failed to create queries"}')
 			return
 		end
 	end
@@ -3508,34 +3661,46 @@ printf '{"plugin_ver":"%%s","core_meta_ver":"%%s","core_smart_ver":"%%s","latenc
 
 		for cdn, q in pairs(queries) do
 			if not completed[cdn] then
-				local buf = q.fdi:read(4096)
-				if buf then q.data = q.data .. buf end
-				local wpid = nixio.waitpid(q.pid, "nohang")
-				if wpid then
+				local ok_r, buf = pcall(try_read, q.fdi, 4096)
+				if ok_r and buf then q.data = q.data .. buf end
+				local ok_w, wpid = pcall(nixio.waitpid, q.pid, "nohang")
+				if ok_w and wpid then
+					while true do
+						local ok_b, b = pcall(try_read, q.fdi, 4096)
+						if not ok_b or not b then break end
+						q.data = q.data .. b
+					end
 					pcall(q.fdi.close, q.fdi)
 					completed[cdn] = true
 					active = active - 1
 					local parsed = parse_cdn_data(q.data)
 					if parsed then result[cdn] = parsed end
 					if not result[cdn] then
-						result[cdn] = { plugin_ver = "", core_meta_ver = "", latency = nil }
+						result[cdn] = { plugin_ver = "", core_meta_ver = "", latency = -1 }
 					end
 					result[cdn].addr = cdn
-					write_padded(json.stringify(result[cdn]))
+					local ok_j, jdata = pcall(json.stringify, result[cdn])
+					if ok_j and jdata then write_padded(jdata) end
 					queries[cdn] = nil
 				else
-					local alive = SYS.call(string.format("kill -0 %d 2>/dev/null", q.pid)) == 0
-					if not alive then
+					local ok_k, alive = pcall(nixio.kill, q.pid, 0)
+					if not (ok_k and alive) then
+						while true do
+							local ok_b, b = pcall(try_read, q.fdi, 4096)
+							if not ok_b or not b then break end
+							q.data = q.data .. b
+						end
 						pcall(q.fdi.close, q.fdi)
 						completed[cdn] = true
 						active = active - 1
 						local parsed = parse_cdn_data(q.data)
 						if parsed then result[cdn] = parsed end
 						if not result[cdn] then
-							result[cdn] = { plugin_ver = "", core_meta_ver = "", latency = nil }
+							result[cdn] = { plugin_ver = "", core_meta_ver = "", latency = -1 }
 						end
 						result[cdn].addr = cdn
-						write_padded(json.stringify(result[cdn]))
+						local ok_j, jdata = pcall(json.stringify, result[cdn])
+						if ok_j and jdata then write_padded(jdata) end
 						queries[cdn] = nil
 					end
 				end
@@ -3566,12 +3731,46 @@ printf '{"plugin_ver":"%%s","core_meta_ver":"%%s","core_smart_ver":"%%s","latenc
 
 	for cdn, q in pairs(queries) do
 		if not completed[cdn] then
-			result[cdn] = { plugin_ver = "", core_meta_ver = "", latency = nil }
-			result[cdn].addr = cdn
 			pcall(nixio.kill, q.pid, nixio.const.SIGTERM)
-			pcall(nixio.waitpid, q.pid, 0)
+			local reaped = false
+			for _ = 1, 20 do
+				local ok_w, wpid = pcall(nixio.waitpid, q.pid, "nohang")
+				if ok_w and wpid then reaped = true break end
+				local ok_k, alive = pcall(nixio.kill, q.pid, 0)
+				if not (ok_k and alive) then
+					pcall(nixio.waitpid, q.pid, 0)
+					reaped = true
+					break
+				end
+				nixio.nanosleep(0, 50000000)
+			end
+			if not reaped then
+				pcall(nixio.kill, q.pid, nixio.const.SIGKILL)
+				pcall(nixio.waitpid, q.pid, 0)
+			end
+			while true do
+				local ok_b, b = pcall(try_read, q.fdi, 4096)
+				if not ok_b or not b then break end
+				q.data = q.data .. b
+			end
 			pcall(q.fdi.close, q.fdi)
-			write_padded(json.stringify(result[cdn]))
+			local parsed = parse_cdn_data(q.data)
+			if parsed then result[cdn] = parsed end
+			if not result[cdn] then
+				result[cdn] = { plugin_ver = "", core_meta_ver = "", latency = -1 }
+			end
+			result[cdn].addr = cdn
+			local ok_j, jdata = pcall(json.stringify, result[cdn])
+			if ok_j and jdata then write_padded(jdata) end
+		end
+	end
+
+	for _, cdn in ipairs(pending_cdns) do
+		if not result[cdn] then
+			result[cdn] = { plugin_ver = "", core_meta_ver = "", latency = -1 }
+			result[cdn].addr = cdn
+			local ok_j, jdata = pcall(json.stringify, result[cdn])
+			if ok_j and jdata then write_padded(jdata) end
 		end
 	end
 
@@ -3594,9 +3793,9 @@ printf '{"plugin_ver":"%%s","core_meta_ver":"%%s","core_smart_ver":"%%s","latenc
 	end
 	if all_stale and next(result) ~= nil then
 		result.error = "version_stale"
-		HTTP.write('{"complete":true,"error":"version_stale"}\n')
+		write_padded('{"complete":true,"error":"version_stale"}')
 	else
-		HTTP.write('{"complete":true}\n')
+		write_padded('{"complete":true}')
 	end
 
 	fs.writefile(cache_file, json.stringify({

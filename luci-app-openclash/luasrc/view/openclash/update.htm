@@ -4,6 +4,7 @@
     local version_tab = (self and self.version_tab) or false
 %>
 <%+openclash/common%>
+<script src="/luci-static/resources/openclash/js/common.js?v=<%=plugin_version%>"></script>
 <script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
     <div class="oc">
         <div id="selectPopup" class="select-popup<%= version_tab and ' select-popup-tab' or ' hidden' %>">
@@ -23,18 +24,20 @@
             <div class="select-config-section">
                 <div class="config-grid">
                     <div class="config-item">
-                        <div class="oc-option-title"><svg><use href="#oc-icon-building-broadcast-tower"/></svg><span class="oc-option-text"><%:CPU Arch%></span></div>
+                        <div class="oc-option-title">
+                            <span class="oc-option-text"><%:CPU Arch%></span>
+                        </div>
                         <span class="ver-value" id="CPU_ARCH_VALUE"><%:Collecting data...%></span>
                     </div>
                     <div class="config-item">
-                        <div class="oc-option-title"><svg><use href="#oc-icon-hammer"/></svg><span class="oc-option-text"><%:Compiled Version%></span></div>
+                        <div class="oc-option-title"><span class="oc-option-text"><%:Compiled Version%></span></div>
                         <div class="form-select-wrapper">
                             <select class="select-class oc-arch-select" id="CORE_VERSION" onchange="saveOptions()">
                             </select>
                         </div>
                     </div>
                     <div class="config-item">
-                        <div class="oc-option-title"><svg><use href="#oc-icon-switch"/></svg><span class="oc-option-text"><%:Release Branch%></span></div>
+                        <div class="oc-option-title"><span class="oc-option-text"><%:Release Branch%></span></div>
                         <div class="form-select-wrapper">
                             <select class="select-class" id="RELEASE_BRANCH" onchange="onBranchChange()">
                                 <option value="master">Master</option>
@@ -44,7 +47,7 @@
                     </div>
                     <div class="config-item">
                         <div class="oc-option-title">
-                            <svg><use href="#oc-icon-brain"/></svg><span class="oc-option-text"><%:Smart Core%></span>
+                            <span class="oc-option-text"><%:Smart Core%></span>
                             <a href="javascript:void(0);" onclick="window.open('https://github.com/vernesong/mihomo/releases', '_blank');" class="help-link" title="<%:View core infos that support smart group%>">
                                 <svg width="12" height="12"><use href="#oc-icon-help"/></svg>
                             </a>
@@ -60,25 +63,25 @@
                 <div class="version-card">
                     <div class="version-row">
                         <div class="config-item">
-                            <span class="oc-option-title"><svg><use href="#oc-icon-package"/></svg><span class="oc-option-text"><%:Installed%></span></span>
+                            <span class="oc-option-title"><span class="oc-option-text"><%:Plugin%></span></span>
                             <span class="ver-value" id="installed-plugin">--</span>
                         </div>
                         <div class="config-item">
-                            <span class="oc-option-title"><svg><use href="#oc-icon-list-search"/></svg><span class="oc-option-text"><%:Select Version%></span></span>
+                            <span class="oc-option-title"><span class="oc-option-text"><%:Select Version%></span></span>
                             <div class="form-select-wrapper">
-                                <select class="select-class" id="select-plugin-ver" onchange="forceRefresh=true;refreshAddrInfo()">
+                                <select class="select-class" id="select-plugin-ver" onchange="forceRefresh=true;refreshAddrInfo({cancel:true})">
                                     <option value="__latest__"><%:Latest%></option>
                                 </select>
                             </div>
                         </div>
                         <div class="config-item">
-                            <span class="oc-option-title"><svg><use href="#oc-icon-cpu"/></svg><span class="oc-option-text"><%:Installed%></span></span>
+                            <span class="oc-option-title"><span class="oc-option-text"><%:Core%></span></span>
                             <span class="ver-value" id="installed-core">--</span>
                         </div>
                         <div class="config-item">
-                            <span class="oc-option-title"><svg><use href="#oc-icon-list-search"/></svg><span class="oc-option-text"><%:Select Version%></span></span>
+                            <span class="oc-option-title"><span class="oc-option-text"><%:Select Version%></span></span>
                             <div class="form-select-wrapper">
-                                <select class="select-class" id="select-core-ver" onchange="forceRefresh=true;refreshAddrInfo()">
+                                <select class="select-class" id="select-core-ver" onchange="forceRefresh=true;refreshAddrInfo({cancel:true})">
                                     <option value="__latest__"><%:Latest%></option>
                                 </select>
                             </div>
@@ -90,10 +93,10 @@
 
             <div class="select-popup-body" id="addr-list-body">
                 <div class="select-option addr-header">
-                    <span class="addr-header-label"><%:Address%></span>
-                    <span class="addr-header-label"><%:Latency%></span>
-                    <span class="addr-header-label"><%:Plugin%></span>
-                    <span class="addr-header-label"><%:Core%>
+                    <span class="addr-header-label"><span class="addr-header-icon"><svg><use href="#oc-icon-link-tabler"/></svg></span><span><%:Address%></span></span>
+                    <span class="addr-header-label"><span class="addr-header-icon"><svg><use href="#oc-icon-speedtest"/></svg></span><span><%:Latency%></span></span>
+                    <span class="addr-header-label"><span class="addr-header-icon"><svg><use href="#oc-icon-package"/></svg></span><span><%:Plugin%></span></span>
+                    <span class="addr-header-label"><span class="addr-header-icon"><svg><use href="#oc-icon-cpu"/></svg></span><span><%:Core%></span>
                         <a href="javascript:void(0);" class="help-link" title="<%:Core path:%>/etc/openclash/core/clash_meta" onclick="return false;">
                             <svg width="12" height="12"><use href="#oc-icon-help"/></svg>
                         </a>
@@ -145,15 +148,15 @@
                 </div>
                 <button type="button" class="footer-btn" onclick="return backup_file(this)">
                     <svg width="14" height="14"><use href="#oc-icon-download"/></svg>
-                    <%:Backup File%>
+                    <span><%:Backup File%></span>
                 </button>
                 <button type="button" class="footer-btn" onclick="return restore_config(this)">
                     <svg width="14" height="14"><use href="#oc-icon-history"/></svg>
-                    <%:Restore Default%>
+                    <span><%:Restore Default%></span>
                 </button>
-                <button type="button" class="footer-btn footer-btn-danger" onclick="return remove_all_core(this)">
+                <button type="button" class="footer-btn" onclick="return remove_all_core(this)">
                     <svg width="14" height="14"><use href="#oc-icon-trash"/></svg>
-                    <%:Remove Core%>
+                    <span><%:Remove Core%></span>
                 </button>
             </div>
         </div>
@@ -172,6 +175,10 @@
     var refreshTimer = null;
     var versionRetryTimer = null;
     var retryTimer = null;
+    var addrInfoBusy = false;
+    var addrInfoXHR = null;
+    var versionHistoryBusy = false;
+    var versionHistoryXHR = null;
     var hintTimer = null;
     var defaultTipTimer = null;
     var logStreamXHR = null;
@@ -334,10 +341,6 @@
                 verText = selectedOption.getAttribute('data-ver');
             }
 
-            if (isLatest && type === 'core' && !_isOix) {
-                verText = 'Latest';
-            }
-
             if (!verText) return null;
         }
 
@@ -423,8 +426,8 @@
                     coreEl.textContent = info.core_error === 'timeout' ? '<%:Access Timed Out%>' : '<%:Access Denied%>';
                     coreEl.classList.add('has-data', 'err');
                 } else {
-                    coreEl.textContent = '--';
-                    coreEl.classList.remove('has-data', 'err');
+                    coreEl.textContent = '<%:Access Timed Out%>';
+                    coreEl.classList.add('has-data', 'err');
                 }
             }
         }
@@ -461,7 +464,13 @@
         refreshTimer = setInterval(refreshAddrInfo, ocRandomInterval(10000, 20000));
     }
 
-    function fetchVersionHistory(force) {
+    function fetchVersionHistory(force, opts) {
+        if (versionHistoryBusy) {
+            if (!(opts && opts.cancel)) return;
+            if (versionHistoryXHR) { try { versionHistoryXHR.abort(); } catch(e) {} versionHistoryXHR = null; }
+            versionHistoryBusy = false;
+        }
+        versionHistoryBusy = true;
         var branch = fetchedBranch || release_branch.value || 'dev';
         var pluginSelect = document.getElementById('select-plugin-ver');
         var coreSelect = document.getElementById('select-core-ver');
@@ -598,7 +607,14 @@
                 versionRetryTimer = setInterval(fetchVersionHistory, 10000);
             }
         };
+        xhr.onloadend = function() {
+            if (versionHistoryXHR === xhr) {
+                versionHistoryXHR = null;
+                versionHistoryBusy = false;
+            }
+        };
         xhr.send();
+        versionHistoryXHR = xhr;
     }
 
     function saveOptions() {
@@ -614,16 +630,16 @@
         if (versionRetryTimer) { clearInterval(versionRetryTimer); versionRetryTimer = null; }
         if (retryTimer) { clearInterval(retryTimer); retryTimer = null; }
         saveOptions();
-        fetchVersionHistory();
+        fetchVersionHistory(false, {cancel: true});
         forceRefresh = true;
-        refreshAddrInfo();
+        refreshAddrInfo({cancel: true});
     }
 
     function onSmartChange() {
         saveOptions();
-        fetchVersionHistory();
+        fetchVersionHistory(false, {cancel: true});
         forceRefresh = true;
-        refreshAddrInfo();
+        refreshAddrInfo({cancel: true});
     }
 
     function refreshAddrInfo(opts) {
@@ -633,6 +649,12 @@
             if (v && v !== 'custom' && isValidURL(v)) addrs.push(v);
         });
         if (addrs.length === 0) return;
+        if (addrInfoBusy) {
+            if (!(opts && opts.cancel)) return;
+            if (addrInfoXHR) { try { addrInfoXHR.abort(); } catch(e) {} addrInfoXHR = null; }
+            addrInfoBusy = false;
+        }
+        addrInfoBusy = true;
 
         var branch = fetchedBranch || release_branch.value || 'dev';
         var smart = smart_enable.value || '0';
@@ -674,13 +696,16 @@
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         var lastLen = 0;
         var hasComplete = false;
+        var pendingBuf = '';
         xhr.onprogress = function() {
             if (xhr.status != 200) return;
             var text = xhr.responseText;
             if (text.length <= lastLen) return;
             var newText = text.substring(lastLen);
             lastLen = text.length;
-            var lines = newText.split('\n');
+            pendingBuf += newText;
+            var lines = pendingBuf.split('\n');
+            pendingBuf = lines.pop();
             for (var i = 0; i < lines.length; i++) {
                 var line = lines[i].trim();
                 if (!line) continue;
@@ -693,8 +718,7 @@
                         }
                         continue;
                     }
-                    var addrUrl = info.addr;
-                    if (!addrUrl) continue;
+                    var addrUrl = info.addr;                    if (!addrUrl) continue;
                     var rows = document.querySelectorAll('#addr-list-body .addr-row[data-value="' + CSS.escape(addrUrl) + '"]');
                     rows.forEach(function(row) { updateAddrRow(row, addrUrl, info); });
                 } catch(e) {}
@@ -713,7 +737,9 @@
             if (text.length > lastLen) {
                 var newText = text.substring(lastLen);
                 lastLen = text.length;
-                var lines = newText.split('\n');
+                pendingBuf += newText;
+                var lines = pendingBuf.split('\n');
+                pendingBuf = lines.pop();
                 for (var i = 0; i < lines.length; i++) {
                     var line = lines[i].trim();
                     if (!line) continue;
@@ -744,7 +770,61 @@
             if (retryTimer) { clearInterval(retryTimer); retryTimer = null; }
             retryTimer = setInterval(refreshAddrInfo, 10000);
         };
+        xhr.onloadend = function() {
+            if (addrInfoXHR === xhr) {
+                addrInfoXHR = null;
+                addrInfoBusy = false;
+            }
+        };
         xhr.send();
+        addrInfoXHR = xhr;
+    }
+
+    function initHeaderDrag() {
+        var popup = document.getElementById('selectPopup');
+        var header = popup ? popup.querySelector('.select-popup-header') : null;
+        if (!popup || !header || popup.classList.contains('select-popup-tab')) return;
+        if (header.dataset.ocDragInit) return;
+        header.dataset.ocDragInit = '1';
+        header.classList.add('oc-draggable');
+
+        var dragging = false;
+        var startX = 0, startY = 0, startLeft = 0, startTop = 0;
+
+        header.addEventListener('pointerdown', function(e) {
+            if (e.target.closest && e.target.closest('button, a, select, input')) return;
+            dragging = true;
+            var rect = popup.getBoundingClientRect();
+            startX = e.clientX;
+            startY = e.clientY;
+            startLeft = rect.left;
+            startTop = rect.top;
+            popup.style.transform = 'none';
+            popup.style.left = rect.left + 'px';
+            popup.style.top = rect.top + 'px';
+            popup.style.transition = 'none';
+            if (header.setPointerCapture) {
+                try { header.setPointerCapture(e.pointerId); } catch(err) {}
+            }
+            e.preventDefault();
+        });
+
+        header.addEventListener('pointermove', function(e) {
+            if (!dragging) return;
+            popup.style.left = (startLeft + (e.clientX - startX)) + 'px';
+            popup.style.top = (startTop + (e.clientY - startY)) + 'px';
+        });
+
+        function stopDrag(e) {
+            if (!dragging) return;
+            dragging = false;
+            popup.style.transition = '';
+            if (header.releasePointerCapture) {
+                try { header.releasePointerCapture(e.pointerId); } catch(err) {}
+            }
+        }
+        header.addEventListener('pointerup', stopDrag);
+        header.addEventListener('pointercancel', stopDrag);
     }
 
     function update(btn, type) {
@@ -762,6 +842,7 @@
         selectPopup.classList.remove('hidden');
         selectPopup.onclick = function(event) { click_handler(event); };
         initAllData();
+        initHeaderDrag();
     }
 
     function handleVersionUpdate(verLink) {
@@ -865,7 +946,7 @@
                 listBody.insertBefore(div, document.getElementById('custom-addr-option'));
                 customInput.classList.add('oc-hidden');
                 addBtn.classList.add('oc-hidden');
-                refreshAddrInfo({merge: true});
+                refreshAddrInfo({merge: true, cancel: true});
             } else {
                 alert("<%:Please enter a valid URL!%>");
             }
@@ -973,8 +1054,8 @@
         if (versionRetryTimer) { clearInterval(versionRetryTimer); versionRetryTimer = null; }
         if (retryTimer) { clearInterval(retryTimer); retryTimer = null; }
         if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
-        fetchVersionHistory(true);
-        refreshAddrInfo();
+        fetchVersionHistory(true, {cancel: true});
+        refreshAddrInfo({cancel: true});
         refreshTimer = setInterval(refreshAddrInfo, ocRandomInterval(10000, 20000));
     }
 
@@ -984,6 +1065,10 @@
         var addBtn = document.getElementById('addCustomOption');
         if (!versionTabMode) {
             popup.classList.add('hidden');
+            popup.style.transform = '';
+            popup.style.left = '';
+            popup.style.top = '';
+            popup.style.transition = '';
         }
         if (!logStreamActive) { clearHint(); }
         if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
@@ -993,34 +1078,79 @@
         addBtn.classList.add('oc-hidden');
     }
 
+    function setBtnBusy(btn, busy, busyText) {
+        if (!btn) return;
+        var btnText = btn.querySelector('span:not(.loading-spinner)');
+        if (busy) {
+            if (btnText && !btn.dataset.ocBtnOriginalText) {
+                btn.dataset.ocBtnOriginalText = btnText.textContent;
+            }
+            if (btnText && busyText) { btnText.textContent = busyText; }
+            ocSetBtnLoading(btn, true);
+        } else {
+            ocSetBtnLoading(btn, false);
+            if (btnText && btn.dataset.ocBtnOriginalText) {
+                btnText.textContent = btn.dataset.ocBtnOriginalText;
+                delete btn.dataset.ocBtnOriginalText;
+            }
+        }
+    }
+
     function remove_all_core(btn) {
-        btn.disabled = true;
         if (confirm('<%:Are you sure want to remove all core files?%>')) {
+            setBtnBusy(btn, true, '<%:Removing...%>');
             XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "remove_all_core")%>', null, function(x) {
                 alert((x && x.status == 200) ? '<%:Remove succeeded!%>' : '<%:Remove failed!%>');
-                btn.disabled = false;
+                setBtnBusy(btn, false);
             });
         }
         return false;
     }
 
     function backup_file(btn) {
-        btn.disabled = true;
-        window.location.href = document.getElementById('BACKUP_SELECT').value;
-        btn.disabled = false;
+        var endpoint = document.getElementById('BACKUP_SELECT').value;
+        var url = '<%=luci.dispatcher.build_url("admin", "services", "openclash")%>' + '/' + endpoint;
+        setBtnBusy(btn, true, '<%:Backing up...%>');
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.responseType = 'blob';
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.onload = function() {
+            setBtnBusy(btn, false);
+            if (xhr.status == 200 && xhr.response) {
+                var disposition = xhr.getResponseHeader('Content-Disposition') || '';
+                var match = disposition.match(/filename="?([^";]+)"?/);
+                var filename = match ? match[1] : endpoint + '.tar.gz';
+                var blobUrl = URL.createObjectURL(xhr.response);
+                var a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 1000);
+            } else {
+                alert('<%:Backup failed!%>');
+            }
+        };
+        xhr.onerror = function() {
+            setBtnBusy(btn, false);
+            alert('<%:Backup failed!%>');
+        };
+        xhr.send();
         return false;
     }
 
     function restore_config(btn) {
-        btn.disabled = true;
         if (confirm('<%:Are you sure want to restore the default config?%>')) {
+            setBtnBusy(btn, true, '<%:Restoring...%>');
             XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "restore")%>', null, function(x) {
+                setBtnBusy(btn, false);
                 if (x && x.status == 200) {
                     alert('<%:Restore succeeded!%>');
                 } else {
                     alert('<%:Restore failed!%>');
                 }
-                btn.disabled = false;
                 window.location.href = '<%=luci.dispatcher.build_url("admin", "services", "openclash", "settings")%>';
             });
         }

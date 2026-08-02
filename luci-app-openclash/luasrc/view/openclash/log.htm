@@ -6,20 +6,20 @@
 <script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
 <%+openclash/common%>
 <body>
-    <div id="tab" class="cbi-section oc">
+    <div id="tab" class="oc">
         <div id="tab-header">
-            <ul class="cbi-tabmenu">
-                <li name="tab-header" class="cbi-tab"><a href="#"><%:OpenClash Log%></a></li>
-                <li name="tab-header" class="cbi-tab-disabled"><a href="#"><%:Core Log%></a></li>
-                <li name="tab-header" class="cbi-tab-disabled"><a href="#"><%:Debug Logs%></a></li>
+            <ul class="oc-tabmenu">
+                <li name="tab-header" class="oc-tab"><a href="#"><svg width="14" height="14"><use href="#oc-icon-package"/></svg><span><%:OpenClash Log%></span></a></li>
+                <li name="tab-header" class="oc-tab-disabled"><a href="#"><svg width="14" height="14"><use href="#oc-icon-cpu"/></svg><span><%:Core Log%></span></a></li>
+                <li name="tab-header" class="oc-tab-disabled"><a href="#"><svg width="14" height="14"><use href="#oc-icon-bug"/></svg><span><%:Debug Logs%></span></a></li>
             </ul>
         </div>
         <div id="tab-content">
             <div class="dom" style="display: block;">
-                <textarea id="cbid.openclash.config.clog" class="cbi-input-textarea oc-w100" style="display:inline" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
+                <textarea id="cbid.openclash.config.clog" class="oc-input-textarea" style="display:inline" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
             </div>
             <div class="dom">
-                <textarea id="core_log" class="cbi-input-textarea oc-w100" style="display:inline" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
+                <textarea id="core_log" class="oc-input-textarea" style="display:inline" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
                 <div class="radio-button">
                     <input type="radio" id="info" name="radios" value="info" checked onclick="return switch_log_level(this.value)"/>
                     <label for="info"><%:Info%></label>
@@ -34,7 +34,7 @@
                 </div>
             </div>
             <div class="dom">
-                <textarea id="debug_log" class="cbi-input-textarea oc-w100 oc-hidden" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
+                <textarea id="debug_log" class="oc-input-textarea oc-hidden" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
                 <div id="debug-render-wrapper">
                     <div id="debug-rendered"></div>
                     <div class="oc-usage-help-float" id="debug-copy-source" onclick="copyDebugSource()" title="<%:Copy Debug%>"><svg width="20" height="20"><use href="#oc-icon-copy"/></svg></div>
@@ -43,18 +43,15 @@
         </div>
     </div>
 
-<fieldset class="cbi-section oc oc-text-center oc-w100">
-    <div class="btn-group">
-        <input type="button" class="btn cbi-button cbi-button-apply" id="stop_refresh_button" value="<%:Stop Refresh%>" onclick=" return stop_refresh() "/>
-        <input type="button" class="btn cbi-button cbi-button-apply" id="start_refresh_button" value="<%:Start Refresh%>" onclick=" return start_refresh() "/>
-        <input type="button" class="btn cbi-button cbi-button-apply" id="del_log_button" value="<%:Clean%>" onclick=" return del_log() " />
-        <input type="button" class="btn cbi-button cbi-button-apply" id="down_log_button" value="<%:Download Log%>" onclick=" return download_log() " />
-        <span class="oc-flex-center" style="gap:4px;">
-            <input type="button" class="btn cbi-button cbi-button-apply" id="gen_debug_button" value="<%:Generate Logs%>" onclick="return gen_debug_logs()" />
-            <span id="debug_loading" class="oc-hidden" style="vertical-align:middle; line-height:1;"><span class="loading-spinner" style="vertical-align:middle"></span></span>
-        </span>
+<div class="oc oc-text-center oc-w100">
+    <div class="select-popup-footer log-footer">
+        <button type="button" class="footer-btn" id="stop_refresh_button" onclick="return stop_refresh()"><svg width="14" height="14"><use href="#oc-icon-player-pause"/></svg><span><%:Stop Refresh%></span></button>
+        <button type="button" class="footer-btn" id="start_refresh_button" onclick="return start_refresh()"><svg width="14" height="14"><use href="#oc-icon-player-play"/></svg><span><%:Start Refresh%></span></button>
+        <button type="button" class="footer-btn" id="del_log_button" onclick="return del_log()"><svg width="14" height="14"><use href="#oc-icon-trash"/></svg><span><%:Clean%></span></button>
+        <button type="button" class="footer-btn" id="down_log_button" onclick="return download_log()"><svg width="14" height="14"><use href="#oc-icon-download"/></svg><span><%:Download Log%></span></button>
+        <button type="button" class="footer-btn" id="gen_debug_button" onclick="return gen_debug_logs()"><svg width="14" height="14"><use href="#oc-icon-play-bugs"/></svg><span><%:Generate Logs%></span></button>
     </div>
-</fieldset>
+</div>
 </body>
 
 <script type="text/javascript">//<![CDATA[
@@ -172,7 +169,7 @@ function download_log(){
     var activeTabId = 0;
     var titles = document.getElementsByName('tab-header');
     for(var i=0; i<titles.length; i++){
-        if(titles[i].className === 'cbi-tab') {
+        if(titles[i].className === 'oc-tab') {
             activeTabId = i;
             break;
         }
@@ -244,7 +241,7 @@ function del_log() {
     var activeTabId = 0;
     var titles = document.getElementsByName('tab-header');
     for(var i=0; i<titles.length; i++){
-        if(titles[i].className === 'cbi-tab') {
+        if(titles[i].className === 'oc-tab') {
             activeTabId = i;
             break;
         }
@@ -395,16 +392,33 @@ function coreLogWebSocket() {
 
 function gen_debug_logs()
 {
-    var loading_el = document.getElementById('debug_loading');
     var btn = document.getElementById('gen_debug_button');
-    var originalText = btn.value;
-    if (loading_el) { loading_el.classList.remove('oc-hidden'); }
-    if (btn) { btn.value = '<%:Generating...%>'; btn.disabled = true; }
+    var btnText = btn ? btn.querySelector('span') : null;
+    var btnSvg = btn ? btn.querySelector('svg') : null;
+    var originalText = btnText ? btnText.textContent : '';
+    var originalSvg = btnSvg ? btnSvg.outerHTML : '';
+    if (btn) {
+        if (btnText) { btnText.textContent = '<%:Generating...%>'; }
+        btn.disabled = true;
+        if (btnSvg) {
+            var spinner = document.createElement('span');
+            spinner.className = 'loading-spinner oc-btn-spinner';
+            btnSvg.replaceWith(spinner);
+        }
+    }
+
+    function restoreGenerateBtn() {
+        if (!btn) return;
+        if (btnText) { btnText.textContent = originalText; }
+        btn.disabled = false;
+        var sp = btn.querySelector('.loading-spinner');
+        if (sp) { sp.outerHTML = originalSvg; }
+    }
 
     restoreDebugEditor();
 
     var titles = document.getElementsByName('tab-header');
-    if (titles.length > 2 && titles[2].className !== 'cbi-tab') {
+    if (titles.length > 2 && titles[2].className !== 'oc-tab') {
         titles[2].click();
     }
 
@@ -426,6 +440,9 @@ function gen_debug_logs()
         lastLen = text.length;
         var lines = text.split('\n');
         lines.pop();
+        if (lines.length > 0 && lines[0].length === 8192 && /^ +$/.test(lines[0])) {
+            lines.shift();
+        }
         var preview = lines.join('\n');
         if (editor_debug && editor_debug.setValue) {
             editor_debug.setValue(preview);
@@ -436,8 +453,7 @@ function gen_debug_logs()
     };
 
     xhr.onload = function() {
-        if (loading_el) { loading_el.style.display = 'none'; }
-        if (btn) { btn.value = originalText; btn.disabled = false; }
+        restoreGenerateBtn();
         var finalText = xhr.responseText || '';
 
         if (xhr.status != 200 && finalText == "") {
@@ -454,8 +470,7 @@ function gen_debug_logs()
     };
 
     xhr.ontimeout = function() {
-        if (loading_el) { loading_el.style.display = 'none'; }
-        if (btn) { btn.value = originalText; btn.disabled = false; }
+        restoreGenerateBtn();
         if (xhr.responseText == "") {
             if (editor_debug && editor_debug.setValue) {
                 editor_debug.setValue('<%:Request Timeout...%>');
@@ -466,8 +481,7 @@ function gen_debug_logs()
     };
 
     xhr.onerror = function() {
-        if (loading_el) { loading_el.style.display = 'none'; }
-        if (btn) { btn.value = originalText; btn.disabled = false; }
+        restoreGenerateBtn();
         if (xhr.responseText == "") {
             if (editor_debug && editor_debug.setValue) {
                 editor_debug.setValue('<%:Some error occurred!%>');
@@ -816,7 +830,7 @@ function poll_log(){
     clearTimeout(r);
 
     for(var i=0; i<titles.length; i++){
-        if(titles[i].className === 'cbi-tab') {
+        if(titles[i].className === 'oc-tab') {
             activeTabId = i;
             break;
         }
@@ -916,14 +930,14 @@ window.onload = function(){
         li.id = i;
         function handleTabSwitch(tab) {
             return function(e) {
-                if (tab.className === 'cbi-tab') return;
+                if (tab.className === 'oc-tab') return;
                 var prevTabId = -1;
                 for(var j=0; j<titles.length; j++){
-                    if (titles[j].className === 'cbi-tab') prevTabId = j;
-                    titles[j].className = 'cbi-tab-disabled';
+                    if (titles[j].className === 'oc-tab') prevTabId = j;
+                    titles[j].className = 'oc-tab-disabled';
                     divs[j].classList.remove('active');
                 }
-                tab.className = 'cbi-tab';
+                tab.className = 'oc-tab';
                 divs[tab.id].classList.add('active');
 
                 if (prevTabId == 1 && editor_core) {
