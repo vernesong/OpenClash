@@ -1686,6 +1686,9 @@ msgstr "此链接的内核版本信息获取失败，请稍后重试"
 msgid "The selected version is the same as the installed version, no need to update"
 msgstr "所选版本与已安装版本相同，无需更新"
 
+msgid "The selected version is not in the version history, please refresh and try again"
+msgstr "所选版本不在版本历史中，请刷新后重试"
+
 msgid "Chnroute Cidr List Download Success, Check Updated..."
 msgstr "大陆 IP 白名单下载成功，检查版本是否更新..."
 

@@ -14,6 +14,12 @@ del_lock() {
    rm -rf "/tmp/lock/openclash_update.lock" 2>/dev/null
 }
 
+early_exit() {
+   dec_job_counter_and_restart "0"
+   del_lock
+   exit "${1:-0}"
+}
+
 set_lock
 inc_job_counter
 
@@ -27,10 +33,7 @@ fi
 
 if [ ! -f "/tmp/openclash_last_version" ]; then
    LOG_ERROR "Failed to get version information, please try again later..."
-   SLOG_CLEAN
-   dec_job_counter_and_restart "0"
-   del_lock
-   exit 0
+   early_exit
 fi
 
 version_compare() {
@@ -165,10 +168,7 @@ else
    else
       LOG_TIP "OpenClash has not been updated, stop continuing!"
    fi
-   dec_job_counter_and_restart "0"
-   SLOG_CLEAN
-   del_lock
-   exit 0
+   early_exit
 fi
 
 if [ -n "$DOWNLOAD_URL" ]; then
@@ -261,10 +261,7 @@ if [ -n "$DOWNLOAD_URL" ]; then
                elif [ -x "/usr/bin/apk" ]; then
                   LOG_ERROR "【OpenClash - v$LAST_VER】Pre update test failed after 3 attempts, the file is saved in /tmp/openclash.apk, please try to update manually with【apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk】"
                fi
-               SLOG_CLEAN
-               dec_job_counter_and_restart "0"
-               del_lock
-               exit 0
+               early_exit
             fi
          fi
       else
@@ -276,10 +273,7 @@ if [ -n "$DOWNLOAD_URL" ]; then
             LOG_ERROR "【OpenClash - v$LAST_VER】Download Failed after 3 attempts, please check the network or try again later!"
             rm -rf /tmp/openclash.ipk >/dev/null 2>&1
             rm -rf /tmp/openclash.apk >/dev/null 2>&1
-            dec_job_counter_and_restart "0"
-            SLOG_CLEAN
-            del_lock
-            exit 0
+            early_exit
          fi
       fi
    done
@@ -422,7 +416,6 @@ else
    fi
 fi
 dec_job_counter_and_restart "0"
-SLOG_CLEAN
 del_update_lock
 EOF
    chmod 4755 /tmp/openclash_update.sh
@@ -430,10 +423,7 @@ EOF
    if [ ! -f "/tmp/openclash_update.sh" ] || [ ! -s "/tmp/openclash_update.sh" ] || [ ! -x "/tmp/openclash_update.sh" ]; then
       LOG_ERROR "Failed to create update script!"
       rm -rf /tmp/openclash_update.sh
-      dec_job_counter_and_restart "0"
-      SLOG_CLEAN
-      del_lock
-      exit 1
+      early_exit 1
    fi
 
    retry_count=0

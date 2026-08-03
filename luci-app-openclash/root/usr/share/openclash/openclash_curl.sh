@@ -132,7 +132,6 @@ EOF
             OUTPUT=$(DOWNLOAD_FAILURE_OUTPUT "$EXIR_CODE" "$HTTP_CODE" "${OUTPUT:-}")
             LOG_OUT "【${DOWNLOAD_PATH}】Download Failed:【${OUTPUT}】"
             rm -f "$HEADER_TMP" "$DOWNLOAD_TMP"
-            SLOG_CLEAN
             return 1
         fi
     else
@@ -188,7 +187,6 @@ EOF
             OUTPUT=$(DOWNLOAD_FAILURE_OUTPUT "$EXIR_CODE" "$HTTP_CODE" "$OUTPUT")
             LOG_OUT "【${DOWNLOAD_PATH}】Download Failed:【${OUTPUT}】"
             rm -f "$HEADER_TMP" "$DOWNLOAD_TMP"
-            SLOG_CLEAN
             return 1
         fi
     fi
@@ -196,7 +194,6 @@ EOF
     if ! mv -f "$DOWNLOAD_TMP" "$DOWNLOAD_PATH"; then
         LOG_OUT "【${DOWNLOAD_PATH}】Download Failed:【Unable to save download file】"
         rm -f "$HEADER_TMP" "$DOWNLOAD_TMP"
-        SLOG_CLEAN
         return 1
     fi
     NEW_ETAG=$(grep -i "^etag:" "$HEADER_TMP" 2>/dev/null | tail -1 | cut -d' ' -f2- | tr -d '\r\n' | sed 's/^"//;s/"$//')

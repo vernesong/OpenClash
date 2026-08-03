@@ -1889,5 +1889,4 @@ rm -rf /tmp/Proxy_Server 2>/dev/null
 rm -rf /tmp/Proxy_Provider 2>/dev/null
 
 LOG_OUT "Config File【$CONFIG_NAME】Write Successful!"
-SLOG_CLEAN
 del_lock

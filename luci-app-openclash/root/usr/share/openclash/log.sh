@@ -48,8 +48,3 @@ LOG_WATCHDOG()
 		echo -e "$(date "+%Y-%m-%d %H:%M:%S") [Watchdog] ${1}" >> $LOG_FILE
 	fi
 }
-
-SLOG_CLEAN()
-{
-	echo "##FINISH##" >> $START_LOG
-}

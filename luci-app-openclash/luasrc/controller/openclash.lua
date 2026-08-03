@@ -1597,53 +1597,14 @@ function try_read(fd, maxlen)
 	return nil
 end
 
-function action_start()
-	HTTP.prepare_content("text/plain; charset=utf-8")
-	local logfile = "/tmp/openclash_start.log"
+local START_SCRIPT_PATTERNS = {
+	["init"] = "/etc/init.d/[o]penclash",
+	["openclash.sh"] = "[o]penclash\\.sh",
+	["openclash_core.sh"] = "[o]penclash_core\\.sh",
+	["openclash_update.sh"] = "[o]penclash_update\\.sh",
+}
 
-	local cmd = string.format(
-		"logfile='%s'; " ..
-		"bytes=$(wc -c < \"$logfile\" 2>/dev/null); bytes=${bytes:-0}; " ..
-		"if [ \"$bytes\" -gt 0 ]; then " ..
-		"tail -c +1 \"$logfile\" 2>/dev/null; " ..
-		"if tail -n 1 \"$logfile\" 2>/dev/null | grep -q '##FINISH##'; then finish_seen=1; else finish_seen=0; fi; " ..
-		"else finish_seen=0; fi; " ..
-		"if [ \"$bytes\" -eq 0 ]; then timeout=30; else timeout=60; fi; " ..
-		"elapsed=0; finish_elapsed=0; " ..
-		"while true; do " ..
-		"new_bytes=$(wc -c < \"$logfile\" 2>/dev/null); new_bytes=${new_bytes:-0}; " ..
-		"changed=0; " ..
-		"if [ \"$new_bytes\" -gt \"$bytes\" ] 2>/dev/null; then " ..
-		"changed=1; " ..
-		"if [ \"$(tail -c 1 \"$logfile\" 2>/dev/null)\" = \"$(printf '\\n')\" ]; then " ..
-		"tail -c +$((bytes + 1)) \"$logfile\" 2>/dev/null; bytes=$new_bytes; " ..
-		"else tail -c +$((bytes + 1)) \"$logfile\" 2>/dev/null | awk '{ if (p) printf \"%%s\\n\", prev; prev = $0; p = 1 }'; " ..
-		"bytes=$((new_bytes - $(tail -c +$((bytes + 1)) \"$logfile\" 2>/dev/null | awk 'END { print length($0) }'))); " ..
-		"fi; " ..
-		"elif [ \"$new_bytes\" -lt \"$bytes\" ] 2>/dev/null; then " ..
-		"changed=1; " ..
-		"if [ \"$(tail -c 1 \"$logfile\" 2>/dev/null)\" = \"$(printf '\\n')\" ]; then " ..
-		"tail -c +1 \"$logfile\" 2>/dev/null; bytes=$new_bytes; " ..
-		"else tail -c +1 \"$logfile\" 2>/dev/null | awk '{ if (p) printf \"%%s\\n\", prev; prev = $0; p = 1 }'; " ..
-		"bytes=$((new_bytes - $(tail -c +1 \"$logfile\" 2>/dev/null | awk 'END { print length($0) }'))); " ..
-		"fi; " ..
-		"fi; " ..
-		"if [ $changed -eq 1 ]; then " ..
-		"elapsed=0; timeout=60; finish_seen=0; finish_elapsed=0; " ..
-		"if tail -n 1 \"$logfile\" 2>/dev/null | grep -q '##FINISH##'; then finish_seen=1; fi; " ..
-		"fi; " ..
-		"sleep 1; elapsed=$((elapsed + 1)); " ..
-		"if [ \"$finish_seen\" -eq 1 ]; then " ..
-		"finish_elapsed=$((finish_elapsed + 1)); " ..
-		"if [ $finish_elapsed -ge 10 ]; then exit 0; fi; " ..
-		"elif [ $elapsed -ge $timeout ]; then " ..
-		"exit 0; " ..
-		"fi; done",
-		logfile
-	)
-	local reader = ltn12_popen(cmd)
-	if not reader then return end
-
+local function stream_log_and_parse(reader)
 	local buf = ""
 
 	while true do
@@ -1657,11 +1618,93 @@ function action_start()
 			buf = buf:sub(nl + 1)
 			line = line:gsub("^%s+", ""):gsub("%s+$", "")
 			if line ~= "" then
-				write_padded(trans_line(line))
+				if line == "##FINISHED##" or line == "##CONTINUE##" then
+					write_padded(line)
+				else
+					write_padded(trans_line(line))
+				end
 			end
 		end
 	end
 	reader.kill()
+end
+
+function action_start()
+	HTTP.prepare_content("text/plain; charset=utf-8")
+	local logfile = "/tmp/openclash_start.log"
+	local pattern = START_SCRIPT_PATTERNS[HTTP.formvalue("script")]
+
+	local cmd
+	if pattern then
+		cmd = string.format(
+			"logfile='%s'; pattern='%s'; " ..
+			"if [ \"$(ps --version 2>&1 | grep -c procps-ng)\" -eq 1 ]; then PS_CMD='ps -efw'; else PS_CMD='ps -w'; fi; " ..
+			"bytes=$(wc -c < \"$logfile\" 2>/dev/null); bytes=${bytes:-0}; " ..
+			"[ \"$bytes\" -gt 0 ] && tail -c +1 \"$logfile\" 2>/dev/null; " ..
+			"seen=0; [ \"$bytes\" -gt 0 ] && seen=1; " ..
+			"elapsed=0; " ..
+			"while true; do " ..
+			"new_bytes=$(wc -c < \"$logfile\" 2>/dev/null); new_bytes=${new_bytes:-0}; " ..
+			"if [ \"$new_bytes\" -gt \"$bytes\" ] 2>/dev/null; then " ..
+			"if [ \"$(tail -c 1 \"$logfile\" 2>/dev/null)\" = \"$(printf '\\n')\" ]; then " ..
+			"tail -c +$((bytes + 1)) \"$logfile\" 2>/dev/null; bytes=$new_bytes; " ..
+			"else tail -c +$((bytes + 1)) \"$logfile\" 2>/dev/null | awk '{ if (p) printf \"%%s\\n\", prev; prev = $0; p = 1 }'; " ..
+			"bytes=$((new_bytes - $(tail -c +$((bytes + 1)) \"$logfile\" 2>/dev/null | awk 'END { print length($0) }'))); " ..
+			"fi; " ..
+			"elif [ \"$new_bytes\" -lt \"$bytes\" ] 2>/dev/null; then " ..
+			"if [ \"$(tail -c 1 \"$logfile\" 2>/dev/null)\" = \"$(printf '\\n')\" ]; then " ..
+			"tail -c +1 \"$logfile\" 2>/dev/null; bytes=$new_bytes; " ..
+			"else tail -c +1 \"$logfile\" 2>/dev/null | awk '{ if (p) printf \"%%s\\n\", prev; prev = $0; p = 1 }'; " ..
+			"bytes=$((new_bytes - $(tail -c +1 \"$logfile\" 2>/dev/null | awk 'END { print length($0) }'))); " ..
+			"fi; " ..
+			"fi; " ..
+			"liveness=$($PS_CMD | grep -v grep | grep \"$pattern\" | grep -v \"openclash_start\" | grep -c \"^\"); " ..
+			"[ \"$liveness\" -gt 0 ] 2>/dev/null && seen=1; " ..
+			"if [ \"$seen\" -eq 1 ]; then " ..
+			"if [ \"$liveness\" = \"0\" ]; then echo '##FINISHED##'; exit 0; fi; " ..
+			"if [ \"$elapsed\" -ge 50 ]; then echo '##CONTINUE##'; exit 0; fi; " ..
+			"else " ..
+			"if [ \"$elapsed\" -ge 5 ]; then echo '##FINISHED##'; exit 0; fi; " ..
+			"fi; " ..
+			"sleep 1; elapsed=$((elapsed + 1)); " ..
+			"done",
+			logfile, pattern
+		)
+	else
+		cmd = string.format(
+			"logfile='%s'; " ..
+			"bytes=$(wc -c < \"$logfile\" 2>/dev/null); bytes=${bytes:-0}; " ..
+			"[ \"$bytes\" -gt 0 ] && tail -c +1 \"$logfile\" 2>/dev/null; " ..
+			"observed=0; [ \"$bytes\" -gt 0 ] && observed=1; " ..
+			"elapsed=0; idle=0; " ..
+			"while true; do " ..
+			"new_bytes=$(wc -c < \"$logfile\" 2>/dev/null); new_bytes=${new_bytes:-0}; " ..
+			"if [ \"$new_bytes\" -gt \"$bytes\" ] 2>/dev/null; then " ..
+			"if [ \"$(tail -c 1 \"$logfile\" 2>/dev/null)\" = \"$(printf '\\n')\" ]; then " ..
+			"tail -c +$((bytes + 1)) \"$logfile\" 2>/dev/null; bytes=$new_bytes; " ..
+			"else tail -c +$((bytes + 1)) \"$logfile\" 2>/dev/null | awk '{ if (p) printf \"%%s\\n\", prev; prev = $0; p = 1 }'; " ..
+			"bytes=$((new_bytes - $(tail -c +$((bytes + 1)) \"$logfile\" 2>/dev/null | awk 'END { print length($0) }'))); " ..
+			"fi; observed=1; idle=0; " ..
+			"elif [ \"$new_bytes\" -lt \"$bytes\" ] 2>/dev/null; then " ..
+			"if [ \"$(tail -c 1 \"$logfile\" 2>/dev/null)\" = \"$(printf '\\n')\" ]; then " ..
+			"tail -c +1 \"$logfile\" 2>/dev/null; bytes=$new_bytes; " ..
+			"else tail -c +1 \"$logfile\" 2>/dev/null | awk '{ if (p) printf \"%%s\\n\", prev; prev = $0; p = 1 }'; " ..
+			"bytes=$((new_bytes - $(tail -c +1 \"$logfile\" 2>/dev/null | awk 'END { print length($0) }'))); " ..
+			"fi; observed=1; idle=0; " ..
+			"else idle=$((idle + 1)); fi; " ..
+			"if [ \"$observed\" -eq 1 ] && [ \"$idle\" -ge 10 ]; then echo '##FINISHED##'; exit 0; fi; " ..
+			"if [ \"$elapsed\" -ge 50 ]; then echo '##FINISHED##'; exit 0; fi; " ..
+			"if [ \"$observed\" -eq 0 ] && [ \"$elapsed\" -ge 3 ]; then echo '##FINISHED##'; exit 0; fi; " ..
+			"sleep 1; elapsed=$((elapsed + 1)); " ..
+			"done",
+			logfile
+		)
+	end
+
+	local reader = ltn12_popen(cmd)
+	if not reader then return end
+
+	stream_log_and_parse(reader)
 end
 
 local function refresh_version_info(force)

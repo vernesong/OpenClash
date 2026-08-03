@@ -475,6 +475,5 @@ sub_info_get()
 #分别获取订阅信息进行处理
 config_load "openclash"
 config_foreach sub_info_get "config_subscribe" "$1"
-SLOG_CLEAN
 dec_job_counter_and_restart "$restart"
 del_lock

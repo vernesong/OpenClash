@@ -470,6 +470,5 @@ fi
       LOG_ERROR "Streaming Unlock Could not Work Because of Router-Self Proxy Disabled, Exiting..."
    fi
 
-   SLOG_CLEAN
    sleep 60
 done 2>/dev/null

@@ -184,6 +184,9 @@
     var logStreamXHR = null;
     var logStreamReconnect = null;
     var logStreamActive = false;
+    var logRetryCount = 0;
+    var lastLogLineCount = null;
+    var logMaxWaitTimer = null;
     var selectedAddr = null;
     var fetchedBranch = null;
     var _isOix = false;
@@ -240,10 +243,6 @@
             defaultTipTimer = null;
             showDefaultNote();
         }, 5000);
-    }
-
-    function clearHint() {
-        showDefaultNote();
     }
 
     function classifyAddr(url) {
@@ -320,9 +319,6 @@
     function makeVerCell(addrUrl, type, version) {
         var branch = fetchedBranch || release_branch.value || 'dev';
         var arch = core_version.value;
-        if (type === 'core' && (!arch || arch === '0')) {
-            return version;
-        }
         var selectEl = type === 'plugin'
             ? document.getElementById('select-plugin-ver')
             : document.getElementById('select-core-ver');
@@ -347,9 +343,12 @@
         var useVersion = (verText === 'Latest') ? '' : verText;
         var sha = useVersion ? findSHAbyVersion(selectEl, useVersion) : '';
         var dlUrl = buildDownloadURL(addrUrl, type, branch, useVersion, sha, arch);
-        if (!dlUrl) return verText;
 
-        return '<a href="javascript:void(0)" class="ver-link" data-type="' + type + '" data-ver="' + escAttr(useVersion) + '" data-dl="' + escAttr(dlUrl) + '" title="<%:Click to Install%>">' + verText + '</a>' +
+        var verLink = '<a href="javascript:void(0)" class="ver-link" data-type="' + type + '" data-ver="' + escAttr(useVersion) + '" data-dl="' + escAttr(dlUrl) + '" title="<%:Click to Install%>">' + verText + '</a>';
+        if (!dlUrl) {
+            return verLink;
+        }
+        return verLink +
             '<a href="' + escAttr(dlUrl) + '" target="_blank" rel="noopener" class="dl-btn" title="<%:Download%>"><svg width="11" height="11"><use href="#oc-icon-download"/></svg></a>';
     }
 
@@ -674,7 +673,7 @@
             params.force = '1';
             forceRefresh = false;
             infoCache = {};
-            clearHint();
+            showDefaultNote();
             document.querySelectorAll('#addr-list-body .addr-row').forEach(function(row) {
                 var latencyEl = row.querySelector('.addr-status');
                 var verSpans = row.querySelectorAll('.ver-text');
@@ -852,17 +851,27 @@
         var ver = verLink.getAttribute('data-ver') || '';
         var dlUrl = verLink.getAttribute('data-dl') || '';
 
-        if (!dlUrl) {
-            var branch = fetchedBranch || release_branch.value || 'dev';
-            var arch = core_version.value;
-            var selectEl = type === 'plugin'
-                ? document.getElementById('select-plugin-ver')
-                : document.getElementById('select-core-ver');
-            var sha = ver ? findSHAbyVersion(selectEl, ver) : '';
+        var branch = fetchedBranch || release_branch.value || 'dev';
+        var arch = core_version.value;
+        var selectEl = type === 'plugin'
+            ? document.getElementById('select-plugin-ver')
+            : document.getElementById('select-core-ver');
+
+        if (type === 'core' && (!arch || arch === '0')) {
+            showHint('<%:No Compiled Version Selected, Please Select In Update Page And Try Again%>');
+            return;
+        }
+        var sha = ver ? findSHAbyVersion(selectEl, ver) : '';
+        if (ver && !sha && !(type === 'core' && _isOix)) {
+            showHint('<%:The selected version is not in the version history, please refresh and try again%>');
+            return;
+        }
+
+        if (ver) {
             dlUrl = buildDownloadURL(addrUrl, type, branch, ver, sha, arch);
         }
 
-        clearHint();
+        showDefaultNote();
 
         var addrInfo = infoCache[addrUrl];
         if (!addrInfo || addrInfo.latency == null) {
@@ -894,7 +903,7 @@
             }
         }
 
-        startLog('<%:Checking...%>');
+        startLog('<%:Checking...%>', false, type === 'core' ? 'openclash_core.sh' : 'openclash_update.sh');
 
         var addr = addrUrl;
         if (addr === 'https://raw.githubusercontent.com/') addr = '';
@@ -953,7 +962,7 @@
         } else if (optionElem && optionElem.classList.contains('addr-row')) {
             var addr = optionElem.dataset.value;
 
-            clearHint();
+            showDefaultNote();
 
             var addrInfo = infoCache[addr];
             if (!addrInfo || addrInfo.latency == null) {
@@ -993,6 +1002,15 @@
             var useCoreVer = (s === '1' && addrInfo.core_smart_ver) ? addrInfo.core_smart_ver : addrInfo.core_meta_ver;
             var coreSHA = (!isCoreLatest && useCoreVer) ? findSHAbyVersion(coreSel, useCoreVer) : '';
 
+            if (currentDownloadType !== 'core_download' && !isPluginLatest && addrInfo.plugin_ver && !pluginSHA) {
+                showHint('<%:The selected version is not in the version history, please refresh and try again%>');
+                return;
+            }
+            if (!isCoreLatest && useCoreVer && !coreSHA) {
+                showHint('<%:The selected version is not in the version history, please refresh and try again%>');
+                return;
+            }
+
             if (currentDownloadType !== 'core_download') {
                 // One-key update: both plugin and core will be updated
                 if (!pluginVer) {
@@ -1027,7 +1045,7 @@
                 }
             }
 
-            startLog('<%:Checking...%>');
+            startLog('<%:Checking...%>', false, currentDownloadType === 'core_download' ? 'openclash_core.sh' : 'openclash_update.sh');
 
             if (addr === 'https://raw.githubusercontent.com/') addr = '';
 
@@ -1048,7 +1066,7 @@
     }
 
     function refreshAllData() {
-        clearHint();
+        showDefaultNote();
         infoCache = {};
         forceRefresh = true;
         if (versionRetryTimer) { clearInterval(versionRetryTimer); versionRetryTimer = null; }
@@ -1070,7 +1088,7 @@
             popup.style.top = '';
             popup.style.transition = '';
         }
-        if (!logStreamActive) { clearHint(); }
+        if (!logStreamActive) { showDefaultNote(); }
         if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
         if (versionRetryTimer) { clearInterval(versionRetryTimer); versionRetryTimer = null; }
         if (retryTimer) { clearInterval(retryTimer); retryTimer = null; }
@@ -1157,81 +1175,129 @@
         return false;
     }
 
-    function startLog(initialMessage) {
+    function startLog(initialMessage, skipClearLog, scriptName) {
         if (logStreamXHR) { logStreamXHR.abort(); logStreamXHR = null; }
         if (logStreamReconnect) { clearTimeout(logStreamReconnect); logStreamReconnect = null; }
+        if (initialMessage) {
+            logRetryCount = 0;
+            lastLogLineCount = null;
+        }
         logStreamActive = true;
 
-        showLogLine('<b style="color:var(--info-color)">' + (initialMessage || '<%:Processing...%>') + '</b>');
+        var watchMode = !!scriptName && scriptName !== 'view';
+        var streamUrl = '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>';
+        if (watchMode) {
+            streamUrl += '?script=' + encodeURIComponent(scriptName);
+        }
 
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function() {
-            if (logStreamXHR) { logStreamXHR.abort(); logStreamXHR = null; }
-            var xhr = new XMLHttpRequest();
-            xhr.timeout = 0;
-            xhr.open('GET', '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', true);
-            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-            var streamEnded = false;
-            var stopTimer = null;
-
-            function finalCleanup() {
-                if (stopTimer) { clearTimeout(stopTimer); stopTimer = null; }
-                if (logStreamXHR === xhr) { logStreamXHR = null; }
-                try { xhr.abort(); } catch(e) {}
+        if (initialMessage) {
+            if (logMaxWaitTimer) { clearTimeout(logMaxWaitTimer); }
+            logMaxWaitTimer = setTimeout(function() {
+                if (logStreamXHR) { logStreamXHR.abort(); logStreamXHR = null; }
                 logStreamActive = false;
                 var hint = document.getElementById('version-hint');
                 if (hint) { hint.classList.remove('logging'); }
-                showDefaultNote();
+            }, 600000);
+        }
+
+        if (initialMessage) {
+            showLogLine('<b style="color:var(--info-color)">' + initialMessage + '</b>');
+        }
+
+        function openStream() {
+            if (logStreamXHR) { logStreamXHR.abort(); logStreamXHR = null; }
+            var xhr = new XMLHttpRequest();
+            xhr.timeout = 0;
+            xhr.open('GET', streamUrl, true);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            var streamEnded = false;
+            var gotData = false;
+            var processedLines = 0;
+            var finishTimer = null;
+
+            function finalCleanup(showDefault) {
+                if (logStreamXHR === xhr) { logStreamXHR = null; }
+                try { xhr.abort(); } catch(e) {}
+                logStreamActive = false;
+                if (showDefault) {
+                    var hint = document.getElementById('version-hint');
+                    if (hint) { hint.classList.remove('logging'); }
+                    showDefaultNote();
+                }
             }
 
             xhr.onprogress = function() {
                 if (logStreamXHR !== xhr) return;
                 if (streamEnded) return;
                 var text = xhr.responseText || '';
-                var hasFinish = text.indexOf('##FINISH##') >= 0;
-                if (text.match(/level=(fatal|error)/)) {
-                    streamEnded = true;
-                    finalCleanup();
-                    var msgParts = text.split('msg=');
-                    var errorMsg = (msgParts.length > 1 ? msgParts[1] : text).replace(/##FINISH##/g, '').replace(/"/g, '').trim();
-                    if (errorMsg) alert('<%:OpenClash Start Failed%>:\n\n' + errorMsg);
-                    return;
-                }
-                var raw = text.replace(/##FINISH##/g, '');
+                var startLine = (lastLogLineCount != null) ? lastLogLineCount : 0;
+                if (processedLines > startLine) startLine = processedLines;
+                var lines = text.split('\n');
+                var hasPartial = text.length > 0 && text.charAt(text.length - 1) !== '\n';
+                var endIdx = hasPartial ? lines.length - 1 : lines.length;
+                var newChunk = lines.slice(startLine, endIdx).join('\n');
+                processedLines = endIdx;
+                var raw = newChunk.replace(/##FINISHED##|##CONTINUE##|##FINISH##/g, '');
                 if (raw.trim()) {
-                    if (stopTimer) { clearTimeout(stopTimer); stopTimer = null; }
+                    gotData = true;
                     displayLog(raw);
                 }
-                if (hasFinish) {
-                    if (stopTimer) clearTimeout(stopTimer);
-                    stopTimer = setTimeout(function() {
+                if (/##FINISHED##\s*$/.test(text) && !finishTimer) {
+                    finishTimer = setTimeout(function() {
                         streamEnded = true;
-                        finalCleanup();
-                    }, 5000);
+                        finalCleanup(true);
+                    }, 10000);
                 }
             };
 
             xhr.onload = function() {
                 if (logStreamXHR !== xhr) return;
                 if (streamEnded) return;
-                if (!stopTimer) {
-                    stopTimer = setTimeout(function() {
-                        streamEnded = true;
-                        finalCleanup();
-                    }, 5000);
+                var text = xhr.responseText || '';
+                if (!watchMode || /##FINISHED##\s*$/.test(text)) {
+                    if (!finishTimer) {
+                        finishTimer = setTimeout(function() {
+                            streamEnded = true;
+                            finalCleanup(true);
+                        }, 10000);
+                    }
+                    return;
                 }
+                if (finishTimer) { clearTimeout(finishTimer); finishTimer = null; }
+                streamEnded = true;
+                lastLogLineCount = text.replace(/##FINISHED##\s*$|##CONTINUE##\s*$/, '').replace(/\n+$/, '').split('\n').length;
+                finalCleanup(false);
+                if (logStreamReconnect) clearTimeout(logStreamReconnect);
+                logStreamReconnect = setTimeout(function() {
+                    if (!logStreamXHR) startLog(null, true, scriptName);
+                }, 1000);
             };
 
             xhr.onerror = function() {
                 if (logStreamXHR !== xhr) return;
+                if (finishTimer) { clearTimeout(finishTimer); finishTimer = null; }
                 streamEnded = true;
-                finalCleanup();
-                if (logStreamReconnect) clearTimeout(logStreamReconnect);
-                logStreamReconnect = setTimeout(function() { startLog(); }, 3000);
+                lastLogLineCount = (xhr.responseText || '').replace(/##FINISHED##\s*$|##CONTINUE##\s*$/, '').replace(/\n+$/, '').split('\n').length;
+                finalCleanup(false);
+                if (watchMode) {
+                    if (logStreamReconnect) clearTimeout(logStreamReconnect);
+                    logStreamReconnect = setTimeout(function() {
+                        if (!logStreamXHR) startLog(null, true, scriptName);
+                    }, 1000);
+                }
             };
 
             xhr.send();
             logStreamXHR = xhr;
-        });
+        }
+
+        if (skipClearLog) {
+            openStream();
+        } else {
+            XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function() {
+                openStream();
+            });
+        }
     }
 
     function displayLog(logContent) {
@@ -1241,15 +1307,12 @@
         var lines = logContent.split('\n');
         var allLines = [];
         for (var i = 0; i < lines.length; i++) {
-            var t = lines[i].replace('##FINISH##', '').trim().replace(/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\s*/, '');
+            var t = lines[i].replace(/##FINISHED##|##CONTINUE##|##FINISH##/g, '').trim().replace(/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\s*/, '');
             if (t) allLines.push(t);
         }
         if (allLines.length === 0) return;
 
         var maxLines = 3;
-        if (allLines.length > maxLines) {
-            allLines = allLines.slice(allLines.length - maxLines);
-        }
 
         if (!hint.classList.contains('logging')) {
             hint.classList.add('logging');
@@ -1257,23 +1320,27 @@
             hint.scrollTop = 0;
         }
 
-        var currentCount = hint.children.length;
-        if (allLines.length <= currentCount) {
-            hint.innerHTML = '';
-            hint.scrollTop = 0;
-            currentCount = 0;
+        var existing = [];
+        for (var i = 0; i < hint.children.length; i++) {
+            var child = hint.children[i];
+            if (child.tagName === 'DIV' && child.textContent !== '\u200B' && child.firstChild && child.firstChild.textContent) {
+                existing.push(child.firstChild.textContent);
+            }
         }
 
-        for (var j = currentCount; j < allLines.length; j++) {
-            var color = ocGetLogColor(allLines[j]);
+        var merged = existing.concat(allLines);
+        if (merged.length > maxLines) {
+            merged = merged.slice(merged.length - maxLines);
+        }
+
+        hint.innerHTML = '';
+        hint.scrollTop = 0;
+        for (var j = 0; j < merged.length; j++) {
+            var color = ocGetLogColor(merged[j]);
             var div = document.createElement('div');
             div.style.whiteSpace = 'nowrap';
-            div.innerHTML = '<b style="color:' + color + '">' + allLines[j] + '</b>';
+            div.innerHTML = '<b style="color:' + color + '">' + merged[j] + '</b>';
             hint.appendChild(div);
-        }
-
-        while (hint.children.length > maxLines) {
-            hint.removeChild(hint.firstChild);
         }
 
         while (hint.children.length < maxLines) {
@@ -1296,5 +1363,16 @@
         }
         initAllData();
     }
+
+    function stopLogStream() {
+        if (logStreamReconnect) { clearTimeout(logStreamReconnect); logStreamReconnect = null; }
+        if (logMaxWaitTimer) { clearTimeout(logMaxWaitTimer); logMaxWaitTimer = null; }
+        if (logStreamXHR) { logStreamXHR.abort(); logStreamXHR = null; }
+        logStreamActive = false;
+        var hint = document.getElementById('version-hint');
+        if (hint) { hint.classList.remove('logging'); }
+    }
+    window.addEventListener('beforeunload', stopLogStream);
+    window.addEventListener('pagehide', stopLogStream);
 //]]>
 </script>

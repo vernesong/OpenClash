@@ -2063,8 +2063,12 @@
         retryCount: 0,
         maxRetries: 3,
         retryDelay: 1000,
+        lastLogLineCount: null,
+        reconnectTimer: null,
 
-        startLogDisplay: function(initialMessage) {
+        // Clear the log before streaming so the operation API is served first and the stream does not block it
+        startLogDisplay: function(initialMessage, skipClearLog, scriptName) {
+            if (this.reconnectTimer) { clearTimeout(this.reconnectTimer); this.reconnectTimer = null; }
             if (this.streamingXHR) {
                 if (initialMessage) {
                     this.streamingXHR.abort();
@@ -2075,6 +2079,7 @@
             }
             if (initialMessage) {
                 this.retryCount = 0;
+                this.lastLogLineCount = null;
             }
 
             StateManager.clearCache('<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>');
@@ -2088,59 +2093,73 @@
 
             var self = this;
             var hasInitialMessage = !!initialMessage;
-            // Clear the log before streaming so the operation API is served first and the stream does not block it
-            XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function() {
+            var watchMode = !!scriptName && scriptName !== 'view';
+            var streamUrl = '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>';
+            if (watchMode) {
+                streamUrl += '?script=' + encodeURIComponent(scriptName);
+            }
+
+            if (hasInitialMessage) {
+                if (this.maxWaitTimer) { clearTimeout(this.maxWaitTimer); }
+                this.maxWaitTimer = setTimeout(function() {
+                    if (self.streamingXHR) {
+                        self.streamingXHR.abort();
+                        self.streamingXHR = null;
+                    }
+                }, 600000);
+            }
+
+            function openStream() {
                 if (self.streamingXHR) {
                     self.streamingXHR.abort();
                     self.streamingXHR = null;
                 }
                 var xhr = new XMLHttpRequest();
                 xhr.timeout = 0;
-                xhr.open('GET', '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', true);
+                xhr.open('GET', streamUrl, true);
                 xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-                var stopTimer = null;
                 var streamEnded = false;
                 var gotData = false;
+                var processedLines = 0;
+                var finishTimer = null;
 
-                function finalCleanup() {
-                    if (stopTimer) { clearTimeout(stopTimer); stopTimer = null; }
+                function finalCleanup(hidePanel) {
                     if (self.streamingXHR === xhr) {
                         self.streamingXHR = null;
                     }
-                    var capturedXhr = xhr;
-                    setTimeout(function() {
-                        if (self.streamingXHR !== capturedXhr && !self.streamingXHR) {
-                            if (DOMCache.oclog) {
-                                DOMCache.oclog.classList.add('oc-hidden');
-                                DOMCache.oclog.innerHTML = '';
+                    if (hidePanel) {
+                        var capturedXhr = xhr;
+                        setTimeout(function() {
+                            if (self.streamingXHR !== capturedXhr && !self.streamingXHR) {
+                                if (DOMCache.oclog) {
+                                    DOMCache.oclog.classList.add('oc-hidden');
+                                    DOMCache.oclog.innerHTML = '';
+                                }
                             }
-                        }
-                    }, 1000);
+                        }, 1000);
+                    }
                 }
 
                 xhr.onprogress = function() {
                     if (self.streamingXHR !== xhr) return;
                     if (streamEnded) return;
-                    var text = xhr.responseText;
-                    var hasFinish = text.indexOf('##FINISH##') >= 0;
-                    if (text && self.checkForErrors(text)) {
-                        streamEnded = true;
-                        self.stopLogDisplay();
-                        return;
-                    }
-                    var raw = (text || '').replace(/##FINISH##/g, '');
+                    var text = xhr.responseText || '';
+                    var startLine = (self.lastLogLineCount != null) ? self.lastLogLineCount : 0;
+                    if (processedLines > startLine) startLine = processedLines;
+                    var lines = text.split('\n');
+                    var hasPartial = text.length > 0 && text.charAt(text.length - 1) !== '\n';
+                    var endIdx = hasPartial ? lines.length - 1 : lines.length;
+                    var newChunk = lines.slice(startLine, endIdx).join('\n');
+                    processedLines = endIdx;
+                    var raw = newChunk.replace(/##FINISHED##|##CONTINUE##|##FINISH##/g, '');
                     if (raw.trim()) {
                         gotData = true;
-                        self.retryCount = 0;
-                        if (stopTimer) { clearTimeout(stopTimer); stopTimer = null; }
                         self.displayLog(raw);
                     }
-                    if (hasFinish) {
-                        gotData = true;
-                        if (stopTimer) clearTimeout(stopTimer);
-                        stopTimer = setTimeout(function() {
+                    if (/##FINISHED##\s*$/.test(text) && !finishTimer) {
+                        finishTimer = setTimeout(function() {
                             streamEnded = true;
-                            finalCleanup();
+                            finalCleanup(true);
                         }, 10000);
                     }
                 };
@@ -2148,58 +2167,56 @@
                 xhr.onload = function() {
                     if (self.streamingXHR !== xhr) return;
                     if (streamEnded) return;
-                    if (!gotData) {
-                        streamEnded = true;
-                        if (hasInitialMessage) {
-                            stopTimer = setTimeout(function() {
-                                self.stopLogDisplay();
-                                if (self.retryCount < self.maxRetries * 2) {
-                                    self.retryCount++;
-                                    var delay = Math.min(self.retryDelay * Math.pow(2, self.retryCount - 1), 5000);
-                                    setTimeout(function() {
-                                        if (!self.streamingXHR) self.startLogDisplay();
-                                    }, delay);
-                                }
-                            }, 5000);
-                            return;
-                        }
-                        self.stopLogDisplay();
-                        if (self.retryCount < self.maxRetries * 2) {
-                            self.retryCount++;
-                            var delay = Math.max(5000, Math.min(self.retryDelay * Math.pow(2, self.retryCount - 1), 10000));
-                            setTimeout(function() {
-                                if (!self.streamingXHR) self.startLogDisplay();
-                            }, delay);
+                    var text = xhr.responseText || '';
+                    if (!watchMode || /##FINISHED##\s*$/.test(text)) {
+                        if (!finishTimer) {
+                            finishTimer = setTimeout(function() {
+                                streamEnded = true;
+                                finalCleanup(true);
+                            }, 10000);
                         }
                         return;
                     }
-                    if (!stopTimer) {
-                        stopTimer = setTimeout(function() {
-                            streamEnded = true;
-                            finalCleanup();
-                        }, 5000);
-                    }
+                    if (finishTimer) { clearTimeout(finishTimer); finishTimer = null; }
+                    streamEnded = true;
+                    self.lastLogLineCount = text.replace(/##FINISHED##\s*$|##CONTINUE##\s*$/, '').replace(/\n+$/, '').split('\n').length;
+                    finalCleanup(false);
+                    self.reconnectTimer = setTimeout(function() {
+                        self.reconnectTimer = null;
+                        if (!self.streamingXHR) self.startLogDisplay(null, true, scriptName);
+                    }, 1000);
                 };
 
                 xhr.onerror = function() {
                     if (self.streamingXHR !== xhr) return;
+                    if (finishTimer) { clearTimeout(finishTimer); finishTimer = null; }
                     streamEnded = true;
-                    self.stopLogDisplay();
-                    if (self.retryCount < self.maxRetries) {
-                        self.retryCount++;
-                        var delay = Math.min(self.retryDelay * Math.pow(2, self.retryCount - 1), 5000);
-                        setTimeout(function() {
-                            if (!self.streamingXHR) self.startLogDisplay();
-                        }, delay);
+                    self.lastLogLineCount = (xhr.responseText || '').replace(/##FINISHED##\s*$|##CONTINUE##\s*$/, '').replace(/\n+$/, '').split('\n').length;
+                    finalCleanup(false);
+                    if (watchMode) {
+                        self.reconnectTimer = setTimeout(function() {
+                            self.reconnectTimer = null;
+                            if (!self.streamingXHR) self.startLogDisplay(null, true, scriptName);
+                        }, 1000);
                     }
                 };
 
                 xhr.send();
                 self.streamingXHR = xhr;
-            });
+            }
+
+            if (skipClearLog) {
+                openStream();
+            } else {
+                XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function() {
+                    openStream();
+                });
+            }
         },
 
         stopLogDisplay: function() {
+            if (this.reconnectTimer) { clearTimeout(this.reconnectTimer); this.reconnectTimer = null; }
+            if (this.maxWaitTimer) { clearTimeout(this.maxWaitTimer); this.maxWaitTimer = null; }
             if (DOMCache.oclog && DOMCache.oclog._ocScrollAnimId) {
                 cancelAnimationFrame(DOMCache.oclog._ocScrollAnimId);
                 DOMCache.oclog._ocScrollAnimId = null;
@@ -2219,66 +2236,44 @@
             }
         },
 
-        checkForErrors: function(log) {
-            if (!log) return false;
-            if (log.match(/level=(fatal|error)/)) {
-                var msgParts = log.split('msg=');
-                var errorMsg = msgParts.length > 1 ? msgParts[1].replace(/"/g, '').trim() : log.trim();
-
-                setTimeout(function() {
-                    alert('<%:OpenClash Start Failed%>:\n\n' + errorMsg);
-                }, 500);
-
-                return true;
-            }
-            return false;
-        },
-
         displayLog: function(logContent) {
             if (!this.streamingXHR || !DOMCache.oclog) return;
-
             var lines = logContent.split('\n');
             var allLines = [];
             for (var i = 0; i < lines.length; i++) {
-                var t = lines[i].replace('##FINISH##', '').trim().replace(/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\s*/, '');
+                var t = lines[i].replace(/##FINISHED##|##CONTINUE##|##FINISH##/g, '').trim().replace(/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\s*/, '');
                 if (t) allLines.push(t);
             }
             if (allLines.length === 0) return;
 
             var maxLines = 3;
-            if (allLines.length > maxLines) {
-                allLines = allLines.slice(allLines.length - maxLines);
-            }
 
             if (!DOMCache.oclog.wheelBlocked) {
                 DOMCache.oclog.addEventListener('wheel', function(e) { e.preventDefault(); }, { passive: false });
                 DOMCache.oclog.wheelBlocked = true;
             }
 
-            if (DOMCache.oclog.children.length === 1 && DOMCache.oclog.firstChild.tagName !== 'DIV') {
-                DOMCache.oclog.innerHTML = '';
-                DOMCache.oclog.scrollTop = 0;
+            var existing = [];
+            for (var i = 0; i < DOMCache.oclog.children.length; i++) {
+                var child = DOMCache.oclog.children[i];
+                if (child.tagName === 'DIV' && child.className !== 'oc-log-spacer' && child.firstChild && child.firstChild.textContent) {
+                    existing.push(child.firstChild.textContent);
+                }
             }
 
-            var currentCount = DOMCache.oclog.children.length;
-
-            if (allLines.length <= currentCount) {
-                DOMCache.oclog.innerHTML = '';
-                DOMCache.oclog.scrollTop = 0;
-                currentCount = 0;
+            var merged = existing.concat(allLines);
+            if (merged.length > maxLines) {
+                merged = merged.slice(merged.length - maxLines);
             }
 
-            for (var j = currentCount; j < allLines.length; j++) {
-                var color = ocGetLogColor(allLines[j]);
-                var text = allLines[j];
+            DOMCache.oclog.innerHTML = '';
+            DOMCache.oclog.scrollTop = 0;
+            for (var j = 0; j < merged.length; j++) {
+                var color = ocGetLogColor(merged[j]);
                 var div = document.createElement('div');
                 div.style.whiteSpace = 'nowrap';
-                div.innerHTML = '<b style="color:' + color + '">' + text + '</b>';
+                div.innerHTML = '<b style="color:' + color + '">' + merged[j] + '</b>';
                 DOMCache.oclog.appendChild(div);
-            }
-
-            while (DOMCache.oclog.children.length > maxLines) {
-                DOMCache.oclog.removeChild(DOMCache.oclog.firstChild);
             }
 
             while (DOMCache.oclog.children.length < maxLines) {
@@ -3021,7 +3016,7 @@
 
             if (status.clash && status.daip) {
                 if (!WSManager.hasActiveConnections()) {
-                    LogManager.startLogDisplay();
+                    LogManager.startLogDisplay(null, false, 'view');
                     initializeWebSocketConnections(status);
                 } else {
                     if (NetworkStatsManager.isEnabled) {
@@ -3430,7 +3425,7 @@
     }
 
     function switch_run_mode(value) {
-        LogManager.startLogDisplay('<%:Saving...%>');
+        LogManager.startLogDisplay('<%:Saving...%>', false, 'init');
         return SettingsManager.switchSetting(
             'run_mode', 
             value, 
@@ -3526,7 +3521,7 @@
     var b_reload_firewall = debounceButton(function(btn) {
         btn.disabled = true;
         btn.value = '<%:Reloading...%>';
-        LogManager.startLogDisplay('<%:Reloading...%>');
+        LogManager.startLogDisplay('<%:Reloading...%>', false, 'init');
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "reload_firewall")%>', null, function(x, status) {
             btn.disabled = false;
             btn.value = (x && x.status == 200) ? '<%:Reload Firewall%>' : '<%:Firewall Rules Reset Failed%>';
@@ -3834,7 +3829,7 @@
     }
 
     function switch_oc_setting_oversea(value) {
-        LogManager.startLogDisplay('<%:Saving...%>');
+        LogManager.startLogDisplay('<%:Saving...%>', false, 'view');
         return SettingsManager.switchSetting(
             'oversea', 
             value, 
@@ -3943,7 +3938,7 @@
             }
         }
 
-        LogManager.startLogDisplay(isEnabled ? '<%:Starting...%>' : '<%:Stopping...%>');
+        LogManager.startLogDisplay(isEnabled ? '<%:Starting...%>' : '<%:Stopping...%>', false, 'init');
 
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "action")%>', requestParams, function(x, status) {
             if (x && x.status == 200) {
@@ -3997,7 +3992,7 @@
 
         pluginToggleUserAction = true;
 
-        LogManager.startLogDisplay('<%:Switching Config...%>');
+        LogManager.startLogDisplay('<%:Switching Config...%>', false, 'init');
 
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_config")%>', {
             config_file: currentConfig
@@ -4037,7 +4032,7 @@
 
         pluginToggleUserAction = true;
 
-        LogManager.startLogDisplay('<%:Updating Config...%>');
+        LogManager.startLogDisplay('<%:Updating Config...%>', false, 'openclash.sh');
 
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_config")%>', {
             filename: filename
@@ -4103,7 +4098,7 @@
             requestParams.config_file = selectedConfig;
         }
 
-        LogManager.startLogDisplay('<%:Restarting...%>');
+        LogManager.startLogDisplay('<%:Restarting...%>', false, 'init');
 
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "action")%>', requestParams, function(x, status) {
             if (restartBtn) {

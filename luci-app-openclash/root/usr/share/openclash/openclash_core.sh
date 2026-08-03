@@ -61,7 +61,6 @@ if [ -z "$DIRECT_CORE_URL" ]; then
    fi
    if [ ! -f "/tmp/clash_last_version" ]; then
       LOG_ERROR "【"$CORE_TYPE"】Core Version Check Error, Please Try Again Later..."
-      SLOG_CLEAN
       del_lock
       exit 0
    fi
@@ -160,7 +159,6 @@ if [ -n "$DIRECT_CORE_URL" ] || [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" 
                   else
                      LOG_ERROR "【"$CORE_TYPE"】Core Update Failed:【$(echo "$extract_err" | tr '\n' ' ' | head -c 300)】..."
                      rm -rf "$TMP_FILE" >/dev/null 2>&1
-                     SLOG_CLEAN
                      break
                   fi
                fi
@@ -169,7 +167,6 @@ if [ -n "$DIRECT_CORE_URL" ] || [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" 
 
                if [ "$?" == "0" ]; then
                   LOG_TIP "【"$CORE_TYPE"】Core Update Successful"
-                  SLOG_CLEAN
                   UPDATE_SUCCESS=1
                   restart=1
                   break
@@ -180,7 +177,6 @@ if [ -n "$DIRECT_CORE_URL" ] || [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" 
                      continue
                   else
                      LOG_ERROR "【"$CORE_TYPE"】Core Move Failed:【$(echo "$mv_err" | tr '\n' ' ' | head -c 300)】"
-                     SLOG_CLEAN
                      break
                   fi
                fi
@@ -191,13 +187,11 @@ if [ -n "$DIRECT_CORE_URL" ] || [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" 
                   continue
                else
                   LOG_ERROR "【"$CORE_TYPE"】Core Verification Failed:【$(echo "$gzip_test_err" | tr '\n' ' ' | head -c 300)】"
-                  SLOG_CLEAN
                   break
                fi
             fi
          elif [ "$DOWNLOAD_RESULT" -eq 2 ]; then
             LOG_TIP "【"$CORE_TYPE"】Core Has Not Been Updated, Stop Continuing Operation"
-            SLOG_CLEAN
          else
             if [ "$retry_count" -lt "$max_retries" ]; then
                LOG_ERROR "【$retry_count/$max_retries】【"$CORE_TYPE"】Core Download Failed, Please Check The Network or Try Again Later..."
@@ -205,18 +199,15 @@ if [ -n "$DIRECT_CORE_URL" ] || [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" 
                continue
             else
                LOG_ERROR "【"$CORE_TYPE"】Core Download Failed, Please Check The Network or Try Again Later"
-               SLOG_CLEAN
                break
             fi
          fi
       done
    else
       LOG_WARN "No Compiled Version Selected, Please Select In Update Page And Try Again!"
-      SLOG_CLEAN
    fi
 else
    LOG_TIP "【"$CORE_TYPE"】Core Has Not Been Updated, Stop Continuing Operation"
-   SLOG_CLEAN
 fi
 
 rm -rf "$TMP_FILE" >/dev/null 2>&1

@@ -799,7 +799,6 @@ check_core_status()
    fi
 
    write_run_quick
-   SLOG_CLEAN
 } >/dev/null 2>&1
 
 start_run_core()
@@ -3594,7 +3593,7 @@ get_config()
 start_service()
 {
    enable=$(uci_get_config "enable")
-   [ "$enable" != "1" ] && LOG_WARN "OpenClash Now Disabled, Need Start From Luci Page, Exit..." && SLOG_CLEAN && exit 0
+   [ "$enable" != "1" ] && LOG_WARN "OpenClash Now Disabled, Need Start From Luci Page, Exit..." && exit 0
 
    if procd_running "openclash" >/dev/null; then
       LOG_TIP "OpenClash Already Running, Exit..."
@@ -3766,7 +3765,6 @@ stop_service()
                 ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf \
                 ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf \
                 ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf
-         SLOG_CLEAN
       fi
 
       del_cron
@@ -3834,7 +3832,6 @@ reload_service()
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "revert" ]; then
       revert_firewall
       revert_dnsmasq
-      SLOG_CLEAN
    fi
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "restore" ]; then
       do_run_mode
