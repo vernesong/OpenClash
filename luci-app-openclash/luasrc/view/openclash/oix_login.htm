@@ -13,6 +13,7 @@ local function oix_logo_img(cls)
 end
 -%>
 <div class="oc">
+	<script src="/luci-static/resources/openclash/js/common.js?v=<%=plugin_version%>"></script>
 	<script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
 	<fieldset class="cbi-section oix-panel">
 		<div id="oix-msg-bar" class="oix-msg-bar oc-hidden"></div>
@@ -24,11 +25,11 @@ end
 				<div class="mode-tabs" id="oix-tabs">
 					<button type="button" class="mode-tab active" id="oix-tab-account" onclick="OixCloud.switchTab('account')">
 						<svg class="oc-icon" width="13" height="13"><use href="#oc-icon-user"/></svg>
-						<%:Account Login%>
+						<span><%:Account Login%></span>
 					</button>
 					<button type="button" class="mode-tab" id="oix-tab-token" onclick="OixCloud.switchTab('token')">
 						<svg class="oc-icon" width="13" height="13"><use href="#oc-icon-key-oix"/></svg>
-						<%:Token Login%>
+						<span><%:Token Login%></span>
 					</button>
 				</div>
 
@@ -52,13 +53,13 @@ end
 					</div>
 					<button type="button" class="oix-btn oix-btn-primary oix-btn-block" onclick="OixCloud.doLogin()">
 						<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-login"/></svg>
-						<%:Login Account%>
+						<span><%:Login Account%></span>
 					</button>
 
 				<div class="oix-btn-row">
 					<button type="button" class="oix-btn oix-btn-ghost oix-btn-block" onclick="OixCloud.openWebsite();return false;">
 						<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-home"/></svg>
-						<%:oixCloud Website%>
+						<span><%:oixCloud Website%></span>
 					</button>
 				</div>
 			</div>
@@ -78,13 +79,13 @@ end
 					</div>
 					<button type="button" class="oix-btn oix-btn-primary oix-btn-block" onclick="OixCloud.doLogin()">
 						<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-login"/></svg>
-						<%:Login Account%>
+						<span><%:Login Account%></span>
 					</button>
 
 				<div class="oix-btn-row">
 					<button type="button" class="oix-btn oix-btn-ghost oix-btn-block" onclick="OixCloud.openWebsite();return false;">
 						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-home"/></svg>
-						<%:oixCloud Website%>
+						<span><%:oixCloud Website%></span>
 						</button>
 					</div>
 				</div>
@@ -105,15 +106,15 @@ end
 				<div class="oix-header-right">
 					<button type="button" class="oix-btn oix-btn-primary oix-btn-sm" onclick="OixCloud.doCheckin();return false;">
 						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-gift"/></svg>
-						<%:Checkin%>
+						<span><%:Checkin%></span>
 					</button>
 					<button type="button" class="oix-btn oix-btn-ghost-subtle oix-btn-sm" onclick="OixCloud.openWebsite();return false;">
 						<img class="oix-img-inline" src="<%= oix_logo_src %>" width="14" height="14" alt="oixCloud">
-						<%:oixCloud Website%>
+						<span><%:oixCloud Website%></span>
 					</button>
 					<button type="button" class="oix-btn oix-btn-danger oix-btn-sm" onclick="OixCloud.doLogout();return false;">
 						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-logout"/></svg>
-						<%:Logout Account%>
+						<span><%:Logout Account%></span>
 					</button>
 				</div>
 			</div>
@@ -323,24 +324,40 @@ var OixCloud = {
 			data.email = email; data.passwd = passwd;
 		}
 		var self = this, btns = document.querySelectorAll('#oix-login-section .oix-btn-primary');
-		btns.forEach(function(b){ b._origHTML = b.innerHTML; b.disabled = true; var svg = b.querySelector('svg'); b.innerHTML = (svg ? svg.outerHTML : '') + ' <%:Login...%>'; });
+		var setBtnBusy = function(b, busy, text) {
+			var span = b.querySelector('span:not(.loading-spinner)');
+			if (busy) {
+				if (span && !b.dataset.ocBtnOriginalText) {
+					b.dataset.ocBtnOriginalText = span.textContent;
+				}
+				if (span && text) { span.textContent = text; }
+				ocSetBtnLoading(b, true);
+			} else {
+				ocSetBtnLoading(b, false);
+				if (span && b.dataset.ocBtnOriginalText) {
+					span.textContent = b.dataset.ocBtnOriginalText;
+					delete b.dataset.ocBtnOriginalText;
+				}
+			}
+		};
+		btns.forEach(function(b){ setBtnBusy(b, true, '<%:Login...%>'); });
 
 		var updateBtnText = function(text) {
 			btns.forEach(function(b){
-				var svg = b.querySelector('svg');
-				b.innerHTML = (svg ? svg.outerHTML : '') + ' ' + text;
+				var span = b.querySelector('span:not(.loading-spinner)');
+				if (span) { span.textContent = text; }
 			});
 		};
 
 		var onLoginSuccess = function() {
-			btns.forEach(function(b){ b.disabled = false; b.innerHTML = b._origHTML; });
+			btns.forEach(function(b){ setBtnBusy(b, false); });
 			var info = '<%:oixCloud Login Successful%>' + ', <%:Note: oixCloud need a specific core installed, OpenClash will auto download, After the core start, an oixCloud nodes provider will be added, which you can customize as needed%>';
 			OixMsg.show(info, 'success', 20000);
 			self.loggedIn = true; self.showLoggedIn(); self.loadAccountInfo(); self.startPolling(); self.fetchParams();
 		};
 
 		var onLoginError = function(msg) {
-			btns.forEach(function(b){ b.disabled = false; b.innerHTML = b._origHTML; });
+			btns.forEach(function(b){ setBtnBusy(b, false); });
 			OixMsg.show('<%:oixCloud Login Failed:%> ' + msg, 'error');
 			self.rebuildCredentials();
 		};
@@ -400,7 +417,7 @@ var OixCloud = {
 			doStreamLogin({token: data.token});
 		} else {
 			XHR.get(OIX_URLS.save, data, function(x, status) {
-				if (!x || x.status != 200) { OixMsg.show('<%:Network request failed, please check your connection and try again%>', 'error'); btns.forEach(function(b){b.disabled=false;b.innerHTML=b._origHTML;}); return; }
+				if (!x || x.status != 200) { OixMsg.show('<%:Network request failed, please check your connection and try again%>', 'error'); btns.forEach(function(b){setBtnBusy(b, false);}); return; }
 				doStreamLogin(null);
 			});
 		}
@@ -409,7 +426,7 @@ var OixCloud = {
 	doLogout: function() {
 		var self = this;
 		var btn = document.querySelector('#oix-logged-section .oix-btn-danger');
-		if (btn) { btn._origHTML = btn.innerHTML; btn.disabled = true; var svg = btn.querySelector('svg'); btn.innerHTML = (svg ? svg.outerHTML : '') + ' <%:Logout...%>'; }
+		if (btn) { btn._origHTML = btn.innerHTML; btn.disabled = true; var svg = btn.querySelector('svg'); btn.innerHTML = (svg ? svg.outerHTML : '') + ' <span><%:Logout...%></span>'; }
 		XHR.get(OIX_URLS.logout, null, function(x, status) {
 			if (btn) { btn.disabled = false; btn.innerHTML = btn._origHTML; }
 			if (x && x.status == 200 && status.result == 200) {
@@ -555,7 +572,7 @@ var OixCloud = {
 	doCheckin: function() {
 		var self = this;
 		var btn = document.querySelector('#oix-logged-section .oix-btn-primary');
-		if (btn) { btn._origHTML = btn.innerHTML; btn.disabled = true; var svg = btn.querySelector('svg'); btn.innerHTML = (svg ? svg.outerHTML : '') + ' <%:Checkin...%>'; }
+		if (btn) { btn._origHTML = btn.innerHTML; btn.disabled = true; var svg = btn.querySelector('svg'); btn.innerHTML = (svg ? svg.outerHTML : '') + ' <span><%:Checkin...%></span>'; }
 		XHR.get(OIX_URLS.checkin, null, function(x, status) {
 			if (btn) { btn.disabled = false; btn.innerHTML = btn._origHTML; }
 			if (x && x.status == 200 && status.result && status.result.ret == 200) {

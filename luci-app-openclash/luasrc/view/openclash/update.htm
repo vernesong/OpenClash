@@ -32,7 +32,7 @@
                     <div class="config-item">
                         <div class="oc-option-title"><span class="oc-option-text"><%:Compiled Version%></span></div>
                         <div class="form-select-wrapper">
-                            <select class="select-class oc-arch-select" id="CORE_VERSION" onchange="saveOptions()">
+                            <select class="select-class oc-arch-select" id="CORE_VERSION" onchange="onArchChange()">
                             </select>
                         </div>
                     </div>
@@ -63,7 +63,7 @@
                 <div class="version-card">
                     <div class="version-row">
                         <div class="config-item">
-                            <span class="oc-option-title"><span class="oc-option-text"><%:Plugin%></span></span>
+                            <span class="oc-option-title"><span class="oc-option-text"><%:Plugin Version%></span></span>
                             <span class="ver-value" id="installed-plugin">--</span>
                         </div>
                         <div class="config-item">
@@ -75,7 +75,7 @@
                             </div>
                         </div>
                         <div class="config-item">
-                            <span class="oc-option-title"><span class="oc-option-text"><%:Core%></span></span>
+                            <span class="oc-option-title"><span class="oc-option-text"><%:Core Version%></span></span>
                             <span class="ver-value" id="installed-core">--</span>
                         </div>
                         <div class="config-item">
@@ -134,6 +134,9 @@
                 </div>
                 <input type="text" id="customOptionInput" class="custom-option-input oc-hidden" value="https://ghfast.top/" placeholder="<%:Type CDN URL, Format Like%> https://ghfast.top/">
                 <div class="select-option oc-hidden" id="addCustomOption"><%:Add%></div>
+                <div class="addr-list-loading oc-hidden" id="addr-list-loading">
+                    <div class="addr-list-spinner"></div>
+                </div>
             </div>
             <div class="select-popup-footer" id="select-popup-footer">
                 <div class="form-select-wrapper">
@@ -159,6 +162,10 @@
                     <span><%:Remove Core%></span>
                 </button>
             </div>
+            <div class="select-popup-status-bar">
+                <div class="select-popup-status" id="addr-list-status"><%:Fetching data...%></div>
+                <div class="select-popup-tip"><%:Click%> <b><%:link%></b> <%:to update all, click%> <b><%:version%></b> <%:to update individually%></div>
+            </div>
         </div>
     </div>
 
@@ -177,6 +184,11 @@
     var retryTimer = null;
     var addrInfoBusy = false;
     var addrInfoXHR = null;
+    var addrInfoError = false;
+    var addrDataReceived = false;
+    var reqUpdateDone = false;
+    var reqVersionHistoryDone = false;
+    var reqAddrInfoDone = false;
     var versionHistoryBusy = false;
     var versionHistoryXHR = null;
     var hintTimer = null;
@@ -187,7 +199,6 @@
     var logRetryCount = 0;
     var lastLogLineCount = null;
     var logMaxWaitTimer = null;
-    var selectedAddr = null;
     var fetchedBranch = null;
     var _isOix = false;
     var _pkgType = 'opkg';
@@ -440,7 +451,10 @@
         };
     }
 
-    function initAllData() {
+    function fetchUpdateInfo(opts) {
+        core_version.disabled = true;
+        release_branch.disabled = true;
+        smart_enable.disabled = true;
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, st) {
             if (x && x.status == 200) {
                 if (st.corever && st.corever != '0') core_version.value = st.corever; else core_version.value = '0';
@@ -455,15 +469,25 @@
                     cpuArchEl.textContent = (st.coremodel && st.coremodel != '') ? st.coremodel : '--';
                 }
             }
+            core_version.disabled = false;
+            release_branch.disabled = false;
+            smart_enable.disabled = false;
             fetchedBranch = release_branch.value;
-            fetchVersionHistory();
-            refreshAddrInfo();
+            reqUpdateDone = true;
+            updateDataStatus();
+            fetchVersionHistory(!!(opts && opts.force), {cancel: true});
+            refreshAddrInfo({cancel: true});
         });
+    }
+
+    function initAllData() {
+        fetchUpdateInfo();
         if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
         refreshTimer = setInterval(refreshAddrInfo, ocRandomInterval(10000, 20000));
     }
 
     function fetchVersionHistory(force, opts) {
+        if (document.getElementById('selectPopup').classList.contains('hidden')) return;
         if (versionHistoryBusy) {
             if (!(opts && opts.cancel)) return;
             if (versionHistoryXHR) { try { versionHistoryXHR.abort(); } catch(e) {} versionHistoryXHR = null; }
@@ -611,6 +635,8 @@
                 versionHistoryXHR = null;
                 versionHistoryBusy = false;
             }
+            reqVersionHistoryDone = true;
+            updateDataStatus();
         };
         xhr.send();
         versionHistoryXHR = xhr;
@@ -622,6 +648,16 @@
             release_branch: release_branch.value,
             smart_enable: smart_enable.value
         },function() {});
+    }
+
+    function onArchChange() {
+        saveOptions();
+        document.querySelectorAll('#addr-list-body .addr-row').forEach(function(row) {
+            var addrUrl = row.dataset.value;
+            if (!addrUrl || addrUrl === 'custom') return;
+            var info = infoCache[addrUrl];
+            if (info) updateAddrRow(row, addrUrl, info);
+        });
     }
 
     function onBranchChange() {
@@ -641,7 +677,31 @@
         refreshAddrInfo({cancel: true});
     }
 
+    function setAddrListLoading(loading) {
+        var overlay = document.getElementById('addr-list-loading');
+        if (overlay) overlay.classList.toggle('oc-hidden', !loading);
+    }
+
+    function updateDataStatus() {
+        var status = document.getElementById('addr-list-status');
+        if (!status) return;
+        if (addrInfoError) {
+            status.textContent = '<%:Failed to get data, will retry%>';
+            return;
+        }
+        status.textContent = (reqUpdateDone && reqVersionHistoryDone && reqAddrInfoDone) ? '<%:Ready%>' : '<%:Fetching data...%>';
+    }
+
+    function resetDataStatus() {
+        reqUpdateDone = false;
+        reqVersionHistoryDone = false;
+        reqAddrInfoDone = false;
+        addrInfoError = false;
+        updateDataStatus();
+    }
+
     function refreshAddrInfo(opts) {
+        if (document.getElementById('selectPopup').classList.contains('hidden')) return;
         var addrs = [];
         document.querySelectorAll('#addr-list-body .addr-row').forEach(function(row) {
             var v = row.dataset.value;
@@ -673,6 +733,7 @@
             params.force = '1';
             forceRefresh = false;
             infoCache = {};
+            addrDataReceived = false;
             showDefaultNote();
             document.querySelectorAll('#addr-list-body .addr-row').forEach(function(row) {
                 var latencyEl = row.querySelector('.addr-status');
@@ -687,6 +748,7 @@
                 });
             });
         }
+        if (!addrDataReceived) setAddrListLoading(true);
         var url = '<%=luci.dispatcher.build_url("admin", "services", "openclash", "addr_info")%>?' +
             Object.keys(params).map(function(k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
         var xhr = new XMLHttpRequest();
@@ -694,7 +756,6 @@
         xhr.open('GET', url, true);
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         var lastLen = 0;
-        var hasComplete = false;
         var pendingBuf = '';
         xhr.onprogress = function() {
             if (xhr.status != 200) return;
@@ -711,13 +772,14 @@
                 try {
                     var info = JSON.parse(line);
                     if (info.complete) {
-                        hasComplete = true;
                         if (info.error === 'version_stale') {
                             fetchVersionHistory(true);
                         }
                         continue;
                     }
-                    var addrUrl = info.addr;                    if (!addrUrl) continue;
+                    var addrUrl = info.addr;
+                    if (!addrUrl) continue;
+                    if (!addrDataReceived) { addrDataReceived = true; setAddrListLoading(false); }
                     var rows = document.querySelectorAll('#addr-list-body .addr-row[data-value="' + CSS.escape(addrUrl) + '"]');
                     rows.forEach(function(row) { updateAddrRow(row, addrUrl, info); });
                 } catch(e) {}
@@ -727,11 +789,13 @@
             if (xhr.status != 200 || !xhr.responseText) {
                 if (retryTimer) { clearInterval(retryTimer); retryTimer = null; }
                 if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+                addrInfoError = true;
                 if (!retryTimer) {
                     retryTimer = setInterval(refreshAddrInfo, 10000);
                 }
                 return;
             }
+            addrInfoError = false;
             var text = xhr.responseText;
             if (text.length > lastLen) {
                 var newText = text.substring(lastLen);
@@ -745,7 +809,6 @@
                     try {
                         var info = JSON.parse(line);
                         if (info.complete) {
-                            hasComplete = true;
                             if (info.error === 'version_stale') {
                                 fetchVersionHistory(true);
                             }
@@ -753,6 +816,7 @@
                         }
                         var addrUrl = info.addr;
                         if (!addrUrl) continue;
+                        if (!addrDataReceived) { addrDataReceived = true; setAddrListLoading(false); }
                         var rows = document.querySelectorAll('#addr-list-body .addr-row[data-value="' + CSS.escape(addrUrl) + '"]');
                         rows.forEach(function(row) { updateAddrRow(row, addrUrl, info); });
                     } catch(e) {}
@@ -767,6 +831,7 @@
         xhr.onerror = function() {
             if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
             if (retryTimer) { clearInterval(retryTimer); retryTimer = null; }
+            addrInfoError = true;
             retryTimer = setInterval(refreshAddrInfo, 10000);
         };
         xhr.onloadend = function() {
@@ -774,6 +839,8 @@
                 addrInfoXHR = null;
                 addrInfoBusy = false;
             }
+            reqAddrInfoDone = true;
+            updateDataStatus();
         };
         xhr.send();
         addrInfoXHR = xhr;
@@ -835,11 +902,13 @@
         customOptionInput.classList.add('oc-hidden');
         addCustomOption.classList.add('oc-hidden');
         customOptionInput.value = 'https://ghfast.top/';
-        selectedAddr = null;
         fetchedBranch = null;
+        addrDataReceived = false;
+        resetDataStatus();
 
         selectPopup.classList.remove('hidden');
         selectPopup.onclick = function(event) { click_handler(event); };
+        setAddrListLoading(true);
         initAllData();
         initHeaderDrag();
     }
@@ -862,7 +931,9 @@
             return;
         }
         var sha = ver ? findSHAbyVersion(selectEl, ver) : '';
-        if (ver && !sha && !(type === 'core' && _isOix)) {
+        var selOpt = selectEl.options[selectEl.selectedIndex];
+        var isLatest = !selOpt || selOpt.value === '__latest__';
+        if (ver && !sha && !isLatest && !(type === 'core' && _isOix)) {
             showHint('<%:The selected version is not in the version history, please refresh and try again%>');
             return;
         }
@@ -916,6 +987,20 @@
             var pParams = {url: addr, download_url: dlUrl, update_type: 'plugin'};
             XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update")%>', pParams, function() {});
         }
+    }
+
+    function initPopupResizeObserver() {
+        var popup = document.getElementById('selectPopup');
+        if (!popup || typeof ResizeObserver === 'undefined') return;
+        if (popup.dataset.ocResizeInit) return;
+        popup.dataset.ocResizeInit = '1';
+        new ResizeObserver(function() {
+            if (popup.offsetWidth > 0 && popup.offsetHeight > 0) {
+                if (popup.classList.contains('select-popup-tab')) return;
+                if (popup.style.left || popup.style.top) return;
+                popup.style.transform = 'translate(' + Math.round(-popup.offsetWidth / 2) + 'px, ' + Math.round(-popup.offsetHeight / 2) + 'px)';
+            }
+        }).observe(popup);
     }
 
     function click_handler(event) {
@@ -1068,12 +1153,15 @@
     function refreshAllData() {
         showDefaultNote();
         infoCache = {};
+        addrDataReceived = false;
+        resetDataStatus();
+        setAddrListLoading(true);
         forceRefresh = true;
         if (versionRetryTimer) { clearInterval(versionRetryTimer); versionRetryTimer = null; }
         if (retryTimer) { clearInterval(retryTimer); retryTimer = null; }
         if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
-        fetchVersionHistory(true, {cancel: true});
-        refreshAddrInfo({cancel: true});
+        fetchedBranch = null;
+        fetchUpdateInfo({force: true});
         refreshTimer = setInterval(refreshAddrInfo, ocRandomInterval(10000, 20000));
     }
 
@@ -1088,6 +1176,10 @@
             popup.style.top = '';
             popup.style.transition = '';
         }
+        if (addrInfoXHR) { try { addrInfoXHR.abort(); } catch(e) {} addrInfoXHR = null; }
+        if (versionHistoryXHR) { try { versionHistoryXHR.abort(); } catch(e) {} versionHistoryXHR = null; }
+        addrInfoBusy = false;
+        versionHistoryBusy = false;
         if (!logStreamActive) { showDefaultNote(); }
         if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
         if (versionRetryTimer) { clearInterval(versionRetryTimer); versionRetryTimer = null; }
@@ -1361,6 +1453,8 @@
         if (tabPopup) {
             tabPopup.onclick = function(event) { click_handler(event); };
         }
+        setAddrListLoading(true);
+        resetDataStatus();
         initAllData();
     }
 
@@ -1374,5 +1468,6 @@
     }
     window.addEventListener('beforeunload', stopLogStream);
     window.addEventListener('pagehide', stopLogStream);
+    initPopupResizeObserver();
 //]]>
 </script>

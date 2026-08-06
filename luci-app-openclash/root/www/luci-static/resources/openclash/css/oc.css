@@ -1844,6 +1844,11 @@ html[data-darkmode="true"] .oc svg {
     text-overflow: ellipsis;
     max-width: 240px;
 }
+.oc .file-info-item svg {
+    vertical-align: middle;
+    margin-right: 4px;
+    flex-shrink: 0;
+}
 
 .oc .announcement-banner {
     background: linear-gradient(275deg, var(--primary-color), var(--announcement-end));
@@ -5830,16 +5835,31 @@ html[data-darkmode=true] .oc .oix-panel::after {
 }
 .oix-btn-primary { background: var(--primary-color); color: var(--text-on-primary); }
 .oix-btn-primary:hover { background: var(--btn-primary-hover); }
-.oix-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.oix-btn-primary:disabled { cursor: not-allowed; }
 .oix-btn-danger  { background: var(--error-color); color: var(--text-on-primary); }
 .oix-btn-danger:hover { opacity: 0.85; }
 .oix-btn-ghost   { background: var(--primary-color); color: var(--text-on-primary); }
 .oix-btn-ghost:hover { background: var(--btn-primary-hover); }
-.oix-btn-ghost:disabled { opacity: 0.6; cursor: not-allowed; }
+.oix-btn-ghost:disabled { cursor: not-allowed; }
 .oix-btn-ghost-subtle { background: var(--watchdog-color); color: var(--text-on-primary); }
 .oix-btn-ghost-subtle:hover { opacity: 0.85; }
 .oix-btn-block { width: 100%; }
 .oix-btn-sm { padding: 5px 10px; font-size: 12px; }
+.oix-btn .loading-spinner.oc-btn-spinner {
+    width: 14px;
+    height: 14px;
+    border-width: 2px;
+    margin: 0;
+    border-color: rgba(255, 255, 255, 0.35);
+    border-top-color: var(--text-on-primary);
+}
+.oix-btn:disabled svg,
+.oix-btn:disabled span:not(.loading-spinner) {
+    opacity: 0.55;
+}
+.oix-btn:disabled .loading-spinner.oc-btn-spinner {
+    opacity: 1;
+}
 
 .oix-msg-bar {
     display: flex; align-items: center; gap: var(--card-grid-gap);
@@ -6060,7 +6080,9 @@ html[data-darkmode=true] .oc .oix-msg-bar svg { color: inherit; }
     min-width: 300px;
     width: 60%;
     box-shadow: var(--shadow-md);
-    transition: all var(--transition-normal);
+    /* NOTE: do not add `transition: all` here — the popup height changes when the
+       custom-option-input is shown/hidden, and transitioning `transform: translate(-50%, -50%)`
+       animates the popup through subpixel positions, which blurs all its text. */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -6251,6 +6273,62 @@ html[data-darkmode=true] .oc .oix-msg-bar svg { color: inherit; }
     border: 1px solid var(--border-light);
     border-radius: var(--radius-md);
     background: var(--bg-gray);
+    position: relative;
+}
+
+.oc .addr-list-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-gray);
+    opacity: 0.85;
+    backdrop-filter: blur(2px);
+    border-radius: var(--radius-md);
+    z-index: 5;
+}
+.oc .addr-list-loading .addr-list-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--border-light);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.oc .select-popup-status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 16px;
+    padding: 10px 16px;
+    margin-top: 12px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: var(--bg-gray);
+    flex-shrink: 0;
+}
+.oc .select-popup-status {
+    font-size: 12px;
+    color: var(--text-secondary);
+    flex: 1 1 0;
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+.oc .select-popup-tip {
+    font-size: 12px;
+    color: var(--text-secondary);
+    opacity: 0.8;
+    text-align: right;
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+.oc .select-popup-tip b {
+    color: var(--success-color);
+    font-weight: 600;
 }
 
 .oc .select-option {
@@ -6671,6 +6749,8 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
     border-bottom: 2px solid var(--border-light);
     cursor: default;
     background: var(--bg-gray);
+    position: relative;
+    z-index: 6;
 }
 .oc .addr-header-label {
     display: flex;

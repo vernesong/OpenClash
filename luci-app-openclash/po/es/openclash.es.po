@@ -1365,11 +1365,20 @@ msgstr "Plugin"
 msgid "Core"
 msgstr "Núcleo"
 
+msgid "Plugin Version"
+msgstr "Versión del plugin"
+
+msgid "Core Version"
+msgstr "Versión del núcleo"
+
 msgid "Date"
 msgstr "Fecha"
 
 msgid "Failed to get version history"
 msgstr "Error al obtener historial"
+
+msgid "Failed to get data, will retry"
+msgstr "Error al obtener datos, se reintentará"
 
 msgid "Bind Network Interface"
 msgstr "Vincular interfaz de red"
@@ -3510,11 +3519,8 @@ msgstr "Reiniciar"
 msgid "No Config Selected"
 msgstr "No hay configuración seleccionada"
 
-msgid "Modified: "
-msgstr "Modificado: "
-
-msgid "Update Time: "
-msgstr "Hora de actualización: "
+msgid "Modified"
+msgstr "Modificado"
 
 msgid "No Config Files Found"
 msgstr "No se encontraron archivos de configuración"
@@ -4316,3 +4322,21 @@ msgstr "Error de cierre de sesión en oixCloud:"
 
 msgid "Checkin Failed:"
 msgstr "Error en el registro:"
+
+msgid "Fetching data..."
+msgstr "Obteniendo datos…"
+
+msgid "Click"
+msgstr "Haz clic"
+
+msgid "link"
+msgstr "en el enlace"
+
+msgid "to update all, click"
+msgstr "para actualizar todo, haz clic en"
+
+msgid "version"
+msgstr "la versión"
+
+msgid "to update individually"
+msgstr "para actualizar individualmente"

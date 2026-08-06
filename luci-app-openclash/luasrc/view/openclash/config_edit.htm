@@ -36,18 +36,11 @@
             <div id="config-mode-tabs" class="oc-hidden">
                 <div class="mode-tabs">
                     <button type="button" class="mode-tab active" id="tab-original-config" data-mode="original">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                            <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
-                            <line x1="8" y1="8" x2="16" y2="8" stroke="currentColor" stroke-width="2"/>
-                            <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/>
-                            <line x1="8" y1="16" x2="12" y2="16" stroke="currentColor" stroke-width="2"/>
-                        </svg>
+                        <svg width="16" height="16"><use href="#oc-icon-list"/></svg>
                         <span><%:Original Config%></span>
                     </button>
                     <button type="button" class="mode-tab" id="tab-runtime-config" data-mode="runtime">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                            <polygon points="13 2 3 14 12 14 11 22 21 10 13 10 13 2" stroke="currentColor" stroke-width="2" fill="none"/>
-                        </svg>
+                        <svg width="16" height="16"><use href="#oc-icon-zap"/></svg>
                         <span><%:Runtime Config%></span>
                     </button>
                 </div>
@@ -83,8 +76,8 @@
 ocRegisterEditorHotkeys();
 
 var _ocIcons = {
-	SVG_COMPARE: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="8" height="18" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><rect x="14" y="3" width="8" height="18" rx="2" stroke="currentColor" stroke-width="2" fill="none"/></svg>',
-	SVG_RESTORE: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" fill="none"/></svg>'
+	SVG_COMPARE: '<svg width="24" height="24"><use href="#oc-icon-compare"/></svg>',
+	SVG_RESTORE: '<svg width="24" height="24"><use href="#oc-icon-restore"/></svg>'
 };
 
 // Uses EditorView.updateListener instead of view.dispatch override.
@@ -1127,7 +1120,7 @@ var ConfigEditor = {
             gear.className = 'icon-btn overwrite-gear-btn';
             gear.type = 'button';
             gear.title = '<%:Edit Module Info%>';
-            gear.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+            gear.innerHTML = '<svg width="16" height="16"><use href="#oc-icon-gear"/></svg>';
             gear.onclick = function(e) {
                 e.stopPropagation();
                 ConfigEditor.showOverwriteSubmodel(name, sub, file.path);
@@ -1138,7 +1131,7 @@ var ConfigEditor = {
             del.className = 'icon-btn overwrite-del-btn';
             del.type = 'button';
             del.title = '<%:Delete%>';
-            del.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>';
+            del.innerHTML = '<svg width="16" height="16"><use href="#oc-icon-trash"/></svg>';
             del.onclick = function(e) {
                 e.stopPropagation();
                 if (confirm('<%:Are you sure you want to delete this file and its subscription info?%>')) {
@@ -1852,7 +1845,7 @@ var ConfigEditor = {
         removeBtn.className = 'icon-btn';
         removeBtn.title = '<%:Remove%>';
         removeBtn.style.cssText = 'flex-shrink: 0;';
-        removeBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+        removeBtn.innerHTML = '<svg width="14" height="14"><use href="#oc-icon-close"/></svg>';
         removeBtn.addEventListener('click', function() {
             row.parentNode.removeChild(row);
             if (container.children.length === 0) {
@@ -1926,12 +1919,7 @@ var ConfigEditor = {
                         <%:Upload File%>
                     </button>
                     <button type="button" class="mode-tab${activeTab==='subscribe'?' active':''}" id="overwrite-upload-mode-subscribe" data-mode="subscribe">
-                        <svg width="15" height="15" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M26.2401 16.373L17.1001 7.23303C14.4388 4.57168 10.0653 4.6303 7.33158 7.36397C4.59791 10.0976 4.53929 14.4712 7.20064 17.1325L15.1359 25.0678" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M32.9027 23.0031L40.838 30.9384C43.4994 33.5998 43.4407 37.9733 40.7071 40.707C37.9734 43.4407 33.5999 43.4993 30.9385 40.8379L21.7985 31.6979" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M26.1093 26.1416C28.843 23.4079 28.9016 19.0344 26.2403 16.373" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M21.7989 21.7984C19.0652 24.5321 19.0066 28.9056 21.6679 31.5669" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
-                        </svg>
+                        <svg width="15" height="15"><use href="#oc-icon-link"/></svg>
                         <%:Subscribe Link%>
                     </button>
                 </div>
@@ -1946,11 +1934,7 @@ var ConfigEditor = {
                 </div>
                 <div class="upload-zone" id="overwrite-upload-zone">
                     <div class="upload-icon">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="17,11 12,6 7,11"></polyline>
-                            <line x1="12" y1="18" x2="12" y2="6"></line>
-                        </svg>
+                        <svg width="48" height="48"><use href="#oc-icon-upload-feather"/></svg>
                     </div>
                     <div class="upload-text">
                         <p class="upload-primary"><%:Click to select file or drag and drop%></p>
@@ -2063,10 +2047,7 @@ var ConfigEditor = {
                 </div>
                 <div class="config-upload-actions">
                     <button type="button" class="icon-btn" id="overwrite-add-close" title="<%:Close%>">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
+                        <svg width="14" height="14"><use href="#oc-icon-close"/></svg>
                     </button>
                 </div>
             </div>
@@ -2377,10 +2358,7 @@ var ConfigEditor = {
                 </div>
                 <div class="config-upload-actions">
                     <button type="button" class="icon-btn" id="overwrite-sub-close" title="<%:Close%>">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
+                        <svg width="14" height="14"><use href="#oc-icon-close"/></svg>
                     </button>
                 </div>
             </div>

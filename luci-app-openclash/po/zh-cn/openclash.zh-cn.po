@@ -1368,11 +1368,20 @@ msgstr "插件"
 msgid "Core"
 msgstr "内核"
 
+msgid "Plugin Version"
+msgstr "插件版本"
+
+msgid "Core Version"
+msgstr "内核版本"
+
 msgid "Date"
 msgstr "日期"
 
 msgid "Failed to get version history"
 msgstr "历史版本获取失败"
+
+msgid "Failed to get data, will retry"
+msgstr "获取数据失败，将自动重试"
 
 msgid "Bind Network Interface"
 msgstr "绑定网络接口"
@@ -3528,11 +3537,8 @@ msgstr "重启"
 msgid "No Config Selected"
 msgstr "未选择配置"
 
-msgid "Modified: "
-msgstr "修改时间："
-
-msgid "Update Time: "
-msgstr "更新时间："
+msgid "Modified"
+msgstr "修改时间"
 
 msgid "No Config Files Found"
 msgstr "未找到配置文件"
@@ -4325,4 +4331,22 @@ msgstr "oixCloud 退出失败："
 
 msgid "Checkin Failed:"
 msgstr "签到失败："
+
+msgid "Fetching data..."
+msgstr "数据获取中..."
+
+msgid "Click"
+msgstr "点击"
+
+msgid "link"
+msgstr "链接"
+
+msgid "to update all, click"
+msgstr "可同时更新，点击"
+
+msgid "version"
+msgstr "版本号"
+
+msgid "to update individually"
+msgstr "则独立更新"
 
