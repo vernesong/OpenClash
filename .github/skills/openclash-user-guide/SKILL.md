@@ -3187,14 +3187,23 @@ curl -s http://127.0.0.1:9090/version
 # 第八部分：覆写模块详解
 
 > 覆写模块 (Overwrite Module) 是 OpenClash 的高级自定义功能
-> 入口: 运行状态页顶部「覆写模块」按钮（弹出覆写编辑器，与启动/停止开关并列），或菜单 `服务→OpenClash→覆写设置`（独立 CBI 页面）
+> **主入口（用户询问"怎么用"时优先讲这个）**: 运行状态页顶部**「覆写模块」按钮**（`id="edit_overwrite"`，与启动/停止开关并列，调用 `editOverwrite()`）——点击弹出覆写编辑器窗口，创建/编辑/删除/启停覆写模块都在这一个窗口内完成。
+> 次要入口: 菜单 `服务→OpenClash→覆写设置`（独立 CBI 页面，配置的是内置覆写选项，与「覆写模块」文件编辑是不同入口，见第三部分）
 > UCI Section: `openclash.config_overwrite` (支持多条，按 order 排序)
-> 覆写文件存储: `/etc/openclash/overwrite/<名称>` (本地) 或通过 HTTP 远程拉取
+> 覆写文件存储: `/etc/openclash/overwrite/<名称>` (本地) 或通过 HTTP 远程拉取；内置固定文件 `/etc/openclash/custom/openclash_custom_overwrite.sh`
 
 ## 8.1 覆写模块是什么
 
-> **AI 行为指引**: 当用户询问覆写模块相关问题（如"如何通过覆写添加配置"、"[YAML] 操作符怎么用"、
+> **AI 行为指引**: 当用户询问覆写模块相关问题（如"覆写模块怎么用"、"如何通过覆写添加配置"、"[YAML] 操作符怎么用"、
 > "如何覆盖订阅中的 DNS 设置"、"覆写和 LuCI 设置哪个优先级高"），AI 应：
+>
+> 0. **【铁律·操作优先】凡涉及「覆写模块怎么用 / 怎么创建 / 怎么编辑 / 怎么生效」，必须先按操作路径讲解，再谈格式细节**。固定顺序：**覆写模块按钮 → 窗口弹出 → 创建 → 编辑语法格式 → 原理**（详见 8.1.1 节）：
+>    ① 运行状态页顶部「覆写模块」按钮（`editOverwrite()`）——不是菜单「覆写设置」CBI 页，也不是改启动脚本；
+>    ② 点击弹出覆写编辑器窗口（覆写警告横幅 + 模块卡片栏 + CodeMirror 主编辑器）；
+>    ③ 卡片栏「+」新建覆写模块（File / Subscribe 两种方式），另有内置固定 `openclash_custom_overwrite.sh`；
+>    ④ 选卡片 → 主编辑器按 INI 三段格式编辑 → Save 落盘 `/etc/openclash/overwrite/<名称>`；
+>    ⑤ 一句话讲清原理：`overwrite_file()` 在重启时解析，`[General]` 提前写 UCI，`[YAML]`/`[Overwrite]` 在 `yml_change.sh` 之后合并生效。
+>    **禁止**在用户尚未弄清入口时直接抛格式/操作符，或优先讲插件菜单「覆写设置」CBI 页与 `yml_change.sh` 内部逻辑。
 >
 > 1. **【铁律】输出必须包含段头**——覆写文件**必须包含至少一个段头**（`[General]`、`[Overwrite]`、`[YAML]` 之一），否则整个文件被跳过、覆写不生效（详见 8.2 节「强制要求」及 `overwrite_file()` 函数按段头解析的逻辑）。
 >    **AI 输出任何覆写配置示例时，必须在代码块内以段头作为第一行**，**绝对禁止**输出不含段头的裸 YAML/Shell/INI 内容。
@@ -3218,6 +3227,38 @@ curl -s http://127.0.0.1:9090/version
 >    `[Overwrite]` 和 `[YAML]` 段在 `yml_change.sh` / `yml_rules_change.sh` **之后**执行，因此可覆盖这两个脚本的所有输出——包括硬编码项（如 `allow-lan`、`bind-address`、`sniffer.sniff` 等）。
 >    LuCI「覆写设置」CBI 页面的选项同样会被 `[Overwrite]`/`[YAML]` 段覆盖。
 >    **警告：覆盖硬编码项可能导致 OpenClash 工作异常**（如 `allow-lan: false` 会使局域网设备无法使用代理端口），提醒用户谨慎操作。
+
+### 8.1.1 操作路径详解
+
+> **AI 行为指引**: 本节是「覆写模块怎么用」的标准回答骨架。用户问操作方式时按 ①→⑤ 逐条讲；用户只问某一环（如"怎么新建"）时讲对应一环并带上前置入口。
+
+**① 覆写模块按钮（入口）**
+- 位置：**运行状态页顶部**，与「启动/停止」「重启」按钮并列的 **Overwrite Module** 图标按钮（`id="edit_overwrite"`，`title="Overwrite Module"`）。
+- 触发：`editOverwrite()` → `ConfigEditor.showOverwrite()`（`config_edit.htm`），复用配置编辑器模态框。与菜单「服务→OpenClash→覆写设置」CBI 页面是**两个独立入口**。
+
+**② 窗口弹出**
+- 点击后弹出覆写编辑器窗口（覆盖层 `overlay`，`isOverwrite=true`），标题变为「Overwrite Edit」。
+- 顶部显示**覆写警告横幅**（`overwrite-banner`）：*"You are editing the overwrite script, please note that some settings may cause the abnormal, be careful with the modification!"*
+- 窗口结构：顶部**覆写模块卡片栏**（`overwrite-card-bar`，每个模块一张卡片 + 一个「+」新建卡片）+ 下方 **CodeMirror 主编辑器**（编辑当前选中文件的正文）。
+- 模式切换标签页（原始/运行时）、布局按钮在覆写模式被隐藏。
+
+**③ 创建（新建覆写模块）**
+- 卡片栏最左侧「**+**」卡片 → 弹出 **Add Overwrite Module** 窗口（`showAddOverwritemodel()`）。
+- 两个标签页：
+  - **File**：直接新建本地覆写文件——填「文件名 / 匹配配置文件（config：`all` 或指定文件名）/ 顺序（order）」→ Add。
+  - **Subscribe**：订阅型覆写——`type=http` 时填订阅 URL（可加 `param` 参数行），插件拉取远程覆写内容。
+- 内置一张始终存在的 **`openclash_custom_overwrite.sh`** 卡片（文件名固定，不可改名，存于 `/etc/openclash/custom/`）。
+- 新建后卡片支持：启用/停用开关、刷新（Subscribe 远程拉取）、齿轮（编辑参数）、删除（`delete_overwrite_file`）、拖拽排序（调整 order）。
+
+**④ 编辑（语法格式与保存）**
+- 点选卡片（或齿轮）→ 在主编辑器打开该覆写文件，按 **INI 三段格式**编辑：`[General]`（键值对/环境变量）、`[Overwrite]`（Shell 命令，可用 `ruby_*` 函数族）、`[YAML]`（原始 YAML + 操作符）。**必须包含至少一个段头**，否则不生效。详细格式/操作符见 8.2。
+- 点 Save → POST `/config_file_save`（`config_file` + `content`），后端仅允许写入 `/etc/openclash/overwrite/<名称>` 或 `/etc/openclash/custom/openclash_custom_overwrite.sh`（其它路径拒绝）。
+
+**⑤ 原理（生效机制）**
+- 覆写文件落盘 `/etc/openclash/overwrite/<名称>`，并注册到 UCI `openclash.config_overwrite`（按 order 排序、config 匹配当前配置）。
+- 重启 OpenClash 时 `overwrite_file()`（`init.d/openclash`）按段头解析：`[General]` 提前写入 UCI（影响 `yml_change.sh` 行为）；`[Overwrite]`/`[YAML]` 生成 `/tmp/yaml_overwrite.sh`，在 `yml_change.sh`/`yml_rules_change.sh` **之后**执行 → 深度合并/覆盖订阅与 LuCI 输出（含硬编码项，覆盖需谨慎）。
+
+> **注意**：以上是「覆写模块」（文件式自定义）的操作方式。菜单「覆写设置」CBI 页（第三部分）配置的是内置覆写选项（DNS/规则/Smart 等 UCI 选项）；`yml_change.sh` 的覆写逻辑是实现细节——两者仅在用户追问时补充，不作为「怎么用」的主线。
 
 **核心机制**: OpenClash 的覆写模块分两个阶段执行（均在 `/etc/init.d/openclash start_service` 流程中）：
 

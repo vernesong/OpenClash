@@ -383,8 +383,8 @@ html[data-darkmode="true"] .oc {
     gap: 8px;
     flex-wrap: wrap;
     width: auto;
-    max-width: 720px;
-    margin: 0 auto 12px auto;
+    max-width: 800px;
+    margin: 0 auto 0 auto;
     line-height: normal;
     overflow-x: visible;
     border-radius: 0;
@@ -395,8 +395,9 @@ html[data-darkmode="true"] .oc {
     content: '';
     position: absolute;
     bottom: 0;
-    left: 0;
-    width: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50%;
     height: 1px;
     background-color: var(--border-light);
 }
@@ -445,7 +446,7 @@ html[data-darkmode="true"] .oc {
 /* ── Upload note / result ── */
 .oc .upload-note {
     max-width: 720px;
-    margin: 12px auto 0 auto;
+    margin: 0px auto 0 auto;
     text-align: center;
     line-height: 1.5;
 }
@@ -1835,7 +1836,7 @@ html[data-darkmode="true"] .oc svg {
 }
 
 .oc .file-info-item {
-    display: block;
+    display: inline-flex;
     align-items: center;
     white-space: nowrap;
     padding: 2px 6px;
@@ -1845,9 +1846,14 @@ html[data-darkmode="true"] .oc svg {
     max-width: 240px;
 }
 .oc .file-info-item svg {
-    vertical-align: middle;
-    margin-right: 4px;
     flex-shrink: 0;
+    margin-right: 4px;
+}
+.oc .file-info-item > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
 }
 
 .oc .announcement-banner {
