@@ -244,7 +244,7 @@ fi
          LOG_WATCHDOG "Setting Firewall For Rules Order..."
          /etc/init.d/openclash reload "firewall"
          let FIREWALL_RELOAD++
-      elif [ -n "$(ip tuntap list |grep utun)" ] && [ -z "$(ip route list table 354)" ]; then
+      elif [ -n "$(ip link show utun 2>/dev/null)" ] && [ -z "$(ip route list table 354)" ]; then
          ## 路由表检查
          LOG_WATCHDOG "Setting Firewall For IP Rules Table Recreate..."
          /etc/init.d/openclash reload "firewall"
