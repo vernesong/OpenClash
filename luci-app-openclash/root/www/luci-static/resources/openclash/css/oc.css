@@ -6196,7 +6196,7 @@ html[data-darkmode=true] .oc .oix-msg-bar svg { color: inherit; }
     text-overflow: ellipsis;
     white-space: nowrap;
     min-width: 0;
-    line-height: 1;
+    line-height: 1.2;
 }
 .oc .oc-option-title::after {
     content: '';
@@ -6212,6 +6212,9 @@ html[data-darkmode=true] .oc .oix-msg-bar svg { color: inherit; }
     width: 14px;
     height: 14px;
     flex-shrink: 0;
+}
+.oc .oc-option-title b {
+    color: var(--warning-color);
 }
 
 .oc .select-class {
@@ -6575,7 +6578,7 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
     justify-content: center;
     gap: 6px;
     width: 100%;
-    padding: 8px 14px;
+    padding: 10px 14px;
     border: 1px solid var(--primary-color);
     border-radius: var(--radius-sm);
     background: var(--primary-color);
@@ -6770,7 +6773,7 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
     white-space: nowrap;
 }
 .oc .addr-header-label span {
-    line-height: 1;
+    line-height: 1.2;
     white-space: nowrap;
 }
 .oc .addr-header-icon {
@@ -6906,6 +6909,13 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
 
 /* ---- Stage 2: ≤768px (tablet portrait) ---- */
 @media (max-width: 768px) {
+    #debug-rendered { font-size: 13px; max-height: 460px; }
+    #debug-rendered h1 { font-size: 1.4em; }
+    #debug-rendered h2 { font-size: 1.2em; }
+    #debug-rendered h3 { font-size: 1.1em; }
+    #debug-rendered h4 { font-size: 1em; }
+    #debug-rendered h5 { font-size: 0.92em; }
+    #debug-rendered h6 { font-size: 0.85em; }
     #debug-rendered code { font-size: 0.85em; }
     /* status.htm - main cards */
     .oc .main-cards-container { max-width: 98%; width: 98%; gap: 10px; }
@@ -7046,6 +7056,13 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
 
 /* ---- Stage 3: ≤480px (mobile phone) ---- */
 @media (max-width: 480px) {
+    #debug-rendered { font-size: 12px; max-height: 400px; }
+    #debug-rendered h1 { font-size: 1.35em; }
+    #debug-rendered h2 { font-size: 1.15em; }
+    #debug-rendered h3 { font-size: 1.05em; }
+    #debug-rendered h4 { font-size: 0.98em; }
+    #debug-rendered h5 { font-size: 0.9em; }
+    #debug-rendered h6 { font-size: 0.82em; }
     #debug-rendered code { font-size: 0.8em; }
     /* status.htm - main cards */
     .oc .main-cards-container { gap: 8px; max-width: 100%; width: 100%; }
@@ -7197,6 +7214,13 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
 
 /* ---- Stage 4: ≤320px (small mobile) ---- */
 @media (max-width: 320px) {
+    #debug-rendered { font-size: 11px; max-height: 360px; }
+    #debug-rendered h1 { font-size: 1.3em; }
+    #debug-rendered h2 { font-size: 1.1em; }
+    #debug-rendered h3 { font-size: 1em; }
+    #debug-rendered h4 { font-size: 0.95em; }
+    #debug-rendered h5 { font-size: 0.88em; }
+    #debug-rendered h6 { font-size: 0.8em; }
     #debug-rendered code { font-size: 0.75em; }
     /* developer.htm */
     .oc .developer-grid { gap: 2px 10px; }
