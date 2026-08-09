@@ -153,7 +153,7 @@ module YAML
 			needs_fix ? fix_short_id_quotes(yaml_content) : yaml_content
 		elsif io.respond_to?(:write)
 			if needs_fix
-				io.write(fix_short_id_quotes(original_dump(obj, **options)))
+				fix_short_id_text(original_dump(obj, **options), io)
 			else
 				original_dump(obj, io, **options)
 			end
@@ -328,8 +328,8 @@ module YAML
 		end
 	end
 
-	def self.fix_short_id_text(yaml_content)
-		out = String.new
+	def self.fix_short_id_text(yaml_content, output = nil)
+		out = output || String.new
 		in_seq = false
 		seq_indent = -1
 		in_block = false

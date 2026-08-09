@@ -19,10 +19,9 @@ function index()
 	entry({"admin", "services", "openclash", "del_start_log"},call("action_del_start_log"))
 	entry({"admin", "services", "openclash", "close_all_connection"},call("action_close_all_connection"))
 	entry({"admin", "services", "openclash", "reload_firewall"},call("action_reload_firewall"))
-	entry({"admin", "services", "openclash", "lastversion"},call("action_lastversion"))
 	entry({"admin", "services", "openclash", "save_corever_branch"},call("action_save_corever_branch"))
 	entry({"admin", "services", "openclash", "update"},call("action_update"))
-	entry({"admin", "services", "openclash", "get_last_version"},call("action_get_last_version"))
+	entry({"admin", "services", "openclash", "last_version"},call("action_last_version"))
 	entry({"admin", "services", "openclash", "opupdate"},call("action_opupdate"))
 	entry({"admin", "services", "openclash", "coreupdate"},call("action_coreupdate"))
 	entry({"admin", "services", "openclash", "flush_dns_cache"}, call("action_flush_dns_cache"))
@@ -180,12 +179,14 @@ local function db_foward_ssl()
 	return fs.uci_get_config("config", "dashboard_forward_ssl") or 0
 end
 
-local function check_lastversion()
-	SYS.exec("bash /usr/share/openclash/openclash_version.sh 2>/dev/null")
-	return SYS.exec("sed -n '/^https:/,$p' /tmp/openclash_last_version 2>/dev/null")
-end
-
 local function coremodel()
+	local rel = fs.readfile("/etc/openwrt_release")
+	if rel then
+		local arch = rel:match("DISTRIB_ARCH='([^']+)'")
+		if arch and arch ~= "" then
+			return arch
+		end
+	end
 	if opkg then
 		local info = opkg.info("libc")
 		if info and info["libc"] and info["libc"]["Architecture"] then
@@ -256,6 +257,8 @@ local function sanitize_subconverter_version_text(text)
 	return text
 end
 
+local ov = dofile("/usr/share/openclash/openclash_version.lua")
+
 local function coremetacv()
 	local v = "0"
 	if not fs.access(meta_core_path) then
@@ -269,25 +272,44 @@ local function coremetacv()
 	return v
 end
 
+function release_branch()
+	return fs.uci_get_config("config", "release_branch") or "master"
+end
+
+local function smart_enable()
+	return fs.uci_get_config("config", "smart_enable") or "0"
+end
+
+local function is_oix()
+	local token = fs.uci_get_config("config", "oix_token")
+	return token ~= nil and token ~= ""
+end
+
+local function corever()
+	return fs.uci_get_config("config", "core_version") or "0"
+end
+
 local function corelv()
 	local core_meta_lv = ""
 	local core_smart_enable = fs.uci_get_config("config", "smart_enable") or "0"
-	local core_type = fs.uci_get_config("config", "core_type") or "Meta"
 	local oix_token = fs.uci_get_config("config", "oix_token") or ""
-	if fs.access("/tmp/clash_last_version") then
-		if core_type == "Oix" or oix_token ~= "" then
-			core_meta_lv = SYS.exec("sed -n 1p /tmp/clash_last_version 2>/dev/null |tr -d '\n'")
+
+	local cache = ov.fetch_version_history(release_branch(), false)
+	if cache then
+		if oix_token ~= "" then
+			core_meta_lv = cache.oix_ver or ""
 		elseif core_smart_enable == "1" then
-			core_meta_lv = SYS.exec("sed -n 2p /tmp/clash_last_version 2>/dev/null |tr -d '\n'")
+			core_meta_lv = (cache.core_smart and cache.core_smart[1] and cache.core_smart[1].version) or ""
 		else
-			core_meta_lv = SYS.exec("sed -n 1p /tmp/clash_last_version 2>/dev/null |tr -d '\n'")
+			core_meta_lv = (cache.core_meta and cache.core_meta[1] and cache.core_meta[1].version) or ""
 		end
-	else
-		core_meta_lv = "loading..."
 	end
 
-	action_get_last_version()
-	return core_meta_lv
+	if core_meta_lv and core_meta_lv ~= "" then
+		return core_meta_lv
+	end
+
+	return "loading..."
 end
 
 local function opcv()
@@ -312,14 +334,12 @@ end
 local function oplv()
 	local oplv = ""
 
-	if fs.access("/tmp/openclash_last_version") then
-		oplv = SYS.exec("sed -n 1p /tmp/openclash_last_version 2>/dev/null |tr -d '\n'")
-	else
-		oplv = "loading..."
+	local cache = ov.fetch_version_history(release_branch(), false)
+	if cache and cache.plugin and cache.plugin[1] and cache.plugin[1].version then
+		return cache.plugin[1].version
 	end
 
-	action_get_last_version()
-	return oplv
+	return "loading..."
 end
 
 local function opup()
@@ -331,23 +351,6 @@ local function coreup()
 	uci:commit("openclash")
 	local type = HTTP.formvalue("core_type")
 	return SYS.call(string.format("/usr/share/openclash/openclash_core.sh '%s' >/dev/null 2>&1 &", type))
-end
-
-local function corever()
-	return fs.uci_get_config("config", "core_version") or "0"
-end
-
-local function release_branch()
-	return fs.uci_get_config("config", "release_branch") or "master"
-end
-
-local function smart_enable()
-	return fs.uci_get_config("config", "smart_enable") or "0"
-end
-
-local function is_oix()
-	local token = fs.uci_get_config("config", "oix_token")
-	return token ~= nil and token ~= ""
 end
 
 local function save_corever_branch()
@@ -1539,13 +1542,6 @@ function action_status()
 	HTTP.write_json(result)
 end
 
-function action_lastversion()
-	HTTP.prepare_content("application/json")
-	HTTP.write_json({
-		lastversion = check_lastversion();
-	})
-end
-
 -- Streaming write.
 -- New LuCI: luci.http.write = L.print() (http.lua) is C-stdio buffered
 -- (musl 4096B / glibc 8192B), io.flush() can't reach it -> use L.http:write.
@@ -1595,6 +1591,82 @@ function try_read(fd, maxlen)
 		end
 	end
 	return nil
+end
+
+function trans_line(data)
+	if data == nil or data == "" then
+		return ""
+	end
+
+	local line_trans = ""
+
+	local has_timestamp = string.len(data) >= 19 and string.match(string.sub(data, 1, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d")
+	local time_part = ""
+	local level_part = ""
+	local content_start = has_timestamp and 21 or 1
+
+	if has_timestamp then
+		time_part = string.sub(data, 1, 20)
+		local level_start, level_end, level_content = string.find(data, "%[([^%]]+)%]", 21)
+		if level_start and level_end and level_start == 21 then
+			level_part = "[" .. luci.i18n.translate(level_content) .. "] "
+			content_start = level_end + 2
+		end
+	end
+
+	local segments = {}
+	local last_pos = content_start
+	local pos = string.find(data, "【", content_start)
+
+	while pos do
+		if pos > last_pos then
+			segments[#segments + 1] = {
+				type = "trans",
+				text = string.sub(data, last_pos, pos - 1)
+			}
+		end
+
+		local close_pos = string.find(data, "】", pos + 1)
+		if not close_pos then
+			segments[#segments + 1] = {
+				type = "trans",
+				text = string.sub(data, pos, -1)
+			}
+			break
+		end
+
+		segments[#segments + 1] = {
+			type = "no_trans",
+			text = string.sub(data, pos, close_pos + 2)
+		}
+
+		last_pos = close_pos + 3
+		pos = string.find(data, "【", last_pos)
+	end
+
+	if last_pos <= string.len(data) then
+		segments[#segments + 1] = {
+			type = "trans",
+			text = string.sub(data, last_pos, -1)
+		}
+	end
+
+	line_trans = time_part .. level_part
+	for _, seg in ipairs(segments) do
+		if seg.type == "trans" then
+			line_trans = line_trans .. luci.i18n.translate(seg.text)
+		else
+			line_trans = line_trans .. seg.text
+		end
+	end
+
+	return line_trans
+end
+
+function process_status(name)
+	local cmd = string.format("%s |grep '%s' |grep -v grep", fs.ps_cmd(), name)
+	local result = SYS.exec(cmd)
+	return result ~= nil and result ~= "" and not result:match("^%s*$")
 end
 
 local START_SCRIPT_PATTERNS = {
@@ -1707,25 +1779,7 @@ function action_start()
 	stream_log_and_parse(reader)
 end
 
-local function refresh_version_info(force)
-	if not process_status("/usr/share/openclash/clash_version.sh") then
-		if force or tonumber(os.time() - (fs.mtime("/tmp/clash_last_version") or 0)) > 1800 then
-			SYS.call("bash /usr/share/openclash/clash_version.sh &")
-		end
-	end
-	if not process_status("/usr/share/openclash/openclash_version.sh") then
-		if force or tonumber(os.time() - (fs.mtime("/tmp/openclash_last_version") or 0)) > 1800 then
-			SYS.call("bash /usr/share/openclash/openclash_version.sh &")
-		end
-	end
-end
-
-function action_get_last_version()
-	refresh_version_info(HTTP.formvalue("force") == "1")
-end
-
 function action_update()
-	refresh_version_info(HTTP.formvalue("force") == "1")
 	HTTP.prepare_content("application/json")
 	HTTP.write_json({
 		coremodel = coremodel(),
@@ -1735,8 +1789,14 @@ function action_update()
 		oix_core = is_oix(),
 		pkg_type = fs.pkg_type(),
 		coremetacv = coremetacv(),
+		opcv = opcv();
+	})
+end
+
+function action_last_version()
+	HTTP.prepare_content("application/json")
+	HTTP.write_json({
 		corelv = corelv(),
-		opcv = opcv(),
 		oplv = oplv();
 	})
 end
@@ -2215,82 +2275,6 @@ function all_proxies_stream_test()
 		return
 	end
 	HTTP.status(500, "Something Wrong While Testing...")
-end
-
-function trans_line(data)
-	if data == nil or data == "" then
-		return ""
-	end
-
-	local line_trans = ""
-
-	local has_timestamp = string.len(data) >= 19 and string.match(string.sub(data, 1, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d")
-	local time_part = ""
-	local level_part = ""
-	local content_start = has_timestamp and 21 or 1
-
-	if has_timestamp then
-		time_part = string.sub(data, 1, 20)
-		local level_start, level_end, level_content = string.find(data, "%[([^%]]+)%]", 21)
-		if level_start and level_end and level_start == 21 then
-			level_part = "[" .. luci.i18n.translate(level_content) .. "] "
-			content_start = level_end + 2
-		end
-	end
-
-	local segments = {}
-	local last_pos = content_start
-	local pos = string.find(data, "【", content_start)
-
-	while pos do
-		if pos > last_pos then
-			segments[#segments + 1] = {
-				type = "trans",
-				text = string.sub(data, last_pos, pos - 1)
-			}
-		end
-
-		local close_pos = string.find(data, "】", pos + 1)
-		if not close_pos then
-			segments[#segments + 1] = {
-				type = "trans",
-				text = string.sub(data, pos, -1)
-			}
-			break
-		end
-
-		segments[#segments + 1] = {
-			type = "no_trans",
-			text = string.sub(data, pos, close_pos + 2)
-		}
-
-		last_pos = close_pos + 3
-		pos = string.find(data, "【", last_pos)
-	end
-
-	if last_pos <= string.len(data) then
-		segments[#segments + 1] = {
-			type = "trans",
-			text = string.sub(data, last_pos, -1)
-		}
-	end
-
-	line_trans = time_part .. level_part
-	for _, seg in ipairs(segments) do
-		if seg.type == "trans" then
-			line_trans = line_trans .. luci.i18n.translate(seg.text)
-		else
-			line_trans = line_trans .. seg.text
-		end
-	end
-
-	return line_trans
-end
-
-function process_status(name)
-	local cmd = string.format("%s |grep '%s' |grep -v grep", fs.ps_cmd(), name)
-	local result = SYS.exec(cmd)
-	return result ~= nil and result ~= "" and not result:match("^%s*$")
 end
 
 function action_announcement()
@@ -3061,381 +3045,33 @@ function action_website_check()
 	end
 end
 
-local function is_valid_version(s)
-	if not s or s == "" then return false end
-	s = s:gsub("^%s+", ""):gsub("%s+$", "")
-	if s == "" then return false end
-	if s:match("^<") then return false end
-	return true
-end
-
-local function prepare_oix_cdn_data()
-	if not is_oix() then
-		return false, "", ""
-	end
-
-	local cache_file = "/tmp/openclash_oix_version.json"
-	if fs.access(cache_file) then
-		local cached = fs.readfile(cache_file)
-		if cached then
-			local ok, parsed = pcall(json.parse, cached)
-			if ok and parsed and parsed.cached_at then
-				local ttl = parsed.cache_ttl or 300
-				if (os.time() - parsed.cached_at) < ttl then
-					if parsed.error then
-						return true, "", parsed.error
-					end
-					return true, parsed.ver or "", ""
-				end
-			end
-		end
-	end
-
-	local function fork_oix_version(url)
-		local fdi, fdo = nixio.pipe()
-		if not fdi or not fdo then return nil end
-		local cmd = string.format('curl -sL -m 3 --connect-timeout 3 "%s" 2>/dev/null', url)
-		local child = nixio.fork()
-		if child > 0 then
-			fdo:close()
-			return {pid = child, fdi = fdi, buf = ""}
-		elseif child == 0 then
-			nixio.dup(fdo, nixio.stdout)
-			fdi:close()
-			fdo:close()
-			nixio.exec("/bin/sh", "-c", cmd)
-		else
-			if fdi then fdi:close() end
-			if fdo then fdo:close() end
-			return nil
-		end
-	end
-
-	local dl_job = fork_oix_version("https://dl.dler.io/mihomo-oix/version.txt?tag=Pre-Alpha")
-	local jobs = {}
-	if dl_job then jobs[#jobs + 1] = dl_job end
-	local gh_job = fork_oix_version("https://github.com/vernesong/mihomo-oix/releases/download/Pre-Alpha/version.txt")
-	if gh_job then jobs[#jobs + 1] = gh_job end
-
-	if #jobs == 0 then
-		return true, "", "error"
-	end
-
-	local ver = ""
-	local delay = 50000000
-	local max_wait = 40
-	for _ = 1, max_wait do
-		for _, job in ipairs(jobs) do
-			if not job.done then
-				local ok_r, buf = pcall(try_read, job.fdi, 4096)
-				if ok_r and buf then job.buf = job.buf .. buf end
-				local ok_w, wpid = pcall(nixio.waitpid, job.pid, "nohang")
-				if ok_w and wpid then
-					while true do
-						local ok_b, b = pcall(try_read, job.fdi, 4096)
-						if not ok_b or not b then break end
-						job.buf = job.buf .. b
-					end
-					pcall(job.fdi.close, job.fdi)
-					job.done = true
-				end
-			end
-		end
-		for _, job in ipairs(jobs) do
-			if job.done and ver == "" then
-				local candidate = job.buf:gsub("^%s+", ""):gsub("%s+$", ""):gsub("\n", ""):gsub("\r", "")
-				if is_valid_version(candidate) then
-					ver = candidate
-				end
-			end
-		end
-		if ver ~= "" then
-			for _, job in ipairs(jobs) do
-				if not job.done then
-					pcall(job.fdi.close, job.fdi)
-					nixio.kill(job.pid, 9)
-				end
-			end
-			fs.writefile(cache_file, json.stringify({ ver = ver, cache_ttl = 300, cached_at = os.time() }))
-			return true, ver, ""
-		end
-		local all_done = true
-		for _, job in ipairs(jobs) do
-			if not job.done then all_done = false; break end
-		end
-		if all_done then break end
-		nixio.nanosleep(0, delay)
-		delay = math.min(delay * 2, 200000000)
-	end
-
-	for _, job in ipairs(jobs) do
-		if not job.done then
-			pcall(job.fdi.close, job.fdi)
-			nixio.kill(job.pid, 9)
-		end
-	end
-
-	local err_type = "error"
-	local cache_ttl = 5
-	fs.writefile(cache_file, json.stringify({ ver = "", error = err_type, cache_ttl = cache_ttl, cached_at = os.time() }))
-	return true, "", err_type
-end
-
 function action_version_history()
 	local branch = HTTP.formvalue("branch") or "master"
 	local force = HTTP.formvalue("force") == "1"
-	local result = { plugin = {}, core_meta = {}, core_smart = {}, error = nil }
-	local skip_core = is_oix()
-
-	local cache_file = "/tmp/openclash_version_history_" .. branch .. ".json"
-	local cur_oix = is_oix()
-	if not force and fs.access(cache_file) then
-		local cached = fs.readfile(cache_file)
-		if cached then
-			local ok, parsed = pcall(json.parse, cached)
-			if ok and parsed and parsed.cached_at and parsed.oix == cur_oix then
-				local ttl = parsed.cache_ttl or 300
-				if (os.time() - parsed.cached_at) < ttl then
-					HTTP.prepare_content("text/plain; charset=utf-8")
-					if parsed.plugin then
-						for _, entry in ipairs(parsed.plugin) do
-							entry.type = "plugin"
-							write_padded(json.stringify(entry))
-						end
-					end
-					if parsed.core_meta then
-						for _, entry in ipairs(parsed.core_meta) do
-							entry.type = "core_meta"
-							write_padded(json.stringify(entry))
-						end
-					end
-					if parsed.core_smart then
-						for _, entry in ipairs(parsed.core_smart) do
-							entry.type = "core_smart"
-							write_padded(json.stringify(entry))
-						end
-					end
-					local complete_line = {complete = true}
-					if parsed.error then
-						complete_line.error = parsed.error
-					end
-					write_padded(json.stringify(complete_line))
-					return
-				end
-			end
-		end
-	end
+	local parsed = ov.fetch_version_history(branch, force)
 
 	HTTP.prepare_content("text/plain; charset=utf-8")
-
-	local function fork_file_fetch(sha, file_path)
-		local fdi, fdo = nixio.pipe()
-		if not fdi or not fdo then return nil end
-		local url = "https://raw.githubusercontent.com/vernesong/OpenClash/" .. sha .. "/" .. file_path
-		local cmd = 'curl -sL -m 10 "' .. url .. '" 2>/dev/null'
-		local child = nixio.fork()
-		if child > 0 then
-			fdo:close()
-			return { pid = child, fdi = fdi, buf = "", sha = sha }
-		elseif child == 0 then
-			nixio.dup(fdo, nixio.stdout)
-			fdi:close()
-			fdo:close()
-			nixio.exec("/bin/sh", "-c", cmd)
-		else
-			if fdi then fdi:close() end
-			if fdo then fdo:close() end
-			return nil
-		end
-	end
-
-	local function collect_fork_results(jobs, max_jobs)
-		local results = {}
-		local active = 0
-		local delay = 50000000
-		local max_iter = 150
-
-		for _ = 1, max_iter do
-			while active < max_jobs do
-				local launched = false
-				for _, job in ipairs(jobs) do
-					if not job.launched then
-						job.launched = true
-						active = active + 1
-						launched = true
-						break
-					end
-				end
-				if not launched then break end
-			end
-
-			for _, job in ipairs(jobs) do
-				if job.launched and not job.done then
-					local ok_r, buf = pcall(try_read, job.fdi, 4096)
-					if ok_r and buf then job.buf = job.buf .. buf end
-					local ok_w, wpid = pcall(nixio.waitpid, job.pid, "nohang")
-					if ok_w and wpid then
-						while true do
-							local ok_b, b = pcall(try_read, job.fdi, 4096)
-							if not ok_b or not b then break end
-							job.buf = job.buf .. b
-						end
-						pcall(job.fdi.close, job.fdi)
-						job.done = true
-						active = active - 1
-						if job.buf ~= "" then
-							results[job.sha] = job.buf:gsub("^%s+", ""):gsub("%s+$", "")
-						end
-					end
-				end
-			end
-
-			local all_done = true
-			for _, job in ipairs(jobs) do
-				if not job.done then all_done = false; break end
-			end
-			if all_done then break end
-
-			nixio.nanosleep(0, delay)
-			delay = math.min(delay * 2, 200000000)
-		end
-
-		for _, job in ipairs(jobs) do
-			if not job.done then
-				pcall(job.fdi.close, job.fdi)
-				nixio.kill(job.pid, 9)
-			end
-		end
-
-		return results
-	end
-
-	local function html_unescape(s)
-		if not s then return "" end
-		s = s:gsub("&amp;", "&")
-		s = s:gsub("&lt;", "<")
-		s = s:gsub("&gt;", ">")
-		s = s:gsub("&quot;", '"')
-		s = s:gsub("&#39;", "'")
-		s = s:gsub("&#x27;", "'")
-		return s
-	end
-
-	local function fetch_commit_feed(ref, path)
-		local url = "https://github.com/vernesong/OpenClash/commits/" .. ref .. "/" .. path .. ".atom"
-		return SYS.exec('curl -sL -m 10 "' .. url .. '" 2>/dev/null')
-	end
-
-	local function parse_commit_feed(raw, max_count)
-		local commits = {}
-		if raw and raw ~= "" then
-			local n = 0
-			for entry in raw:gmatch("<entry>(.-)</entry>") do
-				n = n + 1
-				if n > max_count then break end
-				local sha = entry:match("<id>[^<]*/([0-9a-f]+)</id>")
-				if sha then
-					local date = entry:match("<updated>(.-)</updated>") or ""
-					local title = entry:match("<title>(.-)</title>") or ""
-					title = title:gsub("^%s+", ""):gsub("%s+$", "")
-					table.insert(commits, { sha = sha, date = date, message = html_unescape(title) })
-				end
-			end
-		end
-		return commits
-	end
-
-	-- Fetch plugin version history (github.com atom feed)
-	local plugin_feed = fetch_commit_feed("package", branch .. "/version")
-	local plugin_commits = parse_commit_feed(plugin_feed, 5)
-	if #plugin_commits > 0 then
-		local file_jobs = {}
-		for _, c in ipairs(plugin_commits) do
-			local job = fork_file_fetch(c.sha, branch .. "/version")
-			if job then table.insert(file_jobs, job) end
-		end
-
-		local file_results = collect_fork_results(file_jobs, 3)
-
-		for _, c in ipairs(plugin_commits) do
-			local raw = file_results[c.sha]
-			local ver
-			if raw and raw ~= "" then
-				ver = raw:match("^[^\n\r]*"):gsub("^%s+", ""):gsub("%s+$", "")
-				if not is_valid_version(ver) then ver = nil end
-			end
-			local entry = {
-				type = "plugin",
-				version = ver,
-				date = c.date,
-				sha = c.sha,
-				message = c.message
-			}
-			table.insert(result.plugin, entry)
+	if parsed.plugin then
+		for _, entry in ipairs(parsed.plugin) do
+			entry.type = "plugin"
 			write_padded(json.stringify(entry))
 		end
 	end
-
-	if not skip_core then
-		io.flush()
-		local core_feed = fetch_commit_feed("core", branch .. "/core_version")
-		local core_commits = parse_commit_feed(core_feed, 5)
-		if #core_commits > 0 then
-			local file_jobs = {}
-			for _, c in ipairs(core_commits) do
-				local job = fork_file_fetch(c.sha, branch .. "/core_version")
-				if job then table.insert(file_jobs, job) end
-			end
-
-			local file_results = collect_fork_results(file_jobs, 3)
-
-			for _, c in ipairs(core_commits) do
-				local content = file_results[c.sha]
-				if content and content ~= "" then
-					local meta_ver = content:match("^[^\n\r]*")
-					local after_first = content:match("[\n\r]+(.*)")
-					local smart_ver = after_first and after_first:match("^[^\n\r]*") or nil
-					if meta_ver then
-						meta_ver = meta_ver:gsub("^%s+", ""):gsub("%s+$", "")
-						if is_valid_version(meta_ver) then
-							local meta_entry = { type = "core_meta", version = meta_ver, date = c.date, sha = c.sha }
-							table.insert(result.core_meta, meta_entry)
-							write_padded(json.stringify(meta_entry))
-						end
-					end
-					if smart_ver then
-						smart_ver = smart_ver:gsub("^%s+", ""):gsub("%s+$", "")
-						if is_valid_version(smart_ver) then
-							local smart_entry = { type = "core_smart", version = smart_ver, date = c.date, sha = c.sha }
-							table.insert(result.core_smart, smart_entry)
-							write_padded(json.stringify(smart_entry))
-						end
-					end
-				end
-			end
+	if parsed.core_meta then
+		for _, entry in ipairs(parsed.core_meta) do
+			entry.type = "core_meta"
+			write_padded(json.stringify(entry))
 		end
 	end
-
-	-- error type and cache TTL
-	local cache_ttl = 300
-	if #result.plugin == 0 then
-		if not plugin_feed or plugin_feed == "" then
-			result.error = "network_error"
-			cache_ttl = 5
-		else
-			result.error = "parse_error"
-			cache_ttl = 5
+	if parsed.core_smart then
+		for _, entry in ipairs(parsed.core_smart) do
+			entry.type = "core_smart"
+			write_padded(json.stringify(entry))
 		end
 	end
-
-	result.cache_ttl = cache_ttl
-	result.cached_at = os.time()
-	result.oix = cur_oix
-	fs.writefile(cache_file, json.stringify(result))
-
 	local complete_line = {complete = true}
-	if result.error then
-		complete_line.error = result.error
+	if parsed.error then
+		complete_line.error = parsed.error
 	end
 	write_padded(json.stringify(complete_line))
 end
@@ -3482,17 +3118,36 @@ function action_cdn_info()
 	local force = HTTP.formvalue("force") == "1"
 	local merge = HTTP.formvalue("merge") == "1"
 	local cur_oix = is_oix()
-	local cache_key = branch .. "_" .. (plugin_ver ~= "" and plugin_ver ~= "__latest__" and plugin_ver or "latest") .. "_" .. (core_ver ~= "" and core_ver ~= "__latest__" and core_ver or "latest")
-	local cache_file = "/tmp/openclash_cdn_info_" .. cache_key .. ".json"
+	local function version_ident(v)
+		if v ~= "" and v ~= "__latest__" then return v end
+		return nil
+	end
+	local p_ident = version_ident(plugin_ver)
+	local c_ident = version_ident(core_ver)
+	local ver_key
+	if p_ident and c_ident then
+		ver_key = (p_ident == c_ident) and p_ident or (p_ident .. "_" .. c_ident)
+	elseif p_ident then
+		ver_key = p_ident
+	elseif c_ident then
+		ver_key = c_ident
+	else
+		ver_key = "latest"
+	end
+	local cache_key = branch .. "_" .. ver_key
+	local cache_file = "/tmp/openclash_cdn_info.json"
 	local parsed_cache = nil
 	if fs.access(cache_file) then
 		local cached = fs.readfile(cache_file)
 		if cached then
 			local ok, parsed = pcall(json.parse, cached)
-			if ok and parsed and parsed.cached_at and parsed.oix == cur_oix then
-				local ttl = parsed.cache_ttl or 300
-				if (os.time() - parsed.cached_at) < ttl then
-					parsed_cache = parsed
+			if ok and parsed and type(parsed) == "table" then
+				local entry = parsed[cache_key]
+				if entry and entry.cached_at and entry.oix == cur_oix then
+					local ttl = entry.cache_ttl or 300
+					if (os.time() - entry.cached_at) < ttl then
+						parsed_cache = entry
+					end
 				end
 			end
 		end
@@ -3558,9 +3213,9 @@ function action_cdn_info()
 		if not data or data == "" then return nil end
 		local ok, parsed = pcall(json.parse, data)
 		if not ok or not parsed or type(parsed) ~= "table" then return nil end
-		if parsed.plugin_ver and not is_valid_version(parsed.plugin_ver) then parsed.plugin_ver = "" end
-		if parsed.core_meta_ver and not is_valid_version(parsed.core_meta_ver) then parsed.core_meta_ver = "" end
-		if parsed.core_smart_ver and not is_valid_version(parsed.core_smart_ver) then parsed.core_smart_ver = "" end
+		if parsed.plugin_ver and not ov.is_valid_version(parsed.plugin_ver) then parsed.plugin_ver = "" end
+		if parsed.core_meta_ver and not ov.is_valid_version(parsed.core_meta_ver) then parsed.core_meta_ver = "" end
+		if parsed.core_smart_ver and not ov.is_valid_version(parsed.core_smart_ver) then parsed.core_smart_ver = "" end
 		return parsed
 	end
 
@@ -3574,7 +3229,7 @@ function action_cdn_info()
 	local max_iter = 200
 	local iter = 0
 
-	local oix_mode, oix_core_ver, oix_core_error = prepare_oix_cdn_data()
+	local oix_mode, oix_core_ver, oix_core_error = ov.prepare_oix_cdn_data(force)
 
 	if merge and parsed_cache and parsed_cache.result then
 		for cdn, info in pairs(parsed_cache.result) do
@@ -3841,12 +3496,32 @@ printf '{"plugin_ver":"%%s","core_meta_ver":"%%s","core_smart_ver":"%%s","latenc
 		write_padded('{"complete":true}')
 	end
 
-	fs.writefile(cache_file, json.stringify({
+	local cdn_cache = {}
+	if fs.access(cache_file) then
+		local cached = fs.readfile(cache_file)
+		if cached then
+			local ok, parsed = pcall(json.parse, cached)
+			if ok and parsed and type(parsed) == "table" then
+				cdn_cache = parsed
+			end
+		end
+	end
+	local now = os.time()
+	for k, v in pairs(cdn_cache) do
+		if type(v) == "table" and v.cached_at then
+			local ttl = v.cache_ttl or 300
+			if now - v.cached_at > ttl then
+				cdn_cache[k] = nil
+			end
+		end
+	end
+	cdn_cache[cache_key] = {
 		result = result,
 		cache_ttl = cache_ttl,
-		cached_at = os.time(),
+		cached_at = now,
 		oix = cur_oix
-	}))
+	}
+	fs.writefile(cache_file, json.stringify(cdn_cache))
 end
 
 function action_proxy_info(internal)

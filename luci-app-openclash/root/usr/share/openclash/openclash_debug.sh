@@ -794,7 +794,9 @@ EOF
 
 sed -i -E 's/(([0-9]{1,3}\.){2})[0-9]{1,3}\.[0-9]{1,3}/\1*\.*/g' "$DEBUG_LOG" 2>/dev/null
 
-sed -i -E 's/(:[0-9a-fA-F]{1,4}){3}/:*:*:*/' "$DEBUG_LOG" 2>/dev/null
+sed -i -E 's/::[0-9a-fA-F]{1,4}:(([0-9]{1,3}\.){3}[0-9]{1,3})/::*:\1/g' "$DEBUG_LOG" 2>/dev/null
+sed -i -E 's/([0-9a-fA-F]{1,4}):[0-9a-fA-F]{1,4}:[0-9a-fA-F]{1,4}:[0-9a-fA-F]{1,4}:[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){3}/\1:*:*:*:*\2/g' "$DEBUG_LOG" 2>/dev/null
+sed -i -E 's/([0-9a-fA-F]{1,4})(:[0-9a-fA-F]{1,4}){0,5}::([0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4})*)?/\1:*::*/g' "$DEBUG_LOG" 2>/dev/null
 
 sed -i 's/Downloading URL【[^】]*】/Downloading URL【*】/g' "$DEBUG_LOG" 2>/dev/null
 

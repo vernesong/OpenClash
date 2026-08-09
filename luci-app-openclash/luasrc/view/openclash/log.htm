@@ -4,7 +4,6 @@
     local plugin_version = fs.oc_version()
 %>
 <script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
-<%+openclash/common%>
 <body>
     <div id="tab" class="oc">
         <div id="tab-header">
@@ -55,6 +54,15 @@
 </body>
 
 <script type="text/javascript">//<![CDATA[
+window.levelTranslations = {
+	'info': '<%:Info%>',
+	'warning': '<%:Warning%>',
+	'error': '<%:Error%>',
+	'debug': '<%:Debug%>',
+	'tip': '<%:Tip%>',
+	'watchdog': '<%:Watchdog%>',
+	'fatal': '<%:Fatal%>'
+};
 var r;
 var s;
 var log_len = 0;

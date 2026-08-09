@@ -1164,7 +1164,7 @@ fi
 # 第一部分：运行状态页面 (Overviews / client)
 
 > LuCI 路径: `服务` → `OpenClash` → `运行状态`
-> 数据来源: 前端 JS 同时请求多个后端端点：`/status` (运行状态、仪表盘设置)、`/toolbar_show` (流量统计)、`/update` (版本信息)、`/oc_settings` (快捷设置)、`/rule_mode` (代理模式)、`/config_file_list` (配置文件列表) 等。版本信息通过 `/update` 端点 (action_update) 返回，非 `/status` 端点。`/status` 仅返回运行状态布尔值、仪表盘可用性和 core_type，不包含版本号。
+> 数据来源: 前端 JS 同时请求多个后端端点：`/status` (运行状态、仪表盘设置)、`/toolbar_show` (流量统计)、`/update` (本机配置与已装版本)、`/last_version` (远程最新版本)、`/oc_settings` (快捷设置)、`/rule_mode` (代理模式)、`/config_file_list` (配置文件列表) 等。**版本信息拆分为两个端点**：`/update` (action_update) 返回本机配置（corever/release_branch/smart_enable 等）与已装版本（coremetacv/opcv），**不含远程最新**；远程最新版本 `corelv`/`oplv` 由独立 `/last_version` 端点 (action_last_version) 返回（status 页「新版本可用」红点据此显示），均非 `/status` 端点。`/status` 仅返回运行状态布尔值、仪表盘可用性和 core_type，不包含版本号。
 
 ## 1.1 核心控制卡片
 
@@ -1173,7 +1173,7 @@ fi
 | **启动/停止开关** | 切换核心运行状态 | 调用 `action_oc_action` → `/etc/init.d/openclash start/stop` |
 | **重启按钮** | 重启核心 | 调用 `/etc/init.d/openclash restart` |
 | **覆写模块按钮** | 在运行状态页弹出覆写编辑器（与菜单「服务→OpenClash→覆写设置」独立） | 调用 `editOverwrite()` → 在运行状态页弹出覆写编辑模态框 |
-| **插件/核心版本** | 显示当前版本号 | 核心版本: 执行 `/etc/openclash/core/clash_meta -v` 解析输出; 插件版本: 读取 opkg/apk 包数据库; 远程最新: 读取 `/tmp/clash_last_version`。前端通过 `/update` 端点 (action_update) 获取，非 `/status` 端点 |
+| **插件/核心版本** | 显示当前版本号 + 更新红点 | 已装版本: 核心执行 `/etc/openclash/core/clash_meta -v` 解析输出、插件读取 opkg/apk 包数据库，经 `/update` 端点展示; 远程最新: Lua `fetch_version_history` 拉取并缓存（内核 `/tmp/clash_last_version` / 插件 `/tmp/openclash_last_version`，Lua 侧另有 `/tmp/openclash_version_history_<branch>.json` JSON 缓存），经独立 `/last_version` 端点 (action_last_version) 获取并据此显示「新版本可用」红点，均非 `/status` 端点 |
 | **主题切换** | Light(太阳)/Dark(月亮)/Auto(自动) 三档切换 | 前端 CSS 变量 + localStorage |
 | **公告横幅** | 滚动显示项目公告 (24h 缓存) | `/announcement` 端点 |
 | **社交链接** | Wiki / Tutorials / Star / Telegram / Sponsor / Mihomo 图标 | 外部链接 `window.open()` |
@@ -1820,13 +1820,13 @@ fi
 
 ### 版本更新 (Version Update / version_update)
 
-此标签页内嵌「检查更新」面板（update 模板的 version_tab 模式），以 **CDN 地址列表** 为核心，提供核心/插件版本选择、下载和更新操作。页面加载时通过 `/update`（action_update）、`/version_history`、`/addr_info` API 动态填充。
+此标签页内嵌「检查更新」面板（update 模板的 version_tab 模式），以 **CDN 地址列表** 为核心，提供核心/插件版本选择、下载和更新操作。页面加载时通过 `/update`（action_update，本机配置与已装版本）、`/version_history`（版本历史）、`/addr_info`（CDN 地址列表）API 动态填充。远程最新版本（corelv/oplv，status 页红点用）由独立 `/last_version` 端点提供，本面板不使用。
 
 **顶部配置区（4 列，修改后自动保存）**:
 
 | 选项 | UCI Key | 类型 | 默认 | 说明 |
 |------|---------|------|------|------|
-| **处理器架构 (CPU Arch)** | —（只读展示） | 文本 | — | 当前设备 CPU 架构，来自后端 `coremodel`（读 opkg/apk 包数据库 libc 架构），仅展示不可选 |
+| **处理器架构 (CPU Arch)** | —（只读展示） | 文本 | — | 当前设备 CPU 架构，来自后端 `coremodel`（优先读 `/etc/openwrt_release` 的 DISTRIB_ARCH，opkg/apk 包数据库 libc 架构兜底），仅展示不可选 |
 | **编译版本 (Compiled Version)** | `core_version` | Select | `0`(未设置) | 选择与 CPU 匹配的编译版本：`linux-amd64-v1/v2/v3`(x86-64)、`linux-arm64`(armv8)、`linux-armv7`、`linux-mips64` 等 ~18 种架构。**未选择（0/空）时内核无法下载**，点击会提示 "No Compiled Version Selected" |
 | **更新分支 (Release Branch)** | `release_branch` | Select | `master` | `master`(稳定版) / `dev`(开发版)，决定插件/内核的下载分支 |
 | **Smart 内核 (Smart Core)** | `smart_enable` | Select | `0` | `0`=禁用(使用 Meta 内核) / `1`=启用(使用 Smart 内核)，决定内核下载的 meta/smart 子路径 |
@@ -2831,8 +2831,11 @@ curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/get_run_mode
 # 实时流量统计（上下行速率、连接数、CPU、内存）
 curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/toolbar_show
 
-# 版本信息与用户选择（编译版本 corever、发布分支 release_branch、Smart 状态 smart_enable、oix/pkg_type、CPU 架构 coremodel、已安装插件/内核版本 opcv/coremetacv）
+# 本机配置与已装版本（编译版本 corever、发布分支 release_branch、Smart 状态 smart_enable、oix/pkg_type、CPU 架构 coremodel、已安装插件/内核版本 opcv/coremetacv；不含远程最新）
 curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/update
+
+# 远程最新版本（corelv 远程最新核心 / oplv 远程最新插件，首次请求会同步拉取缓存）
+curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/last_version
 
 # 配置文件列表及当前使用的配置
 curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/config_name
@@ -2889,10 +2892,14 @@ curl -s 'http://127.0.0.1/cgi-bin/luci/admin/services/openclash/website_check?do
 | `smart_enable` | UCI `smart_enable` | Smart 内核启用状态 |
 | `oix_core` | UCI `oix_token` | 是否 oixCloud 内核 |
 | `pkg_type` | opkg/apk | 包管理器类型 |
-| `coremetacv` | `clash_meta -v` 解析 | 当前核心版本，`"0"`=核心文件不存在 |
-| `corelv` | `/tmp/clash_last_version` | 远程最新核心版本，`"loading..."`=尚未获取 |
-| `opcv` | opkg/apk 包数据库 | 当前插件版本，`"0"`=未安装 |
-| `oplv` | `/tmp/openclash_last_version` | 远程最新插件版本 |
+| `coremetacv` | `clash_meta -v` 解析 | 当前核心版本（已装），`"0"`=核心文件不存在 |
+| `opcv` | opkg/apk 包数据库 | 当前插件版本（已装），`"0"`=未安装 |
+
+`/last_version` 返回的 JSON（远程最新版本，status 页「新版本可用」红点判断依据）：
+| 字段 | 来源 | 含义 |
+|------|------|------|
+| `corelv` | Lua `fetch_version_history` 缓存 | 远程最新核心版本，`"loading..."`=尚未获取 |
+| `oplv` | Lua `fetch_version_history` 缓存 | 远程最新插件版本 |
 
 `/check_core` 返回 `{"core_status":"1"}`（核心文件存在）或 `{"core_status":"0"}`（不存在，需下载）。
 

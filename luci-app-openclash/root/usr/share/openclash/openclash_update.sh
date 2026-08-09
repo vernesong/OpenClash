@@ -23,15 +23,18 @@ early_exit() {
 set_lock
 inc_job_counter
 
-if [ -n "$1" ] && [ "$1" != "one_key_update" ] && [ "$1" != "plugin_update" ]; then
-   /usr/share/openclash/openclash_version.sh "$1" 2>/dev/null
-elif [ -n "$2" ]; then
-   /usr/share/openclash/openclash_version.sh "$2" 2>/dev/null
-else
-   /usr/share/openclash/openclash_version.sh 2>/dev/null
+RELEASE_BRANCH=$(uci_get_config "release_branch" || echo "master")
+
+PLUGIN_DIRECT=0
+if [ -n "$3" ] && echo "$3" | grep -qE '^https?://'; then
+   PLUGIN_DIRECT=1
 fi
 
-if [ ! -f "/tmp/openclash_last_version" ]; then
+lua /usr/share/openclash/openclash_version.lua "$2" 2>/dev/null
+
+PLUGIN_LATEST=$(jsonfilter -i /tmp/openclash_version_history.json -e "@.${RELEASE_BRANCH}.latest.plugin" 2>/dev/null)
+
+if [ "$PLUGIN_DIRECT" -eq 0 ] && [ -z "$PLUGIN_LATEST" ]; then
    LOG_ERROR "Failed to get version information, please try again later..."
    early_exit
 fi
@@ -73,15 +76,13 @@ run_with_timeout() {
    return $_ret
 }
 
-LAST_OPVER="/tmp/openclash_last_version"
-LAST_VER=$(sed -n 1p "$LAST_OPVER" 2>/dev/null |sed "s/^v//g" |tr -d "\n")
+LAST_VER=$(echo "$PLUGIN_LATEST" |sed "s/^v//g" |tr -d "\n")
 if [ -x "/bin/opkg" ]; then
    OP_CV=$(rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print $2}' 2>/dev/null)
 elif [ -x "/usr/bin/apk" ]; then
    OP_CV=$(rm -f /lib/apk/db/lock && apk list luci-app-openclash 2>/dev/null|grep "installed" | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 2>/dev/null)
 fi
-OP_LV=$(sed -n 1p "$LAST_OPVER" 2>/dev/null |sed "s/^v//g" |tr -d "\n")
-RELEASE_BRANCH=$(uci_get_config "release_branch" || echo "master")
+OP_LV="$LAST_VER"
 github_address_mod=$(uci_get_config "github_address_mod" || echo 0)
 
 #一键更新
@@ -91,7 +92,7 @@ if [ "$1" = "one_key_update" ]; then
    else
       /usr/share/openclash/openclash_core.sh "Meta" "$1" >/dev/null 2>&1
    fi
-   if [ -z "$3" ] || ! echo "$3" | grep -qE '^https?://'; then
+   if [ "$PLUGIN_DIRECT" -eq 0 ]; then
       if [ "$github_address_mod" = "0" ] && [ -z "$2" ]; then
          LOG_TIP "If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
       fi
@@ -105,7 +106,7 @@ if [ "$1" = "one_key_update" ]; then
       fi
    fi
 elif [ "$1" = "plugin_update" ]; then
-   if [ -z "$3" ] || ! echo "$3" | grep -qE '^https?://'; then
+   if [ "$PLUGIN_DIRECT" -eq 0 ]; then
       if [ "$github_address_mod" = "0" ] && [ -z "$2" ]; then
          LOG_TIP "If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
       fi
@@ -122,7 +123,7 @@ else
    fi
 fi
 
-if [ -n "$3" ] && echo "$3" | grep -qE '^https?://'; then
+if [ "$PLUGIN_DIRECT" -eq 1 ]; then
    # Direct download URL (historical version / downgrade) — skip version compare
    if [ -x "/bin/opkg" ]; then
       DOWNLOAD_URL="$3"
@@ -133,7 +134,7 @@ if [ -n "$3" ] && echo "$3" | grep -qE '^https?://'; then
    fi
    LAST_VER=$(echo "$DOWNLOAD_URL" | grep -oE 'luci-app-openclash[_-][0-9]+(\.[0-9]+)*' | head -1 | sed 's/^luci-app-openclash[_-]//')
    LOG_TIP "Start downloading【OpenClash - v$LAST_VER】..."
-elif [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && version_compare "$OP_CV" "$OP_LV" && [ -f "$LAST_OPVER" ]; then
+elif [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && version_compare "$OP_CV" "$OP_LV" && [ -n "$PLUGIN_LATEST" ]; then
    LOG_TIP "Start downloading【OpenClash - v$LAST_VER】..."
    if [ "$github_address_mod" != "0" ]; then
       if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
@@ -163,7 +164,7 @@ elif [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && version_compare "$OP_CV" "$OP_LV" && 
       fi
    fi
 else
-   if [ ! -f "$LAST_OPVER" ] || [ -z "$OP_CV" ] || [ -z "$OP_LV" ]; then
+   if [ -z "$PLUGIN_LATEST" ] || [ -z "$OP_CV" ] || [ -z "$OP_LV" ]; then
       LOG_ERROR "Failed to get version information, please try again later..."
    else
       LOG_TIP "OpenClash has not been updated, stop continuing!"

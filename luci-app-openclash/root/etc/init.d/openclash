@@ -567,7 +567,7 @@ do_run_file()
 
    ln -s "$meta_core_path" /etc/openclash/clash
 
-   if [ -n "$OIX_TOKEN" ] || [ "$core_type" == "Oix" ]; then
+   if [ -n "$OIX_TOKEN" ]; then
       core_type="Oix"
    elif [ "$smart_enable" -eq 1 ] || [ "$core_type" == "Smart" ]; then
       core_type="Smart"
@@ -582,7 +582,6 @@ do_run_file()
 
    [ ! -f "$CLASH" ] || { [ "$core_type" = "Smart" ] && [ -z "$($CLASH -v | grep 'smart')" ] && [ -z "$($CLASH -v | grep 'oix')" ]; } || { [ "$core_type" = "Oix" ] && [ -z "$($CLASH -v | grep 'oix')" ]; } && {
       LOG_TIP "【$core_type】Core is not Detected installed, Ready to Download..."
-      rm -rf "/tmp/clash_last_version"
       /usr/share/openclash/openclash_core.sh "$core_type"
       if [ ! -f "$meta_core_path" ]; then
          start_fail
@@ -3755,13 +3754,10 @@ stop_service()
       LOG_TIP "OpenClash Already Stop!"
 
       if [ "$enable" != "1" ]; then
-         rm -rf /tmp/clash_last_version \
-                /tmp/openclash_last_version \
+         rm -rf /tmp/openclash_version_history.json \
+                /tmp/openclash_cdn_info.json \
                 /tmp/openclash.change \
                 /tmp/openclash_announcement \
-                /tmp/openclash_oix_version.json \
-                /tmp/openclash_version_history_* \
-                /tmp/openclash_cdn_info_* \
                 ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf \
                 ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf \
                 ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf

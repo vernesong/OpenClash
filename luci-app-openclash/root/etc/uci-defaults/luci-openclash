@@ -81,10 +81,13 @@ case "${DISTRIB_ARCH}" in
 	aarch64_*)
 		CORE_ARCH="linux-arm64"
 		;;
-	arm_*_neon-vfp*)
+	armeb_*)
+		CORE_ARCH="0"
+		;;
+	arm_cortex-a5|arm_cortex-a5[^0-9]*|arm_cortex-a7|arm_cortex-a7[^0-9]*|arm_cortex-a8*|arm_cortex-a9*|arm_cortex-a12*|arm_cortex-a15*|arm_cortex-a17*)
 		CORE_ARCH="linux-armv7"
 		;;
-	arm_*_neon|arm_*_vfp*)
+	arm_arm1176jzf-s*|arm_arm1136*|arm_mpcore*)
 		CORE_ARCH="linux-armv6"
 		;;
 	arm*)
@@ -92,6 +95,9 @@ case "${DISTRIB_ARCH}" in
 		;;
 	i386_*)
 		CORE_ARCH="linux-386"
+		;;
+	mips64el_*)
+		CORE_ARCH="linux-mips64le"
 		;;
 	mips64_*)
 		CORE_ARCH="linux-mips64"
@@ -101,6 +107,12 @@ case "${DISTRIB_ARCH}" in
 		;;
 	mipsel_*)
 		CORE_ARCH="linux-mipsle-softfloat"
+		;;
+	riscv64*)
+		CORE_ARCH="linux-riscv64"
+		;;
+	loongarch64*|loongarch_*)
+		CORE_ARCH="linux-loong64-abi2"
 		;;
 	x86_64)
 		CORE_ARCH="linux-amd64-v1"

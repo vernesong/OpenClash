@@ -3,7 +3,6 @@
     local plugin_version = fs.oc_version()
     local version_tab = (self and self.version_tab) or false
 %>
-<%+openclash/common%>
 <script src="/luci-static/resources/openclash/js/common.js?v=<%=plugin_version%>"></script>
 <script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
     <div class="oc">
@@ -33,6 +32,25 @@
                         <div class="oc-option-title"><span class="oc-option-text"><%:Compiled Version%></span></div>
                         <div class="form-select-wrapper">
                             <select class="select-class oc-arch-select" id="CORE_VERSION" onchange="onArchChange()">
+                                <option value="linux-386"><%:linux-386%></option>
+                                <option value="linux-amd64-v1"><%:linux-amd64-v1(x86-64)%></option>
+                                <option value="linux-amd64-v2"><%:linux-amd64-v2(x86-64)%></option>
+                                <option value="linux-amd64-v3"><%:linux-amd64-v3(x86-64)%></option>
+                                <option value="linux-armv5"><%:linux-armv5%></option>
+                                <option value="linux-armv6"><%:linux-armv6%></option>
+                                <option value="linux-armv7"><%:linux-armv7%></option>
+                                <option value="linux-arm64"><%:linux-arm64(armv8)%></option>
+                                <option value="linux-loong64-abi1"><%:linux-loong64-abi1%></option>
+                                <option value="linux-loong64-abi2"><%:linux-loong64-abi2%></option>
+                                <option value="linux-riscv64"><%:linux-riscv64%></option>
+                                <option value="linux-s390x"><%:linux-s390x%></option>
+                                <option value="linux-mips-hardfloat"><%:linux-mips-hardfloat%></option>
+                                <option value="linux-mips-softfloat"><%:linux-mips-softfloat%></option>
+                                <option value="linux-mips64"><%:linux-mips64%></option>
+                                <option value="linux-mips64le"><%:linux-mips64le%></option>
+                                <option value="linux-mipsle-softfloat"><%:linux-mipsle-softfloat%></option>
+                                <option value="linux-mipsle-hardfloat"><%:linux-mipsle-hardfloat%></option>
+                                <option value="0"><%:Not Set%></option>
                             </select>
                         </div>
                     </div>
@@ -171,9 +189,6 @@
 
 <script type="text/javascript">
 //<![CDATA[
-    function ocRandomInterval(min, max) {
-        return Math.floor(Math.random() * (max - min + 1) + min);
-    }
     var core_version = document.getElementById('CORE_VERSION');
     var release_branch = document.getElementById('RELEASE_BRANCH');
     var smart_enable = document.getElementById('SMART_ENABLE');
@@ -204,6 +219,20 @@
     var _pkgType = 'opkg';
     var forceRefresh = false;
     var infoCache = {};
+
+    window.levelTranslations = {
+        'info': '<%:Info%>',
+        'warning': '<%:Warning%>',
+        'error': '<%:Error%>',
+        'debug': '<%:Debug%>',
+        'tip': '<%:Tip%>',
+        'watchdog': '<%:Watchdog%>',
+        'fatal': '<%:Fatal%>'
+    };
+
+    function ocRandomInterval(min, max) {
+        return Math.floor(Math.random() * (max - min + 1) + min);
+    }
 
     function isValidURL(str) {
         var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
@@ -473,8 +502,7 @@
             release_branch.disabled = false;
             smart_enable.disabled = false;
             fetchedBranch = release_branch.value;
-            reqUpdateDone = true;
-            updateDataStatus();
+            updateDataStatus({ update: true });
             fetchVersionHistory(!!(opts && opts.force), {cancel: true});
             refreshAddrInfo({cancel: true});
         });
@@ -494,6 +522,7 @@
             versionHistoryBusy = false;
         }
         versionHistoryBusy = true;
+        updateDataStatus({ version: false });
         var branch = fetchedBranch || release_branch.value || 'dev';
         var pluginSelect = document.getElementById('select-plugin-ver');
         var coreSelect = document.getElementById('select-core-ver');
@@ -635,8 +664,7 @@
                 versionHistoryXHR = null;
                 versionHistoryBusy = false;
             }
-            reqVersionHistoryDone = true;
-            updateDataStatus();
+            updateDataStatus({ version: true });
         };
         xhr.send();
         versionHistoryXHR = xhr;
@@ -665,6 +693,7 @@
         if (versionRetryTimer) { clearInterval(versionRetryTimer); versionRetryTimer = null; }
         if (retryTimer) { clearInterval(retryTimer); retryTimer = null; }
         saveOptions();
+        resetDataStatus(true);
         fetchVersionHistory(false, {cancel: true});
         forceRefresh = true;
         refreshAddrInfo({cancel: true});
@@ -672,6 +701,7 @@
 
     function onSmartChange() {
         saveOptions();
+        resetDataStatus(true);
         fetchVersionHistory(false, {cancel: true});
         forceRefresh = true;
         refreshAddrInfo({cancel: true});
@@ -682,7 +712,12 @@
         if (overlay) overlay.classList.toggle('oc-hidden', !loading);
     }
 
-    function updateDataStatus() {
+    function updateDataStatus(flags) {
+        if (flags) {
+            if ('update' in flags) reqUpdateDone = flags.update;
+            if ('version' in flags) reqVersionHistoryDone = flags.version;
+            if ('addr' in flags) reqAddrInfoDone = flags.addr;
+        }
         var status = document.getElementById('addr-list-status');
         if (!status) return;
         if (addrInfoError) {
@@ -692,8 +727,8 @@
         status.textContent = (reqUpdateDone && reqVersionHistoryDone && reqAddrInfoDone) ? '<%:Ready%>' : '<%:Fetching data...%>';
     }
 
-    function resetDataStatus() {
-        reqUpdateDone = false;
+    function resetDataStatus(keepUpdate) {
+        if (!keepUpdate) reqUpdateDone = false;
         reqVersionHistoryDone = false;
         reqAddrInfoDone = false;
         addrInfoError = false;
@@ -714,6 +749,7 @@
             addrInfoBusy = false;
         }
         addrInfoBusy = true;
+        updateDataStatus({ addr: false });
 
         var branch = fetchedBranch || release_branch.value || 'dev';
         var smart = smart_enable.value || '0';
@@ -839,8 +875,7 @@
                 addrInfoXHR = null;
                 addrInfoBusy = false;
             }
-            reqAddrInfoDone = true;
-            updateDataStatus();
+            updateDataStatus({ addr: true });
         };
         xhr.send();
         addrInfoXHR = xhr;
