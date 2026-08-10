@@ -5,6 +5,11 @@
 /* ==========================================================================
  * SECTION 0: common styles
  * ========================================================================== */
+@font-face {
+    font-family: 'Twemoji Mozilla';
+    src: url('/luci-static/resources/openclash/fonts/TwemojiMozilla-flags.woff2') format('woff2');
+}
+
 .oc {
     /* ── Background & Text ── */
     --bg-white: #ffffff;
@@ -192,6 +197,8 @@
     /* ── Misc ── */
     --cm-placeholder: rgba(128,128,128,0.5);
     --mask-opaque: #000;
+
+    font-family: "Microsoft Yahei", "sans-serif", "Helvetica Neue", "Helvetica", "Hiragino Sans GB", 'Twemoji Mozilla';
 }
 
 html[data-darkmode="true"] .oc {
@@ -1270,7 +1277,6 @@ html[data-darkmode="true"] .oc svg {
 }
 
 .oc .stat-value {
-    font-family: var(--font-family-mono);
     font-size: clamp(9px, 2.2vw, 12px);
     font-weight: 600;
     color: var(--success-color);
@@ -2750,10 +2756,7 @@ html[data-darkmode="true"] .oc .form-help::before {
 /* ==========================================================================
  * SECTION 3: config_edit.htm
  * ========================================================================== */
-@font-face {
-    font-family: 'Twemoji Mozilla';
-    src: url('/luci-static/resources/openclash/fonts/TwemojiMozilla-flags.woff2') format('woff2');
-}
+
 html[data-darkmode="true"] .oc #config-mode-tabs .mode-tab.active {
     background: var(--primary-color);
     color: var(--text-on-primary);
@@ -2840,6 +2843,7 @@ html[data-darkmode="true"] .oc .overwrite-banner svg circle {
     text-overflow: ellipsis;
     white-space: nowrap;
     flex: 1 1 auto;
+    padding-right: 10px;
 }
 .oc .config-editor-title #editTitle,
 .oc .config-editor-title #config-file-name {
@@ -2863,6 +2867,24 @@ html[data-darkmode="true"] .oc .overwrite-banner svg circle {
     background: var(--primary-a30);
     border-radius: 12px;
     line-height: 1.4;
+}
+@media (max-width: 768px) {
+    .oc .config-editor-title #editTitle {
+        flex: 0 1 auto;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .oc .config-editor-title .config-file-name {
+        position: static;
+        left: auto;
+        transform: none;
+        max-width: none;
+        flex: 0 0 auto;
+        min-width: 0;
+        margin: 0 auto;
+    }
 }
 .oc .config-editor-actions {
     display: flex;
@@ -3383,12 +3405,12 @@ html[data-darkmode="true"] .oc .oc-merge-editor-bar {
     border: 1px solid var(--border-light);
     border-radius: var(--radius-md);
     overflow: hidden;
-    font-family: 'Twemoji Mozilla', "Microsoft Yahei", "sans-serif", "Helvetica Neue", "Helvetica", "Hiragino Sans GB" !important;
 }
 
 .oc .cm-content {
-    font-family: 'Twemoji Mozilla', 'Menlo', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', ui-monospace, 'Courier New', 'PingFang SC', 'Microsoft Yahei', 'Hiragino Sans GB', 'WenQuanYi Micro Hei', 'Noto Sans SC', sans-serif !important;
+    font-family: 'Menlo', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', ui-monospace, 'Courier New', 'PingFang SC', 'Microsoft Yahei', 'Hiragino Sans GB', 'WenQuanYi Micro Hei', 'Noto Sans SC', sans-serif, 'Twemoji Mozilla' !important;
 }
+
 .oc .cm-content, .oc .cm-line {
     word-break: break-all !important;
     overflow-wrap: break-word !important;
@@ -4772,8 +4794,14 @@ html[data-darkmode="true"] .oc .diag-legend {
 }
 
 .oc .text_show {
+    display: inline-block;
+    max-width: 100%;
     color: var(--text-primary);
     line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
 }
 
 .oc .progress_bar_bg {
@@ -4784,6 +4812,30 @@ html[data-darkmode="true"] .oc .diag-legend {
     box-sizing: border-box;
     border-radius: 6px;
     height: 36px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.oc .progress_bar_fill {
+    height: 34px;
+    border-radius: 6px;
+}
+
+.oc .progress_bar_text {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    text-align: center;
+    width: 100%;
+    padding: 0 4px;
+    box-sizing: border-box;
+    line-height: 1.2;
+}
+
+.oc .progress_bar_expire {
+    line-height: 1.2;
 }
 
 .progress_bar_high {
@@ -5214,9 +5266,8 @@ ul {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 12px 0;
+    padding: 12px 8px;
     height: 40px;
-    font-size: 15px;
     font-weight: 500;
     color: var(--text-secondary, #64748b);
     background: transparent;
@@ -5228,6 +5279,14 @@ ul {
     user-select: none;
     position: relative;
     box-sizing: border-box;
+    font-size: 14px;
+}
+
+#tab-header ul.oc-tabmenu li a svg {
+    width: 1.1em;
+    height: 1.1em;
+    flex-shrink: 0;
+    display: block;
 }
 
 #tab-header ul.oc-tabmenu li.oc-tab {
@@ -5286,6 +5345,13 @@ ul {
     user-select: none;
     transition: color .18s;
     box-shadow: none;
+}
+
+#tab-header ul.oc-tabmenu li a span {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 #tab-content .dom {
@@ -5458,7 +5524,6 @@ html[data-darkmode=true] .oc .radio-button input[type=radio]:checked + label {
     border-radius: 0 0 6px;
     background: var(--bg-white, #fff);
     color: var(--text-primary, #374151);
-    font-family: 'Twemoji Mozilla', 'Microsoft Yahei', sans-serif;
     font-size: 15px;
     line-height: 1.5;
 }
@@ -5490,7 +5555,7 @@ html[data-darkmode=true] .oc .radio-button input[type=radio]:checked + label {
 #debug-rendered strong, #debug-rendered b { font-weight: 600; }
 #debug-rendered em, #debug-rendered i { font-style: italic; }
 #debug-rendered code {
-    font-family: 'Twemoji Mozilla', 'Menlo', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', ui-monospace, 'Courier New', 'PingFang SC', 'Microsoft Yahei', 'Hiragino Sans GB', 'WenQuanYi Micro Hei', 'Noto Sans SC', sans-serif;
+    font-family: 'Menlo', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', ui-monospace, 'Courier New', 'PingFang SC', 'Microsoft Yahei', 'Hiragino Sans GB', 'WenQuanYi Micro Hei', 'Noto Sans SC', sans-serif, 'Twemoji Mozilla';
     padding: 0 2px;
     font-size: 0.9em;
 }
@@ -6113,6 +6178,7 @@ html[data-darkmode=true] .oc .oix-msg-bar svg { color: inherit; }
 }
 .oc .select-popup-tab .select-popup-body {
     max-height: none;
+    overflow: visible;
 }
 
 .oc .select-popup-header {
@@ -6277,12 +6343,18 @@ html[data-darkmode=true] .oc .oix-msg-bar svg { color: inherit; }
 }
 
 .oc .select-popup-body {
-    max-height: 300px;
-    overflow-y: auto;
+    position: relative;
+    overflow: hidden;
     border: 1px solid var(--border-light);
     border-radius: var(--radius-md);
     background: var(--bg-gray);
-    position: relative;
+}
+.oc .addr-list-scroll {
+    max-height: 300px;
+    overflow-y: auto;
+    overflow-x: auto;
+    scrollbar-gutter: stable;
+    counter-reset: addr-row;
 }
 
 .oc .addr-list-loading {
@@ -6595,14 +6667,14 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
     opacity: 0.9;
 }
 .oc .footer-btn svg {
-    width: 14px;
-    height: 14px;
+    width: 1.1em;
+    height: 1.1em;
     flex-shrink: 0;
     display: block;
 }
 .oc .footer-btn .loading-spinner.oc-btn-spinner {
-    width: 14px;
-    height: 14px;
+    width: 1.1em;
+    height: 1.1em;
     border-width: 2px;
     margin: 0;
     border-color: rgba(255, 255, 255, 0.35);
@@ -6623,6 +6695,21 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
 .oc .footer-btn:disabled .loading-spinner.oc-btn-spinner {
     opacity: 1;
 }
+
+/* log.htm: tab responsive font (svg scales with text via em) */
+@media (max-width: 1024px) {
+    #tab-header ul.oc-tabmenu li { font-size: 13px; }
+}
+@media (max-width: 768px) {
+    #tab-header ul.oc-tabmenu li { font-size: 12px; }
+}
+@media (max-width: 480px) {
+    #tab-header ul.oc-tabmenu li { font-size: 11px; }
+}
+@media (max-width: 320px) {
+    #tab-header ul.oc-tabmenu li { font-size: 10px; }
+}
+
 .oc .addr-header-label .help-link {
     margin-bottom: 0;
 }
@@ -6630,9 +6717,27 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
 .oc .addr-row,
 .oc .addr-header {
     display: grid;
-    grid-template-columns: minmax(0, 1.6fr) 64px minmax(0, 0.8fr) minmax(0, 0.8fr);
+    min-width: 398px;
+    grid-template-columns: 44px minmax(0, 1.6fr) 64px minmax(0, 0.8fr) minmax(0, 0.8fr) 72px;
     gap: 8px;
     align-items: center;
+}
+.oc #custom-addr-option {
+    min-width: 398px;
+}
+.oc .addr-header-index {
+    font-size: 12px;
+}
+.oc .addr-row-index {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: center;
+    justify-self: center;
+    font-variant-numeric: tabular-nums;
+}
+.oc .addr-row-index::before {
+    counter-increment: addr-row;
+    content: counter(addr-row);
 }
 .oc .addr-row span {
     word-break: normal !important;
@@ -6642,6 +6747,7 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
     white-space: normal;
     word-break: break-all !important;
     overflow-wrap: anywhere;
+    text-align: center;
     font-size: 13px;
     line-height: 1.45;
     color: var(--text-primary);
@@ -6659,6 +6765,42 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
 .oc .addr-status.medium { color: var(--tip-color); background: var(--warning-a10); }
 .oc .addr-status.slow { color: var(--error-color); background: var(--error-a10); }
 .oc .addr-status.err { color: var(--error-color); background: var(--error-a12); }
+.oc .addr-proxy {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    box-sizing: border-box;
+    font-variant-numeric: tabular-nums;
+    justify-self: center;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition: all var(--transition-fast);
+}
+.oc .addr-proxy.on { color: var(--success-color); background: var(--success-a10); }
+.oc .addr-proxy.off { color: var(--error-color); background: var(--error-a12); }
+.oc .addr-proxy:hover { filter: brightness(1.1); }
+.oc .addr-proxy-static {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    box-sizing: border-box;
+    font-variant-numeric: tabular-nums;
+    justify-self: center;
+    white-space: nowrap;
+    color: var(--primary-color);
+    background: transparent;
+    border: 1px dashed var(--primary-color);
+    user-select: none;
+}
 .oc .addr-row .ver-text {
     font-size: 12px;
     color: var(--text-secondary);
@@ -6758,7 +6900,8 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
     border-bottom: 2px solid var(--border-light);
     cursor: default;
     background: var(--bg-gray);
-    position: relative;
+    position: sticky;
+    top: 0;
     z-index: 6;
 }
 .oc .addr-header-label {
@@ -6769,12 +6912,18 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
     padding: 0 4px;
     box-sizing: border-box;
     justify-self: center;
+    min-width: 0;
+    max-width: 100%;
     color: var(--text-secondary);
     white-space: nowrap;
+    overflow: hidden;
 }
 .oc .addr-header-label span {
     line-height: 1.2;
     white-space: nowrap;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .oc .addr-header-icon {
     display: block;
@@ -6889,10 +7038,12 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .config-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
     .oc .config-item { width: 100%; max-width: 100%; }
     .oc .select-class { max-width: 100%; font-size: 13px; }
-    .oc .addr-row, .oc .addr-header { grid-template-columns: minmax(0, 1.6fr) 56px minmax(0, 0.8fr) minmax(0, 0.8fr); gap: 6px; }
+    .oc .addr-row, .oc .addr-header { grid-template-columns: 40px minmax(0, 1.6fr) 56px minmax(0, 0.8fr) minmax(0, 0.8fr) 64px; gap: 6px; }
     .oc .addr-row-url { font-size: 12px; }
     .oc .addr-status { font-size: 11px; }
+    .oc .addr-proxy { font-size: 11px; }
     .oc .addr-row .ver-text { font-size: 11px; }
+    .oc .addr-row-index, .oc .addr-header-index { font-size: 11px; }
     .oc .addr-header-label { font-size: 11px; }
 
     /* sub_info_show.htm tabs */
@@ -7005,23 +7156,25 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .config-item { text-align: center; gap: 8px; }
     .oc .select-popup-header { font-size: 16px; margin-bottom: 12px; padding-bottom: 10px; }
     .oc .select-config-section { padding: 10px; margin-bottom: 10px; }
-    .oc .select-popup-body { max-height: 200px; }
+    .oc .addr-list-scroll { max-height: 200px; }
     .oc .select-option { padding: 10px 12px; font-size: 13px; align-items: flex-start; gap: 4px; }
     .oc .custom-option-input, .oc #addCustomOption { font-size: 13px; padding: 10px 12px; margin: 8px 0; }
     .oc .version-row { grid-template-columns: 1fr 1fr; gap: 8px; }
     .oc .version-card { margin-bottom: 6px; }
     .oc #addr-list-body { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .oc .addr-row, .oc .addr-header {
-        grid-template-columns: minmax(80px, 1.5fr) 50px minmax(88px, 0.8fr) minmax(88px, 0.8fr);
+        grid-template-columns: 36px minmax(80px, 1.5fr) 50px minmax(88px, 0.8fr) minmax(88px, 0.8fr) 56px;
         gap: 4px;
     }
-    .oc .addr-row, .oc .addr-header, .oc #customOptionInput, .oc #addCustomOption, .oc #custom-addr-option { min-width: 0; }
+    .oc #customOptionInput, .oc #addCustomOption { min-width: 0; }
     .oc .addr-row {
         min-height: 52px;
         align-items: center;
     }
     .oc .addr-row-url { font-size: 11px; }
     .oc .addr-status { font-size: 10px; }
+    .oc .addr-proxy { font-size: 10px; }
+    .oc .addr-row-index, .oc .addr-header-index { font-size: 10px; }
     .oc .addr-row .ver-text { font-size: 10px; padding: 2px 3px; gap: 3px; }
     .oc .addr-header-label { font-size: 10px; }
     .oc .select-popup-footer { grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 10px; }
@@ -7171,7 +7324,7 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .version-card { margin-bottom: 4px; }
     .oc .config-item { gap: 6px; }
     .oc .addr-row, .oc .addr-header {
-        grid-template-columns: minmax(64px, 1.4fr) 44px minmax(76px, 0.8fr) minmax(76px, 0.8fr);
+        grid-template-columns: 32px minmax(64px, 1.4fr) 44px minmax(76px, 0.8fr) minmax(76px, 0.8fr) 52px;
         gap: 3px;
     }
     .oc .addr-row {
@@ -7180,6 +7333,8 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     }
     .oc .addr-row-url { font-size: 10px; }
     .oc .addr-status { font-size: 9px; }
+    .oc .addr-proxy { font-size: 9px; }
+    .oc .addr-row-index, .oc .addr-header-index { font-size: 9px; }
     .oc .addr-row .ver-text { font-size: 9px; padding: 1px 2px; }
     .oc .addr-header-label { font-size: 9px; }
     .oc .dl-btn { width: 16px; height: 16px; min-width: 16px; }
@@ -7192,7 +7347,6 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
         padding: 4px 24px 4px 8px;
     }
     .oc .footer-btn { font-size: 11px; padding: 5px 8px; gap: 4px; height: 30px; }
-    .oc .footer-btn svg { width: 12px; height: 12px; }
 
     /* developer.htm */
     .oc .developer-grid { gap: 3px 15px; }

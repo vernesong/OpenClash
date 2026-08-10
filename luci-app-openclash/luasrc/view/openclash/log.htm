@@ -8,8 +8,8 @@
     <div id="tab" class="oc">
         <div id="tab-header">
             <ul class="oc-tabmenu">
-                <li name="tab-header" class="oc-tab"><a href="#"><svg width="14" height="14"><use href="#oc-icon-package"/></svg><span><%:OpenClash Log%></span></a></li>
-                <li name="tab-header" class="oc-tab-disabled"><a href="#"><svg width="14" height="14"><use href="#oc-icon-cpu"/></svg><span><%:Core Log%></span></a></li>
+                <li name="tab-header" class="oc-tab"><a href="#"><svg width="14" height="14"><use href="#oc-icon-package"/></svg><span><%:Plugin Logs%></span></a></li>
+                <li name="tab-header" class="oc-tab-disabled"><a href="#"><svg width="14" height="14"><use href="#oc-icon-cpu"/></svg><span><%:Core Logs%></span></a></li>
                 <li name="tab-header" class="oc-tab-disabled"><a href="#"><svg width="14" height="14"><use href="#oc-icon-bug"/></svg><span><%:Debug Logs%></span></a></li>
             </ul>
         </div>
@@ -220,10 +220,10 @@ function download_log(){
     }
 
     if (oc_content.trim()) {
-        downloadContent += "<%:OpenClash Log%>:\n" + oc_content + "\n\n";
+        downloadContent += "<%:Plugin Logs%>:\n" + oc_content + "\n\n";
     }
     if (core_content.trim()) {
-        downloadContent += "<%:Core Log%>:\n" + core_content;
+        downloadContent += "<%:Core Logs%>:\n" + core_content;
     }
 
     createAndDownloadFile("OpenClash-"+timestamp+".log", downloadContent);

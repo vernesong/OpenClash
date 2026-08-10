@@ -53,13 +53,13 @@ function progressbar_<%=idname%>(v, m, pc, np, f, t, tr) {
     }
 
     return String.format(
-        '<div class="progress_bar_bg" title="' + titleText + '" style="position:relative; border-radius: 6px; display: flex; align-items: center;">' +
-        (pc >= 50 ? '<div class="progress_bar_high" style="width:%d%%; height:34px; border-radius: 6px">' :
-        (pc < 50 && pc >= 20 ? '<div class="progress_bar_medium" style="width:%d%%; height:34px; border-radius: 6px">' :
-        '<div class="progress_bar_low" style="width:%d%%; height:34px; border-radius: 6px">')) +
-        '<div style="position:absolute; left:0; top:50%%; transform: translateY(-50%%); text-align:center; width:100%%; padding:0 4px; box-sizing:border-box; line-height:1.2;">' +
-        '<small class="text_show" style="font-size:%s; line-height:1.2;">%s '+ (f ? f : '/') +' %s ' + (np ? "" : '(%s%%)') +
-        (tr == "null" ? '<div style="visibility: hidden; line-height:1.2;">' : '<div style="visibility: visible; line-height:1.2;">') +
+        '<div class="progress_bar_bg" title="' + titleText + '">' +
+        (pc >= 50 ? '<div class="progress_bar_fill progress_bar_high" style="width:%d%%">' :
+        (pc < 50 && pc >= 20 ? '<div class="progress_bar_fill progress_bar_medium" style="width:%d%%">' :
+        '<div class="progress_bar_fill progress_bar_low" style="width:%d%%">')) +
+        '<div class="progress_bar_text">' +
+        '<small class="text_show" style="font-size:%s;">%s '+ (f ? f : '/') +' %s ' + (np ? "" : '(%s%%)') +
+        (tr == "null" ? '<div class="progress_bar_expire" style="visibility: hidden;">' : '<div class="progress_bar_expire" style="visibility: visible;">') +
         '%s (<%:Remaining%> %s <%:days%>)</small>' +
         '</div>' +
         '</div>' +
@@ -184,6 +184,14 @@ function dispaly_progressbar(id, status) {
                 (provider.expire),
                 (provider.day_left)
             );
+            var textShow = document.getElementById(id).querySelector('.text_show');
+            if (textShow && textShow.scrollWidth > textShow.clientWidth) {
+                var size = parseFloat(window.getComputedStyle(textShow).fontSize) || 12;
+                while (textShow.scrollWidth > textShow.clientWidth && size > 6) {
+                    size -= 1;
+                    textShow.style.fontSize = size + 'px';
+                }
+            }
         } else {
             document.getElementById(id).innerHTML = window["progressbar_multi_" + id](status.providers);
         }

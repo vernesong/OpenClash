@@ -94,7 +94,7 @@ if [ "$1" = "one_key_update" ]; then
    fi
    if [ "$PLUGIN_DIRECT" -eq 0 ]; then
       if [ "$github_address_mod" = "0" ] && [ -z "$2" ]; then
-         LOG_TIP "If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
+         LOG_TIP "If the download fails, try setting the CDN in Overwrite Settings - General Settings - GitHub Address Proxy Options"
       fi
       if [ -n "$2" ]; then
          github_address_mod="$2"
@@ -108,7 +108,7 @@ if [ "$1" = "one_key_update" ]; then
 elif [ "$1" = "plugin_update" ]; then
    if [ "$PLUGIN_DIRECT" -eq 0 ]; then
       if [ "$github_address_mod" = "0" ] && [ -z "$2" ]; then
-         LOG_TIP "If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
+         LOG_TIP "If the download fails, try setting the CDN in Overwrite Settings - General Settings - GitHub Address Proxy Options"
       fi
       if [ -n "$2" ]; then
          github_address_mod="$2"
@@ -119,7 +119,7 @@ elif [ "$1" = "plugin_update" ]; then
    fi
 else
    if [ "$github_address_mod" = "0" ]; then
-      LOG_TIP "If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
+      LOG_TIP "If the download fails, try setting the CDN in Overwrite Settings - General Settings - GitHub Address Proxy Options"
    fi
 fi
 

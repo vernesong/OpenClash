@@ -93,12 +93,15 @@ o:value("https://cp.cloudflare.com/generate_204")
 o:value("http://captive.apple.com/generate_204")
 o.default = "0"
 
-o = s:taboption("settings", Value, "github_address_mod", translate("Github Address Modify"))
-o.description = translate("Modify The Github Address In The Config And OpenClash With Proxy(CDN) To Prevent File Download Failed. Format Reference:").." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://ghfast.top/\")'>https://ghfast.top/</a>"
+o = s:taboption("settings", Value, "github_address_mod", font_red..bold_on..translate("GitHub Address Proxy")..bold_off..font_off)
+o.description = translate("Proxy The GitHub Address In The Config And OpenClash With Proxy(CDN) To Prevent File Download Failed. Format Reference:").." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://ghfast.top/\")'>https://ghfast.top/</a>"
 o:value("0", translate("Disable"))
 o:value("https://fastly.jsdelivr.net/")
 o:value("https://testingcf.jsdelivr.net/")
 o:value("https://cdn.jsdelivr.net/")
+for _, cdn in ipairs(fs.cdn_list()) do
+	o:value(cdn)
+end
 o.default = "0"
 
 o = s:taboption("settings", ListValue, "log_level", translate("Log Level"))

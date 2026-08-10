@@ -164,6 +164,9 @@ msgstr "Fake-IP（TUN-混合）模式【UDP-TUN，TCP-转发】"
 msgid "Select Mode For OpenClash Work, Try Flush DNS Cache If Network Error"
 msgstr "选择运行模式，如客户端的网络异常请尝试清除 DNS 缓存"
 
+msgid "Proxy"
+msgstr "代理"
+
 msgid "Proxy Mode"
 msgstr "代理模式"
 
@@ -1215,6 +1218,9 @@ msgstr "正在保存..."
 msgid "Save successful"
 msgstr "保存成功"
 
+msgid "Failed to save"
+msgstr "保存失败"
+
 msgid "Failed to save age config"
 msgstr "保存 age 配置失败"
 
@@ -2136,10 +2142,10 @@ msgstr "3. 可能是 DNS 未劫持成功，导致 Clash 无法正确反推出域
 msgid "4. It may be that the filled address cannot be resolved and connected"
 msgstr "4. 可能是所填地址无法进行解析和连接"
 
-msgid "OpenClash Log"
+msgid "Plugin Logs"
 msgstr "插件日志"
 
-msgid "Core Log"
+msgid "Core Logs"
 msgstr "内核日志"
 
 msgid "Append Upstream DNS"
@@ -2328,11 +2334,11 @@ msgstr "旁路网关（旁路由）模式下网络无法连接时请尝试启用
 msgid "Suggestion: If The Device Does Not Have WLAN, Please Disable The Lan Interface's Bridge Option"
 msgstr "建议：如果设备没有 WLAN，请禁用 Lan 接口的桥接接口选项"
 
-msgid "Github Address Modify"
-msgstr "Github 地址修改"
+msgid "GitHub Address Proxy"
+msgstr "GitHub 地址代理"
 
-msgid "Modify The Github Address In The Config And OpenClash With Proxy(CDN) To Prevent File Download Failed. Format Reference:"
-msgstr "使用指定代理（CDN）反代插件和配置文件中的 Github 地址，以防止文件下载失败，格式参考："
+msgid "Proxy The GitHub Address In The Config And OpenClash With Proxy(CDN) To Prevent File Download Failed. Format Reference:"
+msgstr "使用指定代理（CDN）反代插件和配置文件中的 GitHub 地址，以防止文件下载失败，格式参考："
 
 msgid "File Edit"
 msgstr "文件编辑"
@@ -2943,8 +2949,8 @@ msgstr "*启用统一延迟"
 msgid "Change The Delay Calculation Method To Remove Extra Delays Such as Handshaking"
 msgstr "更换延迟计算方式，通过去除握手等额外开销来降低延迟数值"
 
-msgid "If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
-msgstr "如果下载失败，您可以尝试在覆写设置中设置 CDN"
+msgid "If the download fails, try setting the CDN in Overwrite Settings - General Settings - GitHub Address Proxy Options"
+msgstr "如果下载失败，您可以尝试在覆写设置 - 常规设置 -  GitHub 地址代理中设置 CDN"
 
 msgid "Used for Downloading Subscriptions, Defaults to"
 msgstr "用于下载订阅时指定 UA，默认为"

@@ -110,7 +110,9 @@
             <div class="ver-hint" id="version-hint"></div>
 
             <div class="select-popup-body" id="addr-list-body">
+                <div class="addr-list-scroll">
                 <div class="select-option addr-header">
+                    <span class="addr-header-label"><span class="addr-header-index"><%:Serial Number%></span></span>
                     <span class="addr-header-label"><span class="addr-header-icon"><svg><use href="#oc-icon-link-tabler"/></svg></span><span><%:Address%></span></span>
                     <span class="addr-header-label"><span class="addr-header-icon"><svg><use href="#oc-icon-speedtest"/></svg></span><span><%:Latency%></span></span>
                     <span class="addr-header-label"><span class="addr-header-icon"><svg><use href="#oc-icon-package"/></svg></span><span><%:Plugin%></span></span>
@@ -119,39 +121,46 @@
                             <svg width="12" height="12"><use href="#oc-icon-help"/></svg>
                         </a>
                     </span>
+                    <span class="addr-header-label"><span class="addr-header-icon"><svg><use href="#oc-icon-zap"/></svg></span><span><%:Proxy%></span></span>
                 </div>
-                <div class="select-option addr-row" data-value="https://raw.githubusercontent.com/">
-                    <span class="addr-row-url">https://raw.githubusercontent.com/ (<%:RAW address%>)</span>
-                    <span class="addr-status">--</span>
-                    <span class="ver-text ver-plugin">--</span>
-                    <span class="ver-text ver-core">--</span>
+                    <div class="select-option addr-row" data-value="https://raw.githubusercontent.com/">
+                        <span class="addr-row-index"></span>
+                        <span class="addr-row-url">https://raw.githubusercontent.com/</span>
+                        <span class="addr-status">--</span>
+                        <span class="ver-text ver-plugin">--</span>
+                        <span class="ver-text ver-core">--</span>
+                        <span class="addr-proxy-static"><%:RAW address%></span>
+                    </div>
+                    <div class="select-option addr-row" data-value="https://fastly.jsdelivr.net/">
+                        <span class="addr-row-index"></span>
+                        <span class="addr-row-url">https://fastly.jsdelivr.net/</span>
+                        <span class="addr-status">--</span>
+                        <span class="ver-text ver-plugin">--</span>
+                        <span class="ver-text ver-core">--</span>
+                    </div>
+                    <div class="select-option addr-row" data-value="https://testingcf.jsdelivr.net/">
+                        <span class="addr-row-index"></span>
+                        <span class="addr-row-url">https://testingcf.jsdelivr.net/</span>
+                        <span class="addr-status">--</span>
+                        <span class="ver-text ver-plugin">--</span>
+                        <span class="ver-text ver-core">--</span>
+                    </div>
+                    <div class="select-option addr-row" data-value="https://cdn.jsdelivr.net/">
+                        <span class="addr-row-index"></span>
+                        <span class="addr-row-url">https://cdn.jsdelivr.net/</span>
+                        <span class="addr-status">--</span>
+                        <span class="ver-text ver-plugin">--</span>
+                        <span class="ver-text ver-core">--</span>
+                    </div>
+                    <div class="select-option" data-value="custom" id="custom-addr-option">
+                        <span><%:Custom Your CDN URL%></span>
+                        <span class="oc-flex-center" style="height:100%;">
+                            <svg width="18" height="18"><use href="#oc-icon-chevron-down"/></svg>
+                        </span>
+                    </div>
+                    <input type="text" id="customOptionInput" class="custom-option-input oc-hidden" value="" placeholder="<%:Type CDN URL, Format Like%> https://ghfast.top/">
+                    <div class="select-option oc-hidden" id="addCustomOption"><%:Add%></div>
                 </div>
-                <div class="select-option addr-row" data-value="https://fastly.jsdelivr.net/">
-                    <span class="addr-row-url">https://fastly.jsdelivr.net/</span>
-                    <span class="addr-status">--</span>
-                    <span class="ver-text ver-plugin">--</span>
-                    <span class="ver-text ver-core">--</span>
-                </div>
-                <div class="select-option addr-row" data-value="https://testingcf.jsdelivr.net/">
-                    <span class="addr-row-url">https://testingcf.jsdelivr.net/</span>
-                    <span class="addr-status">--</span>
-                    <span class="ver-text ver-plugin">--</span>
-                    <span class="ver-text ver-core">--</span>
-                </div>
-                <div class="select-option addr-row" data-value="https://cdn.jsdelivr.net/">
-                    <span class="addr-row-url">https://cdn.jsdelivr.net/</span>
-                    <span class="addr-status">--</span>
-                    <span class="ver-text ver-plugin">--</span>
-                    <span class="ver-text ver-core">--</span>
-                </div>
-                <div class="select-option" data-value="custom" id="custom-addr-option">
-                    <span><%:Custom Your CDN URL%></span>
-                    <span class="oc-flex-center" style="height:100%;">
-                        <svg width="18" height="18"><use href="#oc-icon-chevron-down"/></svg>
-                    </span>
-                </div>
-                <input type="text" id="customOptionInput" class="custom-option-input oc-hidden" value="https://ghfast.top/" placeholder="<%:Type CDN URL, Format Like%> https://ghfast.top/">
-                <div class="select-option oc-hidden" id="addCustomOption"><%:Add%></div>
                 <div class="addr-list-loading oc-hidden" id="addr-list-loading">
                     <div class="addr-list-spinner"></div>
                 </div>
@@ -219,6 +228,7 @@
     var _pkgType = 'opkg';
     var forceRefresh = false;
     var infoCache = {};
+    var currentProxyAddr = '';
 
     window.levelTranslations = {
         'info': '<%:Info%>',
@@ -328,9 +338,12 @@
 
         if (sha) {
             var refPath = (type === 'plugin') ? branch : branch + '/' + coreSubPath;
-            return isJsDelivr
-                ? addr + 'gh/vernesong/OpenClash@' + sha + '/' + refPath + '/' + filename
-                : 'https://raw.githubusercontent.com/vernesong/OpenClash/' + sha + '/' + refPath + '/' + filename;
+            if (isJsDelivr)
+                return addr + 'gh/vernesong/OpenClash@' + sha + '/' + refPath + '/' + filename;
+            else if (classifyAddr(addr) === 'raw')
+                return 'https://raw.githubusercontent.com/vernesong/OpenClash/' + sha + '/' + refPath + '/' + filename;
+            else
+                return addr + 'https://raw.githubusercontent.com/vernesong/OpenClash/' + sha + '/' + refPath + '/' + filename;
         } else {
             if (isJsDelivr)
                 return addr + 'gh/vernesong/OpenClash@' + pathPrefix + '/' + filename;
@@ -480,10 +493,63 @@
         };
     }
 
+    function buildAddrRows(st) {
+        var listBody = document.querySelector('#addr-list-body .addr-list-scroll') || document.getElementById('addr-list-body');
+        var customOpt = document.getElementById('custom-addr-option');
+        var existing = {};
+        listBody.querySelectorAll('.addr-row').forEach(function(row) {
+            var v = row.dataset.value;
+            if (v) existing[v] = true;
+        });
+        function addRow(val) {
+            if (!val || existing[val]) return;
+            var div = document.createElement('div');
+            div.className = 'select-option addr-row';
+            div.dataset.value = val;
+            div.innerHTML = '<span class="addr-row-index"></span><span class="addr-row-url">' + val + '</span><span class="addr-status">--</span><span class="ver-text ver-plugin">--</span><span class="ver-text ver-core">--</span>';
+            listBody.insertBefore(div, customOpt);
+            existing[val] = true;
+        }
+        var mod = st.github_address_mod;
+        if (mod && mod !== '0') addRow(mod);
+        (st.cdn_list || []).forEach(addRow);
+    }
+
+    function renderProxyStates() {
+        document.querySelectorAll('#addr-list-body .addr-row').forEach(function(row) {
+            if (classifyAddr(row.dataset.value) === 'raw') return;
+            var el = row.querySelector('.addr-proxy');
+            if (!el) {
+                el = document.createElement('span');
+                el.className = 'addr-proxy';
+                row.appendChild(el);
+            }
+            var on = (row.dataset.value === currentProxyAddr);
+            el.textContent = on ? '<%:Enabled%>' : '<%:Disabled%>';
+            el.className = 'addr-proxy ' + (on ? 'on' : 'off');
+        });
+    }
+
+    function toggleProxy(row) {
+        var val = row.dataset.value;
+        if (!val) return;
+        var newVal = (val === currentProxyAddr) ? '0' : val;
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_github_address_mod")%>', {value: newVal}, function(x) {
+            if (x && x.status == 200) {
+                currentProxyAddr = newVal;
+                renderProxyStates();
+            } else {
+                showHint('<%:Failed to save%>');
+            }
+        });
+    }
+
     function fetchUpdateInfo(opts) {
         core_version.disabled = true;
         release_branch.disabled = true;
         smart_enable.disabled = true;
+        document.getElementById('select-plugin-ver').disabled = true;
+        document.getElementById('select-core-ver').disabled = true;
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, st) {
             if (x && x.status == 200) {
                 if (st.corever && st.corever != '0') core_version.value = st.corever; else core_version.value = '0';
@@ -497,6 +563,9 @@
                 if (cpuArchEl) {
                     cpuArchEl.textContent = (st.coremodel && st.coremodel != '') ? st.coremodel : '--';
                 }
+                currentProxyAddr = (st.github_address_mod || '0');
+                buildAddrRows(st);
+                renderProxyStates();
             }
             core_version.disabled = false;
             release_branch.disabled = false;
@@ -712,6 +781,21 @@
         if (overlay) overlay.classList.toggle('oc-hidden', !loading);
     }
 
+    function clearAddrRows() {
+        document.querySelectorAll('#addr-list-body .addr-row').forEach(function(row) {
+            var latencyEl = row.querySelector('.addr-status');
+            var verSpans = row.querySelectorAll('.ver-text');
+            if (latencyEl) {
+                latencyEl.textContent = '--';
+                latencyEl.className = 'addr-status';
+            }
+            verSpans.forEach(function(el) {
+                el.textContent = '--';
+                el.classList.remove('has-data', 'err');
+            });
+        });
+    }
+
     function updateDataStatus(flags) {
         if (flags) {
             if ('update' in flags) reqUpdateDone = flags.update;
@@ -771,18 +855,7 @@
             infoCache = {};
             addrDataReceived = false;
             showDefaultNote();
-            document.querySelectorAll('#addr-list-body .addr-row').forEach(function(row) {
-                var latencyEl = row.querySelector('.addr-status');
-                var verSpans = row.querySelectorAll('.ver-text');
-                if (latencyEl) {
-                    latencyEl.textContent = '--';
-                    latencyEl.className = 'addr-status';
-                }
-                verSpans.forEach(function(el) {
-                    el.textContent = '--';
-                    el.classList.remove('has-data', 'err');
-                });
-            });
+            clearAddrRows();
         }
         if (!addrDataReceived) setAddrListLoading(true);
         var url = '<%=luci.dispatcher.build_url("admin", "services", "openclash", "addr_info")%>?' +
@@ -936,7 +1009,7 @@
         currentDownloadType = type || 'one_key';
         customOptionInput.classList.add('oc-hidden');
         addCustomOption.classList.add('oc-hidden');
-        customOptionInput.value = 'https://ghfast.top/';
+        customOptionInput.value = '';
         fetchedBranch = null;
         addrDataReceived = false;
         resetDataStatus();
@@ -1053,6 +1126,12 @@
         if (dlBtn) {
             return;
         }
+        var proxyEl = target.closest ? target.closest('.addr-proxy') : null;
+        if (proxyEl) {
+            var prow = proxyEl.closest('.addr-row');
+            if (prow) toggleProxy(prow);
+            return;
+        }
 
         if (optionElem && optionElem.dataset.value === 'custom' && !customInput.classList.contains('oc-hidden')) {
             customInput.classList.add('oc-hidden');
@@ -1067,11 +1146,11 @@
         } else if (target === addBtn) {
             var val = customInput.value.trim();
             if (val !== '' && isValidURL(val)) {
-                var listBody = document.getElementById('addr-list-body');
+                var listBody = document.querySelector('#addr-list-body .addr-list-scroll') || document.getElementById('addr-list-body');
                 var div = document.createElement('div');
                 div.className = 'select-option addr-row';
                 div.dataset.value = val;
-                div.innerHTML = '<span class="addr-row-url">' + val + '</span><span class="addr-status">--</span><span class="ver-text ver-plugin">--</span><span class="ver-text ver-core">--</span>';
+                div.innerHTML = '<span class="addr-row-index"></span><span class="addr-row-url">' + val + '</span><span class="addr-status">--</span><span class="ver-text ver-plugin">--</span><span class="ver-text ver-core">--</span>';
                 listBody.insertBefore(div, document.getElementById('custom-addr-option'));
                 customInput.classList.add('oc-hidden');
                 addBtn.classList.add('oc-hidden');
@@ -1192,6 +1271,7 @@
         resetDataStatus();
         setAddrListLoading(true);
         forceRefresh = true;
+        clearAddrRows();
         if (versionRetryTimer) { clearInterval(versionRetryTimer); versionRetryTimer = null; }
         if (retryTimer) { clearInterval(retryTimer); retryTimer = null; }
         if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }

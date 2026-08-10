@@ -42,6 +42,9 @@ ful.submit = false
 sul =ful:section(SimpleSection, "")
 o = sul:option(FileUpload, "")
 o.template = "openclash/upload"
+o.cfgvalue = function(self, section)
+	return self.value
+end
 
 local dir, fd, clash
 dir = "/etc/openclash/config/"

@@ -1,12 +1,9 @@
 #!/usr/bin/lua
 
 require "nixio"
-require "luci.sys"
 require "luci.model.uci"
 local fs = require "luci.openclash"
 local json = require "luci.jsonc"
-
-local SYS = luci.sys
 
 local M = {}
 
@@ -72,14 +69,128 @@ local function update_version_cache(updater)
 	write_json(VERSION_CACHE_FILE, parsed)
 end
 
-local function build_latest_url(mod, owner, branch, file)
+local DEFAULT_CDN_LIST = {
+	"https://ghfast.top/",
+	"https://github.dpik.top/",
+	"https://gh-proxy.com/",
+	"https://git.yylx.win/"
+}
+
+local function cdn_list()
+	local list = fs.cdn_list()
+	if #list > 0 then return list end
+	return DEFAULT_CDN_LIST
+end
+
+local function raw_url(path)
+	return "https://raw.githubusercontent.com/vernesong/OpenClash/" .. path
+end
+
+local function build_fetch_urls(mod, path)
 	if mod == "0" or mod == "" then
-		return "https://raw.githubusercontent.com/vernesong/OpenClash/" .. owner .. "/" .. branch .. "/" .. file
+		local urls = { raw_url(path) }
+		for _, cdn in ipairs(cdn_list()) do
+			urls[#urls + 1] = cdn .. raw_url(path)
+		end
+		return urls
 	end
 	if mod == "https://cdn.jsdelivr.net/" or mod == "https://fastly.jsdelivr.net/" or mod == "https://testingcf.jsdelivr.net/" then
-		return mod .. "gh/vernesong/OpenClash@" .. owner .. "/" .. branch .. "/" .. file
+		return { mod .. "gh/vernesong/OpenClash@" .. path }
 	end
-	return mod .. "https://raw.githubusercontent.com/vernesong/OpenClash/" .. owner .. "/" .. branch .. "/" .. file
+	return { mod .. raw_url(path) }
+end
+
+local function fork_curl(url, timeout)
+	local fdi, fdo = nixio.pipe()
+	if not fdi or not fdo then return nil end
+	local cmd = string.format('curl -sL -m %d "%s" 2>/dev/null', timeout or 5, url)
+	local child = nixio.fork()
+	if child > 0 then
+		fdo:close()
+		return { pid = child, fdi = fdi, buf = "", done = false }
+	elseif child == 0 then
+		nixio.dup(fdo, nixio.stdout)
+		fdi:close()
+		fdo:close()
+		nixio.exec("/bin/sh", "-c", cmd)
+	else
+		if fdi then fdi:close() end
+		if fdo then fdo:close() end
+		return nil
+	end
+end
+
+local MAX_URL_BATCH = 3
+
+local function try_fetch(urls, validator)
+	if not urls or #urls == 0 then return "" end
+	local timeout = (#urls > 1) and 5 or 10
+	local delay = 50000000
+	local max_wait = 100
+	local jobs = {}
+	local active = 0
+	local idx = 1
+	local function launch_batch()
+		local n = 0
+		while idx <= #urls and n < MAX_URL_BATCH do
+			local job = fork_curl(urls[idx], timeout)
+			if job then
+				jobs[#jobs + 1] = job
+				active = active + 1
+			end
+			idx = idx + 1
+			n = n + 1
+		end
+	end
+	launch_batch()
+	for _ = 1, max_wait do
+		local winner = ""
+		for _, job in ipairs(jobs) do
+			if not job.done then
+				local ok_r, buf = pcall(try_read, job.fdi, 4096)
+				if ok_r and buf then job.buf = job.buf .. buf end
+				local ok_w, wpid = pcall(nixio.waitpid, job.pid, "nohang")
+				if ok_w and wpid then
+					while true do
+						local ok_b, b = pcall(try_read, job.fdi, 4096)
+						if not ok_b or not b then break end
+						job.buf = job.buf .. b
+					end
+					pcall(job.fdi.close, job.fdi)
+					job.done = true
+					active = active - 1
+					if winner == "" and job.buf ~= "" and (not validator or validator(job.buf)) then
+						winner = job.buf
+					end
+				end
+			end
+		end
+		if winner ~= "" then
+			for _, job in ipairs(jobs) do
+				if not job.done then
+					pcall(job.fdi.close, job.fdi)
+					nixio.kill(job.pid, 9)
+				end
+			end
+			return trim(winner)
+		end
+		if active == 0 then
+			if idx <= #urls then
+				launch_batch()
+			else
+				break
+			end
+		end
+		nixio.nanosleep(0, delay)
+		delay = math.min(delay * 2, 200000000)
+	end
+	for _, job in ipairs(jobs) do
+		if not job.done then
+			pcall(job.fdi.close, job.fdi)
+			nixio.kill(job.pid, 9)
+		end
+	end
+	return ""
 end
 
 function M.prepare_oix_cdn_data(force)
@@ -184,24 +295,20 @@ function M.prepare_oix_cdn_data(force)
 	return true, "", "error"
 end
 
-local function fork_file_fetch(sha, file_path)
-	local fdi, fdo = nixio.pipe()
-	if not fdi or not fdo then return nil end
-	local url = "https://raw.githubusercontent.com/vernesong/OpenClash/" .. sha .. "/" .. file_path
-	local cmd = 'curl -sL -m 10 "' .. url .. '" 2>/dev/null'
-	local child = nixio.fork()
-	if child > 0 then
-		fdo:close()
-		return { pid = child, fdi = fdi, buf = "", sha = sha }
-	elseif child == 0 then
-		nixio.dup(fdo, nixio.stdout)
-		fdi:close()
-		fdo:close()
-		nixio.exec("/bin/sh", "-c", cmd)
-	else
-		if fdi then fdi:close() end
-		if fdo then fdo:close() end
-		return nil
+local function fork_file_fetch(sha, file_path, mod)
+	local urls = build_fetch_urls(mod, sha .. "/" .. file_path)
+	if #urls == 0 then return nil end
+	return { children = {}, idx = 1, buf = "", done = false, launched = false, sha = sha, urls = urls }
+end
+
+local function launch_file_batch(job)
+	local timeout = (#job.urls > 1) and 5 or 10
+	local n = 0
+	while job.idx <= #job.urls and n < MAX_URL_BATCH do
+		local child = fork_curl(job.urls[job.idx], timeout)
+		if child then job.children[#job.children + 1] = child end
+		job.idx = job.idx + 1
+		n = n + 1
 	end
 end
 
@@ -209,7 +316,7 @@ local function collect_fork_results(jobs, max_jobs)
 	local results = {}
 	local active = 0
 	local delay = 50000000
-	local max_iter = 150
+	local max_iter = 250
 
 	for _ = 1, max_iter do
 		while active < max_jobs do
@@ -219,6 +326,11 @@ local function collect_fork_results(jobs, max_jobs)
 					job.launched = true
 					active = active + 1
 					launched = true
+					launch_file_batch(job)
+					if #job.children == 0 then
+						job.done = true
+						active = active - 1
+					end
 					break
 				end
 			end
@@ -227,20 +339,44 @@ local function collect_fork_results(jobs, max_jobs)
 
 		for _, job in ipairs(jobs) do
 			if job.launched and not job.done then
-				local ok_r, buf = pcall(try_read, job.fdi, 4096)
-				if ok_r and buf then job.buf = job.buf .. buf end
-				local ok_w, wpid = pcall(nixio.waitpid, job.pid, "nohang")
-				if ok_w and wpid then
-					while true do
-						local ok_b, b = pcall(try_read, job.fdi, 4096)
-						if not ok_b or not b then break end
-						job.buf = job.buf .. b
+				local winner = ""
+				local all_children_done = true
+				for _, child in ipairs(job.children) do
+					if not child.done then
+						all_children_done = false
+						local ok_r, buf = pcall(try_read, child.fdi, 4096)
+						if ok_r and buf then child.buf = child.buf .. buf end
+						local ok_w, wpid = pcall(nixio.waitpid, child.pid, "nohang")
+						if ok_w and wpid then
+							while true do
+								local ok_b, b = pcall(try_read, child.fdi, 4096)
+								if not ok_b or not b then break end
+								child.buf = child.buf .. b
+							end
+							pcall(child.fdi.close, child.fdi)
+							child.done = true
+							if winner == "" and child.buf ~= "" then
+								winner = child.buf
+							end
+						end
 					end
-					pcall(job.fdi.close, job.fdi)
+				end
+				if winner ~= "" then
+					for _, child in ipairs(job.children) do
+						if not child.done then
+							pcall(child.fdi.close, child.fdi)
+							nixio.kill(child.pid, 9)
+						end
+					end
 					job.done = true
 					active = active - 1
-					if job.buf ~= "" then
-						results[job.sha] = trim(job.buf)
+					results[job.sha] = trim(winner)
+				elseif all_children_done then
+					if job.idx <= #job.urls then
+						launch_file_batch(job)
+					else
+						job.done = true
+						active = active - 1
 					end
 				end
 			end
@@ -258,8 +394,15 @@ local function collect_fork_results(jobs, max_jobs)
 
 	for _, job in ipairs(jobs) do
 		if not job.done then
-			pcall(job.fdi.close, job.fdi)
-			nixio.kill(job.pid, 9)
+			if job.children then
+				for _, child in ipairs(job.children) do
+					if not child.done then
+						pcall(child.fdi.close, child.fdi)
+						nixio.kill(child.pid, 9)
+					end
+				end
+			end
+			job.done = true
 		end
 	end
 
@@ -277,9 +420,25 @@ local function html_unescape(s)
 	return s
 end
 
-local function fetch_commit_feed(ref, path)
-	local url = "https://github.com/vernesong/OpenClash/commits/" .. ref .. "/" .. path .. ".atom"
-	return SYS.exec('curl -sL -m 10 "' .. url .. '" 2>/dev/null')
+local function build_feed_urls(mod, path)
+	local feed = "https://github.com/vernesong/OpenClash/commits/" .. path .. ".atom"
+	if mod == "0" or mod == "" then
+		local urls = { feed }
+		for _, cdn in ipairs(cdn_list()) do
+			urls[#urls + 1] = cdn .. feed
+		end
+		return urls
+	end
+	if mod == "https://cdn.jsdelivr.net/" or mod == "https://fastly.jsdelivr.net/" or mod == "https://testingcf.jsdelivr.net/" then
+		return { feed }
+	end
+	return { mod .. feed, feed }
+end
+
+local function fetch_commit_feed(mod, path)
+	return try_fetch(build_feed_urls(mod, path), function(buf)
+		return buf:match("<entry") ~= nil
+	end)
 end
 
 local function parse_commit_feed(raw, max_count)
@@ -305,6 +464,13 @@ function M.fetch_version_history(branch, force, cdn, latest_only)
 	local result = { plugin = {}, core_meta = {}, core_smart = {}, latest = nil, error = nil, oix_ver = "" }
 	local cur_oix = M.is_oix_mode()
 	local skip_core = cur_oix
+	local github_address_mod = fs.uci_get_config("config", "github_address_mod") or "0"
+	if cdn and cdn ~= "" then
+		github_address_mod = cdn
+		if github_address_mod:match("raw%.githubusercontent%.com") then
+			github_address_mod = "0"
+		end
+	end
 
 	if not force then
 		local parsed = read_version_cache()
@@ -325,27 +491,17 @@ function M.fetch_version_history(branch, force, cdn, latest_only)
 	end
 
 	if latest_only then
-		local github_address_mod = fs.uci_get_config("config", "github_address_mod") or "0"
-		if cdn and cdn ~= "" then
-			github_address_mod = cdn
-			if github_address_mod:match("raw%.githubusercontent%.com") then
-				github_address_mod = "0"
-			end
-		end
-
 		local plugin_latest = ""
 		local core_meta_latest = ""
 		local core_smart_latest = ""
 
-		local plugin_url = build_latest_url(github_address_mod, "package", branch, "version")
-		local plugin_raw = SYS.exec('curl -sL -m 10 "' .. plugin_url .. '" 2>/dev/null')
+		local plugin_raw = try_fetch(build_fetch_urls(github_address_mod, "package/" .. branch .. "/version"))
 		if plugin_raw and plugin_raw ~= "" then
 			plugin_latest = trim(plugin_raw:match("^[^\n\r]*") or "")
 		end
 
 		if not cur_oix then
-			local core_url = build_latest_url(github_address_mod, "core", branch, "core_version")
-			local core_raw = SYS.exec('curl -sL -m 10 "' .. core_url .. '" 2>/dev/null')
+			local core_raw = try_fetch(build_fetch_urls(github_address_mod, "core/" .. branch .. "/core_version"))
 			if core_raw and core_raw ~= "" then
 				core_meta_latest = trim(core_raw:match("^[^\n\r]*") or "")
 				local after = core_raw:match("[\n\r]+(.*)")
@@ -383,16 +539,16 @@ function M.fetch_version_history(branch, force, cdn, latest_only)
 		return result
 	end
 
-	local plugin_feed = fetch_commit_feed("package", branch .. "/version")
+	local plugin_feed = fetch_commit_feed(github_address_mod, "package/" .. branch .. "/version")
 	local plugin_commits = parse_commit_feed(plugin_feed, 5)
 	if #plugin_commits > 0 then
 		local file_jobs = {}
 		for _, c in ipairs(plugin_commits) do
-			local job = fork_file_fetch(c.sha, branch .. "/version")
+			local job = fork_file_fetch(c.sha, branch .. "/version", github_address_mod)
 			if job then file_jobs[#file_jobs + 1] = job end
 		end
 
-		local file_results = collect_fork_results(file_jobs, 3)
+		local file_results = collect_fork_results(file_jobs, 2)
 
 		for _, c in ipairs(plugin_commits) do
 			local raw = file_results[c.sha]
@@ -411,16 +567,16 @@ function M.fetch_version_history(branch, force, cdn, latest_only)
 	end
 
 	if not skip_core then
-		local core_feed = fetch_commit_feed("core", branch .. "/core_version")
+		local core_feed = fetch_commit_feed(github_address_mod, "core/" .. branch .. "/core_version")
 		local core_commits = parse_commit_feed(core_feed, 5)
 		if #core_commits > 0 then
 			local file_jobs = {}
 			for _, c in ipairs(core_commits) do
-				local job = fork_file_fetch(c.sha, branch .. "/core_version")
+				local job = fork_file_fetch(c.sha, branch .. "/core_version", github_address_mod)
 				if job then file_jobs[#file_jobs + 1] = job end
 			end
 
-			local file_results = collect_fork_results(file_jobs, 3)
+			local file_results = collect_fork_results(file_jobs, 2)
 
 			for _, c in ipairs(core_commits) do
 				local content = file_results[c.sha]
@@ -482,7 +638,7 @@ end
 
 if arg and arg[0] and arg[0]:match("openclash_version%.lua$") then
 	local branch = fs.uci_get_config("config", "release_branch") or "master"
-	M.fetch_version_history(branch, arg[2], arg[1], true)
+	M.fetch_version_history(branch, arg[2], arg[1], arg[3] ~= "0")
 end
 
 return M

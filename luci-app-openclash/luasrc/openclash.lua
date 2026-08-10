@@ -608,6 +608,25 @@ function pkg_type()
 	end
 end
 
+--- Reads the CDN proxy address list from /usr/share/openclash/res/cdn.list.
+-- Lines starting with "#" are treated as comments and skipped.
+-- @return Table of CDN address strings (deduplicated, in file order)
+function cdn_list()
+	local list = {}
+	local seen = {}
+	local raw = fs.readfile("/usr/share/openclash/res/cdn.list")
+	if raw then
+		for line in raw:gmatch("[^\r\n]+") do
+			line = line:gsub("^%s+", ""):gsub("%s+$", "")
+			if line ~= "" and line:sub(1, 1) ~= "#" and not seen[line] then
+				seen[line] = true
+				list[#list + 1] = line
+			end
+		end
+	end
+	return list
+end
+
 --- Read a field of an installed package directly from the package database
 -- (/usr/lib/opkg/status or /lib/apk/db/installed), avoiding the opkg/apk
 -- binaries and their lock files (/var/lock/opkg.lock, /lib/apk/db/lock).

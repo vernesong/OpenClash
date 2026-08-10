@@ -26,7 +26,7 @@ if [ -n "$2" ] && echo "$2" | grep -qE '^https?://'; then
    DIRECT_CORE_URL="$2"
 fi
 if [ "$github_address_mod" = "0" ] && [ -z "$DIRECT_CORE_URL" ] && [ -z "$(echo $2 2>/dev/null |grep -E 'http|one_key_update')" ] && [ -z "$(echo $3 2>/dev/null |grep 'http')" ]; then
-   LOG_TIP "If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
+   LOG_TIP "If the download fails, try setting the CDN in Overwrite Settings - General Settings - GitHub Address Proxy Options"
 fi
 if [ -z "$DIRECT_CORE_URL" ]; then
    if [ -n "$3" ] && [ "$2" = "one_key_update" ]; then

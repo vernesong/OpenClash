@@ -161,6 +161,9 @@ msgstr "Fake-IP (TUN mixto)"
 msgid "Select Mode For OpenClash Work, Try Flush DNS Cache If Network Error"
 msgstr "Selecciona el modo de funcionamiento de OpenClash. Si hay errores de red, intenta vaciar la caché DNS."
 
+msgid "Proxy"
+msgstr "Proxy"
+
 msgid "Proxy Mode"
 msgstr "Modo de proxy"
 
@@ -1212,6 +1215,9 @@ msgstr "Guardando..."
 msgid "Save successful"
 msgstr "Guardado con éxito"
 
+msgid "Failed to save"
+msgstr "Error al guardar"
+
 msgid "Failed to save age config"
 msgstr "Error al guardar la configuración de age"
 
@@ -2133,10 +2139,10 @@ msgstr "3. El secuestro DNS podría no haber funcionado; Clash no puede resolver
 msgid "4. It may be that the filled address cannot be resolved and connected"
 msgstr "4. La dirección introducida puede ser imposible de resolver."
 
-msgid "OpenClash Log"
+msgid "Plugin Logs"
 msgstr "Registro del plugin"
 
-msgid "Core Log"
+msgid "Core Logs"
 msgstr "Registro del núcleo"
 
 msgid "Append Upstream DNS"
@@ -2325,11 +2331,11 @@ msgstr "Si en modo bypass el dispositivo no tiene conexión, prueba a activar es
 msgid "Suggestion: If The Device Does Not Have WLAN, Please Disable The Lan Interface's Bridge Option"
 msgstr "Sugerencia: si el dispositivo no tiene WLAN, desactiva la opción de puente en la interfaz LAN."
 
-msgid "Github Address Modify"
-msgstr "Modificar dirección de Github"
+msgid "GitHub Address Proxy"
+msgstr "Proxy de dirección de GitHub"
 
-msgid "Modify The Github Address In The Config And OpenClash With Proxy(CDN) To Prevent File Download Failed. Format Reference:"
-msgstr "Reemplaza las URLs de Github con un proxy/CDN para evitar fallos de descarga. Formato:"
+msgid "Proxy The GitHub Address In The Config And OpenClash With Proxy(CDN) To Prevent File Download Failed. Format Reference:"
+msgstr "Aplica un proxy (CDN) a la dirección de GitHub en la configuración y en OpenClash para evitar fallos de descarga. Formato de referencia:"
 
 msgid "File Edit"
 msgstr "Edición de archivos"
@@ -2934,8 +2940,8 @@ msgstr "Activar cálculo unificado de latencia"
 msgid "Change The Delay Calculation Method To Remove Extra Delays Such as Handshaking"
 msgstr "Cambia el método de cálculo de latencia para eliminar tiempos extra como el handshake."
 
-msgid "If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
-msgstr "Si la descarga falla, prueba a configurar un CDN en Sobrescritura → General → Modificar direcciones de Github."
+msgid "If the download fails, try setting the CDN in Overwrite Settings - General Settings - GitHub Address Proxy Options"
+msgstr "Si la descarga falla, prueba a configurar un CDN en Sobrescritura → General → Proxy de dirección de GitHub."
 
 msgid "Used for Downloading Subscriptions, Defaults to"
 msgstr "User-Agent usado para descargar suscripciones, por defecto:"

@@ -2004,7 +2004,7 @@ config_foreach firewall_lan_ac_traffic "lan_ac_traffic"
 - **Mihomo 对应**: proxy-groups 中 url-test 类型的 `url` 字段
 - **实现细节**: `yml_rules_change.sh` 替换所有 url-test 策略组的测试 URL。Mihomo 内核周期性向此 URL 发送 HTTP HEAD/GET 请求测量延迟，作为节点选择的依据。
 
-### github_address_mod — Github 地址修改 (Github Address Modify)
+### github_address_mod — Github 地址修改 (Github Address Proxy)
 - **UCI**: `openclash.@config_overwrite[0].github_address_mod`
 - **说明**: 通过代理/CDN 加速 GitHub 文件下载。**强烈推荐在 OpenClash 启动前就设置好此项**，因为插件和内核更新、GEO 数据库下载、Dashboard 下载均依赖 GitHub 连通性。推荐优先尝试 `https://testingcf.jsdelivr.net/`（jsDelivr 的 Cloudflare CDN），如不可用再切换其他 CDN
 - **预设**: 多个 jsdelivr CDN 地址（testingcf / fastly 等）
@@ -2622,9 +2622,9 @@ dns:
 
 运行日志页面是一个双标签页的日志查看器。页面布局包含以下区域：
 
-**标签页 1 — OpenClash Log** (默认激活)：展示 OpenClash 插件自身日志（Shell/Ruby/Lua 脚本输出），通过 XHR 轮询 (`/refresh_log`) 每秒刷新。
+**标签页 1 — Plugin Logs** (默认激活)：展示 OpenClash 插件自身日志（Shell/Ruby/Lua 脚本输出），通过 XHR 轮询 (`/refresh_log`) 每秒刷新。
 
-**标签页 2 — Core Log** (可切换)：展示 Mihomo 内核实时日志，通过 WebSocket 连接到内核 API (`/logs?token=...&level=...`)。该标签页内嵌 **5 个日志等级单选按钮**：
+**标签页 2 — Core Logs** (可切换)：展示 Mihomo 内核实时日志，通过 WebSocket 连接到内核 API (`/logs?token=...&level=...`)。该标签页内嵌 **5 个日志等级单选按钮**：
 
 | 按钮 | 功能 | 后端操作 |
 |------|------|----------|
@@ -2634,7 +2634,7 @@ dns:
 | **Debug** (调试) | 显示所有调试信息 | 同上 |
 | **Silent** (静默) | 静默模式，不显示内核日志 | 同上 |
 
-**标签页 3 — Debug Log** (可切换)：展示插件的调试日志，内容由 `openclash_debug.sh` 生成，包含系统信息、依赖包检查、内核运行状态、插件设置、覆写模块设置、自定义规则文件内容、当前 Mihomo YAML 配置、自定义覆写/防火墙脚本内容、完整的 iptables-save dump、完整的 nftables 规则、ipset 状态、路由表、TUN 设备状态、端口占用、DNS 解析测试、网络连通性测试、最近运行日志、活动连接列表及隐私处理等。
+**标签页 3 — Debug Logs** (可切换)：展示插件的调试日志，内容由 `openclash_debug.sh` 生成，包含系统信息、依赖包检查、内核运行状态、插件设置、覆写模块设置、自定义规则文件内容、当前 Mihomo YAML 配置、自定义覆写/防火墙脚本内容、完整的 iptables-save dump、完整的 nftables 规则、ipset 状态、路由表、TUN 设备状态、端口占用、DNS 解析测试、网络连通性测试、最近运行日志、活动连接列表及隐私处理等。
 
 **底部操作按钮栏**（两个标签页共用）：
 

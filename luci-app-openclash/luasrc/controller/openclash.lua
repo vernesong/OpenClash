@@ -1557,10 +1557,32 @@ end
 --      modules/luci-base/ucode/http.uc, htdocs/cgi-bin/luci
 --      immortalwrt/luci 18.06-k5.4: modules/luci-base/luasrc/http.lua
 --      jow-/ucode: vm.c (uc_vm_insn_print), lib/fs.c, main.c
+--
+-- Nginx mode (ImmortalWrt luci-nginx / luci-ssl-nginx): LuCI is not run by
+-- uhttpd directly; nginx forwards /cgi-bin/luci over the uwsgi protocol to
+-- the uwsgi-cgi plugin (luci-webui vassal), which forks the CGI and pipes its
+-- stdout back through nginx. The CGI-side flush (io.flush / L.http:write)
+-- only gets data into the pipe; nginx still buffers the whole response body
+-- by default (uwsgi_buffering on, ~8KB) and only pushes it once the buffer
+-- fills or the response ends, so the 8192-space first line alone cannot keep
+-- the stream alive. To make nginx forward every chunk in real time, the CGI
+-- response must carry the "X-Accel-Buffering: no" header (honored by nginx
+-- proxy/fastcgi/uwsgi modules). It is emitted unconditionally on the very
+-- first write, before any body, so it lands in the response header block.
+-- Backend detection via SERVER_SOFTWARE was deliberately dropped: the value
+-- is not reliable (custom uwsgi_params may pre-set it to "nginx", defeating
+-- the check). The header is only meaningful to nginx and is stripped by it
+-- before reaching the client; under uhttpd it is simply passed through and
+-- ignored, so sending it always is harmless.
 local write_padded_first = true
 
 local function write_padded(data)
 	if write_padded_first then
+		if L and L.http then
+			L.http:header("X-Accel-Buffering", "no")
+		else
+			HTTP.header("X-Accel-Buffering", "no")
+		end
 		if L and L.http then
 			L.http:write(string.rep(" ", 8192) .. "\n")
 			L.http:write(data .. "\n")
@@ -1789,7 +1811,19 @@ function action_update()
 		oix_core = is_oix(),
 		pkg_type = fs.pkg_type(),
 		coremetacv = coremetacv(),
-		opcv = opcv();
+		opcv = opcv(),
+		github_address_mod = fs.uci_get_config("config", "github_address_mod") or "0",
+		cdn_list = fs.cdn_list();
+	})
+end
+
+function action_save_github_address_mod()
+	local value = HTTP.formvalue("value") or ""
+	uci:set("openclash", "config", "github_address_mod", value)
+	uci:commit("openclash")
+	HTTP.prepare_content("application/json")
+	HTTP.write_json({
+		success = true;
 	})
 end
 
@@ -3083,9 +3117,10 @@ end
 --     uci lock -> deadlock); build all URLs and the shell cmd in the parent.
 --   * children must do zero Lua work and exec immediately, otherwise the
 --     leftover LuCI/ucode runtime renders a 500 page into the pipe.
---   * MAX_CONCURRENT=4; curl -m 10 and max_iter=200 cover the worst case
---     (6 CDNs / 2 waves x 2 curls x 10s = 40s, within the uhttpd 60s
---     script_timeout); core curl falls back to raw.githubusercontent.com
+--   * MAX_CONCURRENT=4; curl -m 5 and max_iter=250: the poll loop waits at
+--     most ~50s (delay ramps 50ms->200ms), covering 15 CDNs / 4 waves x 15s
+--     (2 curls + core fallback at 5s each), still within the uhttpd 60s
+--     script_timeout; core curl falls back to raw.githubusercontent.com
 --     when the CDN fails.
 function action_cdn_info()
 	HTTP.prepare_content("text/plain; charset=utf-8")
@@ -3226,7 +3261,7 @@ function action_cdn_info()
 	local active = 0
 	local completed = {}
 	local delay = 50000000
-	local max_iter = 200
+	local max_iter = 250
 	local iter = 0
 
 	local oix_mode, oix_core_ver, oix_core_error = ov.prepare_oix_cdn_data(force)
@@ -3265,7 +3300,7 @@ OIX_MODE="%s"
 RAW_CORE_URL="%s"
 LATENCY="null"
 
-PLUGIN_RAW=$(curl -sL -m 10 -w '\n%%{http_code} %%{time_starttransfer}' "%s" 2>/dev/null)
+PLUGIN_RAW=$(curl -sL -m 5 -w '\n%%{http_code} %%{time_starttransfer}' "%s" 2>/dev/null)
 P_EXIT=$?
 
 if [ $P_EXIT -eq 0 ] && [ -n "$PLUGIN_RAW" ]; then
@@ -3283,10 +3318,10 @@ else
 	LATENCY=-2
 fi
 
-CORE_RAW=$(curl -sL -m 10 -w '\n%%{http_code} %%{time_starttransfer}' "%s" 2>/dev/null)
+CORE_RAW=$(curl -sL -m 5 -w '\n%%{http_code} %%{time_starttransfer}' "%s" 2>/dev/null)
 C_EXIT=$?
 if [ $C_EXIT -ne 0 ] && [ -n "$RAW_CORE_URL" ]; then
-	CORE_RAW=$(curl -sL -m 10 -w '\n%%{http_code} %%{time_starttransfer}' "$RAW_CORE_URL" 2>/dev/null)
+	CORE_RAW=$(curl -sL -m 5 -w '\n%%{http_code} %%{time_starttransfer}' "$RAW_CORE_URL" 2>/dev/null)
 	C_EXIT=$?
 fi
 
