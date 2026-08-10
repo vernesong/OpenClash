@@ -87,7 +87,7 @@
                         <div class="config-item">
                             <span class="oc-option-title"><span class="oc-option-text"><%:Select Version%></span></span>
                             <div class="form-select-wrapper">
-                                <select class="select-class" id="select-plugin-ver" onchange="forceRefresh=true;refreshAddrInfo({cancel:true})">
+                                <select class="select-class" id="select-plugin-ver" onchange="forceRefresh=true;refreshAddrInfo({cancel:true,user:true})">
                                     <option value="__latest__"><%:Latest%></option>
                                 </select>
                             </div>
@@ -99,7 +99,7 @@
                         <div class="config-item">
                             <span class="oc-option-title"><span class="oc-option-text"><%:Select Version%></span></span>
                             <div class="form-select-wrapper">
-                                <select class="select-class" id="select-core-ver" onchange="forceRefresh=true;refreshAddrInfo({cancel:true})">
+                                <select class="select-class" id="select-core-ver" onchange="forceRefresh=true;refreshAddrInfo({cancel:true,user:true})">
                                     <option value="__latest__"><%:Latest%></option>
                                 </select>
                             </div>
@@ -112,16 +112,20 @@
             <div class="select-popup-body" id="addr-list-body">
                 <div class="addr-list-scroll">
                 <div class="select-option addr-header">
-                    <span class="addr-header-label"><span class="addr-header-index"><%:Serial Number%></span></span>
+                    <span class="addr-header-label"><span class="addr-header-index">#</span></span>
                     <span class="addr-header-label"><span class="addr-header-icon"><svg><use href="#oc-icon-link-tabler"/></svg></span><span><%:Address%></span></span>
                     <span class="addr-header-label"><span class="addr-header-icon"><svg><use href="#oc-icon-speedtest"/></svg></span><span><%:Latency%></span></span>
                     <span class="addr-header-label"><span class="addr-header-icon"><svg><use href="#oc-icon-package"/></svg></span><span><%:Plugin%></span></span>
                     <span class="addr-header-label"><span class="addr-header-icon"><svg><use href="#oc-icon-cpu"/></svg></span><span><%:Core%></span>
-                        <a href="javascript:void(0);" class="help-link" title="<%:Core path:%>/etc/openclash/core/clash_meta" onclick="return false;">
+                        <div class="help-link" title="<%:Core path:%>/etc/openclash/core/clash_meta">
                             <svg width="12" height="12"><use href="#oc-icon-help"/></svg>
-                        </a>
+                        </div>
                     </span>
-                    <span class="addr-header-label"><span class="addr-header-icon"><svg><use href="#oc-icon-zap"/></svg></span><span><%:Proxy%></span></span>
+                    <span class="addr-header-label"><span class="addr-header-icon"><svg><use href="#oc-icon-zap"/></svg></span><span><%:Proxy%></span>
+                        <div class="help-link" title="<%:Proxy The GitHub Address In The Config And OpenClash With Proxy(CDN) To Prevent File Download Failed.%>">
+                            <svg width="12" height="12"><use href="#oc-icon-help"/></svg>
+                        </div>
+                    </span>
                 </div>
                     <div class="select-option addr-row" data-value="https://raw.githubusercontent.com/">
                         <span class="addr-row-index"></span>
@@ -129,7 +133,7 @@
                         <span class="addr-status">--</span>
                         <span class="ver-text ver-plugin">--</span>
                         <span class="ver-text ver-core">--</span>
-                        <span class="addr-proxy-static"><%:RAW address%></span>
+                        <span class="addr-proxy-static"><%:RAW%></span>
                     </div>
                     <div class="select-option addr-row" data-value="https://fastly.jsdelivr.net/">
                         <span class="addr-row-index"></span>
@@ -573,7 +577,7 @@
             fetchedBranch = release_branch.value;
             updateDataStatus({ update: true });
             fetchVersionHistory(!!(opts && opts.force), {cancel: true});
-            refreshAddrInfo({cancel: true});
+            refreshAddrInfo({cancel: true, user: true});
         });
     }
 
@@ -765,7 +769,7 @@
         resetDataStatus(true);
         fetchVersionHistory(false, {cancel: true});
         forceRefresh = true;
-        refreshAddrInfo({cancel: true});
+        refreshAddrInfo({cancel: true, user: true});
     }
 
     function onSmartChange() {
@@ -773,7 +777,7 @@
         resetDataStatus(true);
         fetchVersionHistory(false, {cancel: true});
         forceRefresh = true;
-        refreshAddrInfo({cancel: true});
+        refreshAddrInfo({cancel: true, user: true});
     }
 
     function setAddrListLoading(loading) {
@@ -833,7 +837,7 @@
             addrInfoBusy = false;
         }
         addrInfoBusy = true;
-        updateDataStatus({ addr: false });
+        if (opts && opts.user) updateDataStatus({ addr: false });
 
         var branch = fetchedBranch || release_branch.value || 'dev';
         var smart = smart_enable.value || '0';
@@ -857,7 +861,7 @@
             showDefaultNote();
             clearAddrRows();
         }
-        if (!addrDataReceived) setAddrListLoading(true);
+        if (opts && opts.user && !addrDataReceived) setAddrListLoading(true);
         var url = '<%=luci.dispatcher.build_url("admin", "services", "openclash", "addr_info")%>?' +
             Object.keys(params).map(function(k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
         var xhr = new XMLHttpRequest();
@@ -948,7 +952,7 @@
                 addrInfoXHR = null;
                 addrInfoBusy = false;
             }
-            updateDataStatus({ addr: true });
+            if (opts && opts.user) updateDataStatus({ addr: true });
         };
         xhr.send();
         addrInfoXHR = xhr;
@@ -1009,7 +1013,7 @@
         currentDownloadType = type || 'one_key';
         customOptionInput.classList.add('oc-hidden');
         addCustomOption.classList.add('oc-hidden');
-        customOptionInput.value = '';
+        customOptionInput.value = 'https://ghfast.top/';
         fetchedBranch = null;
         addrDataReceived = false;
         resetDataStatus();
@@ -1157,11 +1161,12 @@
                 listBody.insertBefore(div, document.getElementById('custom-addr-option'));
                 customInput.classList.add('oc-hidden');
                 addBtn.classList.add('oc-hidden');
-                refreshAddrInfo({merge: true, cancel: true});
+                renderProxyStates();
+                refreshAddrInfo({merge: true, cancel: true, user: true});
             } else {
                 alert("<%:Please enter a valid URL!%>");
             }
-        } else if (optionElem && optionElem.classList.contains('addr-row')) {
+        } else if (optionElem && optionElem.classList.contains('addr-row') && target.closest('.addr-row-url')) {
             var addr = optionElem.dataset.value;
 
             showDefaultNote();

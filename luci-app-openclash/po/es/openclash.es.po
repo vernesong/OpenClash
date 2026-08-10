@@ -2334,8 +2334,11 @@ msgstr "Sugerencia: si el dispositivo no tiene WLAN, desactiva la opción de pue
 msgid "GitHub Address Proxy"
 msgstr "Proxy de dirección de GitHub"
 
-msgid "Proxy The GitHub Address In The Config And OpenClash With Proxy(CDN) To Prevent File Download Failed. Format Reference:"
-msgstr "Aplica un proxy (CDN) a la dirección de GitHub en la configuración y en OpenClash para evitar fallos de descarga. Formato de referencia:"
+msgid "Proxy The GitHub Address In The Config And OpenClash With Proxy(CDN) To Prevent File Download Failed."
+msgstr "Aplica un proxy (CDN) a la dirección de GitHub en la configuración y en OpenClash para evitar fallos de descarga."
+
+msgid "Format Reference:"
+msgstr "Formato de referencia:"
 
 msgid "File Edit"
 msgstr "Edición de archivos"
@@ -3597,8 +3600,8 @@ msgstr "Error al obtener configuración de suscripción"
 msgid "Expire Date"
 msgstr "Fecha de caducidad"
 
-msgid "RAW address"
-msgstr "Dirección RAW"
+msgid "RAW"
+msgstr "RAW"
 
 msgid "Address"
 msgstr "Dirección"

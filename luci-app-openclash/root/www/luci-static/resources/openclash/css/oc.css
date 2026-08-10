@@ -6718,11 +6718,15 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
 .oc .addr-header {
     display: grid;
     min-width: 398px;
-    grid-template-columns: 44px minmax(0, 1.6fr) 64px minmax(0, 0.8fr) minmax(0, 0.8fr) 72px;
+    grid-template-columns: 44px minmax(0, 1.35fr) 96px minmax(0, 0.5fr) minmax(0, 0.85fr) 72px;
     gap: 8px;
     align-items: center;
 }
 .oc #custom-addr-option {
+    min-width: 398px;
+}
+.oc .custom-option-input,
+.oc #addCustomOption {
     min-width: 398px;
 }
 .oc .addr-header-index {
@@ -7039,10 +7043,10 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .config-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
     .oc .config-item { width: 100%; max-width: 100%; }
     .oc .select-class { max-width: 100%; font-size: 13px; }
-    .oc .addr-row, .oc .addr-header { grid-template-columns: 40px minmax(0, 1.6fr) 56px minmax(0, 0.8fr) minmax(0, 0.8fr) 64px; gap: 6px; }
+    .oc .addr-row, .oc .addr-header { grid-template-columns: 40px minmax(0, 1.35fr) 84px minmax(0, 0.5fr) minmax(0, 0.85fr) 64px; gap: 6px; }
     .oc .addr-row-url { font-size: 12px; }
     .oc .addr-status { font-size: 11px; }
-    .oc .addr-proxy { font-size: 11px; }
+    .oc .addr-proxy, .oc .addr-proxy-static { font-size: 11px; }
     .oc .addr-row .ver-text { font-size: 11px; }
     .oc .addr-row-index, .oc .addr-header-index { font-size: 11px; }
     .oc .addr-header-label { font-size: 11px; }
@@ -7164,17 +7168,16 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .version-card { margin-bottom: 6px; }
     .oc #addr-list-body { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .oc .addr-row, .oc .addr-header {
-        grid-template-columns: 36px minmax(80px, 1.5fr) 50px minmax(88px, 0.8fr) minmax(88px, 0.8fr) 56px;
+        grid-template-columns: 36px minmax(72px, 1.35fr) 72px minmax(56px, 0.5fr) minmax(76px, 0.85fr) 56px;
         gap: 4px;
     }
-    .oc #customOptionInput, .oc #addCustomOption { min-width: 0; }
     .oc .addr-row {
         min-height: 52px;
         align-items: center;
     }
     .oc .addr-row-url { font-size: 11px; }
     .oc .addr-status { font-size: 10px; }
-    .oc .addr-proxy { font-size: 10px; }
+    .oc .addr-proxy, .oc .addr-proxy-static { font-size: 10px; }
     .oc .addr-row-index, .oc .addr-header-index { font-size: 10px; }
     .oc .addr-row .ver-text { font-size: 10px; padding: 2px 3px; gap: 3px; }
     .oc .addr-header-label { font-size: 10px; }
@@ -7325,7 +7328,7 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .version-card { margin-bottom: 4px; }
     .oc .config-item { gap: 6px; }
     .oc .addr-row, .oc .addr-header {
-        grid-template-columns: 32px minmax(64px, 1.4fr) 44px minmax(76px, 0.8fr) minmax(76px, 0.8fr) 52px;
+        grid-template-columns: 32px minmax(40px, 0.65fr) 60px minmax(64px, 1.1fr) minmax(74px, 1.15fr) 60px;
         gap: 3px;
     }
     .oc .addr-row {
@@ -7334,7 +7337,7 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     }
     .oc .addr-row-url { font-size: 10px; }
     .oc .addr-status { font-size: 9px; }
-    .oc .addr-proxy { font-size: 9px; }
+    .oc .addr-proxy, .oc .addr-proxy-static { font-size: 9px; }
     .oc .addr-row-index, .oc .addr-header-index { font-size: 9px; }
     .oc .addr-row .ver-text { font-size: 9px; padding: 1px 2px; }
     .oc .addr-header-label { font-size: 9px; }

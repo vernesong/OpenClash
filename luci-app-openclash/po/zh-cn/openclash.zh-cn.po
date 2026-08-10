@@ -2337,8 +2337,11 @@ msgstr "建议：如果设备没有 WLAN，请禁用 Lan 接口的桥接接口�
 msgid "GitHub Address Proxy"
 msgstr "GitHub 地址代理"
 
-msgid "Proxy The GitHub Address In The Config And OpenClash With Proxy(CDN) To Prevent File Download Failed. Format Reference:"
-msgstr "使用指定代理（CDN）反代插件和配置文件中的 GitHub 地址，以防止文件下载失败，格式参考："
+msgid "Proxy The GitHub Address In The Config And OpenClash With Proxy(CDN) To Prevent File Download Failed."
+msgstr "使用指定代理（CDN）反代插件和配置文件中的 GitHub 地址，以防止文件下载失败。"
+
+msgid "Format Reference:"
+msgstr "格式参考："
 
 msgid "File Edit"
 msgstr "文件编辑"
@@ -3615,8 +3618,8 @@ msgstr "获取订阅配置失败"
 msgid "Expire Date"
 msgstr "到期时间"
 
-msgid "RAW address"
-msgstr "原始地址"
+msgid "RAW"
+msgstr "RAW"
 
 msgid "Address"
 msgstr "地址"
