@@ -6800,6 +6800,7 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
     background: transparent;
     border: 1px dashed var(--primary-color);
     user-select: none;
+    cursor: pointer;
 }
 .oc .addr-row .ver-text {
     font-size: 12px;

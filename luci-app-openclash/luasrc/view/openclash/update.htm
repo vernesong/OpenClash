@@ -1117,6 +1117,9 @@
         var addBtn = document.getElementById('addCustomOption');
         var optionElem = target.closest ? target.closest('.select-option') : null;
 
+        var staticEl = target.closest ? target.closest('.addr-proxy-static') : null;
+        if (staticEl) return;
+
         var verLink = target.closest ? target.closest('.ver-link') : null;
         if (verLink) {
             handleVersionUpdate(verLink);
