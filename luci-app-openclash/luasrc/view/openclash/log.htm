@@ -337,24 +337,9 @@ function coreLogWebSocket() {
             return;
         }
 
-        var protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
-        var host, port;
-
-        if (status.daip && window.location.hostname === status.daip) {
-            host = status.daip;
-            port = status.cn_port;
-        } else if (status.daip && window.location.hostname !== status.daip && 
-                   status.db_foward_domain && status.db_foward_port) {
-            host = status.db_foward_domain;
-            port = status.db_foward_port;
-        } else {
-            host = status.daip;
-            port = status.cn_port;
-        }
-
         var token = status.dase;
         var level = currentLogLevel;
-        var wsUrl = protocol + host + ":" + port + "/logs?token=" + token + "&level=" + level;
+        var wsUrl = ocGetDashboardWebSocketOrigin(status) + "/logs?token=" + encodeURIComponent(token || "") + "&level=" + encodeURIComponent(level);
 
         try {
             coreWebSocket = new WebSocket(wsUrl);
