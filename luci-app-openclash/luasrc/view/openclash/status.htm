@@ -292,6 +292,7 @@
                                     <button class="dashboard-btn" id="_webm"><%:Collecting data...%></button>
                                     <button class="dashboard-btn" id="_webz"><%:Collecting data...%></button>
                                     <button class="dashboard-btn" id="_webo"><%:Collecting data...%></button>
+                                    <button class="dashboard-btn hidden" id="_web_external"><%:Collecting data...%></button>
                                 </div>
                             </div>
                         </div>
@@ -411,6 +412,7 @@
         webo: document.getElementById('_webo'),
         webm: document.getElementById('_webm'),
         webz: document.getElementById('_webz'),
+        web_external: document.getElementById('_web_external'),
         daip: document.getElementById('_daip'),
         oclog: document.getElementById('_oclog'),
         close_all_connection: document.getElementById('_close_all_connection_btn'),
@@ -447,7 +449,9 @@
     };
 
     var getDashboardBaseURL = ocGetDashboardBaseURL;
+    var getDashboardWebSocketOrigin = ocGetDashboardWebSocketOrigin;
     var buildDashboardURL = ocBuildDashboardURL;
+    var buildExternalDashboardURL = ocBuildExternalDashboardURL;
     var bytesToSize = ocFormatBytes;
     var debounceButton = ocDebounce;
 
@@ -3679,6 +3683,9 @@
             var webzContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Zashboard%>" onclick="return net_zashboard(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Zashboard%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: DOMCache.webz, content: webzContent});
 
+            var externalWebContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:External Dashboard%>" onclick="return external_dashboard(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:External Dashboard%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
+            updates.push({element: DOMCache.web_external, content: externalWebContent});
+
             var closeConnContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Close Connect%>" onclick="return b_close_all_connection(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Close Connect%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: document.getElementById('_close_all_connection_btn'), content: closeConnContent});
 
@@ -3709,21 +3716,16 @@
                 DOMCache.webz.classList.add('hidden');
             }
 
+            DOMCache.web_external.classList.toggle('hidden', !ocGetCustomDashboardURL(status));
+
             StateManager.current_status = status;
 
             if (status.daip) {
                 var daipContent, dapoContent;
 
-                if (status.daip && window.location.hostname == status.daip) {
-                    dapoContent = status.cn_port ? ":"+status.cn_port : "";
-                    daipContent = status.daip ? "<b style=color:var(--success-color)>"+status.daip+dapoContent+"</b>" : "<b style=color:var(--error-color)>"+"<%:Not Set%>"+"</b>";
-                } else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
-                    dapoContent = status.db_foward_port ? ":"+status.db_foward_port : "";
-                    daipContent = status.db_foward_domain ? "<b style=color:var(--success-color)>"+status.db_foward_domain+dapoContent+"</b>" : "<b style=color:var(--error-color)>"+"<%:Not Set%>"+"</b>";
-                } else {
-                    dapoContent = status.cn_port ? ":"+status.cn_port : "";
-                    daipContent = status.daip ? "<b style=color:var(--success-color)>"+status.daip+dapoContent+"</b>" : "<b style=color:var(--error-color)>"+"<%:Not Set%>"+"</b>";
-                }
+                var dashboardBase = getDashboardBaseURL(status);
+                dapoContent = dashboardBase.port ? ":" + dashboardBase.port : "";
+                daipContent = "<b style=color:var(--success-color)>" + dashboardBase.host + dapoContent + "</b>";
 
                 DOMCache.daip.innerHTML = daipContent;   
 
@@ -3853,29 +3855,10 @@
             return false;
         }
 
-        StatsWSMeta.protocol = getWebSocketProtocol(status);
+        StatsWSMeta.protocol = getDashboardWebSocketOrigin(status);
         StatsWSMeta.token = status.dase;
         syncDataSource();
         return true;
-    }
-
-    function getWebSocketProtocol(status) {
-        var protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
-        var host, port;
-
-        if (status.daip && window.location.hostname === status.daip) {
-            host = status.daip;
-            port = status.cn_port;
-        } else if (status.daip && window.location.hostname !== status.daip && 
-                   status.db_foward_domain && status.db_foward_port) {
-            host = status.db_foward_domain;
-            port = status.db_foward_port;
-        } else {
-            host = status.daip;
-            port = status.cn_port;
-        }
-
-        return protocol + host + ":" + port;
     }
 
     function AnnouncementAnimator(config) {
@@ -4416,6 +4399,17 @@
         return false;
     }
 
+    function external_dashboard(btn) {
+        btn.disabled = true;
+        btn.value = '<%:External Dashboard%>';
+        var status = StateManager.current_status;
+        if (!status) { setTimeout(function() { external_dashboard(btn); }, 500); return false; }
+        var url = buildExternalDashboardURL(status);
+        if (url) winOpen(url);
+        btn.disabled = false;
+        return false;
+    }
+
     function homepage() {
         winOpen('https://github.com/vernesong/OpenClash');
     }
@@ -4566,28 +4560,18 @@
     }
 
     function copyAddress() {
+        var currentStatus = StateManager.current_status;
+        var externalURL = currentStatus ? buildExternalDashboardURL(currentStatus) : '';
+        if (externalURL) {
+            ocCopyToClipboard(externalURL, DOMCache.copy_address, '<%:Control panel address copied:%> ', '<%:Copy failed, please copy manually:%>');
+            return false;
+        }
+
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dashboard_type")%>', null, function(x, status) {
             if (x && x.status == 200) {
                 var panel = status.default_dashboard;
                 if (panel && StateManager.current_status[panel]) {
-                    var url;
-                    var currentStatus = StateManager.current_status;
-                    if (currentStatus.daip && window.location.hostname == currentStatus.daip) {
-                        url = 'http://' + window.location.hostname + ':' + currentStatus.cn_port + '/ui/' + panel;
-                    } else if (currentStatus.daip && window.location.hostname != currentStatus.daip && currentStatus.db_foward_domain && currentStatus.db_foward_port) {
-                        var ui_proto = currentStatus.db_forward_ssl == 0 ? 'http://' : 'https://';
-                        url = ui_proto + currentStatus.db_foward_domain + ':' + currentStatus.db_foward_port + '/ui/' + panel;
-                    } else {
-                        url = 'http://' + window.location.hostname + ':' + currentStatus.cn_port + '/ui/' + panel;
-                    }
-
-                    if (panel === 'zashboard' || panel === 'metacubexd') {
-                        url += '/#/setup?hostname=' + (currentStatus.daip && window.location.hostname == currentStatus.daip ? window.location.hostname : (currentStatus.db_foward_domain || window.location.hostname)) + '&port=' + (currentStatus.daip && window.location.hostname == currentStatus.daip ? currentStatus.cn_port : (currentStatus.db_foward_port || currentStatus.cn_port)) + (currentStatus.dase ? '&secret=' + currentStatus.dase : '');
-                    } else if (panel === 'yacd') {
-                        url += '/?hostname=' + (currentStatus.daip && window.location.hostname == currentStatus.daip ? window.location.hostname : (currentStatus.db_foward_domain || window.location.hostname)) + '&port=' + (currentStatus.daip && window.location.hostname == currentStatus.daip ? currentStatus.cn_port : (currentStatus.db_foward_port || currentStatus.cn_port)) + (currentStatus.dase ? '&secret=' + currentStatus.dase : '');
-                    } else if (panel === 'dashboard') {
-                        url += '/#/?host=' + (currentStatus.daip && window.location.hostname == currentStatus.daip ? window.location.hostname : (currentStatus.db_foward_domain || window.location.hostname)) + '&port=' + (currentStatus.daip && window.location.hostname == currentStatus.daip ? currentStatus.cn_port : (currentStatus.db_foward_port || currentStatus.cn_port)) + (currentStatus.dase ? '&secret=' + currentStatus.dase : '');
-                    }
+                    var url = buildDashboardURL(currentStatus, panel, panel === 'zashboard' || panel === 'metacubexd');
 
                     ocCopyToClipboard(url, DOMCache.copy_address, '<%:Control panel address copied:%> ', '<%:Copy failed, please copy manually:%>');
                 } else {

@@ -503,17 +503,44 @@ msgstr "管理页面公网域名"
 msgid "Domain Name For Dashboard Login From Public Network"
 msgstr "设置公网域名，便于从公网访问时自动登录"
 
+msgid "Domain Name or IP For Dashboard Login From Public Network (without http:// or https://)"
+msgstr "设置用于公网访问的域名或 IP，请勿填写 http:// 或 https:// 协议头"
+
+msgid "Enter a valid hostname or IP address without a path or user information"
+msgstr "请输入不带路径或用户信息的有效主机名或 IP 地址"
+
 msgid "Public Dashboard Port"
 msgstr "管理页面映射端口"
 
 msgid "Port For Dashboard Login From Public Network"
 msgstr "设置映射端口，便于从公网访问时自动登录"
 
+msgid "Optional Port For Dashboard Login From Public Network (defaults to 443 with SSL or 80 without SSL)"
+msgstr "可选的公网映射端口；启用 SSL 时默认为 443，未启用时默认为 80"
+
 msgid "Public Dashboard SSL enabled"
 msgstr "管理页面公网 SSL 访问"
 
 msgid "Is SSL enabled For Dashboard Login From Public Network"
 msgstr "设置公网协议是否开启了 SSL，便于从公网访问时自动登录"
+
+msgid "Custom Dashboard URL"
+msgstr "自定义 Dashboard URL"
+
+msgid "Optional complete HTTP(S) URL for an externally hosted Dashboard. OpenClash appends hostname, port and secret parameters without adding a local UI path. Include a hash route such as #/setup in the URL when required by the panel."
+msgstr "可选的外部 Dashboard 完整 HTTP(S) URL。OpenClash 会追加 hostname、port 和 secret 参数，不会添加本地 UI 路径；如果面板需要 Hash 路由，请在 URL 中包含类似 #/setup 的路由。"
+
+msgid "External Dashboard"
+msgstr "外部面板"
+
+msgid "Clash Dashboard Compatibility Mode"
+msgstr "Clash Dashboard 兼容模式"
+
+msgid "Use Clash Dashboard-compatible #/?host=... login parameters for the custom Dashboard URL instead of the standard hostname parameters."
+msgstr "为自定义 Dashboard URL 使用 Clash Dashboard 兼容的 #/?host=... 登录参数，而不是标准的 hostname 参数。"
+
+msgid "Enter a valid complete HTTP or HTTPS URL without user information"
+msgstr "请输入不包含用户信息的有效完整 HTTP 或 HTTPS URL"
 
 msgid "GEO Update"
 msgstr "GEO 数据库订阅"
@@ -4388,4 +4415,3 @@ msgstr "版本号"
 
 msgid "to update individually"
 msgstr "则独立更新"
-

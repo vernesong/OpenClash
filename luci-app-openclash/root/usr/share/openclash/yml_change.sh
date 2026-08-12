@@ -23,6 +23,9 @@ fake_ip_filter_mode=${34}
 default_dashboard=$(uci_get_config "default_dashboard" || echo "metacubexd")
 yacd_type=$(uci_get_config "yacd_type" || echo "Official")
 dashboard_type=$(uci_get_config "dashboard_type" || echo "Official")
+dashboard_forward_port=$(uci_get_config "dashboard_forward_port" || echo 0)
+dashboard_forward_ssl=$(uci_get_config "dashboard_forward_ssl" || echo 0)
+dashboard_custom_url=$(uci_get_config "dashboard_custom_url" || echo 0)
 
 [ "$china_ip_route" -ne 0 ] && [ "$china_ip_route" -ne 1 ] && [ "$china_ip_route" -ne 2 ] && china_ip_route=0
 [ "$china_ip6_route" -ne 0 ] && [ "$china_ip6_route" -ne 1 ] && [ "$china_ip6_route" -ne 2 ] && china_ip6_route=0
@@ -312,7 +315,11 @@ config_load "openclash"
 config_foreach yml_auth_get "authentication"
 yml_dns_custom "$enable_custom_dns" "$5" "$append_wan_dns" "${16}"
 
-ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+OPENCLASH_CORS_DOMAIN="${36}" \
+OPENCLASH_CORS_PORT="$dashboard_forward_port" \
+OPENCLASH_CORS_SSL="$dashboard_forward_ssl" \
+OPENCLASH_CORS_CUSTOM_URL="$dashboard_custom_url" \
+ruby -ryaml -rYAML -ruri -I "/usr/share/openclash" -E UTF-8 -e "
 
 def safe_load_yaml(file_path)
    return nil unless File.exist?(file_path)
@@ -326,6 +333,41 @@ def merge_list_from_file(dns_hash, key, file_path)
    lines = File.readlines(file_path).map { |l| l.gsub(/#.*$/, '').strip }.reject(&:empty?)
    return if lines.empty?
    (dns_hash[key] ||= []).unshift(*lines).uniq!
+end
+
+def http_origin(raw_url)
+   uri = URI.parse(raw_url.to_s.strip)
+   scheme = uri.scheme.to_s.downcase
+   return nil unless %w[http https].include?(scheme) && uri.hostname && !uri.hostname.empty? && !uri.userinfo
+   return nil unless uri.port.between?(1, 65_535)
+   host = uri.hostname.include?(':') ? '[' + uri.hostname + ']' : uri.hostname
+   default_port = scheme == 'https' ? 443 : 80
+   scheme + '://' + host + (uri.port == default_port ? '' : ':' + uri.port.to_s)
+rescue URI::Error
+   nil
+end
+
+def controller_origin(domain, configured_port, ssl)
+   domain = domain.to_s.strip
+   return nil if domain.empty? || domain == '0'
+   domain_url = domain =~ /\Ahttps?:\/\//i ? domain : 'http://' + domain
+   uri = URI.parse(domain_url)
+   return nil unless uri.hostname && !uri.hostname.empty? && !uri.userinfo
+
+   port_text = configured_port.to_s.strip
+   authority = domain.sub(/\Ahttps?:\/\//i, '').split(/[\/?#]/, 2).first.to_s
+   embedded_port = authority[/\A\[[^\]]+\]:(\d+)\z/, 1] || authority[/\A[^:]+:(\d+)\z/, 1]
+   port_text = embedded_port if (port_text.empty? || port_text == '0') && embedded_port
+
+   scheme = ssl.to_s == '1' ? 'https' : 'http'
+   default_port = scheme == 'https' ? 443 : 80
+   port_text = default_port.to_s if port_text.empty? || port_text == '0'
+   return nil unless (port_text =~ /\A\d+\z/) && port_text.to_i.between?(1, 65_535)
+   host = uri.hostname.include?(':') ? '[' + uri.hostname + ']' : uri.hostname
+   port = port_text.to_i
+   scheme + '://' + host + (port == default_port ? '' : ':' + port.to_s)
+rescue URI::Error
+   nil
 end
 
 
@@ -378,7 +420,7 @@ begin
    fake_ip_filter_mode = '${33}'
    routing_mark_setting = '${34}'
    quic_gso = '${35}' == '1'
-   cors_origin = '${36}'
+   cors_origin = http_origin(ENV['OPENCLASH_CORS_CUSTOM_URL']) || controller_origin(ENV['OPENCLASH_CORS_DOMAIN'], ENV['OPENCLASH_CORS_PORT'], ENV['OPENCLASH_CORS_SSL'])
    geo_custom_url = '${37}'
    geoip_custom_url = '${38}'
    geosite_custom_url = '${39}'
@@ -455,7 +497,7 @@ begin
          Value['find-process-mode'] = find_process_mode if find_process_mode != '0'
 
          (Value['experimental'] ||= {})['quic-go-disable-gso'] = true if quic_gso
-         if cors_origin != '0'
+         if cors_origin
             (Value['external-controller-cors'] ||= {})['allow-origins'] = [cors_origin]
             Value['external-controller-cors']['allow-private-network'] = true
          end
