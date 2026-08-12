@@ -762,7 +762,7 @@ end
 function get_auth_info()
 	port = FS.uci_get_config("config", "cn_port")
 	passwd = FS.uci_get_config("config", "dashboard_password") or ""
-	ip = FS.lanip()
+	ip = FS.lanip(true)
 	if not ip or not port then
 		os.exit(0)
 	end

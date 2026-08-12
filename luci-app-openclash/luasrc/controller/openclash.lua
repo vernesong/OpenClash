@@ -1999,15 +1999,22 @@ function action_diag_connection()
 	if addr and (datatype.hostname(addr) or datatype.ipaddr(addr)) then
 		local cmd = string.format("/usr/share/openclash/openclash_debug_getcon.lua %s", addr)
 		HTTP.prepare_content("text/plain")
-		local util = io.popen(cmd)
-		if util and util ~= "" then
+		local reader = ltn12_popen(cmd)
+		if not reader then return end
+		local buf = ""
+		while true do
+			local chunk = reader()
+			if not chunk then break end
+			buf = buf .. chunk
 			while true do
-				local ln = util:read("*l")
-				if not ln then break end
-				write_padded(ln)
+				local nl = buf:find("\n")
+				if not nl then break end
+				local line = buf:sub(1, nl - 1)
+				buf = buf:sub(nl + 1)
+				write_padded(line)
 			end
-			util:close()
 		end
+		reader.kill()
 		return
 	end
 	HTTP.status(500, "Bad address")
@@ -2018,15 +2025,22 @@ function action_diag_dns()
 	if addr and datatype.hostname(addr)then
 		local cmd = string.format("/usr/share/openclash/openclash_debug_dns.lua %s", addr)
 		HTTP.prepare_content("text/plain")
-		local util = io.popen(cmd)
-		if util and util ~= "" then
+		local reader = ltn12_popen(cmd)
+		if not reader then return end
+		local buf = ""
+		while true do
+			local chunk = reader()
+			if not chunk then break end
+			buf = buf .. chunk
 			while true do
-				local ln = util:read("*l")
-				if not ln then break end
-				write_padded(ln)
+				local nl = buf:find("\n")
+				if not nl then break end
+				local line = buf:sub(1, nl - 1)
+				buf = buf:sub(nl + 1)
+				write_padded(line)
 			end
-			util:close()
 		end
+		reader.kill()
 		return
 	end
 	HTTP.status(500, "Bad address")
@@ -4404,7 +4418,7 @@ function action_config_file_list()
 						local cfile = io.open(full_path,"r")
 						if cfile then
 							local content = cfile:read(1024)
-							local age_symbol = content:find("BEGIN AGE ENCRYPTED FILE")
+							local age_symbol = content:find("BEGIN AGE ENCRYPTED FILE", 1, true)
 							for _, age in pairs(age_files) do
 								if age.name == name_no_ext and age.secret and age_symbol then
 									stat.age = true
@@ -4575,7 +4589,8 @@ function action_config_file_read()
 		return
 	end
 
-	if not fs.access(config_file) then
+	local stat = fs.stat(config_file)
+	if not stat then
 		HTTP.write_json({
 			status = "success",
 			content = "",
@@ -4590,8 +4605,7 @@ function action_config_file_read()
 		return
 	end
 
-	local stat = fs.stat(config_file)
-	if not stat or stat.type ~= "regular" then
+	if stat.type ~= "regular" then
 		HTTP.write_json({
 			status = "error",
 			message = "Config file is not a regular file"

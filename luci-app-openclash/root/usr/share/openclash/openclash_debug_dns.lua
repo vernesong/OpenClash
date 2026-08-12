@@ -13,7 +13,7 @@ local resolve = arg[2]
 
 local function debug_dns()
 	local info, ip, host
-	ip = fs.lanip()
+	ip = fs.lanip(true)
 	local port = fs.uci_get_config("config", "cn_port")
 	local passwd = fs.uci_get_config("config", "dashboard_password") or ""
 

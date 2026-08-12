@@ -970,7 +970,8 @@ html[data-darkmode="true"] .oc svg {
 .oc .config-select {
     width: 100%;
     height: var(--control-height);
-    padding: 5px 12px;
+    padding: 0 12px;
+    line-height: calc(var(--control-height) - 2px);
     border: 1px solid var(--border-light) !important;
     background-color: var(--bg-white) !important;
     border-radius: var(--radius-sm);
@@ -2218,6 +2219,9 @@ html[data-darkmode="true"] .oc svg {
 
 .oc .form-select {
     cursor: pointer;
+    box-sizing: border-box;
+    padding: 0 12px;
+    line-height: 38px;
 }
 
 .oc .form-textarea {
@@ -5578,7 +5582,7 @@ html[data-darkmode=true] .oc .radio-button input[type=radio]:checked + label {
     flex-direction: column;
     justify-content: center;
     padding: 5px;
-    min-height: 3em;
+    min-height: 48px;
     box-sizing: border-box;
 }
 #debug-rendered .pre-copy-btn {
@@ -6288,7 +6292,8 @@ html[data-darkmode=true] .oc .oix-msg-bar svg { color: inherit; }
     height: 36px;
     min-height: 36px;
     margin: 0;
-    padding: 8px 32px 8px 12px;
+    padding: 0 32px 0 12px;
+    line-height: 34px;
     border: 1px solid var(--border-light);
     border-radius: var(--radius-sm);
     background: var(--bg-white) !important;
@@ -7009,6 +7014,9 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
 
 /* ---- Stage 1: ≤1024px (large tablet / small desktop) ---- */
 @media (max-width: 1024px) {
+    /* log.htm - debug rendered copy button */
+    #debug-rendered .pre-copy-btn { width: 26px; height: 26px; }
+    #debug-rendered .pre-copy-btn svg { width: 13px; height: 13px; }
     /* status.htm - main cards */
     .oc .main-cards-container {
         grid-template-columns: 1fr;
@@ -7073,6 +7081,8 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     #debug-rendered h5 { font-size: 0.92em; }
     #debug-rendered h6 { font-size: 0.85em; }
     #debug-rendered code { font-size: 0.85em; }
+    #debug-rendered .pre-copy-btn { width: 24px; height: 24px; }
+    #debug-rendered .pre-copy-btn svg { width: 12px; height: 12px; }
     /* status.htm - main cards */
     .oc .main-cards-container { max-width: 98%; width: 98%; gap: 10px; }
     .oc .main-card { grid-template-rows: auto auto auto auto; }
@@ -7088,7 +7098,7 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .card-row:nth-child(3), .oc .card-row:nth-child(4) { min-height: auto; }
     .oc .config-file-content { flex-direction: column; gap: 5px; }
     .oc .config-selector { min-width: 150px; flex: 1; }
-    .oc .config-select { min-width: 150px; font-size: 13px; padding: 4px 10px; }
+    .oc .config-select { min-width: 150px; font-size: 13px; padding: 0 10px; }
     .oc .config-select option { font-size: 13px; padding: 6px 10px; }
     .oc .config-selector::after { right: 10px; border-left: 3px solid transparent; border-right: 3px solid transparent; border-top: 3px solid var(--text-secondary); }
     .oc .config-subscription-info { margin-left: 12px; }
@@ -7221,6 +7231,8 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     #debug-rendered h5 { font-size: 0.9em; }
     #debug-rendered h6 { font-size: 0.82em; }
     #debug-rendered code { font-size: 0.8em; }
+    #debug-rendered .pre-copy-btn { width: 22px; height: 22px; }
+    #debug-rendered .pre-copy-btn svg { width: 11px; height: 11px; }
     /* status.htm - main cards */
     .oc .main-cards-container { gap: 8px; max-width: 100%; width: 100%; }
     .oc .card-row.dual-cards { grid-template-columns: 1fr; }
@@ -7243,7 +7255,7 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .card-row:nth-child(1), .oc .card-row:nth-child(2),
     .oc .card-row:nth-child(3), .oc .card-row:nth-child(4) { min-height: auto; }
     .oc .config-selector { min-width: 110px; flex: 1; }
-    .oc .config-select { min-width: 110px; font-size: 12px; padding: 4px 8px; }
+    .oc .config-select { min-width: 110px; font-size: 12px; padding: 0 8px; }
     .oc .config-select option { font-size: 12px; padding: 5px 8px; }
     .oc .config-selector::after { right: 8px; }
     .oc .card-value { font-size: 11px; min-height: 28px; }
@@ -7380,6 +7392,8 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     #debug-rendered h5 { font-size: 0.88em; }
     #debug-rendered h6 { font-size: 0.8em; }
     #debug-rendered code { font-size: 0.75em; }
+    #debug-rendered .pre-copy-btn { width: 20px; height: 20px; }
+    #debug-rendered .pre-copy-btn svg { width: 10px; height: 10px; }
     /* developer.htm */
     .oc .developer-grid { gap: 2px 10px; }
     .oc .developer-avatar { width: 30px; height: 30px; }
@@ -7414,4 +7428,20 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
 @media (pointer: coarse) {
     #debug-rendered .pre-copy-btn { width: 36px; height: 36px; }
     #debug-rendered .pre-copy-btn svg { width: 18px; height: 18px; }
+}
+@media (pointer: coarse) and (max-width: 1024px) {
+    #debug-rendered .pre-copy-btn { width: 34px; height: 34px; }
+    #debug-rendered .pre-copy-btn svg { width: 17px; height: 17px; }
+}
+@media (pointer: coarse) and (max-width: 768px) {
+    #debug-rendered .pre-copy-btn { width: 32px; height: 32px; }
+    #debug-rendered .pre-copy-btn svg { width: 16px; height: 16px; }
+}
+@media (pointer: coarse) and (max-width: 480px) {
+    #debug-rendered .pre-copy-btn { width: 30px; height: 30px; }
+    #debug-rendered .pre-copy-btn svg { width: 15px; height: 15px; }
+}
+@media (pointer: coarse) and (max-width: 320px) {
+    #debug-rendered .pre-copy-btn { width: 28px; height: 28px; }
+    #debug-rendered .pre-copy-btn svg { width: 14px; height: 14px; }
 }

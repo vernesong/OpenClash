@@ -186,11 +186,21 @@ function imgerrorfuns(imgobj, imgSrc) {
 	}, 1000 * 10);
 }
 
+function _ocCountLines(element) {
+	var count = 0;
+	var children = element.children;
+	for (var i = 0; i < children.length; i++) {
+		var text = (children[i].textContent || '').replace(/[\u200B\uFEFF\s]/g, '');
+		if (text !== '') count++;
+	}
+	return Math.max(count, 1);
+}
+
 function ocAnimateScroll(element) {
 	if (!element) return;
 	if (element._ocScrollAnimId) cancelAnimationFrame(element._ocScrollAnimId);
 	var start = element.scrollTop;
-	var duration = 500;
+	var duration = _ocCountLines(element) <= 1 ? 500 : 1000;
 	var startTime = null;
 	function step(timestamp) {
 		if (!startTime) startTime = timestamp;

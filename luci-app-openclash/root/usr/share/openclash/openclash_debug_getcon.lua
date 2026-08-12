@@ -11,7 +11,7 @@ local addr = arg[1]
 
 local function debug_getcon()
 	local info, ip, host, diag_info
-	ip = fs.lanip()
+	ip = fs.lanip(true)
 	local port = fs.uci_get_config("config", "cn_port")
 	local passwd = fs.uci_get_config("config", "dashboard_password") or ""
 	if ip and port then
