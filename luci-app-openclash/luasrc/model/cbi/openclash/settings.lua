@@ -8,11 +8,25 @@ local fs = require "luci.openclash"
 local uci = require "luci.model.uci".cursor()
 local json = require "luci.jsonc"
 local datatype = require "luci.cbi.datatypes"
-local net = require "luci.model.network".init()
 local devices = {}
-for _, iface in ipairs(net:get_interfaces()) do
-	if iface:name() then
-		table.insert(devices, {name = iface:name()})
+local seen_devices = {}
+local function add_device(dev)
+	if dev and dev ~= "" and not seen_devices[dev] then
+		seen_devices[dev] = true
+		table.insert(devices, {name = dev})
+	end
+end
+uci:foreach("network", "interface", function(s)
+	local ifname = type(s.ifname) == "table" and table.concat(s.ifname, " ") or s.ifname
+	if type(ifname) == "string" then
+		for dev in ifname:gmatch("[^%s]+") do
+			add_device(dev)
+		end
+	end
+end)
+for dev in SYS.exec("ls -1 /sys/class/net/ 2>/dev/null"):gmatch("[^%s]+") do
+	if dev ~= "lo" then
+		add_device(dev)
 	end
 end
 

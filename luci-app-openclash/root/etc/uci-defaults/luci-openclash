@@ -212,69 +212,30 @@ if [ -f "/tmp/openclash.bak" ]; then
 	rm -rf "/etc/openclash/backup" >/dev/null 2>&1
 fi
 
-if [ -f "/usr/lib/lua/luci/model/network.lua" ]; then
-   sed -i '/OpenClash Append/,/OpenClash Append End/d' "/usr/lib/lua/luci/model/network.lua" >/dev/null 2>&1
-   cat >> "/usr/lib/lua/luci/model/network.lua" << EOF
--------------- OpenClash Append --------------
-
-function get_all_wan_networks(self)
-	local k, v
-	local wan_nets = { }
-	local route_statuses = self:get_all_status_by_route("0.0.0.0", 0)
-
-	for k, v in pairs(route_statuses) do
-		wan_nets[#wan_nets+1] = network(k, v.proto)
-	end
-
-	return wan_nets
-end
-
-function get_all_wan6_networks(self)
-	local k, v
-	local wan6_nets = { }
-	local route_statuses = self:get_all_status_by_route("::", 0)
-
-	for k, v in pairs(route_statuses) do
-		wan6_nets[#wan6_nets+1] = network(k, v.proto)
-	end
-
-	return wan6_nets
-end
-
-function get_all_status_by_route(self, addr, mask)
-	local route_statuses = { }
-	local _, object
-	for _, object in ipairs(utl.ubus()) do
-		local net = object:match("^network%.interface%.(.+)")
-		if net then
-			local s = utl.ubus(object, "status", {})
-			if s and s.route then
-				local rt
-				for _, rt in ipairs(s.route) do
-					if not rt.table and rt.target == addr and rt.mask == mask then
-						route_statuses[net] = s
-					end
-				end
-			end
-		end
-	end
-
-	return route_statuses
-end
-
--------------- OpenClash Append End --------------
+#allow large config file upload (HTTP_MAX_CONTENT) and long-running requests (streaming log)
+#uhttpd backend (older LuCI)
+if [ -x /etc/init.d/uhttpd ]; then
+	uci -q set uhttpd.@uhttpd[0].max_requests=50
+	uci -q set uhttpd.@uhttpd[0].script_timeout=3600
+	uci -q commit uhttpd
+fi
+#nginx backend (luci-nginx, newer LuCI): conf.d/*.conf is merged into the http block
+if [ -d /etc/nginx/conf.d ]; then
+	cat > /etc/nginx/conf.d/openclash.conf <<-EOF
+client_max_body_size 10m;
+uwsgi_read_timeout 3600;
+proxy_read_timeout 3600;
 EOF
 fi
+if grep -q 'HTTP_MAX_CONTENT' /usr/lib/lua/luci/http.lua 2>/dev/null; then
+   sed -i 's/\(HTTP_MAX_CONTENT[[:space:]]*=[[:space:]]*\)[0-9][0-9]*\([[:space:]]*\*[[:space:]]*[0-9][0-9]*\)*/\11024*10240/' /usr/lib/lua/luci/http.lua
+fi
+if grep -q 'HTTP_MAX_CONTENT' /usr/share/ucode/luci/http.uc 2>/dev/null; then
+   sed -i 's/\(HTTP_MAX_CONTENT[[:space:]]*=[[:space:]]*\)[0-9][0-9]*\([[:space:]]*\*[[:space:]]*[0-9][0-9]*\)*/\11024*10240/' /usr/share/ucode/luci/http.uc
+fi
 
-#set uhttpd && HTTP_MAX_CONTENT for large file edit
-uci -q set uhttpd.main.max_requests=50
-uci -q set uhttpd.main.max_connections=100
-uci -q set uhttpd.main.script_timeout=3600
-uci -q commit uhttpd
-sed -i '/.*kB maximum content size*/c\HTTP_MAX_CONTENT = 1024*10240		-- 100 kB maximum content size' /usr/lib/lua/luci/http.lua >/dev/null 2>&1
-sed -i '/.*kB maximum content size*/c\export let HTTP_MAX_CONTENT = 1024*10240;		// 100 kB maximum content size' /usr/share/ucode/luci/http.uc >/dev/null 2>&1
-
-/etc/init.d/uhttpd restart >/dev/null 2>&1
+[ -x /etc/init.d/uhttpd ] && /etc/init.d/uhttpd restart >/dev/null 2>&1
+[ -x /etc/init.d/nginx ] && /etc/init.d/nginx reload >/dev/null 2>&1
 
 rm -rf /tmp/luci-indexcache /tmp/luci-indexcache.* /var/luci-indexcache /var/luci-indexcache.* >/dev/null 2>&1
 rm -rf /tmp/luci-modulecache /var/luci-modulecache >/dev/null 2>&1
