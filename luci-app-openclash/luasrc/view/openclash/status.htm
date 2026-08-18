@@ -3047,16 +3047,7 @@
             if (savedView === 'chart' || savedView === 'cards') {
                 this.view = savedView;
             }
-            var now = Date.now();
-            for (var i = 0; i < this.N; i++) {
-                this.buf.t.push(now - (this.N - 1 - i) * 1000);
-                this.buf.up.push(0);
-                this.buf.down.push(0);
-                this.buf.mem.push(0);
-                this.buf.cpu.push(0);
-                this.buf.load.push(0);
-                this.buf.conn.push(0);
-            }
+            this.resetBuffer(Date.now());
             this.metrics = {
                 traffic: { unit: ' MB/s', series: [{ key: 'up', name: '<%:Up%>' }, { key: 'down', name: '<%:Down%>' }] },
                 memory: { unit: ' MB', series: [{ key: 'mem', name: '<%:Ram%>' }] },
@@ -3104,6 +3095,23 @@
             this.latest[key] = val;
         },
 
+        resetBuffer: function(now) {
+            var keys = ['t', 'up', 'down', 'mem', 'cpu', 'load', 'conn'];
+            for (var i = 0; i < keys.length; i++) {
+                this.buf[keys[i]] = [];
+            }
+            for (var j = 0; j < this.N; j++) {
+                this.buf.t.push(now - (this.N - 1 - j) * 1000);
+                this.buf.up.push(0);
+                this.buf.down.push(0);
+                this.buf.mem.push(0);
+                this.buf.cpu.push(0);
+                this.buf.load.push(0);
+                this.buf.conn.push(0);
+            }
+            this._resetPending = true;
+        },
+
         startTimer: function() {
             if (this.timer) return;
             var self = this;
@@ -3119,18 +3127,31 @@
         },
 
         tick: function() {
-            this.buf.t.push(Date.now());
-            this.buf.t.shift();
-            var keys = ['up', 'down', 'mem', 'cpu', 'load', 'conn'];
-            for (var i = 0; i < keys.length; i++) {
-                var k = keys[i];
-                this.buf[k].push(this.latest[k]);
-                this.buf[k].shift();
+            var now = Date.now();
+            var lastT = this.buf.t[this.buf.t.length - 1] || 0;
+            if (now - lastT > 3000) {
+                this.resetBuffer(now);
+            } else {
+                this.buf.t.push(now);
+                this.buf.t.shift();
+                var keys = ['up', 'down', 'mem', 'cpu', 'load', 'conn'];
+                for (var i = 0; i < keys.length; i++) {
+                    var k = keys[i];
+                    this.buf[k].push(this.latest[k]);
+                    this.buf[k].shift();
+                }
             }
             this.rateUnitCache = null;
             if (this.view === 'chart') {
                 this.updateLegendValues();
-                if (this.chart) this.update();
+                if (this.chart) {
+                    if (this._resetPending) {
+                        this._resetPending = false;
+                        this.render();
+                    } else {
+                        this.update();
+                    }
+                }
             }
         },
 
@@ -3386,6 +3407,7 @@
             var el = document.getElementById('stats-chart');
             if (!el || typeof Chart === 'undefined') return;
             if (this.chart) this.chart.destroy();
+            this._resetPending = false;
             this.renderLegend();
             this.chart = new Chart(el, this.buildConfig());
         },
@@ -3395,13 +3417,14 @@
             if (!c) return;
             var series = this.metrics[this.metric].series;
             var now = Date.now();
-            var min = now - (this.N - 1) * 1000;
             for (var i = 0; i < c.data.datasets.length; i++) {
                 var data = c.data.datasets[i].data;
                 while (data.length > this.N) {
                     data.shift();
                 }
             }
+            var first = c.data.datasets[0].data[0];
+            var min = first ? first.x + this.rightLeadMs : now - (this.N - 1) * 1000;
             for (var j = 0; j < series.length; j++) {
                 c.data.datasets[j].data.push({ x: now + this.rightLeadMs, y: this.latest[series[j].key] });
             }

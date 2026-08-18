@@ -2122,10 +2122,15 @@ html[data-darkmode="true"] .oc svg {
     cursor: pointer;
     padding: 0.35em 1em;
     line-height: 1.2;
-    border-radius: 999px;
+    border-radius: var(--radius-sm);
     font-size: 12px;
     font-weight: 600;
     transition: all var(--transition-fast);
+}
+
+.oc .stats-tabs button:hover {
+    color: var(--text-primary);
+    background: var(--primary-a10);
 }
 
 .oc .stats-tabs button.active {
@@ -7339,6 +7344,8 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .card-row.stats-grid { grid-template-columns: repeat(2, 2fr); }
     .oc .stats-chart-header { gap: 6px; flex-wrap: wrap; }
     .oc .stats-tabs { flex: 1 1 100%; width: 100%; justify-content: flex-start; }
+    .oc .stats-tabs button:first-child { margin-left: auto; }
+    .oc .stats-tabs button:last-child { margin-right: auto; }
     .oc .stats-tabs button { padding: 0.35em 0.8em; font-size: 11px; }
     .oc .stats-legend { flex: 1 1 100%; flex-wrap: wrap; justify-content: safe center; gap: 4px 10px; max-width: 100%; white-space: normal; overflow: hidden; }
     .oc .stats-legend-item { font-size: 11px; }
@@ -7451,6 +7458,7 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
         height: 32px;
         min-height: 32px;
         padding: 5px 28px 5px 10px;
+        line-height: 20px;
     }
     .oc .footer-btn { font-size: 12px; padding: 6px 10px; height: 32px; }
     .oc .ver-hint.note span { white-space: normal; }
@@ -7586,7 +7594,7 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .select-config-section { padding: 8px; }
     .oc .oc-option-title { font-size: 12px; }
     .oc .oc-option-title::after { bottom: -3px; }
-    .oc .select-class { font-size: 12px; padding: 6px 28px 6px 10px; }
+    .oc .select-class { font-size: 12px; padding: 6px 28px 6px 10px; line-height: 22px; }
     .oc .select-option { padding: 8px 10px; font-size: 12px; }
     .oc .custom-option-input, .oc #addCustomOption { font-size: 12px; padding: 8px 10px; margin: 6px 0; }
     .oc .config-grid { grid-template-columns: 1fr 1fr; }
@@ -7615,6 +7623,7 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
         height: 30px;
         min-height: 30px;
         padding: 4px 24px 4px 8px;
+        line-height: 20px;
     }
     .oc .footer-btn { font-size: 11px; padding: 5px 8px; gap: 4px; height: 30px; }
 
