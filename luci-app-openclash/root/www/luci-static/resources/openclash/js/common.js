@@ -186,42 +186,91 @@ function imgerrorfuns(imgobj, imgSrc) {
 	}, 1000 * 10);
 }
 
-function _ocCountLines(element) {
-	var count = 0;
+function _ocMaxScroll(element) {
+	var computed = window.getComputedStyle(element);
+	var contentHeight = (parseFloat(computed.paddingTop) || 0) + (parseFloat(computed.paddingBottom) || 0);
 	var children = element.children;
 	for (var i = 0; i < children.length; i++) {
-		var text = (children[i].textContent || '').replace(/[\u200B\uFEFF\s]/g, '');
-		if (text !== '') count++;
+		contentHeight += children[i].offsetHeight || 0;
 	}
-	return Math.max(count, 1);
+	var rowGap = parseFloat(computed.rowGap) || 0;
+	if (rowGap && children.length > 1) {
+		contentHeight += rowGap * (children.length - 1);
+	}
+	return Math.max(0, contentHeight - element.clientHeight);
 }
 
-function ocAnimateScroll(element) {
+function ocAnimateScroll(element, flush, isFirst) {
 	if (!element) return;
-	if (element._ocScrollAnimId) cancelAnimationFrame(element._ocScrollAnimId);
+
+	// A batch is still animating: let it finish before starting the next one.
+	// The caller's flush callback re-renders the accumulated lines and starts
+	// the next batch, so every batch animation runs to completion.
+	if (element._ocScrollAnim) {
+		element._ocScrollPending = true;
+		if (flush) element._ocScrollFlush = flush;
+		return;
+	}
+	if (flush) element._ocScrollFlush = flush;
+
+	var target = _ocMaxScroll(element);
+
 	var start = element.scrollTop;
-	var duration = _ocCountLines(element) <= 1 ? 500 : 1000;
-	var startTime = null;
+	var distance = target - start;
+
+	// First batch: reveal quickly (no slow deceleration), but keep the
+	// animation slot occupied for a short moment so following batches stay
+	// pending and the first line is not instantly overwritten.
+	var duration = isFirst ? 500 : Math.min(3600, Math.max(500, distance * 10));
+
+	if (!isFirst && distance <= 0.5) {
+		element.scrollTop = target;
+		element._ocScrollAnim = null;
+		element._ocScrollAnimId = null;
+		element.style.willChange = '';
+		if (element._ocScrollPending) {
+			element._ocScrollPending = false;
+			if (element._ocScrollFlush) element._ocScrollFlush();
+		}
+		return;
+	}
+
+	var animation = {
+		raf: null,
+		start: start,
+		target: target,
+		distance: distance,
+		duration: duration,
+		startTime: null
+	};
+	element._ocScrollAnim = animation;
+	element.style.willChange = 'scroll-position';
+
 	function step(timestamp) {
-		if (!startTime) startTime = timestamp;
-		var elapsed = timestamp - startTime;
-		var progress = Math.min(elapsed / duration, 1);
-		var eased = 1 - (1 - progress) * (1 - progress);
-		var lastChild = element.lastElementChild || element.lastChild;
-		var lastLineH = (lastChild && lastChild.offsetHeight) ? lastChild.offsetHeight : 0;
-		var maxScroll = Math.max(0, element.scrollHeight - element.clientHeight);
-		var target = Math.max(0, element.scrollHeight - (element.clientHeight + lastLineH) / 2);
-		if (target > maxScroll) target = maxScroll;
-		var distance = target - start;
-		element.scrollTop = Math.round(start + distance * eased);
+		if (element._ocScrollAnim !== animation) return;
+		if (!animation.startTime) animation.startTime = timestamp;
+		var elapsed = timestamp - animation.startTime;
+		var progress = Math.min(elapsed / animation.duration, 1);
+		var eased = 1 - Math.pow(1 - progress, 3);
+		element.scrollTop = Math.min(animation.target, animation.start + animation.distance * eased);
 		if (progress < 1) {
-			element._ocScrollAnimId = requestAnimationFrame(step);
+			animation.raf = requestAnimationFrame(step);
+			element._ocScrollAnimId = animation.raf;
 		} else {
+			if (Math.abs(element.scrollTop - animation.target) > 0.5) {
+				element.scrollTop = animation.target;
+			}
+			element._ocScrollAnim = null;
 			element._ocScrollAnimId = null;
 			element.style.willChange = '';
+			if (element._ocScrollPending) {
+				element._ocScrollPending = false;
+				if (element._ocScrollFlush) element._ocScrollFlush();
+			}
 		}
 	}
-	element._ocScrollAnimId = requestAnimationFrame(step);
+	animation.raf = requestAnimationFrame(step);
+	element._ocScrollAnimId = animation.raf;
 }
 
 function ocFormatUnixTime(unixTimestamp) {

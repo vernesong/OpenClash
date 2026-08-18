@@ -2089,16 +2089,22 @@ msgid "Down Total"
 msgstr "下载总量"
 
 msgid "Connect"
-msgstr "活动连接"
+msgstr "连接"
 
 msgid "Ram"
-msgstr "内存占用"
+msgstr "内存"
 
 msgid "CPU"
-msgstr "CPU 占用"
+msgstr "CPU"
 
 msgid "Load Avg"
-msgstr "系统负载"
+msgstr "负载"
+
+msgid "Statistics"
+msgstr "运行数据"
+
+msgid "Toggle Chart"
+msgstr "切换卡片/图表"
 
 msgid "Bad address specified!"
 msgstr "输入的地址不合法！"

@@ -2077,7 +2077,7 @@ msgid "Up"
 msgstr "Subida"
 
 msgid "Down"
-"Descarga"
+msgstr "Descarga"
 
 msgid "Up Total"
 msgstr "Total subido"
@@ -2086,16 +2086,22 @@ msgid "Down Total"
 msgstr "Total descargado"
 
 msgid "Connect"
-msgstr "Conexiones activas"
+msgstr "Conexiones"
 
 msgid "Ram"
-msgstr "Uso de RAM"
+msgstr "Memoria"
 
 msgid "CPU"
-msgstr "Uso de CPU"
+msgstr "CPU"
 
 msgid "Load Avg"
-msgstr "Carga media"
+msgstr "Carga"
+
+msgid "Statistics"
+msgstr "Datos en ejecución"
+
+msgid "Toggle Chart"
+msgstr "Alternar tarjetas/gráfico"
 
 msgid "Bad address specified!"
 msgstr "Dirección no válida."

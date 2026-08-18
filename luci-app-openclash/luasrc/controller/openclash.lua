@@ -1139,20 +1139,6 @@ function action_switch_log()
 	})
 end
 
-local function s(e)
-local a={' B/S',' KB/S',' MB/S',' GB/S',' TB/S',' PB/S'}
-local t=0
-if (e<=1024) then
-	return e..a[1]
-else
-	repeat
-		e=e/1024
-		t=t+1
-	until(e<=1024)
-	return math.floor(e * 10 + 0.5) / 10 .. a[t]
-	end
-end
-
 function action_toolbar_show_sys()
 	local cpu = "0"
 	local load_avg = "0"
@@ -1280,15 +1266,15 @@ function action_toolbar_show()
 
 		if traffic and connections and connections.connections then
 			connection = #(connections.connections)
-			up = s(traffic.up)
-			down = s(traffic.down)
-			up_total = fs.filesize(connections.uploadTotal)
-			down_total = fs.filesize(connections.downloadTotal)
+			up = traffic.up
+			down = traffic.down
+			up_total = connections.uploadTotal
+			down_total = connections.downloadTotal
 		else
-			up = "0 B/S"
-			down = "0 B/S"
-			up_total = "0 KB"
-			down_total = "0 KB"
+			up = "0"
+			down = "0"
+			up_total = "0"
+			down_total = "0"
 			connection = "0"
 		end
 
@@ -1305,10 +1291,10 @@ function action_toolbar_show()
 		]], pid))
 
 		if mem and cpu then
-			mem = fs.filesize(mem*1024) or "0 KB"
+			mem = mem * 1024
 			cpu = string.match(cpu, "%d+%.?%d*") or "0"
 		else
-			mem = "0 KB"
+			mem = 0
 			cpu = "0"
 		end
 
@@ -1693,10 +1679,10 @@ function process_status(name)
 end
 
 local START_SCRIPT_PATTERNS = {
-	["init"] = "/etc/init.d/[o]penclash",
-	["openclash.sh"] = "[o]penclash\\.sh",
-	["openclash_core.sh"] = "[o]penclash_core\\.sh",
-	["openclash_update.sh"] = "[o]penclash_update\\.sh",
+	["init"] = { "/etc/init.d/[o]penclash" },
+	["openclash.sh"] = { "[o]penclash\\.sh", "/etc/init\\.d/[o]penclash" },
+	["openclash_core.sh"] = { "[o]penclash_core\\.sh", "/etc/init\\.d/[o]penclash" },
+	["openclash_update.sh"] = { "[o]penclash_update\\.sh", "/etc/init\\.d/[o]penclash" },
 }
 
 local function stream_log_and_parse(reader)
@@ -1727,17 +1713,32 @@ end
 function action_start()
 	HTTP.prepare_content("text/plain; charset=utf-8")
 	local logfile = "/tmp/openclash_start.log"
-	local pattern = START_SCRIPT_PATTERNS[HTTP.formvalue("script")]
+	local patterns = START_SCRIPT_PATTERNS[HTTP.formvalue("script")]
+	if type(patterns) == "string" then
+		patterns = { patterns }
+	end
 
 	local cmd
-	if pattern then
+	if patterns then
+		local pattern_cases = {}
+		for idx, p in ipairs(patterns) do
+			pattern_cases[#pattern_cases + 1] = string.format(
+				"%d) %s | grep -v grep | grep \"%s\" | grep -v \"openclash_start\" | grep -c \"^\";;",
+				idx, "$PS_CMD", p
+			)
+		end
+		local check_fn = string.format(
+			"check_liveness() { case \"$1\" in %s *) echo 0;; esac; }; ",
+			table.concat(pattern_cases, " ")
+		)
 		cmd = string.format(
-			"logfile='%s'; pattern='%s'; " ..
+			"logfile='%s'; " ..
+			check_fn ..
 			"if [ \"$(ps --version 2>&1 | grep -c procps-ng)\" -eq 1 ]; then PS_CMD='ps -efw'; else PS_CMD='ps -w'; fi; " ..
 			"bytes=$(wc -c < \"$logfile\" 2>/dev/null); bytes=${bytes:-0}; " ..
 			"[ \"$bytes\" -gt 0 ] && tail -c +1 \"$logfile\" 2>/dev/null; " ..
 			"seen=0; [ \"$bytes\" -gt 0 ] && seen=1; " ..
-			"elapsed=0; " ..
+			"elapsed=0; i=1; total=%d; " ..
 			"while true; do " ..
 			"new_bytes=$(wc -c < \"$logfile\" 2>/dev/null); new_bytes=${new_bytes:-0}; " ..
 			"if [ \"$new_bytes\" -gt \"$bytes\" ] 2>/dev/null; then " ..
@@ -1753,17 +1754,21 @@ function action_start()
 			"bytes=$((new_bytes - $(tail -c +1 \"$logfile\" 2>/dev/null | awk 'END { print length($0) }'))); " ..
 			"fi; " ..
 			"fi; " ..
-			"liveness=$($PS_CMD | grep -v grep | grep \"$pattern\" | grep -v \"openclash_start\" | grep -c \"^\"); " ..
-			"[ \"$liveness\" -gt 0 ] 2>/dev/null && seen=1; " ..
-			"if [ \"$seen\" -eq 1 ]; then " ..
-			"if [ \"$liveness\" = \"0\" ]; then echo '##FINISHED##'; exit 0; fi; " ..
+			"found=0; " ..
+			"while [ \"$i\" -le \"$total\" ]; do " ..
+			"liveness=$(check_liveness \"$i\"); " ..
+			"if [ \"$liveness\" -gt 0 ] 2>/dev/null; then found=1; seen=1; break; fi; " ..
+			"i=$((i + 1)); " ..
+			"done; " ..
+			"if [ \"$found\" = \"1\" ]; then " ..
 			"if [ \"$elapsed\" -ge 50 ]; then echo '##CONTINUE##'; exit 0; fi; " ..
 			"else " ..
+			"if [ \"$seen\" -eq 1 ]; then echo '##FINISHED##'; exit 0; fi; " ..
 			"if [ \"$elapsed\" -ge 5 ]; then echo '##FINISHED##'; exit 0; fi; " ..
 			"fi; " ..
 			"sleep 1; elapsed=$((elapsed + 1)); " ..
 			"done",
-			logfile, pattern
+			logfile, #patterns
 		)
 	else
 		cmd = string.format(

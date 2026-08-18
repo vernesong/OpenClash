@@ -9,6 +9,7 @@
 <script src="/luci-static/resources/openclash/js/common.js?v=<%=plugin_version%>"></script>
 <link rel="stylesheet" href="/luci-static/resources/openclash/css/oc.css?v=<%=plugin_version%>">
 <script src="/luci-static/resources/openclash/js/cm6.min.js?v=<%=plugin_version%>"></script>
+<script src="/luci-static/resources/openclash/js/chart.umd.min.js?v=<%=plugin_version%>"></script>
 </head>
 <fieldset class="cbi-section">
     <table width="100%">
@@ -279,15 +280,38 @@
                         </div>
 
                         <!-- Row 4: Statistics -->
-                        <div class="card-row stats-grid">
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Up%></span><span id="upload_" class="stat-value">0 KB/S</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Down%></span><span id="download_" class="stat-value">0 KB/S</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Up Total%></span><span id="uploadtotal_" class="stat-value">0 KB</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Down Total%></span><span id="downloadtotal_" class="stat-value">0 KB</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Connect%></span><span id="connect_t" class="stat-value">0</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Ram%></span><span id="mem_t" class="stat-value">0 KB</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:CPU%></span><span id="cpu_t" class="stat-value">0 %</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Load Avg%></span><span id="load_a" class="stat-value">0 %</span></div>
+                        <div class="stats-section">
+                            <div class="stats-card-header">
+                                <div class="stats-title"><%:Statistics%></div>
+                                <button type="button" class="icon-btn stats-view-toggle" id="stats-view-toggle" title="<%:Toggle Chart%>">
+                                    <svg id="stats-chart-icon" width="14" height="14"><use href="#oc-icon-chart"/></svg>
+                                    <svg id="stats-cards-icon" width="14" height="14" class="oc-hidden"><use href="#oc-icon-grid"/></svg>
+                                </button>
+                            </div>
+                            <div class="card-row stats-grid" id="stats-view-cards">
+                                <div class="sub-card stat-item"><span class="stat-label"><%:Up%></span><span id="upload_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB/S</span></span></div>
+                                <div class="sub-card stat-item"><span class="stat-label"><%:Down%></span><span id="download_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB/S</span></span></div>
+                                <div class="sub-card stat-item"><span class="stat-label"><%:Up Total%></span><span id="uploadtotal_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB</span></span></div>
+                                <div class="sub-card stat-item"><span class="stat-label"><%:Down Total%></span><span id="downloadtotal_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB</span></span></div>
+                                <div class="sub-card stat-item"><span class="stat-label"><%:Connect%></span><span id="connect_t" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span></span></div>
+                                <div class="sub-card stat-item"><span class="stat-label"><%:Ram%></span><span id="mem_t" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB</span></span></div>
+                                <div class="sub-card stat-item"><span class="stat-label"><%:CPU%></span><span id="cpu_t" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">%</span></span></div>
+                                <div class="sub-card stat-item"><span class="stat-label"><%:Load Avg%></span><span id="load_a" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">%</span></span></div>
+                            </div>
+
+                            <div class="stats-chart-card oc-hidden" id="stats-view-chart">
+                                <div class="stats-chart-header">
+                                    <div class="stats-tabs" id="stats-tabs">
+                                        <button type="button" data-metric="traffic" class="active"><%:Traffic%></button>
+                                        <button type="button" data-metric="connections"><%:Connect%></button>
+                                        <button type="button" data-metric="memory"><%:Ram%></button>
+                                        <button type="button" data-metric="cpu"><%:CPU%></button>
+                                        <button type="button" data-metric="load"><%:Load Avg%></button>
+                                    </div>
+                                    <div class="stats-legend" id="stats-legend"></div>
+                                </div>
+                                <div class="stats-chart-wrap"><canvas id="stats-chart"></canvas></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -386,6 +410,16 @@
     var buildDashboardURL = ocBuildDashboardURL;
     var bytesToSize = ocFormatBytes;
     var debounceButton = ocDebounce;
+
+    function ocStatHtml(text, color) {
+        color = color || 'var(--success-color)';
+        var s = String(text);
+        var m = s.match(/^([\d.]+)\s*(.*)$/);
+        var num = m ? m[1] : s;
+        var unit = m ? m[2] : '';
+        return '<span class="stat-num" style="color:' + color + '">' + num + '</span>'
+            + (unit ? '<span class="stat-unit">' + unit + '</span>' : '');
+    }
 
     var DarkModeDetector = {
         init: function() {
@@ -510,7 +544,9 @@
             for (var i = 0; i < updates.length; i++) {
                 var update = updates[i];
                 if (update.element && update.content !== undefined) {
-                    update.element.innerHTML = update.content;
+                    if (update.element.innerHTML !== update.content) {
+                        update.element.innerHTML = update.content;
+                    }
                 }
             }
         },
@@ -654,6 +690,10 @@
 
         closeConnection: function(type) {
             var connection = this.connections[type];
+            if (this._pendingReconnect && this._pendingReconnect[type]) {
+                clearTimeout(this._pendingReconnect[type]);
+                delete this._pendingReconnect[type];
+            }
             if (connection && connection.socket) {
                 this.stopHeartbeat(type);
                 try {
@@ -757,18 +797,29 @@
             var handler = connection.messageHandler;
             var options = connection.options;
 
-            setTimeout(function() {
+            this._pendingReconnect = this._pendingReconnect || {};
+            this._pendingReconnect[type] = setTimeout(function() {
+                delete self._pendingReconnect[type];
                 self.createConnection(type, url, handler, options);
             }, this.reconnectDelay);
         },
 
         enableFallbackMode: function() {
             this._ws_connect = false;
-            this.closeAll();
-            NetworkStatsManager.resetStats();
-            if (!NetworkStatsManager.isEnabled) {
-                NetworkStatsManager.start();
+            var types = Object.keys(this.connections);
+            for (var i = 0; i < types.length; i++) {
+                var connection = this.connections[types[i]];
+                if (connection && connection.socket) {
+                    this.stopHeartbeat(types[i]);
+                    try {
+                        connection.socket.close(1000, 'Normal closure');
+                    } catch (error) {}
+                    delete this.connections[types[i]];
+                }
             }
+            NetworkStatsManager.resetStats();
+            if (typeof StatsWSMeta !== 'undefined') StatsWSMeta.protocol = null;
+            if (typeof syncDataSource === 'function') syncDataSource();
         },
 
         getConnectionState: function(type) {
@@ -2055,6 +2106,7 @@
         retryDelay: 1000,
         lastLogLineCount: null,
         reconnectTimer: null,
+        logLines: [],
 
         // Clear the log before streaming so the operation API is served first and the stream does not block it
         startLogDisplay: function(initialMessage, skipClearLog, scriptName) {
@@ -2070,16 +2122,21 @@
             if (initialMessage) {
                 this.retryCount = 0;
                 this.lastLogLineCount = null;
+                this.logLines = [];
+                if (DOMCache.oclog) {
+                    DOMCache.oclog._ocScrollPending = false;
+                    DOMCache.oclog._ocScrollFlush = null;
+                    if (DOMCache.oclog._ocScrollAnimId) {
+                        cancelAnimationFrame(DOMCache.oclog._ocScrollAnimId);
+                    }
+                    DOMCache.oclog._ocScrollAnimId = null;
+                    DOMCache.oclog._ocScrollAnim = null;
+                    DOMCache.oclog.style.willChange = '';
+                    DOMCache.oclog.scrollTop = 0;
+                }
             }
 
             StateManager.clearCache('<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>');
-
-            if (DOMCache.oclog) {
-                if (initialMessage) {
-                    DOMCache.oclog.classList.remove('oc-hidden');
-                    DOMCache.oclog.innerHTML = '<b style="color:var(--tip-color)">' + initialMessage + '</b>';
-                }
-            }
 
             var self = this;
             var hasInitialMessage = !!initialMessage;
@@ -2111,7 +2168,43 @@
                 var streamEnded = false;
                 var gotData = false;
                 var processedLines = 0;
+                var processedLength = 0;
+                var pendingLine = '';
+                var cursorInitialized = false;
                 var finishTimer = null;
+
+                function consumeStreamText(text, flush) {
+                    if (!cursorInitialized) {
+                        if (self.lastLogLineCount != null) {
+                            for (var lineIndex = 0; lineIndex < self.lastLogLineCount; lineIndex++) {
+                                var newlineIndex = text.indexOf('\n', processedLength);
+                                if (newlineIndex < 0) {
+                                    processedLength = text.length;
+                                    break;
+                                }
+                                processedLength = newlineIndex + 1;
+                            }
+                        }
+                        cursorInitialized = true;
+                    }
+                    if (text.length < processedLength) {
+                        processedLength = 0;
+                        pendingLine = '';
+                    }
+                    pendingLine += text.substring(processedLength);
+                    processedLength = text.length;
+                    var parts = pendingLine.split('\n');
+                    if (flush) {
+                        pendingLine = '';
+                    } else {
+                        pendingLine = parts.pop() || '';
+                    }
+                    var raw = parts.join('\n').replace(/##FINISHED##|##CONTINUE##|##FINISH##/g, '');
+                    if (raw.trim()) {
+                        gotData = true;
+                        self.displayLog(raw);
+                    }
+                }
 
                 function finalCleanup(hidePanel) {
                     if (self.streamingXHR === xhr) {
@@ -2119,6 +2212,16 @@
                     }
                     if (hidePanel) {
                         var capturedXhr = xhr;
+                        if (DOMCache.oclog) {
+                            if (DOMCache.oclog._ocScrollAnimId) {
+                                cancelAnimationFrame(DOMCache.oclog._ocScrollAnimId);
+                            }
+                            DOMCache.oclog._ocScrollAnimId = null;
+                            DOMCache.oclog._ocScrollAnim = null;
+                            DOMCache.oclog._ocScrollPending = false;
+                            DOMCache.oclog._ocScrollFlush = null;
+                            DOMCache.oclog.style.willChange = '';
+                        }
                         setTimeout(function() {
                             if (self.streamingXHR !== capturedXhr && !self.streamingXHR) {
                                 if (DOMCache.oclog) {
@@ -2134,18 +2237,7 @@
                     if (self.streamingXHR !== xhr) return;
                     if (streamEnded) return;
                     var text = xhr.responseText || '';
-                    var startLine = (self.lastLogLineCount != null) ? self.lastLogLineCount : 0;
-                    if (processedLines > startLine) startLine = processedLines;
-                    var lines = text.split('\n');
-                    var hasPartial = text.length > 0 && text.charAt(text.length - 1) !== '\n';
-                    var endIdx = hasPartial ? lines.length - 1 : lines.length;
-                    var newChunk = lines.slice(startLine, endIdx).join('\n');
-                    processedLines = endIdx;
-                    var raw = newChunk.replace(/##FINISHED##|##CONTINUE##|##FINISH##/g, '');
-                    if (raw.trim()) {
-                        gotData = true;
-                        self.displayLog(raw);
-                    }
+                    consumeStreamText(text, false);
                     if (/##FINISHED##\s*$/.test(text) && !finishTimer) {
                         finishTimer = setTimeout(function() {
                             streamEnded = true;
@@ -2158,6 +2250,7 @@
                     if (self.streamingXHR !== xhr) return;
                     if (streamEnded) return;
                     var text = xhr.responseText || '';
+                    consumeStreamText(text, true);
                     if (!watchMode || /##FINISHED##\s*$/.test(text)) {
                         if (!finishTimer) {
                             finishTimer = setTimeout(function() {
@@ -2193,6 +2286,9 @@
 
                 xhr.send();
                 self.streamingXHR = xhr;
+                if (hasInitialMessage) {
+                    self.displayLog(initialMessage);
+                }
             }
 
             if (skipClearLog) {
@@ -2207,9 +2303,15 @@
         stopLogDisplay: function() {
             if (this.reconnectTimer) { clearTimeout(this.reconnectTimer); this.reconnectTimer = null; }
             if (this.maxWaitTimer) { clearTimeout(this.maxWaitTimer); this.maxWaitTimer = null; }
-            if (DOMCache.oclog && DOMCache.oclog._ocScrollAnimId) {
-                cancelAnimationFrame(DOMCache.oclog._ocScrollAnimId);
-                DOMCache.oclog._ocScrollAnimId = null;
+            if (DOMCache.oclog) {
+                DOMCache.oclog._ocScrollPending = false;
+                DOMCache.oclog._ocScrollFlush = null;
+                if (DOMCache.oclog._ocScrollAnimId) {
+                    cancelAnimationFrame(DOMCache.oclog._ocScrollAnimId);
+                    DOMCache.oclog._ocScrollAnimId = null;
+                    DOMCache.oclog._ocScrollAnim = null;
+                    DOMCache.oclog.style.willChange = '';
+                }
             }
             var xhr = this.streamingXHR;
             this.streamingXHR = null;
@@ -2226,6 +2328,43 @@
             }
         },
 
+        renderLog: function() {
+            var el = DOMCache.oclog;
+            if (!el) return;
+            if (!el.wheelBlocked) {
+                el.addEventListener('wheel', function(e) { e.preventDefault(); }, { passive: false });
+                el.wheelBlocked = true;
+            }
+            var minVisibleLines = 8;
+            var merged = this.logLines;
+            el.innerHTML = '';
+            var fragment = document.createDocumentFragment();
+            for (var j = 0; j < merged.length; j++) {
+                var color = ocGetLogColor(merged[j]);
+                var div = document.createElement('div');
+                div.style.whiteSpace = 'nowrap';
+                div.innerHTML = '<b style="color:' + color + '">' + merged[j] + '</b>';
+                fragment.appendChild(div);
+            }
+            for (var spacerCount = merged.length; spacerCount < minVisibleLines; spacerCount++) {
+                var spacer = document.createElement('div');
+                spacer.className = 'oc-log-spacer';
+                spacer.style.visibility = 'hidden';
+                spacer.style.whiteSpace = 'nowrap';
+                spacer.textContent = '\u200B';
+                fragment.insertBefore(spacer, fragment.firstChild);
+            }
+            el.appendChild(fragment);
+            el.classList.remove('oc-hidden');
+        },
+
+        flushLog: function() {
+            var el = DOMCache.oclog;
+            if (!el) return;
+            LogManager.renderLog();
+            ocAnimateScroll(el, LogManager.flushLog);
+        },
+
         displayLog: function(logContent) {
             if (!this.streamingXHR || !DOMCache.oclog) return;
             var lines = logContent.split('\n');
@@ -2236,49 +2375,18 @@
             }
             if (allLines.length === 0) return;
 
-            var maxLines = 8;
+            var isFirst = this.logLines.length === 0 && allLines.length === 1;
+            this.logLines = this.logLines.concat(allLines);
 
-            if (!DOMCache.oclog.wheelBlocked) {
-                DOMCache.oclog.addEventListener('wheel', function(e) { e.preventDefault(); }, { passive: false });
-                DOMCache.oclog.wheelBlocked = true;
+            // A batch is still animating: buffer the lines and let the current
+            // animation finish before rendering the next batch.
+            if (DOMCache.oclog._ocScrollAnim) {
+                ocAnimateScroll(DOMCache.oclog, LogManager.flushLog);
+                return;
             }
 
-            var existing = [];
-            for (var i = 0; i < DOMCache.oclog.children.length; i++) {
-                var child = DOMCache.oclog.children[i];
-                if (child.tagName === 'DIV' && child.className !== 'oc-log-spacer' && child.firstChild && child.firstChild.textContent) {
-                    existing.push(child.firstChild.textContent);
-                }
-            }
-
-            var merged = existing.concat(allLines);
-            if (merged.length > maxLines) {
-                merged = merged.slice(merged.length - maxLines);
-            }
-
-            DOMCache.oclog.innerHTML = '';
-            DOMCache.oclog.scrollTop = 0;
-            for (var j = 0; j < merged.length; j++) {
-                var color = ocGetLogColor(merged[j]);
-                var div = document.createElement('div');
-                div.style.whiteSpace = 'nowrap';
-                div.innerHTML = '<b style="color:' + color + '">' + merged[j] + '</b>';
-                DOMCache.oclog.appendChild(div);
-            }
-
-            while (DOMCache.oclog.children.length < maxLines) {
-                var spacer = document.createElement('div');
-                spacer.className = 'oc-log-spacer';
-                spacer.style.visibility = 'hidden';
-                spacer.style.whiteSpace = 'nowrap';
-                spacer.textContent = '\u200B';
-                DOMCache.oclog.insertBefore(spacer, DOMCache.oclog.firstChild);
-            }
-
-            DOMCache.oclog.classList.remove('oc-hidden');
-            DOMCache.oclog.style.willChange = 'scroll-position';
-
-            ocAnimateScroll(DOMCache.oclog);
+            this.renderLog();
+            ocAnimateScroll(DOMCache.oclog, LogManager.flushLog, isFirst);
         }
     };
 
@@ -2290,8 +2398,8 @@
         isEnabled: false,
 
         _ZERO_SYS_STATS: [
-            {id: "cpu_t", html: "<font style=\"color:var(--success-color)\">0 %</font>"},
-            {id: "load_a", html: "<font style=\"color:var(--success-color)\">0 %</font>"}
+            {id: "cpu_t", html: ocStatHtml("0 %")},
+            {id: "load_a", html: ocStatHtml("0 %")}
         ],
 
         resetSysStats: function() {
@@ -2324,13 +2432,18 @@
             StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show_sys")%>', function(x, status) {
                 if (x && x.status == 200 && x.responseText != "" && status) {
                     self.retryCount = 0;
-                    var cpuColor = status.cpu <= 50 ? "var(--success-color)" : (status.cpu <= 80 ? "var(--tip-color)" : "var(--error-color)");
-                    var cpuValue = status.cpu <= 100 ? status.cpu + " %" : "0 %";
-                    document.getElementById("cpu_t").innerHTML = "<font style=\"color:"+cpuColor+"\">"+cpuValue+"</font>";
+                    var cpuValueNumber = Number(status.cpu);
+                    if (!isFinite(cpuValueNumber) || cpuValueNumber < 0 || cpuValueNumber > 100) cpuValueNumber = 0;
+                    var cpuColor = cpuValueNumber <= 50 ? "var(--success-color)" : (cpuValueNumber <= 80 ? "var(--tip-color)" : "var(--error-color)");
+                    var cpuValue = cpuValueNumber + " %";
+                    document.getElementById("cpu_t").innerHTML = ocStatHtml(cpuValue, cpuColor);
 
                     var loadValue = parseFloat(status.load_avg) || 0;
+                    if (!isFinite(loadValue) || loadValue < 0) loadValue = 0;
                     var loadColor = loadValue <= 50 ? "var(--success-color)" : (loadValue <= 80 ? "var(--tip-color)" : "var(--error-color)");
-                    document.getElementById("load_a").innerHTML = "<font style=\"color:"+loadColor+"\">"+status.load_avg+" %</font>";
+                    document.getElementById("load_a").innerHTML = ocStatHtml(loadValue + " %", loadColor);
+                    StatsChart.feed("cpu", cpuValueNumber);
+                    StatsChart.feed("load", loadValue);
                 } else {
                     self.handleError();
                 }
@@ -2344,12 +2457,10 @@
         },
 
         handleError: function() {
-            this.retryCount++;
-
-            if (this.retryCount >= this.maxRetries) {
-                this.resetSysStats();
-                this.retryCount = 0;
-            }
+            this.retryCount = 0;
+            this.resetSysStats();
+            StatsChart.feed("cpu", 0);
+            StatsChart.feed("load", 0);
         },
 
         setPollInterval: function(interval) {
@@ -2365,12 +2476,12 @@
         isEnabled: false,
 
         _ZERO_STATS: [
-            {id: "upload_", html: "<font style=\"color:var(--success-color)\">0 B/S</font>"},
-            {id: "download_", html: "<font style=\"color:var(--success-color)\">0 B/S</font>"},
-            {id: "uploadtotal_", html: "<font style=\"color:var(--success-color)\">0 KB</font>"},
-            {id: "downloadtotal_", html: "<font style=\"color:var(--success-color)\">0 KB</font>"},
-            {id: "mem_t", html: "<font style=\"color:var(--success-color)\">0 KB</font>"},
-            {id: "connect_t", html: "<font style=\"color:var(--success-color)\">0</font>"}
+            {id: "upload_", html: ocStatHtml("0 B/S")},
+            {id: "download_", html: ocStatHtml("0 B/S")},
+            {id: "uploadtotal_", html: ocStatHtml("0 KB")},
+            {id: "downloadtotal_", html: ocStatHtml("0 KB")},
+            {id: "mem_t", html: ocStatHtml("0 KB")},
+            {id: "connect_t", html: ocStatHtml("0")}
         ],
 
         resetStats: function() {
@@ -2417,25 +2528,41 @@
         },
 
         updateNetworkStats: function(status) {
+            var up = Number(status && status.up);
+            var down = Number(status && status.down);
+            var upTotal = Number(status && status.up_total);
+            var downTotal = Number(status && status.down_total);
+            var mem = Number(status && status.mem);
+            var connections = Number(status && status.connections);
+            if (!isFinite(up)) up = 0;
+            if (!isFinite(down)) down = 0;
+            if (!isFinite(upTotal)) upTotal = 0;
+            if (!isFinite(downTotal)) downTotal = 0;
+            if (!isFinite(mem)) mem = 0;
+            if (!isFinite(connections)) connections = 0;
             var updates = [
-                {element: document.getElementById("upload_"), content: "<font style=\"color:var(--success-color)\">"+status.up+"</font>"},
-                {element: document.getElementById("download_"), content: "<font style=\"color:var(--success-color)\">"+status.down+"</font>"},
-                {element: document.getElementById("uploadtotal_"), content: "<font style=\"color:var(--success-color)\">"+status.up_total+"</font>"},
-                {element: document.getElementById("downloadtotal_"), content: "<font style=\"color:var(--success-color)\">"+status.down_total+"</font>"},
-                {element: document.getElementById("mem_t"), content: "<font style=\"color:var(--success-color)\">"+status.mem+"</font>"},
-                {element: document.getElementById("connect_t"), content: "<font style=\"color:var(--success-color)\">"+status.connections+"</font>"}
+                {element: document.getElementById("upload_"), content: ocStatHtml(bytesToSize(up) + "/S")},
+                {element: document.getElementById("download_"), content: ocStatHtml(bytesToSize(down) + "/S")},
+                {element: document.getElementById("uploadtotal_"), content: ocStatHtml(bytesToSize(upTotal))},
+                {element: document.getElementById("downloadtotal_"), content: ocStatHtml(bytesToSize(downTotal))},
+                {element: document.getElementById("mem_t"), content: ocStatHtml(bytesToSize(mem))},
+                {element: document.getElementById("connect_t"), content: ocStatHtml(String(connections))}
             ];
 
             StateManager.batchUpdateDOM(updates);
+            StatsChart.feed("up", up / 1048576);
+            StatsChart.feed("down", down / 1048576);
+            StatsChart.feed("mem", mem / 1048576);
+            StatsChart.feed("conn", connections);
         },
 
         handleError: function() {
-            this.retryCount++;
-
-            if (this.retryCount >= this.maxRetries) {
-                this.resetStats();
-                this.retryCount = 0;
-            }
+            this.retryCount = 0;
+            this.resetStats();
+            StatsChart.feed("up", 0);
+            StatsChart.feed("down", 0);
+            StatsChart.feed("mem", 0);
+            StatsChart.feed("conn", 0);
         },
 
         setPollInterval: function(interval) {
@@ -2859,6 +2986,438 @@
         }
     };
 
+    var StatsChart = {
+        N: 60,
+        rightLeadMs: 1000,
+        metric: 'traffic',
+        view: 'cards',
+        chart: null,
+        latest: { up: 0, down: 0, mem: 0, cpu: 0, load: 0, conn: 0 },
+        buf: { t: [], up: [], down: [], mem: [], cpu: [], load: [], conn: [] },
+        timer: null,
+        metrics: null,
+        totals: { up: null, down: null },
+        rateUnitCache: null,
+
+        ocVar: function(name, fallback) {
+            var el = document.querySelector('.oc');
+            if (!el) return fallback;
+            var v = (getComputedStyle(el).getPropertyValue(name) || '').trim();
+            return v || fallback;
+        },
+
+        seriesColor: function(key) {
+            var vars = { up: '--info-color', down: '--violet', mem: '--success-color', cpu: '--tip-color', load: '--warning-color', conn: '--teal' };
+            var fallback = { up: '#3b82f6', down: '#7c3aed', mem: '#059669', cpu: '#f59e0b', load: '#ff00bb', conn: '#25b5b8' };
+            return this.ocVar(vars[key], fallback[key]) || fallback[key];
+        },
+
+        hexToRgba: function(hex, a) {
+            var h = String(hex).replace('#', '');
+            if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+            var r = parseInt(h.substring(0, 2), 16), g = parseInt(h.substring(2, 4), 16), b = parseInt(h.substring(4, 6), 16);
+            if (isNaN(r) || isNaN(g) || isNaN(b)) return hex;
+            return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+        },
+
+        requiredSources: function() {
+            var ws = [];
+            var sys = false;
+            if (this.view === 'cards') {
+                ws = ['traffic', 'connections', 'memory'];
+                sys = true;
+            } else if (this.metric === 'traffic') {
+                ws = ['traffic', 'connections'];
+            } else if (this.metric === 'memory') {
+                ws = ['memory'];
+            } else if (this.metric === 'connections') {
+                ws = ['connections'];
+            } else {
+                sys = true;
+            }
+            return { ws: ws, sys: sys };
+        },
+
+        notifyDataSource: function() {
+            if (typeof syncDataSource === 'function') syncDataSource();
+        },
+
+        init: function() {
+            var savedView = localStorage.getItem('oc-stats-view');
+            if (savedView === 'chart' || savedView === 'cards') {
+                this.view = savedView;
+            }
+            var now = Date.now();
+            for (var i = 0; i < this.N; i++) {
+                this.buf.t.push(now - (this.N - 1 - i) * 1000);
+                this.buf.up.push(0);
+                this.buf.down.push(0);
+                this.buf.mem.push(0);
+                this.buf.cpu.push(0);
+                this.buf.load.push(0);
+                this.buf.conn.push(0);
+            }
+            this.metrics = {
+                traffic: { unit: ' MB/s', series: [{ key: 'up', name: '<%:Up%>' }, { key: 'down', name: '<%:Down%>' }] },
+                memory: { unit: ' MB', series: [{ key: 'mem', name: '<%:Ram%>' }] },
+                cpu: { unit: ' %', series: [{ key: 'cpu', name: '<%:CPU%>' }] },
+                load: { unit: ' %', series: [{ key: 'load', name: '<%:Load Avg%>' }] },
+                connections: { unit: '', series: [{ key: 'conn', name: '<%:Connect%>' }] }
+            };
+            this.bind();
+            this.applyView();
+            this.renderLegend();
+            this.initCardDots();
+            this.startTimer();
+            if (this.view === 'chart') {
+                this.render();
+            }
+        },
+
+        applyView: function() {
+            document.getElementById('stats-view-cards').classList.toggle('oc-hidden', this.view !== 'cards');
+            document.getElementById('stats-view-chart').classList.toggle('oc-hidden', this.view !== 'chart');
+            document.getElementById('stats-chart-icon').classList.toggle('oc-hidden', this.view !== 'cards');
+            document.getElementById('stats-cards-icon').classList.toggle('oc-hidden', this.view !== 'chart');
+        },
+
+        initCardDots: function() {
+            var map = {
+                upload_: 'up', download_: 'down', uploadtotal_: 'up', downloadtotal_: 'down',
+                connect_t: 'conn', mem_t: 'mem', cpu_t: 'cpu', load_a: 'load'
+            };
+            for (var id in map) {
+                var el = document.getElementById(id);
+                if (!el) continue;
+                var item = el.closest('.stat-item');
+                if (!item) continue;
+                var label = item.querySelector('.stat-label');
+                if (!label || label.querySelector('.stat-dot')) continue;
+                var dot = document.createElement('span');
+                dot.className = 'stat-dot';
+                dot.style.background = this.seriesColor(map[id]);
+                label.insertBefore(dot, label.firstChild);
+            }
+        },
+
+        feed: function(key, val) {
+            this.latest[key] = val;
+        },
+
+        startTimer: function() {
+            if (this.timer) return;
+            var self = this;
+            this.timer = setInterval(function() {
+                self.tick();
+            }, 1000);
+        },
+
+        stopTimer: function() {
+            if (!this.timer) return;
+            clearInterval(this.timer);
+            this.timer = null;
+        },
+
+        tick: function() {
+            this.buf.t.push(Date.now());
+            this.buf.t.shift();
+            var keys = ['up', 'down', 'mem', 'cpu', 'load', 'conn'];
+            for (var i = 0; i < keys.length; i++) {
+                var k = keys[i];
+                this.buf[k].push(this.latest[k]);
+                this.buf[k].shift();
+            }
+            this.rateUnitCache = null;
+            if (this.view === 'chart') {
+                this.updateLegendValues();
+                if (this.chart) this.update();
+            }
+        },
+
+        bind: function() {
+            var self = this;
+            var toggle = document.getElementById('stats-view-toggle');
+            if (toggle) {
+                toggle.addEventListener('click', function() { self.toggleView(); });
+            }
+            var tabs = document.getElementById('stats-tabs');
+            if (tabs) {
+                var drag = { active: false, startX: 0, startScroll: 0, moved: false };
+                tabs.addEventListener('mousedown', function(e) {
+                    drag.active = true;
+                    drag.moved = false;
+                    drag.startX = e.clientX;
+                    drag.startScroll = tabs.scrollLeft;
+                    tabs.classList.add('dragging');
+                });
+                window.addEventListener('mousemove', function(e) {
+                    if (!drag.active) return;
+                    if (Math.abs(e.clientX - drag.startX) > 4) drag.moved = true;
+                    tabs.scrollLeft = drag.startScroll - (e.clientX - drag.startX);
+                });
+                window.addEventListener('mouseup', function() {
+                    drag.active = false;
+                    tabs.classList.remove('dragging');
+                });
+                tabs.addEventListener('click', function(e) {
+                    if (drag.moved) {
+                        drag.moved = false;
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return;
+                    }
+                    var btn = e.target.closest('button');
+                    if (!btn) return;
+                    self.metric = btn.getAttribute('data-metric');
+                    self.syncTabs();
+                    self.notifyDataSource();
+                    if (self.view === 'chart') self.render();
+                });
+            }
+        },
+
+        toggleView: function() {
+            this.view = this.view === 'cards' ? 'chart' : 'cards';
+            this.applyView();
+            this.notifyDataSource();
+            localStorage.setItem('oc-stats-view', this.view);
+            if (this.view === 'chart') {
+                this.render();
+            } else if (this.chart) {
+                this.chart.destroy();
+                this.chart = null;
+            }
+        },
+
+        syncTabs: function() {
+            var tabs = document.querySelectorAll('#stats-tabs button');
+            for (var i = 0; i < tabs.length; i++) {
+                tabs[i].classList.toggle('active', tabs[i].getAttribute('data-metric') === this.metric);
+            }
+        },
+
+        renderLegend: function() {
+            var el = document.getElementById('stats-legend');
+            if (!el || !this.metrics) return;
+            var html = '';
+            if (this.metric === 'traffic') {
+                html += this.legendItem('up', '<%:Up Total%>', 'legend_val_uptotal');
+                html += this.legendItem('down', '<%:Down Total%>', 'legend_val_downtotal');
+            } else {
+                var series = this.metrics[this.metric].series;
+                for (var i = 0; i < series.length; i++) {
+                    html += this.legendItem(series[i].key, series[i].name, 'legend_val_' + series[i].key);
+                }
+            }
+            el.innerHTML = html;
+            this.updateLegendValues();
+        },
+
+        legendItem: function(key, name, valId) {
+            var c = this.seriesColor(key);
+            return '<span class="stats-legend-item"><i style="background:' + c + '"></i><span class="stats-legend-name">' + name + '</span><span class="stats-legend-val" id="' + valId + '"></span></span>';
+        },
+
+        formatLegendValue: function(key, val) {
+            if (key === 'mem') return Math.round(val) + ' MB';
+            if (key === 'cpu' || key === 'load') return Math.round(val) + ' %';
+            if (key === 'conn') return String(Math.round(val));
+            return String(Math.round(val * 10) / 10);
+        },
+
+        updateLegendValues: function() {
+            if (this.metric === 'traffic') {
+                var upEl = document.getElementById('legend_val_uptotal');
+                var downEl = document.getElementById('legend_val_downtotal');
+                if (upEl) upEl.textContent = this.totals.up != null ? bytesToSize(this.totals.up) : '0 KB';
+                if (downEl) downEl.textContent = this.totals.down != null ? bytesToSize(this.totals.down) : '0 KB';
+                return;
+            }
+            var series = this.metrics[this.metric].series;
+            for (var i = 0; i < series.length; i++) {
+                var key = series[i].key;
+                var el = document.getElementById('legend_val_' + key);
+                if (el) el.textContent = this.formatLegendValue(key, this.latest[key]);
+            }
+        },
+
+        fmtTime: function(ms) {
+            var d = new Date(ms);
+            var p = function(x) { return (x < 10 ? '0' : '') + x; };
+            return p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+        },
+
+        rateUnitOf: function() {
+            if (this.rateUnitCache) return this.rateUnitCache;
+            var max = 0;
+            var keys = ['up', 'down'];
+            for (var i = 0; i < keys.length; i++) {
+                var arr = this.buf[keys[i]];
+                for (var j = 0; j < arr.length; j++) {
+                    if (arr[j] > max) max = arr[j];
+                }
+            }
+            if (max >= 1024) this.rateUnitCache = { scale: 1 / 1024, unit: ' GB/s' };
+            else if (max < 1) this.rateUnitCache = { scale: 1024, unit: ' KB/s' };
+            else this.rateUnitCache = { scale: 1, unit: ' MB/s' };
+            return this.rateUnitCache;
+        },
+
+        formatVal: function(val, scale) {
+            var v = val * scale;
+            var a = Math.abs(v);
+            if (a >= 100) return String(Math.round(v));
+            if (a >= 10) return String(Math.round(v * 10) / 10);
+            return String(Math.round(v * 100) / 100);
+        },
+
+        formatTooltipValue: function(key, val) {
+            if (this.metric === 'traffic') {
+                var rate = this.rateUnitOf();
+                return this.formatVal(val, rate.scale) + rate.unit;
+            }
+            return Math.round(val * 10) / 10 + this.metrics[this.metric].unit;
+        },
+
+        formatYAxis: function(value) {
+            if (this.metric === 'traffic') {
+                var rate = this.rateUnitOf();
+                return this.formatVal(value, rate.scale) + rate.unit;
+            }
+            return Math.round(value * 10) / 10;
+        },
+
+        buildConfig: function() {
+            var self = this;
+            var p = {
+                text: this.ocVar('--text-secondary', '#64748b'),
+                axis: this.ocVar('--border-light', '#e2e8f0'),
+                panel: this.ocVar('--bg-white', '#ffffff'),
+                panelText: this.ocVar('--text-primary', '#374151')
+            };
+            var series = this.metrics[this.metric].series;
+            var winMax = self.buf.t[self.buf.t.length - 1];
+            var winMin = winMax - (self.N - 1) * 1000;
+            return {
+                type: 'line',
+                data: {
+                    datasets: series.map(function(s) {
+                        var color = self.seriesColor(s.key);
+                        return {
+                            label: s.name,
+                            data: self.buf[s.key].map(function(v, i) { return { x: self.buf.t[i], y: v }; }),
+                            parsing: false,
+                            normalized: true,
+                            borderColor: color,
+                            backgroundColor: self.hexToRgba(color, 0.14),
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHitRadius: 8,
+                            borderWidth: 2
+                        };
+                    })
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    resizeDelay: 100,
+                    onResize: function(chart) {
+                        chart.options.scales.x.ticks.display = chart.width > 480;
+                    },
+                    animation: { duration: 1000, easing: 'linear' },
+                    animations: { colors: false },
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: p.panel,
+                            titleColor: p.panelText,
+                            bodyColor: p.panelText,
+                            padding: 8,
+                            cornerRadius: 6,
+                            callbacks: {
+                                title: function(items) {
+                                    return self.fmtTime(items[0].parsed.x);
+                                },
+                                label: function(item) {
+                                    var key = series[item.datasetIndex].key;
+                                    return series[item.datasetIndex].name + ': ' + self.formatTooltipValue(key, item.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            min: winMin,
+                            max: winMax,
+                            grid: { display: false },
+                            border: { color: p.axis },
+                            ticks: {
+                                color: p.text,
+                                font: { size: 11 },
+                                maxTicksLimit: 8,
+                                sampleSize: 8,
+                                maxRotation: 0,
+                                callback: function(value) {
+                                    return self.fmtTime(value);
+                                }
+                            }
+                        },
+                        y: {
+                            min: 0,
+                            grid: { color: self.hexToRgba(p.axis, 0.4) },
+                            border: { color: p.axis },
+                            ticks: {
+                                color: p.text,
+                                font: { size: 11 },
+                                callback: function(value) {
+                                    return self.formatYAxis(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+        },
+
+        render: function() {
+            var el = document.getElementById('stats-chart');
+            if (!el || typeof Chart === 'undefined') return;
+            if (this.chart) this.chart.destroy();
+            this.renderLegend();
+            this.chart = new Chart(el, this.buildConfig());
+        },
+
+        update: function() {
+            var c = this.chart;
+            if (!c) return;
+            var series = this.metrics[this.metric].series;
+            var now = Date.now();
+            var min = now - (this.N - 1) * 1000;
+            for (var i = 0; i < c.data.datasets.length; i++) {
+                var data = c.data.datasets[i].data;
+                while (data.length > this.N) {
+                    data.shift();
+                }
+            }
+            for (var j = 0; j < series.length; j++) {
+                c.data.datasets[j].data.push({ x: now + this.rightLeadMs, y: this.latest[series[j].key] });
+            }
+            c.options.scales.x.min = min;
+            c.options.scales.x.max = now;
+            c.update();
+        },
+
+        refresh: function() {
+            this.renderLegend();
+            if (this.view === 'chart') this.render();
+        }
+    };
+
+    StatsChart.init();
+
     var pluginToggleUserAction = false;
 
     XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
@@ -2992,11 +3551,7 @@
                 DOMCache.copy_pac_config.style.display = "none";
             }
 
-            if (status.clash) {
-                if (!SystemStatusManager.isEnabled) {
-                    SystemStatusManager.start();
-                }
-            } else {
+            if (!status.clash) {
                 SystemStatusManager.stop();
                 SystemStatusManager.resetSysStats();
             }
@@ -3004,16 +3559,17 @@
             if (status.clash && status.daip) {
                 if (!WSManager.hasActiveConnections()) {
                     LogManager.startLogDisplay(null, false, 'view');
-                    initializeWebSocketConnections(status);
-                } else {
-                    if (NetworkStatsManager.isEnabled) {
-                        NetworkStatsManager.stop();
-                    }
                 }
+                initializeWebSocketConnections(status);
             } else {
                 WSManager.closeAll();
-                NetworkStatsManager.stop();
-                NetworkStatsManager.resetStats();
+                StatsWSMeta.protocol = null;
+                if (status.clash) {
+                    syncDataSource();
+                } else {
+                    NetworkStatsManager.stop();
+                    NetworkStatsManager.resetStats();
+                }
             }
         }
         clashversion_check();
@@ -3038,6 +3594,7 @@
     window.addEventListener('beforeunload', function() {
         WSManager.closeAll();
         LogManager.stopLogDisplay();
+        StatsChart.stopTimer();
         SystemStatusManager.stop();
         NetworkStatsManager.stop();
         StateManager.clearAllCache();
@@ -3046,37 +3603,67 @@
         }
     });
 
+    var StatsWSMeta = {
+        protocol: null,
+        token: null,
+        endpoints: {
+            traffic: '/traffic',
+            connections: '/connections',
+            memory: '/memory'
+        },
+        handlers: {
+            traffic: ws_tmessage,
+            connections: ws_cmessage,
+            memory: ws_mmessage
+        }
+    };
+
+    function syncDataSource() {
+        var status = StateManager.current_status;
+        var req = (typeof StatsChart !== 'undefined' && StatsChart.requiredSources) ? StatsChart.requiredSources() : { ws: [], sys: true };
+        var needsNetworkFallback = status && status.clash && status.daip && !StatsWSMeta.protocol &&
+            (StatsChart.view === 'cards' || req.ws.length > 0);
+
+        if (status && status.clash && req.sys) {
+            if (!SystemStatusManager.isEnabled) SystemStatusManager.start();
+        } else {
+            SystemStatusManager.stop();
+        }
+
+        if (needsNetworkFallback) {
+            if (!NetworkStatsManager.isEnabled) NetworkStatsManager.start();
+        } else {
+            NetworkStatsManager.stop();
+        }
+
+        if (!StatsWSMeta.protocol) return;
+
+        var types = ['traffic', 'connections', 'memory'];
+        for (var i = 0; i < types.length; i++) {
+            var t = types[i];
+            if (req.ws.indexOf(t) >= 0) {
+                var conn = WSManager.connections[t];
+                var active = conn && (conn.state === WSManager.connectionStates.CONNECTED || conn.state === WSManager.connectionStates.CONNECTING);
+                if (!active) {
+                    var url = StatsWSMeta.protocol + StatsWSMeta.endpoints[t] + (StatsWSMeta.token ? '?token=' + StatsWSMeta.token : '');
+                    WSManager.createConnection(t, url, StatsWSMeta.handlers[t]);
+                }
+            } else {
+                WSManager.closeConnection(t);
+            }
+        }
+    }
+
     function initializeWebSocketConnections(status) {
         if (!status || !status.clash || !status.daip) {
+            StatsWSMeta.protocol = null;
+            syncDataSource();
             return false;
         }
 
-        var protocol = getWebSocketProtocol(status);
-        var token = status.dase;
-
-        var connections = [
-            {
-                type: 'traffic',
-                endpoint: '/traffic',
-                handler: ws_tmessage
-            },
-            {
-                type: 'connections', 
-                endpoint: '/connections',
-                handler: ws_cmessage
-            },
-            {
-                type: 'memory',
-                endpoint: '/memory', 
-                handler: ws_mmessage
-            }
-        ];
-
-        connections.forEach(function(conn) {
-            var url = protocol + conn.endpoint + (token ? '?token=' + token : '');
-            WSManager.createConnection(conn.type, url, conn.handler);
-        });
-
+        StatsWSMeta.protocol = getWebSocketProtocol(status);
+        StatsWSMeta.token = status.dase;
+        syncDataSource();
         return true;
     }
 
@@ -3434,8 +4021,10 @@
         }
         var uploadElement = document.getElementById("upload_");
         var downloadElement = document.getElementById("download_");
-        uploadElement.innerHTML = data.up ? "<font style=\"color:var(--success-color)\">"+bytesToSize(data.up)+"/S</font>" : "<font style=\"color:var(--success-color)\">0 B/S</font>";
-        downloadElement.innerHTML = data.down ? "<font style=\"color:var(--success-color)\">"+bytesToSize(data.down)+"/S</font>" : "<font style=\"color:var(--success-color)\">0 B/S</font>";
+        uploadElement.innerHTML = data.up ? ocStatHtml(bytesToSize(data.up) + "/S") : ocStatHtml("0 B/S");
+        downloadElement.innerHTML = data.down ? ocStatHtml(bytesToSize(data.down) + "/S") : ocStatHtml("0 B/S");
+        StatsChart.feed("up", data.up ? (data.up / 1048576) : 0);
+        StatsChart.feed("down", data.down ? (data.down / 1048576) : 0);
     }
 
     function ws_cmessage(event) {
@@ -3453,18 +4042,21 @@
         var updates = [
             {
                 element: document.getElementById("uploadtotal_"),
-                content: data.uploadTotal ? "<font style=\"color:var(--success-color)\">"+bytesToSize(data.uploadTotal)+"</font>" : "<font style=\"color:var(--success-color)\">0 KB</font>"
+                content: data.uploadTotal ? ocStatHtml(bytesToSize(data.uploadTotal)) : ocStatHtml("0 KB")
             },
             {
                 element: document.getElementById("downloadtotal_"),
-                content: data.downloadTotal ? "<font style=\"color:var(--success-color)\">"+bytesToSize(data.downloadTotal)+"</font>" : "<font style=\"color:var(--success-color)\">0 KB</font>"
+                content: data.downloadTotal ? ocStatHtml(bytesToSize(data.downloadTotal)) : ocStatHtml("0 KB")
             },
             {
                 element: document.getElementById("connect_t"),
-                content: data.connections ? "<font style=\"color:var(--success-color)\">"+Object.keys(data.connections).length+"</font>" : "<font style=\"color:var(--success-color)\">0</font>"
+                content: data.connections ? ocStatHtml(String(Object.keys(data.connections).length)) : ocStatHtml("0")
             }
         ];
         StateManager.batchUpdateDOM(updates);
+        StatsChart.totals = { up: data.uploadTotal || null, down: data.downloadTotal || null };
+        if (StatsChart.metric === 'traffic') StatsChart.updateLegendValues();
+        StatsChart.feed("conn", data.connections ? Object.keys(data.connections).length : 0);
     }
 
     function ws_mmessage(event) {
@@ -3480,7 +4072,8 @@
             data = dataObj;
         }
         var memElement = document.getElementById("mem_t");
-        memElement.innerHTML = data.inuse ? "<font style=\"color:var(--success-color)\">"+bytesToSize(data.inuse)+"</font>" : "<font style=\"color:var(--success-color)\">0 KB</font>";
+        memElement.innerHTML = data.inuse ? ocStatHtml(bytesToSize(data.inuse)) : ocStatHtml("0 KB");
+        StatsChart.feed("mem", data.inuse ? (data.inuse / 1048576) : 0);
     }
 
     var all_one_key_update = debounceButton(function(btn) {
@@ -4277,6 +4870,7 @@
         localStorage.setItem('oc-theme', newTheme);
         ocUpdateTheme();
         DarkModeDetector.init();
+        StatsChart.refresh();
     }
 //]]></script>
 </html>

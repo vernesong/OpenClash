@@ -556,8 +556,6 @@ html[data-darkmode="true"] .oc #megaphone {
     filter: brightness(0) invert(1);
 }
 
-
-
 html[data-darkmode="true"] .oc .config-select {
     background: var(--bg-white) !important;
     border-color: var(--border-light) !important;
@@ -635,6 +633,7 @@ html[data-darkmode="true"] .oc svg {
     grid-row: 2;
     max-width: 100%;
     width: 100%;
+    min-width: 300px;
     box-sizing: border-box;
 }
 
@@ -1120,6 +1119,7 @@ html[data-darkmode="true"] .oc svg {
 .oc #_oclog {
     overflow-y: auto;
     overflow-x: hidden;
+    overflow-anchor: none;
     scrollbar-width: none;
     -ms-overflow-style: none;
     white-space: nowrap;
@@ -1949,6 +1949,236 @@ html[data-darkmode="true"] .oc svg {
 
 .oc .hidden {
     display: none !important;
+}
+
+/* ==========================================================================
+ * status.htm: Statistics（Chart.js）
+ * ========================================================================== */
+.oc .stats-section {
+    background: var(--bg-gray);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--card-padding);
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.oc .stats-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex: 0 0 auto;
+    min-width: 0;
+    padding-left: 5px;
+    margin-bottom: 10px;
+}
+
+.oc .stats-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-title);
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.oc .stats-view-toggle {
+    flex: 0 0 auto;
+}
+
+.oc .stats-section .card-row.stats-grid {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.oc .stats-section .sub-card.stat-item {
+    background: var(--bg-white);
+    gap: 4px;
+}
+
+.oc .stats-section .stat-label {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 0;
+    padding-bottom: 6px;
+}
+
+.oc .stats-section .stat-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+}
+
+.oc .stats-section .stat-label::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 1px;
+    background-color: var(--border-color);
+}
+
+.oc .stats-section .stat-value {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 700;
+    margin-top: 0;
+    min-height: auto;
+}
+
+.oc .stats-section .stat-num {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.oc .stats-section .stat-unit {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-left: 3px;
+}
+
+.oc .stats-chart-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border-light);
+    border-radius: 14px;
+    padding: 10px 12px 8px;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-sizing: border-box;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    flex: 1 1 auto;
+    min-height: 0;
+    position: relative;
+}
+
+.oc .stats-chart-header {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex: 0 0 auto;
+    min-width: 0;
+}
+
+.oc .stats-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    flex: 1 1 auto;
+    min-width: 0;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.oc .stats-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.oc .stats-tabs.dragging {
+    cursor: grabbing;
+}
+
+.oc .stats-tabs button {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    user-select: none;
+    -webkit-user-select: none;
+    border: 1px solid var(--border-light);
+    background: var(--bg-light);
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.35em 1em;
+    line-height: 1.2;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all var(--transition-fast);
+}
+
+.oc .stats-tabs button.active {
+    background: var(--primary-color);
+    color: var(--text-on-primary);
+    border-color: var(--primary-color);
+}
+
+.oc .stats-legend {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 6px 14px;
+    flex: 0 0 auto;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.oc .stats-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.oc .stats-legend-item i {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    display: inline-block;
+    flex: 0 0 auto;
+}
+
+.oc .stats-legend-name {
+    color: var(--text-secondary);
+}
+
+.oc .stats-legend-val {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.oc .stats-chart-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    position: relative;
+}
+
+.oc .stats-chart-wrap canvas {
+    display: block;
 }
 
 /* ==========================================================================
@@ -3566,6 +3796,7 @@ html[data-darkmode="true"] .oc .myip-footer p {
     background: var(--bg-white, #ffffff);
     margin: 0 auto;
     width: 100%;
+    min-width: 300px;
     transition: all var(--transition-fast);
 }
 
@@ -6615,14 +6846,19 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
 .oc .ver-hint.note span {
     flex: unset;
     min-width: 0;
+    max-width: 80%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    text-align: left;
 }
 .oc .ver-hint.logging {
     box-sizing: border-box;
     height: calc(1.5em + 18px);
+    padding: 0 12px;
+    gap: 0;
     overflow: hidden;
+    overflow-anchor: none;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
@@ -6630,8 +6866,16 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
 }
 .oc .ver-hint.logging div {
     white-space: nowrap;
-    line-height: 1.5;
-    animation: oclogSlideIn 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    line-height: calc(1.5em + 16px);
+    flex-shrink: 0;
+    max-width: 80%;
+    text-align: left;
+}
+.oc .ver-hint.logging div > b {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .oc .select-popup-footer {
@@ -7069,6 +7313,10 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .sub_provider_item { width: 90px; }
     .sub_provider_name { font-size: 11px; }
     .sub_provider_percent { font-size: 11px; }
+
+    /* status.htm - statistics chart */
+    .oc .stats-section .card-row.stats-grid { min-height: 260px; }
+    .oc .stats-chart-card { min-height: 300px; }
 }
 
 /* ---- Stage 2: ≤768px (tablet portrait) ---- */
@@ -7089,6 +7337,12 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .sub-card { padding: var(--card-outer-padding); min-height: auto; }
     .oc .card-row { gap: 12px; }
     .oc .card-row.stats-grid { grid-template-columns: repeat(2, 2fr); }
+    .oc .stats-chart-header { gap: 6px; flex-wrap: wrap; }
+    .oc .stats-tabs { flex: 1 1 100%; width: 100%; justify-content: flex-start; }
+    .oc .stats-tabs button { padding: 0.35em 0.8em; font-size: 11px; }
+    .oc .stats-legend { flex: 1 1 100%; flex-wrap: wrap; justify-content: safe center; gap: 4px 10px; max-width: 100%; white-space: normal; overflow: hidden; }
+    .oc .stats-legend-item { font-size: 11px; }
+    .oc .stats-section .card-row.stats-grid { min-height: 240px; }
     .oc .announcement-banner { width: 85%; max-width: 98%; }
     .oc .dashboard-btn { font-size: 10px !important; height: 40px !important; }
     .oc .card-value { font-size: 13px; }

@@ -143,13 +143,24 @@
     function ocRandomInterval(min, max) {
         return Math.floor(Math.random() * (max - min + 1) + min);
     }
+    var overflowTitleFrame = null;
+    var overflowTitleElements = null;
     function addTitleOnOverflow() {
-        document.querySelectorAll('.myip-ip-addr, .myip-ip-geo').forEach(function (span) {
-            if (span.scrollWidth > span.clientWidth && localStorage.getItem('privacy_my_ip') !== 'true') {
-                span.setAttribute('title', span.textContent);
-            } else {
-                span.removeAttribute('title');
+        if (overflowTitleFrame) return;
+        var schedule = window.requestAnimationFrame || function(callback) { return setTimeout(callback, 0); };
+        overflowTitleFrame = schedule(function() {
+            overflowTitleFrame = null;
+            if (!overflowTitleElements) {
+                overflowTitleElements = document.querySelectorAll('.myip-ip-addr, .myip-ip-geo');
             }
+            var isPrivate = localStorage.getItem('privacy_my_ip') === 'true';
+            overflowTitleElements.forEach(function (span) {
+                if (!isPrivate && span.scrollWidth > span.clientWidth) {
+                    span.setAttribute('title', span.textContent);
+                } else {
+                    span.removeAttribute('title');
+                }
+            });
         });
     }
     function ip_skk()
@@ -187,6 +198,11 @@
     function clearAllIntervals() {
         if (refresh_http) { clearInterval(refresh_http); refresh_http = null; }
         if (refresh_ip) { clearInterval(refresh_ip); refresh_ip = null; }
+    }
+
+    function abortAllRequests() {
+        if (ipCheckXHR) { try { ipCheckXHR.abort(); } catch(e) {} ipCheckXHR = null; }
+        if (httpCheckXHR) { try { httpCheckXHR.abort(); } catch(e) {} httpCheckXHR = null; }
     }
 
     var refresh_http;
@@ -973,6 +989,11 @@
 
     window.addEventListener('beforeunload', function() {
         clearAllIntervals();
+        abortAllRequests();
+    });
+    window.addEventListener('pagehide', function() {
+        clearAllIntervals();
+        abortAllRequests();
     });
 </script>
 </html>

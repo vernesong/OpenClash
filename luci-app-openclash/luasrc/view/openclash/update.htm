@@ -227,6 +227,7 @@
     var logRetryCount = 0;
     var lastLogLineCount = null;
     var logMaxWaitTimer = null;
+    var logLines = [];
     var fetchedBranch = null;
     var _isOix = false;
     var _pkgType = 'opkg';
@@ -270,15 +271,6 @@
             showDefaultNote();
             hintTimer = null;
         }, duration || 5000);
-    }
-
-    function showLogLine(html) {
-        var hint = document.getElementById('version-hint');
-        if (defaultTipTimer) { clearTimeout(defaultTipTimer); defaultTipTimer = null; }
-        if (hintTimer) { clearTimeout(hintTimer); hintTimer = null; }
-        hint.innerHTML = '<svg><use href="#oc-icon-alert-circle"/></svg><span>' + html + '</span>';
-        hint.classList.add('show');
-        hint.classList.add('note');
     }
 
     function showDefaultNote() {
@@ -604,13 +596,21 @@
         var smart = smart_enable.value || '0';
 
         var appendHistoryEntry = function(entry) {
+            var selectEl = null;
             if (entry.type === 'plugin' && entry.version) {
-                pluginSelect.innerHTML += '<option value="' + entry.sha + '" data-ver="' + entry.version + '">' + entry.version + ' (<%:Date%>: ' + (entry.date||'').substring(0,10) + ')</option>';
+                selectEl = pluginSelect;
             } else if (!_isOix && entry.type === 'core_meta' && smart !== '1' && entry.version) {
-                coreSelect.innerHTML += '<option value="' + entry.sha + '" data-ver="' + entry.version + '">' + entry.version + ' (<%:Date%>: ' + (entry.date||'').substring(0,10) + ')</option>';
+                selectEl = coreSelect;
             } else if (!_isOix && entry.type === 'core_smart' && smart === '1' && entry.version) {
-                coreSelect.innerHTML += '<option value="' + entry.sha + '" data-ver="' + entry.version + '">' + entry.version + ' (<%:Date%>: ' + (entry.date||'').substring(0,10) + ')</option>';
+                selectEl = coreSelect;
             }
+            if (!selectEl) return;
+            var option = new Option(
+                entry.version + ' (<%:Date%>: ' + (entry.date || '').substring(0, 10) + ')',
+                entry.sha
+            );
+            option.setAttribute('data-ver', entry.version);
+            selectEl.appendChild(option);
         };
 
         if (force) params.force = '1';
@@ -1396,6 +1396,23 @@
         if (initialMessage) {
             logRetryCount = 0;
             lastLogLineCount = null;
+            logLines = [];
+            var initialHint = document.getElementById('version-hint');
+            if (defaultTipTimer) { clearTimeout(defaultTipTimer); defaultTipTimer = null; }
+            if (hintTimer) { clearTimeout(hintTimer); hintTimer = null; }
+            if (initialHint) {
+                initialHint.classList.add('logging');
+                initialHint.innerHTML = '';
+                initialHint._ocScrollPending = false;
+                initialHint._ocScrollFlush = null;
+                if (initialHint._ocScrollAnimId) {
+                    cancelAnimationFrame(initialHint._ocScrollAnimId);
+                }
+                initialHint._ocScrollAnimId = null;
+                initialHint._ocScrollAnim = null;
+                initialHint.style.willChange = '';
+                initialHint.scrollTop = 0;
+            }
         }
         logStreamActive = true;
 
@@ -1411,12 +1428,17 @@
                 if (logStreamXHR) { logStreamXHR.abort(); logStreamXHR = null; }
                 logStreamActive = false;
                 var hint = document.getElementById('version-hint');
-                if (hint) { hint.classList.remove('logging'); }
+                if (hint) {
+                    if (hint._ocScrollAnimId) { cancelAnimationFrame(hint._ocScrollAnimId); }
+                    hint._ocScrollAnimId = null;
+                    hint._ocScrollAnim = null;
+                    hint._ocScrollPending = false;
+                    hint._ocScrollFlush = null;
+                    hint.style.willChange = '';
+                    hint.classList.remove('logging');
+                    showDefaultNote();
+                }
             }, 600000);
-        }
-
-        if (initialMessage) {
-            showLogLine('<b style="color:var(--info-color)">' + initialMessage + '</b>');
         }
 
         function openStream() {
@@ -1428,7 +1450,43 @@
             var streamEnded = false;
             var gotData = false;
             var processedLines = 0;
+            var processedLength = 0;
+            var pendingLine = '';
+            var cursorInitialized = false;
             var finishTimer = null;
+
+            function consumeStreamText(text, flush) {
+                if (!cursorInitialized) {
+                    if (lastLogLineCount != null) {
+                        for (var lineIndex = 0; lineIndex < lastLogLineCount; lineIndex++) {
+                            var newlineIndex = text.indexOf('\n', processedLength);
+                            if (newlineIndex < 0) {
+                                processedLength = text.length;
+                                break;
+                            }
+                            processedLength = newlineIndex + 1;
+                        }
+                    }
+                    cursorInitialized = true;
+                }
+                if (text.length < processedLength) {
+                    processedLength = 0;
+                    pendingLine = '';
+                }
+                pendingLine += text.substring(processedLength);
+                processedLength = text.length;
+                var parts = pendingLine.split('\n');
+                if (flush) {
+                    pendingLine = '';
+                } else {
+                    pendingLine = parts.pop() || '';
+                }
+                var raw = parts.join('\n').replace(/##FINISHED##|##CONTINUE##|##FINISH##/g, '');
+                if (raw.trim()) {
+                    gotData = true;
+                    displayLog(raw);
+                }
+            }
 
             function finalCleanup(showDefault) {
                 if (logStreamXHR === xhr) { logStreamXHR = null; }
@@ -1436,7 +1494,15 @@
                 logStreamActive = false;
                 if (showDefault) {
                     var hint = document.getElementById('version-hint');
-                    if (hint) { hint.classList.remove('logging'); }
+                    if (hint) {
+                        if (hint._ocScrollAnimId) { cancelAnimationFrame(hint._ocScrollAnimId); }
+                        hint._ocScrollAnimId = null;
+                        hint._ocScrollAnim = null;
+                        hint._ocScrollPending = false;
+                        hint._ocScrollFlush = null;
+                        hint.style.willChange = '';
+                        hint.classList.remove('logging');
+                    }
                     showDefaultNote();
                 }
             }
@@ -1445,18 +1511,7 @@
                 if (logStreamXHR !== xhr) return;
                 if (streamEnded) return;
                 var text = xhr.responseText || '';
-                var startLine = (lastLogLineCount != null) ? lastLogLineCount : 0;
-                if (processedLines > startLine) startLine = processedLines;
-                var lines = text.split('\n');
-                var hasPartial = text.length > 0 && text.charAt(text.length - 1) !== '\n';
-                var endIdx = hasPartial ? lines.length - 1 : lines.length;
-                var newChunk = lines.slice(startLine, endIdx).join('\n');
-                processedLines = endIdx;
-                var raw = newChunk.replace(/##FINISHED##|##CONTINUE##|##FINISH##/g, '');
-                if (raw.trim()) {
-                    gotData = true;
-                    displayLog(raw);
-                }
+                consumeStreamText(text, false);
                 if (/##FINISHED##\s*$/.test(text) && !finishTimer) {
                     finishTimer = setTimeout(function() {
                         streamEnded = true;
@@ -1469,6 +1524,7 @@
                 if (logStreamXHR !== xhr) return;
                 if (streamEnded) return;
                 var text = xhr.responseText || '';
+                consumeStreamText(text, true);
                 if (!watchMode || /##FINISHED##\s*$/.test(text)) {
                     if (!finishTimer) {
                         finishTimer = setTimeout(function() {
@@ -1504,6 +1560,9 @@
 
             xhr.send();
             logStreamXHR = xhr;
+            if (initialMessage) {
+                displayLog('<b style="color:var(--info-color)">' + initialMessage + '</b>');
+            }
         }
 
         if (skipClearLog) {
@@ -1513,6 +1572,33 @@
                 openStream();
             });
         }
+    }
+
+    function renderUpdateLog() {
+        var hint = document.getElementById('version-hint');
+        if (!hint) return;
+        if (!hint.classList.contains('logging')) {
+            hint.classList.add('logging');
+            hint.innerHTML = '';
+            hint.scrollTop = 0;
+        }
+        hint.innerHTML = '';
+        var fragment = document.createDocumentFragment();
+        for (var j = 0; j < logLines.length; j++) {
+            var color = ocGetLogColor(logLines[j]);
+            var div = document.createElement('div');
+            div.style.whiteSpace = 'nowrap';
+            div.innerHTML = '<b style="color:' + color + '">' + logLines[j] + '</b>';
+            fragment.appendChild(div);
+        }
+        hint.appendChild(fragment);
+    }
+
+    function flushUpdateLog() {
+        var hint = document.getElementById('version-hint');
+        if (!hint) return;
+        renderUpdateLog();
+        ocAnimateScroll(hint, flushUpdateLog);
     }
 
     function displayLog(logContent) {
@@ -1527,47 +1613,18 @@
         }
         if (allLines.length === 0) return;
 
-        var maxLines = 8;
+        var isFirst = logLines.length === 0 && allLines.length === 1;
+        logLines = logLines.concat(allLines);
 
-        if (!hint.classList.contains('logging')) {
-            hint.classList.add('logging');
-            hint.innerHTML = '';
-            hint.scrollTop = 0;
+        // A batch is still animating: buffer the lines and let the current
+        // animation finish before rendering the next batch.
+        if (hint._ocScrollAnim) {
+            ocAnimateScroll(hint, flushUpdateLog);
+            return;
         }
 
-        var existing = [];
-        for (var i = 0; i < hint.children.length; i++) {
-            var child = hint.children[i];
-            if (child.tagName === 'DIV' && child.textContent !== '\u200B' && child.firstChild && child.firstChild.textContent) {
-                existing.push(child.firstChild.textContent);
-            }
-        }
-
-        var merged = existing.concat(allLines);
-        if (merged.length > maxLines) {
-            merged = merged.slice(merged.length - maxLines);
-        }
-
-        hint.innerHTML = '';
-        hint.scrollTop = 0;
-        for (var j = 0; j < merged.length; j++) {
-            var color = ocGetLogColor(merged[j]);
-            var div = document.createElement('div');
-            div.style.whiteSpace = 'nowrap';
-            div.innerHTML = '<b style="color:' + color + '">' + merged[j] + '</b>';
-            hint.appendChild(div);
-        }
-
-        while (hint.children.length < maxLines) {
-            var spacer = document.createElement('div');
-            spacer.style.visibility = 'hidden';
-            spacer.style.whiteSpace = 'nowrap';
-            spacer.textContent = '\u200B';
-            hint.insertBefore(spacer, hint.firstChild);
-        }
-
-        hint.style.willChange = 'scroll-position';
-        ocAnimateScroll(hint);
+        renderUpdateLog();
+        ocAnimateScroll(hint, flushUpdateLog, isFirst);
     }
 
     showDefaultNote();
@@ -1587,7 +1644,18 @@
         if (logStreamXHR) { logStreamXHR.abort(); logStreamXHR = null; }
         logStreamActive = false;
         var hint = document.getElementById('version-hint');
-        if (hint) { hint.classList.remove('logging'); }
+        if (hint) {
+            hint._ocScrollPending = false;
+            hint._ocScrollFlush = null;
+            if (hint._ocScrollAnimId) {
+                cancelAnimationFrame(hint._ocScrollAnimId);
+                hint._ocScrollAnimId = null;
+                hint._ocScrollAnim = null;
+                hint.style.willChange = '';
+            }
+            hint.classList.remove('logging');
+            showDefaultNote();
+        }
     }
     window.addEventListener('beforeunload', stopLogStream);
     window.addEventListener('pagehide', stopLogStream);
