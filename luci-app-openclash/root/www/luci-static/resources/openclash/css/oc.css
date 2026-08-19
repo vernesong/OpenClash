@@ -706,6 +706,10 @@ html[data-darkmode="true"] .oc svg {
     box-sizing: border-box;
 }
 
+.oc .sub-card:has(.card-title) {
+    container-type: inline-size;
+}
+
 .oc .sub-card:hover {
     background: var(--hover-bg, #f3f4f6);
     border-color: var(--primary-color, #3b82f6);
@@ -732,14 +736,14 @@ html[data-darkmode="true"] .oc svg {
 }
 
 .oc .card-title {
-    font-size: clamp(10px, 2.5vw, 14px);
+    font-size: clamp(9px, 10cqw, 14px);
     font-weight: 600;
     color: var(--text-title);
     letter-spacing: 0.5px;
     margin-bottom: 10px;
     display: flex;
     align-items: center;
-    gap: var(--tight-gap);
+    gap: 4px;
     height: 20px;
     flex-shrink: 0;
     padding-left: 5px;
@@ -747,6 +751,12 @@ html[data-darkmode="true"] .oc svg {
     overflow: hidden;
     text-overflow: ellipsis;
     min-width: 0;
+}
+
+@container (max-width: 110px) {
+    .oc .card-title {
+        gap: 2px;
+    }
 }
 
 .oc .version-display-container {
@@ -1037,7 +1047,7 @@ html[data-darkmode="true"] .oc svg {
     background: var(--bg-white);
     border-radius: var(--radius-sm);
     padding: 2px;
-    gap: 2px;
+    gap: 0;
     position: relative;
     border: 1px solid var(--border-light);
     box-shadow: var(--shadow-sm);
@@ -1068,7 +1078,7 @@ html[data-darkmode="true"] .oc svg {
     color: var(--text-secondary);
     cursor: pointer;
     border-radius: calc(var(--radius-sm) - 3px);
-    transition: all var(--transition-fast);
+    transition: color var(--transition-fast), background-color var(--transition-fast);
     user-select: none;
     text-align: center;
     min-width: 0;
@@ -1082,15 +1092,65 @@ html[data-darkmode="true"] .oc svg {
     overflow-wrap: anywhere;
 }
 
-.oc .cbi-button-option:hover {
-    color: var(--text-primary);
+.oc .cbi-button-group .cbi-button-option {
+    position: relative;
+    z-index: 0;
+}
+
+.oc .cbi-button-group .cbi-button-option::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 14px;
+    background: var(--border-light);
+}
+
+.oc .cbi-button-group .cbi-button-option:first-of-type::before {
+    display: none;
+}
+
+.oc input[type="radio"]:checked + .cbi-button-option::before {
+    display: none;
+}
+
+.oc input[type="radio"]:checked + .cbi-button-option + input + .cbi-button-option::before {
+    display: none;
+}
+
+.oc .cbi-button-group .cbi-button-option::after {
+    content: '';
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    top: 2px;
+    bottom: 2px;
+    z-index: -1;
+    border-radius: calc(var(--radius-sm) - 3px);
     background: var(--primary-a10);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    pointer-events: none;
+}
+
+.oc .cbi-button-option:hover {
+    color: var(--text-primary) !important;
+}
+
+.oc .cbi-button-option:hover::after {
+    opacity: 1;
 }
 
 .oc input[type="radio"]:checked + .cbi-button-option {
+    color: var(--text-on-primary) !important;
+}
+
+.oc input[type="radio"]:checked + .cbi-button-option::after {
     background: var(--primary-color);
-    color: var(--text-on-primary);
     box-shadow: var(--shadow-sm);
+    opacity: 1;
 }
 
 .oc .value-indicator {
@@ -1511,6 +1571,7 @@ html[data-darkmode="true"] .oc svg {
     justify-content: flex-end;
     align-items: center;
     gap: var(--card-grid-gap);
+    padding-bottom: 2px;
 }
 
 .oc .subscription-overwrite-tags {
@@ -1593,18 +1654,14 @@ html[data-darkmode="true"] .oc svg {
     display: block;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    cursor: default;
-    user-select: text;
+    cursor: grab;
+    user-select: none;
     -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
 }
 
 .oc .subscription-info-text::-webkit-scrollbar {
     display: none;
-}
-
-.oc .subscription-info-text.is-draggable {
-    cursor: grab;
-    user-select: none;
 }
 
 .oc .subscription-info-text.dragging {
@@ -1973,6 +2030,13 @@ html[data-darkmode="true"] .oc svg {
     box-sizing: border-box;
 }
 
+.oc .stats-section:hover {
+    background: var(--hover-bg, #f3f4f6);
+    border-color: var(--primary-color, #3b82f6);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
 .oc .stats-card-header {
     display: flex;
     align-items: center;
@@ -1980,14 +2044,16 @@ html[data-darkmode="true"] .oc svg {
     gap: 10px;
     flex: 0 0 auto;
     min-width: 0;
-    padding-left: 5px;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    height: 20px;
 }
 
 .oc .stats-title {
     font-size: 14px;
     font-weight: 600;
     color: var(--text-title);
+    padding-left: 5px;
     letter-spacing: 0.5px;
     display: flex;
     align-items: center;
@@ -2065,9 +2131,9 @@ html[data-darkmode="true"] .oc svg {
 .oc .stats-chart-card {
     background: var(--bg-white);
     border: 1px solid var(--border-light);
-    border-radius: 14px;
+    border-radius: var(--radius-sm);
     padding: 10px 12px 8px;
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-sm);
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -2075,29 +2141,34 @@ html[data-darkmode="true"] .oc svg {
     max-width: 100%;
     min-width: 0;
     overflow: hidden;
-    flex: 1 1 auto;
+    flex: 0 0 auto;
+    height: 180px;
     min-height: 0;
     position: relative;
+    margin-bottom: 5px;
+    transition: all var(--transition-fast);
+}
+
+.oc .stats-chart-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-md);
 }
 
 .oc .stats-chart-header {
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 10px;
     flex: 0 0 auto;
     min-width: 0;
 }
 
 .oc .stats-tabs {
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: center;
-    gap: 6px;
     overflow-x: auto;
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     min-width: 0;
+    max-width: 100%;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     cursor: grab;
@@ -2111,37 +2182,6 @@ html[data-darkmode="true"] .oc svg {
 
 .oc .stats-tabs.dragging {
     cursor: grabbing;
-}
-
-.oc .stats-tabs button {
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    white-space: nowrap;
-    user-select: none;
-    -webkit-user-select: none;
-    border: 1px solid var(--border-light);
-    background: var(--bg-light);
-    color: var(--text-secondary);
-    cursor: pointer;
-    padding: 0.35em 1em;
-    line-height: 1.2;
-    border-radius: var(--radius-sm);
-    font-size: 12px;
-    font-weight: 600;
-    transition: all var(--transition-fast);
-}
-
-.oc .stats-tabs button:hover {
-    color: var(--text-primary);
-    background: var(--primary-a10);
-}
-
-.oc .stats-tabs button.active {
-    background: var(--primary-color);
-    color: var(--text-on-primary);
-    border-color: var(--primary-color);
 }
 
 .oc .stats-legend {
@@ -3112,24 +3152,6 @@ html[data-darkmode="true"] .oc .overwrite-banner svg circle {
     border-radius: 12px;
     line-height: 1.4;
 }
-@media (max-width: 768px) {
-    .oc .config-editor-title #editTitle {
-        flex: 0 1 auto;
-        min-width: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    .oc .config-editor-title .config-file-name {
-        position: static;
-        left: auto;
-        transform: none;
-        max-width: none;
-        flex: 0 0 auto;
-        min-width: 0;
-        margin: 0 auto;
-    }
-}
 .oc .config-editor-actions {
     display: flex;
     align-items: center;
@@ -3803,6 +3825,9 @@ html[data-darkmode="true"] .oc .myip-footer p {
 
 /* ---- base layout ---- */
 .oc .myip-main-card {
+    --myip-label-h: 24px;
+    --myip-mid-h: 30px;
+    --myip-bottom-h: 26px;
     background: var(--bg-white, #ffffff);
     margin: 0 auto;
     width: 100%;
@@ -3840,7 +3865,7 @@ html[data-darkmode="true"] .oc .myip-footer p {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    min-height: 32px;
+    min-height: 36px;
     border-bottom: 2px solid var(--border-light, #e5e7eb);
     flex-shrink: 0;
 }
@@ -3910,7 +3935,7 @@ html[data-darkmode="true"] .oc .myip-card-icon.ic-youtube { color: #FF4444; }
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     max-width: 100%;
     flex-shrink: 0;
-    height: 24px;
+    height: var(--myip-label-h);
 }
 .oc .myip-card-label svg {
     display: block;
@@ -3930,7 +3955,7 @@ html[data-darkmode="true"] .oc .myip-card-icon.ic-youtube { color: #FF4444; }
 
 .oc .myip-ip-addr {
     flex-shrink: 0;
-    height: 30px;
+    height: var(--myip-mid-h);
     font-size: 13px; color: var(--text-primary);
     overflow: hidden; text-align: center;
     font-weight: 500; width: 100%;
@@ -3951,12 +3976,12 @@ html[data-darkmode="true"] .oc .myip-card-icon.ic-youtube { color: #FF4444; }
     justify-content: center;
     white-space: normal; width: 100%;
     flex-shrink: 0;
-    height: 26px;
+    height: var(--myip-bottom-h);
 }
 
 .oc .myip-check-row {
     flex-shrink: 0;
-    height: 30px;
+    height: var(--myip-mid-h);
     display: flex; align-items: center; justify-content: center;
     gap: 2px;
 }
@@ -4005,7 +4030,7 @@ html[data-darkmode="true"] .oc .myip-card-icon.ic-youtube { color: #FF4444; }
 }
 
 .oc .myip-sparkline-wrap {
-    width: 100%; height: 26px; overflow: visible; flex-shrink: 0;
+    width: 100%; height: var(--myip-bottom-h); overflow: visible; flex-shrink: 0;
     min-height: 0; position: relative;
     display: flex;
     align-items: center;
@@ -5039,14 +5064,27 @@ html[data-darkmode="true"] .oc .diag-legend {
 }
 
 .oc .text_show {
-    display: inline-block;
-    max-width: 100%;
+    display: block;
+    width: 100%;
     color: var(--text-primary);
     line-height: 1.2;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    vertical-align: middle;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    cursor: grab;
+    user-select: none;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+}
+
+.oc .text_show::-webkit-scrollbar {
+    display: none;
+}
+
+.oc .text_show.dragging {
+    cursor: grabbing;
 }
 
 .oc .progress_bar_bg {
@@ -5060,6 +5098,7 @@ html[data-darkmode="true"] .oc .diag-legend {
     position: relative;
     display: flex;
     align-items: center;
+    overflow: hidden;
 }
 
 .oc .progress_bar_fill {
@@ -5080,6 +5119,7 @@ html[data-darkmode="true"] .oc .diag-legend {
 }
 
 .oc .progress_bar_expire {
+    display: block;
     line-height: 1.2;
 }
 
@@ -5320,6 +5360,7 @@ html[data-darkmode="true"] .oc .sub-info-url-cancel-btn:hover {
     scrollbar-width: thin;
     cursor: grab;
     user-select: none;
+    touch-action: pan-y;
 }
 
 .sub_providers_container.no-scroll {
@@ -6956,20 +6997,6 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
     opacity: 1;
 }
 
-/* log.htm: tab responsive font (svg scales with text via em) */
-@media (max-width: 1024px) {
-    #tab-header ul.oc-tabmenu li { font-size: 13px; }
-}
-@media (max-width: 768px) {
-    #tab-header ul.oc-tabmenu li { font-size: 12px; }
-}
-@media (max-width: 480px) {
-    #tab-header ul.oc-tabmenu li { font-size: 11px; }
-}
-@media (max-width: 320px) {
-    #tab-header ul.oc-tabmenu li { font-size: 10px; }
-}
-
 .oc .addr-header-label .help-link {
     margin-bottom: 0;
 }
@@ -6978,7 +7005,7 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
 .oc .addr-header {
     display: grid;
     min-width: 398px;
-    grid-template-columns: 44px minmax(0, 1.35fr) 96px minmax(0, 0.5fr) minmax(0, 0.85fr) 72px;
+    grid-template-columns: 44px minmax(0, 1fr) 110px minmax(84px, 0.5fr) minmax(110px, 0.85fr) 88px;
     gap: 8px;
     align-items: center;
 }
@@ -7272,12 +7299,14 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     /* log.htm - debug rendered copy button */
     #debug-rendered .pre-copy-btn { width: 26px; height: 26px; }
     #debug-rendered .pre-copy-btn svg { width: 13px; height: 13px; }
+    /* log.htm - tab menu responsive font */
+    #tab-header ul.oc-tabmenu li { font-size: 13px; }
     /* status.htm - main cards */
     .oc .main-cards-container {
         grid-template-columns: 1fr;
         gap: 11px;
-        max-width: 95%;
-        width: 95%;
+        max-width: 100%;
+        width: 100%;
     }
     .oc .announcement-banner { grid-column: 1; width: 80%; max-width: 95%; }
     .oc .announcement-card   { grid-column: 1; width: 100%; max-width: 100%; }
@@ -7306,7 +7335,7 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .config-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
     .oc .config-item { width: 100%; max-width: 100%; }
     .oc .select-class { max-width: 100%; font-size: 13px; }
-    .oc .addr-row, .oc .addr-header { grid-template-columns: 40px minmax(0, 1.35fr) 84px minmax(0, 0.5fr) minmax(0, 0.85fr) 64px; gap: 6px; }
+    .oc .addr-row, .oc .addr-header { grid-template-columns: 40px minmax(0, 1fr) 92px minmax(72px, 0.5fr) minmax(96px, 0.85fr) 76px; gap: 6px; }
     .oc .addr-row-url { font-size: 12px; }
     .oc .addr-status { font-size: 11px; }
     .oc .addr-proxy, .oc .addr-proxy-static { font-size: 11px; }
@@ -7327,7 +7356,10 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
 
     /* status.htm - statistics chart */
     .oc .stats-section .card-row.stats-grid { min-height: 260px; }
-    .oc .stats-chart-card { min-height: 300px; }
+    .oc .stats-chart-card { height: 180px; }
+
+    /* myip.htm */
+    .oc .myip-main-card { max-width: 100%; width: 100%; }
 }
 
 /* ---- Stage 2: ≤768px (tablet portrait) ---- */
@@ -7342,17 +7374,15 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     #debug-rendered code { font-size: 0.85em; }
     #debug-rendered .pre-copy-btn { width: 24px; height: 24px; }
     #debug-rendered .pre-copy-btn svg { width: 12px; height: 12px; }
+    /* log.htm - tab menu responsive font */
+    #tab-header ul.oc-tabmenu li { font-size: 12px; }
     /* status.htm - main cards */
-    .oc .main-cards-container { max-width: 98%; width: 98%; gap: 10px; }
+    .oc .main-cards-container { max-width: 100%; width: 100%; gap: 10px; }
     .oc .main-card { grid-template-rows: auto auto auto auto; }
     .oc .sub-card { padding: var(--card-outer-padding); min-height: auto; }
     .oc .card-row { gap: 12px; }
     .oc .card-row.stats-grid { grid-template-columns: repeat(2, minmax(0, 2fr)); }
     .oc .stats-chart-header { gap: 6px; flex-wrap: wrap; }
-    .oc .stats-tabs { flex: 1 1 100%; width: 100%; justify-content: flex-start; }
-    .oc .stats-tabs button:first-child { margin-left: auto; }
-    .oc .stats-tabs button:last-child { margin-right: auto; }
-    .oc .stats-tabs button { padding: 0.35em 0.8em; font-size: 11px; }
     .oc .stats-legend { flex: 1 1 100%; flex-wrap: wrap; justify-content: safe center; gap: 4px 10px; max-width: 100%; white-space: normal; overflow: hidden; }
     .oc .stats-legend-item { font-size: 11px; }
     .oc .stats-section .card-row.stats-grid { min-height: 240px; }
@@ -7393,21 +7423,36 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .overwrite-card-row { gap: 6px; }
     .oc .sub-card.overwrite-item { width: 185px; max-width: 200px; gap: var(--content-gap); }
     .oc .overwrite-drag-line { margin: -2px; width: 2px; }
+    .oc .config-editor-title #editTitle {
+        flex: 0 1 auto;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .oc .config-editor-title .config-file-name {
+        position: static;
+        left: auto;
+        transform: none;
+        max-width: none;
+        flex: 0 0 auto;
+        min-width: 0;
+        margin: 0 auto;
+    }
 
     /* myip.htm */
     .oc { --card-item-min-height: 80px; }
+    .oc .myip-main-card { --myip-label-h: 20px; --myip-mid-h: 28px; --myip-bottom-h: 24px; max-width: 100%; width: 100%; }
     .oc .myip-content-grid { grid-template-columns: 1fr; }
     .oc .myip-ip-list, .oc .myip-check-list { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 1fr; }
     .oc .myip-section-title { font-size: 22px; margin-bottom: 12px; }
-    .oc .myip-card-label { font-size: 13px; height: 20px; }
+    .oc .myip-card-label { font-size: 13px; }
     .oc .myip-card-icon { width: 16px; height: 16px; }
-    .oc .myip-ip-addr { font-size: 12px; height: 28px; }
-    .oc .myip-ip-geo { font-size: 12px; height: 24px; }
-    .oc .myip-check-row { height: 28px; }
+    .oc .myip-ip-addr { font-size: 12px; }
+    .oc .myip-ip-geo { font-size: 12px; }
     .oc .myip-latency { font-size: 15px; }
     .oc .myip-latency-unit { font-size: 12px; }
     .oc .myip-status-dot { width: 6px; height: 6px; }
-    .oc .myip-sparkline-wrap { height: 24px; }
     .oc .myip-sparkline-wrap svg.myip-sparkline-svg { height: 18px; }
     .oc .myip-footer p { font-size: 13px !important; line-height: 18px !important; }
 
@@ -7436,6 +7481,8 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .select-popup { min-width: 80%; width: 80%; padding: var(--card-outer-padding); max-height: 90vh; overflow-y: auto; }
     .oc .config-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
     .oc .config-item { text-align: center; gap: 8px; }
+    .oc .config-item .ver-value,
+    .oc .config-item .select-class { text-align: left; }
     .oc .select-popup-header { font-size: 16px; margin-bottom: 12px; padding-bottom: 10px; }
     .oc .select-config-section { padding: 10px; margin-bottom: 10px; }
     .oc .addr-list-scroll { max-height: 200px; }
@@ -7445,7 +7492,7 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .version-card { margin-bottom: 6px; }
     .oc #addr-list-body { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .oc .addr-row, .oc .addr-header {
-        grid-template-columns: 36px minmax(72px, 1.35fr) 72px minmax(56px, 0.5fr) minmax(76px, 0.85fr) 56px;
+        grid-template-columns: 36px minmax(44px, 1fr) 80px minmax(66px, 0.5fr) minmax(86px, 0.85fr) 68px;
         gap: 4px;
     }
     .oc .addr-row {
@@ -7501,6 +7548,8 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     #debug-rendered code { font-size: 0.8em; }
     #debug-rendered .pre-copy-btn { width: 22px; height: 22px; }
     #debug-rendered .pre-copy-btn svg { width: 11px; height: 11px; }
+    /* log.htm - tab menu responsive font */
+    #tab-header ul.oc-tabmenu li { font-size: 11px; }
     /* status.htm - main cards */
     .oc .main-cards-container { gap: 8px; max-width: 100%; width: 100%; }
     .oc .card-row.dual-cards { grid-template-columns: minmax(0, 1fr); }
@@ -7512,7 +7561,7 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .version-display { max-width: 120px; font-size: 9px; padding: 1px 4px; }
     .oc .version-display svg { width: 9px; height: 9px; }
     .oc .dashboard-btn { font-size: 9px !important; height: 25px !important; }
-    .oc .cbi-button-group { padding: 2px; gap: 1px; height: 28px; }
+    .oc .cbi-button-group { padding: 2px; gap: 0; height: 28px; }
     .oc input[type="radio"]:checked + .cbi-button-option { min-height: 22px; }
     .oc .cbi-button-option { padding: 4px 4px; font-size: 10px; min-width: 35px; }
     .oc .config-file-top { flex-direction: column; align-items: stretch; gap: 12px; }
@@ -7560,17 +7609,16 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
 
     /* myip.htm */
     .oc { --card-outer-padding: 8px; --section-gap: 10px; --card-grid-gap: 6px; --card-item-min-height: 70px; }
+    .oc .myip-main-card { --myip-label-h: 18px; --myip-mid-h: 26px; --myip-bottom-h: 22px; }
     .oc .myip-ip-list, .oc .myip-check-list { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 1fr; }
     .oc .myip-section-title { font-size: 20px; margin-bottom: 10px; }
-    .oc .myip-card-label { font-size: 12px; height: 18px; }
+    .oc .myip-card-label { font-size: 12px; }
     .oc .myip-card-icon { width: 14px; height: 14px; }
-    .oc .myip-ip-addr { font-size: 11px; height: 26px; }
-    .oc .myip-ip-geo { font-size: 11px; height: 22px; }
-    .oc .myip-check-row { height: 26px; }
+    .oc .myip-ip-addr { font-size: 11px; }
+    .oc .myip-ip-geo { font-size: 11px; }
     .oc .myip-latency { font-size: 14px; }
     .oc .myip-latency-unit { font-size: 11px; }
     .oc .myip-status-dot { width: 6px; height: 6px; }
-    .oc .myip-sparkline-wrap { height: 22px; }
     .oc .myip-sparkline-wrap svg.myip-sparkline-svg { height: 16px; }
     .oc .myip-footer p { font-size: 11px !important; line-height: 16px !important; }
 
@@ -7608,7 +7656,7 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .version-card { margin-bottom: 4px; }
     .oc .config-item { gap: 6px; }
     .oc .addr-row, .oc .addr-header {
-        grid-template-columns: 32px minmax(40px, 0.65fr) 60px minmax(64px, 1.1fr) minmax(74px, 1.15fr) 60px;
+        grid-template-columns: 32px minmax(28px, 0.5fr) 66px minmax(64px, 1.1fr) minmax(74px, 1.15fr) 68px;
         gap: 3px;
     }
     .oc .addr-row {
@@ -7663,6 +7711,8 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     #debug-rendered code { font-size: 0.75em; }
     #debug-rendered .pre-copy-btn { width: 20px; height: 20px; }
     #debug-rendered .pre-copy-btn svg { width: 10px; height: 10px; }
+    /* log.htm - tab menu responsive font */
+    #tab-header ul.oc-tabmenu li { font-size: 10px; }
     /* developer.htm */
     .oc .developer-grid { gap: 2px 10px; }
     .oc .developer-avatar { width: 30px; height: 30px; }

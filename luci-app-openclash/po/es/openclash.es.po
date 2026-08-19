@@ -3607,7 +3607,7 @@ msgid "Expire Date"
 msgstr "Fecha de caducidad"
 
 msgid "RAW"
-msgstr "RAW"
+msgstr "Enlace directo"
 
 msgid "Address"
 msgstr "Dirección"

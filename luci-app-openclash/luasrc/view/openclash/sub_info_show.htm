@@ -58,13 +58,13 @@ function progressbar_<%=idname%>(v, m, pc, np, f, t, tr) {
         (pc < 50 && pc >= 20 ? '<div class="progress_bar_fill progress_bar_medium" style="width:%d%%">' :
         '<div class="progress_bar_fill progress_bar_low" style="width:%d%%">')) +
         '<div class="progress_bar_text">' +
-        '<small class="text_show" style="font-size:%s;">%s '+ (f ? f : '/') +' %s ' + (np ? "" : '(%s%%)') +
-        (tr == "null" ? '<div class="progress_bar_expire" style="visibility: hidden;">' : '<div class="progress_bar_expire" style="visibility: visible;">') +
-        '%s (<%:Remaining%> %s <%:days%>)</small>' +
+        '<div class="text_show" style="font-size:%s;">%s '+ (f ? f : '/') +' %s ' + (np ? "" : '(%s%%)') + '</div>' +
+        (tr == "null" ? '<div class="progress_bar_expire" style="visibility: hidden;"><div class="text_show" style="font-size:%s;">' : '<div class="progress_bar_expire" style="visibility: visible;"><div class="text_show" style="font-size:%s;">') +
+        '%s (<%:Remaining%> %s <%:days%>)</div></div>' +
         '</div>' +
         '</div>' +
         '</div>',
-        pc, fontSize, v, m, pc, t, tr
+        pc, fontSize, v, m, pc, fontSize, t, tr
     );
 };
 
@@ -171,6 +171,92 @@ function initDragScroll_<%=idname%>() {
     });
 };
 
+function initTextDrag_<%=idname%>(element) {
+    if (!element) return;
+
+    if (!element._dragBound) {
+        var isDragging = false;
+        var startX = 0;
+        var startScrollLeft = 0;
+        var touchIdentifier = null;
+
+        function endDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+            touchIdentifier = null;
+            element.classList.remove('dragging');
+        }
+
+        element.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            startX = e.pageX - element.getBoundingClientRect().left;
+            startScrollLeft = element.scrollLeft;
+            element.classList.add('dragging');
+            e.preventDefault();
+        });
+
+        element.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            var x = e.pageX - element.getBoundingClientRect().left;
+            var walk = (x - startX) * 1.2;
+            element.scrollLeft = startScrollLeft - walk;
+            e.preventDefault();
+        });
+
+        element.addEventListener('mouseleave', function() {
+            endDrag();
+        });
+
+        element.addEventListener('mouseup', function() {
+            endDrag();
+        });
+
+        element.addEventListener('touchstart', function(e) {
+            if (!e.touches || e.touches.length !== 1) return;
+
+            var touch = e.touches[0];
+            isDragging = true;
+            touchIdentifier = touch.identifier;
+            startX = touch.pageX - element.getBoundingClientRect().left;
+            startScrollLeft = element.scrollLeft;
+            element.classList.add('dragging');
+        }, { passive: true });
+
+        element.addEventListener('touchmove', function(e) {
+            if (!isDragging || !e.touches || e.touches.length === 0) return;
+
+            var touch = null;
+            for (var i = 0; i < e.touches.length; i++) {
+                if (e.touches[i].identifier === touchIdentifier) {
+                    touch = e.touches[i];
+                    break;
+                }
+            }
+
+            if (!touch) return;
+
+            var x = touch.pageX - element.getBoundingClientRect().left;
+            var walk = (x - startX) * 1.2;
+            element.scrollLeft = startScrollLeft - walk;
+            e.preventDefault();
+        }, { passive: false });
+
+        element.addEventListener('touchend', function() {
+            endDrag();
+        });
+
+        element.addEventListener('touchcancel', function() {
+            endDrag();
+        });
+
+        element.addEventListener('dragstart', function(e) {
+            e.preventDefault();
+        });
+
+        element._dragBound = true;
+    }
+};
+
 function dispaly_progressbar(id, status) {
     document.getElementById(id).className = "sub_tab_show";
     if (status && status.providers && status.providers.length > 0) {
@@ -184,13 +270,9 @@ function dispaly_progressbar(id, status) {
                 (provider.expire),
                 (provider.day_left)
             );
-            var textShow = document.getElementById(id).querySelector('.text_show');
-            if (textShow && textShow.scrollWidth > textShow.clientWidth) {
-                var size = parseFloat(window.getComputedStyle(textShow).fontSize) || 12;
-                while (textShow.scrollWidth > textShow.clientWidth && size > 6) {
-                    size -= 1;
-                    textShow.style.fontSize = size + 'px';
-                }
+            var textShows = document.getElementById(id).querySelectorAll('.text_show');
+            for (var i = 0; i < textShows.length; i++) {
+                initTextDrag_<%=idname%>(textShows[i]);
             }
         } else {
             document.getElementById(id).innerHTML = window["progressbar_multi_" + id](status.providers);

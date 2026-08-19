@@ -3625,7 +3625,7 @@ msgid "Expire Date"
 msgstr "到期时间"
 
 msgid "RAW"
-msgstr "RAW"
+msgstr "直链"
 
 msgid "Address"
 msgstr "地址"
