@@ -3236,7 +3236,7 @@
 
         legendItem: function(key, name, valId) {
             var c = this.seriesColor(key);
-            return '<span class="stats-legend-item"><i style="background:' + c + '"></i><span class="stats-legend-name">' + name + '</span><span class="stats-legend-val" id="' + valId + '"></span></span>';
+            return '<span class="stats-legend-item"><i style="background:' + c + '"></i><span class="stats-legend-name">' + name + '</span><span class="stats-legend-val" id="' + valId + '" style="color:' + c + '"></span></span>';
         },
 
         formatLegendValue: function(key, val) {

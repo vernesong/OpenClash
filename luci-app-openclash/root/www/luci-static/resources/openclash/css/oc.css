@@ -678,14 +678,14 @@ html[data-darkmode="true"] .oc svg {
 
 .oc .card-row.dual-cards {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--card-grid-gap);
     max-width: 100%;
 }
 
 .oc .card-row.stats-grid {
     display: grid;
-    grid-template-columns: repeat(4, 2fr);
+    grid-template-columns: repeat(4, minmax(0, 2fr));
     gap: var(--card-grid-gap);
     max-width: 100%;
     min-width: auto;
@@ -1047,8 +1047,10 @@ html[data-darkmode="true"] .oc svg {
     width: 100%;
 }
 .oc .cbi-button-group.oc-inline-flex {
-    display: inline-flex;
-    width: auto;
+    display: flex;
+    width: 100%;
+    height: auto;
+    align-items: stretch;
 }
 
 .oc .cbi-button-group input[type="radio"] {
@@ -1060,7 +1062,7 @@ html[data-darkmode="true"] .oc svg {
 
 .oc .cbi-button-option {
     flex: 1 1 0;
-    padding: 5px 10px;
+    padding: 6px 6px;
     font-size: 12px;
     font-weight: 500;
     color: var(--text-secondary);
@@ -1070,11 +1072,14 @@ html[data-darkmode="true"] .oc svg {
     user-select: none;
     text-align: center;
     min-width: 0;
-    height: calc(var(--control-height) - 6px);
+    min-height: calc(var(--control-height) - 6px);
+    height: auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    line-height: 1;
+    line-height: 1.2;
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .oc .cbi-button-option:hover {
@@ -6634,10 +6639,9 @@ html[data-darkmode=true] .oc .oix-msg-bar svg { color: inherit; }
 .oc .select-popup-status {
     font-size: 12px;
     color: var(--text-secondary);
-    flex: 1 1 0;
+    flex: 1 0 auto;
     min-width: 0;
-    overflow-wrap: break-word;
-    word-break: break-word;
+    white-space: nowrap;
 }
 .oc .select-popup-tip {
     font-size: 12px;
@@ -6645,6 +6649,8 @@ html[data-darkmode=true] .oc .oix-msg-bar svg { color: inherit; }
     opacity: 0.8;
     text-align: right;
     min-width: 0;
+    flex: 0 1 auto;
+    white-space: normal;
     overflow-wrap: break-word;
     word-break: break-word;
 }
@@ -7278,8 +7284,8 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .main-card { grid-column: 1; grid-template-rows: auto auto auto auto; max-width: 100%; width: 100%; }
     .oc .main-card:first-of-type { grid-column: 1; grid-row: 2; }
     .oc .main-card:last-of-type  { grid-column: 1; grid-row: 3; }
-    .oc .card-row.dual-cards { grid-template-columns: 1fr 1fr; }
-    .oc .card-row.stats-grid { grid-template-columns: repeat(4, 2fr); }
+    .oc .card-row.dual-cards { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .oc .card-row.stats-grid { grid-template-columns: repeat(4, minmax(0, 2fr)); }
     .oc .config-selector { min-width: 200px; flex: 1; }
     .oc .config-select { min-width: 200px; font-size: 14px; }
     .oc .config-select option { font-size: 14px; max-width: 100%; }
@@ -7341,7 +7347,7 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .main-card { grid-template-rows: auto auto auto auto; }
     .oc .sub-card { padding: var(--card-outer-padding); min-height: auto; }
     .oc .card-row { gap: 12px; }
-    .oc .card-row.stats-grid { grid-template-columns: repeat(2, 2fr); }
+    .oc .card-row.stats-grid { grid-template-columns: repeat(2, minmax(0, 2fr)); }
     .oc .stats-chart-header { gap: 6px; flex-wrap: wrap; }
     .oc .stats-tabs { flex: 1 1 100%; width: 100%; justify-content: flex-start; }
     .oc .stats-tabs button:first-child { margin-left: auto; }
@@ -7497,8 +7503,8 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     #debug-rendered .pre-copy-btn svg { width: 11px; height: 11px; }
     /* status.htm - main cards */
     .oc .main-cards-container { gap: 8px; max-width: 100%; width: 100%; }
-    .oc .card-row.dual-cards { grid-template-columns: 1fr; }
-    .oc .card-row.stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .oc .card-row.dual-cards { grid-template-columns: minmax(0, 1fr); }
+    .oc .card-row.stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .oc .announcement-banner { width: 90%; max-width: 100%; }
     .oc .icon-btn { width: 24px; height: 24px; min-width: 24px; }
     .oc .subscription-overwrite-tag { height: 24px; width: fit-content; font-size: 10px; padding: 0 6px; }
@@ -7507,7 +7513,7 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .version-display svg { width: 9px; height: 9px; }
     .oc .dashboard-btn { font-size: 9px !important; height: 25px !important; }
     .oc .cbi-button-group { padding: 2px; gap: 1px; height: 28px; }
-    .oc input[type="radio"]:checked + .cbi-button-option { height: 22px; }
+    .oc input[type="radio"]:checked + .cbi-button-option { min-height: 22px; }
     .oc .cbi-button-option { padding: 4px 4px; font-size: 10px; min-width: 35px; }
     .oc .config-file-top { flex-direction: column; align-items: stretch; gap: 12px; }
     .oc .config-subscription-info { margin-left: 0; justify-content: center; }

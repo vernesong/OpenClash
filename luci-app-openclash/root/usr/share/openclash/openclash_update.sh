@@ -321,6 +321,19 @@ check_install_success()
    fi
 }
 
+openclash_service_running() {
+   ubus call service list '{"name":"openclash"}' 2>/dev/null | jsonfilter -e '@.openclash.instances.*.running' 2>/dev/null | grep -q 'true'
+}
+
+stop_openclash_before_install() {
+   /etc/init.d/openclash stop >/dev/null 2>&1
+   local i
+   for i in $(seq 1 30); do
+      openclash_service_running || return 0
+      sleep 1
+   done
+}
+
 install_missing_packages() {
    local installed_before="$1"
 
@@ -364,6 +377,8 @@ install_missing_packages() {
 install_retry_count=0
 max_install_retries=3
 install_success=false
+
+stop_openclash_before_install
 
 while [ $install_retry_count -lt $max_install_retries ]; do
    install_retry_count=$((install_retry_count + 1))
@@ -416,7 +431,12 @@ else
       LOG_ERROR "OpenClash update failed after 3 attempts, the file is saved in /tmp/openclash.apk, please try to update manually with【apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk】【$(echo "$install_err" | tr '\n' ' ' | head -c 500)】"
    fi
 fi
-dec_job_counter_and_restart "0"
+
+restart_flag=0
+if ! openclash_service_running; then
+   restart_flag=1
+fi
+dec_job_counter_and_restart "$restart_flag"
 del_update_lock
 EOF
    chmod 4755 /tmp/openclash_update.sh
