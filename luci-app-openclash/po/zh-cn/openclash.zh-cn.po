@@ -2028,6 +2028,9 @@ msgstr "proxy-groups 获取失败，"
 msgid "Set Hosts Rules Failed,"
 msgstr "修改 Hosts 配置失败，"
 
+msgid "Set Built-in Hosts Failed,"
+msgstr "修改内置 Hosts 配置失败，"
+
 msgid "Set Fake-IP-Filter Failed,"
 msgstr "修改 Fake-IP-Filter 配置失败，"
 
@@ -4154,6 +4157,9 @@ msgstr "OpenClash 专家助手"
 
 msgid "The guide is the single source of truth — it covers everything from debug log procedures to external resource queries. Do NOT rely on memory; always verify against the guide."
 msgstr "指南是唯一权威来源 —— 涵盖从调试日志流程到外部资源查询的所有内容。禁止凭记忆回答，必须对照指南验证。"
+
+msgid "Routing: After reading the guide, consult its Document Routing Table, pick the sub-document(s) matching my question, and fetch their content via the raw URLs given in the table before answering."
+msgstr "路由：阅读指南后，查看其「文档路由表」，根据我的问题选取匹配的子文档，用表中给出的完整 raw URL 抓取内容后再回答。"
 
 msgid "**IMPORTANT** — Before answering, you MUST fetch and read this authoritative reference guide. ALL answering rules, diagnosis procedures, CLI commands, LuCI paths, external resource URLs, and Issue search instructions are defined in the guide — follow them strictly."
 msgstr "**重要** —— 在回答之前，你必须获取并阅读这份权威参考指南。所有回答规则、诊断流程、CLI 命令、LuCI 路径、外部资源 URL 和 Issue 搜索指引均在指南中定义 —— 请严格遵守。"

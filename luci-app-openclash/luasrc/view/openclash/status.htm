@@ -477,7 +477,7 @@
         cache_ttl: 5000,
         pending_requests: new Map(),
 
-        _cachedXHR: function(url, params, callback, force) {
+        cachedXHR: function(url, params, callback, force) {
             var cacheKey = params ? url + JSON.stringify(params) : url;
             var now = Date.now();
 
@@ -500,7 +500,7 @@
                 setTimeout(function() {
                     callback({ status: 200, fromCache: true, stale: true }, StateManager.request_cache[cacheKey]);
                 }, 0);
-                this._refreshCacheSilent(url, params, cacheKey);
+                this.refreshCacheSilent(url, params, cacheKey);
                 return;
             }
 
@@ -527,11 +527,11 @@
         },
 
         cachedXHRGet: function(url, callback, force) {
-            this._cachedXHR(url, null, callback, force);
+            this.cachedXHR(url, null, callback, force);
         },
 
         cachedXHRGetWithParams: function(url, params, callback, force) {
-            this._cachedXHR(url, params, callback, force);
+            this.cachedXHR(url, params, callback, force);
         },
 
         clearCache: function(url, params) {
@@ -573,7 +573,7 @@
             }
         },
 
-        _refreshCacheSilent: function(url, params, cacheKey) {
+        refreshCacheSilent: function(url, params, cacheKey) {
             var self = this;
             XHR.get(url, params, function(x, data) {
                 if (x && x.status == 200 && data) {
@@ -616,8 +616,8 @@
         reconnectDelay: 5000,
         heartbeatInterval: 30000,
         heartbeatTimers: {},
-        _ws_connect: false,
-        _allowedCloseCodes: [1000, 1001, 1005, 1006],
+        wsConnect: false,
+        allowedCloseCodes: [1000, 1001, 1005, 1006],
 
         isSupported: function() {
             return typeof window.WebSocket !== "undefined";
@@ -678,7 +678,7 @@
                 }
             }, this.heartbeatInterval);
 
-            if (!this._visibilityHandlerAdded) {
+            if (!this.visibilityHandlerAdded) {
                 document.addEventListener('visibilitychange', function() {
                     if (document.hidden) {
                         for (var t in self.heartbeatTimers) {
@@ -692,7 +692,7 @@
                         }
                     }
                 });
-                this._visibilityHandlerAdded = true;
+                this.visibilityHandlerAdded = true;
             }
         },
 
@@ -712,9 +712,9 @@
 
         closeConnection: function(type) {
             var connection = this.connections[type];
-            if (this._pendingReconnect && this._pendingReconnect[type]) {
-                clearTimeout(this._pendingReconnect[type]);
-                delete this._pendingReconnect[type];
+            if (this.pendingReconnect && this.pendingReconnect[type]) {
+                clearTimeout(this.pendingReconnect[type]);
+                delete this.pendingReconnect[type];
             }
             if (connection && connection.socket) {
                 this.stopHeartbeat(type);
@@ -730,7 +730,7 @@
             for (var i = 0; i < types.length; i++) {
                 this.closeConnection(types[i]);
             }
-            this._ws_connect = false;
+            this.wsConnect = false;
         },
 
         handleMessage: function(type, event) {
@@ -759,7 +759,7 @@
             }
             this.startHeartbeat(type);
 
-            if (!this._ws_connect) {
+            if (!this.wsConnect) {
                 var connectedCount = 0;
                 for (var t in this.connections) {
                     if (this.connections[t].state === this.connectionStates.CONNECTED) {
@@ -767,7 +767,7 @@
                     }
                 }
                 if (connectedCount >= 1) {
-                    this._ws_connect = true;
+                    this.wsConnect = true;
                     if (NetworkStatsManager.isEnabled) {
                         NetworkStatsManager.stop();
                     }
@@ -787,13 +787,17 @@
 
         handleClose: function(type, event) {
             var connection = this.connections[type];
-            if (connection) {
+            if (connection && connection.socket === event.target) {
                 connection.state = this.connectionStates.DISCONNECTED;
-            }
-            this.stopHeartbeat(type);
+                this.stopHeartbeat(type);
 
-            if (this._allowedCloseCodes.indexOf(event.code) === -1) {
-                this.scheduleReconnect(type);
+                if (typeof StatsChart !== 'undefined' && StatsChart.resetToZero) {
+                    StatsChart.resetToZero();
+                }
+
+                if (this.allowedCloseCodes.indexOf(event.code) === -1) {
+                    this.scheduleReconnect(type);
+                }
             }
         },
 
@@ -819,15 +823,15 @@
             var handler = connection.messageHandler;
             var options = connection.options;
 
-            this._pendingReconnect = this._pendingReconnect || {};
-            this._pendingReconnect[type] = setTimeout(function() {
-                delete self._pendingReconnect[type];
+            this.pendingReconnect = this.pendingReconnect || {};
+            this.pendingReconnect[type] = setTimeout(function() {
+                delete self.pendingReconnect[type];
                 self.createConnection(type, url, handler, options);
             }, this.reconnectDelay);
         },
 
         enableFallbackMode: function() {
-            this._ws_connect = false;
+            this.wsConnect = false;
             var types = Object.keys(this.connections);
             for (var i = 0; i < types.length; i++) {
                 var connection = this.connections[types[i]];
@@ -840,6 +844,7 @@
                 }
             }
             NetworkStatsManager.resetStats();
+            if (typeof StatsChart !== 'undefined' && StatsChart.resetToZero) StatsChart.resetToZero();
             if (typeof StatsWSMeta !== 'undefined') StatsWSMeta.protocol = null;
             if (typeof syncDataSource === 'function') syncDataSource();
         },
@@ -1007,9 +1012,9 @@
 
                 this.updateNavigationArrows();
 
-                if (this._retryGetConfigList) {
-                    clearInterval(this._retryGetConfigList);
-                    this._retryGetConfigList = null;
+                if (this.retryGetConfigList) {
+                    clearInterval(this.retryGetConfigList);
+                    this.retryGetConfigList = null;
                 }
 
             } catch (e) {
@@ -1025,9 +1030,9 @@
             this.toggleEmptyState(true);
             this.hideSubscriptionDisplay();
 
-            if (!this._retryGetConfigList) {
+            if (!this.retryGetConfigList) {
                 var self = this;
-                this._retryGetConfigList = setInterval(function() {
+                this.retryGetConfigList = setInterval(function() {
                     self.loadConfigFileList(true);
                 }, 5000);
             }
@@ -1360,7 +1365,7 @@
         enableOverflowDrag: function(element) {
             if (!element) return;
 
-            if (!element._dragBound) {
+            if (!element.dragBound) {
                 var isDragging = false;
                 var startX = 0;
                 var startScrollLeft = 0;
@@ -1439,7 +1444,7 @@
                     e.preventDefault();
                 });
 
-                element._dragBound = true;
+                element.dragBound = true;
             }
         },
 
@@ -1865,11 +1870,11 @@
         container: null,
         data: null,
         isLoading: false,
-        _dragBound: false,
-        _isDragging: false,
-        _dragStartX: 0,
-        _dragStartScrollLeft: 0,
-        _touchIdentifier: null,
+        dragBound: false,
+        isDragging: false,
+        dragStartX: 0,
+        dragStartScrollLeft: 0,
+        touchIdentifier: null,
 
         init: function() {
             this.container = document.getElementById('subscription-overwrite-tags');
@@ -1894,16 +1899,16 @@
         },
 
         bindDragScroll: function() {
-            if (!this.container || this._dragBound) {
+            if (!this.container || this.dragBound) {
                 return;
             }
 
             var self = this;
 
             function endDrag() {
-                if (!self._isDragging) return;
-                self._isDragging = false;
-                self._touchIdentifier = null;
+                if (!self.isDragging) return;
+                self.isDragging = false;
+                self.touchIdentifier = null;
                 self.container.classList.remove('dragging');
             }
 
@@ -1911,20 +1916,20 @@
                 if (!self.hasOverflow()) {
                     return;
                 }
-                self._isDragging = true;
-                self._dragStartX = e.pageX - self.container.offsetLeft;
-                self._dragStartScrollLeft = self.container.scrollLeft;
+                self.isDragging = true;
+                self.dragStartX = e.pageX - self.container.offsetLeft;
+                self.dragStartScrollLeft = self.container.scrollLeft;
                 self.container.classList.add('dragging');
                 e.preventDefault();
             });
 
             this.container.addEventListener('mousemove', function(e) {
-                if (!self._isDragging) {
+                if (!self.isDragging) {
                     return;
                 }
                 var x = e.pageX - self.container.offsetLeft;
-                var walk = (x - self._dragStartX) * 1.5;
-                self.container.scrollLeft = self._dragStartScrollLeft - walk;
+                var walk = (x - self.dragStartX) * 1.5;
+                self.container.scrollLeft = self.dragStartScrollLeft - walk;
                 e.preventDefault();
             });
 
@@ -1941,21 +1946,21 @@
                     return;
                 }
                 var touch = e.touches[0];
-                self._isDragging = true;
-                self._touchIdentifier = touch.identifier;
-                self._dragStartX = touch.pageX - self.container.offsetLeft;
-                self._dragStartScrollLeft = self.container.scrollLeft;
+                self.isDragging = true;
+                self.touchIdentifier = touch.identifier;
+                self.dragStartX = touch.pageX - self.container.offsetLeft;
+                self.dragStartScrollLeft = self.container.scrollLeft;
                 self.container.classList.add('dragging');
             }, { passive: true });
 
             this.container.addEventListener('touchmove', function(e) {
-                if (!self._isDragging || !e.touches || e.touches.length === 0) {
+                if (!self.isDragging || !e.touches || e.touches.length === 0) {
                     return;
                 }
 
                 var touch = null;
                 for (var i = 0; i < e.touches.length; i++) {
-                    if (e.touches[i].identifier === self._touchIdentifier) {
+                    if (e.touches[i].identifier === self.touchIdentifier) {
                         touch = e.touches[i];
                         break;
                     }
@@ -1965,8 +1970,8 @@
                 }
 
                 var x = touch.pageX - self.container.offsetLeft;
-                var walk = (x - self._dragStartX) * 1.5;
-                self.container.scrollLeft = self._dragStartScrollLeft - walk;
+                var walk = (x - self.dragStartX) * 1.5;
+                self.container.scrollLeft = self.dragStartScrollLeft - walk;
                 e.preventDefault();
             }, { passive: false });
 
@@ -1982,7 +1987,7 @@
                 e.preventDefault();
             });
 
-            this._dragBound = true;
+            this.dragBound = true;
         },
 
         load: function(force) {
@@ -2131,13 +2136,13 @@
                 this.lastLogLineCount = null;
                 this.logLines = [];
                 if (DOMCache.oclog) {
-                    DOMCache.oclog._ocScrollPending = false;
-                    DOMCache.oclog._ocScrollFlush = null;
-                    if (DOMCache.oclog._ocScrollAnimId) {
-                        cancelAnimationFrame(DOMCache.oclog._ocScrollAnimId);
+                    DOMCache.oclog.ocScrollPending = false;
+                    DOMCache.oclog.ocScrollFlush = null;
+                    if (DOMCache.oclog.ocScrollAnimId) {
+                        cancelAnimationFrame(DOMCache.oclog.ocScrollAnimId);
                     }
-                    DOMCache.oclog._ocScrollAnimId = null;
-                    DOMCache.oclog._ocScrollAnim = null;
+                    DOMCache.oclog.ocScrollAnimId = null;
+                    DOMCache.oclog.ocScrollAnim = null;
                     DOMCache.oclog.style.willChange = '';
                     DOMCache.oclog.scrollTop = 0;
                 }
@@ -2220,13 +2225,13 @@
                     if (hidePanel) {
                         var capturedXhr = xhr;
                         if (DOMCache.oclog) {
-                            if (DOMCache.oclog._ocScrollAnimId) {
-                                cancelAnimationFrame(DOMCache.oclog._ocScrollAnimId);
+                            if (DOMCache.oclog.ocScrollAnimId) {
+                                cancelAnimationFrame(DOMCache.oclog.ocScrollAnimId);
                             }
-                            DOMCache.oclog._ocScrollAnimId = null;
-                            DOMCache.oclog._ocScrollAnim = null;
-                            DOMCache.oclog._ocScrollPending = false;
-                            DOMCache.oclog._ocScrollFlush = null;
+                            DOMCache.oclog.ocScrollAnimId = null;
+                            DOMCache.oclog.ocScrollAnim = null;
+                            DOMCache.oclog.ocScrollPending = false;
+                            DOMCache.oclog.ocScrollFlush = null;
                             DOMCache.oclog.style.willChange = '';
                         }
                         setTimeout(function() {
@@ -2311,12 +2316,12 @@
             if (this.reconnectTimer) { clearTimeout(this.reconnectTimer); this.reconnectTimer = null; }
             if (this.maxWaitTimer) { clearTimeout(this.maxWaitTimer); this.maxWaitTimer = null; }
             if (DOMCache.oclog) {
-                DOMCache.oclog._ocScrollPending = false;
-                DOMCache.oclog._ocScrollFlush = null;
-                if (DOMCache.oclog._ocScrollAnimId) {
-                    cancelAnimationFrame(DOMCache.oclog._ocScrollAnimId);
-                    DOMCache.oclog._ocScrollAnimId = null;
-                    DOMCache.oclog._ocScrollAnim = null;
+                DOMCache.oclog.ocScrollPending = false;
+                DOMCache.oclog.ocScrollFlush = null;
+                if (DOMCache.oclog.ocScrollAnimId) {
+                    cancelAnimationFrame(DOMCache.oclog.ocScrollAnimId);
+                    DOMCache.oclog.ocScrollAnimId = null;
+                    DOMCache.oclog.ocScrollAnim = null;
                     DOMCache.oclog.style.willChange = '';
                 }
             }
@@ -2387,7 +2392,7 @@
 
             // A batch is still animating: buffer the lines and let the current
             // animation finish before rendering the next batch.
-            if (DOMCache.oclog._ocScrollAnim) {
+            if (DOMCache.oclog.ocScrollAnim) {
                 ocAnimateScroll(DOMCache.oclog, LogManager.flushLog);
                 return;
             }
@@ -2404,14 +2409,14 @@
         maxRetries: 3,
         isEnabled: false,
 
-        _ZERO_SYS_STATS: [
+        ZERO_SYS_STATS: [
             {id: "cpu_t", html: ocStatHtml("0 %")},
             {id: "load_a", html: ocStatHtml("0 %")}
         ],
 
         resetSysStats: function() {
-            for (var i = 0; i < this._ZERO_SYS_STATS.length; i++) {
-                var item = this._ZERO_SYS_STATS[i];
+            for (var i = 0; i < this.ZERO_SYS_STATS.length; i++) {
+                var item = this.ZERO_SYS_STATS[i];
                 var el = document.getElementById(item.id);
                 if (el) el.innerHTML = item.html;
             }
@@ -2482,7 +2487,7 @@
         maxRetries: 3,
         isEnabled: false,
 
-        _ZERO_STATS: [
+        ZERO_STATS: [
             {id: "upload_", html: ocStatHtml("0 B/S")},
             {id: "download_", html: ocStatHtml("0 B/S")},
             {id: "uploadtotal_", html: ocStatHtml("0 KB")},
@@ -2492,8 +2497,8 @@
         ],
 
         resetStats: function() {
-            for (var i = 0; i < this._ZERO_STATS.length; i++) {
-                var item = this._ZERO_STATS[i];
+            for (var i = 0; i < this.ZERO_STATS.length; i++) {
+                var item = this.ZERO_STATS[i];
                 var el = document.getElementById(item.id);
                 if (el) el.innerHTML = item.html;
             }
@@ -2899,6 +2904,7 @@
             prompt += '<%:**IMPORTANT** — Before answering, you MUST fetch and read this authoritative reference guide. ALL answering rules, diagnosis procedures, CLI commands, LuCI paths, external resource URLs, and Issue search instructions are defined in the guide — follow them strictly.%>\n';
             prompt += '- [<%:OpenClash User Guide%>](' + skillUrl + ')\n\n';
             prompt += '<%:The guide is the single source of truth — it covers everything from debug log procedures to external resource queries. Do NOT rely on memory; always verify against the guide.%>\n\n';
+            prompt += '<%:Routing: After reading the guide, consult its Document Routing Table, pick the sub-document(s) matching my question, and fetch their content via the raw URLs given in the table before answering.%>\n\n';
             prompt += '## <%:Question%>\n\n';
             prompt += '<%:My question is:%>\n';
             return prompt;
@@ -2907,19 +2913,19 @@
         show: function() {
             this.init();
             if (!this.overlay || !this.textarea) return;
-            if (!this._portal) {
-                this._portal = document.createElement('div');
-                this._portal.className = 'oc';
-                this._portal.style.overflow = 'visible';
-                document.body.appendChild(this._portal);
-                this._portal.appendChild(this.overlay);
+            if (!this.portal) {
+                this.portal = document.createElement('div');
+                this.portal.className = 'oc';
+                this.portal.style.overflow = 'visible';
+                document.body.appendChild(this.portal);
+                this.portal.appendChild(this.overlay);
             }
             this.overlay.classList.add('show');
             if (this.statusEl) {
                 this.statusEl.textContent = '';
             }
 
-            if (!this._editor) {
+            if (!this.editor) {
                 var prompt = this.buildPrompt();
                 this.textarea.value = prompt;
                 var container = document.getElementById('usage-help-editor');
@@ -2930,13 +2936,13 @@
                 });
                 container.innerHTML = '';
                 container.appendChild(view.dom);
-                this._editor = view;
+                this.editor = view;
             }
 
             var self = this;
             setTimeout(function() {
-                if (self._editor && self._editor.contentDOM) {
-                    self._editor.focus();
+                if (self.editor && self.editor.contentDOM) {
+                    self.editor.focus();
                 }
             }, 100);
         },
@@ -2948,8 +2954,8 @@
         },
 
         copyAndHide: function() {
-            if (!this._editor) return;
-            var text = this._editor.state.sliceDoc();
+            if (!this.editor) return;
+            var text = this.editor.state.sliceDoc();
             if (!text) return;
             var self = this;
             ocCopyToClipboard(text, null);
@@ -2982,9 +2988,9 @@
             var bubble = document.getElementById('usage-help-bubble');
             if (!bubble) return;
             bubble.classList.remove('show');
-            if (this._bubbleAutoHide) {
-                clearTimeout(this._bubbleAutoHide);
-                this._bubbleAutoHide = null;
+            if (this.bubbleAutoHide) {
+                clearTimeout(this.bubbleAutoHide);
+                this.bubbleAutoHide = null;
             }
             if (this.bubbleTimer) {
                 clearTimeout(this.bubbleTimer);
@@ -3016,7 +3022,7 @@
         seriesColor: function(key) {
             var vars = { up: '--violet', down: '--info-color', mem: '--success-color', cpu: '--tip-color', load: '--warning-color', conn: '--teal' };
             var fallback = { up: '#7c3aed', down: '#3b82f6', mem: '#059669', cpu: '#f59e0b', load: '#ff00bb', conn: '#25b5b8' };
-            return this.ocVar(vars[key], fallback[key]) || fallback[key];
+            return this.ocVar(vars[key], fallback[key]);
         },
 
         hexToRgba: function(hex, a) {
@@ -3109,6 +3115,31 @@
             this.latest[key] = val;
         },
 
+        resetToZero: function() {
+            var keys = ['up', 'down', 'mem', 'cpu', 'load', 'conn'];
+            var changed = false;
+            for (var i = 0; i < keys.length; i++) {
+                if (this.latest[keys[i]] !== 0) {
+                    this.latest[keys[i]] = 0;
+                    changed = true;
+                }
+            }
+            if (this.totals && (this.totals.up !== null || this.totals.down !== null)) {
+                this.totals = { up: null, down: null };
+                changed = true;
+            }
+            if (!changed) return;
+
+            this.updateLegendValues();
+
+            if (this.view === 'chart' && this.chart) {
+                var now = Date.now();
+                this.pushSample(now);
+                this.chartDirty = true;
+                this.update(true);
+            }
+        },
+
         resetBuffer: function(now) {
             var keys = ['t', 'up', 'down', 'mem', 'cpu', 'load', 'conn'];
             for (var i = 0; i < keys.length; i++) {
@@ -3123,7 +3154,6 @@
                 this.buf.load.push(0);
                 this.buf.conn.push(0);
             }
-            this._resetPending = true;
         },
 
         startTimer: function() {
@@ -3143,29 +3173,58 @@
         tick: function() {
             var now = Date.now();
             var lastT = this.buf.t[this.buf.t.length - 1] || 0;
-            if (now - lastT > 3000) {
-                this.resetBuffer(now);
+            var hasTimeGap = now - lastT > 3000;
+            if (hasTimeGap) {
+                this.handleTimeGap(now, now - lastT);
             } else {
-                this.buf.t.push(now);
-                this.buf.t.shift();
-                var keys = ['up', 'down', 'mem', 'cpu', 'load', 'conn'];
-                for (var i = 0; i < keys.length; i++) {
-                    var k = keys[i];
-                    this.buf[k].push(this.latest[k]);
-                    this.buf[k].shift();
-                }
+                this.pushSample(now);
             }
             this.rateUnitCache = null;
             if (this.view === 'chart') {
                 this.updateLegendValues();
                 if (this.chart) {
-                    if (this._resetPending) {
-                        this._resetPending = false;
-                        this.render();
-                    } else {
-                        this.update();
-                    }
+                    this.update(hasTimeGap);
                 }
+            }
+        },
+
+        pushSample: function(now) {
+            this.buf.t.push(now);
+            this.buf.t.shift();
+            var keys = ['up', 'down', 'mem', 'cpu', 'load', 'conn'];
+            for (var i = 0; i < keys.length; i++) {
+                var k = keys[i];
+                this.buf[k].push(this.latest[k]);
+                this.buf[k].shift();
+            }
+        },
+
+        handleTimeGap: function(now, gap) {
+            var maxGap = (this.N - 1) * 1000;
+            if (gap > maxGap) {
+                this.resetBuffer(now - 1000);
+                this.chartDirty = true;
+            } else {
+                var shift = gap - 1000;
+                this.timebaseShift = shift;
+                var t = this.buf.t;
+                for (var i = 0; i < t.length; i++) {
+                    t[i] += shift;
+                }
+                this.pushSample(now);
+            }
+        },
+
+        syncChartFromBuf: function(series) {
+            var c = this.chart;
+            if (!c) return;
+            for (var j = 0; j < series.length; j++) {
+                var key = series[j].key;
+                var arr = [];
+                for (var i = 0; i < this.N; i++) {
+                    arr.push({ x: this.buf.t[i] + this.rightLeadMs, y: this.buf[key][i] });
+                }
+                c.data.datasets[j].data = arr;
             }
         },
 
@@ -3266,15 +3325,24 @@
             if (this.metric === 'traffic') {
                 var upEl = document.getElementById('legend_val_uptotal');
                 var downEl = document.getElementById('legend_val_downtotal');
-                if (upEl) upEl.textContent = this.totals.up != null ? bytesToSize(this.totals.up) : '0 KB';
-                if (downEl) downEl.textContent = this.totals.down != null ? bytesToSize(this.totals.down) : '0 KB';
+                if (upEl) {
+                    var upText = this.totals.up != null ? bytesToSize(this.totals.up) : '0 KB';
+                    if (upEl.textContent !== upText) upEl.textContent = upText;
+                }
+                if (downEl) {
+                    var downText = this.totals.down != null ? bytesToSize(this.totals.down) : '0 KB';
+                    if (downEl.textContent !== downText) downEl.textContent = downText;
+                }
                 return;
             }
             var series = this.metrics[this.metric].series;
             for (var i = 0; i < series.length; i++) {
                 var key = series[i].key;
                 var el = document.getElementById('legend_val_' + key);
-                if (el) el.textContent = this.formatLegendValue(key, this.latest[key]);
+                if (el) {
+                    var text = this.formatLegendValue(key, this.latest[key]);
+                    if (el.textContent !== text) el.textContent = text;
+                }
             }
         },
 
@@ -3332,9 +3400,10 @@
                 panel: this.ocVar('--bg-white', '#ffffff'),
                 panelText: this.ocVar('--text-primary', '#374151')
             };
+            var axisRgba = this.hexToRgba(p.axis, 0.4);
             var series = this.metrics[this.metric].series;
             var winMax = self.buf.t[self.buf.t.length - 1];
-            var winMin = winMax - (self.N - 1) * 1000;
+            var winMin = self.buf.t[0] + self.rightLeadMs * 3;
             return {
                 type: 'line',
                 data: {
@@ -3342,16 +3411,13 @@
                         var color = self.seriesColor(s.key);
                         return {
                             label: s.name,
-                            data: self.buf[s.key].map(function(v, i) { return { x: self.buf.t[i], y: v }; }),
+                            data: self.buf[s.key].map(function(v, i) { return { x: self.buf.t[i] + self.rightLeadMs, y: v }; }),
                             parsing: false,
-                            normalized: true,
                             borderColor: color,
                             backgroundColor: self.hexToRgba(color, 0.14),
                             fill: true,
                             tension: 0.4,
-                            spanGaps: true,
                             pointRadius: 0,
-                            pointHitRadius: 8,
                             pointHoverRadius: 4,
                             pointHoverBackgroundColor: color,
                             pointHoverBorderColor: '#ffffff',
@@ -3394,17 +3460,7 @@
                             max: winMax,
                             grid: { display: false },
                             border: { display: false },
-                            ticks: {
-                                display: false,
-                                color: p.text,
-                                font: { size: 11 },
-                                maxTicksLimit: 8,
-                                sampleSize: 8,
-                                maxRotation: 0,
-                                callback: function(value) {
-                                    return self.fmtTime(value);
-                                }
-                            }
+                            ticks: { display: false }
                         },
                         y: {
                             min: 0,
@@ -3413,7 +3469,7 @@
                             grid: {
                                 color: function(ctx) {
                                     if (ctx.tick && ctx.tick.value === 0) return 'transparent';
-                                    return self.hexToRgba(p.axis, 0.4);
+                                    return axisRgba;
                                 }
                             },
                             border: { color: p.axis },
@@ -3434,16 +3490,30 @@
             var el = document.getElementById('stats-chart');
             if (!el || typeof Chart === 'undefined') return;
             if (this.chart) this.chart.destroy();
-            this._resetPending = false;
             this.renderLegend();
             this.chart = new Chart(el, this.buildConfig());
         },
 
-        update: function() {
+        update: function(isRecovery) {
             var c = this.chart;
             if (!c) return;
             var series = this.metrics[this.metric].series;
             var now = Date.now();
+
+            if (this.chartDirty) {
+                this.chartDirty = false;
+                this.syncChartFromBuf(series);
+            } else if (this.timebaseShift) {
+                var shift = this.timebaseShift;
+                this.timebaseShift = 0;
+                for (var si = 0; si < series.length; si++) {
+                    var d = c.data.datasets[si].data;
+                    for (var di = 0; di < d.length; di++) {
+                        d[di].x += shift;
+                    }
+                }
+            }
+
             for (var i = 0; i < c.data.datasets.length; i++) {
                 var data = c.data.datasets[i].data;
                 while (data.length > this.N) {
@@ -3451,13 +3521,17 @@
                 }
             }
             var first = c.data.datasets[0].data[0];
-            var min = first ? first.x + this.rightLeadMs : now - (this.N - 1) * 1000;
+            var min = first ? first.x + this.rightLeadMs * 3 : now - (this.N - 1) * 1000;
             for (var j = 0; j < series.length; j++) {
                 c.data.datasets[j].data.push({ x: now + this.rightLeadMs, y: this.latest[series[j].key] });
             }
             c.options.scales.x.min = min;
             c.options.scales.x.max = now;
-            c.update();
+            if (isRecovery) {
+                c.update('none');
+            } else {
+                c.update();
+            }
         },
 
         refresh: function() {
@@ -3604,6 +3678,7 @@
             if (!status.clash) {
                 SystemStatusManager.stop();
                 SystemStatusManager.resetSysStats();
+                StatsChart.resetToZero();
             }
 
             if (status.clash && status.daip) {
@@ -3753,18 +3828,18 @@
         var resizeTimeout = null;
         var animationEndHandler = null;
         var destroyed = false;
-        var _cachedBannerWidth = 0;
-        var _cachedContentWidth = 0;
-        var _cachedDuration = 0;
+        var cachedBannerWidth = 0;
+        var cachedContentWidth = 0;
+        var cachedDuration = 0;
 
         function calculateAnimationDuration() {
             var bannerWidth = bannerElement.offsetWidth;
             var contentWidth = contentElement.offsetWidth;
-            if (bannerWidth === _cachedBannerWidth && contentWidth === _cachedContentWidth && _cachedDuration > 0) {
-                return _cachedDuration;
+            if (bannerWidth === cachedBannerWidth && contentWidth === cachedContentWidth && cachedDuration > 0) {
+                return cachedDuration;
             }
-            _cachedBannerWidth = bannerWidth;
-            _cachedContentWidth = contentWidth;
+            cachedBannerWidth = bannerWidth;
+            cachedContentWidth = contentWidth;
             var refreshRate = window.screen && window.screen.refreshRate ? window.screen.refreshRate : 60;
             if (refreshRate <= 0) refreshRate = 60;
             if (refreshRate > 480) refreshRate = 480;
@@ -3786,8 +3861,8 @@
             }
             duration = duration * refreshRateMultiplier;
 
-            _cachedDuration = Math.max(4000, Math.min(duration, 50000));
-            return _cachedDuration;
+            cachedDuration = Math.max(4000, Math.min(duration, 50000));
+            return cachedDuration;
         }
 
         function updateScrollAnimation(duration) {
@@ -3904,9 +3979,9 @@
         function mouseLeaveHandler() { resume(); }
         function resizeHandler() {
             clearTimeout(resizeTimeout);
-            _cachedBannerWidth = 0;
-            _cachedContentWidth = 0;
-            _cachedDuration = 0;
+            cachedBannerWidth = 0;
+            cachedContentWidth = 0;
+            cachedDuration = 0;
             resizeTimeout = setTimeout(function() {
                 if (!destroyed && contentElement.classList.contains('scrolling')) {
                     refreshAnimation();

@@ -82,7 +82,7 @@
                     <div class="version-row">
                         <div class="config-item">
                             <span class="oc-option-title"><span class="oc-option-text"><%:Plugin Version%></span></span>
-                            <span class="ver-value" id="installed-plugin">--</span>
+                            <span class="ver-value" id="installed-plugin"><%:Collecting data...%></span>
                         </div>
                         <div class="config-item">
                             <span class="oc-option-title"><span class="oc-option-text"><%:Select Version%></span></span>
@@ -94,7 +94,7 @@
                         </div>
                         <div class="config-item">
                             <span class="oc-option-title"><span class="oc-option-text"><%:Core Version%></span></span>
-                            <span class="ver-value" id="installed-core">--</span>
+                            <span class="ver-value" id="installed-core"><%:Collecting data...%></span>
                         </div>
                         <div class="config-item">
                             <span class="oc-option-title"><span class="oc-option-text"><%:Select Version%></span></span>
@@ -208,6 +208,7 @@
     var versionTabMode = document.getElementById('selectPopup').classList.contains('select-popup-tab');
     var currentDownloadType = 'one_key';
     var refreshTimer = null;
+    var updateInfoTimer = null;
     var versionRetryTimer = null;
     var retryTimer = null;
     var addrInfoBusy = false;
@@ -229,8 +230,8 @@
     var logMaxWaitTimer = null;
     var logLines = [];
     var fetchedBranch = null;
-    var _isOix = false;
-    var _pkgType = 'opkg';
+    var isOix = false;
+    var pkgType = 'opkg';
     var forceRefresh = false;
     var infoCache = {};
     var currentProxyAddr = '';
@@ -303,7 +304,7 @@
         var isJsDelivr = classifyAddr(addr) === 'jsdelivr';
         var filename, pathPrefix;
 
-        if (type === 'core' && _isOix) {
+        if (type === 'core' && isOix) {
             if (!version) return '';
             filename = 'mihomo-' + arch + '-' + version + '.gz';
             var oixURL = 'https://github.com/vernesong/mihomo-oix/releases/download/Pre-Alpha/' + filename;
@@ -320,7 +321,7 @@
 
         if (type === 'plugin') {
             var verNoV = version.replace(/^v/, '');
-            if (_pkgType === 'apk') {
+            if (pkgType === 'apk') {
                 filename = 'luci-app-openclash-' + verNoV + '.apk';
             } else {
                 filename = 'luci-app-openclash_' + verNoV + '_all.ipk';
@@ -541,18 +542,21 @@
     }
 
     function fetchUpdateInfo(opts) {
-        core_version.disabled = true;
-        release_branch.disabled = true;
-        smart_enable.disabled = true;
-        document.getElementById('select-plugin-ver').disabled = true;
-        document.getElementById('select-core-ver').disabled = true;
+        var silent = !!(opts && opts.silent);
+        if (!silent) {
+            core_version.disabled = true;
+            release_branch.disabled = true;
+            smart_enable.disabled = true;
+            document.getElementById('select-plugin-ver').disabled = true;
+            document.getElementById('select-core-ver').disabled = true;
+        }
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, st) {
             if (x && x.status == 200) {
                 if (st.corever && st.corever != '0') core_version.value = st.corever; else core_version.value = '0';
                 if (st.release_branch) release_branch.value = st.release_branch; else release_branch.value = 'master';
                 if (st.smart_enable) smart_enable.value = st.smart_enable; else smart_enable.value = '0';
-                _isOix = !!(st.oix_core);
-                _pkgType = st.pkg_type || 'opkg';
+                isOix = !!(st.oix_core);
+                pkgType = st.pkg_type || 'opkg';
                 document.getElementById('installed-plugin').textContent = (st.opcv && st.opcv != '0') ? st.opcv : '--';
                 document.getElementById('installed-core').textContent = (st.coremetacv && st.coremetacv != '0') ? st.coremetacv : '--';
                 var cpuArchEl = document.getElementById('CPU_ARCH_VALUE');
@@ -563,13 +567,17 @@
                 buildAddrRows(st);
                 renderProxyStates();
             }
-            core_version.disabled = false;
-            release_branch.disabled = false;
-            smart_enable.disabled = false;
+            if (!silent) {
+                core_version.disabled = false;
+                release_branch.disabled = false;
+                smart_enable.disabled = false;
+            }
             fetchedBranch = release_branch.value;
             updateDataStatus({ update: true });
-            fetchVersionHistory(!!(opts && opts.force), {cancel: true});
-            refreshAddrInfo({cancel: true, user: true});
+            if (!silent) {
+                fetchVersionHistory(!!(opts && opts.force), {cancel: true});
+                refreshAddrInfo({cancel: true, user: true});
+            }
         });
     }
 
@@ -577,6 +585,8 @@
         fetchUpdateInfo();
         if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
         refreshTimer = setInterval(refreshAddrInfo, ocRandomInterval(10000, 20000));
+        if (updateInfoTimer) { clearInterval(updateInfoTimer); updateInfoTimer = null; }
+        updateInfoTimer = setInterval(function() { fetchUpdateInfo({silent: true}); }, ocRandomInterval(30000, 60000));
     }
 
     function fetchVersionHistory(force, opts) {
@@ -599,9 +609,9 @@
             var selectEl = null;
             if (entry.type === 'plugin' && entry.version) {
                 selectEl = pluginSelect;
-            } else if (!_isOix && entry.type === 'core_meta' && smart !== '1' && entry.version) {
+            } else if (!isOix && entry.type === 'core_meta' && smart !== '1' && entry.version) {
                 selectEl = coreSelect;
-            } else if (!_isOix && entry.type === 'core_smart' && smart === '1' && entry.version) {
+            } else if (!isOix && entry.type === 'core_smart' && smart === '1' && entry.version) {
                 selectEl = coreSelect;
             }
             if (!selectEl) return;
@@ -1045,7 +1055,7 @@
         var sha = ver ? findSHAbyVersion(selectEl, ver) : '';
         var selOpt = selectEl.options[selectEl.selectedIndex];
         var isLatest = !selOpt || selOpt.value === '__latest__';
-        if (ver && !sha && !isLatest && !(type === 'core' && _isOix)) {
+        if (ver && !sha && !isLatest && !(type === 'core' && isOix)) {
             showHint('<%:The selected version is not in the version history, please refresh and try again%>');
             return;
         }
@@ -1283,9 +1293,11 @@
         if (versionRetryTimer) { clearInterval(versionRetryTimer); versionRetryTimer = null; }
         if (retryTimer) { clearInterval(retryTimer); retryTimer = null; }
         if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+        if (updateInfoTimer) { clearInterval(updateInfoTimer); updateInfoTimer = null; }
         fetchedBranch = null;
         fetchUpdateInfo({force: true});
         refreshTimer = setInterval(refreshAddrInfo, ocRandomInterval(10000, 20000));
+        updateInfoTimer = setInterval(function() { fetchUpdateInfo({silent: true}); }, ocRandomInterval(30000, 60000));
     }
 
     function closeSelectPopup() {
@@ -1305,6 +1317,7 @@
         versionHistoryBusy = false;
         if (!logStreamActive) { showDefaultNote(); }
         if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+        if (updateInfoTimer) { clearInterval(updateInfoTimer); updateInfoTimer = null; }
         if (versionRetryTimer) { clearInterval(versionRetryTimer); versionRetryTimer = null; }
         if (retryTimer) { clearInterval(retryTimer); retryTimer = null; }
         customInput.classList.add('oc-hidden');
@@ -1403,13 +1416,13 @@
             if (initialHint) {
                 initialHint.classList.add('logging');
                 initialHint.innerHTML = '';
-                initialHint._ocScrollPending = false;
-                initialHint._ocScrollFlush = null;
-                if (initialHint._ocScrollAnimId) {
-                    cancelAnimationFrame(initialHint._ocScrollAnimId);
+                initialHint.ocScrollPending = false;
+                initialHint.ocScrollFlush = null;
+                if (initialHint.ocScrollAnimId) {
+                    cancelAnimationFrame(initialHint.ocScrollAnimId);
                 }
-                initialHint._ocScrollAnimId = null;
-                initialHint._ocScrollAnim = null;
+                initialHint.ocScrollAnimId = null;
+                initialHint.ocScrollAnim = null;
                 initialHint.style.willChange = '';
                 initialHint.scrollTop = 0;
             }
@@ -1429,11 +1442,11 @@
                 logStreamActive = false;
                 var hint = document.getElementById('version-hint');
                 if (hint) {
-                    if (hint._ocScrollAnimId) { cancelAnimationFrame(hint._ocScrollAnimId); }
-                    hint._ocScrollAnimId = null;
-                    hint._ocScrollAnim = null;
-                    hint._ocScrollPending = false;
-                    hint._ocScrollFlush = null;
+                    if (hint.ocScrollAnimId) { cancelAnimationFrame(hint.ocScrollAnimId); }
+                    hint.ocScrollAnimId = null;
+                    hint.ocScrollAnim = null;
+                    hint.ocScrollPending = false;
+                    hint.ocScrollFlush = null;
                     hint.style.willChange = '';
                     hint.classList.remove('logging');
                     showDefaultNote();
@@ -1495,11 +1508,11 @@
                 if (showDefault) {
                     var hint = document.getElementById('version-hint');
                     if (hint) {
-                        if (hint._ocScrollAnimId) { cancelAnimationFrame(hint._ocScrollAnimId); }
-                        hint._ocScrollAnimId = null;
-                        hint._ocScrollAnim = null;
-                        hint._ocScrollPending = false;
-                        hint._ocScrollFlush = null;
+                        if (hint.ocScrollAnimId) { cancelAnimationFrame(hint.ocScrollAnimId); }
+                        hint.ocScrollAnimId = null;
+                        hint.ocScrollAnim = null;
+                        hint.ocScrollPending = false;
+                        hint.ocScrollFlush = null;
                         hint.style.willChange = '';
                         hint.classList.remove('logging');
                     }
@@ -1618,7 +1631,7 @@
 
         // A batch is still animating: buffer the lines and let the current
         // animation finish before rendering the next batch.
-        if (hint._ocScrollAnim) {
+        if (hint.ocScrollAnim) {
             ocAnimateScroll(hint, flushUpdateLog);
             return;
         }
@@ -1645,12 +1658,12 @@
         logStreamActive = false;
         var hint = document.getElementById('version-hint');
         if (hint) {
-            hint._ocScrollPending = false;
-            hint._ocScrollFlush = null;
-            if (hint._ocScrollAnimId) {
-                cancelAnimationFrame(hint._ocScrollAnimId);
-                hint._ocScrollAnimId = null;
-                hint._ocScrollAnim = null;
+            hint.ocScrollPending = false;
+            hint.ocScrollFlush = null;
+            if (hint.ocScrollAnimId) {
+                cancelAnimationFrame(hint.ocScrollAnimId);
+                hint.ocScrollAnimId = null;
+                hint.ocScrollAnim = null;
                 hint.style.willChange = '';
             }
             hint.classList.remove('logging');

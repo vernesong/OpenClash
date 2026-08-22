@@ -219,12 +219,10 @@ if [ -x /etc/init.d/uhttpd ]; then
 	uci -q set uhttpd.@uhttpd[0].script_timeout=3600
 	uci -q commit uhttpd
 fi
-#nginx backend (luci-nginx, newer LuCI): conf.d/*.conf is merged into the http block
+#nginx backend (luci-nginx, newer LuCI)
 if [ -d /etc/nginx/conf.d ]; then
 	cat > /etc/nginx/conf.d/openclash.conf <<-EOF
-client_max_body_size 10m;
 uwsgi_read_timeout 3600;
-proxy_read_timeout 3600;
 EOF
 fi
 if grep -q 'HTTP_MAX_CONTENT' /usr/lib/lua/luci/http.lua 2>/dev/null; then

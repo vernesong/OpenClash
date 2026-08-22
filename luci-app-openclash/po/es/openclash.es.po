@@ -2025,6 +2025,9 @@ msgstr "Fallo al obtener proxy-groups,"
 msgid "Set Hosts Rules Failed,"
 msgstr "Fallo al modificar Hosts,"
 
+msgid "Set Built-in Hosts Failed,"
+msgstr "Fallo al modificar los Hosts integrados,"
+
 msgid "Set Fake-IP-Filter Failed,"
 msgstr "Fallo al modificar Fake-IP-Filter,"
 
@@ -4145,6 +4148,9 @@ msgstr "Asistente Experto de OpenClash"
 
 msgid "The guide is the single source of truth — it covers everything from debug log procedures to external resource queries. Do NOT rely on memory; always verify against the guide."
 msgstr "La guía es la única fuente autorizada — cubre todo, desde los procedimientos de registro de depuración hasta las consultas de recursos externos. NO confíes en la memoria; verifica siempre con la guía."
+
+msgid "Routing: After reading the guide, consult its Document Routing Table, pick the sub-document(s) matching my question, and fetch their content via the raw URLs given in the table before answering."
+msgstr "Enrutamiento: después de leer la guía, consulta su Tabla de Enrutamiento de Documentos, elige el/los subdocumento(s) que coincidan con mi pregunta y obtén su contenido mediante las URLs raw indicadas en la tabla antes de responder."
 
 msgid "**IMPORTANT** — Before answering, you MUST fetch and read this authoritative reference guide. ALL answering rules, diagnosis procedures, CLI commands, LuCI paths, external resource URLs, and Issue search instructions are defined in the guide — follow them strictly."
 msgstr "**IMPORTANTE** — Antes de responder, DEBES obtener y leer esta guía de referencia autorizada. Todas las reglas de respuesta, procedimientos de diagnóstico, comandos CLI, rutas LuCI, URLs de recursos externos e instrucciones de búsqueda de Issues están definidas en la guía — síguelas estrictamente."

@@ -11,6 +11,8 @@ custom_fakeip_filter=$(uci_get_config "custom_fakeip_filter" || echo 0)
 custom_name_policy=$(uci_get_config "custom_name_policy" || echo 0)
 custom_proxy_server_policy=$(uci_get_config "custom_proxy_server_policy" || echo 0)
 custom_host=$(uci_get_config "custom_host" || echo 0)
+system_hostname=$(uci -q get system.@system[0].hostname 2>/dev/null)
+dnsmasq_domain=$(uci -q get dhcp.@dnsmasq[0].domain 2>/dev/null)
 enable_custom_dns=$(uci_get_config "enable_custom_dns" || echo 0)
 append_wan_dns=$(uci_get_config "append_wan_dns" || echo 0)
 custom_fallback_filter=$(uci_get_config "custom_fallback_filter" || echo 0)
@@ -733,6 +735,26 @@ begin
 
    begin
       threads.clear
+
+      # Built-in hosts for common OpenWrt router hostnames, resolve to router LAN IP
+      begin
+         YAML.LOG_TIP('Setting Built-in Hosts for Common OpenWrt Router Hostnames...')
+         Value['hosts'] ||= {}
+         builtin_hosts = {
+            'openwrt.lan' => 'lan',
+            'immortalwrt.lan' => 'lan',
+            'lede.lan' => 'lan',
+            'router.lan' => 'lan'
+         }
+         system_hostname = '$system_hostname'
+         dnsmasq_domain = '$dnsmasq_domain'
+         builtin_hosts[system_hostname.to_s + '.lan'] = 'lan' unless system_hostname.to_s.empty?
+         builtin_hosts[system_hostname.to_s + '.' + dnsmasq_domain.to_s] = 'lan' unless system_hostname.to_s.empty? || dnsmasq_domain.to_s.empty?
+         builtin_hosts.each { |k, v| Value['hosts'][k] ||= v }
+         Value['dns']['use-hosts'] = true
+      rescue Exception => e
+         YAML.LOG_ERROR('Set Built-in Hosts Failed,【%s】' % [e.message])
+      end
 
       # DNS Loop Check
       if enable_redirect_dns == '1'

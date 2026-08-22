@@ -186,7 +186,7 @@ function imgerrorfuns(imgobj, imgSrc) {
 	}, 1000 * 10);
 }
 
-function _ocMaxScroll(element) {
+function ocMaxScroll(element) {
 	var computed = window.getComputedStyle(element);
 	var contentHeight = (parseFloat(computed.paddingTop) || 0) + (parseFloat(computed.paddingBottom) || 0);
 	var children = element.children;
@@ -206,14 +206,14 @@ function ocAnimateScroll(element, flush, isFirst) {
 	// A batch is still animating: let it finish before starting the next one.
 	// The caller's flush callback re-renders the accumulated lines and starts
 	// the next batch, so every batch animation runs to completion.
-	if (element._ocScrollAnim) {
-		element._ocScrollPending = true;
-		if (flush) element._ocScrollFlush = flush;
+	if (element.ocScrollAnim) {
+		element.ocScrollPending = true;
+		if (flush) element.ocScrollFlush = flush;
 		return;
 	}
-	if (flush) element._ocScrollFlush = flush;
+	if (flush) element.ocScrollFlush = flush;
 
-	var target = _ocMaxScroll(element);
+	var target = ocMaxScroll(element);
 
 	var start = element.scrollTop;
 	var distance = target - start;
@@ -225,12 +225,12 @@ function ocAnimateScroll(element, flush, isFirst) {
 
 	if (!isFirst && distance <= 0.5) {
 		element.scrollTop = target;
-		element._ocScrollAnim = null;
-		element._ocScrollAnimId = null;
+		element.ocScrollAnim = null;
+		element.ocScrollAnimId = null;
 		element.style.willChange = '';
-		if (element._ocScrollPending) {
-			element._ocScrollPending = false;
-			if (element._ocScrollFlush) element._ocScrollFlush();
+		if (element.ocScrollPending) {
+			element.ocScrollPending = false;
+			if (element.ocScrollFlush) element.ocScrollFlush();
 		}
 		return;
 	}
@@ -243,11 +243,11 @@ function ocAnimateScroll(element, flush, isFirst) {
 		duration: duration,
 		startTime: null
 	};
-	element._ocScrollAnim = animation;
+	element.ocScrollAnim = animation;
 	element.style.willChange = 'scroll-position';
 
 	function step(timestamp) {
-		if (element._ocScrollAnim !== animation) return;
+		if (element.ocScrollAnim !== animation) return;
 		if (!animation.startTime) animation.startTime = timestamp;
 		var elapsed = timestamp - animation.startTime;
 		var progress = Math.min(elapsed / animation.duration, 1);
@@ -255,22 +255,22 @@ function ocAnimateScroll(element, flush, isFirst) {
 		element.scrollTop = Math.min(animation.target, animation.start + animation.distance * eased);
 		if (progress < 1) {
 			animation.raf = requestAnimationFrame(step);
-			element._ocScrollAnimId = animation.raf;
+			element.ocScrollAnimId = animation.raf;
 		} else {
 			if (Math.abs(element.scrollTop - animation.target) > 0.5) {
 				element.scrollTop = animation.target;
 			}
-			element._ocScrollAnim = null;
-			element._ocScrollAnimId = null;
+			element.ocScrollAnim = null;
+			element.ocScrollAnimId = null;
 			element.style.willChange = '';
-			if (element._ocScrollPending) {
-				element._ocScrollPending = false;
-				if (element._ocScrollFlush) element._ocScrollFlush();
+			if (element.ocScrollPending) {
+				element.ocScrollPending = false;
+				if (element.ocScrollFlush) element.ocScrollFlush();
 			}
 		}
 	}
 	animation.raf = requestAnimationFrame(step);
-	element._ocScrollAnimId = animation.raf;
+	element.ocScrollAnimId = animation.raf;
 }
 
 function ocFormatUnixTime(unixTimestamp) {
