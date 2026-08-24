@@ -738,7 +738,6 @@ begin
 
       # Built-in hosts for common OpenWrt router hostnames, resolve to router LAN IP
       begin
-         YAML.LOG_TIP('Setting Built-in Hosts for Common OpenWrt Router Hostnames...')
          Value['hosts'] ||= {}
          builtin_hosts = {
             'openwrt.lan' => 'lan',

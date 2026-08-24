@@ -2207,7 +2207,7 @@ html[data-darkmode="true"] .oc svg {
 .oc .stats-legend-item i {
     width: 10px;
     height: 10px;
-    border-radius: 3px;
+    border-radius: 6px;
     display: inline-block;
     flex: 0 0 auto;
 }

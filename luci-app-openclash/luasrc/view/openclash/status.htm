@@ -3006,7 +3006,8 @@
         view: 'cards',
         chart: null,
         latest: { up: 0, down: 0, mem: 0, cpu: 0, load: 0, conn: 0 },
-        buf: { t: [], up: [], down: [], mem: [], cpu: [], load: [], conn: [] },
+        buf: { t: [], realT: [], up: [], down: [], mem: [], cpu: [], load: [], conn: [] },
+        lastTick: 0,
         timer: null,
         metrics: null,
         totals: { up: null, down: null },
@@ -3133,20 +3134,20 @@
             this.updateLegendValues();
 
             if (this.view === 'chart' && this.chart) {
-                var now = Date.now();
-                this.pushSample(now);
+                this.pushSample(Date.now());
                 this.chartDirty = true;
                 this.update(true);
             }
         },
 
         resetBuffer: function(now) {
-            var keys = ['t', 'up', 'down', 'mem', 'cpu', 'load', 'conn'];
+            var keys = ['t', 'realT', 'up', 'down', 'mem', 'cpu', 'load', 'conn'];
             for (var i = 0; i < keys.length; i++) {
                 this.buf[keys[i]] = [];
             }
             for (var j = 0; j < this.N; j++) {
-                this.buf.t.push(now - (this.N - 1 - j) * 1000);
+                this.buf.t.push(j * 1000);
+                this.buf.realT.push(now - (this.N - 1 - j) * 1000);
                 this.buf.up.push(0);
                 this.buf.down.push(0);
                 this.buf.mem.push(0);
@@ -3172,46 +3173,30 @@
 
         tick: function() {
             var now = Date.now();
-            var lastT = this.buf.t[this.buf.t.length - 1] || 0;
-            var hasTimeGap = now - lastT > 3000;
-            if (hasTimeGap) {
-                this.handleTimeGap(now, now - lastT);
-            } else {
-                this.pushSample(now);
-            }
+            var gap = this.lastTick ? now - this.lastTick : 0;
+            this.lastTick = now;
+            var isRecovery = gap > 3000;
+            this.pushSample(now);
             this.rateUnitCache = null;
             if (this.view === 'chart') {
                 this.updateLegendValues();
                 if (this.chart) {
-                    this.update(hasTimeGap);
+                    this.update(isRecovery);
                 }
             }
         },
 
         pushSample: function(now) {
-            this.buf.t.push(now);
+            var lastX = this.buf.t.length ? this.buf.t[this.buf.t.length - 1] : 0;
+            this.buf.t.push(lastX + 1000);
             this.buf.t.shift();
+            this.buf.realT.push(now);
+            this.buf.realT.shift();
             var keys = ['up', 'down', 'mem', 'cpu', 'load', 'conn'];
             for (var i = 0; i < keys.length; i++) {
                 var k = keys[i];
                 this.buf[k].push(this.latest[k]);
                 this.buf[k].shift();
-            }
-        },
-
-        handleTimeGap: function(now, gap) {
-            var maxGap = (this.N - 1) * 1000;
-            if (gap > maxGap) {
-                this.resetBuffer(now - 1000);
-                this.chartDirty = true;
-            } else {
-                var shift = gap - 1000;
-                this.timebaseShift = shift;
-                var t = this.buf.t;
-                for (var i = 0; i < t.length; i++) {
-                    t[i] += shift;
-                }
-                this.pushSample(now);
             }
         },
 
@@ -3222,7 +3207,7 @@
                 var key = series[j].key;
                 var arr = [];
                 for (var i = 0; i < this.N; i++) {
-                    arr.push({ x: this.buf.t[i] + this.rightLeadMs, y: this.buf[key][i] });
+                    arr.push({ x: this.buf.t[i] + this.rightLeadMs, y: this.buf[key][i], r: this.buf.realT[i] });
                 }
                 c.data.datasets[j].data = arr;
             }
@@ -3411,7 +3396,7 @@
                         var color = self.seriesColor(s.key);
                         return {
                             label: s.name,
-                            data: self.buf[s.key].map(function(v, i) { return { x: self.buf.t[i] + self.rightLeadMs, y: v }; }),
+                            data: self.buf[s.key].map(function(v, i) { return { x: self.buf.t[i] + self.rightLeadMs, y: v, r: self.buf.realT[i] }; }),
                             parsing: false,
                             borderColor: color,
                             backgroundColor: self.hexToRgba(color, 0.14),
@@ -3436,15 +3421,77 @@
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            backgroundColor: p.panel,
-                            titleColor: p.panelText,
-                            bodyColor: p.panelText,
-                            padding: 8,
-                            cornerRadius: 6,
-                            displayColors: false,
+                            enabled: false,
+                            external: function(context) {
+                                var chart = context.chart;
+                                var tooltip = context.tooltip;
+                                var canvas = chart.canvas;
+                                var wrap = canvas.parentNode;
+                                if (!wrap) return;
+                                var el = wrap.querySelector('.oc-stats-tooltip');
+                                if (!el) {
+                                    el = document.createElement('div');
+                                    el.className = 'oc-stats-tooltip';
+                                    wrap.appendChild(el);
+                                }
+                                if (tooltip.opacity === 0) {
+                                    el.style.display = 'none';
+                                    return;
+                                }
+                                var panel = self.ocVar('--bg-white', '#ffffff');
+                                var text = self.ocVar('--text-primary', '#374151');
+                                var titleBg = self.ocVar('--bg-gray', 'rgba(59,130,246,0.1)');
+                                var border = self.ocVar('--border-light', '#e2e8f0');
+
+                                var html = '';
+                                if (tooltip.title && tooltip.title.length) {
+                                    html += '<div style="background:' + titleBg + ';color:' + text + ';padding:5px 10px;font-weight:600;border-bottom:1px solid ' + border + ';">' + tooltip.title[0] + '</div>';
+                                }
+                                if (tooltip.body) {
+                                    for (var i = 0; i < tooltip.body.length; i++) {
+                                        var b = tooltip.body[i];
+                                        var dp = tooltip.dataPoints && tooltip.dataPoints[i];
+                                        var s = dp ? self.metrics[self.metric].series[dp.datasetIndex] : null;
+                                        var color = s ? self.seriesColor(s.key) : '#888';
+                                        var rowText = b.lines ? b.lines.join(' ') : '';
+                                        html += '<div style="color:' + text + ';padding:4px 10px;display:flex;align-items:center;gap:6px;"><i style="width:8px;height:8px;border-radius:50%;background:' + color + ';flex:0 0 auto;display:inline-block;"></i><span>' + rowText + '</span></div>';
+                                    }
+                                }
+                                el.innerHTML = html;
+
+                                el.style.position = 'absolute';
+                                el.style.zIndex = '10';
+                                el.style.pointerEvents = 'none';
+                                el.style.backgroundColor = panel;
+                                el.style.border = '1px solid ' + border;
+                                el.style.borderRadius = '8px';
+                                el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                                el.style.fontSize = '12px';
+                                el.style.overflow = 'hidden';
+                                el.style.whiteSpace = 'nowrap';
+                                el.style.display = 'block';
+
+                                var wrapRect = wrap.getBoundingClientRect();
+                                var canvasRect = canvas.getBoundingClientRect();
+                                var x = tooltip.caretX + canvasRect.left - wrapRect.left;
+                                var y = tooltip.caretY + canvasRect.top - wrapRect.top;
+                                var tw = el.offsetWidth;
+                                var th = el.offsetHeight;
+                                y = y - th - 12;
+                                if (y < 2) {
+                                    y = tooltip.caretY + canvasRect.top - wrapRect.top + 14;
+                                }
+                                if (y + th > wrap.clientHeight - 2) {
+                                    y = wrap.clientHeight - th - 2;
+                                }
+                                if (y < 2) y = 2;
+                                x = Math.max(2, Math.min(x, wrap.clientWidth - tw - 2));
+                                el.style.left = x + 'px';
+                                el.style.top = y + 'px';
+                            },
                             callbacks: {
                                 title: function(items) {
-                                    return self.fmtTime(items[0].parsed.x);
+                                    return self.fmtTime(items[0].raw.r);
                                 },
                                 label: function(item) {
                                     var key = series[item.datasetIndex].key;
@@ -3467,6 +3514,7 @@
                             beginAtZero: true,
                             grace: '20%',
                             grid: {
+                                drawTicks: false,
                                 color: function(ctx) {
                                     if (ctx.tick && ctx.tick.value === 0) return 'transparent';
                                     return axisRgba;
@@ -3476,6 +3524,7 @@
                             ticks: {
                                 color: p.text,
                                 font: { size: 11 },
+                                padding: 8,
                                 callback: function(value) {
                                     return self.formatYAxis(value);
                                 }
@@ -3498,21 +3547,17 @@
             var c = this.chart;
             if (!c) return;
             var series = this.metrics[this.metric].series;
-            var now = Date.now();
+            var t = this.buf.t;
+            var rt = this.buf.realT;
+            var curX = t.length ? t[t.length - 1] : 0;
+            var curReal = rt.length ? rt[rt.length - 1] : 0;
 
             if (this.chartDirty) {
                 this.chartDirty = false;
                 this.syncChartFromBuf(series);
-            } else if (this.timebaseShift) {
-                var shift = this.timebaseShift;
-                this.timebaseShift = 0;
-                for (var si = 0; si < series.length; si++) {
-                    var d = c.data.datasets[si].data;
-                    for (var di = 0; di < d.length; di++) {
-                        d[di].x += shift;
-                    }
-                }
             }
+
+            var newX = curX + this.rightLeadMs;
 
             for (var i = 0; i < c.data.datasets.length; i++) {
                 var data = c.data.datasets[i].data;
@@ -3521,13 +3566,14 @@
                 }
             }
             var first = c.data.datasets[0].data[0];
-            var min = first ? first.x + this.rightLeadMs * 3 : now - (this.N - 1) * 1000;
+            var min = first ? first.x + this.rightLeadMs * 3 : curX - (this.N - 1) * 1000;
             for (var j = 0; j < series.length; j++) {
-                c.data.datasets[j].data.push({ x: now + this.rightLeadMs, y: this.latest[series[j].key] });
+                c.data.datasets[j].data.push({ x: newX, y: this.latest[series[j].key], r: curReal });
             }
             c.options.scales.x.min = min;
-            c.options.scales.x.max = now;
+            c.options.scales.x.max = curX;
             if (isRecovery) {
+                c.stop();
                 c.update('none');
             } else {
                 c.update();
