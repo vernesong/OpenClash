@@ -6,7 +6,7 @@
 
 > **生效路径**: DNS 选项通过三条路径生效：
 > 1. `yml_change.sh` 修改 YAML `dns:` 段 → Mihomo 内核使用
-> 2. `change_dnsmasq()` 修改系统 dnsmasq → LAN 客户端 DNS 被劫持到 Clash
+> 2. `change_dnsmasq()` 修改系统 dnsmasq → LAN 客户端 DNS 被劫持到 Mihomo
 > 3. `openclash_custom_domain_dns.sh` 为自定义域名配置独立 DNS
 >
 > **AI 行为指引**: 当用户询问 DNS 劫持相关问题时（如"DNS 重定向模式选哪个"、"自定义上游 DNS 服务器怎么写"、
@@ -25,11 +25,11 @@
   - `2` — 防火墙重定向 (通过 iptables/nftables 劫持 53 端口)
 - **默认**: 1
 - **说明**:
-  - **Dnsmasq 转发** (值1): 修改 `/tmp/etc/dnsmasq.conf.*`，将上游 DNS 指向核心 DNS 端口 (`dns_port=7874`)
-  - **防火墙重定向** (值2): 通过 iptables/nftables 将发往 53 端口的 UDP/TCP 流量 DNAT 到核心 DNS 端口。Fake-IP 模式下使用 LAN 访问控制必须选此项
+  - **值1（Dnsmasq 转发）**: 让网关自带的 `dnsmasq` 把 LAN 客户端的 DNS 查询转交给核心（`dns_port=7874`），可沿用 dnsmasq 的缓存与分流。
+  - **值2（防火墙重定向）**: 在网络层把发往 53 端口的请求直接转给核心，跳过 dnsmasq，更快；Fake-IP 模式下使用 LAN 访问控制必须选此项
 - **Mihomo 对应**: DNS 监听配置 `dns.listen: 0.0.0.0:7874`
 - **实现详解**:
-  - **值1 (Dnsmasq)**: `change_dnsmasq()` 函数先备份 dnsmasq 原有配置到 `openclash.config.*`，然后设置 `dhcp.@dnsmasq[0].server=127.0.0.1#<dns_port>`，`noresolv=1`，`cachesize=0`。效果：所有 LAN 客户端的 DNS 查询 → dnsmasq → 转发到 Clash DNS (7874) → Clash 根据 `enhanced-mode` 处理。
+  - **值1 (Dnsmasq)**: `change_dnsmasq()` 函数先备份 dnsmasq 原有配置到 `openclash.config.*`，然后设置 `dhcp.@dnsmasq[0].server=127.0.0.1#<dns_port>`，`noresolv=1`，`cachesize=0`。效果：所有 LAN 客户端的 DNS 查询 → dnsmasq → 转发到 Mihomo DNS (7874) → Mihomo 根据 `enhanced-mode` 处理。
   - **值2 (防火墙)**: 创建 `openclash_dns_redirect` nftables 链，对目标端口 53 的 UDP/TCP 流量 DNAT 到 `dns_port`。同时保留 dnsmasq 处理本地 DNS 缓存。此模式允许 `lan_ac_*` 访问控制（需要 Fake-IP 模式）。
   - **恢复**: `revert_dnsmasq()` 还原所有原始 dnsmasq 配置（servers、noresolv、resolvfile、cachesize）。规则细节（AC 过滤 / router_self_proxy OUTPUT 劫持等）见 `06-firewall-options-dnsmasq.md` §6.2「各选项对防火墙规则的具体影响 → `enable_redirect_dns`」。
 
@@ -191,7 +191,7 @@
 | IPv6 代理模式 (IPv6 Proxy Mode) | `ipv6_mode` | TProxy(0) | TProxy/Redirect/TUN/Mix |
 | IPv6 堆栈类型 (Select Stack Type) | `stack_type_v6` | system | system/gvisor/mixed。仅 TUN/Mix 模式 |
 | IPv6 UDP 代理 (Proxy UDP Traffics) | `enable_v6_udp_proxy` | 1 | 仅 TProxy/Redirect 模式 |
-| 允许 IPv6 类型 DNS 解析 (IPv6 DNS Resolve) | `ipv6_dns` | 0 | 对应 Mihomo `dns.ipv6` — 控制 Clash DNS 是否返回 AAAA 记录 |
+| 允许 IPv6 类型 DNS 解析 (IPv6 DNS Resolve) | `ipv6_dns` | 0 | 对应 Mihomo `dns.ipv6` — 控制 Mihomo DNS 是否返回 AAAA 记录 |
 | IPv6 Fake-IP 范围 (Fake-IP Range) | `fakeip_range6` | 禁用 | 仅 Fake-IP 模式。对应 `dns.fake-ip-range6` |
 | 实验性：绕过指定区域 IPv6 (China IPv6 Route) | `china_ip6_route` | 0 | 0=关闭, 1=绕过大陆, 2=绕过海外 |
 | 本地 IPv6 绕过地址 (Local IPv6 Network Bypassed List) | `local_network6_pass` | — | 文件: `/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list` |

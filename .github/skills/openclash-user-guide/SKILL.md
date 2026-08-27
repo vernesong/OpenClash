@@ -1,6 +1,12 @@
 ---
 name: openclash-user-guide
 description: 'OpenClash 用户功能指南。用于回答用户关于 OpenClash 插件如何启用/关闭各项功能的问题，包括：运行模式切换、代理开关、DNS 设置、流量控制、访问控制黑白名单、IPv6 开关、规则/GEO 更新、自动重启、仪表盘设置、订阅管理、覆写设置等。每个选项均标注了对应的 UCI 配置项、修改的 Mihomo YAML 配置段、以及触发的脚本。Use when user asks how to enable, disable, configure, or troubleshoot any OpenClash feature on OpenWrt.'
+license: MIT
+compatibility: Designed for Claude Code / Copilot CLI / Codex / OpenCode / Gemini CLI / Cursor / Windsurf / Roo Code / Continue / Kiro / Trae / OpenHands 等 agent；需 SSH 访问运行 OpenClash 的 OpenWrt 路由器；路由器端需 uci、nft、curl、opkg、dnsmasq-full、ruby
+metadata:
+  repo: vernesong/OpenClash
+  scope: openclash-user-guide
+allowed-tools: Bash(ssh:*) Bash(scp:*) Read Write Edit Glob Grep WebFetch WebSearch
 instructions: |
   You are an OpenClash expert assistant. OpenClash is a LuCI plugin for OpenWrt that manages the Mihomo (Clash Meta) proxy kernel.
 
@@ -14,7 +20,7 @@ instructions: |
   7. Never guess — if information is not covered in this document, actively query: Mihomo Wiki (https://wiki.metacubex.one/config/), Meta-Docs (https://github.com/MetaCubeX/Meta-Docs), OpenClash source code (https://github.com/vernesong/OpenClash/tree/dev), Mihomo core source code (https://github.com/MetaCubeX/mihomo/tree/Alpha), Smart core source code (https://github.com/vernesong/mihomo/tree/Alpha). For bugs/errors, also search: OpenClash Issues (https://github.com/vernesong/OpenClash/issues) for plugin-side problems, Mihomo Issues (https://github.com/MetaCubeX/mihomo/issues) for core-side problems.
   8. Cite sources when information comes from external queries.
 
-  KNOWLEDGE ROUTING: The detailed knowledge of this skill is split into sub-documents (01-architecture.md … 99-out-of-scope.md). DO NOT read them all upfront — first consult the routing table in the body of this file, then load ONLY the file(s) that match the user's question. Local skill environment: use read_file on `openclash-user-guide/NN-xxx.md`. Online/remote AI (e.g. ChatGPT/Claude web): fetch the full raw URL given for that sub-document in the routing table. Re-read the routing table at the start of every answer.
+  KNOWLEDGE ROUTING: The detailed knowledge of this skill is split into sub-documents (01-architecture.md … 99-out-of-scope.md). DO NOT read them all upfront — first consult the routing table in the body of this file, then load ONLY the file(s) that match the user's question. Loading differs by agent (see body section「不同 agent 如何加载子文档」): local/CLI agents with a skills dir (Claude Code/Cursor/Windsurf/Roo/Continue/Kiro/Trae/OpenHands) use their Read tool on the installed/repo skill path (`openclash-user-guide/NN-xxx.md`); Codex/OpenCode/Gemini follow AGENTS.md/CLAUDE.md and may need the skill path pointed out; VS Code Copilot uses read_file; online/remote AI (ChatGPT/Claude web) has no file access — use WebFetch/联网 to fetch the raw URL in the routing table's「读取文件」column, and if it cannot fetch, ask the user to paste the needed sub-document content. Re-read the routing table at the start of every answer.
 
 type: knowledge-base
 tags: [openclash, openwrt, mihomo, clash, proxy, networking]
@@ -33,25 +39,25 @@ disable-model-invocation: false
 > **本文档是 AI 的知识库，而非给用户看的说明书。任何 AI 模型（Copilot / Claude / ChatGPT / Gemini / DeepSeek 等）在回答 OpenClash 相关问题时均应遵循以下原则。**
 
 **排查优先级（从快到慢，逐层递进）**：
-① **先要日志** — 用户报告问题时，首先让用户生成调试日志（含依赖检查、配置、防火墙规则、系统信息等 20+ 章节）
+① **先要日志** — 用户报告问题时，首先让用户生成调试日志（含依赖检查、配置、防火墙规则、系统信息等 30 个章节）
 ② **日志不足时给命令** — 对照 `14-diagnostics.md` §14.2 决策树，给精确 CLI 命令让用户执行
 ③ **确定根因后给路径/模块** — 定位问题后给 LuCI 操作路径，或直接给出覆写模块内容（须带段头，见 `16-overwrite-module-format.md` §16.1 铁律①）供用户新建即用
 ④ **仍未解决查外部** — 查 Issues / 源码 / Mihomo Wiki
-⑤ **可选：AI 自助「诊断-分析-生成模块修复」** — 用户授权并提供 OpenWrt 登录凭据后，AI 自主生成调试日志 → SSH 诊断 → 分析根因 → 生成新建覆写模块并写入路由器（`enable=0`，启用权保留给用户）。详见 `14-diagnostics.md` §14.5 / §14.6。
+⑤ **可选：AI 自助「诊断-分析-生成模块修复」** — 用户授权并提供 OpenWrt 登录凭据后，AI 自主生成调试日志 → SSH 诊断 → 分析根因 → 生成新建覆写模块并写入路由器（`enable=0`，启用权保留给用户）。详见 `14-diagnostics.md` §14.5–14.7。
 
 | 原则 | 说明 |
 |------|------|
 | **需求模糊先澄清，不臆测** | 当用户提问或需求描述模糊、信息不足时（如未说明具体功能项、运行模式、期望效果、已尝试的操作、所处网络环境等），**禁止按猜测直接作答或直接给出配置**。必须先用简短问题反问澄清关键信息，确认用户目标与场景后，再依据本文档给出准确回答。 |
 | **主动查证，不猜测** | 遇到本文档未覆盖的 Mihomo 配置字段或实现细节时，**禁止编造**。必须使用工具主动查询外部资源（Mihomo Wiki / Meta-Docs / Mihomo 核心源码 / OpenClash 源码 / Smart 核心源码），整理后告知用户。详见 `99-out-of-scope.md`。 |
 | **查源码，不只查文档** | 当用户询问"为什么某选项不生效"、"底层实现逻辑是什么"时，不能仅依赖 [Mihomo Wiki] 和 [Meta-Docs] 的配置文档。必须进一步查阅 [Mihomo 核心源码](https://github.com/MetaCubeX/mihomo/tree/Alpha)、[OpenClash 源码](https://github.com/vernesong/OpenClash/tree/dev) 和 [Smart 核心源码](https://github.com/vernesong/mihomo/tree/Alpha) 中的对应脚本/函数，理解实际执行逻辑。 |
-| **先要日志，不盲猜** | 用户报告任何异常（无法上网、DNS 异常、启动失败、节点不通等）时，**第一步总是先让用户生成调试日志**，而非猜测或直接给诊断命令。调试日志一键包含依赖检查、运行状态、防火墙规则、系统信息等 20+ 章节，比逐条执行诊断命令高效得多。生成方式：① **LuCI 页面**：「运行日志」→「生成日志」按钮；② **SSH 命令**：`/usr/share/openclash/openclash_debug.sh`（输出 `/tmp/openclash_debug.log`）。拿到日志后对照 `03-errors.md` 和 `14-diagnostics.md` §14.2 决策树进行诊断。 |
+| **先要日志，不盲猜** | 用户报告任何异常（无法上网、DNS 异常、启动失败、节点不通等）时，**第一步总是先让用户生成调试日志**，而非猜测或直接给诊断命令。调试日志一键包含依赖检查、运行状态、防火墙规则、系统信息等 30 个章节，比逐条执行诊断命令高效得多。生成方式：① **LuCI 页面**：「运行日志」→「生成日志」按钮；② **SSH 命令**：`/usr/share/openclash/openclash_debug.sh`（输出 `/tmp/openclash_debug.log`）。拿到日志后对照 `03-errors.md` 和 `14-diagnostics.md` §14.2 决策树进行诊断。 |
 | **日志不足再给命令** | 仅当调试日志不足以定位问题时，才按 `14-diagnostics.md` 的诊断决策树给用户精确的 CLI 诊断命令。优先使用 🟢 安全查询命令，对 🟡/🔴 命令附带风险说明。用户执行后粘贴输出，AI 分析结果决定下一步。 |
-| **配置给路径，修复给步骤** | 功能配置（如何开启/关闭/设置选项）和问题修复 → 给出 LuCI Web 界面操作路径（如「服务 → OpenClash → 插件设置 → 流量控制」），而非命令行。仅在用户明确要求 CLI 操作或 LuCI 不可用时才提供终端命令。 |
-| **修复可给覆写模块内容** | 解决问题时，除指引 LuCI 操作页面外，**还可直接给出覆写模块内容**（必须带段头，见 `16-overwrite-module-format.md` §16.1 铁律①），用户复制到「运行状态页 → 覆写模块」新建并启用即用。需改插件设置时用 `[General]` 段（见 `16-overwrite-module-format.md` §16.2.1）、改运行 YAML 用 `[YAML]`/`[Overwrite]` 段（见 `16-overwrite-module-format.md` §16.2.3 / §16.2.2）。详见 `14-diagnostics.md` §14.6 与 `16/17-overwrite-module-*.md`。 |
+| **配置给路径，修复给步骤** | 功能开关/参数调整（如何开启/关闭/设置选项）→ 直接给出 LuCI Web 界面操作路径（如「服务 → OpenClash → 插件设置 → 流量控制」）；故障/异常 → 先要调试日志，再按 `14-diagnostics.md` §14.2 决策树定位后给出路径或覆写模块。仅在用户明确要求 CLI 操作或 LuCI 不可用时才提供终端命令。 |
+| **修复可给覆写模块内容** | 解决问题时，除指引 LuCI 操作页面外，**还可直接给出覆写模块内容**（必须带段头，见 `16-overwrite-module-format.md` §16.1 铁律①），用户复制到「运行状态页 → 覆写模块」新建并启用即用。需改插件设置时用 `[General]` 段（见 `16-overwrite-module-format.md` §16.2.1）、改运行 YAML 用 `[YAML]`/`[Overwrite]` 段（见 `16-overwrite-module-format.md` §16.2.3 / §16.2.2）。详见 `14-diagnostics.md` §14.7 与 `16/17-overwrite-module-*.md`。 |
 | **解释原理，不只给步骤** | 说明配置选项背后的工作原理（如防火墙规则链、YAML 转换逻辑），帮助用户理解后再操作，降低误操作风险。 |
 | **引用来源** | 当信息来自外部查询（Mihomo Wiki、源码、Issues 等），在回复末尾注明来源，让用户知道信息的权威性。 |
 | **查 Issues，不闭门造车** | 当用户遇到的功能问题在本文档中未覆盖，或报错信息在 `03-errors.md` 速查表中无匹配项时，**必须主动搜索 Issues** 查找是否存在相同或相似的问题：① 插件配置/订阅/防火墙/UI 相关问题 → 搜索 [OpenClash Issues](https://github.com/vernesong/OpenClash/issues)；② 内核级问题（代理协议/TUN/DNS 解析/规则引擎等 Mihomo 核心行为） → 搜索 [Mihomo Issues](https://github.com/MetaCubeX/mihomo/issues)。优先参考：**作者/维护者的回复**（OpenClash 标有 Owner 标签的 vernesong；Mihomo 标有 Contributor/Collaborator 标签的回复）——代表官方立场或已知 bug；**高赞反应（👍）的社区回复**——代表经过验证的有效方案；**同类问题中的诊断命令**（如 `nft list set`、`dig`、`uci show` 等）——可直接复用于用户的问题排查。搜索时使用用户报错中的关键错误信息或功能描述作为关键词。 |
-| **诊断-分析-生成模块修复（自助选项）** | 用户可让 AI 直接解决问题：AI 登录 OpenWrt（**仅需用户提供用户名、密码并授权**）→ **先自主生成调试日志**（`openclash_debug.sh`，与排查优先级①一致）→ 再执行 `14-diagnostics.md` 诊断命令（🔴 高风险命令须用户确认）→ 分析根因 → **参考 `16/17-overwrite-module-*.md` 生成新建覆写模块**并自主写入路由器（`enable=0`）→ 用户只需在「运行状态页 → 覆写模块」中审查并启用。AI 不直接修改用户现有配置、不代启用。详见 `14-diagnostics.md` §14.5 / §14.6。 |
+| **诊断-分析-生成模块修复（自助选项）** | 用户可让 AI 直接解决问题：AI 登录 OpenWrt（**需用户提供用户名、密码并授权；认证见 `14-diagnostics.md` §14.5，推荐 SSH 公钥**）→ **先自主生成调试日志**（`openclash_debug.sh`，与排查优先级①一致）→ 再执行 `14-diagnostics.md` 诊断命令（🔴 高风险命令须用户确认）→ 分析根因 → **参考 `16/17-overwrite-module-*.md` 生成新建覆写模块**并自主写入路由器（`enable=0`）→ 用户只需在「运行状态页 → 覆写模块」中审查并启用。AI 不直接修改用户现有配置、不代启用。详见 `14-diagnostics.md` §14.6 / §14.7。 |
 
 **核心资源速查**:
 
@@ -71,28 +77,48 @@ disable-model-invocation: false
 ## 文档路由表
 
 > 快速定位：按「用户问题类型」选择对应子文档，AI 回答时优先在此定位，再深入对应小节。
-> **子文档调取方式**：本地 skill 环境用 `read_file` 读取 `openclash-user-guide/NN-xxx.md`；在线 AI（如 ChatGPT / Claude 网页版）直接用表格中每个子文档的完整 raw URL 抓取对应内容。
+> **子文档调取方式**：本地 skill 环境用 `read_file` 读取 `openclash-user-guide/NN-xxx.md`；「读取文件」列为原始内容地址（raw URL），供在线 AI（如 ChatGPT / Claude 网页版）直接抓取；「GitHub 页面」列为对应子文档的 GitHub 页面，供用户点击查看。
 
-| 用户问题类型 | 读取文件 | 内容（关键小节） |
-|------|----------|------|
-| 理解整体原理 / 启动流程 | [`01-architecture.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/01-architecture.md) | 系统架构、UCI 根、启动链路、热生效 vs 重启 |
-| 启动失败 / 依赖缺失 | [`02-dependencies.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/02-dependencies.md) | §2.1–2.6 依赖清单、check_mod、故障速查 |
-| 用户报错 / 日志异常 | [`03-errors.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/03-errors.md) | §3.1–3.16 错误关键字与排查 |
-| 透明代理 / 防火墙链原理 | [`04-firewall-chains.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/04-firewall-chains.md) | §4.1 模式表、§4.2 fw4 链 |
-| ping / ICMP / 高级流量控制 | [`05-firewall-special.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/05-firewall-special.md) | §5.1 ICMP、§5.2 高级流量控制 |
-| 选项→规则映射 / fw3 / DNS 劫持实现 | [`06-firewall-options-dnsmasq.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/06-firewall-options-dnsmasq.md) | §6.1 fw3 等效链、§6.2 选项→规则映射、§6.3 change_dnsmasq |
-| 运行状态页功能开关 | [`07-page-overview.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/07-page-overview.md) | §7.1–7.12 核心控制、模式、仪表盘、IP 检测、oixCloud |
-| 插件设置·模式 / 流量 | [`08-settings-mode-traffic.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/08-settings-mode-traffic.md) | §8.1 总览、§8.2 模式、§8.3 流量控制 |
-| 插件设置页·DNS / 黑白名单 / 流媒体 / IPv6（菜单「插件设置」内的 DNS 选项→§9.1；用户问「插件设置→DNS」时读本文件） | [`09-settings-dns-ac-ipv6.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/09-settings-dns-ac-ipv6.md) | §9.1 DNS、§9.2 黑白名单、§9.3 流媒体、§9.4 外部控制、§9.5 IPv6 |
-| 插件设置页·GEO / 其他 / 来源流量 | [`10-settings-geo-misc-src.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/10-settings-geo-misc-src.md) | §10.1 GEO、§10.2 其他、§10.3 来源流量控制 |
-| 覆写设置页(CBI)·常规 / DNS / Meta / Smart / 规则 / 认证（菜单「覆写设置」页内的 DNS 选项→§11.3；用户问「覆写设置→DNS」时读本文件） | [`11-overwrite-settings.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/11-overwrite-settings.md) | §11.2 常规、§11.3 DNS、§11.4 Meta、§11.5 Smart、§11.6 规则、§11.7 认证 |
-| 订阅 / 配置管理 | [`12-subscribe-config.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/12-subscribe-config.md) | §12.1–12.3 订阅、§12.4–12.8 配置管理 |
-| 运行日志 / 生成调试日志 | [`13-logs.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/13-logs.md) | §13.2 标签页、§13.5 debug 30 章节 |
-| 需要 CLI 诊断 / AI 自助修复 | [`14-diagnostics.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/14-diagnostics.md) | §14.2 决策树、§14.3 命令、§14.4 脚本、§14.5–14.6 AI 自助与修复 |
-| LuCI / Mihomo HTTP API | [`15-api.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/15-api.md) | §15.1 LuCI API、§15.2 Mihomo API |
-| 覆写模块格式 / 操作符 | [`16-overwrite-module-format.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/16-overwrite-module-format.md) | §16.1 是什么、§16.2 格式与操作符 |
-| 覆写模块示例 / UCI 结构 | [`17-overwrite-module-examples.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/17-overwrite-module-examples.md) | §17.3 示例、§17.5 UCI 结构 |
-| 本文档未覆盖的查询 | [`99-out-of-scope.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/99-out-of-scope.md) | 外部资源优先级与主动查询流程 |
+| 用户问题类型 | 读取文件 | GitHub 页面 | 内容（关键小节） |
+|------|----------|------|------|
+| 理解整体原理 / 启动流程 | [`01-architecture.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/01-architecture.md) | [查看](https://github.com/vernesong/OpenClash/blob/dev/.github/skills/openclash-user-guide/01-architecture.md) | 系统整体架构分层、UCI 配置根、开机启动链路、热生效与重启的差异 |
+| 启动失败 / 依赖缺失 | [`02-dependencies.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/02-dependencies.md) | [查看](https://github.com/vernesong/OpenClash/blob/dev/.github/skills/openclash-user-guide/02-dependencies.md) | §2.1–2.6 内核与依赖清单、启动前的依赖检查逻辑、启动失败故障速查表 |
+| 用户报错 / 日志异常 | [`03-errors.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/03-errors.md) | [查看](https://github.com/vernesong/OpenClash/blob/dev/.github/skills/openclash-user-guide/03-errors.md) | §3.1–3.16 常见错误关键字定位与对应排查方法 |
+| 透明代理 / 防火墙链原理 | [`04-firewall-chains.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/04-firewall-chains.md) | [查看](https://github.com/vernesong/OpenClash/blob/dev/.github/skills/openclash-user-guide/04-firewall-chains.md) | §4.1 运行模式与防火墙行为对照表、§4.2 fw4 防火墙链结构 |
+| ping / ICMP / 高级流量控制 | [`05-firewall-special.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/05-firewall-special.md) | [查看](https://github.com/vernesong/OpenClash/blob/dev/.github/skills/openclash-user-guide/05-firewall-special.md) | §5.1 ICMP/Ping 转发处理规则、§5.2 高级流量控制（iptables）实现 |
+| 选项→规则映射 / fw3 / DNS 劫持实现 | [`06-firewall-options-dnsmasq.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/06-firewall-options-dnsmasq.md) | [查看](https://github.com/vernesong/OpenClash/blob/dev/.github/skills/openclash-user-guide/06-firewall-options-dnsmasq.md) | §6.1 fw3 等效链、§6.2 插件选项对防火墙规则的影响、§6.3 插件选项改写 dnsmasq 配置的实现 |
+| 运行状态页功能开关 | [`07-page-overview.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/07-page-overview.md) | [查看](https://github.com/vernesong/OpenClash/blob/dev/.github/skills/openclash-user-guide/07-page-overview.md) | §7.1–7.12 运行状态页核心控制、运行模式切换、仪表盘设置、IP 检测、oixCloud 服务开关 |
+| 插件设置·模式 / 流量 | [`08-settings-mode-traffic.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/08-settings-mode-traffic.md) | [查看](https://github.com/vernesong/OpenClash/blob/dev/.github/skills/openclash-user-guide/08-settings-mode-traffic.md) | §8.1 插件设置页总览、§8.2 运行模式、§8.3 流量控制 |
+| 插件设置页·DNS / 黑白名单 / 流媒体 / IPv6（菜单「插件设置」内的 DNS 选项→§9.1；用户问「插件设置→DNS」时读本文件） | [`09-settings-dns-ac-ipv6.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/09-settings-dns-ac-ipv6.md) | [查看](https://github.com/vernesong/OpenClash/blob/dev/.github/skills/openclash-user-guide/09-settings-dns-ac-ipv6.md) | §9.1 DNS 设置、§9.2 黑白名单、§9.3 流媒体、§9.4 外部控制、§9.5 IPv6 开关 |
+| 插件设置页·GEO / 其他 / 来源流量 | [`10-settings-geo-misc-src.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/10-settings-geo-misc-src.md) | [查看](https://github.com/vernesong/OpenClash/blob/dev/.github/skills/openclash-user-guide/10-settings-geo-misc-src.md) | §10.1 GEO 规则更新与维护、§10.2 其他杂项选项、§10.3 来源流量控制 |
+| 覆写设置页(CBI)·常规 / DNS / Meta / Smart / 规则 / 认证（菜单「覆写设置」页内的 DNS 选项→§11.3；用户问「覆写设置→DNS」时读本文件） | [`11-overwrite-settings.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/11-overwrite-settings.md) | [查看](https://github.com/vernesong/OpenClash/blob/dev/.github/skills/openclash-user-guide/11-overwrite-settings.md) | §11.2 常规设置、§11.3 DNS 覆写、§11.4 Meta 覆写、§11.5 Smart 覆写、§11.6 规则覆写、§11.7 认证 |
+| 订阅 / 配置管理 | [`12-subscribe-config.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/12-subscribe-config.md) | [查看](https://github.com/vernesong/OpenClash/blob/dev/.github/skills/openclash-user-guide/12-subscribe-config.md) | §12.1–12.3 订阅管理与更新、§12.4–12.8 配置管理与切换 |
+| 运行日志 / 生成调试日志 | [`13-logs.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/13-logs.md) | [查看](https://github.com/vernesong/OpenClash/blob/dev/.github/skills/openclash-user-guide/13-logs.md) | §13.2 运行日志标签页、§13.5 调试日志包含的 30 个章节 |
+| 需要 CLI 诊断 / AI 自助修复 | [`14-diagnostics.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/14-diagnostics.md) | [查看](https://github.com/vernesong/OpenClash/blob/dev/.github/skills/openclash-user-guide/14-diagnostics.md) | §14.2 诊断决策树、§14.3 CLI 诊断命令、§14.4 诊断脚本、§14.5 认证前置、§14.6–14.7 AI 自助诊断与修复流程 |
+| LuCI / Mihomo HTTP API | [`15-api.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/15-api.md) | [查看](https://github.com/vernesong/OpenClash/blob/dev/.github/skills/openclash-user-guide/15-api.md) | §15.1 LuCI API、§15.2 Mihomo 内核 HTTP API |
+| 覆写模块格式 / 操作符 | [`16-overwrite-module-format.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/16-overwrite-module-format.md) | [查看](https://github.com/vernesong/OpenClash/blob/dev/.github/skills/openclash-user-guide/16-overwrite-module-format.md) | §16.1 覆写模块是什么、§16.2 覆写模块格式与操作符 |
+| 覆写模块示例 / UCI 结构 | [`17-overwrite-module-examples.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/17-overwrite-module-examples.md) | [查看](https://github.com/vernesong/OpenClash/blob/dev/.github/skills/openclash-user-guide/17-overwrite-module-examples.md) | §17.3 覆写模块示例、§17.5 覆写模块的 UCI 结构 |
+| 本文档未覆盖的查询 | [`99-out-of-scope.md`](https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/99-out-of-scope.md) | [查看](https://github.com/vernesong/OpenClash/blob/dev/.github/skills/openclash-user-guide/99-out-of-scope.md) | 外部资源优先级与主动查询流程 |
+
+---
+
+## 不同 agent 如何加载子文档
+
+> 本 skill 的知识拆分为 `01-…99-*.md` 子文档，不同 agent 加载方式不同。**总原则：先读 `SKILL.md` 的「文档路由表」定位，再只加载命中的那一两个子文档，不要一次全读所有子文档。**
+
+| 类别 | 代表 agent | 加载方式 | 子文档路径 |
+|------|-----------|----------|-----------|
+| **本地/CLI，支持技能目录** | Claude Code / Cursor / Windsurf / Roo Code / Continue / Kiro / Trae / OpenHands | 自动发现技能 → 读 `SKILL.md` → 用 Read 工具按需读命中的 `NN-*.md` | 安装目录 `~/.claude/skills/openclash-user-guide/`，或插件 `~/.claude/plugins/<owner>/<name>/skills/...`；仓库内为 `.github/skills/openclash-user-guide/` |
+| **本地/CLI，按 AGENTS.md/规则加载** | Codex CLI / OpenCode / Gemini CLI | 读 `AGENTS.md`/`CLAUDE.md` 或 `.codex`/`.opencode` 规则定位；无自动技能发现时**显式让 AI 读 `SKILL.md`**，再用其 Read/Bash 按相对路径读子文档 | `AGENTS.md` 所在目录下的 `.github/skills/`，或用户指定的技能路径 |
+| **VS Code Copilot** | GitHub Copilot | 自动发现 `.github/skills/<name>/SKILL.md`（本仓库即此路径），用 `read_file` 读子文档 | 相对路径 `openclash-user-guide/NN-xxx.md` |
+| **网页/在线（无本地文件）** | ChatGPT / Claude 网页版、任意聊天（含带 WebFetch/联网能力的 agent） | 无本地文件访问：① 优先用 WebFetch/联网读「读取文件」列 **raw URL**；② 若 AI 无联网抓取能力，请用户**粘贴**该子文档内容或打开「GitHub 页面」列；③ 用「内容（关键小节）」列的 `§` 号在抓回内容内定位 | `https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/NN-xxx.md` |
+
+**要点**：
+1. **别一次全读**：先按路由表定位，再读命中的子文档；`allowed-tools`（frontmatter，实验性）只影响某些 agent 的预授权范围，不影响「读文件」能力。
+2. **路径基准**：仓库内以 `.github/skills/openclash-user-guide/` 为根；被安装为技能后，路径在对应 agent 的 skills 目录（如 Claude 为 `~/.claude/skills/openclash-user-guide/`）。
+3. **无文件 agent**：直接用「读取文件」列 raw URL，并按「内容（关键小节）」列核对对应 `§` 号即可。
+4. **权限**：`allowed-tools` 预授权本地所需工具（`ssh`/`scp` 走路由器，`Read`/`Write`/`Edit`/`Glob`/`Grep` 处理本地文件与定位，`WebFetch`/`WebSearch` 用于查 Wiki/Issues/源码）；路由器侧命令（`nft`/`uci`/`opkg`/`curl`）都嵌套在 `ssh` 内，无需单独授权。
+5. **网页版 AI 兜底**：若 AI 无法联网抓取 raw URL，请用户把需要的子文档**整段粘贴**给 AI（或打开「GitHub 页面」列自取），再按 `§` 号定位；**不要**把本 skill 的全部子文档一次性贴入，否则上下文过载。
 
 ---
 
@@ -103,11 +129,11 @@ disable-model-invocation: false
 | 01 | `01-architecture.md` | 系统架构速查 + 系统启动完整流程 |
 | 02 | `02-dependencies.md` | 完整依赖清单与故障排查 |
 | 03 | `03-errors.md` | 日志与错误信息速查 |
-| 04 | `04-firewall-chains.md` | 防火墙：模式表 + fw4 链结构 |
+| 04 | `04-firewall-chains.md` | 防火墙：模式解析表 + fw4 链结构 |
 | 05 | `05-firewall-special.md` | 防火墙：ICMP 处理 + 高级流量控制 |
-| 06 | `06-firewall-options-dnsmasq.md` | 防火墙：fw3 等效链 + 选项影响表 + Dnsmasq 修改 |
+| 06 | `06-firewall-options-dnsmasq.md` | 防火墙：fw3 等效链 + 插件选项对防火墙规则的影响 + Dnsmasq 修改 |
 | 07 | `07-page-overview.md` | 运行状态页面 |
-| 08 | `08-settings-mode-traffic.md` | 插件设置：总览 + 模式 + 流量控制 |
+| 08 | `08-settings-mode-traffic.md` | 插件设置：总览 + 运行模式 + 流量控制 |
 | 09 | `09-settings-dns-ac-ipv6.md` | 插件设置：DNS + 黑白名单 + 流媒体 + 外部控制 + IPv6 |
 | 10 | `10-settings-geo-misc-src.md` | 插件设置：GEO + 其他 + 来源流量 |
 | 11 | `11-overwrite-settings.md` | 覆写设置页面 |

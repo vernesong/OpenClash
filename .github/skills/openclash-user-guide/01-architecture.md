@@ -127,7 +127,7 @@ Dashboard: http://路由器LAN_IP:9090/ui/
 │   ├─ TUN 模式:         → check_mod tun + 等待 utun 接口(≤300s，失败重启≤3 次) + 策略路由(fwmark 0x162→table 0x162, pref 1888)
 │   ├─ 非 TUN 模式:      → 轮询 http://<lan_ip>:<cn_port>/group 返回 200 (≤300s)
 │   └─ 核心就绪后 (start):
-│       ├─ change_dnsmasq() → DNS 劫持 (dnsmasq → Clash DNS，防止核心 DNS 查询失败)
+│       ├─ change_dnsmasq() → DNS 劫持 (dnsmasq → Mihomo DNS，防止核心 DNS 查询失败)
 │       └─ set_firewall()   → 建立 iptables/nftables 透明代理规则
 │           ├─ REDIRECT/TPROXY 规则 (按 en_mode)
 │           ├─ DNS 劫持规则 (按 enable_redirect_dns)

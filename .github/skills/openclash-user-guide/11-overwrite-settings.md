@@ -110,7 +110,7 @@
 - **预设**: `198.18.0.1/16` (标准 Fake-IP 段)
 - **Mihomo 对应**: `dns.fake-ip-range`
 - **仅**: Fake-IP 模式显示
-- **实现细节**: 写入 YAML `dns.fake-ip-range`。Mihomo 在 Fake-IP 模式下，将 DNS 查询的域名映射到此 CIDR 段中的虚拟 IP。应用连接到虚拟 IP 时内核通过路由表将流量导向 Clash，Clash 根据映射表还原真实域名后进行规则匹配。
+- **实现细节**: 写入 YAML `dns.fake-ip-range`。Mihomo 在 Fake-IP 模式下，将 DNS 查询的域名映射到此 CIDR 段中的虚拟 IP。应用连接到虚拟 IP 时内核通过路由表将流量导向 Mihomo，Mihomo 根据映射表还原真实域名后进行规则匹配。
 
 #### 11.3.5 store_fakeip — 持久化 Fake-IP (Store Fake-IP)
 - **UCI**: `openclash.@config_overwrite[0].store_fakeip`
@@ -254,7 +254,7 @@ dns:
 - **UCI**: `openclash.@config_overwrite[0].enable_meta_sniffer_pure_ip`
 - **默认**: 1
 - **Mihomo 对应**: `sniffer.parse-pure-ip: true`
-- **说明**: 对所有未获取到域名的流量进行强制嗅探（如直接 IP 连接）
+- **说明**: 强制识别所有拿不到域名的连接（比如直接连 IP 的流量）
 
 #### 11.4.6 enable_meta_sniffer_custom — 自定义流量探测（嗅探）设置 (Custom Sniffer Settings)
 - **UCI**: `openclash.@config_overwrite[0].enable_meta_sniffer_custom`

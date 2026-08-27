@@ -1,8 +1,8 @@
 ## 诊断命令与 CLI 参考
 
-> **用途**: 诊断决策树、CLI 命令、Shell 脚本速查与 AI 自助 SSH 诊断/覆写修复（§14.1–14.7）。
+> **用途**: 诊断决策树、CLI 命令、Shell 脚本速查与 AI 自助 SSH 诊断/覆写修复（§14.1–14.8）。
 
-> **小节索引**: §14.1 使用方法 · §14.2 诊断决策树（§14.2.1–14.2.6）· §14.3 通用命令 · §14.4 脚本速查 · §14.5 AI 自主诊断 · §14.6 覆写修复 · §14.7 Wiki 链接
+> **小节索引**: §14.1 使用方法 · §14.2 诊断决策树（§14.2.1–14.2.6）· §14.3 通用命令 · §14.4 脚本速查 · §14.5 认证前置 · §14.6 AI 自主诊断 · §14.7 覆写修复 · §14.8 Wiki 链接
 
 > **排障交互**: 当用户描述问题但缺少关键信息时，AI 应给出精确的 SSH 命令让用户在路由器上执行，
 > 然后根据用户返回的输出结果进行诊断。
@@ -24,6 +24,10 @@ AI 会将以下格式的命令发给用户：
 
 > **路由器终端接入方式**: SSH 登录 (`ssh root@<router_ip>`) 或 LuCI 自带的「系统→终端」页面。
 > 如用户不确定如何登录，AI 应告知上述两种方式供选择。
+>
+> **命令执行位置**: §14.2–§14.4 列出的全部命令均在**路由器端**执行（SSH 登录后或 LuCI 终端内）；
+> **不要**在本机（如 Windows PowerShell）直接运行 `nft`/`uci`/`opkg`/... —— 本机没有这些工具。
+> AI 自助时按「逐条 `ssh ... '<cmd>'`」远程执行，见 §14.5。
 
 ### 14.2 诊断决策树
 
@@ -148,7 +152,7 @@ AI 会将以下格式的命令发给用户：
 
 ```bash
 # --- 诊断 ---
-# 生成完整调试日志（输出到 /tmp/openclash_debug.log，含依赖检查、防火墙规则、配置等 20+ 章节）
+# 生成完整调试日志（输出到 /tmp/openclash_debug.log，含依赖检查、防火墙规则、配置等 30 个章节）
 /usr/share/openclash/openclash_debug.sh
 
 # --- GEO 数据库更新 ---
@@ -231,14 +235,36 @@ AI 会将以下格式的命令发给用户：
 
 ---
 
-### 14.5 AI 自主 SSH 诊断与修复（需用户确认）
+### 14.5 认证前置（SSH 登录前置）
+
+> **AI 行为指引**：本节是所有「AI 通过 SSH 操作 OpenWrt」场景的**统一认证与命令执行前置**——§14.6 自助诊断、§14.7 覆写模块写入、以及任何让 AI 登录 OpenWrt 的需求，都先读本节并按本节执行。其它小节需要 SSH 时直接引用本节，不重复描述。
+
+**接入方式（OpenWrt 后台）**：
+- SSH 登录：`ssh <用户>@<路由器IP>`（默认端口 22）；或 LuCI「系统 → 终端」页面。
+- 用户需提供登录用户名、密码（如 `root` 及密码）；路由器 IP/端口可由用户提供或由 AI 询问确认。
+
+**认证方式（优先公钥，避免交互阻塞）**：
+- **优先 SSH 公钥认证**（避免交互式密码阻塞、避免密码落盘/进日志；参考 `term-cli`/`vibeshell` 的「凭据不暴露」思路）。在 AI 所在机器执行一次：
+  1. `ssh-keygen -t ed25519 -N ''`（如尚无密钥）
+  2. `ssh-copy-id -p <端口> root@<路由器IP>`；若 OpenWrt 用 dropbear，也可手动把公钥追加到 `/etc/dropbear/authorized_keys` 并 `chmod 600 /etc/dropbear/authorized_keys`
+  3. 之后 AI 直接 `ssh -p <端口> root@<路由器IP>` 免密登录，无需处理密码提示。
+- **仅密码认证时**：AI **不得**把密码写入任何文件、命令行或覆写内容；`ssh ...` 阻塞于 `password:` 时，提示用户在对应终端**手动输入密码**（参考 `term-cli` 的「人工接管密码/MFA」模型），AI 不代填、不回显。
+
+**命令执行模型（AI 自助）**：
+- 按「逐条 `ssh ... '<远程命令>'`、一次取回输出」执行；**每条命令都落在路由器端**，**不要**在本机（如 Windows PowerShell）直接运行 `nft`/`uci`/`opkg`/...（本机无这些工具）。
+- **Windows/PowerShell 引号转义易错**：远程命令含 `$`、`;`、`&&`、花括号、`awk/sed`、嵌套引号或换行时，改用 stdin 或先写成临时脚本再上传执行，避免一行内联（参考 `ai_ssh_skill` 的 PowerShell 指引）。
+
+**凭据红线**：密码/私钥仅用于本次 SSH 认证，不回显、不写入 `uci`、不进入覆写模块内容、不提交到任何仓库。
+
+**授权前提**：用户提供凭据即视为同意 AI 登录并执行诊断；未提供凭据前 AI 一律不执行任何命令。
+
+---
+
+### 14.6 AI 自主 SSH 诊断与修复（需用户确认）
 
 > **AI 行为指引**：当调试日志（`openclash_debug.sh`）不足以定位问题，且用户希望 AI 直接操作时，AI 可**自主登录 OpenWrt 后台（SSH），执行 `14-diagnostics.md`（§14.2-14.4）与 `15-api.md`（§15.1-15.2）中已列出的全部命令并分析输出**。用户只需提供登录凭据，其余连接、执行、分析、生成修复模块均由 AI 自主完成。
 
-**登录方式（OpenWrt 后台登录）**：
-- 用户**仅需提供 OpenWrt 后台登录的用户名、密码**（如 `root` 及密码）；路由器 IP/端口（默认 22）可由用户提供或由 AI 询问确认。
-- AI 通过 SSH（`ssh <用户>@<路由器IP>`）或等价终端通道登录，**登录、命令执行、输出分析、覆写模块生成全部自主完成**，无需用户逐条复制命令。
-- **授权前提**：用户提供凭据即视为同意 AI 登录并执行诊断；未提供凭据前 AI 一律不执行任何命令。
+> **登录与认证**：先按 §14.5 认证前置执行（接入方式、公钥/密码认证、命令执行模型、凭据红线），再继续本节流程。
 
 **命令范围（执行 `14-diagnostics.md` 与 `15-api.md` 全部已知命令）**：
 - 🟢 **安全查询**：直接执行（§14.2 决策树、§14.3 查询命令、`15-api.md` §15.1/15.2 查询类 API、§14.4 只读脚本等）。
@@ -246,25 +272,27 @@ AI 会将以下格式的命令发给用户：
 - 🔴 **高风险操作必须事先获得用户确认**：包括 `/etc/init.d/openclash restart|stop`、更新订阅/内核/插件（`openclash.sh`/`openclash_core.sh`/`openclash_update.sh`）、`uci set/commit` 修改现有配置等。AI 必须先说明该命令的后果，**得到用户明确同意后才执行**；用户不同意则跳过。
 
 **诊断流程（从自主生成调试日志开始，与总则排查优先级①一致）**：
-1. AI 登录后**第一步先自主生成调试日志**：执行 `/usr/share/openclash/openclash_debug.sh`，读取 `/tmp/openclash_debug.log`（含依赖检查、配置、防火墙规则等 20+ 章节）——由 AI 代替用户完成「先要日志」。
+1. AI 登录后**第一步先自主生成调试日志**：执行 `/usr/share/openclash/openclash_debug.sh`，读取 `/tmp/openclash_debug.log`（含依赖检查、配置、防火墙规则等 30 个章节）——由 AI 代替用户完成「先要日志」。
 2. 日志不足以定位时，再按 §14.2-14.4 与 `15-api.md` §15.1-15.2 命令表逐条执行诊断（一次一命令，见行为准则 4）。
 
 **行为准则（铁律）**：
 1. **只执行已知命令**：命令必须出自 `14-diagnostics.md`（§14.2-14.4）与 `15-api.md`（§15.1-15.2）的命令表（或其直接查询变体）；不编造、不执行来源不明的命令。
-2. **默认不改现有配置**：AI 自主行为不主动修改用户任何现有配置（修改现有配置属 🔴，必须经用户确认）；**新建**覆写模块（§14.6）属修复动作、不受此限，且 `enable` 恒为 0。
-3. **常规修复走覆写模块**：凡需改插件设置/覆写 YAML 的修复，一律走 §14.6 新建覆写模块（AI 自主写入、用户启用），而非直接改配置。
+2. **默认不改现有配置**：AI 自主行为不主动修改用户任何现有配置（修改现有配置属 🔴，必须经用户确认）；**新建**覆写模块（§14.7）属修复动作、不受此限，且 `enable` 恒为 0。
+3. **常规修复走覆写模块**：凡需改插件设置/覆写 YAML 的修复，一律走 §14.7 新建覆写模块（AI 自主写入、用户启用），而非直接改配置。
 4. **一次一命令**：单条执行 → 分析输出 → 决定下一步；输出不足时回到「先要日志」或询问用户，不要连发多条。
-5. **分析并归因**：结合本指南（防火墙规则链、错误速查表、决策树）解读输出，定位根因后：覆写类修复 → §14.6；需重启/改 UCI → 先向用户确认。**修复若涉及写规则（`rules:`/`rule-providers:`），须参考 `11-overwrite-settings.md` §11.6「规则设置」与 meta-rules-dat 确认规范与分类名。**
+5. **分析并归因**：结合本指南（防火墙规则链、错误速查表、决策树）解读输出，定位根因后：覆写类修复 → §14.7；需重启/改 UCI → 先向用户确认。**修复若涉及写规则（`rules:`/`rule-providers:`），须参考 `11-overwrite-settings.md` §11.6「规则设置」与 meta-rules-dat 确认规范与分类名。**
 6. **收尾**：诊断结束给出结论与建议，不残留后台进程、不静默改变系统状态。
 
 ---
 
-### 14.6 用覆写模块修复配置（AI 自主生成并写入、用户启用）
+### 14.7 用覆写模块修复配置（AI 自主生成并写入、用户启用）
 
 > **AI 行为指引**：当问题根因需要「修改插件设置 / 覆写订阅配置文件」才能解决时，AI **不直接改动用户现有配置**，而是**参考「覆写模块详解」（`16/17-overwrite-module-*.md`）生成一个新建覆写模块并直接写入路由器**（`enable=0`），**仅保留「启用」给用户**。
 
 **AI 自主生成并写入（SSH，经用户授权后）**：
 1. 生成覆写内容：必须含段头（`[General]`/`[YAML]`/`[Overwrite]`），严格遵循覆写模块格式（段头、`config` 匹配、`16-overwrite-module-format.md` §16.2.3 操作符、§16.2.2 函数清单）。**若修复涉及规则/rule-providers（如 `[YAML]` 段注入 `rules:` 或 `RULE-SET` 引用），须对照 `11-overwrite-settings.md` §11.6「规则设置」的编写规范参考来源，并用 meta-rules-dat 确认 GEOSITE/GEOIP 分类名与 `.mrs` 规则集地址。**
+   > **子文档读取**：本地 skill 环境用 `read_file` 读 `16-overwrite-module-format.md` / `17-overwrite-module-examples.md`；远程/CLI 环境取 raw URL：
+   > `https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/16-overwrite-module-format.md`（及 `17-...`、`11-...`）。
 2. 写入文件：
    ```sh
    mkdir -p /etc/openclash/overwrite
@@ -275,14 +303,19 @@ AI 会将以下格式的命令发给用户：
    chmod 644 /etc/openclash/overwrite/<模块名>
    chown root:root /etc/openclash/overwrite/<模块名>
    ```
+   > 注意：单引号 `<<'EOF'` 防止变量展开；若覆写内容本身包含 `EOF` 行，改用其它唯一分隔符（如 `<<'OPENCLASH_OVERWRITE_END'`）。<模块名> 用不含空格/特殊字符的 ASCII 名，与 `config_overwrite.name` 一致。
 3. 注册 UCI（`config` 匹配当前配置文件，如 `all` 或 `/etc/openclash/config/xxx.yaml`）：
    ```sh
+   # 先实算 order：取现有 config_overwrite 条目的最大 order 再 +1（勿用字面量占位符）
+   max=$(uci -q show openclash 2>/dev/null | grep '=config_overwrite' | awk -F'[.=]' '{print $2}' | while read -r sid; do uci -q get "openclash.$sid.order" 2>/dev/null; done | sort -n | tail -1)
+   order=$(( ${max:-0} + 1 ))
+
    uci add openclash config_overwrite
    uci set openclash.@config_overwrite[-1].name='<模块名>'
    uci set openclash.@config_overwrite[-1].type='file'
-   uci set openclash.@config_overwrite[-1].config='all'   # 或具体配置文件路径
-   uci set openclash.@config_overwrite[-1].enable='0'     # 必须保持 0，启用权留给用户
-   uci set openclash.@config_overwrite[-1].order='<当前最大 order+1>'
+   uci add_list openclash.@config_overwrite[-1].config='all'   # 或具体配置文件路径；config 为 ListValue，用 add_list（仅单个值也可 set，但默认 list 语义更稳）
+   uci set openclash.@config_overwrite[-1].enable='0'          # 必须保持 0，启用权留给用户
+   uci set openclash.@config_overwrite[-1].order="$order"
    uci commit openclash
    ```
    （等价方式：带已认证会话 POST `/upload_overwrite`；SSH 直写更直接。）
@@ -291,14 +324,14 @@ AI 会将以下格式的命令发给用户：
 **铁律**：
 1. **只新建，不改已有**：AI 只创建**新的**覆写模块；不修改用户已有模块、不改 `/etc/config/openclash` 其它段、不改订阅 YAML、不改 `yml_change.sh`。
 2. **enable 恒为 0**：AI 写入的模块必须 `enable=0`；启用由用户决定。
-3. **严格遵循 `16/17-overwrite-module-*.md`**：段头必须有；`config` 须匹配当前配置（为空则永不生效，见 `17-overwrite-module-examples.md` §17.5）；`[YAML]` 操作符对照 `16-overwrite-module-format.md` §16.2.3、`[Overwrite]` 函数对照 §16.2.2；**涉及规则时另对照 `11-overwrite-settings.md` §11.6「规则设置」与 meta-rules-dat**。
+3. **严格遵循 `16/17-overwrite-module-*.md`**：段头必须有；`config` 须匹配当前配置（为空则永不生效，见 `17-overwrite-module-examples.md` §17.5）；`[YAML]` 操作符 / `[Overwrite]` 函数对照 `16-overwrite-module-format.md` §16.2.3 / §16.2.2；**涉及规则时另对照 `11-overwrite-settings.md` §11.6「规则设置」与 meta-rules-dat**。
 4. **范围边界**：覆写只能覆盖 YAML/UCI 层面；需重启核心、改防火墙、改 dnsmasq 等 → 给出 LuCI 操作路径，或经用户确认后执行 🔴 命令。
 5. **风险提示**：若覆写会覆盖「插件强制覆盖/禁用的设置」中的硬编码项（如 `allow-lan`、`sniffer.sniff` 等），须明确提示后果（见 `16-overwrite-module-format.md` §16.1 警告），由用户决定是否启用。
 6. **写入即告知**：AI 落盘并注册后，向用户报告已创建模块名、内容摘要与 `config` 匹配，并提醒「启用权在你」。
 
 ---
 
-### 14.7 Mihomo Wiki 参考链接
+### 14.8 Mihomo Wiki 参考链接
 
 - [全局配置 (General)](https://wiki.metacubex.one/config/general/)
 - [DNS 配置](https://wiki.metacubex.one/config/dns/)

@@ -75,7 +75,7 @@ nft add rule inet fw4 openclash_mangle_v6 ip6 nexthdr icmpv6 \
 
 IPv6 非 TUN 模式下 ICMPv6 **不被标记也不被代理**。IPv6 Fake-IP 地址范围的 ping 在**非 TUN 的 IPv6 模式下**被 REJECT（返回 `icmpv6 admin-prohibited`），条件为 `$ipv6_mode -ne 2 -a $ipv6_mode -ne 3`。TUN/Mix 模式下的 IPv6 Fake-IP ping 同样由内核的 `skipPingForwardingByAddr()` 处理（伪造回复）。
 
-**总结**:
+**总结**（一句话结论：普通模式下 ping 不会进隧道、不被代理；TUN/混合模式下 ping 会进隧道，但 Fake-IP ping 到的是本地虚假延迟，不代表真能访问）:
 
 | 运行模式 | ICMP 进入 TUN | ICMP fwmark | 实际处理 |
 |----------|-------------|-------------|----------|

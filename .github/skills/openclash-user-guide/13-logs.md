@@ -13,6 +13,8 @@
 
 ### 13.2 标签页（Plugin / Core / Debug）
 
+> 注意区分：标签页 2 里的「Debug」只是**内核日志等级按钮**；标签页 3「Debug Logs」是 `openclash_debug.sh` 生成的 **30 章节调试日志**（见 §13.5），两者不是一回事。
+
 **标签页 1 — Plugin Logs** (默认激活)：展示 OpenClash 插件自身日志（Shell/Ruby/Lua 脚本输出），通过 XHR 轮询 (`/refresh_log`) 每秒刷新。
 
 **标签页 2 — Core Logs** (可切换)：展示 Mihomo 内核实时日志，通过 WebSocket 连接到内核 API (`/logs?token=...&level=...`)。该标签页内嵌 **5 个日志等级单选按钮**：

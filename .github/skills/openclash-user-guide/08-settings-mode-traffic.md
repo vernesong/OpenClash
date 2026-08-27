@@ -20,7 +20,7 @@
          (修改 YAML 配置)         (iptables/nftables)      (DNS 劫持转发)
                     │                       │                       │
                     ▼                       ▼                       ▼
-              Mihomo 核心              系统防火墙规则            Dnsmasq → Clash DNS
+              Mihomo 核心              系统防火墙规则            Dnsmasq → Mihomo DNS
 ```
 
 | 脚本 | 输入 | 输出 | 负责的设置 |
@@ -96,7 +96,7 @@
   - `fake-ip-mix` — Fake-IP (混合)
 - **Mihomo 对应配置**: `dns.enhanced-mode` (fake-ip / redir-host)
 - **Redir-Host 模式**: DNS 解析在客户端完成，核心根据 IP 规则分流。适合 BT/PT 下载
-- **Fake-IP 模式**: DNS 解析在核心完成，返回虚假 IP (198.18.x.x)，性能更高。规则基于域名匹配。**推荐作为日常使用首选**：Fake-IP（增强）模式下 TCP/UDP 均走系统协议栈，性能最优；若出现 NAT 问题可切换为 Fake-IP（混合）模式；若固件含 Docker 则直接选用 Fake-IP（TUN）模式
+- **Fake-IP 模式**: DNS 解析在核心完成，返回虚假 IP (198.18.x.x)，性能更高。规则基于域名匹配。**推荐作为日常使用首选**：「Fake-IP 模式」(选项 `fake-ip`)——DNS 解析快、占资源低，日常够用；若个别应用连不上（NAT 问题）改用「Fake-IP 混合」(选项 `fake-ip-mix`)；若固件装了 Docker 可直接用「Fake-IP TUN」(选项 `fake-ip-tun`)
 - **TUN 模式**: 创建虚拟网卡，以网络层接管所有流量。对应 Mihomo `tun.enable=true`。需要 `kmod-tun` 内核模块
 - **混合模式**: TCP 使用 system 栈 (redirect)，UDP 使用 gvisor 栈 (TUN)。对应 Mihomo `tun.stack=mixed`。适合非直连游戏等对 NAT 类型有要求的场景
 
@@ -205,7 +205,7 @@
 - **UCI 选项**: `openclash.@openclash[0].router_self_proxy`
 - **默认**: 1 (开启)
 - **说明**: 开启后，路由器本身发出的流量也会经过代理核心。仅在规则模式下生效。关闭后流媒体增强标签页所有功能将失效
-- **实现细节**: 控制 OUTPUT 链规则是否生成（fw4 `openclash_output`/`openclash_mangle_output`，fw3 OUTPUT 规则），决定路由器自身出站流量是否重定向到 Clash。规则细节见 `06-firewall-options-dnsmasq.md` §6.2「各选项对防火墙规则的具体影响 → `router_self_proxy`」。（注意：非 TUN 模式下 Fake-IP 模式即使关闭本选项，仍会为 Fake-IP 流量创建 OUTPUT 链）
+- **实现细节**: 控制 OUTPUT 链规则是否生成（fw4 `openclash_output`/`openclash_mangle_output`，fw3 OUTPUT 规则），决定路由器自身出站流量是否重定向到 Mihomo。规则细节见 `06-firewall-options-dnsmasq.md` §6.2「各选项对防火墙规则的具体影响 → `router_self_proxy`」。（注意：非 TUN 模式下 Fake-IP 模式即使关闭本选项，仍会为 Fake-IP 流量创建 OUTPUT 链）
 
 #### 8.3.2 disable_udp_quic — 禁用 QUIC (Disable QUIC)
 - **UCI 选项**: `openclash.@openclash[0].disable_udp_quic`
@@ -223,7 +223,7 @@
 #### 8.3.4 common_ports — 仅允许常用端口流量 (Common Ports Proxy Mode)
 - **UCI 选项**: `openclash.@openclash[0].common_ports`
 - **默认**: 0 (禁用)
-- **说明**: 仅对常用端口 (HTTP/HTTPS/邮件等) 进行代理，防止 BT/P2P 流量经过代理
+- **说明**: 仅让常用端口 (HTTP/HTTPS/邮件等) 的流量走代理，防止 BT/P2P 流量占用线路
 - **预设值**: `21 22 23 53 80 123 143 194 443 465 587 853 993 995 998 2052 2053 2082 2083 2086 2095 2096 2197 5222 5223 5228 5229 5230 8080 8443 8880 8888 8889`
 - **自定义格式**: 空格分隔的端口号，如 `443 80` 或范围 `20-443`
 - **依赖**: 仅 Redir-Host 系列模式
