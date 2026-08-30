@@ -3669,6 +3669,12 @@ msgstr "URL no válida. Cuando la conversión está deshabilitada solo se admite
 msgid "Advanced Options"
 msgstr "Opciones avanzadas"
 
+msgid "Node Filtering"
+msgstr "Filtrado de nodos"
+
+msgid "Show node filter options"
+msgstr "Mostrar opciones de filtrado de nodos"
+
 msgid "Show more subscription options"
 msgstr "Mostrar más opciones de suscripción"
 

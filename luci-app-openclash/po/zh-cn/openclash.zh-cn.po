@@ -3687,6 +3687,12 @@ msgstr "订阅地址格式无效。未启用订阅转换时仅支持单个 HTTP/
 msgid "Advanced Options"
 msgstr "高级选项"
 
+msgid "Node Filtering"
+msgstr "节点筛选"
+
+msgid "Show node filter options"
+msgstr "显示节点筛选设置"
+
 msgid "Show more subscription options"
 msgstr "显示更多订阅设置"
 

@@ -78,32 +78,16 @@
                         </div>
 
                         <div class="form-group">
-                            <label><%:Custom Headers%> (<%:Optional%>):</label>
-                            <div class="form-help" style="margin-bottom:0;"><%:Add custom HTTP headers to the subscription request%></div>
-                            <div id="subscribe-headers-container" class="oc-hidden"></div>
-                            <button type="button" id="subscribe-headers-add" class="add-row-btn"><svg><use href="#oc-icon-add"/></svg><span><%:Add Header%></span></button>
-                        </div>
-
-                        <div class="form-group">
                             <label class="form-checkbox">
-                                <input type="checkbox" id="advanced-options-enable">
+                                <input type="checkbox" id="sub-convert-enable">
                                 <span class="checkmark"></span>
-                                <%:Advanced Options%>
+                                <%:Subscribe Convert Online%>
                             </label>
-                            <div class="form-help"><%:Show more subscription options%></div>
+                            <div class="form-help"><%:Convert Subscribe Online With Template%></div>
                         </div>
 
-                        <div class="advanced-options-container oc-hidden" id="advanced-options-container">
-                            <div class="form-group">
-                                <label class="form-checkbox">
-                                    <input type="checkbox" id="sub-convert-enable">
-                                    <span class="checkmark"></span>
-                                    <%:Subscribe Convert Online%>
-                                </label>
-                                <div class="form-help"><%:Convert Subscribe Online With Template%></div>
-                            </div>
-
-                            <div class="sub-convert-options oc-hidden" id="sub-convert-options">
+                        <div class="sub-convert-options oc-hidden" id="sub-convert-options">
+                            <div class="sub-convert-options">
                                 <div class="form-group">
                                     <label for="convert-address-input"><%:Convert Address%>:</label>
                                     <div class="form-select-wrapper">
@@ -152,7 +136,9 @@
                                     <label for="custom-template-input"><%:Custom Template URL%>:</label>
                                     <input type="text" id="custom-template-input" placeholder="<%:Enter custom template URL%>" class="form-input" />
                                 </div>
+                            </div>
 
+                            <div class="sub-convert-options">
                                 <div class="form-row">
                                     <div class="form-group form-half">
                                         <label class="form-checkbox">
@@ -203,53 +189,90 @@
                                         </label>
                                     </div>
                                 </div>
+                            </div>
 
+                            <div class="sub-convert-options">
                                 <div class="form-group">
                                     <label for="custom-params-input"><%:Custom Params%>:</label>
                                     <textarea id="custom-params-input" placeholder="<%:eg: rename=match@replace, one param per line%>" class="form-textarea" rows="3"></textarea>
                                     <div class="form-help"><%:eg: "rename=match@replace" , "rename=\\s+([2-9])[xX]@ (HIGH:$1)"%></div>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="form-group">
-                                <label for="keyword-input"><%:Keyword Match%> (<%:Optional%>):</label>
-                                <textarea id="keyword-input" placeholder="<%:Enter keywords to include nodes (one per line)%>" class="form-textarea" rows="2"></textarea>
-                                <div class="form-help"><%:eg: hk or tw&bgp%></div>
-                            </div>
+                        <div class="form-group">
+                            <label class="form-checkbox">
+                                <input type="checkbox" id="keyword-options-enable">
+                                <span class="checkmark"></span>
+                                <%:Node Filtering%>
+                            </label>
+                            <div class="form-help"><%:Show node filter options%></div>
+                        </div>
 
-                            <div class="form-group">
-                                <label for="exclude-keyword-input"><%:Exclude Keyword Match%> (<%:Optional%>):</label>
-                                <textarea id="exclude-keyword-input" placeholder="<%:Enter keywords to exclude nodes (one per line)%>" class="form-textarea" rows="2"></textarea>
-                                <div class="form-help"><%:eg: hk or tw&bgp%></div>
-                            </div>
+                        <div class="advanced-options-container oc-hidden" id="keyword-options-container">
+                            <div class="sub-convert-options">
+                                <div class="form-group">
+                                    <label for="keyword-input"><%:Keyword Match%> (<%:Optional%>):</label>
+                                    <textarea id="keyword-input" placeholder="<%:Enter keywords to include nodes (one per line)%>" class="form-textarea" rows="2"></textarea>
+                                    <div class="form-help"><%:eg: hk or tw&bgp%></div>
+                                </div>
 
-                            <div class="form-group">
-                                <label for="exclude-default-select"><%:Exclude Keyword Match Default%>:</label>
-                                <div class="form-checkbox-group">
-                                    <label class="form-checkbox">
-                                        <input type="checkbox" id="exclude-expire" value="<%:Expire%>">
-                                        <span class="checkmark"></span>
-                                        <%:Expire%>
-                                    </label>
-                                    <label class="form-checkbox">
-                                        <input type="checkbox" id="exclude-traffic" value="<%:Traffic%>">
-                                        <span class="checkmark"></span>
-                                        <%:Traffic%>
-                                    </label>
-                                    <label class="form-checkbox">
-                                        <input type="checkbox" id="exclude-plan" value="<%:Plan%>">
-                                        <span class="checkmark"></span>
-                                        <%:Plan%>
-                                    </label>
-                                    <label class="form-checkbox">
-                                        <input type="checkbox" id="exclude-website" value="<%:Official%>">
-                                        <span class="checkmark"></span>
-                                        <%:Official%>
-                                    </label>
+                                <div class="form-group">
+                                    <label for="exclude-keyword-input"><%:Exclude Keyword Match%> (<%:Optional%>):</label>
+                                    <textarea id="exclude-keyword-input" placeholder="<%:Enter keywords to exclude nodes (one per line)%>" class="form-textarea" rows="2"></textarea>
+                                    <div class="form-help"><%:eg: hk or tw&bgp%></div>
                                 </div>
                             </div>
 
-                            <div class="form-group" id="age-encryption-group">
+                            <div class="sub-convert-options">
+                                <div class="form-group">
+                                    <label for="exclude-default-select"><%:Exclude Keyword Match Default%>:</label>
+                                    <div class="form-checkbox-group">
+                                        <label class="form-checkbox">
+                                            <input type="checkbox" id="exclude-expire" value="<%:Expire%>">
+                                            <span class="checkmark"></span>
+                                            <%:Expire%>
+                                        </label>
+                                        <label class="form-checkbox">
+                                            <input type="checkbox" id="exclude-traffic" value="<%:Traffic%>">
+                                            <span class="checkmark"></span>
+                                            <%:Traffic%>
+                                        </label>
+                                        <label class="form-checkbox">
+                                            <input type="checkbox" id="exclude-plan" value="<%:Plan%>">
+                                            <span class="checkmark"></span>
+                                            <%:Plan%>
+                                        </label>
+                                        <label class="form-checkbox">
+                                            <input type="checkbox" id="exclude-website" value="<%:Official%>">
+                                            <span class="checkmark"></span>
+                                            <%:Official%>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-checkbox">
+                                <input type="checkbox" id="advanced-options-enable">
+                                <span class="checkmark"></span>
+                                <%:Advanced Options%>
+                            </label>
+                            <div class="form-help"><%:Show more subscription options%></div>
+                        </div>
+
+                        <div class="advanced-options-container oc-hidden" id="advanced-options-container">
+                            <div class="sub-convert-options">
+                                <div class="form-group">
+                                    <label><%:Custom Headers%> (<%:Optional%>):</label>
+                                    <div class="form-help" style="margin-bottom:0;"><%:Add custom HTTP headers to the subscription request%></div>
+                                    <div id="subscribe-headers-container" class="oc-hidden"></div>
+                                    <button type="button" id="subscribe-headers-add" class="add-row-btn"><svg><use href="#oc-icon-add"/></svg><span><%:Add Header%></span></button>
+                                </div>
+                            </div>
+
+                            <div class="form-group sub-convert-options" id="age-encryption-group">
                                 <div class="form-group">
                                     <label style="display:block;margin-bottom:6px;"><%:Age Key Type%></label>
                                     <div class="oc-flex-center">
@@ -620,6 +643,8 @@ var ConfigUploader = {
         var advancedOptionsContainerFile = document.getElementById('advanced-options-container-file');
         var ageFormNode = document.getElementById('age-encryption-group');
         var subVersionStatus = document.getElementById('subconverter-version-status-upload');
+        var keywordOptionsEnable = document.getElementById('keyword-options-enable');
+        var keywordOptionsContainer = document.getElementById('keyword-options-container');
 
         if (window.OpenClashSubconverterVersion && subVersionStatus) {
             this.subconverterVersionChecker = window.OpenClashSubconverterVersion.init({
@@ -653,16 +678,12 @@ var ConfigUploader = {
         advancedOptionsEnable.addEventListener('change', function() {
             if (this.checked) {
                 advancedOptionsContainer.classList.remove('oc-hidden');
-                if (ageFormNode && advancedOptionsContainer && ageFormNode.parentNode !== advancedOptionsContainer) {
-                    advancedOptionsContainer.appendChild(ageFormNode);
-                }
             } else {
                 advancedOptionsContainer.classList.add('oc-hidden');
-                self.resetAdvancedOptions();
                 self.updateSubmitButton();
-                if (ageFormNode && advancedOptionsContainer && ageFormNode.parentNode !== advancedOptionsContainer) {
-                    advancedOptionsContainer.appendChild(ageFormNode);
-                }
+            }
+            if (ageFormNode && advancedOptionsContainer && ageFormNode.parentNode !== advancedOptionsContainer) {
+                advancedOptionsContainer.appendChild(ageFormNode);
             }
         });
 
@@ -675,7 +696,6 @@ var ConfigUploader = {
                     }
                 } else {
                     advancedOptionsContainerFile.classList.add('oc-hidden');
-                    self.resetAdvancedOptions();
                     self.updateSubmitButton();
                     if (ageFormNode && advancedOptionsContainer && ageFormNode.parentNode === advancedOptionsContainerFile) {
                         advancedOptionsContainer.appendChild(ageFormNode);
@@ -688,6 +708,10 @@ var ConfigUploader = {
             subConvertOptions.classList.toggle('oc-hidden', !this.checked);
             self.updateSubconverterVersionStatus();
             self.updateSubmitButton();
+        });
+
+        keywordOptionsEnable.addEventListener('change', function() {
+            keywordOptionsContainer.classList.toggle('oc-hidden', !this.checked);
         });
 
         convertAddressSelect.addEventListener('change', function() {
@@ -858,6 +882,13 @@ var ConfigUploader = {
                         
                         if (ageNode && ageNode.parentNode !== advFileContainer) advFileContainer.appendChild(ageNode);
                     }
+                    if (hasAge) {
+                        var advEnable = document.getElementById('advanced-options-enable');
+                        var advContainer = document.getElementById('advanced-options-container');
+                        if (advEnable) advEnable.checked = true;
+                        if (advContainer) advContainer.classList.remove('oc-hidden');
+                    }
+                    if (ageNode) ageNode.style.display = '';
                 }
             } catch (e) {}
         }
@@ -912,6 +943,10 @@ var ConfigUploader = {
         document.getElementById('exclude-traffic').checked = false;
         document.getElementById('exclude-plan').checked = false;
         document.getElementById('exclude-website').checked = false;
+        var keyOptEnable = document.getElementById('keyword-options-enable');
+        if (keyOptEnable) keyOptEnable.checked = false;
+        var keyOptContainer = document.getElementById('keyword-options-container');
+        if (keyOptContainer) keyOptContainer.classList.add('oc-hidden');
         document.getElementById('age-secret-input').value = '';
         document.getElementById('age-public-input').value = '';
         var advFileEnable = document.getElementById('advanced-options-enable-file');
@@ -939,6 +974,12 @@ var ConfigUploader = {
 
         document.getElementById('advanced-options-enable').checked = false;
         document.getElementById('advanced-options-container').classList.add('oc-hidden');
+        var ageNodeEl = document.getElementById('age-encryption-group');
+        if (ageNodeEl) ageNodeEl.style.display = '';
+        var advFileEnableEl = document.getElementById('advanced-options-enable-file');
+        if (advFileEnableEl && advFileEnableEl.parentNode && advFileEnableEl.parentNode.parentNode) {
+            advFileEnableEl.parentNode.parentNode.style.display = '';
+        }
         document.getElementById('config-upload-cancel').disabled = false;
         this.resetAdvancedOptions();
 
@@ -992,84 +1033,102 @@ var ConfigUploader = {
             }
         }
 
-        if (data.sub_convert === '1' || data.convert_address || data.template || data.custom_template_url || data.emoji === 'true' || data.udp === 'true' || data.skip_cert_verify === 'true' || data.sort === 'true' || data.node_type === 'true' || data.rule_provider === 'true' || data.custom_params || data.keyword || data.ex_keyword || data.de_ex_keyword || data.sub_headers || data.config_age_secret || data.config_age_public || data.config_age_algo) {
+        var hasAge = data.config_age_secret || data.config_age_public || data.config_age_algo;
+        if (data.sub_headers || hasAge) {
+            var advContainer = document.getElementById('advanced-options-container');
+            var ageNode = document.getElementById('age-encryption-group');
             document.getElementById('advanced-options-enable').checked = true;
-            document.getElementById('advanced-options-container').classList.remove('oc-hidden');
+            if (advContainer) advContainer.classList.remove('oc-hidden');
+            if (ageNode && advContainer && ageNode.parentNode !== advContainer) advContainer.appendChild(ageNode);
+            if (ageNode) ageNode.style.display = '';
+        }
+        if (hasAge) {
+            var advFileEnable = document.getElementById('advanced-options-enable-file');
+            var advFileContainer = document.getElementById('advanced-options-container-file');
+            if (advFileEnable) advFileEnable.checked = true;
+            if (advFileContainer) advFileContainer.classList.remove('oc-hidden');
+        }
 
-            if (data.sub_convert === '1') {
-                document.getElementById('sub-convert-enable').checked = true;
-                document.getElementById('sub-convert-options').classList.remove('oc-hidden');
+        if (data.sub_convert === '1') {
+            document.getElementById('sub-convert-enable').checked = true;
+            document.getElementById('sub-convert-options').classList.remove('oc-hidden');
 
-                if (data.convert_address) {
-                    if (data.convert_address === 'https://api.wcc.best/sub' || data.convert_address === 'https://api.asailor.org/sub') {
-                        document.getElementById('convert-address-input').value = data.convert_address;
-                        if (data.convert_address === 'custom') {
-                            document.getElementById('convert-address-custom').classList.remove('oc-hidden');
-                            document.getElementById('convert-address-custom').value = data.convert_address_custom || '';
-                        }
-                    } else {
-                        document.getElementById('convert-address-input').value = 'custom';
+            if (data.convert_address) {
+                if (data.convert_address === 'https://api.wcc.best/sub' || data.convert_address === 'https://api.asailor.org/sub') {
+                    document.getElementById('convert-address-input').value = data.convert_address;
+                    if (data.convert_address === 'custom') {
                         document.getElementById('convert-address-custom').classList.remove('oc-hidden');
-                        document.getElementById('convert-address-custom').value = data.convert_address;
+                        document.getElementById('convert-address-custom').value = data.convert_address_custom || '';
+                    }
+                } else {
+                    document.getElementById('convert-address-input').value = 'custom';
+                    document.getElementById('convert-address-custom').classList.remove('oc-hidden');
+                    document.getElementById('convert-address-custom').value = data.convert_address;
+                }
+            }
+
+            if (data.template) {
+                var templateSelect = document.getElementById('template-select');
+                var found = false;
+                for (var i = 0; i < templateSelect.options.length; i++) {
+                    if (templateSelect.options[i].value === data.template) {
+                        templateSelect.selectedIndex = i;
+                        found = true;
+                        break;
                     }
                 }
-
-                if (data.template) {
-                    var templateSelect = document.getElementById('template-select');
-                    var found = false;
-                    for (var i = 0; i < templateSelect.options.length; i++) {
-                        if (templateSelect.options[i].value === data.template) {
-                            templateSelect.selectedIndex = i;
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found && data.template !== '0') {
-                        templateSelect.value = '0';
-                        document.getElementById('custom-template-group').classList.remove('oc-hidden');
-                        document.getElementById('custom-template-input').value = data.template;
-                    } else if (data.template === '0') {
-                        templateSelect.value = '0';
-                        document.getElementById('custom-template-group').classList.remove('oc-hidden');
-                        document.getElementById('custom-template-input').value = data.custom_template_url || data.custom_template || '';
-                    }
-                }
-
-                document.getElementById('emoji-enable').checked = data.emoji === 'true';
-                document.getElementById('udp-enable').checked = data.udp === 'true';
-                document.getElementById('skip-cert-verify').checked = data.skip_cert_verify === 'true';
-                document.getElementById('sort-enable').checked = data.sort === 'true';
-                document.getElementById('node-type-enable').checked = data.node_type === 'true';
-                document.getElementById('rule-provider-enable').checked = data.rule_provider === 'true';
-
-                if (data.custom_params) {
-                    document.getElementById('custom-params-input').value = data.custom_params;
+                if (!found && data.template !== '0') {
+                    templateSelect.value = '0';
+                    document.getElementById('custom-template-group').classList.remove('oc-hidden');
+                    document.getElementById('custom-template-input').value = data.template;
+                } else if (data.template === '0') {
+                    templateSelect.value = '0';
+                    document.getElementById('custom-template-group').classList.remove('oc-hidden');
+                    document.getElementById('custom-template-input').value = data.custom_template_url || data.custom_template || '';
                 }
             }
 
-            if (data.keyword) {
-                document.getElementById('keyword-input').value = data.keyword;
-            }
-            if (data.ex_keyword) {
-                document.getElementById('exclude-keyword-input').value = data.ex_keyword;
-            }
-            if (data.de_ex_keyword) {
-                var defaults = data.de_ex_keyword.split(' ');
-                document.getElementById('exclude-expire').checked = defaults.indexOf(document.getElementById('exclude-expire').value) !== -1;
-                document.getElementById('exclude-traffic').checked = defaults.indexOf(document.getElementById('exclude-traffic').value) !== -1;
-                document.getElementById('exclude-plan').checked = defaults.indexOf(document.getElementById('exclude-plan').value) !== -1;
-                document.getElementById('exclude-website').checked = defaults.indexOf(document.getElementById('exclude-website').value) !== -1;
-            }
+            document.getElementById('emoji-enable').checked = data.emoji === 'true';
+            document.getElementById('udp-enable').checked = data.udp === 'true';
+            document.getElementById('skip-cert-verify').checked = data.skip_cert_verify === 'true';
+            document.getElementById('sort-enable').checked = data.sort === 'true';
+            document.getElementById('node-type-enable').checked = data.node_type === 'true';
+            document.getElementById('rule-provider-enable').checked = data.rule_provider === 'true';
 
-            var secretEl = document.getElementById('age-secret-input');
-            var publicEl = document.getElementById('age-public-input');
-            if (secretEl) secretEl.value = data.config_age_secret || '';
-            if (publicEl) publicEl.value = data.config_age_public || '';
-            if (data.config_age_algo) {
-                var algoSelect = document.getElementById('age-algo-select');
-                if (algoSelect) {
-                    try { algoSelect.value = data.config_age_algo; } catch (e) {}
-                }
+            if (data.custom_params) {
+                document.getElementById('custom-params-input').value = data.custom_params;
+            }
+        }
+
+        if (data.keyword_option === '1' || data.keyword || data.ex_keyword || data.de_ex_keyword) {
+            var keyOptEnable = document.getElementById('keyword-options-enable');
+            if (keyOptEnable) keyOptEnable.checked = true;
+            var keyOptContainer = document.getElementById('keyword-options-container');
+            if (keyOptContainer) keyOptContainer.classList.remove('oc-hidden');
+        }
+
+        if (data.keyword) {
+            document.getElementById('keyword-input').value = data.keyword;
+        }
+        if (data.ex_keyword) {
+            document.getElementById('exclude-keyword-input').value = data.ex_keyword;
+        }
+        if (data.de_ex_keyword) {
+            var defaults = data.de_ex_keyword.split(' ');
+            document.getElementById('exclude-expire').checked = defaults.indexOf(document.getElementById('exclude-expire').value) !== -1;
+            document.getElementById('exclude-traffic').checked = defaults.indexOf(document.getElementById('exclude-traffic').value) !== -1;
+            document.getElementById('exclude-plan').checked = defaults.indexOf(document.getElementById('exclude-plan').value) !== -1;
+            document.getElementById('exclude-website').checked = defaults.indexOf(document.getElementById('exclude-website').value) !== -1;
+        }
+
+        var secretEl = document.getElementById('age-secret-input');
+        var publicEl = document.getElementById('age-public-input');
+        if (secretEl) secretEl.value = data.config_age_secret || '';
+        if (publicEl) publicEl.value = data.config_age_public || '';
+        if (data.config_age_algo) {
+            var algoSelect = document.getElementById('age-algo-select');
+            if (algoSelect) {
+                try { algoSelect.value = data.config_age_algo; } catch (e) {}
             }
         }
 
@@ -1193,8 +1252,7 @@ var ConfigUploader = {
             }
         } else if (this.currentMode === 'subscribe') {
             var url = document.getElementById('subscribe-url-input').value.trim();
-            var advancedEnabled = document.getElementById('advanced-options-enable').checked;
-            var subConvert = advancedEnabled && document.getElementById('sub-convert-enable').checked;
+            var subConvert = document.getElementById('sub-convert-enable').checked;
             var agePublic = document.getElementById('age-public-input') ? document.getElementById('age-public-input').value.trim() : '';
             var ageSecret = document.getElementById('age-secret-input') ? document.getElementById('age-secret-input').value.trim() : '';
 
@@ -1340,8 +1398,7 @@ var ConfigUploader = {
         var userAgent = document.getElementById('subscribe-ua-input').value;
         var subscribeUaCustom = document.getElementById('subscribe-ua-custom');
 
-        var advancedEnabled = document.getElementById('advanced-options-enable').checked;
-        var subConvert = advancedEnabled && document.getElementById('sub-convert-enable').checked;
+        var subConvert = document.getElementById('sub-convert-enable').checked;
 
         var convertAddress = '';
         var template = '';
@@ -1358,7 +1415,7 @@ var ConfigUploader = {
         var excludeDefaults = [];
         var customHeaders = ConfigUploader.collectHeaders();
 
-        if (advancedEnabled) {
+        if (subConvert) {
             convertAddress = document.getElementById('convert-address-input').value;
             var convertAddressCustom = document.getElementById('convert-address-custom').value;
             template = document.getElementById('template-select').value;
@@ -1370,13 +1427,6 @@ var ConfigUploader = {
             nodeType = document.getElementById('node-type-enable').checked;
             ruleProvider = document.getElementById('rule-provider-enable').checked;
             customParams = document.getElementById('custom-params-input').value;
-            keywords = document.getElementById('keyword-input').value;
-            excludeKeywords = document.getElementById('exclude-keyword-input').value;
-
-            if (document.getElementById('exclude-expire').checked) excludeDefaults.push(document.getElementById('exclude-expire').value);
-            if (document.getElementById('exclude-traffic').checked) excludeDefaults.push(document.getElementById('exclude-traffic').value);
-            if (document.getElementById('exclude-plan').checked) excludeDefaults.push(document.getElementById('exclude-plan').value);
-            if (document.getElementById('exclude-website').checked) excludeDefaults.push(document.getElementById('exclude-website').value);
 
             if (convertAddress === 'custom') {
                 convertAddress = convertAddressCustom.trim();
@@ -1385,6 +1435,18 @@ var ConfigUploader = {
             if (template === '0') {
                 customTemplateUrl = customTemplate.trim();
             }
+        }
+
+        var keywordOption = document.getElementById('keyword-options-enable').checked;
+
+        if (keywordOption) {
+            keywords = document.getElementById('keyword-input').value;
+            excludeKeywords = document.getElementById('exclude-keyword-input').value;
+
+            if (document.getElementById('exclude-expire').checked) excludeDefaults.push(document.getElementById('exclude-expire').value);
+            if (document.getElementById('exclude-traffic').checked) excludeDefaults.push(document.getElementById('exclude-traffic').value);
+            if (document.getElementById('exclude-plan').checked) excludeDefaults.push(document.getElementById('exclude-plan').value);
+            if (document.getElementById('exclude-website').checked) excludeDefaults.push(document.getElementById('exclude-website').value);
         }
 
         if (userAgent === 'custom') {
@@ -1468,6 +1530,7 @@ var ConfigUploader = {
                 node_type: nodeType ? 'true' : 'false',
                 rule_provider: ruleProvider ? 'true' : 'false',
                 custom_params: customParams,
+                keyword_option: keywordOption ? '1' : '0',
                 keyword: keywords,
                 ex_keyword: excludeKeywords,
                 de_ex_keyword: excludeDefaults.join(' '),

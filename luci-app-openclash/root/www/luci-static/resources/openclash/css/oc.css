@@ -2879,18 +2879,25 @@ html[data-darkmode="true"] .oc svg {
 }
 
 .oc .advanced-options-container {
-    padding: 16px;
+    padding: 12px;
     background: var(--bg-light);
     border-radius: var(--radius-sm);
     border: 1px solid var(--border-light);
     transition: all var(--transition-fast);
 }
 
-.oc .advanced-options-container .form-group:last-child {
+.oc .advanced-options-container > .sub-convert-options:first-child,
+.oc .sub-convert-options > .sub-convert-options:first-child {
+    margin-top: 0;
+}
+
+.oc .advanced-options-container > .sub-convert-options:last-child,
+.oc .sub-convert-options > .sub-convert-options:last-child {
     margin-bottom: 0;
 }
 
-.oc .advanced-options-container .sub-convert-options {
+.oc .advanced-options-container .sub-convert-options,
+.oc .sub-convert-options .sub-convert-options {
     margin: 12px auto;
     margin-left: 0;
     background: var(--primary-a5);
@@ -2899,12 +2906,12 @@ html[data-darkmode="true"] .oc svg {
 }
 
 .oc .sub-convert-options {
-    margin: 16px auto;
-    padding: 16px;
+    margin: 0;
+    padding: 12px;
     background: var(--bg-light);
     border-radius: var(--radius-sm);
     border: 1px solid var(--border-light);
-    max-width: 95%;
+    max-width: 100%;
     width: 100%;
     box-sizing: border-box;
 }
@@ -3027,7 +3034,8 @@ html[data-darkmode="true"] .oc .advanced-options-container {
     border-color: var(--border-light);
 }
 
-html[data-darkmode="true"] .oc .advanced-options-container .sub-convert-options {
+html[data-darkmode="true"] .oc .advanced-options-container .sub-convert-options,
+html[data-darkmode="true"] .oc .sub-convert-options .sub-convert-options {
     background: var(--primary-a10);
     border-color: var(--border-light);
 }
@@ -7425,7 +7433,7 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     /* config_upload.htm */
     .oc .form-help { font-size: 11px; margin-bottom: 10px; gap: 5px; }
     .oc .form-help::before { width: 11px; height: 11px; margin-top: 1px; }
-    .oc .sub-convert-options { margin: 12px auto; padding: var(--card-outer-padding); max-width: 98%; }
+    .oc .sub-convert-options { margin: 0; padding: var(--card-outer-padding); max-width: 100%; }
 
     /* config_edit.htm */
     .oc .config-editor-model { width: 95vw; height: 80vh; min-width: 320px; }
@@ -7608,7 +7616,7 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     /* config_upload.htm */
     .oc .form-help { font-size: 10px; margin-bottom: 8px; gap: 4px; }
     .oc .form-help::before { width: 10px; height: 10px; margin-top: 1px; }
-    .oc .sub-convert-options { margin: 10px auto; padding: 10px; max-width: 100%; }
+    .oc .sub-convert-options { margin: 0; padding: 10px; max-width: 100%; }
     .oc .config-upload-model { width: 95vw; min-width: 320px; }
     .oc .config-upload-content { padding: 20px; }
     .oc .upload-zone { padding: 30px 15px; }

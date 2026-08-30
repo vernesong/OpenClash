@@ -4790,6 +4790,7 @@ function action_add_subscription()
 	local node_type = HTTP.formvalue("node_type") or "false"
 	local rule_provider = HTTP.formvalue("rule_provider") or "false"
 	local custom_params = HTTP.formvalue("custom_params") or ""
+	local keyword_option = HTTP.formvalue("keyword_option") or "0"
 	local keyword = HTTP.formvalue("keyword") or ""
 	local ex_keyword = HTTP.formvalue("ex_keyword") or ""
 	local de_ex_keyword = HTTP.formvalue("de_ex_keyword") or ""
@@ -4959,6 +4960,8 @@ function action_add_subscription()
 				uci:set_list("openclash", section_id, "custom_params", params)
 			end
 		end
+
+		uci:set("openclash", section_id, "keyword_option", keyword_option)
 
 		uci:delete("openclash", section_id, "keyword")
 		if keyword and keyword ~= "" then
@@ -5732,6 +5735,8 @@ local function fetch_oix_sub(token)
 	local sub_info = SYS.exec(get_sub)
 	if sub_info then sub_info = json.parse(sub_info) end
 	if sub_info and sub_info.ret == 200 then
+		uci:set("openclash", "config", "oix_token", token)
+		uci:commit("openclash")
 		local sub_key = {"openclash"}
 		for _,v in ipairs(sub_key) do
 			while true do
@@ -5784,8 +5789,6 @@ function oix_login()
 		write_padded('{"stage":"saving_token","text":"' .. luci.i18n.translate("Saving token...") .. '"}')
 		token = input_token
 		if fetch_oix_sub(token) then
-			uci:set("openclash", "config", "oix_token", input_token)
-			uci:commit("openclash")
 			write_padded('{"stage":"done","result":200}')
 		else
 			write_padded('{"stage":"error","result":' .. json.stringify(luci.i18n.translate("invalid token")) .. '}')
@@ -5804,11 +5807,16 @@ function oix_login()
 					oix_logout(token)
 				end
 				token = info.data.token
-				uci:set("openclash", "config", "oix_token", token)
-				uci:commit("openclash")
-				result = info.ret
-				fetch_oix_sub(token)
-				write_padded('{"stage":"done","result":200}')
+				if fetch_oix_sub(token) then
+					write_padded('{"stage":"done","result":200}')
+				else
+					uci:delete("openclash", "config", "oix_token")
+					uci:commit("openclash")
+					fs.unlink("/tmp/oix_checkin")
+					fs.unlink("/tmp/oix_info")
+					result = luci.i18n.translate("login failed")
+					write_padded('{"stage":"error","result":' .. json.stringify(result) .. '}')
+				end
 			else
 				uci:delete("openclash", "config", "oix_token")
 				uci:commit("openclash")

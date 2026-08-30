@@ -75,134 +75,6 @@ o:value("clash.meta/1.19.20")
 o:value("Clash")
 o.rmempty = true
 
----- Custom Headers
-o = s:option(DynamicList, "sub_headers", translate("Custom Headers"))
-o.description = font_red..bold_on..translate("Custom HTTP request headers, one per line, format: Header-Name: value")..bold_off..font_off
-o.rmempty = true
-o.placeholder = "x-hwid: my-device-id"
-
-o = s:option(ListValue, "config_age_algo", translate("Age Key Type"))
-o.description = font_red..bold_on..translate("Age Encryption For Config, Click For More:")..bold_off..font_off.." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://wiki.metacubex.one/config/proxy-providers/?age-secret-key#age-secret-key\")'>"..translate("Age Encryption Introduce").."</a>"
-o:value("keygen", "x25519")
-o:value("pq", "PQ (mlkem768-x25519)")
-o.rmempty = true
-function o.cfgvalue(self, section)
-	local name = m.uci:get(openclash, section, "name") or section
-	local v = ""
-	m.uci:foreach(openclash, "config_age_secret", function(s)
-		if s.name == name then
-			v = s.algo or ""
-			age_section = s['.name']
-			return false
-		end
-	end)
-	return v
-end
-function o.write(self, section, value)
-	local name = m.uci:get(openclash, section, "name") or section
-	m.uci:foreach(openclash, "config_age_secret", function(s)
-		if s.name == name then
-			age_section = s['.name']
-			return false
-		end
-	end)
-	if not age_section and value and value ~= "" then
-		age_section = m.uci:add(openclash, "config_age_secret")
-		if age_section then m.uci:set(openclash, age_section, "name", name) end
-	end
-	if age_section then
-		if value and value ~= "" then
-			m.uci:set(openclash, age_section, "algo", value)
-		else
-			m.uci:delete(openclash, age_section, "algo")
-		end
-	end
-end
-function o.remove(self, section)
-	self:write(section, "")
-end
-
-o = s:option(Value, "config_age_secret", translate("Secret Key"))
-o.rmempty = true
-o.placeholder = "AGE-SECRET-KEY-..."
-function o.cfgvalue(self, section)
-	local name = m.uci:get(openclash, section, "name") or section
-	local v = ""
-	m.uci:foreach(openclash, "config_age_secret", function(s)
-		if s.name == name then
-			v = s.secret or ""
-			age_section = s['.name']
-			return false
-		end
-	end)
-	return v
-end
-function o.write(self, section, value)
-	local name = m.uci:get(openclash, section, "name") or section
-	m.uci:foreach(openclash, "config_age_secret", function(s)
-		if s.name == name then
-			age_section = s['.name']
-			return false
-		end
-	end)
-	if not age_section and value and value ~= "" then
-		age_section = m.uci:add(openclash, "config_age_secret")
-		if age_section then m.uci:set(openclash, age_section, "name", name) end
-	end
-	if age_section then
-		if value and value ~= "" then
-			m.uci:set(openclash, age_section, "secret", value)
-		else
-			m.uci:delete(openclash, age_section, "secret")
-		end
-	end
-end
-function o.remove(self, section)
-	self:write(section, "")
-end
-
-o = s:option(Value, "config_age_public", translate("Public Key"))
-o.rmempty = true
-o.placeholder = "age..."
-function o.cfgvalue(self, section)
-	local name = m.uci:get(openclash, section, "name") or section
-	local v = ""
-	m.uci:foreach(openclash, "config_age_secret", function(s)
-		if s.name == name then
-			v = s.public or ""
-			age_section = s['.name']
-			return false
-		end
-	end)
-	return v
-end
-function o.write(self, section, value)
-	local name = m.uci:get(openclash, section, "name") or section
-	m.uci:foreach(openclash, "config_age_secret", function(s)
-		if s.name == name then
-			age_section = s['.name']
-			return false
-		end
-	end)
-	if not age_section and value and value ~= "" then
-		age_section = m.uci:add(openclash, "config_age_secret")
-		if age_section then m.uci:set(openclash, age_section, "name", name) end
-	end
-	if age_section then
-		if value and value ~= "" then
-			m.uci:set(openclash, age_section, "public", value)
-		else
-			m.uci:delete(openclash, age_section, "public")
-		end
-	end
-end
-function o.remove(self, section)
-	self:write(section, "")
-end
-
-o = s:option(DummyValue, "_generate_age_btn", "")
-o.template = "openclash/generate_age"
-
 ---- subconverter
 o = s:option(Flag, "sub_convert", translate("Subscribe Convert Online"))
 o.description = translate("Convert Subscribe Online With Template")
@@ -293,23 +165,170 @@ o.description = font_red..bold_on..translate("eg: \"rename=match@replace\" , \"r
 o.rmempty = false
 o:depends("sub_convert", "1")
 
+---- Node Filtering
+o = s:option(Flag, "keyword_option", translate("Node Filtering"))
+o.description = translate("Show node filter options")
+o.default = 0
+
 ---- key
 o = s:option(DynamicList, "keyword", font_red..bold_on..translate("Keyword Match")..bold_off..font_off)
 o.description = font_red..bold_on..translate("eg: hk or tw&bgp")..bold_off..font_off
 o.rmempty = true
+o:depends("keyword_option", "1")
 
 ---- exkey
 o = s:option(DynamicList, "ex_keyword", font_red..bold_on..translate("Exclude Keyword Match")..bold_off..font_off)
 o.description = font_red..bold_on..translate("eg: hk or tw&bgp")..bold_off..font_off
 o.rmempty = true
+o:depends("keyword_option", "1")
 
 ---- de_exkey
 o = s:option(MultiValue, "de_ex_keyword", font_red..bold_on..translate("Exclude Keyword Match Default")..bold_off..font_off)
 o.rmempty = true
+o:depends("keyword_option", "1")
 o:value(translate("Expire"))
 o:value(translate("Traffic"))
 o:value(translate("Plan"))
 o:value(translate("Official"))
+
+
+---- Advanced Options
+o = s:option(Flag, "ad_option", translate("Advanced Options"))
+o.description = translate("Show more subscription options")
+o.default = 0
+
+---- Custom Headers
+o = s:option(DynamicList, "sub_headers", translate("Custom Headers"))
+o.description = font_red..bold_on..translate("Custom HTTP request headers, one per line, format: Header-Name: value")..bold_off..font_off
+o.rmempty = true
+o.placeholder = "x-hwid: my-device-id"
+o:depends("ad_option", "1")
+
+o = s:option(ListValue, "config_age_algo", translate("Age Key Type"))
+o:depends("ad_option", "1")
+o.description = font_red..bold_on..translate("Age Encryption For Config, Click For More:")..bold_off..font_off.." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://wiki.metacubex.one/config/proxy-providers/?age-secret-key#age-secret-key\")'>"..translate("Age Encryption Introduce").."</a>"
+o:value("keygen", "x25519")
+o:value("pq", "PQ (mlkem768-x25519)")
+o.rmempty = true
+function o.cfgvalue(self, section)
+	local name = m.uci:get(openclash, section, "name") or section
+	local v = ""
+	m.uci:foreach(openclash, "config_age_secret", function(s)
+		if s.name == name then
+			v = s.algo or ""
+			age_section = s['.name']
+			return false
+		end
+	end)
+	return v
+end
+function o.write(self, section, value)
+	local name = m.uci:get(openclash, section, "name") or section
+	m.uci:foreach(openclash, "config_age_secret", function(s)
+		if s.name == name then
+			age_section = s['.name']
+			return false
+		end
+	end)
+	if not age_section and value and value ~= "" then
+		age_section = m.uci:add(openclash, "config_age_secret")
+		if age_section then m.uci:set(openclash, age_section, "name", name) end
+	end
+	if age_section then
+		if value and value ~= "" then
+			m.uci:set(openclash, age_section, "algo", value)
+		else
+			m.uci:delete(openclash, age_section, "algo")
+		end
+	end
+end
+function o.remove(self, section)
+	self:write(section, "")
+end
+
+o = s:option(Value, "config_age_secret", translate("Secret Key"))
+o.rmempty = true
+o:depends("ad_option", "1")
+o.placeholder = "AGE-SECRET-KEY-..."
+function o.cfgvalue(self, section)
+	local name = m.uci:get(openclash, section, "name") or section
+	local v = ""
+	m.uci:foreach(openclash, "config_age_secret", function(s)
+		if s.name == name then
+			v = s.secret or ""
+			age_section = s['.name']
+			return false
+		end
+	end)
+	return v
+end
+function o.write(self, section, value)
+	local name = m.uci:get(openclash, section, "name") or section
+	m.uci:foreach(openclash, "config_age_secret", function(s)
+		if s.name == name then
+			age_section = s['.name']
+			return false
+		end
+	end)
+	if not age_section and value and value ~= "" then
+		age_section = m.uci:add(openclash, "config_age_secret")
+		if age_section then m.uci:set(openclash, age_section, "name", name) end
+	end
+	if age_section then
+		if value and value ~= "" then
+			m.uci:set(openclash, age_section, "secret", value)
+		else
+			m.uci:delete(openclash, age_section, "secret")
+		end
+	end
+end
+function o.remove(self, section)
+	self:write(section, "")
+end
+
+o = s:option(Value, "config_age_public", translate("Public Key"))
+o.rmempty = true
+o:depends("ad_option", "1")
+o.placeholder = "age..."
+function o.cfgvalue(self, section)
+	local name = m.uci:get(openclash, section, "name") or section
+	local v = ""
+	m.uci:foreach(openclash, "config_age_secret", function(s)
+		if s.name == name then
+			v = s.public or ""
+			age_section = s['.name']
+			return false
+		end
+	end)
+	return v
+end
+function o.write(self, section, value)
+	local name = m.uci:get(openclash, section, "name") or section
+	m.uci:foreach(openclash, "config_age_secret", function(s)
+		if s.name == name then
+			age_section = s['.name']
+			return false
+		end
+	end)
+	if not age_section and value and value ~= "" then
+		age_section = m.uci:add(openclash, "config_age_secret")
+		if age_section then m.uci:set(openclash, age_section, "name", name) end
+	end
+	if age_section then
+		if value and value ~= "" then
+			m.uci:set(openclash, age_section, "public", value)
+		else
+			m.uci:delete(openclash, age_section, "public")
+		end
+	end
+end
+function o.remove(self, section)
+	self:write(section, "")
+end
+
+o = s:option(DummyValue, "_generate_age_btn", "")
+o:depends("ad_option", "1")
+o.template = "openclash/generate_age"
 
 local t = {
 	{Commit, Back}
@@ -340,7 +359,9 @@ o.inputtitle = translate("Back Settings")
 o.inputstyle = "reset"
 o.write = function()
 	m.uci:revert(openclash, sid)
-	m.uci:revert(openclash, age_section)
+	if age_section then
+		m.uci:revert(openclash, age_section)
+	end
 	HTTP.redirect(m.redirect)
 end
 
