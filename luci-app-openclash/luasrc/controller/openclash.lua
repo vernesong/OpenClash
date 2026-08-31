@@ -5579,7 +5579,7 @@ function action_add_age_config()
 	local age_secret = HTTP.formvalue("age_secret") or ""
 	local age_public = HTTP.formvalue("age_public") or ""
 	local age_algo = HTTP.formvalue("age_algo") or ""
-	local age_section_id, age_section_hidden
+	local age_section_id, age_section_hidden, age_section_secret
 
 	HTTP.prepare_content("application/json")
 
@@ -5592,6 +5592,7 @@ function action_add_age_config()
 		if s.name == name then
 			age_section_id = s['.name']
 			age_section_hidden = s.hidden and s.hidden == "true"
+			age_section_secret = s.secret
 			return false
 		end
 	end)
@@ -5601,7 +5602,7 @@ function action_add_age_config()
 		return
 	end
 
-	if not age_section_id and (age_secret ~= "" or age_public ~= "" or age_algo ~= "") then
+	if not age_section_id and age_secret ~= "" then
 		age_section_id = uci:add("openclash", "config_age_secret")
 		if age_section_id then
 			uci:set("openclash", age_section_id, "name", name)
@@ -5609,7 +5610,37 @@ function action_add_age_config()
 	end
 
 	if age_section_id then
-		if (age_secret == "" and age_public == "") then
+		if (age_secret == "") then
+			-- Before removing the age keys, decrypt the config file if it is
+			-- age-encrypted so it stays readable after the keys are gone.
+			if age_section_secret and age_section_secret ~= "" then
+				local config_paths = {
+					"/etc/openclash/config/" .. name .. ".yaml",
+					"/etc/openclash/" .. name .. ".yaml",
+				}
+				for _, config_path in ipairs(config_paths) do
+					if fs.access(config_path) then
+						local fp = io.open(config_path, "rb")
+						if fp then
+							local content = fp:read("*a")
+							fp:close()
+							if content and content:find("BEGIN AGE ENCRYPTED FILE", 1, true) then
+								local plain = fs.age_decrypt(age_section_secret, content)
+								if plain and plain ~= "" then
+									local fo = io.open(config_path, "wb")
+									if fo then
+										fo:write(plain)
+										fo:close()
+									end
+								else
+									HTTP.write_json({status = "error", message = "Failed to decrypt config file, age config cannot be removed"})
+									return
+								end
+							end
+						end
+					end
+				end
+			end
 			uci:delete("openclash", age_section_id)
 		else
 			if age_secret and age_secret ~= "" then

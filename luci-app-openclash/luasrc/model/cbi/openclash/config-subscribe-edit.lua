@@ -9,6 +9,7 @@ local HTTP = require "luci.http"
 local DISP = require "luci.dispatcher"
 local sid = arg[1]
 local age_section
+
 local backend_version_status = [[
 <div class="oc">
 	<div id="subconverter-version-status-cbi" class="subconverter-version-status" data-state="idle" hidden>
@@ -341,14 +342,49 @@ o.inputstyle = "apply"
 o.write = function()
 	local to_delete = {}
 	m.uci:foreach(openclash, "config_age_secret", function(s)
-		local pub = m.uci:get(openclash, s['.name'], "public") or ""
 		local sec = m.uci:get(openclash, s['.name'], "secret") or ""
-		if (pub == "" or pub == nil) and (sec == "" or sec == nil) then
-			table.insert(to_delete, s['.name'])
+		if sec == "" or sec == nil then
+			table.insert(to_delete, { sid = s['.name'], name = s.name or "" })
 		end
 	end)
-	for _, n in ipairs(to_delete) do
-		m.uci:delete(openclash, n)
+	-- Before removing the age keys, decrypt each affected config file so it
+	-- stays readable after the keys are gone. The field writes above have
+	-- already dropped the secret in the working cursor, so read the previous
+	-- value from a fresh cursor (the change is not committed to disk yet).
+	local old_uci = luci.model.uci.cursor()
+	for _, d in ipairs(to_delete) do
+		local old_secret = old_uci:get(openclash, d.sid, "secret") or ""
+		local can_delete = true
+		if old_secret ~= "" and d.name and d.name ~= "" then
+			local config_paths = {
+				"/etc/openclash/config/" .. d.name .. ".yaml",
+				"/etc/openclash/" .. d.name .. ".yaml",
+			}
+			for _, config_path in ipairs(config_paths) do
+				if fs.access(config_path) then
+					local fp = io.open(config_path, "rb")
+					if fp then
+						local content = fp:read("*a")
+						fp:close()
+						if content and content:find("BEGIN AGE ENCRYPTED FILE", 1, true) then
+							local plain = fs.age_decrypt(old_secret, content)
+							if plain and plain ~= "" then
+								local fo = io.open(config_path, "wb")
+								if fo then
+									fo:write(plain)
+									fo:close()
+								end
+							else
+								can_delete = false
+							end
+						end
+					end
+				end
+			end
+		end
+		if can_delete then
+			m.uci:delete(openclash, d.sid)
+		end
 	end
 	m.uci:commit(openclash)
 	HTTP.redirect(m.redirect)

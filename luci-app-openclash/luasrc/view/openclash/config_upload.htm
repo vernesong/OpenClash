@@ -1296,9 +1296,11 @@ var ConfigUploader = {
         }
 
         if (this.editFilename || this.selectedFile) {
-            var ageSecret = document.getElementById('age-secret-input').value || '';
-            var agePublic = document.getElementById('age-public-input').value || '';
-            var ageAlgoEl = document.getElementById('age-algo-select'), ageAlgo = ageAlgoEl ? ageAlgoEl.value : '';
+            var advFileEnableEl = document.getElementById('advanced-options-enable-file');
+            var advFileChecked = advFileEnableEl ? advFileEnableEl.checked : false;
+            var ageSecret = advFileChecked ? (document.getElementById('age-secret-input').value || '') : '';
+            var agePublic = advFileChecked ? (document.getElementById('age-public-input').value || '') : '';
+            var ageAlgoEl = document.getElementById('age-algo-select'), ageAlgo = advFileChecked ? (ageAlgoEl ? ageAlgoEl.value : '') : '';
 
             XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "add_age_config")%>', {
                 name: filename,
@@ -1453,15 +1455,20 @@ var ConfigUploader = {
             userAgent = subscribeUaCustom.value.trim();
         }
 
-        var ageSecretVal = document.getElementById('age-secret-input') ? document.getElementById('age-secret-input').value.trim() : '';
-        var agePublicVal = document.getElementById('age-public-input') ? document.getElementById('age-public-input').value.trim() : '';
+        var advancedEnable = document.getElementById('advanced-options-enable') ? document.getElementById('advanced-options-enable').checked : false;
+        var ageSecretVal = '';
+        var agePublicVal = '';
+        if (advancedEnable) {
+            ageSecretVal = document.getElementById('age-secret-input') ? document.getElementById('age-secret-input').value.trim() : '';
+            agePublicVal = document.getElementById('age-public-input') ? document.getElementById('age-public-input').value.trim() : '';
+        }
 
         if (!filename) {
             alert('<%:Please enter subscription config name%>');
             return;
         }
 
-        if ((!url || url === '') && !ageSecretVal && !agePublicVal) {
+        if ((!url || url === '') && !ageSecretVal) {
             alert('<%:Please enter subscription URL and config name%>');
             return;
         }
@@ -1510,9 +1517,9 @@ var ConfigUploader = {
             }
         }, 100);
 
-        var ageSecret = document.getElementById('age-secret-input').value || '';
-        var agePublic = document.getElementById('age-public-input').value || '';
-        var ageAlgoEl = document.getElementById('age-algo-select'), ageAlgo = ageAlgoEl ? ageAlgoEl.value : '';
+        var ageSecret = advancedEnable ? (document.getElementById('age-secret-input').value || '') : '';
+        var agePublic = advancedEnable ? (document.getElementById('age-public-input').value || '') : '';
+        var ageAlgoEl = document.getElementById('age-algo-select'), ageAlgo = advancedEnable ? (ageAlgoEl ? ageAlgoEl.value : '') : '';
 
         var doAddSubscription = function() {
             XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "add_subscription")%>', {
