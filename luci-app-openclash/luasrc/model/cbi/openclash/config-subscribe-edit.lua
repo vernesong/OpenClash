@@ -132,7 +132,7 @@ o = s:option(ListValue, "skip_cert_verify", translate("skip-cert-verify"))
 o.rmempty = false
 o:value("false", translate("Disable"))
 o:value("true", translate("Enable"))
-o.default = "false"
+o.default = "true"
 o:depends("sub_convert", "1")
 
 ---- sort

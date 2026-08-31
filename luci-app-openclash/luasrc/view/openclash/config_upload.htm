@@ -159,7 +159,7 @@
                                 <div class="form-row">
                                     <div class="form-group form-half">
                                         <label class="form-checkbox">
-                                            <input type="checkbox" id="skip-cert-verify">
+                                            <input type="checkbox" id="skip-cert-verify" checked>
                                             <span class="checkmark"></span>
                                             <%:skip-cert-verify%>
                                         </label>
@@ -931,7 +931,7 @@ var ConfigUploader = {
 
         document.getElementById('emoji-enable').checked = false;
         document.getElementById('udp-enable').checked = false;
-        document.getElementById('skip-cert-verify').checked = false;
+        document.getElementById('skip-cert-verify').checked = true;
         document.getElementById('sort-enable').checked = false;
         document.getElementById('node-type-enable').checked = false;
         document.getElementById('rule-provider-enable').checked = false;
