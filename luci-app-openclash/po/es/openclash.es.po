@@ -501,17 +501,44 @@ msgstr "Dirección pública del panel"
 msgid "Domain Name For Dashboard Login From Public Network"
 msgstr "Dominio para iniciar sesión en el panel desde Internet"
 
+msgid "Domain Name or IP For Dashboard Login From Public Network (without http:// or https://)"
+msgstr "Dominio o IP para iniciar sesión en el panel desde Internet (sin http:// ni https://)"
+
+msgid "Enter a valid hostname or IP address without a path or user information"
+msgstr "Introduzca un nombre de host o dirección IP válidos sin ruta ni información de usuario"
+
 msgid "Public Dashboard Port"
 msgstr "Puerto público del panel"
 
 msgid "Port For Dashboard Login From Public Network"
 msgstr "Puerto usado para iniciar sesión en el panel desde Internet"
 
+msgid "Optional Port For Dashboard Login From Public Network (defaults to 443 with SSL or 80 without SSL)"
+msgstr "Puerto opcional para iniciar sesión en el panel desde Internet (predeterminado: 443 con SSL o 80 sin SSL)"
+
 msgid "Public Dashboard SSL enabled"
 msgstr "Habilitar SSL para acceso público"
 
 msgid "Is SSL enabled For Dashboard Login From Public Network"
 msgstr "Indica si el acceso al panel desde Internet utiliza SSL"
+
+msgid "Custom Dashboard URL"
+msgstr "URL personalizada del panel"
+
+msgid "Optional complete HTTP(S) URL for an externally hosted Dashboard. OpenClash appends hostname, port and secret parameters without adding a local UI path. Include a hash route such as #/setup in the URL when required by the panel."
+msgstr "URL HTTP(S) completa opcional de un panel alojado externamente. OpenClash añade los parámetros hostname, port y secret sin añadir una ruta de interfaz local. Incluya una ruta hash como #/setup en la URL cuando el panel lo requiera."
+
+msgid "External Dashboard"
+msgstr "Panel externo"
+
+msgid "Clash Dashboard Compatibility Mode"
+msgstr "Modo de compatibilidad de Clash Dashboard"
+
+msgid "Use Clash Dashboard-compatible #/?host=... login parameters for the custom Dashboard URL instead of the standard hostname parameters."
+msgstr "Use parámetros de inicio de sesión compatibles con Clash Dashboard #/?host=... para la URL del panel personalizado en lugar de los parámetros hostname estándar."
+
+msgid "Enter a valid complete HTTP or HTTPS URL without user information"
+msgstr "Introduzca una URL HTTP o HTTPS completa válida sin información de usuario"
 
 msgid "GEO Update"
 msgstr "Actualización de bases GEO"

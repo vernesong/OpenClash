@@ -1272,7 +1272,7 @@ o.description = translate("Set Dashboard Secret")
 o = s:taboption("dashboard", Value, "dashboard_forward_domain")
 o.title = translate("Public Dashboard Address")
 o.datatype = "or(host, string)"
-o.placeholder = "example.com"
+o.placeholder = "example.com or 192.168.1.1 or [2001:db8::1]"
 o.rmempty = true
 o.description = translate("Domain Name or IP For Dashboard Login From Public Network (without http:// or https://)")
 function o.validate(self, value)
@@ -1312,7 +1312,7 @@ o.description = translate("Is SSL enabled For Dashboard Login From Public Networ
 
 o = s:taboption("dashboard", Value, "dashboard_custom_url")
 o.title = translate("Custom Dashboard URL")
-o.placeholder = "https://board.example.com/"
+o.placeholder = "https://board.example.com/ or http://192.168.1.1:9090 or https://[2001:db8::1]:8443"
 o.rmempty = true
 o.description = translate("Optional complete HTTP(S) URL for an externally hosted Dashboard. OpenClash appends hostname, port and secret parameters without adding a local UI path. Include a hash route such as #/setup in the URL when required by the panel.")
 function o.validate(self, value)
