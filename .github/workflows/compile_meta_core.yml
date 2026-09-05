@@ -238,6 +238,7 @@ jobs:
                 fi
               done
               if [ "$changes_made_to_dev_meta" = true ]; then
+                (cd ./dev/meta && find . -type f ! -name 'checksums.txt' | sort | xargs sha256sum > checksums.txt 2>/dev/null || true)
                 git add ./dev/meta
                 commit_description="Meta to ${{ needs.Get-Commit-id.outputs.upstream_id }}"
               fi
@@ -258,6 +259,7 @@ jobs:
                 fi
               done
               if [ "$changes_made_to_dev_smart" = true ]; then
+                (cd ./dev/smart && find . -type f ! -name 'checksums.txt' | sort | xargs sha256sum > checksums.txt 2>/dev/null || true)
                 git add ./dev/smart
                 if [ -n "$commit_description" ]; then
                   commit_description="$commit_description, "

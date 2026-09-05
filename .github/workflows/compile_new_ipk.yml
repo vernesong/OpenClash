@@ -230,6 +230,7 @@ jobs:
           echo "https://img.shields.io/badge/New Release-v${{ needs.Get-Version.outputs.version }}-orange.svg" >> ./${{ github.ref_name }}/version
           cp ./luci-app-openclash_*.ipk "./${{ github.ref_name }}/"
           cp ./luci-app-openclash-*.apk "./${{ github.ref_name }}/"
+          (cd "./${{ github.ref_name }}" && find . -maxdepth 1 -type f \( -name 'luci-app-openclash_*' -o -name 'luci-app-openclash-*' \) | sort | xargs sha256sum > checksums.txt 2>/dev/null || true)
           rm -f ./luci-app-openclash_*.ipk
           rm -f ./luci-app-openclash-*.apk
           git config user.name 'github-actions[bot]'

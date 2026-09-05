@@ -1656,6 +1656,18 @@ msgstr "Error al mover el núcleo:"
 msgid "Core Verification Failed:"
 msgstr "Error al verificar el núcleo:"
 
+msgid "Checksum Verification Failed"
+msgstr "Fallo de la verificación de Checksum"
+
+msgid "Checksum file unavailable or entry not found, abort update for"
+msgstr "Archivo de verificación de Checksum no disponible o entrada no encontrada, se aborta la actualización"
+
+msgid "Checksum mismatch for"
+msgstr "La verificación de Checksum no coincide"
+
+msgid "Unable to compute checksum, skip verification for"
+msgstr "No se puede calcular el Checksum, se omite la verificación"
+
 msgid "No Compiled Version Selected, Please Select In Update Page And Try Again!"
 msgstr "No se ha seleccionado ninguna versión compilada; selecciónala en la página de actualización."
 

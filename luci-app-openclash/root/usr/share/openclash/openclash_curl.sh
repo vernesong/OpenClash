@@ -2,6 +2,8 @@
 . /usr/share/openclash/log.sh
 . /usr/share/openclash/openclash_etag.sh
 
+DEFAULT_UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+
 DOWNLOAD_FAILURE_OUTPUT() {
     failure_exit_code="$1"
     failure_http_code="$2"
@@ -26,7 +28,9 @@ DOWNLOAD_FILE_CURL() {
     DOWNLOAD_UA=$4
     SECRET_KEY=$5
     CUSTOM_HEADERS=$6
-    [ -z "$DOWNLOAD_UA" ] && DOWNLOAD_UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+    CHECKSUM_FILENAME=$7
+    CHECKSUM_URL=$8
+    [ -z "$DOWNLOAD_UA" ] && DOWNLOAD_UA="$DEFAULT_UA"
     HEADER_TMP="/tmp/openclash_curl_header_$$"
     DOWNLOAD_TMP="${DOWNLOAD_PATH}.download.$$"
     CACHED_ETAG=$(GET_ETAG_BY_PATH "$FILE_PATH")
@@ -204,5 +208,42 @@ EOF
 
     rm -f "$HEADER_TMP" "$DOWNLOAD_TMP"
 
+    if [ -n "$CHECKSUM_FILENAME" ] && [ -n "$CHECKSUM_URL" ] && ! verify_sha256_checksum "$DOWNLOAD_PATH" "$CHECKSUM_FILENAME" "$CHECKSUM_URL" "$DOWNLOAD_UA"; then
+        LOG_OUT "【${DOWNLOAD_PATH}】Checksum Verification Failed"
+        return 1
+    fi
+
     return 0
+}
+
+verify_sha256_checksum() {
+    local file="$1"
+    local expected_name="$2"
+    local checksum_url="$3"
+    local ua="${4:-$DEFAULT_UA}"
+
+    [ -z "$file" ] || [ -z "$checksum_url" ] && return 0
+    [ -s "$file" ] || return 0
+
+    local expected_hash
+    expected_hash=$(curl -sL -m 15 --connect-timeout 5 -H "User-Agent: $ua" "$checksum_url" 2>/dev/null \
+        | awk -v n="$expected_name" '$2 ~ n {print $1; exit} $0 ~ n {print $1; exit}')
+
+    if [ -z "$expected_hash" ]; then
+        LOG_ERROR "Checksum file unavailable or entry not found, abort update for【$expected_name】"
+        return 1
+    fi
+
+    local actual_hash
+    actual_hash=$(sha256sum "$file" 2>/dev/null | awk '{print $1}')
+    if [ -z "$actual_hash" ]; then
+        LOG_WARN "Unable to compute checksum, skip verification for【$expected_name】"
+        return 0
+    fi
+    if [ "$actual_hash" = "$expected_hash" ]; then
+        return 0
+    fi
+
+    LOG_ERROR "Checksum mismatch for【$expected_name】(expected【$expected_hash】,got【$actual_hash】)"
+    return 1
 }
