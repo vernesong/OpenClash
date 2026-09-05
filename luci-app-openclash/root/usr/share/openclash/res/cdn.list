@@ -1,13 +1,15 @@
 # CDN proxy address list (one URL per line, "#" starts a comment)
 # Comment out a line with "#" to temporarily disable it
-https://ghfast.top/
-https://git.yylx.win/
-https://cdn.akaere.online/
+# Atom-feed-capable proxies
+https://github.chenc.dev/
+https://g.z321.cc.cd/
+https://ghp.keleyaa.com/
+https://xsadwsd.kdns.fr/
+https://777.z321.cc.cd/
+# Raw/Release download proxies
 https://gh-proxy.com/
-https://gh.jasonzeng.dev/
-https://ghproxy.monkeyray.net/
-https://down.mxw.xx.kg/
-https://github.tbap.top/
-https://ghm.078465.xyz/
-https://gh.monlor.com/
-https://gh.idayer.com/
+https://git.yylx.win/
+https://gh.acmsz.top/
+https://gh.jjj.gv.uy/
+https://g.blfrp.cn/
+https://ghfast.top/
