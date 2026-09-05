@@ -319,7 +319,7 @@ OPENCLASH_CORS_DOMAIN="${36}" \
 OPENCLASH_CORS_PORT="$dashboard_forward_port" \
 OPENCLASH_CORS_SSL="$dashboard_forward_ssl" \
 OPENCLASH_CORS_CUSTOM_URL="$dashboard_custom_url" \
-ruby -ryaml -rYAML -ruri -I "/usr/share/openclash" -E UTF-8 -e "
+ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
 
 def safe_load_yaml(file_path)
    return nil unless File.exist?(file_path)
@@ -336,26 +336,40 @@ def merge_list_from_file(dns_hash, key, file_path)
 end
 
 def http_origin(raw_url)
-   uri = URI.parse(raw_url.to_s.strip)
-   scheme = uri.scheme.to_s.downcase
-   return nil unless %w[http https].include?(scheme) && uri.hostname && !uri.hostname.empty? && !uri.userinfo
-   return nil unless uri.port.between?(1, 65_535)
-   host = uri.hostname.include?(':') ? '[' + uri.hostname + ']' : uri.hostname
+   raw = raw_url.to_s.strip
+   return nil if raw.empty?
+   scheme = raw[/\A(https?):\/\//i, 1]
+   return nil unless scheme
+   scheme = scheme.downcase
+   rest = raw.sub(/\Ahttps?:\/\//i, '')
+   return nil if rest.include?('@')
+   authority = rest.split(/[\/?#]/, 2).first.to_s
+   return nil if authority.empty?
+   host, port = if (m = authority.match(/\A\[([^\]]+)\](?::(\d+))?\z/))
+                  [m[1], m[2]]
+               elsif (m = authority.match(/\A([^:]+)(?::(\d+))?\z/))
+                  [m[1], m[2]]
+               else
+                  [nil, nil]
+               end
+   return nil if host.nil? || host.empty?
+   host = '[' + host + ']' if host.include?(':')
    default_port = scheme == 'https' ? 443 : 80
-   scheme + '://' + host + (uri.port == default_port ? '' : ':' + uri.port.to_s)
-rescue URI::Error
+   port = port ? port.to_i : default_port
+   return nil unless port.between?(1, 65_535)
+   scheme + '://' + host + (port == default_port ? '' : ':' + port.to_s)
+rescue
    nil
 end
 
 def controller_origin(domain, configured_port, ssl)
    domain = domain.to_s.strip
    return nil if domain.empty? || domain == '0'
-   domain_url = domain =~ /\Ahttps?:\/\//i ? domain : 'http://' + domain
-   uri = URI.parse(domain_url)
-   return nil unless uri.hostname && !uri.hostname.empty? && !uri.userinfo
+   return nil if domain.include?('@')
+   domain = domain.sub(/\Ahttps?:\/\//i, '')
 
    port_text = configured_port.to_s.strip
-   authority = domain.sub(/\Ahttps?:\/\//i, '').split(/[\/?#]/, 2).first.to_s
+   authority = domain.split(/[\/?#]/, 2).first.to_s
    embedded_port = authority[/\A\[[^\]]+\]:(\d+)\z/, 1] || authority[/\A[^:]+:(\d+)\z/, 1]
    port_text = embedded_port if (port_text.empty? || port_text == '0') && embedded_port
 
@@ -363,10 +377,17 @@ def controller_origin(domain, configured_port, ssl)
    default_port = scheme == 'https' ? 443 : 80
    port_text = default_port.to_s if port_text.empty? || port_text == '0'
    return nil unless (port_text =~ /\A\d+\z/) && port_text.to_i.between?(1, 65_535)
-   host = uri.hostname.include?(':') ? '[' + uri.hostname + ']' : uri.hostname
+
+   host = if authority =~ /\A\[[^\]]+\]/
+              authority[/\A\[([^\]]+)\]/ , 1]
+           else
+              authority.split(':', 2).first
+           end
+   return nil if host.nil? || host.empty?
+   host = '[' + host + ']' if host.include?(':')
    port = port_text.to_i
    scheme + '://' + host + (port == default_port ? '' : ':' + port.to_s)
-rescue URI::Error
+rescue
    nil
 end
 
