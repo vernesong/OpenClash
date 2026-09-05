@@ -3738,6 +3738,9 @@ msgstr "Configuración en ejecución (solo lectura)"
 msgid "Start Downloading LightGBM Model..."
 msgstr "Comenzando descarga del modelo LightGBM..."
 
+msgid "Direct LightGBM Model Download Failed, Retrying Through OpenClash Proxy..."
+msgstr "La descarga directa del modelo LightGBM falló; reintentando mediante el proxy de OpenClash..."
+
 msgid "LightGBM Model Download Success, Check Updated..."
 msgstr "Modelo LightGBM descargado correctamente, comprobando actualizaciones..."
 

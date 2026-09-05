@@ -2,6 +2,27 @@
 . /usr/share/openclash/log.sh
 . /usr/share/openclash/openclash_etag.sh
 
+DOWNLOAD_CURL_CONFIG_ESCAPE() {
+    sed 's/\\/\\\\/g; s/"/\\"/g'
+}
+
+DOWNLOAD_CURL_CONFIG_VALUE_SAFE() {
+    [ "$(printf '%s' "$1" | tr -d '\r\n')" = "$1" ]
+}
+
+DOWNLOAD_CURL() {
+    local proxy_auth
+
+    if [ -n "$DOWNLOAD_PROXY" ] && [ -n "$DOWNLOAD_PROXY_USER" ] && [ -n "$DOWNLOAD_PROXY_PASSWORD" ]; then
+        DOWNLOAD_CURL_CONFIG_VALUE_SAFE "$DOWNLOAD_PROXY_USER" || return 1
+        DOWNLOAD_CURL_CONFIG_VALUE_SAFE "$DOWNLOAD_PROXY_PASSWORD" || return 1
+        proxy_auth=$(printf '%s:%s' "$DOWNLOAD_PROXY_USER" "$DOWNLOAD_PROXY_PASSWORD" | DOWNLOAD_CURL_CONFIG_ESCAPE)
+        printf 'proxy-user = "%s"\n' "$proxy_auth" | curl --config - "$@"
+    else
+        curl "$@"
+    fi
+}
+
 DOWNLOAD_FAILURE_OUTPUT() {
     failure_exit_code="$1"
     failure_http_code="$2"
@@ -19,6 +40,10 @@ DOWNLOAD_FAILURE_OUTPUT() {
 }
 
 DOWNLOAD_FILE_CURL() {
+    local DOWNLOAD_PROXY="${7:-}"
+    local DOWNLOAD_PROXY_USER="${8:-}"
+    local DOWNLOAD_PROXY_PASSWORD="${9:-}"
+
     [ -z "$1" ] || [ -z "$2" ] && return 1
     DOWNLOAD_URL=$1
     DOWNLOAD_PATH=$2
@@ -50,6 +75,7 @@ DOWNLOAD_FILE_CURL() {
 $CUSTOM_HEADERS
 EOF
     fi
+    [ -n "$DOWNLOAD_PROXY" ] && set -- "$@" --proxy "$DOWNLOAD_PROXY"
 
     if [ "$SHOW_DOWNLOAD_PROGRESS" = "1" ] || [ "$SHOW_DOWNLOAD_PROGRESS" = "true" ]; then
         TEMP_LOG="/tmp/curl_log_$$"
@@ -58,7 +84,7 @@ EOF
 
         (
             if [ -n "$SECRET_KEY" ] && [ -n "$ETAG_HEADER" ]; then
-                curl -# -L --connect-timeout 30 -m 180 --speed-time 30 --speed-limit 1 --retry 2 \
+                DOWNLOAD_CURL -# -L --connect-timeout 30 -m 180 --speed-time 30 --speed-limit 1 --retry 2 \
                     -D "$HEADER_TMP" \
                     -H "User-Agent: ${DOWNLOAD_UA}" \
                     -H "X-Age-Public-Key: ${SECRET_KEY}" \
@@ -66,21 +92,21 @@ EOF
                     "$@" \
                     "$DOWNLOAD_URL" -o "$DOWNLOAD_TMP" 2>"$TEMP_LOG"
             elif [ -n "$SECRET_KEY" ]; then
-                curl -# -L --connect-timeout 30 -m 180 --speed-time 30 --speed-limit 1 --retry 2 \
+                DOWNLOAD_CURL -# -L --connect-timeout 30 -m 180 --speed-time 30 --speed-limit 1 --retry 2 \
                     -D "$HEADER_TMP" \
                     -H "User-Agent: ${DOWNLOAD_UA}" \
                     -H "X-Age-Public-Key: ${SECRET_KEY}" \
                     "$@" \
                     "$DOWNLOAD_URL" -o "$DOWNLOAD_TMP" 2>"$TEMP_LOG"
             elif [ -n "$ETAG_HEADER" ]; then
-                curl -# -L --connect-timeout 30 -m 180 --speed-time 30 --speed-limit 1 --retry 2 \
+                DOWNLOAD_CURL -# -L --connect-timeout 30 -m 180 --speed-time 30 --speed-limit 1 --retry 2 \
                     -D "$HEADER_TMP" \
                     -H "User-Agent: ${DOWNLOAD_UA}" \
                     -H "$ETAG_HEADER" \
                     "$@" \
                     "$DOWNLOAD_URL" -o "$DOWNLOAD_TMP" 2>"$TEMP_LOG"
             else
-                curl -# -L --connect-timeout 30 -m 180 --speed-time 30 --speed-limit 1 --retry 2 \
+                DOWNLOAD_CURL -# -L --connect-timeout 30 -m 180 --speed-time 30 --speed-limit 1 --retry 2 \
                     -D "$HEADER_TMP" \
                     -H "User-Agent: ${DOWNLOAD_UA}" \
                     "$@" \
@@ -141,7 +167,7 @@ EOF
             DOWNLOAD_TRY=$((DOWNLOAD_TRY + 1))
             rm -f "$HEADER_TMP" "$DOWNLOAD_TMP"
             if [ -n "$SECRET_KEY" ] && [ -n "$ETAG_HEADER" ]; then
-                CURL_OUTPUT=$(curl -w "\n%{http_code}" -SsL --connect-timeout 30 -m 180 --speed-time 30 --speed-limit 1 --retry 2 \
+                CURL_OUTPUT=$(DOWNLOAD_CURL -w "\n%{http_code}" -SsL --connect-timeout 30 -m 180 --speed-time 30 --speed-limit 1 --retry 2 \
                     -D "$HEADER_TMP" \
                     -H "User-Agent: ${DOWNLOAD_UA}" \
                     -H "X-Age-Public-Key: ${SECRET_KEY}" \
@@ -149,21 +175,21 @@ EOF
                     "$@" \
                     "$DOWNLOAD_URL" -o "$DOWNLOAD_TMP" 2>&1)
             elif [ -n "$SECRET_KEY" ]; then
-                CURL_OUTPUT=$(curl -w "\n%{http_code}" -SsL --connect-timeout 30 -m 180 --speed-time 30 --speed-limit 1 --retry 2 \
+                CURL_OUTPUT=$(DOWNLOAD_CURL -w "\n%{http_code}" -SsL --connect-timeout 30 -m 180 --speed-time 30 --speed-limit 1 --retry 2 \
                     -D "$HEADER_TMP" \
                     -H "User-Agent: ${DOWNLOAD_UA}" \
                     -H "X-Age-Public-Key: ${SECRET_KEY}" \
                     "$@" \
                     "$DOWNLOAD_URL" -o "$DOWNLOAD_TMP" 2>&1)
             elif [ -n "$ETAG_HEADER" ]; then
-                CURL_OUTPUT=$(curl -w "\n%{http_code}" -SsL --connect-timeout 30 -m 180 --speed-time 30 --speed-limit 1 --retry 2 \
+                CURL_OUTPUT=$(DOWNLOAD_CURL -w "\n%{http_code}" -SsL --connect-timeout 30 -m 180 --speed-time 30 --speed-limit 1 --retry 2 \
                     -D "$HEADER_TMP" \
                     -H "User-Agent: ${DOWNLOAD_UA}" \
                     -H "$ETAG_HEADER" \
                     "$@" \
                     "$DOWNLOAD_URL" -o "$DOWNLOAD_TMP" 2>&1)
             else
-                CURL_OUTPUT=$(curl -w "\n%{http_code}" -SsL --connect-timeout 30 -m 180 --speed-time 30 --speed-limit 1 --retry 2 \
+                CURL_OUTPUT=$(DOWNLOAD_CURL -w "\n%{http_code}" -SsL --connect-timeout 30 -m 180 --speed-time 30 --speed-limit 1 --retry 2 \
                     -D "$HEADER_TMP" \
                     -H "User-Agent: ${DOWNLOAD_UA}" \
                     "$@" \
