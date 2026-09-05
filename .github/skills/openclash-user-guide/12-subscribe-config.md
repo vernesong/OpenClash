@@ -66,6 +66,8 @@
 | **自定义参数 (Custom Params)** | `custom_params` | 自定义订阅 URL 参数 |
 | **Age 加密密钥 (Secret Key)** | `secret_key` | Age 加密密钥 |
 
+> **跳过证书校验 (skip-cert-verify)**: 仅在订阅转换 `sub_convert` 启用时显示，用于转换时跳过 HTTPS 证书校验，默认 `true`（启用）；配置上传 (`config_upload`) 弹窗中的同名选项同样默认勾选。
+
 **关键字格式**: 使用 `&` 表示 AND (同时满足)，使用 `|` 表示 OR
 - 例：`香港&01` → 节点名同时包含"香港"和"01"
 - 例：`香港|台湾` → 节点名包含"香港"或"台湾"

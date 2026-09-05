@@ -68,8 +68,9 @@
 显示当前 Dashboard 访问地址及 Secret 密码。对应 UCI:
 - `cn_port` — API 端口 (默认 9090)，对应 Mihomo `external-controller`
 - `dashboard_password` — API 密钥，对应 Mihomo `secret`
-- `dashboard_forward_domain` / `dashboard_forward_port` / `dashboard_forward_ssl` — 公网访问设置
-- 提供 **复制 IP** 和 **复制密钥** 按钮
+- `dashboard_forward_domain` / `dashboard_forward_port` / `dashboard_forward_ssl` — 公网访问设置（`dashboard_forward_domain` 可填域名或 IP/IPv6，端口可留空默认 443/80）
+- `dashboard_custom_url` / `dashboard_custom_clash_compatible` — 自定义外部仪表盘地址（详见 `09-settings-dns-ac-ipv6.md` §9.4）
+- 提供 **复制 IP** 和 **复制密钥** 按钮；若设置了 `dashboard_custom_url`，**复制地址**优先复制该自定义 URL
 
 ### 7.7 混合代理卡片
 
@@ -84,7 +85,7 @@
 - 对应 Mihomo `external-ui` 配置
 - 切换触发: `action_switch_dashboard` → `openclash_download_dashboard.sh`
 - 默认仪表盘: UCI `default_dashboard`
-- **前端访问地址**: 由 `status.htm` JS 根据「浏览器 hostname 是否匹配 LAN IP」「是否配置公网转发 `dashboard_forward_domain`/`dashboard_forward_port`/`dashboard_forward_ssl`」等场景构造 `http[s]://<host>:<port>/ui/<dashboard>/`，完整逻辑见 `09-settings-dns-ac-ipv6.md` §9.4 外部控制标签页 → 实现细节。
+- **前端访问地址**: 由 `status.htm` 调用 `common.js` 的 `ocGetDashboardBaseURL` 等函数，根据「浏览器 hostname 是否匹配 LAN IP」「是否配置公网地址 `dashboard_forward_domain`/`dashboard_forward_port`/`dashboard_forward_ssl`」等场景构造 `http[s]://<host>:<port>/ui/<dashboard>/`；公网地址支持域名/IP/IPv6 及内嵌端口。若配置了 `dashboard_custom_url`，额外显示 **External Dashboard** 按钮并优先用于复制地址。完整逻辑见 `09-settings-dns-ac-ipv6.md` §9.4 外部控制标签页 → 实现细节。
 - 各仪表盘子路径：`/ui/dashboard/`、`/ui/yacd/`、`/ui/metacubexd/`、`/ui/zashboard/`
 
 ### 7.9 快捷操作按钮 (Quick Action)
@@ -98,7 +99,7 @@
 
 ### 7.10 统计信息
 
-页面底部显示 8 项实时统计指标，通过 WebSocket 和 XHR 轮询更新：
+页面底部显示 8 项实时统计指标，通过 WebSocket 和 XHR 轮询更新。数据源为 `/toolbar_show`（返回原始数值，见 `15-api.md`）与各 WebSocket。统计卡片标题栏右侧提供 **卡片 / 图表** 视图切换按钮（`stats-view-toggle`），图表视图用 `chart.umd.min.js` 绘制实时曲线：
 
 | 指标 | 说明 |
 |------|------|

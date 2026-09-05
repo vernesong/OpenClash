@@ -96,6 +96,7 @@
   - 插件下载：`openclash_update.sh`，文件名 `luci-app-openclash_{ver}_all.ipk`（opkg）或 `luci-app-openclash-{ver}.apk`（apk）。
   - **下载 URL 结构**：`package`/`core` 是仓库**分支**（非目录）。Latest（无历史 sha）：`package/{branch}/luci-app-openclash_{ver}_all.ipk`、`core/{branch}/{meta|smart}/clash-{arch}.tar.gz`（把分支名作为 ref 段）；选择历史版本（带 sha，为对应分支的 CI commit）：`{sha}/{branch}/luci-app-openclash_{ver}_all.ipk`、`{sha}/{branch}/{meta|smart}/clash-{arch}.tar.gz`。jsdelivr CDN 前缀为 `gh/vernesong/OpenClash@{ref}/...`，自定义 CDN 前缀直接拼接 raw URL。
   - **下载失败不会触发 OpenClash 重启**（`openclash_core.sh` 仅在内核真正更新成功后才置重启标志）。
+  - **sha256sum 校验**：下载内核/插件包后，脚本用发布目录的 `checksums.txt` 比对实际哈希（`openclash_curl.sh` 的 `verify_sha256_checksum()`）；校验失败会中止更新，日志报 `Checksum Verification Failed` 等（见 `03-errors.md` §3.4）。
   - 插件更新通过 ubus 后台安装以避免 Web 界面断连。
 
 #### 10.2.3 开发者选项 (Developer Settings / developer)

@@ -69,13 +69,18 @@ curl -s 'http://127.0.0.1/cgi-bin/luci/admin/services/openclash/website_check?do
 | `oversea` | 区域绕行 | `"1"`(大陆)/`"2"`(海外)/`"0"`(关闭) | `"0"` → 未启用 IP 绕行 |
 | `cn_port` | API 端口 | `"9090"` | 非 9090 → 用户修改过端口 |
 | `core_type` | 核心类型 | `"Meta"` | `"Smart"`→Smart 内核；`"Oix"`→oixCloud 内核 |
+| `daip` | 局域网 IP | `"192.168.3.1"` | 前端构造仪表盘 URL 的基准 host |
+| `dase` | `dashboard_password` | 空/密钥 | 仪表盘登录 secret |
+| `db_foward_domain` / `db_foward_port` / `db_forward_ssl` | 公网访问设置 | — | 前端构造公网仪表盘 URL（域名可含内嵌端口，ssl 决定协议） |
+| `dashboard_custom_url` / `dashboard_custom_clash_compatible` | 自定义外部仪表盘 | 空 / `"0"` | 前端显示 **External Dashboard** 按钮，并优先用于复制地址 |
 
-`/toolbar_show` 返回的 JSON：
+`/toolbar_show` 返回的 JSON（**原始数值**，前端再格式化/绘图）：
 | 字段 | 含义 | 异常判断 |
 |------|------|----------|
-| `connections` | 活跃连接数 | `"0"` → 无流量经过核心，可能规则全 RETURN |
-| `up` / `down` | 实时速率 | 持续为 `"0 B/S"` → 无数据流动 |
-| `mem` | 核心内存占用 | 持续增长 → 可能存在内存泄漏 |
+| `connections` | 活跃连接数 | `0` → 无流量经过核心，可能规则全 RETURN |
+| `up` / `down` | 实时速率 | 持续 `0` → 无数据流动；单位为字节/秒（B/s），前端换算 KB/MB |
+| `up_total` / `down_total` | 上行/下行累计流量 | 单位为字节 |
+| `mem` | 核心内存占用 | 单位为字节；持续增长 → 可能存在内存泄漏 |
 | `cpu` | 核心 CPU 占用 | 持续 > 80% → 节点过多或规则复杂 |
 
 `/update` 返回的 JSON：
@@ -90,7 +95,7 @@ curl -s 'http://127.0.0.1/cgi-bin/luci/admin/services/openclash/website_check?do
 | `coremetacv` | `clash_meta -v` 解析 | 当前核心版本（已装），`"0"`=核心文件不存在 |
 | `opcv` | opkg/apk 包数据库 | 当前插件版本（已装），`"0"`=未安装 |
 | `github_address_mod` | UCI `config.github_address_mod` | GitHub CDN 地址（`"0"`=未设置） |
-| `cdn_list` | 读 `/usr/share/openclash/res/cdn.list` | CDN 地址列表（供前端探测） |
+| `cdn_list` | 读 `/usr/share/openclash/res/cdn.list` | CDN 地址列表（供前端探测）。该列表由 `openclash_version.lua` 从远程仓库自动更新（`cdn.list` 超过 7 天未更新且能连通时自动拉取最新版再返回缓存） |
 
 `/last_version` 返回的 JSON（远程最新版本，status 页「新版本可用」红点判断依据）：
 | 字段 | 来源 | 含义 |
@@ -169,6 +174,9 @@ curl -s -X POST -d 'core_type=Meta' http://127.0.0.1/cgi-bin/luci/admin/services
 curl -s -X POST http://127.0.0.1/cgi-bin/luci/admin/services/openclash/opupdate
 # 一键更新（核心+插件+订阅+GEO）
 curl -s -X POST http://127.0.0.1/cgi-bin/luci/admin/services/openclash/one_key_update
+```
+
+> **sha256sum 校验**: `coreupdate`/`opupdate`/`one_key_update` 下载内核/插件包后，脚本用同目录的 `checksums.txt`（`openclash_curl.sh` 的 `verify_sha256_checksum()`）比对实际哈希；校验失败会中止更新，日志报 `Checksum Verification Failed` 等（见 `03-errors.md` §3.4）。
 
 # --- 生成 PAC 文件 ---
 curl -s -X POST http://127.0.0.1/cgi-bin/luci/admin/services/openclash/generate_pac

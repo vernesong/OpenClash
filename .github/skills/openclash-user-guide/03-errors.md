@@ -33,6 +33,7 @@
 | `Updated Config Has No Proxy Field` (配置无节点字段) | 「配置订阅」更新流程 | 订阅配置中无 `proxies` 和 `proxy-providers` 字段 | 检查订阅源是否有效；可能订阅已过期 |
 | `Filter Proxies Failed` (节点筛选失败) | 「配置订阅」更新流程 | 节点关键字过滤正则异常 | 「配置订阅」检查 keyword/ex_keyword 格式 |
 | `Ruby Works Abnormally` (Ruby 异常) | 「配置订阅」更新流程 | Ruby 环境异常导致订阅处理失败 | 「系统→软件包」重装 `ruby`、`ruby-yaml` |
+| 订阅转换后内核启动获取不到节点 (启动后节点列表为空) | 「配置订阅」+「运行状态」 | 在线订阅转换（`sub_convert`）时上游 HTTPS 证书校验失败，转换结果异常，内核启动后拿不到节点 | 「配置订阅」在启用「订阅转换」的选项中**启用 skip-cert-verify（跳过证书校验）**，重新更新订阅；若仍无效，检查转换后端地址与模板 URL 是否有效 |
 | `Config File Format Validation Failed` (配置文件格式校验失败) | 「运行状态」启动流程 | YAML 解析后文件为空/丢失 | 「配置管理」检查配置目录权限和磁盘空间 |
 
 ### 3.3 GEO 与规则更新错误
@@ -55,6 +56,12 @@
 | `Pre update test failed` (更新前测试失败，3 次后) | 「版本更新」 | 插件 IPK/APK 安装测试失败 | 手动在「系统→软件包」中更新或重装 luci-app-openclash |
 | `OpenClash update failed` (OpenClash 更新失败) | 「版本更新」 | 插件安装彻底失败 | 包已保存在 `/tmp/`，手动使用 `opkg install` 或 `apk add` 安装 |
 | `Failed to get version information` (获取版本信息失败) | 「版本更新」 | GitHub 版本检查失败 | 检查网络；「覆写设置→常规」设置 CDN |
+| `Checksum Verification Failed` (Checksum 校验失败) | 「版本更新」核心/插件下载 | 下载包未通过 sha256sum 校验 | 确认使用官方下载地址/CDN；重试更新 |
+| `Checksum file unavailable or entry not found, abort update for【...】` (校验文件不可用/未找到条目，终止更新) | 「版本更新」核心/插件下载 | 取不到 `checksums.txt` 或其中无对应条目 | 检查网络；「覆写设置→常规」设 CDN；确认 CDN 能访问同目录的 `checksums.txt` |
+| `Checksum mismatch for【...】` (校验不匹配) | 「版本更新」核心/插件下载 | 文件损坏/被改，或 CDN 缓存了旧文件 | 换 CDN / 清缓存；重试更新 |
+| `Unable to compute checksum, skip verification for【...】` (无法计算 Checksum，跳过校验) | 「版本更新」核心/插件下载 | 系统无 `sha256sum` | **警告非致命**，本次跳过校验 |
+
+> **sha256sum 校验**: 下载内核/插件包后用同目录 `checksums.txt`（CI 生成，见 `compile_meta_core.yml`/`compile_new_ipk.yml`）比对实际哈希。实现见 `openclash_curl.sh` 的 `verify_sha256_checksum()`，由 `openclash_core.sh`/`openclash_update.sh` 调用。
 
 ### 3.5 防火墙与 DNS 错误
 

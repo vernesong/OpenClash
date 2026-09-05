@@ -160,19 +160,23 @@
 
 ### 9.4 外部控制标签页 (Dashboard Settings / dashboard)
 
-> **生效路径**: 仪表盘选项写入 YAML 的 `external-controller`、`secret`、`external-ui` 等字段，
+> **生效路径**: 仪表盘选项写入 YAML 的 `external-controller`、`secret`、`external-ui`、`external-controller-cors` 等字段，
 > 由 Mihomo 内核直接读取并提供 HTTP API。下载/切换通过 `openclash_download_dashboard.sh` 执行。
 
 | 选项 | UCI Key | 默认 | 说明 |
 |------|---------|------|------|
 | 管理页面端口 (Dashboard Port) | `cn_port` | 9090 | 对应 Mihomo `external-controller: 0.0.0.0:9090` |
 | 管理页面登录密钥 (Dashboard Secret) | `dashboard_password` | 空 | 对应 Mihomo `secret`，留空则不验证 |
-| 管理页面公网域名 (Public Dashboard Address) | `dashboard_forward_domain` | 空 | 用于公网访问面板 |
-| 管理页面映射端口 (Public Dashboard Port) | `dashboard_forward_port` | 空 | |
-| 管理页面公网 SSL 访问 (Public Dashboard SSL enabled) | `dashboard_forward_ssl` | 0 | |
+| 管理页面公网域名/地址 (Public Dashboard Address) | `dashboard_forward_domain` | 空 | 公网访问面板的**域名或 IP**（含 IPv6，如 `[2001:db8::1]`），**不填 `http://`/`https://` 前缀**，可内嵌端口（`domain:8443` 或 `[ip]:8443`） |
+| 管理页面映射端口 (Public Dashboard Port) | `dashboard_forward_port` | 空 | 公网访问端口，**可留空**——留空默认 443（启用 SSL）或 80（未启用 SSL） |
+| 管理页面公网 SSL 访问 (Public Dashboard SSL enabled) | `dashboard_forward_ssl` | 0 | 决定公网访问协议（0=http, 1=https）与默认端口 |
+| 自定义仪表盘地址 (Custom Dashboard URL) | `dashboard_custom_url` | 空 | 可选**完整 HTTP(S) URL**，用于外部托管的仪表盘。OpenClash 会追加 hostname/端口/secret 参数而不添加本地 UI 路径；面板要求 hash 路由时 URL 中需包含如 `#/setup` 的片段 |
+| 仪表盘兼容模式 (Clash Dashboard Compatibility Mode) | `dashboard_custom_clash_compatible` | 0 | 仅当设置了 `dashboard_custom_url` 时生效：使用 Clash Dashboard 兼容的 `#/?host=...` 登录参数，而非标准 hostname 参数 |
 
 仪表盘版本管理通过 `action_switch_dashboard` → `openclash_download_dashboard.sh` 自动下载切换。
-- **实现细节**: `yml_change.sh` 将 `cn_port`、`dashboard_password` 写入 YAML → Mihomo 内核启动 HTTP API。`openclash_download_dashboard.sh` 从 GitHub Releases 下载 Dashboard 静态文件 (yacd/metacubexd/zashboard)，解压到 `/usr/share/openclash/ui`。前端 `status.htm` 中的 JS 根据以下逻辑构造仪表盘 URL：1) 若当前浏览器 hostname 与路由器 LAN IP 相同 → `http://<lan_ip>:<cn_port>/ui/<dashboard>/`；2) 若设置了 `dashboard_forward_domain` + `dashboard_forward_port`（公网访问）→ 协议由 `dashboard_forward_ssl` 决定（0=http, 1=https），地址为 `<protocol>://<domain>:<port>/ui/<dashboard>/`；3) 其他情况 → 取当前页面协议 + LAN IP + cn_port。四个仪表盘的子路径分别为 `/ui/dashboard/`、`/ui/yacd/`、`/ui/metacubexd/`、`/ui/zashboard/`。
+- **实现细节**: `yml_change.sh` 将 `cn_port`、`dashboard_password` 写入 YAML → Mihomo 内核启动 HTTP API。`openclash_download_dashboard.sh` 从 GitHub Releases 下载 Dashboard 静态文件 (yacd/metacubexd/zashboard)，解压到 `/usr/share/openclash/ui`。
+- **CORS（公网访问）实现**: `yml_change.sh` 读取 `dashboard_custom_url` / `dashboard_forward_domain` / `dashboard_forward_port` / `dashboard_forward_ssl`，用 Ruby 的 `http_origin()` / `controller_origin()` 计算允许来源并写入 YAML 的 `external-controller-cors.allow-origins`（同时设 `allow-private-network=true`）。优先级：`dashboard_custom_url` > `dashboard_forward_domain`+`dashboard_forward_port`+`dashboard_forward_ssl`；仅当计算得出合法 origin 时才写入该段。
+- **前端仪表盘 URL 构造**: `status.htm` 依赖 `common.js` 的 `ocGetDashboardBaseURL` / `ocGetDashboardWebSocketOrigin` / `ocGetDashboardLoginParams` / `ocBuildExternalDashboardURL` / `ocBuildDashboardURL` 构造访问地址：优先用浏览器 hostname 匹配路由器 LAN IP；否则若配置了公网地址则用 `dashboard_forward_domain`（可含内嵌端口/SSL，协议由 `dashboard_forward_ssl` 决定），否则回退 LAN IP + `cn_port`。当设置了 `dashboard_custom_url` 时，运行状态页额外显示 **External Dashboard** 按钮，点击打开自定义仪表盘；复制控制面板地址时也优先复制该自定义 URL。四个仪表盘子路径分别为 `/ui/dashboard/`、`/ui/yacd/`、`/ui/metacubexd/`、`/ui/zashboard/`。
 
 ---
 
