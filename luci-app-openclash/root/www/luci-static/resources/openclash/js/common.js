@@ -317,36 +317,111 @@ function ocDebounce(fn, delay) {
 	};
 }
 
-function ocGetDashboardBaseURL(status) {
-	var host, port, proto;
-	if (status.daip && window.location.hostname === status.daip) {
-		host = window.location.hostname;
-		port = status.cn_port;
-		proto = 'http://';
-	} else if (status.daip && status.db_foward_domain && status.db_foward_port) {
-		host = status.db_foward_domain;
-		port = status.db_foward_port;
-		proto = (status.db_forward_ssl == 0 ? 'http://' : 'https://');
-	} else {
-		host = window.location.hostname;
-		port = status.cn_port;
-		proto = 'http://';
+function ocGetCustomDashboardURL(status) {
+	var raw = status && status.dashboard_custom_url ? String(status.dashboard_custom_url).trim() : '';
+	if (!raw) return '';
+	if (/[\x00-\x20\\<>"{}|^`\x7f-\uffff]/.test(raw) || /%(?![0-9a-f]{2})/i.test(raw)) return '';
+	try {
+		var parsed = new URL(raw);
+		if ((parsed.protocol !== 'http:' && parsed.protocol !== 'https:') || !parsed.hostname || parsed.username || parsed.password) return '';
+		return raw;
+	} catch (e) {
+		return '';
 	}
-	return { host: host, port: port, proto: proto, secret: status.dase || '' };
+}
+
+function ocGetDashboardBaseURL(status) {
+	var publicHost = status.db_foward_domain ? String(status.db_foward_domain).trim() : '';
+	var embeddedPortMatch = publicHost.match(/\]:(\d+)(?:[\/?#]|$)/) || publicHost.match(/^(?:https?:\/\/)?[^:\/?#]+:(\d+)(?:[\/?#]|$)/i);
+	var embeddedPort = embeddedPortMatch ? embeddedPortMatch[1] : '';
+	var publicPort = status.db_foward_port ? String(status.db_foward_port).trim() : '';
+	var validPublicPort = /^\d+$/.test(publicPort) && Number(publicPort) > 0 && Number(publicPort) <= 65535;
+	var usePublic = !!(status.daip && window.location.hostname !== status.daip && publicHost);
+	var rawHost = usePublic ? publicHost : window.location.hostname;
+	var proto = usePublic && status.db_forward_ssl != 0 ? 'https:' : 'http:';
+	var configuredPort = usePublic ? publicPort : status.cn_port;
+	var parsed;
+
+	try {
+		parsed = new URL(/^https?:\/\//i.test(rawHost) ? rawHost : 'http://' + rawHost);
+		if (!parsed.hostname || parsed.username || parsed.password) throw new Error('invalid dashboard host');
+		var legacyPort = embeddedPort || parsed.port;
+		parsed.protocol = proto;
+		parsed.pathname = '/';
+		parsed.search = '';
+		parsed.hash = '';
+		if (usePublic && validPublicPort) {
+			parsed.port = String(configuredPort);
+		} else if (usePublic && legacyPort) {
+			parsed.port = legacyPort;
+		} else if (usePublic) {
+			parsed.port = proto === 'https:' ? '443' : '80';
+		} else if (!usePublic && configuredPort && /^\d+$/.test(String(configuredPort)) && Number(configuredPort) > 0 && Number(configuredPort) <= 65535) {
+			parsed.port = String(configuredPort);
+		}
+	} catch (e) {
+		parsed = new URL('http://' + window.location.hostname);
+		if (status.cn_port) parsed.port = status.cn_port;
+		usePublic = false;
+	}
+
+	var effectivePort = parsed.port || (parsed.protocol === 'https:' ? '443' : '80');
+	return { host: parsed.hostname, port: effectivePort, proto: parsed.protocol + '//', origin: parsed.origin, secret: status.dase || '', isPublic: usePublic };
+}
+
+function ocGetDashboardWebSocketOrigin(status) {
+	return ocGetDashboardBaseURL(status).origin.replace(/^http/, 'ws');
+}
+
+function ocGetDashboardLoginParams(base, clashCompatible) {
+	var params = new URLSearchParams();
+	params.set(clashCompatible ? 'host' : 'hostname', base.host);
+	params.set('port', base.port);
+	if (base.secret) params.set('secret', base.secret);
+	return params;
+}
+
+function ocBuildExternalDashboardURL(status) {
+	var customURL = ocGetCustomDashboardURL(status);
+	if (!customURL) return '';
+
+	var base = ocGetDashboardBaseURL(status);
+	var clashCompatible = String(status.dashboard_custom_clash_compatible) === '1';
+	var parsed = new URL(customURL);
+	var params = ocGetDashboardLoginParams(base, clashCompatible);
+
+	if (clashCompatible) {
+		var compatHash = parsed.hash.substring(1);
+		var compatSeparator = compatHash.indexOf('?');
+		var compatParams = new URLSearchParams(compatSeparator === -1 ? '' : compatHash.substring(compatSeparator + 1));
+		compatParams.delete('hostname');
+		params.forEach(function(value, key) { compatParams.set(key, value); });
+		parsed.hash = '#/?' + compatParams.toString();
+	} else if (!parsed.hash) {
+		parsed.searchParams.delete('host');
+		params.forEach(function(value, key) { parsed.searchParams.set(key, value); });
+	} else {
+		var hash = parsed.hash.substring(1);
+		var separator = hash.indexOf('?');
+		var route = separator === -1 ? hash : hash.substring(0, separator);
+		var hashParams = new URLSearchParams(separator === -1 ? '' : hash.substring(separator + 1));
+		hashParams.delete('host');
+		params.forEach(function(value, key) { hashParams.set(key, value); });
+		parsed.hash = '#' + route + '?' + hashParams.toString();
+	}
+	return parsed.toString();
 }
 
 function ocBuildDashboardURL(status, uiPath, needsSetup) {
 	var base = ocGetDashboardBaseURL(status);
-	var url = base.proto + base.host + ':' + base.port + '/ui/' + uiPath;
+	var url = base.origin + '/ui/' + uiPath;
+	var params = ocGetDashboardLoginParams(base, uiPath === 'dashboard').toString();
 	if (needsSetup) {
-		url += '/#/setup?hostname=' + base.host + '&port=' + base.port;
-		if (base.secret) url += '&secret=' + base.secret;
+		url += '/#/setup?' + params;
 	} else if (uiPath === 'yacd') {
-		url += '/?hostname=' + base.host + '&port=' + base.port;
-		if (base.secret) url += '&secret=' + base.secret;
+		url += '/?' + params;
 	} else if (uiPath === 'dashboard') {
-		url += '/#/?host=' + base.host + '&port=' + base.port;
-		if (base.secret) url += '&secret=' + base.secret;
+		url += '/#/?' + params;
 	}
 	return url;
 }
