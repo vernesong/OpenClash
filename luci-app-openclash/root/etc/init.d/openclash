@@ -429,14 +429,14 @@ config_check()
 #rm -rf "/etc/openclash/*.y*" 2>/dev/null
 cp "$RAW_CONFIG_FILE" "$TMP_CONFIG_FILE"
 
-ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+ruby -ryaml -rYAML -ruri -I "/usr/share/openclash" -E UTF-8 -e "
 begin
    YAML.load_file('$RAW_CONFIG_FILE');
 rescue Exception => e
    YAML.LOG_ERROR('Unable To Parse Config File,【' + e.message + '】');
    system 'rm -rf ${TMP_CONFIG_FILE}';
 end
-" 2>/dev/null >> $LOG_FILE
+" >> "$LOG_FILE" 2>&1
 if [ $? -ne 0 ]; then
    LOG_ERROR "Ruby Works Abnormally, Please Check The Ruby Library Depends!"
    start_fail
