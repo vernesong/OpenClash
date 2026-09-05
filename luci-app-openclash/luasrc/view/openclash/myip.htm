@@ -30,13 +30,6 @@
                             <div class="myip-ip-section">
                                 <p class="myip-section-title">
                                     <%:IP Address%>
-                                    <span class="myip-toolbar">
-                                        <svg id="eye-icon" class="myip-icon-btn" width="20" height="20" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" onclick="return privacy_my_ip(this)">
-                                            <title><%:Hide IP%></title>
-                                            <use id="eye-open" href="#oc-icon-eye"></use>
-                                            <use id="eye-closed" class="oc-hidden" href="#oc-icon-eye-off"></use>
-                                        </svg>
-                                    </span>
                                 </p>
 
                                 <div class="myip-ip-list">
@@ -70,18 +63,29 @@
                                 <p class="myip-section-title">
                                     <%:Access Check%>
                                     <span class="myip-toolbar">
-                                        <svg id="mode-icon" class="mode-icon myip-icon-btn" width="22" height="22" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" onclick="return toggle_mode_by_icon(this)">
-                                            <title><%:Router Mode%></title>
-                                            <rect x="4" y="28" width="40" height="14" rx="2" fill="#2F88FF" stroke="#333" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                                            <path d="M14 35L22 35" stroke="#FFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                                            <rect x="30" y="33" width="4" height="4" rx="2" fill="#FFF"/>
-                                            <path d="M12 28L12 8" stroke="#333" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                                            <path d="M36 28V8" stroke="#333" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                        <svg id="data-refresh-icon" class="myip-icon-btn" width="20" height="20" onclick="return refresh_myip(this)">
-                                            <title><%:Refresh%></title>
-                                            <use href="#oc-icon-refresh"/>
-                                        </svg>
+                                        <button type="button" class="icon-btn" onclick="return privacy_my_ip(this)">
+                                            <svg id="eye-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <title><%:Hide IP%></title>
+                                                <use id="eye-open" href="#oc-icon-eye"></use>
+                                                <use id="eye-closed" class="oc-hidden" href="#oc-icon-eye-off"></use>
+                                            </svg>
+                                        </button>
+                                        <button type="button" class="icon-btn" onclick="return toggle_mode_by_icon(this)">
+                                            <svg id="mode-icon" width="14" height="14" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <title><%:Router Mode%></title>
+                                                <rect class="mode-body" x="4" y="28" width="40" height="14" rx="2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path class="mode-line" d="M14 35L22 35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <rect class="mode-dot" x="30" y="33" width="3" height="3" rx="1.5"/>
+                                                <path class="mode-antenna" d="M12 28L12 8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path class="mode-antenna" d="M36 28V8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </button>
+                                        <button type="button" class="icon-btn" onclick="return refresh_myip(this)">
+                                            <svg id="data-refresh-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <title><%:Refresh%></title>
+                                                <use href="#oc-icon-refresh"/>
+                                            </svg>
+                                        </button>
                                     </span>
                                 </p>
 
@@ -714,8 +718,7 @@
     var use_router_mode = true;
 
     function toggle_mode_by_icon(svgElement) {
-        var rect = svgElement.querySelector('rect[fill="#2F88FF"]');
-        if (rect && rect.getAttribute('fill') === '#2F88FF') {
+        if (use_router_mode) {
             use_router_mode = false;
             localStorage.setItem('myip_check_mode', 'false');
             update_mode_icon();
@@ -732,26 +735,13 @@
 
     function update_mode_icon() {
         var modeIcon = document.getElementById('mode-icon');
-        var rect = modeIcon.querySelector('rect[x="4"]');
-        var paths = modeIcon.querySelectorAll('path');
-        var smallRect = modeIcon.querySelector('rect[x="30"]');
         var titleElement = modeIcon.querySelector('title');
 
         if (use_router_mode) {
-            rect.setAttribute('fill', '#2F88FF');
-            rect.setAttribute('stroke', '#333');
-            paths[0].setAttribute('stroke', '#FFF');
-            paths[1].setAttribute('stroke', '#333');
-            paths[2].setAttribute('stroke', '#333');
-            smallRect.setAttribute('fill', '#FFF');
+            modeIcon.classList.remove('mode-browser');
             if (titleElement) titleElement.textContent = '<%:Router Mode%>';
         } else {
-            rect.setAttribute('fill', '#6B7280');
-            rect.setAttribute('stroke', '#9CA3AF');
-            paths[0].setAttribute('stroke', '#D1D5DB');
-            paths[1].setAttribute('stroke', '#9CA3AF');
-            paths[2].setAttribute('stroke', '#9CA3AF');
-            smallRect.setAttribute('fill', '#D1D5DB');
+            modeIcon.classList.add('mode-browser');
             if (titleElement) titleElement.textContent = '<%:Browser Mode%>';
         }
     }

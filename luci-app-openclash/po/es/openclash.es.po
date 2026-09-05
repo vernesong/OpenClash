@@ -1164,6 +1164,15 @@ msgstr "Mejorado"
 msgid "Compat"
 msgstr "Compatible"
 
+msgid "Fake-IP"
+msgstr "Fake-IP"
+
+msgid "Redir-Host"
+msgstr "Redir-Host"
+
+msgid "Switch mode failed!"
+msgstr "¡Falló el cambio de modo!"
+
 msgid "Mix"
 msgstr "Mixto"
 
@@ -2103,8 +2112,11 @@ msgstr "Carga"
 msgid "Statistics"
 msgstr "Datos en ejecución"
 
-msgid "Toggle Chart"
-msgstr "Alternar tarjetas/gráfico"
+msgid "Cards"
+msgstr "Tarjetas"
+
+msgid "Chart"
+msgstr "Gráfico"
 
 msgid "Bad address specified!"
 msgstr "Dirección no válida."

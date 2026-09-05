@@ -706,7 +706,8 @@ html[data-darkmode="true"] .oc svg {
     box-sizing: border-box;
 }
 
-.oc .sub-card:has(.card-title) {
+.oc .sub-card:has(.card-title),
+.oc .mode-row .sub-card:has(.stats-card-header) {
     container-type: inline-size;
 }
 
@@ -867,9 +868,8 @@ html[data-darkmode="true"] .oc svg {
     align-items: stretch;
 }
 
-.oc .mode-row .sub-card .card-title {
-    height: 20px;
-    min-height: 20px;
+.oc .mode-row .sub-card .stats-card-header {
+    margin-top: 0;
     margin-bottom: 12px;
     flex-shrink: 0;
 }
@@ -881,6 +881,89 @@ html[data-darkmode="true"] .oc svg {
     align-items: center;
     gap: var(--content-gap);
     flex: 1;
+}
+
+/* Running Mode: DNS enhanced-mode toggle pill (Fake-IP / Redir-Host), aligned with the title in stats-card-header */
+.oc .mode-row .sub-card:first-child .mode-pill {
+    display: inline-flex;
+    align-items: center;
+    background: var(--bg-light);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+    gap: 2px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+.oc .mode-pill input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+}
+.oc .mode-pill .mode-pill-opt {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 20px;
+    padding: 0;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: calc(var(--radius-sm) - 1px);
+    transition: color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+    user-select: none;
+    z-index: 0;
+}
+.oc .mode-pill .mode-pill-opt svg {
+    width: 14px;
+    height: 14px;
+    display: block;
+}
+.oc .mode-pill .mode-pill-opt::after {
+    content: '';
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    top: 1px;
+    bottom: 1px;
+    z-index: -1;
+    border-radius: calc(var(--radius-sm) - 3px);
+    background: var(--primary-a10);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    pointer-events: none;
+}
+.oc .mode-pill .mode-pill-opt:hover {
+    color: var(--text-primary) !important;
+}
+.oc .mode-pill .mode-pill-opt:hover::after {
+    opacity: 1;
+}
+.oc .mode-pill input:checked + .mode-pill-opt {
+    color: var(--primary-color) !important;
+}
+.oc .mode-pill input:checked + .mode-pill-opt::after {
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    border-radius: calc(var(--radius-sm) - 2px);
+    background: var(--bg-white);
+    box-shadow: var(--shadow-md);
+    opacity: 1;
+}
+
+/* Narrow running-mode card: shrink title & pill so they don't overlap */
+@container (max-width: 260px) {
+    .oc .mode-row .sub-card:first-child .stats-title { font-size: 11px; }
+    .oc .mode-pill .mode-pill-opt { width: 26px; height: 20px; }
+    .oc .mode-pill .mode-pill-opt svg { width: 12px; height: 12px; }
+}
+@container (max-width: 235px) {
+    .oc .mode-row .sub-card:first-child .stats-title { font-size: 10px; }
 }
 
 .oc .icon-btn {
@@ -2066,6 +2149,74 @@ html[data-darkmode="true"] .oc svg {
 
 .oc .stats-view-toggle {
     flex: 0 0 auto;
+}
+
+/* Unified icon pill (segmented control) — shared by mode-pill & stats-view-toggle */
+.oc .icon-pill {
+    display: inline-flex;
+    align-items: center;
+    background: var(--bg-light);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+    gap: 2px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+.oc .icon-pill .icon-pill-opt {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 20px;
+    border: none;
+    background: transparent;
+    padding: 0;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: calc(var(--radius-sm) - 1px);
+    transition: color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+    user-select: none;
+    z-index: 0;
+}
+.oc .icon-pill .icon-pill-opt svg {
+    width: 14px;
+    height: 14px;
+    display: block;
+}
+.oc .icon-pill .icon-pill-opt::after {
+    content: '';
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    top: 1px;
+    bottom: 1px;
+    z-index: -1;
+    border-radius: calc(var(--radius-sm) - 3px);
+    background: var(--primary-a10);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    pointer-events: none;
+}
+.oc .icon-pill .icon-pill-opt:hover {
+    color: var(--text-primary) !important;
+}
+.oc .icon-pill .icon-pill-opt:hover::after {
+    opacity: 1;
+}
+.oc .icon-pill .icon-pill-opt.active {
+    color: var(--primary-color) !important;
+}
+.oc .icon-pill .icon-pill-opt.active::after {
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    border-radius: calc(var(--radius-sm) - 2px);
+    background: var(--bg-white);
+    box-shadow: var(--shadow-md);
+    opacity: 1;
 }
 
 .oc .stats-section .card-row.stats-grid {
@@ -3809,14 +3960,6 @@ html[data-darkmode="true"] .oc .cm-editor {
  * SECTION 5: myip.htm
  * ========================================================================== */
 
-/* ---- dark mode overrides ---- */
-html[data-darkmode="true"] .oc #mode-icon rect[stroke="#333"] { stroke: var(--text-primary, #fff); }
-html[data-darkmode="true"] .oc #mode-icon path[stroke="#333"] { stroke: var(--text-primary, #fff); }
-html[data-darkmode="true"] .oc #mode-icon rect[fill="#2F88FF"] { fill: #60a5fa; }
-html[data-darkmode="true"] .oc #mode-icon rect[fill="#6B7280"] { fill: #9ca3af; }
-html[data-darkmode="true"] .oc #mode-icon path[stroke="#FFF"] { stroke: #f9fafb; }
-html[data-darkmode="true"] .oc #mode-icon path[stroke="#D1D5DB"] { stroke: #9ca3af; }
-
 html[data-darkmode="true"] .oc .myip-main-card {
     background: var(--bg-white, #1f2937);
     border-color: var(--border-light, #374151);
@@ -3846,6 +3989,7 @@ html[data-darkmode="true"] .oc .myip-footer p {
 .oc .myip-content-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    background: var(--bg-white);
     border: 1px solid var(--border-light, #e5e7eb);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
@@ -3858,8 +4002,20 @@ html[data-darkmode="true"] .oc .myip-footer p {
 .oc .myip-check-section {
     display: flex;
     flex-direction: column;
-    gap: var(--section-gap);
     height: 100%;
+    background: var(--bg-gray);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: var(--card-padding);
+    box-sizing: border-box;
+}
+
+.oc .myip-ip-section:hover,
+.oc .myip-check-section:hover {
+    background: var(--hover-bg, #f3f4f6);
+    border-color: var(--primary-color, #3b82f6);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
 }
 
 .oc .myip-section-title {
@@ -3901,7 +4057,7 @@ html[data-darkmode="true"] .oc .myip-footer p {
     align-items: center;
     justify-content: space-between;
     padding: var(--card-outer-padding);
-    background: var(--bg-gray, #f9fafb);
+    background: var(--bg-white);
     border: 1px solid var(--border-light, #e5e7eb);
     border-radius: var(--radius-md);
     transition: all var(--transition-fast);
@@ -3914,10 +4070,7 @@ html[data-darkmode="true"] .oc .myip-footer p {
 }
 
 .oc .myip-card-item:hover {
-    background: var(--hover-bg, #f3f4f6);
     border-color: var(--primary-color, #3b82f6);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-sm);
 }
 
 .oc .myip-card-icon {
@@ -4172,64 +4325,13 @@ html[data-darkmode="true"] .oc .myip-card-icon.ic-youtube { color: #FF4444; }
     vertical-align: middle;
 }
 
-.oc .mode-icon {
-    margin: 0 8px;
-    vertical-align: middle;
-    cursor: pointer;
-}
-
-.oc #mode-icon, 
-.oc #eye-icon, 
-.oc #data-refresh-icon {
-    vertical-align: bottom;
-    margin: 0 3px;
-    cursor: pointer;
-}
-
-.oc #mode-icon {
-    cursor: pointer;
-    transition: all 0.2s ease;
-    vertical-align: middle;
-}
-
-.oc #mode-icon:hover {
-    transform: scale(1.1);
-}
-
-.oc #eye-icon {
-    cursor: pointer;
-    transition: all 0.2s ease;
-    vertical-align: middle;
-    color: currentColor;
-}
-
-.oc #eye-icon:hover {
-    transform: scale(1.1);
-}
-
-.oc #data-refresh-icon {
-    cursor: pointer;
-    transition: all 0.2s ease;
-    vertical-align: middle;
-    color: currentColor;
-    margin-top: 1px;
-}
-
-.oc #data-refresh-icon:hover {
-    transform: scale(1.1);
-}
-
-.oc .myip-icon-btn {
-    cursor: pointer;
-    transition: all 0.2s ease;
-    vertical-align: middle;
-    color: currentColor;
-}
-
-.oc .myip-icon-btn:hover {
-    transform: scale(1.1);
-    color: var(--primary-color, #3b82f6);
-}
+.oc .icon-btn #mode-icon .mode-body { fill: var(--primary-color); stroke: currentColor; }
+.oc .icon-btn #mode-icon .mode-line,
+.oc .icon-btn #mode-icon .mode-dot { fill: var(--text-on-primary); stroke: var(--text-on-primary); }
+.oc .icon-btn #mode-icon .mode-antenna { stroke: currentColor; }
+.oc .icon-btn #mode-icon.mode-browser .mode-body { fill: var(--text-secondary); }
+.oc .icon-btn #mode-icon.mode-browser .mode-line,
+.oc .icon-btn #mode-icon.mode-browser .mode-dot { fill: var(--bg-white); stroke: var(--bg-white); }
 
 /* ==========================================================================
  * SECTION 6: developer.htm
@@ -7585,6 +7687,7 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .subscription-info-header { gap: 6px; }
     .oc .file-info { gap: 4px; font-size: 8px; }
     .oc .mode-row .sub-card:first-child .card-content { flex-direction: row; gap: 8px; }
+    .oc .mode-pill .mode-pill-opt { padding: 2px 6px; font-size: 9px; }
     .oc .card-row:nth-child(1), .oc .card-row:nth-child(2),
     .oc .card-row:nth-child(3), .oc .card-row:nth-child(4) { min-height: auto; }
     .oc .config-selector { min-width: 110px; flex: 1; }
@@ -7727,6 +7830,8 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     #debug-rendered .pre-copy-btn svg { width: 10px; height: 10px; }
     /* log.htm - tab menu responsive font */
     #tab-header ul.oc-tabmenu li { font-size: 10px; }
+    /* status.htm - Running Mode mode-pill */
+    .oc .mode-pill .mode-pill-opt { padding: 2px 5px; font-size: 8px; }
     /* developer.htm */
     .oc .developer-grid { gap: 2px 10px; }
     .oc .developer-avatar { width: 30px; height: 30px; }

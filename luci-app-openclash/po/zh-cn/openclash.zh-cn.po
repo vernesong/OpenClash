@@ -1167,6 +1167,15 @@ msgstr "增强"
 msgid "Compat"
 msgstr "兼容"
 
+msgid "Fake-IP"
+msgstr "Fake-IP"
+
+msgid "Redir-Host"
+msgstr "Redir-Host"
+
+msgid "Switch mode failed!"
+msgstr "切换模式失败！"
+
 msgid "Mix"
 msgstr "混合"
 
@@ -2106,8 +2115,11 @@ msgstr "负载"
 msgid "Statistics"
 msgstr "运行数据"
 
-msgid "Toggle Chart"
-msgstr "切换卡片/图表"
+msgid "Cards"
+msgstr "卡片"
+
+msgid "Chart"
+msgstr "图表"
 
 msgid "Bad address specified!"
 msgstr "输入的地址不合法！"

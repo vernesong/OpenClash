@@ -1092,7 +1092,7 @@ function action_switch_run_mode()
 	end
 	uci:commit("openclash")
 	if is_running() then
-		SYS.exec("/etc/init.d/openclash restart >/dev/null 2>&1 &")
+		SYS.exec("/etc/init.d/openclash restart >/dev/null 2>&1")
 	end
 end
 
@@ -3853,7 +3853,7 @@ function action_switch_oc_setting()
 			end
 			uci:set("openclash", "@overwrite[0]", "china_ip_route", value)
 			uci:commit("openclash")
-			SYS.exec("/etc/init.d/openclash restart >/dev/null 2>&1 &")
+			SYS.exec("/etc/init.d/openclash restart >/dev/null 2>&1")
 		end
 	elseif setting == "stream_unlock" then
 		uci:set("openclash", "config", "stream_auto_select", value)
