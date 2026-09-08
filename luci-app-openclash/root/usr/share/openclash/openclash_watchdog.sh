@@ -398,7 +398,7 @@ fi
    if [ "$enable_redirect_dns" = "1" ]; then
       if [ -z "$(uci -q get dhcp.@dnsmasq[0].server |grep "$dns_port")" ] || [ ! -z "$(uci -q get dhcp.@dnsmasq[0].server |awk -F ' ' '{print $2}')" ]; then
          LOG_WATCHDOG "Force Reset DNS Hijack..."
-         uci -q del dhcp.@dnsmasq[-1].server
+         uci -q delete dhcp.@dnsmasq[0].server
          uci -q add_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port"
          uci -q delete dhcp.@dnsmasq[0].resolvfile
          uci -q set dhcp.@dnsmasq[0].noresolv=1
