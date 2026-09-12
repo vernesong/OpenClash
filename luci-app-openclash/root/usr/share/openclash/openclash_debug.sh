@@ -49,6 +49,11 @@ fi
 core_meta_version=$(/etc/openclash/core/clash_meta -v 2>/dev/null |awk -F ' ' '{print $3}' |head -1 2>/dev/null)
 op_version=$(ipk_v "luci-app-openclash")
 china_ip_route=$(uci_get_config "china_ip_route")
+china_ip_route_domain_source=$(uci_get_config "china_ip_route_domain_source" || echo "mrs")
+case "$china_ip_route_domain_source" in
+   mrs|geosite) ;;
+   *) china_ip_route_domain_source="mrs" ;;
+esac
 common_ports=$(uci_get_config "common_ports")
 router_self_proxy=$(uci_get_config "router_self_proxy")
 core_type=$(uci_get_config "core_type" || echo "Dev")
@@ -311,6 +316,7 @@ cat >> "$DEBUG_LOG" <<-EOF
 | 仅代理命中规则流量 | $(ts_cf "$enable_rule_proxy") |
 | 仅允许常用端口流量 | $(ts_cf "$common_ports") |
 | 绕过中国大陆IP | $(ts_cf "$china_ip_route") |
+| 中国大陆域名数据源 | $china_ip_route_domain_source |
 | 路由本机代理 | $(ts_cf "$router_self_proxy") |
 | TUN堆栈类型 | ${stack_type:-system} |
 | 启动延迟 | ${delay_start:-0}秒 |

@@ -3067,6 +3067,7 @@ EOF
       AUTO_SMART_SWITCH:int_bool \
       BYPASS_GATEWAY_COMPATIBLE:int_bool \
       CHINA_IP_ROUTE:int \
+      CHINA_IP_ROUTE_DOMAIN_SOURCE:string \
       CHINA_IP_ROUTE_PASS:string \
       CHINA_IP6_ROUTE:int \
       CHINA_IP6_ROUTE_PASS:string \

@@ -18,8 +18,9 @@ append_wan_dns=$(uci_get_config "append_wan_dns" || echo 0)
 custom_fallback_filter=$(uci_get_config "custom_fallback_filter" || echo 0)
 china_ip_route=$(uci_get_config "china_ip_route" || echo 0)
 china_ip6_route=$(uci_get_config "china_ip6_route" || echo 0)
+china_ip_route_domain_source=$(uci_get_config "china_ip_route_domain_source" || echo "mrs")
 enable_redirect_dns=$(uci_get_config "enable_redirect_dns" || echo 1)
-fake_ip_filter_mode=${34}
+fake_ip_filter_mode=${33}
 default_dashboard=$(uci_get_config "default_dashboard" || echo "metacubexd")
 yacd_type=$(uci_get_config "yacd_type" || echo "Official")
 dashboard_type=$(uci_get_config "dashboard_type" || echo "Official")
@@ -29,6 +30,10 @@ dashboard_custom_url=$(uci_get_config "dashboard_custom_url" || echo 0)
 
 [ "$china_ip_route" -ne 0 ] && [ "$china_ip_route" -ne 1 ] && [ "$china_ip_route" -ne 2 ] && china_ip_route=0
 [ "$china_ip6_route" -ne 0 ] && [ "$china_ip6_route" -ne 1 ] && [ "$china_ip6_route" -ne 2 ] && china_ip6_route=0
+case "$china_ip_route_domain_source" in
+   mrs|geosite) ;;
+   *) china_ip_route_domain_source="mrs" ;;
+esac
 
 en_mode_tun=${11:-0}
 if [ -z "${12}" ]; then
@@ -463,6 +468,7 @@ begin
    custom_fakeip_filter = '$custom_fakeip_filter' == '1'
    china_ip_route = '$china_ip_route' != '0'
    china_ip6_route = '$china_ip6_route' != '0'
+   china_ip_route_domain_source = '$china_ip_route_domain_source'
    custom_name_policy = '$custom_name_policy' == '1'
    custom_proxy_server_policy = '$custom_proxy_server_policy' == '1'
    custom_host = '$custom_host' == '1'
@@ -735,7 +741,7 @@ begin
          if fake_ip_mode == 'fake-ip' && (china_ip_route || china_ip6_route)
             filter_mode = Value.dig('dns', 'fake-ip-filter-mode')
             if filter_mode == 'blacklist' || filter_mode.nil?
-               filter_rule = 'rule-set:oc-cn-domain'
+               filter_rule = china_ip_route_domain_source == 'geosite' ? 'geosite:cn' : 'rule-set:oc-cn-domain'
                (Value['dns']['fake-ip-filter'] ||= []) << filter_rule
             end
             if filter_mode == 'whitelist'
@@ -749,13 +755,16 @@ begin
                end
             end
             if filter_mode == 'rule'
-               filter_rule = 'RULE-SET,oc-cn-domain,real-ip'
+               filter_rule = china_ip_route_domain_source == 'geosite' ? 'GEOSITE,cn,real-ip' : 'RULE-SET,oc-cn-domain,real-ip'
                (Value['dns']['fake-ip-filter'] ||= []).unshift(filter_rule)
             end
-            Value['dns']['fake-ip-filter'].uniq!
+            filters = Value.dig('dns', 'fake-ip-filter')
+            filters.uniq! if filters.is_a?(Array)
             if filter_mode != 'whitelist'
-               rule_set_hash = {'rule-providers+'=>{'oc-cn-domain'=>{'type'=>'http', 'interval'=>43200, 'behavior'=>'domain', 'format'=>'mrs', 'url'=>'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.mrs', 'path'=> './rule_provider/oc-cn-domain.mrs'}}}
-               Value = YAML.overwrite(Value, rule_set_hash)
+               if china_ip_route_domain_source == 'mrs'
+                  rule_set_hash = {'rule-providers+'=>{'oc-cn-domain'=>{'type'=>'http', 'interval'=>43200, 'behavior'=>'domain', 'format'=>'mrs', 'url'=>'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.mrs', 'path'=> './rule_provider/oc-cn-domain.mrs'}}}
+                  Value = YAML.overwrite(Value, rule_set_hash)
+               end
                YAML.LOG_TIP('Because Need Ensure Bypassing IP Option Work, Added The Fake-IP-Filter Rule【%s】...' % [filter_rule])
             end
          end

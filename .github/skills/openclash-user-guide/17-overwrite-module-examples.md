@@ -202,6 +202,7 @@ fi
 | `DELAY_START` | int | `delay_start` | 延迟启动（秒） |
 | `ROUTER_SELF_PROXY` | int_bool | `router_self_proxy` | 本机代理 |
 | `CHINA_IP_ROUTE` | int | `china_ip_route` | 区域绕行 |
+| `CHINA_IP_ROUTE_DOMAIN_SOURCE` | string | `china_ip_route_domain_source` | Fake-IP 中国大陆域名数据源（`mrs`/`geosite`） |
 | `CHINA_IP6_ROUTE` | int | `china_ip6_route` | IPv6 区域绕行 |
 | `COMMON_PORTS` | string | `common_ports` | 常用端口 |
 | `INTRANET_ALLOWED` | int_bool | `intranet_allowed` | 仅内网 |

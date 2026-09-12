@@ -235,9 +235,18 @@
   - `0` — 关闭
   - `1` — 绕过中国大陆 IP (将国内 IP 直连，提升性能)
   - `2` — 绕过海外 IP
-- **说明**: 强烈推荐启用「绕过中国大陆」。启用后，会在 `fake-ip-filter` 添加 `rule-set:oc-cn-domain` 规则集 (旧版本为 GeoSite 数据库中分类为 `CN` 的域名)，且解析 IP 位于大陆 IP 段范围内的流量将不进入内核，显著降低内核性能开销。旁路由模式下如果遇到大陆域名无法访问可尝试开启"旁路由兼容"选项
-- **Mihomo 对应**: 通过 `dns.fake-ip-filter` 添加 `rule-set:oc-cn-domain` 规则集，使中国大陆域名返回真实 IP 而非 Fake-IP；同时自动注册对应的 `rule-providers` 条目指向 MetaCubeX geosite CN MRS 文件
-- **实现细节（双重机制）**: 1) **YAML 层面**: `yml_change.sh` 修改 `dns.fake-ip-filter`——blacklist 模式（默认）追加 `rule-set:oc-cn-domain`，whitelist 模式移除 CN 相关过滤器，rule 模式前置 `RULE-SET,oc-cn-domain,real-ip`。效果：匹配的中国大陆域名返回真实 IP，绕过 Fake-IP 机制。2) **防火墙层面**: `set_firewall()` 使用 chnroute IP 列表构建 nftables set（`china_ip_route` 或者 `china_ip6_route`），在 redirect/TPROXY 链中匹配国内真实 IP 直连 return。两层面互为补充——YAML fake-ip-filter 确保大陆域名获得真实 IP，防火墙 nft set 匹配这些真实 IP 使其跳过代理。
+- **说明**: 强烈推荐启用「绕过中国大陆」。启用后，默认在 `fake-ip-filter` 添加 `rule-set:oc-cn-domain`，也可选择使用当前 GeoSite 数据库中的 `cn` 分类；解析 IP 位于大陆 IP 段范围内的流量将不进入内核，显著降低内核性能开销。旁路由模式下如果遇到大陆域名无法访问可尝试开启"旁路由兼容"选项
+- **Mihomo 对应**: 根据 `china_ip_route_domain_source`，通过 `dns.fake-ip-filter` 添加 MRS Rule-Set 或 GeoSite CN 规则，使中国大陆域名返回真实 IP 而非 Fake-IP；选择 MRS 时同时自动注册对应的 `rule-providers` 条目
+- **实现细节（双重机制）**: 1) **YAML 层面**: `yml_change.sh` 根据域名数据源和 `fake-ip-filter-mode` 修改 `dns.fake-ip-filter`；默认 MRS 使用 `rule-set:oc-cn-domain`，GeoSite 使用 `geosite:cn`，rule 模式则使用对应的大写规则语法，whitelist 模式不追加并移除已有 CN 相关过滤器。2) **防火墙层面**: `set_firewall()` 使用 chnroute IP 列表构建 nftables set（`china_ip_route` 或者 `china_ip6_route`），在 redirect/TPROXY 链中匹配国内真实 IP 直连 return。两层面互为补充——YAML fake-ip-filter 确保大陆域名获得真实 IP，防火墙 nft set 匹配这些真实 IP 使其跳过代理。
+
+#### 8.3.5.1 china_ip_route_domain_source — 中国大陆域名数据源 (China IP Route Domain Source)
+- **UCI 选项**: `openclash.@openclash[0].china_ip_route_domain_source`
+- **可选值**: `mrs`（默认）/ `geosite`
+- **界面名称**: `mrs` 显示为「MetaCubeX 规则 cn.mrs（默认）」；`geosite` 显示为「GeoSite 规则 geosite:cn」
+- **选择保留**: 关闭区域 IP 绕行后保存设置，会保留已保存的数据源选择；重新开启时继续使用该选择。
+- **依赖**: 仅 Fake-IP 系列模式，并在 `china_ip_route` 或 `china_ip6_route` 启用时显示
+- **说明**: `mrs` 使用 `MetaCubeX/meta-rules-dat` 提供的独立 `cn.mrs` 规则集，blacklist 模式追加 `rule-set:oc-cn-domain`，rule 模式追加 `RULE-SET,oc-cn-domain,real-ip`；`geosite` 使用当前 `/etc/openclash/GeoSite.dat` 中的 `cn` 分类，分别追加 `geosite:cn` 或 `GEOSITE,cn,real-ip`。whitelist 模式下两种来源都不自动追加 CN 过滤器。选择 `geosite` 时不会自动注册 `rule-providers.oc-cn-domain`，并会跟随用户配置的 GeoSite 数据源与更新周期。
+- **资源与故障差异**: MRS 是默认值，使用独立 CN 规则集；GeoSite 从当前数据库读取 `cn` 分类。在 x86/64 实测中，使用 `geosite:cn` 比 MRS 多占用约 20 MiB 内存，具体差值因内核和规则库而异。MRS 本地文件缺失或损坏且下载失败时，Mihomo 仍可启动，但依赖该规则集的域名可能返回 Fake-IP，影响区域绕行；所需的 GeoSite 数据无法加载或缺少 `cn` 分类时，Mihomo 配置校验和启动会失败。
 
 #### 8.3.6 intranet_allowed — 仅允许内网 (Only Intranet Allowed)
 - **UCI 选项**: `openclash.@openclash[0].intranet_allowed`
