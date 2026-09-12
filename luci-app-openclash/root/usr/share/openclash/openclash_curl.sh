@@ -28,8 +28,6 @@ DOWNLOAD_FILE_CURL() {
     DOWNLOAD_UA=$4
     SECRET_KEY=$5
     CUSTOM_HEADERS=$6
-    CHECKSUM_FILENAME=$7
-    CHECKSUM_URL=$8
     [ -z "$DOWNLOAD_UA" ] && DOWNLOAD_UA="$DEFAULT_UA"
     HEADER_TMP="/tmp/openclash_curl_header_$$"
     DOWNLOAD_TMP="${DOWNLOAD_PATH}.download.$$"
@@ -195,6 +193,14 @@ EOF
         fi
     fi
 
+    resolve_checksum_from_url "$DOWNLOAD_URL"
+
+    if ! verify_sha256_checksum "$DOWNLOAD_TMP" "$CHECKSUM_FILENAME" "$CHECKSUM_URL" "$DOWNLOAD_UA"; then
+        LOG_OUT "【${DOWNLOAD_PATH}】Checksum Verification Failed"
+        rm -f "$HEADER_TMP" "$DOWNLOAD_TMP"
+        return 1
+    fi
+
     if ! mv -f "$DOWNLOAD_TMP" "$DOWNLOAD_PATH"; then
         LOG_OUT "【${DOWNLOAD_PATH}】Download Failed:【Unable to save download file】"
         rm -f "$HEADER_TMP" "$DOWNLOAD_TMP"
@@ -208,11 +214,53 @@ EOF
 
     rm -f "$HEADER_TMP" "$DOWNLOAD_TMP"
 
-    if [ -n "$CHECKSUM_FILENAME" ] && [ -n "$CHECKSUM_URL" ] && ! verify_sha256_checksum "$DOWNLOAD_PATH" "$CHECKSUM_FILENAME" "$CHECKSUM_URL" "$DOWNLOAD_UA"; then
-        LOG_OUT "【${DOWNLOAD_PATH}】Checksum Verification Failed"
-        return 1
-    fi
+    return 0
+}
 
+CHECKSUM_RAW_PREFIX="https://raw.githubusercontent.com/vernesong/OpenClash"
+CHECKSUM_OIX_URL="https://github.com/vernesong/mihomo-oix/releases/download/Pre-Alpha/checksums.txt"
+
+resolve_checksum_from_url() {
+    local url="$1"
+    local base name path
+
+    CHECKSUM_URL=""
+    CHECKSUM_FILENAME=""
+
+    [ -z "$url" ] && return 1
+
+    base="${url%%\?*}"
+    base="${base%%#*}"
+    name="${base##*/}"
+    [ -n "$name" ] || return 1
+
+    case "$name" in
+        clash-*.tar.gz|luci-app-openclash_*.ipk|luci-app-openclash-*.apk|mihomo-*.gz) ;;
+        *)
+            return 1
+            ;;
+    esac
+
+    case "$base" in
+        *"jsdelivr.net/gh/vernesong/OpenClash@"*)
+            path="${base#*OpenClash@}"
+            [ "${path%/*}" = "$path" ] && return 1
+            CHECKSUM_URL="${CHECKSUM_RAW_PREFIX}/${path%/*}/checksums.txt"
+            ;;
+        *"raw.githubusercontent.com/vernesong/OpenClash/"*)
+            path="${base#*OpenClash/}"
+            [ "${path%/*}" = "$path" ] && return 1
+            CHECKSUM_URL="${CHECKSUM_RAW_PREFIX}/${path%/*}/checksums.txt"
+            ;;
+        *"mihomo-oix/"*)
+            CHECKSUM_URL="$CHECKSUM_OIX_URL"
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+
+    CHECKSUM_FILENAME="$name"
     return 0
 }
 
@@ -241,6 +289,7 @@ verify_sha256_checksum() {
         return 0
     fi
     if [ "$actual_hash" = "$expected_hash" ]; then
+        LOG_OUT "Checksum Verification Successful for【$expected_name】"
         return 0
     fi
 

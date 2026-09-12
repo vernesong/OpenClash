@@ -958,12 +958,8 @@ html[data-darkmode="true"] .oc svg {
 
 /* Narrow running-mode card: shrink title & pill so they don't overlap */
 @container (max-width: 260px) {
-    .oc .mode-row .sub-card:first-child .stats-title { font-size: 11px; }
     .oc .mode-pill .mode-pill-opt { width: 26px; height: 20px; }
     .oc .mode-pill .mode-pill-opt svg { width: 12px; height: 12px; }
-}
-@container (max-width: 235px) {
-    .oc .mode-row .sub-card:first-child .stats-title { font-size: 10px; }
 }
 
 .oc .icon-btn {

@@ -139,8 +139,6 @@ if [ "$PLUGIN_DIRECT" -eq 1 ]; then
       DOWNLOAD_PATH="/tmp/openclash.apk"
    fi
    LAST_VER=$(echo "$DOWNLOAD_URL" | grep -oE 'luci-app-openclash[_-][0-9]+(\.[0-9]+)*' | head -1 | sed 's/^luci-app-openclash[_-]//')
-   CHECKSUM_URL=""
-   CHECKSUM_FILENAME=""
    LOG_TIP "Start downloading【OpenClash - v$LAST_VER】..."
 elif [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && version_compare "$OP_CV" "$OP_LV" && [ -n "$PLUGIN_LATEST" ]; then
    LOG_TIP "Start downloading【OpenClash - v$LAST_VER】..."
@@ -171,12 +169,6 @@ elif [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && version_compare "$OP_CV" "$OP_LV" && 
          DOWNLOAD_PATH="/tmp/openclash.apk"
       fi
    fi
-   if [ "$PKG_TYPE" = "opkg" ]; then
-      CHECKSUM_FILENAME="luci-app-openclash_${LAST_VER}_all.ipk"
-   else
-      CHECKSUM_FILENAME="luci-app-openclash-${LAST_VER}.apk"
-   fi
-   CHECKSUM_URL="https://raw.githubusercontent.com/vernesong/OpenClash/package/${RELEASE_BRANCH}/checksums.txt"
 else
    if [ -z "$PLUGIN_LATEST" ] || [ -z "$OP_CV" ] || [ -z "$OP_LV" ]; then
       LOG_ERROR "Failed to get version information, please try again later..."
@@ -199,7 +191,7 @@ if [ -n "$DOWNLOAD_URL" ]; then
       else
          rm -rf "$DOWNLOAD_PATH" >/dev/null 2>&1
          LOG_TIP "【$retry_count/$max_retries】【OpenClash - v$LAST_VER】Downloading..."
-         SHOW_DOWNLOAD_PROGRESS=1 DOWNLOAD_FILE_CURL "$DOWNLOAD_URL" "$DOWNLOAD_PATH" "$DOWNLOAD_PATH" "" "" "" "$CHECKSUM_FILENAME" "$CHECKSUM_URL"
+         SHOW_DOWNLOAD_PROGRESS=1 DOWNLOAD_FILE_CURL "$DOWNLOAD_URL" "$DOWNLOAD_PATH" "$DOWNLOAD_PATH"
          DOWNLOAD_RESULT=$?
       fi
 

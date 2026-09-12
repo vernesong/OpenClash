@@ -1660,16 +1660,19 @@ msgid "Core Verification Failed:"
 msgstr "内核校验失败:"
 
 msgid "Checksum Verification Failed"
-msgstr "Checksum 校验失败"
+msgstr "文件哈希校验失败"
+
+msgid "Checksum Verification Successful for"
+msgstr "文件哈希校验成功"
 
 msgid "Checksum file unavailable or entry not found, skip verification for"
-msgstr "Checksum 校验文件不可用或未找到条目，跳过校验"
+msgstr "校验文件不可用或未找到对应条目，跳过校验"
 
 msgid "Checksum mismatch for"
-msgstr "Checksum 校验不匹配"
+msgstr "文件哈希不匹配"
 
 msgid "Unable to compute checksum, skip verification for"
-msgstr "无法计算 Checksum，跳过校验"
+msgstr "无法计算文件哈希，跳过校验"
 
 msgid "No Compiled Version Selected, Please Select In Update Page And Try Again!"
 msgstr "未选择编译版本，请到升级页面选择后再试！"
