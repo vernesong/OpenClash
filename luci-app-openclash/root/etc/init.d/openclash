@@ -195,7 +195,7 @@ change_dnsmasq() {
          uci -q set openclash.config.dnsmasq_noresolv="$(uci -q get dhcp.@dnsmasq[0].noresolv)"
          uci -q set openclash.config.dnsmasq_resolvfile="$(uci -q get dhcp.@dnsmasq[0].resolvfile)"
       fi
-      uci -q del dhcp.@dnsmasq[-1].server
+      uci -q delete dhcp.@dnsmasq[0].server
       uci -q add_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port"
       uci -q delete dhcp.@dnsmasq[0].resolvfile
       uci -q set dhcp.@dnsmasq[0].noresolv=1
@@ -246,7 +246,7 @@ revert_dnsmasq()
    rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf
 
    [ "$redirect_dns" -eq 1 ] && {
-      uci -q del dhcp.@dnsmasq[-1].server
+      uci -q delete dhcp.@dnsmasq[0].server
       [ -n "$dnsmasq_server" ] && {
          config_load "openclash"
          config_list_foreach "config" "dnsmasq_server" set_dnsmasq_server
