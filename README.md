@@ -37,6 +37,7 @@
 * ip-full
 * ruby
 * ruby-yaml
+* ruby-uri
 * unzip
 * iptables(iptables)
 * kmod-ipt-nat(iptables)
