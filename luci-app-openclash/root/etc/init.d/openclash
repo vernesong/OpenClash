@@ -3646,7 +3646,7 @@ start_service()
             if [ -f "/tmp/yaml_openclash_ruby_parse" ]; then
                sed -n "s/.*yaml_file_path=['\"]\([^'\"]*\)['\"].*/\1/p" /tmp/yaml_openclash_ruby_parse | sort | uniq | while read -r yaml_file; do
                   [ -z "$yaml_file" ] && continue
-                  ruby_code=$(grep "yaml_file_path=['\"]$yaml_file['\"]" /tmp/yaml_openclash_ruby_parse | sed "s/^threads << Thread.new do //;s/ end$//")
+                  ruby_code=$(grep "yaml_file_path=['\"]$yaml_file['\"]" /tmp/yaml_openclash_ruby_parse | sed "s/^threads << YAML::Inline.new do //;s/ end$//")
                   [ -z "$ruby_code" ] && continue
                   if [ -f "$yaml_file" ]; then
                      (
@@ -3676,7 +3676,7 @@ start_service()
                provider_configs.each do |provider_type, path_prefix|
                   if Value.key?(provider_type) && Value[provider_type].is_a?(Hash)
                      Value[provider_type].each do |name, config|
-                        threads << Thread.new {
+                        threads << YAML::Inline.new {
                            begin
                               path_val = config['path']
                               if path_val && !path_val.to_s.match?(%r{^\./#{Regexp.escape(path_prefix)}/})

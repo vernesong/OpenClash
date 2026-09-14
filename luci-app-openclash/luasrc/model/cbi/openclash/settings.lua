@@ -1263,6 +1263,12 @@ o.default = "9090"
 o.datatype = "port"
 o.rmempty = false
 o.description = translate("Dashboard Address Example:").." "..font_green..bold_on..lan_ip..':'..cn_port..'/ui/yacd'..'、'..lan_ip..':'..cn_port..'/ui/dashboard'..bold_off..font_off
+local cn_port_write = o.write
+o.write = function(self, section, value)
+	local ret = cn_port_write(self, section, value)
+	SYS.exec("/usr/share/openclash/openclash_nginx.sh >/dev/null 2>&1 &")
+	return ret
+end
 
 o = s:taboption("dashboard", Value, "dashboard_password")
 o.title = translate("Dashboard Secret")

@@ -330,7 +330,7 @@ o = promg:option(Button, "proxy_mg", " ")
 o.inputtitle = translate("Proxy Provider File List")
 o.inputstyle = "reload"
 o.write = function()
-	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "proxy-provider-file-manage"))
+	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "proxy-providers-file-manage"))
 end
 
 o = promg:option(Button, "rule_mg", " ")

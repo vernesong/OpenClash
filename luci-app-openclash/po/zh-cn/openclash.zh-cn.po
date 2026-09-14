@@ -2088,6 +2088,9 @@ msgstr "修改 Fake-IP-Filter 配置失败，"
 msgid "Set Nameserver-Policy Failed,"
 msgstr "修改 Nameserver-Policy 配置失败，"
 
+msgid "Set Proxy-Server-Nameserver-Policy Failed,"
+msgstr "修改 Proxy-Server-Nameserver-Policy 配置失败，"
+
 msgid "Set Custom Rules Failed,"
 msgstr "设置自定义规则失败，"
 
@@ -4430,3 +4433,24 @@ msgstr "版本号"
 
 msgid "to update individually"
 msgstr "则独立更新"
+
+msgid "A custom planet file. An orbit (a world and its seed) belongs to Other Parameters"
+msgstr "自定义 planet 文件。orbit（world 与其 seed）请写在“其他参数”里"
+
+msgid "auto: relay only when the direct path fails, force: always relay, disable: off"
+msgstr "auto：直连失败才走中继；force：始终中继；disable：关闭"
+
+msgid "only for http-mask-mode stream, poll or auto"
+msgstr "仅在 http-mask-mode 为 stream、poll 或 auto 时生效"
+
+msgid "Write Uci Config Failed,"
+msgstr "写入 UCI 配置失败，"
+
+msgid "Resolve Group Failed,"
+msgstr "策略组解析失败，"
+
+msgid "Merge Failed,"
+msgstr "配置合并失败，"
+
+msgid "Update Config File Failed,"
+msgstr "更新配置文件失败，"

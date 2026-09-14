@@ -7,9 +7,6 @@ local json = require "luci.jsonc"
 
 local M = {}
 
-local VERSION_CACHE_FILE = "/tmp/openclash_version_history.json"
-local CDN_CACHE_FILE = "/tmp/openclash_cdn_info.json"
-
 local function trim(s)
 	if not s then return "" end
 	return (s:gsub("^%s+", ""):gsub("%s+$", ""))
@@ -42,32 +39,11 @@ function try_read(fd, maxlen)
 	return nil
 end
 
-local function read_json(path)
-	if not fs.access(path) then return nil end
-	local raw = fs.readfile(path)
-	if not raw or raw == "" then return nil end
-	local ok, parsed = pcall(json.parse, raw)
-	if ok and parsed and type(parsed) == "table" then
-		return parsed
-	end
-	return nil
-end
+local read_version_cache = fs.read_version_cache
+local update_version_cache = fs.update_version_cache
 
-local function write_json(path, data)
-	local tmp = path .. ".tmp"
-	fs.writefile(tmp, json.stringify(data))
-	os.rename(tmp, path)
-end
-
-local function read_version_cache()
-	return read_json(VERSION_CACHE_FILE)
-end
-
-local function update_version_cache(updater)
-	local parsed = read_version_cache() or {}
-	updater(parsed)
-	write_json(VERSION_CACHE_FILE, parsed)
-end
+M.read_version_cache = read_version_cache
+M.update_version_cache = update_version_cache
 
 local CDN_LIST_FILE = "/usr/share/openclash/res/cdn.list"
 local CDN_LIST_REMOTE_URL = "https://raw.githubusercontent.com/vernesong/OpenClash/dev/luci-app-openclash/root/usr/share/openclash/res/cdn.list"

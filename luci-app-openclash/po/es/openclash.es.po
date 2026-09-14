@@ -2085,6 +2085,9 @@ msgstr "Fallo al modificar Fake-IP-Filter,"
 msgid "Set Nameserver-Policy Failed,"
 msgstr "Fallo al modificar Nameserver-Policy,"
 
+msgid "Set Proxy-Server-Nameserver-Policy Failed,"
+msgstr "Fallo al modificar Proxy-Server-Nameserver-Policy,"
+
 msgid "Set Custom Rules Failed,"
 msgstr "Fallo al aplicar reglas personalizadas,"
 
@@ -4421,3 +4424,24 @@ msgstr "la versión"
 
 msgid "to update individually"
 msgstr "para actualizar individualmente"
+
+msgid "A custom planet file. An orbit (a world and its seed) belongs to Other Parameters"
+msgstr "Archivo planet personalizado. Un orbit (un world y su seed) va en Otros parámetros"
+
+msgid "auto: relay only when the direct path fails, force: always relay, disable: off"
+msgstr "auto: retransmite solo si falla la ruta directa, force: siempre, disable: desactivado"
+
+msgid "only for http-mask-mode stream, poll or auto"
+msgstr "solo con http-mask-mode stream, poll o auto"
+
+msgid "Write Uci Config Failed,"
+msgstr "Fallo al escribir la configuración de UCI,"
+
+msgid "Resolve Group Failed,"
+msgstr "Fallo al analizar grupo,"
+
+msgid "Merge Failed,"
+msgstr "Fallo al combinar la configuración,"
+
+msgid "Update Config File Failed,"
+msgstr "Fallo al actualizar el archivo de configuración,"

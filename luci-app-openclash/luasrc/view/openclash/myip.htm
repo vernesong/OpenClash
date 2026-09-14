@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://whois.pconline.com.cn">
 <link rel="preconnect" href="https://api.ip.sb">
 <link rel="preconnect" href="https://api.ipify.org">
-<link rel="preconnect" href="http://myip.ipip.net">
+<link rel="preconnect" href="https://myip.ipip.net">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,minimal-ui">
 <title>IP 地址查询</title>
@@ -528,7 +528,7 @@
             document.head.appendChild(script);
         },
         getIpipIP: () => {
-            IP.get(`http://myip.ipip.net?z=${random}`, 'text')
+            IP.get(`https://myip.ipip.net?z=${random}`, 'text')
             .then(resp => {
                 const ipMatch = resp.data.match(/当前 IP：([0-9A-Fa-f:.]+)/);
                 const geoMatch = resp.data.match(/来自于：(.+)/);

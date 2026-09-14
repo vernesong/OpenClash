@@ -114,7 +114,7 @@ define Package/$(PKG_NAME)/postrm
 	rm -rf /tmp/openclash.change >/dev/null 2>&1
 	rm -rf /usr/share/openclash >/dev/null 2>&1
 	rm -rf /tmp/openclash_version_history.json >/dev/null 2>&1
-    rm -rf /tmp/openclash_cdn_info.json >/dev/null 2>&1
+	rm -rf /tmp/openclash_cdn_info.json >/dev/null 2>&1
 	rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
 	rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf >/dev/null 2>&1
 	rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf >/dev/null 2>&1
@@ -122,12 +122,10 @@ define Package/$(PKG_NAME)/postrm
 	rm -rf /tmp/openclash_announcement >/dev/null 2>&1
 	rm -rf /www/luci-static/resources/openclash >/dev/null 2>&1
 	rm -rf /tmp/oix* >/dev/null 2>&1
-	rm -rf /tmp/openclash_oix_version.json >/dev/null 2>&1
-	rm -rf /tmp/openclash_version_history_* >/dev/null 2>&1
-	rm -rf /tmp/openclash_cdn_info_* >/dev/null 2>&1
 	sed -i 's/\(HTTP_MAX_CONTENT[[:space:]]*=[[:space:]]*\)[0-9][0-9]*\([[:space:]]*\*[[:space:]]*[0-9][0-9]*\)*/\11024*100/' /usr/lib/lua/luci/http.lua >/dev/null 2>&1
 	sed -i 's/\(HTTP_MAX_CONTENT[[:space:]]*=[[:space:]]*\)[0-9][0-9]*\([[:space:]]*\*[[:space:]]*[0-9][0-9]*\)*/\11024*100/' /usr/share/ucode/luci/http.uc >/dev/null 2>&1
 	rm -f /etc/nginx/conf.d/openclash.conf >/dev/null 2>&1
+	rm -f /etc/nginx/conf.d/openclash.locations >/dev/null 2>&1
 	[ -x /etc/init.d/nginx ] && /etc/init.d/nginx reload >/dev/null 2>&1
 	uci -q delete firewall.openclash
 	uci -q commit firewall

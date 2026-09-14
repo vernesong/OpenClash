@@ -81,6 +81,35 @@ module YAML
 		end
 	end
 
+	# The pipeline loads the same large file repeatedly, cache it by mtime/size.
+	def self.load_file_cached(filename, cache_file, *args, **kwargs)
+		if File.exist?(cache_file)
+			begin
+				entry = Marshal.load(File.binread(cache_file))
+				if entry.is_a?(Array) && entry.length == 3 &&
+						entry[0] == File.mtime(filename).to_i && entry[1] == File.size(filename)
+					return entry[2]
+				end
+			rescue ::Exception
+				# ignore broken cache, parse the file again
+			end
+		end
+
+		value = load_file(filename, *args, **kwargs)
+		cache_write(filename, value, cache_file)
+		value
+	end
+
+	def self.cache_write(filename, value, cache_file)
+		begin
+			File.open(cache_file, 'wb') do |file|
+				Marshal.dump([File.mtime(filename).to_i, File.size(filename), value], file)
+			end
+		rescue ::Exception
+			File.delete(cache_file) rescue nil
+		end
+	end
+
 	def self.dump(obj, io = nil, **options)
 		if obj.nil? || obj == false
 			target = ""
@@ -148,20 +177,33 @@ module YAML
 			end
 		end
 
-		if io.nil?
-			yaml_content = original_dump(obj, **options)
-			needs_fix ? fix_short_id_quotes(yaml_content) : yaml_content
-		elsif io.respond_to?(:write)
-			if needs_fix
+		stream = options.empty? && StreamDump.supported?(obj)
+
+		if io.respond_to?(:write)
+			if stream
+				StreamDump.new(io).dump(obj, short_id: needs_fix)
+			elsif needs_fix
 				fix_short_id_text(original_dump(obj, **options), io)
 			else
 				original_dump(obj, io, **options)
 			end
 			io
+		elsif stream
+			stream_dump_to_string(obj, needs_fix)
 		else
-			yaml_content = original_dump(obj, **options)
-			needs_fix ? fix_short_id_quotes(yaml_content) : yaml_content
+			dump_string(obj, options, needs_fix)
 		end
+	end
+
+	def self.stream_dump_to_string(obj, needs_fix)
+		sink = StringSink.new
+		StreamDump.new(sink).dump(obj, short_id: needs_fix)
+		sink.string
+	end
+
+	def self.dump_string(obj, options, needs_fix)
+		yaml_content = original_dump(obj, **options)
+		needs_fix ? fix_short_id_quotes(yaml_content) : yaml_content
 	end
 
 	def self.dump_to_path(obj, path, **options)
@@ -173,7 +215,7 @@ module YAML
 			File.open(tmp, 'w') { |f| dump_to_io(obj, f, **options.merge(filename: real)) }
 			File.chmod(mode, tmp) if mode
 			File.rename(tmp, real)
-		rescue Exception
+		rescue ::Exception
 			begin
 				File.unlink(tmp) if File.exist?(tmp)
 			rescue
@@ -221,22 +263,49 @@ module YAML
 		input
 	end
 
+	AGE_KEYS_UCI_CONFIG = "/etc/config/openclash"
+	AGE_KEYS_SECTION = "config_age_secret".freeze
+
+	# The file itself says whether a lookup is needed: the common case has no age key and must
+	# not pay for a fork and a uci parse.
+	def self.age_keys_enabled?
+		File.read(AGE_KEYS_UCI_CONFIG).include?(AGE_KEYS_SECTION)
+	rescue StandardError
+		true
+	end
+
+	# One "uci show" dump resolves every name and both key types
+	def self.age_keys
+		@age_keys ||= begin
+			keys = {}
+			if age_keys_enabled?
+				cmd = ["/bin/sh", "-c", ". /usr/share/openclash/uci.sh; uci_age_keys_dump"]
+				IO.popen(cmd, "r") do |io|
+					io.each_line do |line|
+						tag, name, value = line.strip.split("\t", 3)
+						next if name.nil? || value.nil? || value.strip == ""
+						keys[name] ||= { publics: [], secrets: [] }
+						(tag == "P" ? keys[name][:publics] : keys[name][:secrets]) << value.strip
+					end
+				end
+			end
+			keys
+		rescue Errno::ENOENT
+			{}
+		end
+	end
+
 	def self.find_age_keys_for_filename(filename)
-		basename = File.basename(filename)
-		basename_no_ext = File.basename(filename, File.extname(filename))
+		keys = age_keys
 		publics = []
 		secrets = []
 
-		[basename, basename_no_ext].uniq.each do |n|
-			cmd_public = ["/bin/sh", "-c", ". /usr/share/openclash/uci.sh; uci_get_age_public_keys \"$1\"", "sh", n]
-			IO.popen(cmd_public, "r") do |io|
-				io.each_line { |l| publics << l.strip unless l.nil? || l.strip == "" }
-			end
+		[File.basename(filename), File.basename(filename, File.extname(filename))].uniq.each do |n|
+			entry = keys[n]
+			next if entry.nil?
 
-			cmd_secret = ["/bin/sh", "-c", ". /usr/share/openclash/uci.sh; uci_get_age_secret_keys \"$1\"", "sh", n]
-			IO.popen(cmd_secret, "r") do |io|
-				io.each_line { |l| secrets << l.strip unless l.nil? || l.strip == "" }
-			end
+			publics.concat(entry[:publics])
+			secrets.concat(entry[:secrets])
 		end
 		{ publics: publics, secrets: secrets }
 	end
@@ -449,6 +518,218 @@ module YAML
 		else
 			false
 		end
+	end
+
+	# StreamDump writes the data tree directly into libyaml, Psych.dump builds a full AST first
+	# and nearly doubles the peak memory. supported? skips trees with anchors or tags,
+	# and the scalar style rules below reproduce Psych::Visitors::YAMLTree#visit_String.
+	class StringSink
+		attr_reader :string
+
+		def initialize
+			@string = String.new
+		end
+
+		def write(data)
+			@string << data
+			data.to_s.bytesize
+		end
+	end
+
+	class StreamDump
+		ANY = Psych::Nodes::Scalar::ANY
+		PLAIN = Psych::Nodes::Scalar::PLAIN
+		SINGLE_QUOTED = Psych::Nodes::Scalar::SINGLE_QUOTED
+		DOUBLE_QUOTED = Psych::Nodes::Scalar::DOUBLE_QUOTED
+		LITERAL = Psych::Nodes::Scalar::LITERAL
+		MAP_BLOCK = Psych::Nodes::Mapping::BLOCK
+		SEQ_BLOCK = Psych::Nodes::Sequence::BLOCK
+		NULL_TAG = 'tag:yaml.org,2002:null'
+		STR_TAG = 'tag:yaml.org,2002:str'
+
+		def self.available?
+			defined?(Psych::Emitter) && defined?(Psych::ScalarScanner) && defined?(Psych::ClassLoader)
+		end
+
+		def self.supported?(obj)
+			return false unless available?
+
+			seen = {}.compare_by_identity
+			stack = [obj]
+			until stack.empty?
+				item = stack.pop
+				case item
+				when Hash
+					return false unless item.class == ::Hash
+					return false if seen.key?(item)
+					seen[item] = true
+					item.each do |key, value|
+						stack << key
+						stack << value
+					end
+				when Array
+					return false unless item.class == ::Array
+					return false if seen.key?(item)
+					seen[item] = true
+					stack.concat(item)
+				when String
+					return false unless item.class == ::String
+					return false if item.instance_variables.any?
+					return false if item.encoding == Encoding::ASCII_8BIT && !item.ascii_only?
+				when Integer, Float, TrueClass, FalseClass, NilClass
+					# dumped through to_s, exactly like Psych does
+				else
+					return false
+				end
+			end
+			true
+		end
+
+		def initialize(io)
+			@io = io
+			@scanner = Psych::ScalarScanner.new(Psych::ClassLoader.new)
+			@short_id = false
+		end
+
+		def dump(obj, short_id: false)
+			@short_id = short_id
+			emitter = Psych::Emitter.new(@io)
+			@emitter = emitter
+			emitter.start_stream(Psych::Parser::UTF8)
+			emitter.start_document([], [], false)
+			emit(obj)
+			emitter.end_document(true)
+			emitter.end_stream
+			@emitter = nil
+			@io
+		end
+
+		private
+
+		def emit(obj)
+			case obj
+			when Hash
+				@emitter.start_mapping(nil, nil, true, MAP_BLOCK)
+				obj.each do |key, value|
+					emit(key)
+					emit_value(value, key)
+				end
+				@emitter.end_mapping
+			when Array
+				@emitter.start_sequence(nil, nil, true, SEQ_BLOCK)
+				obj.each { |value| emit(value) }
+				@emitter.end_sequence
+			when String
+				emit_string(obj)
+			when Integer, TrueClass, FalseClass
+				@emitter.scalar(obj.to_s, nil, nil, true, false, ANY)
+			when Float
+				emit_float(obj)
+			when NilClass
+				@emitter.scalar('', nil, NULL_TAG, true, false, ANY)
+			end
+		end
+
+		def emit_value(value, key)
+			if @short_id && (key == 'short-id' || key == :'short-id')
+				emit_short_id(value)
+			else
+				emit(value)
+			end
+		end
+
+		def emit_float(value)
+			if value.nan?
+				@emitter.scalar('.nan', nil, nil, true, false, ANY)
+			elsif value.infinite?
+				@emitter.scalar(value.infinite? > 0 ? '.inf' : '-.inf', nil, nil, true, false, ANY)
+			else
+				@emitter.scalar(value.to_s, nil, nil, true, false, ANY)
+			end
+		end
+
+		# short-id values are always double quoted: same result as
+		# fix_short_id_text, without building the intermediate document string
+		def emit_short_id(value)
+			if value.is_a?(Array)
+				@emitter.start_sequence(nil, nil, true, SEQ_BLOCK)
+				value.each { |item| emit_quoted(item) }
+				@emitter.end_sequence
+			else
+				emit_quoted(value)
+			end
+		end
+
+		def emit_quoted(value)
+			case value
+			when String, Integer, Float
+				@emitter.scalar(value.to_s, nil, nil, false, true, DOUBLE_QUOTED)
+			when nil
+				@emitter.scalar('', nil, nil, false, true, DOUBLE_QUOTED)
+			else
+				emit(value)
+			end
+		end
+
+		def emit_string(value)
+			plain = true
+			quote = true
+			style = PLAIN
+			tag = nil
+
+			if value.match?(/\n(?!\Z)/)
+				style = LITERAL
+			elsif value == '<<'
+				style = SINGLE_QUOTED
+				tag = STR_TAG
+				plain = false
+				quote = false
+			elsif value == 'y' || value == 'Y' || value == 'n' || value == 'N'
+				style = DOUBLE_QUOTED
+			elsif value.match?(/^[^[:word:]][^"]*$/)
+				style = DOUBLE_QUOTED
+			elsif !(String === @scanner.tokenize(value)) || /\A0[0-7]*[89]/.match?(value)
+				style = SINGLE_QUOTED
+			end
+
+			@emitter.scalar(value, nil, tag, plain, quote, style)
+		end
+	end
+
+	# Inline replaces the "one Thread per field" pattern: a finished Thread keeps its stack
+	# until it is joined, which costs hundreds of MB for thousands of entries.
+	class Inline
+		def initialize(*args, &block)
+			@error = nil
+			begin
+				block.call(*args)
+			rescue ::Exception => e
+				@error = e
+			end
+		end
+
+		def join
+			raise @error if @error
+			self
+		end
+
+		def value
+			raise @error if @error
+			self
+		end
+
+		def alive?
+			false
+		end
+
+		def status
+			@error ? nil : false
+		end
+
+		def kill
+			self
+		end
+		alias_method :terminate, :kill
 	end
 
 	def self.overwrite(base, override)

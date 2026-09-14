@@ -1,6 +1,7 @@
 <%-
 local rowcnt = 1
-local uci = require("luci.model.uci").cursor()
+-- Follow the parent Map cursor so every caller keeps its own config dir
+local uci = self.map.uci or require("luci.model.uci").cursor()
 local fs = require "luci.openclash"
 local plugin_version = fs.oc_version()
 
@@ -55,10 +56,31 @@ end
 local file_path = fs.get_file_path_from_request()
 local cfg_name = (file_path and fs.basename(file_path)) or nil
 
-if not cfg_name and uci:get("openclash", "config", "config_path") then
-    cfg_name = fs.basename(uci:get("openclash", "config", "config_path"))
+local function tab_exists(name)
+    if not name then
+        return false
+    end
+
+    for _, tab in ipairs(e) do
+        if tab.name == name then
+            return true
+        end
+    end
+
+    return false
 end
-local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]+") or "self.sectiontype"
+
+if not tab_exists(cfg_name) then
+    local current_path = uci:get("openclash", "config", "config_path")
+    cfg_name = current_path and fs.basename(current_path) or nil
+
+    if not tab_exists(cfg_name) then
+        cfg_name = nil
+    end
+end
+
+local sectiontype = "_"..(self.config:gsub("[^%w_]", "_")).."_"..(self.sectiontype:gsub("[^%w_]", "_"))
+local pin_tab = file_path and self.sectiontype ~= "dns_servers"
 -%>
 
 <style type="text/css">
@@ -149,6 +171,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
         padding: 5px;
         margin: 0;
         user-select: none;
+        pointer-events: none;
         transition: color 0.18s;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -486,6 +509,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
             localStorage.removeItem("id<%=sectiontype%>");
         };
 
+        <% if not pin_tab then %>
         if (localStorage.getItem("titles<%=sectiontype%>")) {
             if (titles<%=sectiontype%>[localStorage.getItem("titles<%=sectiontype%>")]) {
                 for(var j=0; j < titles<%=sectiontype%>.length; j++){
@@ -497,6 +521,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
             };
             localStorage.removeItem("titles<%=sectiontype%>");
         };
+        <% end %>
 
         for(var i=0; i < titles<%=sectiontype%>.length; i++){
             var li<%=sectiontype%> = titles<%=sectiontype%>[i];
@@ -512,6 +537,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
             }
 
             li<%=sectiontype%>.onclick = function(){
+                <% if self.sectiontype == "dns_servers" then %>
                 for(var j=0; j < titles<%=sectiontype%>.length; j++){
                     titles<%=sectiontype%>[j].className = 'cbi-tab-disabled';
                     divs<%=sectiontype%>[j].style.display = 'none';
@@ -519,17 +545,13 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
                 this.className = 'cbi-tab';
                 divs<%=sectiontype%>[this.id].style.display = 'block';
                 localStorage.setItem("titles<%=sectiontype%>",this.id);
+                <% else %>
+                if (this.className === 'cbi-tab') return;
+                location.href = location.pathname + '?file=' + encodeURIComponent(this.getAttribute('data-group'));
+                <% end %>
             };
 
-            li<%=sectiontype%>.onTouchStart = function(){
-                for(var j=0; j < titles<%=sectiontype%>.length; j++){
-                    titles<%=sectiontype%>[j].className = 'cbi-tab-disabled';
-                    divs<%=sectiontype%>[j].style.display = 'none';
-                };
-                this.className = 'cbi-tab';
-                divs<%=sectiontype%>[this.id].style.display = 'block';
-                localStorage.setItem("titles<%=sectiontype%>",this.id);
-            };
+            li<%=sectiontype%>.onTouchStart = li<%=sectiontype%>.onclick;
         };
     };
 //]]>

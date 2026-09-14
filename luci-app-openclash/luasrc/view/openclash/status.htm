@@ -8,7 +8,6 @@
 <head>
 <script src="/luci-static/resources/openclash/js/common.js?v=<%=plugin_version%>"></script>
 <link rel="stylesheet" href="/luci-static/resources/openclash/css/oc.css?v=<%=plugin_version%>">
-<script src="/luci-static/resources/openclash/js/cm6.min.js?v=<%=plugin_version%>"></script>
 <script src="/luci-static/resources/openclash/js/chart.umd.min.js?v=<%=plugin_version%>"></script>
 </head>
 <fieldset class="cbi-section">
@@ -395,6 +394,7 @@
 
 <script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
 <script type="text/javascript">//<![CDATA[
+    window.ocCM6Url = '/luci-static/resources/openclash/js/cm6.min.js?v=<%=plugin_version%>';
     window.levelTranslations = {
         'info': '<%:Info%>',
         'warning': '<%:Warning%>',
@@ -2467,15 +2467,16 @@
                 if (x && x.status == 200 && x.responseText != "" && status) {
                     self.retryCount = 0;
                     var cpuValueNumber = Number(status.cpu);
-                    if (!isFinite(cpuValueNumber) || cpuValueNumber < 0 || cpuValueNumber > 100) cpuValueNumber = 0;
+                    if (!isFinite(cpuValueNumber) || cpuValueNumber < 0) cpuValueNumber = 0;
                     var cpuColor = cpuValueNumber <= 50 ? "var(--success-color)" : (cpuValueNumber <= 80 ? "var(--tip-color)" : "var(--error-color)");
-                    var cpuValue = cpuValueNumber + " %";
+                    var cpuValue = ocFormatOneDecimal(cpuValueNumber) + " %";
                     document.getElementById("cpu_t").innerHTML = ocStatHtml(cpuValue, cpuColor);
 
                     var loadValue = parseFloat(status.load_avg) || 0;
                     if (!isFinite(loadValue) || loadValue < 0) loadValue = 0;
                     var loadColor = loadValue <= 50 ? "var(--success-color)" : (loadValue <= 80 ? "var(--tip-color)" : "var(--error-color)");
-                    document.getElementById("load_a").innerHTML = ocStatHtml(loadValue + " %", loadColor);
+                    var loadText = ocFormatOneDecimal(loadValue);
+                    document.getElementById("load_a").innerHTML = ocStatHtml(loadText + " %", loadColor);
                     StatsChart.feed("cpu", cpuValueNumber);
                     StatsChart.feed("load", loadValue);
                 } else {
@@ -2947,21 +2948,31 @@
                 this.statusEl.textContent = '';
             }
 
+            var self = this;
             if (!this.editor) {
                 var prompt = this.buildPrompt();
                 this.textarea.value = prompt;
-                var container = document.getElementById('usage-help-editor');
-                var isDark = isDarkBackground(document.body);
-                var exts = [CM6.lineNumbers(), CM6.EditorView.lineWrapping, CM6.themeExtension(isDark), CM6.markdown()];
-                var view = new CM6.EditorView({
-                    state: CM6.EditorState.create({ doc: prompt, extensions: exts })
+                this.statusEl.textContent = '<%:Loading...%>';
+                ocRequireCM6(function() {
+                    var container = document.getElementById('usage-help-editor');
+                    var isDark = isDarkBackground(document.body);
+                    var exts = [CM6.lineNumbers(), CM6.EditorView.lineWrapping, CM6.themeExtension(isDark), CM6.markdown()];
+                    var view = new CM6.EditorView({
+                        state: CM6.EditorState.create({ doc: prompt, extensions: exts })
+                    });
+                    container.innerHTML = '';
+                    container.appendChild(view.dom);
+                    self.editor = view;
+                    self.statusEl.textContent = '';
+                    setTimeout(function() {
+                        if (self.editor && self.editor.contentDOM) {
+                            self.editor.focus();
+                        }
+                    }, 100);
                 });
-                container.innerHTML = '';
-                container.appendChild(view.dom);
-                this.editor = view;
+                return;
             }
 
-            var self = this;
             setTimeout(function() {
                 if (self.editor && self.editor.contentDOM) {
                     self.editor.focus();
@@ -3331,7 +3342,7 @@
 
         formatLegendValue: function(key, val) {
             if (key === 'mem') return Math.round(val) + ' MB';
-            if (key === 'cpu' || key === 'load') return Math.round(val) + ' %';
+            if (key === 'cpu' || key === 'load') return ocFormatOneDecimal(val) + ' %';
             if (key === 'conn') return String(Math.round(val));
             return String(Math.round(val * 10) / 10);
         },

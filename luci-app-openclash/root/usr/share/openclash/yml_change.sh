@@ -170,8 +170,7 @@ sys_dns_append()
 
 PROXY_GROUPS=$(ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    begin
-      Value = YAML.load_file('$CONFIG_FILE')
-      File.open('/tmp/yaml_change_marshal', 'wb') { |f| Marshal.dump(Value, f) }
+      Value = YAML.load_file_cached('$CONFIG_FILE', '/tmp/yaml_change_marshal')
       if Value.key?('proxy-groups') && Value['proxy-groups'].is_a?(Array)
          Value['proxy-groups'].each { |x| puts x['name'] if x.key?('name') }
       end
@@ -394,15 +393,7 @@ end
 
 begin
    config_file = '$5'
-   if File.exist?('/tmp/yaml_change_marshal')
-      begin
-         Value = Marshal.load(File.open('/tmp/yaml_change_marshal', 'rb') { |f| f.read })
-      rescue
-         Value = YAML.load_file(config_file)
-      end
-   else
-      Value = YAML.load_file(config_file)
-   end
+   Value = YAML.load_file_cached(config_file, '/tmp/yaml_change_marshal')
 rescue Exception => e
    YAML.LOG_ERROR('Load File Failed,【%s】' % [e.message])
    exit
@@ -471,7 +462,7 @@ begin
    Value['dns'] ||= {}
    threads = []
 
-   threads << Thread.new do
+   threads << YAML::Inline.new do
       begin
          Value['redir-port'] = redir_port.to_i
          Value['tproxy-port'] = tproxy_port.to_i
@@ -616,7 +607,7 @@ begin
       end
    end
 
-   threads << Thread.new do
+   threads << YAML::Inline.new do
       begin
          if enable_custom_dns || append_wan_dns
             if (namedns_config = safe_load_yaml('/tmp/yaml_config.namedns.yaml')) && namedns_config['nameserver']
@@ -671,7 +662,7 @@ begin
    end
 
    # proxy-server-nameserver
-   threads << Thread.new do
+   threads << YAML::Inline.new do
       begin
          if enable_custom_dns
             if (proxydns = safe_load_yaml('/tmp/yaml_config.proxynamedns.yaml')) && proxydns['proxy-server-nameserver']
@@ -684,7 +675,7 @@ begin
    end
 
    # direct-nameserver
-   threads << Thread.new do
+   threads << YAML::Inline.new do
       begin
          if enable_custom_dns
             if (directdns = safe_load_yaml('/tmp/yaml_config.directnamedns.yaml')) && directdns['direct-nameserver']
@@ -697,7 +688,7 @@ begin
    end
 
    # nameserver-policy
-   threads << Thread.new do
+   threads << YAML::Inline.new do
       begin
          if custom_name_policy
             if (policy = safe_load_yaml('/etc/openclash/custom/openclash_custom_domain_dns_policy.list'))
@@ -710,7 +701,7 @@ begin
    end
 
    # proxy-server-nameserver-policy
-   threads << Thread.new do
+   threads << YAML::Inline.new do
       begin
          if custom_proxy_server_policy
             if (policy = safe_load_yaml('/etc/openclash/custom/openclash_custom_proxy_server_dns_policy.list'))
@@ -723,7 +714,7 @@ begin
    end
 
    # Fake-IP Filter
-   threads << Thread.new do
+   threads << YAML::Inline.new do
       begin
          if custom_fakeip_filter
             Value['dns']['fake-ip-filter-mode'] = fake_ip_filter_mode
@@ -765,7 +756,7 @@ begin
    end
 
    # Custom Hosts
-   threads << Thread.new do
+   threads << YAML::Inline.new do
       begin
          if custom_host
             if (hosts_content = safe_load_yaml('/etc/openclash/custom/openclash_custom_hosts.list')) && !hosts_content.empty?
@@ -784,7 +775,7 @@ begin
    end
 
    # Authentication
-   threads << Thread.new do
+   threads << YAML::Inline.new do
       begin
          if (auth_config = safe_load_yaml('/tmp/yaml_openclash_auth'))
             Value['authentication'] = auth_config
@@ -822,7 +813,7 @@ begin
       if enable_redirect_dns == '1'
          dns_options = ['nameserver', 'fallback', 'default-nameserver', 'proxy-server-nameserver', 'nameserver-policy', 'direct-nameserver', 'proxy-server-nameserver-policy']
          dns_options.each do |option|
-            threads << Thread.new(option) do |opt|
+            threads << YAML::Inline.new(option) do |opt|
                begin
                   next unless Value['dns'].key?(opt) && !Value['dns'][opt].nil?
                      if opt != 'nameserver-policy' && opt != 'proxy-server-nameserver-policy'
@@ -905,9 +896,10 @@ rescue Exception => e
 ensure
    begin
       YAML.dump(Value, config_file)
+      YAML.cache_write(config_file, Value, '/tmp/yaml_change_marshal')
    rescue Exception => e
       YAML.LOG_ERROR('Write file failed:【%s】' % [e.message])
+      File.delete('/tmp/yaml_change_marshal') rescue nil
    end
-   File.delete('/tmp/yaml_change_marshal') rescue nil
 end
 " 2>/dev/null >> $LOG_FILE

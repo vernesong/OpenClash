@@ -70,8 +70,8 @@
 
 <script src="/luci-static/resources/openclash/js/common.js?v=<%=plugin_version%>"></script>
 <script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
-<script src="/luci-static/resources/openclash/js/cm6.min.js?v=<%=plugin_version%>"></script>
 <script type="text/javascript">
+window.ocCM6Url = '/luci-static/resources/openclash/js/cm6.min.js?v=<%=plugin_version%>';
 ocRegisterEditorHotkeys();
 
 var _ocIcons = {
@@ -481,6 +481,10 @@ var ConfigEditor = {
         }
 
         function renderEditor(content, mode, readOnly, lint) {
+            if (typeof CM6 === 'undefined') {
+                ocRequireCM6(function() { renderEditor(content, mode, readOnly, lint); });
+                return;
+            }
             textarea.value = content;
 
             var editorKey = mode + '|' + (readOnly ? 'r' : 'w') + '|' + (lint ? 'l' : 'n');
@@ -613,6 +617,10 @@ var ConfigEditor = {
     showMergeView: function() {
         var self = this;
         if (this.isOverwrite) return;
+        if (typeof CM6 === 'undefined') {
+            ocRequireCM6(function() { self.showMergeView(); });
+            return;
+        }
         var container = document.getElementById('config-mergeview-container');
         var textarea = document.getElementById('config-editor-textarea');
         var tabs = document.getElementById('config-mode-tabs');

@@ -117,7 +117,7 @@ config_cus_up()
 	            Value['proxies'].reverse.each{
 	            |x|
                   if not '$key_match_param'.empty? then
-                     threads << Thread.new {
+                     threads << YAML::Inline.new {
                         if not /$key_match_param/i =~ x['name'] then
                            Value['proxies'].delete(x)
                            Value['proxy-groups'].each{
@@ -133,7 +133,7 @@ config_cus_up()
                      };
                   end;
                   if not '$key_ex_match_param'.empty? then
-                     threads << Thread.new {
+                     threads << YAML::Inline.new {
                         if /$key_ex_match_param/i =~ x['name'] then
                            if Value['proxies'].include?(x) then
                               Value['proxies'].delete(x)
@@ -155,7 +155,7 @@ config_cus_up()
             if Value.key?('proxy-providers') and not Value['proxy-providers'].nil? then
                Value['proxy-providers'].values.each do
                   |i|
-                  threads << Thread.new {
+                  threads << YAML::Inline.new {
                      if not '$key_match_param'.empty? then
                         i['filter'] = '(?i)$key_match_param';
                      end;

@@ -1,219 +1,198 @@
 #!/usr/bin/lua
--- Parse subscription files (plain or base64) and extract server addresses.
+-- Prints one server address per node of a subscription file, the fallback of the watchdog
+-- for provider files that are not YAML.
+--
+-- The share links are the ones mihomo accepts (common/convert/converter.go), they follow
+-- the schemes of the clients themselves:
+--   ss://        SIP002, with the plugin query, or the legacy fully encoded form
+--   ssr://       base64 of host:port:protocol:method:obfs:password/?params
+--   vmess://     V2RayN base64 json, or the Xray VMessAEAD uri (XTLS/Xray-core#716)
+--   vless://     Xray uri, the host of the uri may be base64 encoded
+--   trojan://    password as userinfo
+--   hysteria://  github.com/apernet/hysteria (docs/developers/URI-Scheme)
+--   hysteria2:// and hy2://, also with the +realm suffix and with port hopping
+--   tuic://      temporary unofficial standard, uuid:password or the v5 token as userinfo
+--   anytls://    github.com/anytls/anytls-go (docs/uri_scheme.md)
+--   mierus://    one uri per profile, the port and protocol query keys are repeated
+--   socks5://, socks5h://, http://, https://
+--
+-- Only the server address is needed, every other part of the uri is ignored.
 
-local nixio = require "nixio"
-local jsonc = require "luci.jsonc"
 local util = require "luci.util"
-local fs = require "luci.openclash"
+local jsonc = require "luci.jsonc"
 
-if not nixio.fs.access("/usr/bin/base64") and not nixio.fs.access("/bin/base64") then
-  os.exit(1)
+local BASE64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+local BASE64_PAD = 61
+
+-- Decodes base64 in every form a subscription may use: standard or url safe, padded or not.
+-- A string that is not base64 at all is not a link payload, the caller gets nil.
+local function decode64(text)
+	if not text then
+		return nil
+	end
+	text = text:gsub("[%s]", ""):gsub("%-", "+"):gsub("_", "/"):gsub("=+$", "")
+	if text == "" or #text % 4 == 1 or not text:match("^[A-Za-z0-9+/]+$") then
+		return nil
+	end
+	text = text .. ("===="):sub(1, (4 - #text % 4) % 4)
+	local result = {}
+	for group in text:gmatch("....") do
+		local c3, c4 = group:byte(3, 4)
+		local i1 = BASE64:find(group:sub(1, 1), 1, true)
+		local i2 = BASE64:find(group:sub(2, 2), 1, true)
+		local i3 = c3 == BASE64_PAD and 0 or BASE64:find(group:sub(3, 3), 1, true)
+		local i4 = c4 == BASE64_PAD and 0 or BASE64:find(group:sub(4, 4), 1, true)
+		if not (i1 and i2 and i3 and i4) then
+			return nil
+		end
+		i1, i2, i3, i4 = i1 - 1, i2 - 1, i3 - 1, i4 - 1
+		result[#result + 1] = string.char(i1 * 4 + math.floor(i2 / 16))
+		if c3 ~= BASE64_PAD then
+			result[#result + 1] = string.char((i2 % 16) * 16 + math.floor(i3 / 4))
+		end
+		if c4 ~= BASE64_PAD then
+			result[#result + 1] = string.char((i3 % 4) * 64 + i4)
+		end
+	end
+	return table.concat(result)
 end
 
-local file_path = arg[1]
-if not file_path or not nixio.fs.access(file_path) then
-  os.exit(1)
+-- scheme, userinfo, host, port, query and fragment of a uri. A host without a port and an
+-- IPv6 host in brackets are accepted, the port of a hop link is a list of ports.
+local function parse_uri(uri)
+	local scheme, body = uri:match("^([%w%+%-%.]+)://(.*)$")
+	if not scheme then
+		return nil
+	end
+	local authority = body:match("^([^/%?#]*)") or ""
+	local remainder = body:sub(#authority + 1)
+	local userinfo, hostport = authority:match("^(.*)@([^@]+)$")
+	if not hostport then
+		userinfo, hostport = nil, authority
+	end
+	local host, port
+	if hostport:match("^%[") then
+		host, port = hostport:match("^%[([^%]]+)%]:?([%d,%-]*)$")
+	else
+		host, port = hostport:match("^([^:]*):([%d,%-]*)$")
+	end
+	return {
+		scheme = scheme:lower(),
+		userinfo = userinfo,
+		host = host or hostport,
+		port = port,
+		path = remainder:match("^[^%?#]*"),
+		query = remainder:match("%?([^#]*)"),
+		fragment = remainder:match("#(.*)$")
+	}
 end
 
-local function base64_decode_subscription(str)
-  local result = fs.decode64(str)
-  if result and result:find("://") then
-    return result
-  end
-  return nil
+-- mihomo decodes the host of a vless uri when it is base64 encoded, the watchdog can only
+-- use it when the result looks like an address
+local function decoded_host(host)
+	local decoded = decode64(host)
+	if decoded and decoded:match("^[%w%.%-%_]+$") and decoded:find("%.") then
+		return decoded
+	end
+	return host
 end
 
-local function url_decode(str)
-  return str:gsub("%%(%x%x)", function(h) return string.char(tonumber(h, 16)) end)
+local function without_brackets(host)
+	if not host then
+		return nil
+	end
+	return host:match("^%[(.-)%]$") or host
 end
 
-local function parse_query_params(query_string)
-  local params = {}
-  if not query_string then return params end
+-- The server address of one share link, nil when the line is not a link the plugin knows
+local function server_of(uri)
+	local parsed = parse_uri(uri)
+	if not parsed then
+		return nil
+	end
+	local scheme = parsed.scheme
+	local host = parsed.host
 
-  for param in query_string:gmatch("([^&]+)") do
-    local key, value = param:match("([^=]*)=?(.*)")
-    if key then
-      params[key] = url_decode(value or "")
-    end
-  end
-  return params
+	if scheme == "vmess" then
+		-- V2RayN: the whole link body is the base64 of a json document
+		local decoded = decode64((uri:match("^%w+://([^#]+)") or ""))
+		if decoded and decoded:sub(1, 1) == "{" then
+			local ok, node = pcall(jsonc.parse, decoded)
+			if ok and type(node) == "table" and type(node.add) == "string" and node.add ~= "" then
+				return without_brackets(node.add)
+			end
+			return nil
+		end
+		-- Xray VMessAEAD: uuid@host:port
+		return host
+	end
+
+	if scheme == "ss" then
+		if parsed.port and parsed.port ~= "" then
+			return host
+		end
+		-- the legacy link is the base64 of method:password@host:port
+		local decoded = decode64(host)
+		if decoded then
+			return decoded:match("@%[([^%]]+)%]") or decoded:match("@([^:/]+)")
+		end
+		return nil
+	end
+
+	if scheme == "ssr" then
+		local decoded = decode64((uri:match("^%w+://([^#]+)") or ""))
+		if not decoded then
+			return nil
+		end
+		return decoded:match("^([^:]+):")
+	end
+
+	if scheme == "hysteria2" or scheme == "hy2" or scheme == "hysteria2+realm" or scheme == "hy2+realm" then
+		return without_brackets(host)
+	end
+
+	if scheme == "vless" then
+		return decoded_host(host)
+	end
+
+	if scheme == "hysteria" or scheme == "tuic" or scheme == "trojan" or scheme == "mierus"
+		or scheme == "anytls" or scheme == "socks" or scheme == "socks5" or scheme == "socks5h"
+		or scheme == "http" or scheme == "https" then
+		return without_brackets(host)
+	end
+
+	return nil
 end
 
-local function parse_url(url_str)
-  local scheme, rest = url_str:match("^([%w%-]+)://(.+)")
-  if not scheme then return nil end
-
-  local userinfo, host_part = rest:match("^([^@]+)@(.+)")
-  if not userinfo then
-    userinfo = ""
-    host_part = rest
-  end
-
-  local path_query_fragment = host_part:match("^[^/]*(.*)") or ""
-  local host_port = host_part:match("^([^/]*)")
-
-  local host, port = host_port:match("^%[([^%]]+)%]:(%d+)") -- IPv6
-  if not host then
-    host, port = host_port:match("^([^:]+):(%d+)")
-  end
-  if not host then
-    host = host_port
-    port = nil
-  end
-
-  local path, query_fragment = path_query_fragment:match("^([^?]*)(.*)")
-  path = path or ""
-
-  local query, fragment
-  if query_fragment then
-    if query_fragment:sub(1,1) == "?" then
-      query, fragment = query_fragment:sub(2):match("^([^#]*)(.*)")
-      if fragment and fragment:sub(1,1) == "#" then
-        fragment = fragment:sub(2)
-      end
-    elseif query_fragment:sub(1,1) == "#" then
-      fragment = query_fragment:sub(2)
-    end
-  end
-
-  local username, password = userinfo:match("^([^:]*):?(.*)")
-
-  return {
-    scheme = scheme:lower(),
-    username = username or "",
-    password = password or "",
-    host = host,
-    port = port,
-    path = path,
-    query = query,
-    fragment = fragment
-  }
+-- A provider file that is a broken yaml still names the address of its nodes
+local function server_of_yaml(line)
+	local value = line:match("^%s*server%s*:%s*([^%s#%]]+)")
+	if not value then
+		return nil
+	end
+	return value:gsub("^[\"']", ""):gsub("[\"']$", "")
 end
 
-local function get_server_from_url(line)
-    line = util.trim(line)
-    local scheme, original_body = line:match("^([%w%-]+)://(.+)")
-    if not scheme or not original_body then return nil end
+local path = arg[1]
+local file = path and io.open(path, "r")
+if not file then
+	os.exit(1)
+end
+local content = file:read("*a")
+file:close()
 
-    local server = nil
-    scheme = scheme:lower()
-
-    if scheme == "vmess" then
-        -- fragment
-        original_body = original_body:match("([^#]+)") or original_body
-
-        -- base64
-        local decoded = fs.decode64(original_body)
-        if decoded then
-            -- V2RayN JSON
-            local ok, data = pcall(jsonc.parse, decoded)
-            if ok and type(data) == "table" and data.add and data.add ~= "" then
-                server = data.add
-            end
-        else
-            -- Xray VMessAEAD
-            local url_parts = parse_url(line)
-            if url_parts and url_parts.host then
-                server = url_parts.host
-            end
-        end
-
-    elseif scheme == "vless" then
-        local url_parts = parse_url(line)
-        if url_parts and url_parts.host then
-            server = url_parts.host
-        end
-
-    elseif scheme == "trojan" then
-        local url_parts = parse_url(line)
-        if url_parts and url_parts.host then
-            server = url_parts.host
-        end
-
-    elseif scheme == "ss" then
-        local url_parts = parse_url(line)
-        if url_parts and url_parts.host then
-            server = url_parts.host
-        else
-            -- ss://base64
-            original_body = original_body:match("([^#]+)") or original_body
-            local decoded = fs.decode64(original_body)
-            if decoded then
-                server = decoded:match("@([^:/]+)")
-            else
-                server = original_body:match("[^@]+@([^:/]+)")
-            end
-        end
-
-    elseif scheme == "ssr" then
-        original_body = original_body:match("([^#]+)") or original_body
-        local decoded = fs.decode64(original_body)
-        if decoded then
-            -- ssr://host:port:protocol:method:obfs:urlsafebase64pass/?params
-            local before_query = decoded:match("^([^/?]+)")
-            if before_query then
-                local parts = {}
-                for part in before_query:gmatch("([^:]+)") do
-                    table.insert(parts, part)
-                end
-                -- host:port:protocol:method:obfs:password
-                if #parts == 6 then
-                    server = parts[1]
-                end
-            end
-        end
-
-    elseif scheme == "hysteria" or scheme == "hysteria2" or scheme == "hy2" then
-        local url_parts = parse_url(line)
-        if url_parts and url_parts.host then
-            server = url_parts.host
-        end
-
-    elseif scheme == "tuic" then
-        local url_parts = parse_url(line)
-        if url_parts and url_parts.host then
-            server = url_parts.host
-        end
-
-    elseif scheme == "socks" or scheme == "socks5" or scheme == "socks5h" or 
-           scheme == "http" or scheme == "https" then
-        local url_parts = parse_url(line)
-        if url_parts and url_parts.host then
-            server = url_parts.host
-        end
-
-    elseif scheme == "anytls" then
-        local url_parts = parse_url(line)
-        if url_parts and url_parts.host then
-            server = url_parts.host
-        end
-    end
-
-    -- fallback
-    if not server then
-        local body_to_parse = fs.decode64(original_body) or original_body
-        server = body_to_parse:match("@([^:/]+)") or  -- user@host
-                 body_to_parse:match("([^:/]+)") or   -- host
-                 body_to_parse:match("//([^:/]+)")    -- //host
-    end
-
-    return server
+local decoded = decode64(content:gsub("%s+", ""))
+if decoded and decoded:find("://", 1, true) then
+	content = decoded
 end
 
-local f = io.open(file_path, "r")
-if not f then os.exit(1) end
-local content = f:read("*a")
-f:close()
-
-local decoded_content = base64_decode_subscription(content:gsub("%s+", ""))
-if decoded_content then
-  content = decoded_content
-end
-
-for line in content:gmatch("([^\r\n]+)") do
-  local server = get_server_from_url(line)
-  if server and util.trim(server) ~= "" then
-    print(util.trim(server))
-  end
+for line in content:gmatch("[^\r\n]+") do
+	local text = util.trim(line)
+	local ok, server = pcall(server_of, text)
+	if not ok or not server or server == "" then
+		server = server_of_yaml(text)
+	end
+	if server and server ~= "" then
+		print(server)
+	end
 end

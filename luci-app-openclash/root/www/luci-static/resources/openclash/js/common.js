@@ -1,7 +1,31 @@
 // OpenClash shared utilities
 _ocGuard: { if (window._ocCommonLoaded) break _ocGuard; window._ocCommonLoaded = true; }
 
-// ═══ Remove LuCI's global @media (prefers-reduced-motion: reduce) ═══
+// Load CodeMirror 6 on demand (pages that only need it after a user action)
+function ocRequireCM6(cb) {
+    if (window.CM6) { if (cb) cb(); return; }
+    if (!window.ocCM6Waiters) window.ocCM6Waiters = [];
+    if (cb) window.ocCM6Waiters.push(cb);
+    if (window.ocCM6State === 1 || window.ocCM6State === 2) return;
+    window.ocCM6State = 1;
+    var s = document.createElement('script');
+    s.src = window.ocCM6Url || '/luci-static/resources/openclash/js/cm6.min.js';
+    s.onload = function() {
+        window.ocCM6State = 2;
+        var waiters = window.ocCM6Waiters;
+        window.ocCM6Waiters = [];
+        for (var i = 0; i < waiters.length; i++) {
+            try { waiters[i](); } catch (e) {}
+        }
+    };
+    s.onerror = function() {
+        window.ocCM6State = 0;
+        window.ocCM6Waiters = [];
+    };
+    document.head.appendChild(s);
+}
+
+// Drop LuCI's global prefers-reduced-motion media rule
 (function() {
     var sheets = document.styleSheets;
     for (var i = sheets.length - 1; i >= 0; i--) {
@@ -18,8 +42,6 @@ _ocGuard: { if (window._ocCommonLoaded) break _ocGuard; window._ocCommonLoaded =
         } catch(e) {}
     }
 })();
-
-// ═══ Internal helpers ═══
 
 function luminanceFromColor(color) {
     var r, g, b;
@@ -51,21 +73,20 @@ function luminanceFromColor(color) {
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
+// Dark detection order: HTML data-* attributes, HTML class names, theme localStorage keys,
+// CSS background luminance, then the system preference
 function detectInitialAutoDark() {
     var html = document.documentElement,
         v, cls, lum;
-    // 1. HTML data-* attributes (Bootstrap 5.3, Material, OpenClash, and generic)
     var bs = html.getAttribute('data-bs-theme'),
         th = html.getAttribute('data-theme'),
         dm = html.getAttribute('data-darkmode');
     v = bs || th || dm;
     if (v === 'dark' || v === 'dim' || v === 'true') return true;
     if (v === 'light' || v === 'false') return false;
-    // 2. HTML class name (Argon dark-mode, generic theme-dark, etc.)
     cls = ' ' + (html.className || '') + ' ';
     if (cls.indexOf(' dark ') >= 0 || cls.indexOf(' dark-mode ') >= 0 ||
         cls.indexOf(' theme-dark ') >= 0 || cls.indexOf(' night-mode ') >= 0) return true;
-    // 3. localStorage keys used by popular LuCI themes
     var keys = [['mode', 'dark'], ['dark_mode', '1'], ['argon_dark_mode', '1'],
                 ['theme', 'dark'], ['luci-theme-mode', 'dark']];
     for (var i = 0; i < keys.length; i++) {
@@ -73,7 +94,6 @@ function detectInitialAutoDark() {
         if (v === keys[i][1]) return true;
         if (v === 'light' || v === '0' || v === 'false') return false;
     }
-    // 4. CSS custom properties for dark themes
     var style = getComputedStyle(html),
         checkBg = style.getPropertyValue('--bs-body-bg').trim()
                || style.getPropertyValue('--body-bg').trim()
@@ -81,7 +101,6 @@ function detectInitialAutoDark() {
     if (checkBg && checkBg !== 'transparent' && checkBg !== 'rgba(0, 0, 0, 0)')
         return luminanceFromColor(checkBg) < 128;
 
-    // 5. System preference (ultimate fallback)
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 }
 
@@ -99,8 +118,6 @@ function isDarkBackground(element) {
 	if (lum > 100 && lum < 156 && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return true;
 	return lum < 128;
 }
-
-// ═══ Theme system ═══
 
 function ocApplyRootTheme() {
     var t = localStorage.getItem('oc-theme') || 'auto',
@@ -161,8 +178,6 @@ if (window.matchMedia && !window._ocCommonLoaded) {
     });
 }
 
-// ═══ General utilities ═══
-
 function winOpen(url) {
 	var win = window.open(url);
 	if (win == null) {
@@ -200,12 +215,11 @@ function ocMaxScroll(element) {
 	return Math.max(0, contentHeight - element.clientHeight);
 }
 
+// Scroll to the bottom. One batch animates at a time, further requests set ocScrollPending
+// and the flush callback re-renders the accumulated lines.
 function ocAnimateScroll(element, flush, isFirst) {
 	if (!element) return;
 
-	// A batch is still animating: let it finish before starting the next one.
-	// The caller's flush callback re-renders the accumulated lines and starts
-	// the next batch, so every batch animation runs to completion.
 	if (element.ocScrollAnim) {
 		element.ocScrollPending = true;
 		if (flush) element.ocScrollFlush = flush;
@@ -218,9 +232,6 @@ function ocAnimateScroll(element, flush, isFirst) {
 	var start = element.scrollTop;
 	var distance = target - start;
 
-	// First batch: reveal quickly (no slow deceleration), but keep the
-	// animation slot occupied for a short moment so following batches stay
-	// pending and the first line is not instantly overwritten.
 	var duration = isFirst ? 500 : Math.min(3600, Math.max(500, distance * 10));
 
 	if (!isFirst && distance <= 0.5) {
@@ -271,6 +282,13 @@ function ocAnimateScroll(element, flush, isFirst) {
 	}
 	animation.raf = requestAnimationFrame(step);
 	element.ocScrollAnimId = animation.raf;
+}
+
+function ocFormatOneDecimal(val) {
+	var num = Number(val);
+	if (!isFinite(num)) num = 0;
+	var text = num.toFixed(1);
+	return (text === '0.0' || text === '-0.0') ? '0' : text;
 }
 
 function ocFormatUnixTime(unixTimestamp) {
@@ -369,8 +387,18 @@ function ocGetDashboardBaseURL(status) {
 	return { host: parsed.hostname, port: effectivePort, proto: parsed.protocol + '//', origin: parsed.origin, secret: status.dase || '', isPublic: usePublic };
 }
 
+// LuCI over https: the control panel API needs the same-origin proxy (nginx /oc-api/),
+// the controller has no TLS listener and plain ws:// would be mixed content.
+function ocGetDashboardApiOrigin(status) {
+	var base = ocGetDashboardBaseURL(status);
+	if (!base.isPublic && window.location.protocol === 'https:') {
+		return 'https://' + window.location.host + '/oc-api';
+	}
+	return base.origin;
+}
+
 function ocGetDashboardWebSocketOrigin(status) {
-	return ocGetDashboardBaseURL(status).origin.replace(/^http/, 'ws');
+	return ocGetDashboardApiOrigin(status).replace(/^http/, 'ws');
 }
 
 function ocGetDashboardLoginParams(base, clashCompatible) {
@@ -426,8 +454,6 @@ function ocBuildDashboardURL(status, uiPath, needsSetup) {
 	return url;
 }
 
-// ═══ Editor state ═══
-
 window._ocFullscreenActive = false;
 window._ocMergeShowDifferences = true;
 window._ocEditorHotkeysBound = false;
@@ -436,13 +462,7 @@ window._ocFullscreenPatch = null;
 window._ocZoomLevels = [75, 90, 100, 110, 125, 150, 200];
 window._ocCurrentZoom = 100;
 
-// ═══ Editor — fullscreen ═══
-// Walk ancestors and patch stacking contexts so position:fixed can
-// break out. backdrop-filter traps fixed children (creates a
-// containing block); positioned+z-index creates a stacking context.
-// We fix the closest backdrop-filter and the outermost z-index.
-
-// Handles both EditorView (.dom) and MergeView (.a.dom, .b.dom)
+// Return the editor DOM element of an EditorView (.dom) or a MergeView (.a/.b dom)
 function ocGetEditorDom(instance) {
 	if (!instance) return null;
 	if (instance.dom) return instance.dom;
@@ -450,6 +470,8 @@ function ocGetEditorDom(instance) {
 	return null;
 }
 
+// Enter fullscreen: patch ancestor stacking contexts so position:fixed can break
+// out (clear the closest backdrop-filter, raise the outermost positioned z-index)
 function _ocEnterFullscreen(dom) {
 	_ocExitFullscreen();
 	var patch = window._ocFullscreenPatch = {};
@@ -497,9 +519,8 @@ function _ocExitFullscreen() {
 	window._ocFullscreenPatch = null;
 }
 
-// ═══ Editor — lookup ═══
-// Priority: merge editor state > ConfigEditor modal > CM6.getActiveEditor()
-
+// Return the active editor: merge editor state, then the ConfigEditor modal,
+// then CM6's own active editor
 function ocGetActiveEditorInstance() {
 	if (window._mergeEditorState && window._mergeEditorState.instance) {
 		return window._mergeEditorState.instance;
@@ -513,10 +534,7 @@ function ocGetActiveEditorInstance() {
 	return null;
 }
 
-// ═══ Editor — zoom ═══
-// Applies zoom-{level} CSS class to .cm-editor elements.
-// For MergeView, applies to BOTH side panels so the .oc .cm-editor.zoom-XX rules match.
-
+// Apply the zoom-{level} class to .cm-editor elements (both panels of a MergeView)
 function ocApplyZoom(instance, zoomLevel) {
 	var doms = [];
 	if (instance) {
@@ -549,7 +567,7 @@ function ocApplyZoom(instance, zoomLevel) {
 	window._ocCurrentZoom = zoomLevel;
 }
 
-// Returns new zoom level without applying it
+// Zoom step helpers: return the new level without applying it
 function ocZoomIn(currentZoom) {
 	var cur = typeof currentZoom === 'number' ? currentZoom : window._ocCurrentZoom;
 	var idx = window._ocZoomLevels.indexOf(cur);
@@ -575,9 +593,7 @@ function ocResetZoom() {
 // Passthrough for CM5-era _cmWhenReady compatibility
 window._cmWhenReady = function(cb) { cb(); };
 
-// ═══ Theme — CM6 & CBI helpers ═══
-
-// Apply CM6 editor themes + highlight.js theme based on current data-darkmode.
+// Apply the CM6 editor themes and the highlight.js theme for the current dark mode
 function ocApplyEditorTheme() {
 	var isDark = document.documentElement.getAttribute('data-darkmode') === 'true';
 	if (typeof CM6 !== 'undefined' && CM6.dispatchTheme) {
@@ -616,10 +632,8 @@ function ocCenterCbiActions() {
 	}
 }
 
-// ═══ Hotkeys ═══
-// F11 fullscreen, F10 diff toggle, Esc exit, Ctrl+/-/0 zoom, Ctrl+Wheel zoom.
-// Registered once globally (capture phase so it beats CM6's own key handling).
-
+// Register the editor hotkeys once, in the capture phase so they beat CM6's own key
+// handling. Ctrl+Wheel zoom needs a separate non-passive wheel listener.
 function ocRegisterEditorHotkeys() {
 	if (window._ocEditorHotkeysBound) return;
 	window._ocEditorHotkeysBound = true;
@@ -706,7 +720,6 @@ function ocRegisterEditorHotkeys() {
 		}
 	}, true);
 
-	// Separate listener — wheel needs {passive:false} for preventDefault
 	document.addEventListener('wheel', function(e) {
 		if (e.ctrlKey || e.metaKey) {
 			if (e.target.closest && e.target.closest('#config-editor-overlay')) return;
@@ -719,8 +732,6 @@ function ocRegisterEditorHotkeys() {
 		}
 	}, { passive: false });
 }
-
-// ═══ Loading overlay ═══
 
 var _ocLoadingMap = typeof WeakMap !== 'undefined' ? new WeakMap() : (function(){
 	var m = {};
@@ -755,8 +766,6 @@ function ocHideLoading(container) {
 	}
 	_ocLoadingMap.delete(container);
 }
-
-// ═══ Clipboard ═══
 
 window.ocCopyToClipboard = function(text, btnElement, successMessage, failMessage) {
 	if (navigator.clipboard && navigator.clipboard.writeText) {
