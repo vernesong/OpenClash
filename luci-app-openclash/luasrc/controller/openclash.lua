@@ -260,16 +260,45 @@ end
 
 local ov = dofile("/usr/share/openclash/openclash_version.lua")
 
+-- 内核版本号缓存文件。取内核版本需要完整启动一次内核进程，
+-- 在低内存设备上（例如 256MB 内存的 AX3000T）该进程的峰值内存可超过 50MB，
+-- 足以把正在运行的 mihomo 挤到 OOM，因此这里缓存取到的结果。
+local core_version_cache = "/etc/openclash/clash_meta_version"
+
 local function coremetacv()
-	local v = "0"
 	if not fs.access(meta_core_path) then
-		return v
-	else
-		v = SYS.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $3}' |head -1 |tr -d '\n'", meta_core_path))
-		if not v or v == "" then
-			return "0"
+		return "0"
+	end
+
+	-- 用内核文件的 mtime + size 作为缓存签名，核心被替换后缓存自动失效
+	local sig = "0-0"
+	local st = fs.stat(meta_core_path)
+	if type(st) == "table" then
+		sig = string.format("%s-%s", tostring(st.mtime or 0), tostring(st.size or 0))
+	end
+
+	local f = io.open(core_version_cache, "r")
+	if f then
+		local line = f:read("*l") or ""
+		f:close()
+		local cached_sig, cached_ver = line:match("^(%S+)%s+(%S+)$")
+		if cached_ver and cached_sig == sig then
+			return cached_ver
 		end
 	end
+
+	-- 缓存未命中，仅在此处启动一次内核
+	local v = SYS.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $3}' |head -1 |tr -d '\n'", meta_core_path))
+	if not v or v == "" then
+		return "0"
+	end
+
+	local w = io.open(core_version_cache, "w")
+	if w then
+		w:write(sig .. " " .. v .. "\n")
+		w:close()
+	end
+
 	return v
 end
 
