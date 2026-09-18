@@ -194,6 +194,18 @@ msgstr "实验性：绕过指定区域 IP"
 msgid "China IPv6 Route"
 msgstr "实验性：绕过指定区域 IPv6"
 
+msgid "China IP Route Domain Source"
+msgstr "中国大陆域名数据源"
+
+msgid "Select The China Domain Data Source Used by China IP Route in Fake-IP Mode. MetaCubeX Uses cn.mrs from MetaCubeX/meta-rules-dat; GeoSite Uses The cn Category in The Current GeoSite Database"
+msgstr "选择 Fake-IP 模式下区域 IP 绕行使用的中国大陆域名数据源。MetaCubeX 使用 MetaCubeX/meta-rules-dat 提供的 cn.mrs；GeoSite 使用当前 GeoSite 数据库中的 cn 分类"
+
+msgid "MetaCubeX Rules cn.mrs (Default)"
+msgstr "MetaCubeX 规则 cn.mrs（默认）"
+
+msgid "GeoSite Rules geosite:cn"
+msgstr "GeoSite 规则 geosite:cn"
+
 msgid "Bypass Mainland China"
 msgstr "绕过中国大陆"
 

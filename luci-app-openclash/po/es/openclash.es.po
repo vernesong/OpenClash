@@ -191,6 +191,18 @@ msgstr "Experimental: omitir IP de regiones específicas"
 msgid "China IPv6 Route"
 msgstr "Experimental: omitir IPv6 de regiones específicas"
 
+msgid "China IP Route Domain Source"
+msgstr "Fuente de dominios para la ruta IP de China"
+
+msgid "Select The China Domain Data Source Used by China IP Route in Fake-IP Mode. MetaCubeX Uses cn.mrs from MetaCubeX/meta-rules-dat; GeoSite Uses The cn Category in The Current GeoSite Database"
+msgstr "Selecciona la fuente de dominios de China que usa la ruta IP de China en modo Fake-IP. MetaCubeX usa cn.mrs de MetaCubeX/meta-rules-dat; GeoSite usa la categoría cn de la base de datos GeoSite actual."
+
+msgid "MetaCubeX Rules cn.mrs (Default)"
+msgstr "Reglas de MetaCubeX cn.mrs (predeterminado)"
+
+msgid "GeoSite Rules geosite:cn"
+msgstr "Reglas de GeoSite geosite:cn"
+
 msgid "Bypass Mainland China"
 msgstr "Omitir China continental"
 
