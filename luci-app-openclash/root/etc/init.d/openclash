@@ -760,9 +760,10 @@ check_core_status()
          if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
             ip -6 route add default dev utun table "$PROXY_ROUTE_TABLE"
             ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 1888
-            [ -z "$fakeip_range6" ] && fakeip_range6=$(uci_get_config "fakeip_range6" || echo "fdfe:dcba:9876::1/64")
-            [ "$fakeip_range6" = "0" ] && fakeip_range6="fdfe:dcba:9876::1/64"
-            ip -6 route replace "$fakeip_range6" dev utun 2>/dev/null
+            # the router's own fake-ip6 packets need a route before the output marking, forwarded packets still use the main table
+            if [ "$fake_ip_range6_enable" = "1" ] && { [ "$router_self_proxy" = "1" ] || ([ "$enable_redirect_dns" != "2" ] && [ "$en_mode" = "fake-ip" ]); }; then
+               ip -6 rule add iif lo to "$fakeip_range6" lookup "$PROXY_ROUTE_TABLE" pref 1887
+            fi
          fi
          if [ -n "$en_mode_tun" ]; then
             ip route add default dev utun table "$PROXY_ROUTE_TABLE"
@@ -2921,9 +2922,7 @@ revert_firewall()
    ip route del default dev utun table "$PROXY_ROUTE_TABLE"
    ip -6 rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
    ip -6 route del default dev utun table "$PROXY_ROUTE_TABLE"
-   [ -z "$fakeip_range6" ] && fakeip_range6=$(uci_get_config "fakeip_range6" || echo "fdfe:dcba:9876::1/64")
-   [ "$fakeip_range6" = "0" ] && fakeip_range6="fdfe:dcba:9876::1/64"
-   ip -6 route del "$fakeip_range6" dev utun 2>/dev/null
+   ip -6 rule del iif lo to "$fakeip_range6" lookup "$PROXY_ROUTE_TABLE" pref 1887
 
    if [ -n "$FW4" ]; then
       for nft in "input" "forward" "output" "dstnat" "srcnat" "nat_output" "mangle_prerouting" "mangle_output"; do

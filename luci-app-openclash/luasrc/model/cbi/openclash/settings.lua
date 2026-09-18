@@ -523,7 +523,6 @@ o.description = translate("Select The China Domain Data Source Used by China IP 
 o:value("mrs", translate("MetaCubeX Rules cn.mrs (Default)"))
 o:value("geosite", translate("GeoSite Rules geosite:cn"))
 o.default = "mrs"
-o.rmempty = false
 o:depends("china_ip_route", "1")
 o:depends("china_ip_route", "2")
 o:depends("china_ip6_route", "1")

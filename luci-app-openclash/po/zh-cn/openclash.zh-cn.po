@@ -4466,3 +4466,12 @@ msgstr "配置合并失败，"
 
 msgid "Update Config File Failed,"
 msgstr "更新配置文件失败，"
+
+msgid "Rule-Provider"
+msgstr "规则集"
+
+msgid "Is Not Registered, Deleted The Fake-IP-Filter Rule"
+msgstr "未定义，已删除 Fake-IP-Filter 规则"
+
+msgid "to Avoid Core Start Failed..."
+msgstr "避免内核启动失败..."

@@ -49,7 +49,7 @@ OpenClash 是一个面向 OpenWrt 的 LuCI 插件，用于管理 [Mihomo](https:
 
 1. 从 [Release 页面](https://github.com/vernesong/OpenClash/releases) 下载对应架构的安装包（`*.ipk` 或 `*.apk`）；
 2. 登录 OpenWrt 的 LuCI 后台，前往 **系统 → 软件包** 上传并安装；
-3. 刷新页面，在 **服务 → OpenClash** 中导入订阅或上传配置文件并启动。
+3. 刷新或者重新登录页面，在 **服务 → OpenClash** 中导入订阅或上传配置文件并启动。
 
 ### 命令行安装
 

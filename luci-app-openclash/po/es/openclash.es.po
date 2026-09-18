@@ -4457,3 +4457,12 @@ msgstr "Fallo al combinar la configuración,"
 
 msgid "Update Config File Failed,"
 msgstr "Fallo al actualizar el archivo de configuración,"
+
+msgid "Rule-Provider"
+msgstr "Proveedor de reglas"
+
+msgid "Is Not Registered, Deleted The Fake-IP-Filter Rule"
+msgstr "no está registrado, se eliminó la regla Fake-IP-Filter"
+
+msgid "to Avoid Core Start Failed..."
+msgstr "para evitar que el núcleo falle al iniciar..."

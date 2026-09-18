@@ -20,7 +20,7 @@ china_ip_route=$(uci_get_config "china_ip_route" || echo 0)
 china_ip6_route=$(uci_get_config "china_ip6_route" || echo 0)
 china_ip_route_domain_source=$(uci_get_config "china_ip_route_domain_source" || echo "mrs")
 enable_redirect_dns=$(uci_get_config "enable_redirect_dns" || echo 1)
-fake_ip_filter_mode=${33}
+fake_ip_filter_mode="${33}"
 default_dashboard=$(uci_get_config "default_dashboard" || echo "metacubexd")
 yacd_type=$(uci_get_config "yacd_type" || echo "Official")
 dashboard_type=$(uci_get_config "dashboard_type" || echo "Official")
@@ -757,6 +757,21 @@ begin
                   Value = YAML.overwrite(Value, rule_set_hash)
                end
                YAML.LOG_TIP('Because Need Ensure Bypassing IP Option Work, Added The Fake-IP-Filter Rule【%s】...' % [filter_rule])
+            end
+         end
+         if fake_ip_mode == 'fake-ip'
+            cn_domain_provider_ready = (china_ip_route || china_ip6_route) && filter_mode != 'whitelist' && china_ip_route_domain_source == 'mrs'
+            unless cn_domain_provider_ready || Value.dig('rule-providers', 'oc-cn-domain')
+               dangling_filters = Value.dig('dns', 'fake-ip-filter')
+               if dangling_filters.is_a?(Array)
+                  dangling_filters = dangling_filters.select { |f| f.to_s.strip.match?(/\A(rule-set:oc-cn-domain|RULE-SET,oc-cn-domain,real-ip)\z/i) }
+                  if dangling_filters.any?
+                     Value['dns']['fake-ip-filter'] -= dangling_filters
+                     dangling_filters.each do |f|
+                        YAML.LOG_WARN('Rule-Provider【oc-cn-domain】Is Not Registered, Deleted The Fake-IP-Filter Rule【%s】to Avoid Core Start Failed...' % [f])
+                     end
+                  end
+               end
             end
          end
       rescue Exception => e
