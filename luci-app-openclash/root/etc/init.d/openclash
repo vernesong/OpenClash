@@ -29,8 +29,35 @@ LOG_FILE="/tmp/openclash.log"
 START_LOG="/tmp/openclash_start.log"
 PROXY_FWMARK="0x162"
 PROXY_ROUTE_TABLE="0x162"
+PROXY_THROW_NETS="0.0.0.0/8 10.0.0.0/8 100.64.0.0/10 127.0.0.0/8 169.254.0.0/16 172.16.0.0/12 192.168.0.0/16"
 QUICK_START_CHECK=false
 QUICK_START=true
+
+# Escape hatch for the proxy routing table when source validation uses the fwmark.
+# With net.ipv4.conf.all.src_valid_mark=1 (Tailscale and some other policy routing
+# setups set it), fib_validate_source() looks up the packet source with skb->mark
+# applied. Marked proxy traffic then resolves its source inside the proxy table,
+# whose only route is "local default dev lo": the kernel classes it as a martian
+# source and drops every packet without any log or counter. The throw entries make
+# that lookup fall through to the main table. Ranges that overlap the fake-ip
+# range prefix are skipped so fake-ip routing stays intact.
+proxy_throw_route_add()
+{
+   local cidr fakeprefix
+   fakeprefix=$(echo "$1" | cut -d'/' -f1 | cut -d'.' -f1,2)
+   for cidr in $PROXY_THROW_NETS; do
+      [ "$(echo "$cidr" | cut -d'.' -f1,2)" = "$fakeprefix" ] && continue
+      ip route replace throw "$cidr" table "$PROXY_ROUTE_TABLE" 2>/dev/null
+   done
+}
+
+proxy_throw_route_del()
+{
+   local cidr
+   for cidr in $PROXY_THROW_NETS; do
+      ip route del throw "$cidr" table "$PROXY_ROUTE_TABLE" 2>/dev/null
+   done
+}
 
 add_cron()
 {
@@ -768,6 +795,7 @@ check_core_status()
          if [ -n "$en_mode_tun" ]; then
             ip route add default dev utun table "$PROXY_ROUTE_TABLE"
             ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 1888
+            proxy_throw_route_add "$fakeip_range"
          fi
       fi
    else
@@ -1431,6 +1459,7 @@ if [ -n "$FW4" ]; then
             check_mod "nft_tproxy"
             ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
+            proxy_throw_route_add "$fakeip_range"
             nft 'add chain inet fw4 openclash_mangle'
             nft 'flush chain inet fw4 openclash_mangle'
             nft 'add chain inet fw4 openclash_upnp'
@@ -1473,6 +1502,7 @@ if [ -n "$FW4" ]; then
             check_mod "nft_tproxy"
             ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
+            proxy_throw_route_add "$fakeip_range"
             nft 'add chain inet fw4 openclash_mangle'
             nft 'flush chain inet fw4 openclash_mangle'
             nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr { "$fakeip_range" } mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept
@@ -2281,6 +2311,7 @@ if [ -z "$FW4" ]; then
             check_mod "xt_TPROXY"
             ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
+            proxy_throw_route_add "$fakeip_range"
             iptables -t mangle -N openclash
             iptables -t mangle -F openclash
             iptables -t mangle -N openclash_upnp
@@ -2322,6 +2353,7 @@ if [ -z "$FW4" ]; then
             check_mod "xt_TPROXY"
             ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
+            proxy_throw_route_add "$fakeip_range"
             iptables -t mangle -N openclash
             iptables -t mangle -F openclash
             iptables -t mangle -A openclash -p udp -d "$fakeip_range" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
@@ -2913,6 +2945,7 @@ revert_firewall()
 
    ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
    ip route del local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
+   proxy_throw_route_del
 
    ip -6 rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
    ip -6 route del local ::/0 dev lo table "$PROXY_ROUTE_TABLE"

@@ -130,7 +130,7 @@ const mihomoKeywords = [
     { label: "geo-update-interval", type: "keyword", detail: "GEO update interval (hours)" },
     { label: "tun", type: "keyword", detail: "TUN mode configuration" },
     { label: "enable", type: "property", detail: "Enable: true / false" },
-    { label: "stack", type: "property", detail: "Protocol stack: system / gvisor / mixed" },
+    { label: "stack", type: "property", detail: "Protocol stack: system / gvisor / mixed / mips" },
     { label: "device", type: "property", detail: "TUN device name" },
     { label: "dns-hijack", type: "property", detail: "DNS hijack address list" },
     { label: "auto-route", type: "property", detail: "Auto set route: true / false" },

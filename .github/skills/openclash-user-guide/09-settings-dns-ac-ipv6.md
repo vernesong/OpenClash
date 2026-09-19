@@ -193,7 +193,7 @@
 |------|---------|------|------|
 | IPv6 代理 (Proxy IPv6 Traffic) | `ipv6_enable` | 0 | 开启 IPv6 流量代理。网关和 DNS 须为路由器 IP |
 | IPv6 代理模式 (IPv6 Proxy Mode) | `ipv6_mode` | TProxy(0) | TProxy/Redirect/TUN/Mix |
-| IPv6 堆栈类型 (Select Stack Type) | `stack_type_v6` | system | system/gvisor/mixed。仅 TUN/Mix 模式 |
+| IPv6 堆栈类型 (Select Stack Type) | `stack_type_v6` | system | system/gvisor/mixed/mips。仅 TUN/Mix 模式，取值含义与选型建议同 `stack_type`（见 [08 号文档 §8.2.12](08-settings-mode-traffic.md)） |
 | IPv6 UDP 代理 (Proxy UDP Traffics) | `enable_v6_udp_proxy` | 1 | 仅 TProxy/Redirect 模式 |
 | 允许 IPv6 类型 DNS 解析 (IPv6 DNS Resolve) | `ipv6_dns` | 0 | 对应 Mihomo `dns.ipv6` — 控制 Mihomo DNS 是否返回 AAAA 记录 |
 | IPv6 Fake-IP 范围 (Fake-IP Range) | `fakeip_range6` | 禁用 | 仅 Fake-IP 模式。对应 `dns.fake-ip-range6` |

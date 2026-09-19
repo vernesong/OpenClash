@@ -47,7 +47,7 @@
 # ENABLE_UDP_PROXY (启用 UDP 代理, 0: 禁用, 1: 启用, only for EN_MODE_TUN is nil)
 # DISABLE_UDP_QUIC (禁用 UDP QUIC, 0: 启用, 1: 禁用)
 # ROUTER_SELF_PROXY (路由器自身代理, 0: 禁用, 1: 启用)
-# STACK_TYPE (TUN 网络栈类型, system/gvisor/mixed, default is system)
+# STACK_TYPE (TUN 网络栈类型, system/gvisor/mixed/mips, default is system)
 # PROXY_MODE (代理模式, rule/global/direct, default is rule)
 
 # --- 防火墙与访问控制 ---

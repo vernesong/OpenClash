@@ -124,6 +124,7 @@ o:depends("en_mode", "fake-ip-mix")
 o:value("system", translate("System　"))
 o:value("gvisor", translate("gVisor"))
 o:value("mixed", translate("Mixed"))
+o:value("mips", translate("Mips"))
 o.default = "system"
 
 o = s:taboption("op_mode", ListValue, "proxy_mode", translate("Proxy Mode"))
@@ -1406,6 +1407,7 @@ o:depends({ipv6_mode= "3", en_mode = "fake-ip"})
 o:value("system", translate("System　"))
 o:value("gvisor", translate("gVisor"))
 o:value("mixed", translate("Mixed"))
+o:value("mips", translate("Mips"))
 o.default = "system"
 
 o = s:taboption("ipv6", Flag, "enable_v6_udp_proxy", translate("Proxy UDP Traffics"))
