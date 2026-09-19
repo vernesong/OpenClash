@@ -295,4 +295,14 @@ config config_overwrite
 	option update_hour 'off'
 	option type 'http'
 	option order '1'
+	list config 'all'
 
+config config_overwrite
+	option name 'Google_Play'
+	option enable '0'
+	option url 'https://raw.githubusercontent.com/vernesong/OpenClash/refs/heads/dev/luci-app-openclash/root/etc/openclash/overwrite/Google_Play'
+	option update_days 'off'
+	option update_hour 'off'
+	option type 'http'
+	option order '2'
+	list config 'all'

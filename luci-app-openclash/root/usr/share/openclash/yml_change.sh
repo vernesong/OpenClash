@@ -21,6 +21,7 @@ china_ip6_route=$(uci_get_config "china_ip6_route" || echo 0)
 china_ip_route_domain_source=$(uci_get_config "china_ip_route_domain_source" || echo "mrs")
 enable_redirect_dns=$(uci_get_config "enable_redirect_dns" || echo 1)
 fake_ip_filter_mode="${33}"
+[ -z "$fake_ip_filter_mode" ] && fake_ip_filter_mode="blacklist"
 default_dashboard=$(uci_get_config "default_dashboard" || echo "metacubexd")
 yacd_type=$(uci_get_config "yacd_type" || echo "Official")
 dashboard_type=$(uci_get_config "dashboard_type" || echo "Official")
@@ -48,22 +49,15 @@ if [ "$1" = "fake-ip" ] && [ "$enable_redirect_dns" != "2" ]; then
    
    process_pass_list() {
       [ ! -f "$1" ] && return
-      awk -v mode="$fake_ip_filter_mode" '
+      awk '
          !/^$/ && !/^#/ {
             # 跳过IPv4和IPv6地址
             if ($0 ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+(\/[0-9]+)?$/ || $0 ~ /:/) {
                next
             }
-            if (mode == "blacklist") {
-               if ($0 ~ /^\+?\./ || $0 ~ /^\*\./) {
-                  print $0
-               } else {
-                  print "+."$0
-               }
-            } else if (mode == "rule") {
-               domain = $0
-               sub(/^[\+\*\.]+/, "", domain)
-               print "DOMAIN-SUFFIX," domain ",real-ip"
+            sub(/^[\+\*\.]+/, "", $0)
+            if ($0 != "") {
+               print $0
             }
          }
       ' "$1" >> "$TMP_FILTER_FILE" 2>/dev/null
@@ -434,7 +428,7 @@ begin
    ipv6_mode = '${29}'
    unified_delay = '${31}' == '1'
    respect_rules = '${32}' == '1'
-   fake_ip_filter_mode = '${33}'
+   fake_ip_filter_mode = '$fake_ip_filter_mode'
    routing_mark_setting = '${34}'
    quic_gso = '${35}' == '1'
    cors_origin = http_origin(ENV['OPENCLASH_CORS_CUSTOM_URL']) || controller_origin(ENV['OPENCLASH_CORS_DOMAIN'], ENV['OPENCLASH_CORS_PORT'], ENV['OPENCLASH_CORS_SSL'])
@@ -726,7 +720,29 @@ begin
             Value['dns']['fake-ip-filter-mode'] = fake_ip_filter_mode
             if fake_ip_mode == 'fake-ip'
                merge_list_from_file(Value['dns'], 'fake-ip-filter', '/etc/openclash/custom/openclash_custom_fake_filter.list')
-               merge_list_from_file(Value['dns'], 'fake-ip-filter', '/tmp/yaml_openclash_fake_filter_include')
+            end
+         end
+         # Set chnroute_pass domains
+         if fake_ip_mode == 'fake-ip' && enable_redirect_dns != '2' && File.exist?('/tmp/yaml_openclash_fake_filter_include')
+            pass_domains = File.readlines('/tmp/yaml_openclash_fake_filter_include').map { |l| l.gsub(/#.*$/, '').strip }.reject(&:empty?)
+            if pass_domains.any?
+               filter_mode = Value.dig('dns', 'fake-ip-filter-mode')
+               if filter_mode == 'whitelist'
+                  filters = Value.dig('dns', 'fake-ip-filter')
+                  if filters.is_a?(Array)
+                     deleted_filters = filters.select { |f| pass_domains.any? { |d| f.to_s.include?(d) } }
+                     if deleted_filters.any?
+                        Value['dns']['fake-ip-filter'] -= deleted_filters
+                        deleted_filters.each do |f|
+                           YAML.LOG_TIP('Because Need Ensure Bypassing IP Option Work, Deleted The Fake-IP-Filter Rule【%s】...' % [f])
+                        end
+                     end
+                  end
+               else
+                  filter_rules = filter_mode == 'rule' ? pass_domains.map { |d| 'DOMAIN-SUFFIX,' + d + ',real-ip' } : pass_domains.map { |d| '+.' + d }
+                  (Value['dns']['fake-ip-filter'] ||= []).unshift(*filter_rules).uniq!
+                  YAML.LOG_TIP('Because Need Ensure Bypassing IP Option Work, Added The Fake-IP-Filter Rule【%s】...' % [filter_rules.join(', ')])
+               end
             end
          end
          if fake_ip_mode == 'fake-ip' && (china_ip_route || china_ip6_route)

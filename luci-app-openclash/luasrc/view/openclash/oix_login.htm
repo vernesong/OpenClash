@@ -245,14 +245,14 @@ var OIX_URLS = {
 
 var OixCloud = {
 	loggedIn: <%= logged_in and 'true' or 'false' %>,
-	_activeTab: 'account',
-	_pollTimer: null,
-	_paramsRetry: 0,
-	_paramsMaxRetry: 30,
-	_paramsRetryTimer: null,
-	_origCheckinInterval: '<%= checkin_interval %>',
-	_origCheckinMultiple: '<%= checkin_multiple %>',
-	_origParams: '<%= oix_params %>',
+	activeTab: 'account',
+	pollTimer: null,
+	paramsRetry: 0,
+	paramsMaxRetry: 30,
+	paramsRetryTimer: null,
+	origCheckinInterval: '<%= checkin_interval %>',
+	origCheckinMultiple: '<%= checkin_multiple %>',
+	origParams: '<%= oix_params %>',
 
 	init: function() {
 		if (this.loggedIn) { this.loadAccountInfo(); this.startPolling(); this.fetchParams(); }
@@ -267,30 +267,30 @@ var OixCloud = {
 			if (x && x.status == 200 && status) {
 				if (status.params) {
 					input.value = status.params;
-					self._paramsRetry = 0;
+					self.paramsRetry = 0;
 					if (status.default_params) {
 						XHR.get(OIX_URLS.save, {default_params: status.default_params}, function() {});
 					}
 				} else if (status.default_params) {
 					input.value = status.default_params;
 					input.placeholder = status.default_params;
-					self._paramsRetry = 0;
+					self.paramsRetry = 0;
 				} else if (uciDefault) {
 					input.value = uciDefault;
 					input.placeholder = uciDefault;
-					self._paramsRetry = 0;
+					self.paramsRetry = 0;
 				} else {
-					if (self._paramsRetry < self._paramsMaxRetry) {
-						self._paramsRetry++;
-						self._paramsRetryTimer = setTimeout(function() { self.fetchParams(); }, 5000);
+					if (self.paramsRetry < self.paramsMaxRetry) {
+						self.paramsRetry++;
+						self.paramsRetryTimer = setTimeout(function() { self.fetchParams(); }, 5000);
 					} else {
-						self._paramsRetry = 0;
+						self.paramsRetry = 0;
 					}
 				}
 			} else {
-				if (self._paramsRetry < self._paramsMaxRetry) {
-					self._paramsRetry++;
-					self._paramsRetryTimer = setTimeout(function() { self.fetchParams(); }, 5000);
+				if (self.paramsRetry < self.paramsMaxRetry) {
+					self.paramsRetry++;
+					self.paramsRetryTimer = setTimeout(function() { self.fetchParams(); }, 5000);
 				} else if (uciDefault) {
 					input.value = uciDefault;
 					input.placeholder = uciDefault;
@@ -300,7 +300,7 @@ var OixCloud = {
 	},
 
 	switchTab: function(tab) {
-		this._activeTab = tab;
+		this.activeTab = tab;
 		document.getElementById('oix-tab-account').classList.toggle('active', tab === 'account');
 		document.getElementById('oix-tab-token').classList.toggle('active', tab === 'token');
 		document.getElementById('oix-panel-account').classList.toggle('oc-hidden', tab !== 'account');
@@ -310,7 +310,7 @@ var OixCloud = {
 
 	doLogin: function() {
 		OixMsg.clearAll();
-		var isToken = this._activeTab === 'token', data = {};
+		var isToken = this.activeTab === 'token', data = {};
 		if (isToken) {
 			var token = document.getElementById('oix-token').value.trim();
 			if (!token) { OixMsg.field('oix-token', '<%:Please enter a valid token%>'); return; }
@@ -426,9 +426,9 @@ var OixCloud = {
 	doLogout: function() {
 		var self = this;
 		var btn = document.querySelector('#oix-logged-section .oix-btn-danger');
-		if (btn) { btn._origHTML = btn.innerHTML; btn.disabled = true; var svg = btn.querySelector('svg'); btn.innerHTML = (svg ? svg.outerHTML : '') + ' <span><%:Logout...%></span>'; }
+		if (btn) { btn.origHTML = btn.innerHTML; btn.disabled = true; var svg = btn.querySelector('svg'); btn.innerHTML = (svg ? svg.outerHTML : '') + ' <span><%:Logout...%></span>'; }
 		XHR.get(OIX_URLS.logout, null, function(x, status) {
-			if (btn) { btn.disabled = false; btn.innerHTML = btn._origHTML; }
+			if (btn) { btn.disabled = false; btn.innerHTML = btn.origHTML; }
 			if (x && x.status == 200 && status.result == 200) {
 				OixMsg.show('<%:oixCloud Logout Successful%>', 'success', 2000);
 				self.loggedIn = false; self.stopPolling(); self.showLoggedOut();
@@ -565,16 +565,16 @@ var OixCloud = {
 		});
 	},
 
-	startPolling: function() { this.stopPolling(); var s=this; s.fetchParams(); this._pollTimer=setInterval(function(){s.loadAccountInfo();s.fetchParams();},600000); },
-	stopPolling: function() { if(this._pollTimer){clearInterval(this._pollTimer);this._pollTimer=null;} },
-	stopParamsRetry: function() { if(this._paramsRetryTimer){clearTimeout(this._paramsRetryTimer);this._paramsRetryTimer=null;} this._paramsRetry = 0; },
+	startPolling: function() { this.stopPolling(); var s=this; s.fetchParams(); this.pollTimer=setInterval(function(){s.loadAccountInfo();s.fetchParams();},600000); },
+	stopPolling: function() { if(this.pollTimer){clearInterval(this.pollTimer);this.pollTimer=null;} },
+	stopParamsRetry: function() { if(this.paramsRetryTimer){clearTimeout(this.paramsRetryTimer);this.paramsRetryTimer=null;} this.paramsRetry = 0; },
 
 	doCheckin: function() {
 		var self = this;
 		var btn = document.querySelector('#oix-logged-section .oix-btn-primary');
-		if (btn) { btn._origHTML = btn.innerHTML; btn.disabled = true; var svg = btn.querySelector('svg'); btn.innerHTML = (svg ? svg.outerHTML : '') + ' <span><%:Checkin...%></span>'; }
+		if (btn) { btn.origHTML = btn.innerHTML; btn.disabled = true; var svg = btn.querySelector('svg'); btn.innerHTML = (svg ? svg.outerHTML : '') + ' <span><%:Checkin...%></span>'; }
 		XHR.get(OIX_URLS.checkin, null, function(x, status) {
-			if (btn) { btn.disabled = false; btn.innerHTML = btn._origHTML; }
+			if (btn) { btn.disabled = false; btn.innerHTML = btn.origHTML; }
 			if (x && x.status == 200 && status.result && status.result.ret == 200) {
 				OixMsg.show('<%:oixCloud Checkin Successful, Result:%> ' + (status.result.data && status.result.data.checkin || ''), 'success', 4000);
 				self.loadAccountInfo();
@@ -605,12 +605,12 @@ var OixCloud = {
 		if (!valid) return;
 		var newInterval = String(isNaN(interval) ? 1 : interval);
 		var newMultiple = String(isNaN(multiple) ? 1 : multiple);
-		if (newInterval === this._origCheckinInterval && newMultiple === this._origCheckinMultiple) return;
+		if (newInterval === this.origCheckinInterval && newMultiple === this.origCheckinMultiple) return;
 		var self = this;
 		XHR.get(OIX_URLS.save, {checkin: on?'1':'0', interval: newInterval, multiple: newMultiple}, function(x, status) {
 			if (x && x.status == 200) {
-				self._origCheckinInterval = newInterval;
-				self._origCheckinMultiple = newMultiple;
+				self.origCheckinInterval = newInterval;
+				self.origCheckinMultiple = newMultiple;
 				OixMsg.show('<%:Checkin settings saved%>', 'success', 4000);
 			}
 			else { OixMsg.show('<%:Failed to save checkin settings, please try again%>', 'error'); }
@@ -630,11 +630,11 @@ var OixCloud = {
 			OixMsg.show('<%:Params too long%>', 'error');
 			return;
 		}
-		if (params === this._origParams) return;
+		if (params === this.origParams) return;
 		var self = this;
 		XHR.get(OIX_URLS.params, {params: params}, function(x, status) {
 			if (x && x.status == 200) {
-				self._origParams = params;
+				self.origParams = params;
 				OixMsg.show('<%:Optional parameters saved%>', 'success', 4000);
 			}
 			else { OixMsg.show('<%:Failed to save optional parameters, please try again%>', 'error'); }
@@ -713,7 +713,7 @@ var OixCloud = {
 };
 
 var OixMsg = {
-	_timer: null,
+	timer: null,
 	show: function(msg, level, timeout) {
 		var bar = document.getElementById('oix-msg-bar');
 		var icons = {
@@ -723,9 +723,9 @@ var OixMsg = {
 		};
 		bar.classList.remove('oc-hidden'); bar.innerHTML = (icons[level] || icons.info) + '<span>' + msg + '</span>';
 		bar.className = 'oix-msg-bar oix-msg-' + (level || 'info');
-		clearTimeout(this._timer);
+		clearTimeout(this.timer);
 		var t = (timeout !== undefined) ? timeout : (level === 'error' ? 6000 : 3000);
-		if (t > 0) { var s=this; this._timer=setTimeout(function(){s.hide();},t); }
+		if (t > 0) { var s=this; this.timer=setTimeout(function(){s.hide();},t); }
 	},
 	hide: function() { document.getElementById('oix-msg-bar').classList.add('oc-hidden'); },
 	field: function(id, msg) {

@@ -174,7 +174,7 @@ function initDragScroll_<%=idname%>() {
 function initTextDrag_<%=idname%>(element) {
     if (!element) return;
 
-    if (!element._dragBound) {
+    if (!element.dragBound) {
         var isDragging = false;
         var startX = 0;
         var startScrollLeft = 0;
@@ -253,7 +253,7 @@ function initTextDrag_<%=idname%>(element) {
             e.preventDefault();
         });
 
-        element._dragBound = true;
+        element.dragBound = true;
     }
 };
 

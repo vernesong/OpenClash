@@ -15,6 +15,8 @@
 
 远程模块可设置 `update_days` 和 `update_hour` 实现定时自动拉取。
 
+> 插件内置一个本地模块 `Google_Play`（`type=file`、`config=all`、`enable=0`、`order=2`），用于解决 Google 商店下载/更新失败，可在「覆写模块」窗口启用。
+
 ### 17.2 覆写与配置文件的匹配
 
 每个覆写条目可指定目标配置文件（`config` 字段，ListValue）:

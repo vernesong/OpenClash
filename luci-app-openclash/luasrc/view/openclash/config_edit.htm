@@ -74,7 +74,7 @@
 window.ocCM6Url = '/luci-static/resources/openclash/js/cm6.min.js?v=<%=plugin_version%>';
 ocRegisterEditorHotkeys();
 
-var _ocIcons = {
+var ocIcons = {
 	SVG_COMPARE: '<svg width="24" height="24"><use href="#oc-icon-compare"/></svg>',
 	SVG_RESTORE: '<svg width="24" height="24"><use href="#oc-icon-restore"/></svg>'
 };
@@ -86,7 +86,7 @@ var ConfigEditor = {
     overlay: null,
     model: null,
     editorInstance: null,
-    _currentEditorMode: null,
+    currentEditorMode: null,
     originalContent: '',
     isModified: false,
     currentZoom: 100,
@@ -189,11 +189,11 @@ var ConfigEditor = {
                     self.showMergeView();
                     self.currentViewMode = 'original';
                     layoutBtn.title = "<%:Restore%>";
-                    layoutBtn.innerHTML = _ocIcons.SVG_RESTORE;
+                    layoutBtn.innerHTML = ocIcons.SVG_RESTORE;
                 } else {
                     self.hideMergeView();
                     layoutBtn.title = "<%:Compare%>";
-                    layoutBtn.innerHTML = _ocIcons.SVG_COMPARE;
+                    layoutBtn.innerHTML = ocIcons.SVG_COMPARE;
                 }
             });
         };
@@ -214,7 +214,7 @@ var ConfigEditor = {
         this.isFullscreen = false;
 
         if (this.editorInstance) {
-            this._destroyEditor();
+            this.destroyEditor();
             this.editorInstance = null;
         }
         var textarea = document.getElementById('config-editor-textarea');
@@ -273,7 +273,7 @@ var ConfigEditor = {
         this.isFullscreen = false;
 
         if (this.editorInstance) {
-            this._destroyEditor();
+            this.destroyEditor();
             this.editorInstance = null;
         }
         var textarea = document.getElementById('config-editor-textarea');
@@ -320,7 +320,7 @@ var ConfigEditor = {
         self.loadConfigContent();
     },
 
-    _destroyEditor: function() {
+    destroyEditor: function() {
         this.toggleFullscreen(false);
         if (this.editorInstance) {
             if (this.editorInstance.a && this.editorInstance.a.destroy) {
@@ -333,7 +333,7 @@ var ConfigEditor = {
             }
             this.editorInstance = null;
         }
-        this._currentEditorMode = null;
+        this.currentEditorMode = null;
         var textarea = document.getElementById('config-editor-textarea');
         if (textarea) textarea.classList.remove('oc-hidden');
     },
@@ -341,19 +341,19 @@ var ConfigEditor = {
     toggleFullscreen: function(forceState) {
         var nextState = typeof forceState === 'boolean' ? forceState : !this.isFullscreen;
         this.isFullscreen = nextState;
-        window._ocFullscreenActive = nextState;
+        window.ocFullscreenActive = nextState;
         if (typeof CM6 !== 'undefined' && CM6.toggleFullscreen) {
             if (nextState) {
                 var dom = this.editorInstance;
                 if (dom && dom.dom) dom = dom.dom;
                 if (dom && dom.classList) {
-                    if (typeof _ocEnterFullscreen === 'function') _ocEnterFullscreen(dom);
+                    if (typeof ocEnterFullscreen === 'function') ocEnterFullscreen(dom);
                     CM6.toggleFullscreen(dom);
                 }
             } else {
                 var fsEl = document.getElementById('oc-fullscreen-active');
                 if (fsEl) CM6.toggleFullscreen(fsEl);
-                if (typeof _ocExitFullscreen === 'function') _ocExitFullscreen();
+                if (typeof ocExitFullscreen === 'function') ocExitFullscreen();
             }
         }
     },
@@ -361,8 +361,8 @@ var ConfigEditor = {
     hide: function() {
         this.overlay.classList.remove('show');
 
-        this._destroyEditor();
-        window._mergeViewInstance = null;
+        this.destroyEditor();
+        window.mergeViewInstance = null;
 
         this.isModified = false;
         this.originalContent = '';
@@ -384,7 +384,7 @@ var ConfigEditor = {
         if (layoutBtn) {
             layoutBtn.classList.remove('active');
             layoutBtn.title = "<%:Compare%>";
-            layoutBtn.innerHTML = _ocIcons.SVG_COMPARE;
+            layoutBtn.innerHTML = ocIcons.SVG_COMPARE;
         }
         if (editor_help) editor_help.innerHTML = '<%:Press%> <b style="color:var(--success-color)">F11</b> <%:for fullscreen,%> <b style="color:var(--success-color)">Esc</b> <%:to exit fullscreen,%> <b style="color:var(--success-color)">Ctrl + <%:Mouse Wheel%></b> <%:to zoom%>';
     },
@@ -489,7 +489,7 @@ var ConfigEditor = {
 
             var editorKey = mode + '|' + (readOnly ? 'r' : 'w') + '|' + (lint ? 'l' : 'n');
 
-            if (self.editorInstance && self._currentEditorMode === editorKey && !self.mergeViewActive) {
+            if (self.editorInstance && self.currentEditorMode === editorKey && !self.mergeViewActive) {
                 self.originalContent = content;
                 self.editorInstance.dispatch({
                     changes: { from: 0, to: self.editorInstance.state.doc.length, insert: content }
@@ -502,9 +502,9 @@ var ConfigEditor = {
             }
 
             if (self.editorInstance) {
-                self._destroyEditor();
+                self.destroyEditor();
             }
-            self._currentEditorMode = editorKey;
+            self.currentEditorMode = editorKey;
 
             var exts = [];
             var isDark = isDarkBackground(document.body);
@@ -662,7 +662,7 @@ var ConfigEditor = {
             var original = contents[0] || '';
             var runtime = contents[1] || '';
             container.innerHTML = '';
-            if (self.editorInstance) self._destroyEditor();
+            if (self.editorInstance) self.destroyEditor();
 
             var isDark = isDarkBackground(document.body);
             var themeExt = CM6.themeExtension(isDark);
@@ -700,7 +700,7 @@ var ConfigEditor = {
             });
 
             self.mergeViewActive = true;
-            window._mergeViewInstance = self.editorInstance;
+            window.mergeViewInstance = self.editorInstance;
 
             if (CM6.mirrorThemeScrollbar) CM6.mirrorThemeScrollbar();
 
@@ -723,13 +723,13 @@ var ConfigEditor = {
         if (textarea) textarea.classList.remove('oc-hidden');
         if (!this.isOverwrite && tabs) tabs.classList.remove('oc-hidden');
         this.mergeViewActive = false;
-        window._mergeViewInstance = null;
+        window.mergeViewInstance = null;
         this.loadConfigContent();
 
         if (layoutBtn) {
             layoutBtn.classList.remove('active');
             layoutBtn.title = "<%:Compare%>";
-            layoutBtn.innerHTML = _ocIcons.SVG_COMPARE;
+            layoutBtn.innerHTML = ocIcons.SVG_COMPARE;
         }
 
         if (editor_help) editor_help.innerHTML = '<%:Press%> <b style="color:var(--success-color)">F11</b> <%:for fullscreen,%> <b style="color:var(--success-color)">Esc</b> <%:to exit fullscreen,%> <b style="color:var(--success-color)">Ctrl + <%:Mouse Wheel%></b> <%:to zoom%>';

@@ -1,5 +1,5 @@
 // OpenClash shared utilities
-_ocGuard: { if (window._ocCommonLoaded) break _ocGuard; window._ocCommonLoaded = true; }
+ocGuard: { if (window.ocCommonLoaded) break ocGuard; window.ocCommonLoaded = true; }
 
 // Load CodeMirror 6 on demand (pages that only need it after a user action)
 function ocRequireCM6(cb) {
@@ -140,17 +140,17 @@ function ocApplyRootTheme() {
 }
 
 function ocInitTheme() {
-	if (window._ocThemeInited) {
+	if (window.ocThemeInited) {
 		ocUpdateTheme();
 		return;
 	}
-	window._ocThemeInited = true;
+	window.ocThemeInited = true;
 
 	ocApplyRootTheme();
 
 	var needsCorrection = (localStorage.getItem('oc-theme') || 'auto') === 'auto';
 
-	function _ocDomReady() {
+	function ocDomReady() {
 		if (needsCorrection) ocApplyRootTheme();
 		ocApplyEditorTheme();
 		ocHideEmptyCbiElements();
@@ -158,9 +158,9 @@ function ocInitTheme() {
 	}
 
 	if (document.readyState === 'loading') {
-		document.addEventListener('DOMContentLoaded', _ocDomReady);
+		document.addEventListener('DOMContentLoaded', ocDomReady);
 	} else {
-		_ocDomReady();
+		ocDomReady();
 	}
 }
 
@@ -169,7 +169,7 @@ function ocUpdateTheme() {
 	ocApplyEditorTheme();
 }
 
-if (window.matchMedia && !window._ocCommonLoaded) {
+if (window.matchMedia && !window.ocCommonLoaded) {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
         if ((localStorage.getItem('oc-theme') || 'auto') === 'auto') {
             ocApplyRootTheme();
@@ -454,13 +454,13 @@ function ocBuildDashboardURL(status, uiPath, needsSetup) {
 	return url;
 }
 
-window._ocFullscreenActive = false;
-window._ocMergeShowDifferences = true;
-window._ocEditorHotkeysBound = false;
-window._ocFullscreenPatch = null;
+window.ocFullscreenActive = false;
+window.ocMergeShowDifferences = true;
+window.ocEditorHotkeysBound = false;
+window.ocFullscreenPatch = null;
 
-window._ocZoomLevels = [75, 90, 100, 110, 125, 150, 200];
-window._ocCurrentZoom = 100;
+window.ocZoomLevels = [75, 90, 100, 110, 125, 150, 200];
+window.ocCurrentZoom = 100;
 
 // Return the editor DOM element of an EditorView (.dom) or a MergeView (.a/.b dom)
 function ocGetEditorDom(instance) {
@@ -472,9 +472,9 @@ function ocGetEditorDom(instance) {
 
 // Enter fullscreen: patch ancestor stacking contexts so position:fixed can break
 // out (clear the closest backdrop-filter, raise the outermost positioned z-index)
-function _ocEnterFullscreen(dom) {
-	_ocExitFullscreen();
-	var patch = window._ocFullscreenPatch = {};
+function ocEnterFullscreen(dom) {
+	ocExitFullscreen();
+	var patch = window.ocFullscreenPatch = {};
 	var el = dom.parentNode;
 	while (el && el !== document.body && el !== document.documentElement) {
 		var cs = window.getComputedStyle(el);
@@ -499,8 +499,8 @@ function _ocEnterFullscreen(dom) {
 	}
 }
 
-function _ocExitFullscreen() {
-	var p = window._ocFullscreenPatch;
+function ocExitFullscreen() {
+	var p = window.ocFullscreenPatch;
 	if (!p) return;
 	if (p.zEl) {
 		if (p.zOld !== undefined && p.zOld !== '') {
@@ -516,14 +516,14 @@ function _ocExitFullscreen() {
 			p.bfEl.style.removeProperty('backdrop-filter');
 		}
 	}
-	window._ocFullscreenPatch = null;
+	window.ocFullscreenPatch = null;
 }
 
 // Return the active editor: merge editor state, then the ConfigEditor modal,
 // then CM6's own active editor
 function ocGetActiveEditorInstance() {
-	if (window._mergeEditorState && window._mergeEditorState.instance) {
-		return window._mergeEditorState.instance;
+	if (window.mergeEditorState && window.mergeEditorState.instance) {
+		return window.mergeEditorState.instance;
 	}
 	if (window.ConfigEditor && window.ConfigEditor.editorInstance) {
 		return window.ConfigEditor.editorInstance;
@@ -557,31 +557,31 @@ function ocApplyZoom(instance, zoomLevel) {
 	if (!doms.length) return;
 
 	doms.forEach(function(dom) {
-		window._ocZoomLevels.forEach(function(level) {
+		window.ocZoomLevels.forEach(function(level) {
 			dom.classList.remove('zoom-' + level);
 		});
 		if (zoomLevel !== 100) {
 			dom.classList.add('zoom-' + zoomLevel);
 		}
 	});
-	window._ocCurrentZoom = zoomLevel;
+	window.ocCurrentZoom = zoomLevel;
 }
 
 // Zoom step helpers: return the new level without applying it
 function ocZoomIn(currentZoom) {
-	var cur = typeof currentZoom === 'number' ? currentZoom : window._ocCurrentZoom;
-	var idx = window._ocZoomLevels.indexOf(cur);
-	if (idx < window._ocZoomLevels.length - 1) {
-		return window._ocZoomLevels[idx + 1];
+	var cur = typeof currentZoom === 'number' ? currentZoom : window.ocCurrentZoom;
+	var idx = window.ocZoomLevels.indexOf(cur);
+	if (idx < window.ocZoomLevels.length - 1) {
+		return window.ocZoomLevels[idx + 1];
 	}
 	return cur;
 }
 
 function ocZoomOut(currentZoom) {
-	var cur = typeof currentZoom === 'number' ? currentZoom : window._ocCurrentZoom;
-	var idx = window._ocZoomLevels.indexOf(cur);
+	var cur = typeof currentZoom === 'number' ? currentZoom : window.ocCurrentZoom;
+	var idx = window.ocZoomLevels.indexOf(cur);
 	if (idx > 0) {
-		return window._ocZoomLevels[idx - 1];
+		return window.ocZoomLevels[idx - 1];
 	}
 	return cur;
 }
@@ -590,8 +590,8 @@ function ocResetZoom() {
 	return 100;
 }
 
-// Passthrough for CM5-era _cmWhenReady compatibility
-window._cmWhenReady = function(cb) { cb(); };
+// Passthrough for CM5-era cmWhenReady compatibility
+window.cmWhenReady = function(cb) { cb(); };
 
 // Apply the CM6 editor themes and the highlight.js theme for the current dark mode
 function ocApplyEditorTheme() {
@@ -635,8 +635,8 @@ function ocCenterCbiActions() {
 // Register the editor hotkeys once, in the capture phase so they beat CM6's own key
 // handling. Ctrl+Wheel zoom needs a separate non-passive wheel listener.
 function ocRegisterEditorHotkeys() {
-	if (window._ocEditorHotkeysBound) return;
-	window._ocEditorHotkeysBound = true;
+	if (window.ocEditorHotkeysBound) return;
+	window.ocEditorHotkeysBound = true;
 
 	document.addEventListener('keydown', function(e) {
 		if ((e.ctrlKey || e.metaKey) && (e.key === '=' || e.key === '+')) {
@@ -671,21 +671,21 @@ function ocRegisterEditorHotkeys() {
 
 		if (e.key === 'F11') {
 			e.preventDefault();
-			if (window._ocFullscreenActive) {
+			if (window.ocFullscreenActive) {
 				var fsEl = document.getElementById('oc-fullscreen-active');
 				if (fsEl && typeof CM6 !== 'undefined' && CM6.toggleFullscreen) {
 					CM6.toggleFullscreen(fsEl);
 				}
-				_ocExitFullscreen();
-				window._ocFullscreenActive = false;
+				ocExitFullscreen();
+				window.ocFullscreenActive = false;
 				if (window.ConfigEditor) window.ConfigEditor.isFullscreen = false;
 			} else {
 				if (typeof CM6 !== 'undefined' && CM6.getActiveEditor && CM6.toggleFullscreen) {
 					var target = CM6.getActiveEditor();
 					if (target) {
-						_ocEnterFullscreen(target);
-						window._ocFullscreenActive = !!CM6.toggleFullscreen(target);
-						if (window.ConfigEditor) window.ConfigEditor.isFullscreen = window._ocFullscreenActive;
+						ocEnterFullscreen(target);
+						window.ocFullscreenActive = !!CM6.toggleFullscreen(target);
+						if (window.ConfigEditor) window.ConfigEditor.isFullscreen = window.ocFullscreenActive;
 					}
 				}
 			}
@@ -693,28 +693,28 @@ function ocRegisterEditorHotkeys() {
 			return;
 		}
 
-		if (e.key === 'F10' && window._mergeViewInstance && window._mergeViewInstance.reconfigure) {
+		if (e.key === 'F10' && window.mergeViewInstance && window.mergeViewInstance.reconfigure) {
 			e.preventDefault();
-			window._ocMergeShowDifferences = !window._ocMergeShowDifferences;
-			window._mergeViewInstance.reconfigure({
-				highlightChanges: window._ocMergeShowDifferences,
-				gutter: window._ocMergeShowDifferences
+			window.ocMergeShowDifferences = !window.ocMergeShowDifferences;
+			window.mergeViewInstance.reconfigure({
+				highlightChanges: window.ocMergeShowDifferences,
+				gutter: window.ocMergeShowDifferences
 			});
-			if (window._mergeViewInstance.dom) {
-				window._mergeViewInstance.dom.classList.toggle('oc-diff-hidden', !window._ocMergeShowDifferences);
+			if (window.mergeViewInstance.dom) {
+				window.mergeViewInstance.dom.classList.toggle('oc-diff-hidden', !window.ocMergeShowDifferences);
 			}
 			return;
 		}
 
-		if (e.key === 'Escape' && window._ocFullscreenActive) {
+		if (e.key === 'Escape' && window.ocFullscreenActive) {
 			e.preventDefault();
 			e.stopPropagation();
 			var fsEl = document.getElementById('oc-fullscreen-active');
 			if (fsEl && typeof CM6 !== 'undefined' && CM6.toggleFullscreen) {
 				CM6.toggleFullscreen(fsEl);
 			}
-			_ocExitFullscreen();
-			window._ocFullscreenActive = false;
+			ocExitFullscreen();
+			window.ocFullscreenActive = false;
 			if (window.ConfigEditor) window.ConfigEditor.isFullscreen = false;
 			ocApplyEditorTheme();
 		}
@@ -733,12 +733,12 @@ function ocRegisterEditorHotkeys() {
 	}, { passive: false });
 }
 
-var _ocLoadingMap = typeof WeakMap !== 'undefined' ? new WeakMap() : (function(){
+var ocLoadingMap = typeof WeakMap !== 'undefined' ? new WeakMap() : (function(){
 	var m = {};
 	return {
-		get: function(k) { return m[k._ocLid]; },
-		set: function(k, v) { var id = '_ocl' + Math.random(); k._ocLid = id; m[id] = v; },
-		delete: function(k) { delete m[k._ocLid]; }
+		get: function(k) { return m[k.ocLid]; },
+		set: function(k, v) { var id = '_ocl' + Math.random(); k.ocLid = id; m[id] = v; },
+		delete: function(k) { delete m[k.ocLid]; }
 	};
 })();
 
@@ -752,19 +752,19 @@ function ocShowLoading(container, message, minHeight) {
 	el.className = 'config-editor-loading';
 	el.innerHTML = '<div class="loading-spinner"></div><span>' + (message || 'Loading\u2026') + '</span>';
 	container.appendChild(el);
-	_ocLoadingMap.set(container, { el: el, prevPos: prevPos, prevMinH: prevMinH });
+	ocLoadingMap.set(container, { el: el, prevPos: prevPos, prevMinH: prevMinH });
 }
 
 function ocHideLoading(container) {
 	if (!container) return;
-	var handle = _ocLoadingMap.get(container);
+	var handle = ocLoadingMap.get(container);
 	if (!handle) return;
 	if (handle.el && handle.el.parentNode) handle.el.remove();
 	container.style.position = handle.prevPos || '';
 	if (handle.prevMinH !== undefined) {
 		container.style.minHeight = handle.prevMinH;
 	}
-	_ocLoadingMap.delete(container);
+	ocLoadingMap.delete(container);
 }
 
 window.ocCopyToClipboard = function(text, btnElement, successMessage, failMessage) {

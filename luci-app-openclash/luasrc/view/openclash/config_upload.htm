@@ -368,8 +368,8 @@
 
 <script type="text/javascript">
 var UrlValidator = {
-    _httpRe: /^https?:\/\/\S+$/i,
-    _anyProtocolRe: /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\/\S+$/i,
+    httpRe: /^https?:\/\/\S+$/i,
+    anyProtocolRe: /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\/\S+$/i,
 
     // Extract individual URLs from input. Supports:
     //   - Newline-separated: url1\nurl2
@@ -418,7 +418,7 @@ var UrlValidator = {
         var urlPart = url.replace(/#name=.*$/, '');
         if (!urlPart) return { valid: false, reason: '<%:Empty URL%>' };
 
-        var re = allowNonHttp ? this._anyProtocolRe : this._httpRe;
+        var re = allowNonHttp ? this.anyProtocolRe : this.httpRe;
         if (!re.test(urlPart)) {
             if (!allowNonHttp && /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\/\S/.test(urlPart)) {
                 return { valid: false, reason: '<%:Only HTTP/HTTPS URLs are supported%>' };
@@ -568,7 +568,7 @@ var ConfigUploader = {
     currentMode: 'file',
     onSuccess: '',
     subconverterVersionChecker: null,
-    _linkRe: null,
+    linkRe: null,
 
     init: function() {
         this.overlay = document.getElementById('config-upload-overlay');
@@ -844,7 +844,7 @@ var ConfigUploader = {
         var secretEl = document.getElementById('age-secret-input');
         var publicEl = document.getElementById('age-public-input');
         var algoSelect = document.getElementById('age-algo-select');
-        this.isEditMode = false;
+        this.isEditMode = true;
 
         if (isSubscribe) {
             this.switchMode('subscribe');
@@ -1551,23 +1551,23 @@ var ConfigUploader = {
                         if (x2 && x2.status == 200) {
                             progressFill.style.width = '100%';
                             if (data2.status === 'success') {
-                                progressText.textContent = (this.isEditMode ? '<%:Subscription updated successfully%>' : '<%:Subscription added successfully%>') + ' 100%';
-                                statusText.textContent = this.isEditMode ? '<%:Subscription updated successfully%>' : '<%:Subscription added successfully%>';
+                                progressText.textContent = (self.isEditMode ? '<%:Subscription updated successfully%>' : '<%:Subscription added successfully%>') + ' 100%';
+                                statusText.textContent = self.isEditMode ? '<%:Subscription updated successfully%>' : '<%:Subscription added successfully%>';
 
                                 setTimeout(function() {
                                     self.hide();
                                     if (self.onSuccess) setTimeout(self.onSuccess, 0);
                                 }, 2000);
                             } else {
-                                self.handleError(this.isEditMode ? '<%:Failed to update subscription config%>' : '<%:Failed to download subscription config%>');
+                                self.handleError(self.isEditMode ? '<%:Failed to update subscription config%>' : '<%:Failed to download subscription config%>');
                             }
                         } else {
-                            self.handleError(this.isEditMode ? '<%:Failed to update subscription config%>' : '<%:Failed to download subscription config%>');
+                            self.handleError(self.isEditMode ? '<%:Failed to update subscription config%>' : '<%:Failed to download subscription config%>');
                         }
                     });
                 } else {
                     clearInterval(progressInterval);
-                    self.handleError(this.isEditMode ? '<%:Failed to update subscription%>' : '<%:Failed to add subscription%>');
+                    self.handleError(self.isEditMode ? '<%:Failed to update subscription%>' : '<%:Failed to add subscription%>');
                 }
             });
         };

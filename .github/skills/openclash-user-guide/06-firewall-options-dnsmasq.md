@@ -52,9 +52,11 @@ iptables -t mangle -A PREROUTING -p udp -j openclash
 
 | 选项 | 值 | 防火墙规则变化 |
 |------|---|---------------|
-| **`china_ip_route`** (实验性：绕过指定区域 IP / China IP Route) | `1` (绕过大陆) | 在代理规则前插入 `ip daddr @china_ip_route [ip daddr != @china_ip_route_pass] counter return` — 目标为国内 IP 的流量跳过代理（若 `enable_redirect_dns != 2` 则附加 chnroute_pass 排除） |
+| **`china_ip_route`** (实验性：绕过指定区域 IP / China IP Route) | `0` (关闭，默认) | 不生成绕行规则 |
+| | `1` (绕过大陆) | 在代理规则前插入 `ip daddr @china_ip_route [ip daddr != @china_ip_route_pass] counter return` — 目标为国内 IP 的流量跳过代理（若 `enable_redirect_dns != 2` 则附加 chnroute_pass 排除） |
 | | `2` (绕过海外) | 插入 `ip daddr != @china_ip_route [ip daddr != @china_ip_route_pass] counter return` — 目标非国内 IP 的流量跳过代理 |
-| **`china_ip6_route`** (实验性：绕过指定区域 IPv6 / China IPv6 Route) | `1` (绕过大陆) | IPv6 等效规则：`ip6 daddr @china_ip6_route [ip6 daddr != @china_ip6_route_pass] counter return` |
+| **`china_ip6_route`** (实验性：绕过指定区域 IPv6 / China IPv6 Route) | `0` (关闭，默认) | 不生成绕行规则 |
+| | `1` (绕过大陆) | IPv6 等效规则：`ip6 daddr @china_ip6_route [ip6 daddr != @china_ip6_route_pass] counter return` |
 | | `2` (绕过海外) | IPv6 等效规则：`ip6 daddr != @china_ip6_route [ip6 daddr != @china_ip6_route_pass] counter return` |
 | **`disable_udp_quic`** (禁用 QUIC / Disable QUIC) | `1` | 全部模式在 INPUT/FORWARD 链插入 QUIC REJECT 规则 (`udp dport 443`，根据 `china_ip_route`/`china_ip6_route` 匹配或排除中国 IP)。TUN 模式额外在 `forward oifname utun` 插入同规则以覆盖经 utun 转发的流量。IPv6 同样处理。规则触发仅依赖 `disable_udp_quic`，与 `enable_udp_proxy`/`enable_v6_udp_proxy` 无关。Mihomo 内核自身 QUIC（如 Hysteria 节点、DNS h3）不受影响——内核出站走 OUTPUT 链，不在规则范围内 |
 | **`lan_ac_mode`** (局域网访问控制模式 / LAN Access Control Mode) | `0` (黑名单) | 创建 `lan_ac_black_ips`/`lan_ac_black_macs`/`lan_ac_black_ipv6s` set，匹配到的 RETURN 跳过代理。DNS 劫持规则同步过滤黑名单设备 |

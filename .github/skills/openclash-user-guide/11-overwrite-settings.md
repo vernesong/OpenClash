@@ -202,6 +202,21 @@ dns:
     - tls://1.1.1.1
 ```
 
+**DNS 服务器地址后缀语法（`#`）**:
+
+`nameserver` / `fallback` / `default-nameserver` / `proxy-server-nameserver` / `nameserver-policy` 的值都支持在 `#` 后追加“出站方式”，多个后缀用 `&` 连接：
+
+| 后缀 | 含义 | 示例 |
+|------|------|------|
+| `#RULES` | 按内核 `rules` 决定出站，无需指定策略组名（`tunnel/dns_dialer.go` 的 `DnsRespectRules`）；匹配对象为该 DNS 服务器的域名或解析出的 IP，命中策略组走代理、命中 `DIRECT` 直连，结果见内核连接日志 | `'https://dns.google/dns-query#RULES'` |
+| `#<策略组名/节点名>` | 强制经该策略组/节点查询。**名字必须精确存在**，否则会被当成出站网卡名（`dialer.WithInterface`）而静默失败 | `'https://dns.google/dns-query#🚀 节点选择'` |
+| `#<网卡名>` | 从指定网卡发出 | `'8.8.8.8#eth0'` |
+| `#k=v` | 传给该协议的参数，可与上面的出站后缀用 `&` 组合。常见参数：`h3=true`（DoH 强制 HTTP/3，`dns/doh.go`）、`skip-cert-verify=true`、`name-cert-verify=`（DoH/DoT/DoQ）、`disable-reuse=true`（DoT）、`ecs=`（EDNS Client Subnet）、`disable-ipv4=true`/`disable-ipv6=true` | `'https://dns.google/dns-query#Proxy&h3=true'` |
+
+- **`#RULES` 与全局「遵守路由规则 (`respect-rules`)」的区别**：全局开关开启时还**必须**配置 `proxy-server-nameserver`，否则内核启动即报错（`if “respect-rules” is turned on, “proxy-server-nameserver” cannot be empty`）；写成 `#RULES` 只影响这一条服务器，不触发该强校验，也不用预先配置 `proxy-server-nameserver`
+- 实现：`config/config.go` 的 `parseNameServer()` 把 `#` 后不含 `=` 的片段当作 `proxyName`；`tunnel/dns_dialer.go` 中 `proxyName == "RULES"`（常量 `DnsRespectRules`）时调用 `resolveMetadata()` 走规则引擎
+- 插件内置用例：覆写模块 `Google_Play` 的 `'https://8.8.8.8/dns-query#RULES'` 与 `'https://dns.google/dns-query#RULES'` 两条并发查询
+
 ### 11.4 Meta 设置标签页 (Meta Settings / meta)
 
 > **生效路径**: Meta 选项通过 `yml_change.sh` 写入 YAML，所有选项在 Mihomo 启动时加载生效。

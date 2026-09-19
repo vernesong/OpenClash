@@ -3216,7 +3216,8 @@ EOF
       printf "%s|%s|%s|%s\n" "$order" "$name" "$sid" "$enable_flag"
    done | sort -nr -t'|' -k1,1)
 
-   for entry in $overwrite_list; do
+   while IFS= read -r entry; do
+      [ -z "$entry" ] && continue
       name=$(echo "$entry" | cut -d'|' -f2)
       sid=$(echo "$entry" | cut -d'|' -f3)
       enabled_flag=$(echo "$entry" | cut -d'|' -f4)
@@ -3495,7 +3496,9 @@ fi
 EOF
 
       echo "" >> "$overwrite_script"
-   done
+   done <<EOF
+$overwrite_list
+EOF
 
    if [ -n "$(uci -q show openclash.@overwrite[0] | grep -v '=overwrite$')" ]; then
       eval "$(uci -q show openclash.@overwrite[0] | grep -v '=overwrite$' | sed 's/^openclash\.@overwrite\[0\]\.//g' | sed 's/=/="/;s/$/"/')"

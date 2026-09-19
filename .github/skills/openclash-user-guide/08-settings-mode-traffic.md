@@ -318,6 +318,7 @@
 
 #### 8.3.5 china_ip_route — 实验性：绕过指定区域 IP (China IP Route)
 - **UCI 选项**: `openclash.@openclash[0].china_ip_route`
+- **默认**: 0 (关闭)
 - **可选值**:
   - `0` — 关闭
   - `1` — 绕过中国大陆 IP (将国内 IP 直连，提升性能)
@@ -361,9 +362,10 @@
 #### 8.3.10 chnroute_pass — 绕过指定区域 IPv4 黑名单 (Chnroute Bypassed List)
 - **UCI 选项**: `openclash.@openclash[0].chnroute_pass`
 - **存储文件**: `/etc/openclash/custom/openclash_custom_chnroute_pass.list`
-- **说明**: 列表中的域名/IP 不受中国 IP 绕行选项影响，依赖 Dnsmasq。**默认已预置** `services.googleapis.cn`、`googleapis.cn`、`xn--ngstr-lra8j.com` 以解决 Google Play 下载问题
+- **说明**: 列表中的域名/IP 不受中国 IP 绕行选项影响，依赖 Dnsmasq
 - **依赖**: `enable_redirect_dns != 2`
-- **注意**: chnroute_pass 仅在 DNS 解析层面将域名解析 IP 加入 `china_ip_route_pass` nft set 使其跳过绕行规则，但若上游 DNS 本身将这些域名解析到国内 IP，加入 set 后仍会被 `china_ip_route` 规则误判为国内 IP 而绕行。**仅靠 chnroute_pass 不足以解决 Google Play 下载问题**——必须同时从 DNS 解析（`nameserver-policy` 强制走境外 DNS）和规则匹配（自定义规则走代理）两方面入手，详见 `03-errors.md` §3.14 功能异常类
+- **Fake-IP 模式下的额外处理**: 「绕过指定区域」开启（`china_ip_route` 或 `china_ip6_route` 非 0）且 `en_mode=fake-ip` + `enable_redirect_dns != 2` 时，列表中的域名会被写入 `dns.fake-ip-filter`（黑名单模式写入 `+.域名`，规则模式写入 `DOMAIN-SUFFIX,域名,real-ip`，白名单模式则查找现有 `fake-ip-filter` 并删除包含这些域名的条目），不再依赖 `custom_fakeip_filter` 开关
+- **注意**: chnroute_pass 仅在 DNS 解析层面将域名解析 IP 加入 `china_ip_route_pass` nft set 使其跳过绕行规则，但若上游 DNS 本身将这些域名解析到国内 IP，加入 set 后仍会被 `china_ip_route` 规则误判为国内 IP 而绕行。**仅靠 chnroute_pass 不足以解决 Google Play 下载问题**——必须同时从 DNS 解析（`nameserver-policy` 强制走境外 DNS，见内置覆写模块 `Google_Play`）和规则匹配（自定义规则走代理）两方面入手，详见 `03-errors.md` §3.14 功能异常类
 
 #### 8.3.11 UPNP 流量排除（无 UCI 选项，自动生效）
 - **触发条件**: 系统已安装并运行 `upnpd`（`/etc/config/upnpd` 存在且 `upnp_lease_file` 指向有效租约文件）

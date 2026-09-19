@@ -221,12 +221,12 @@
     var SpeedHistory = {
         max: 10,
         data: { baidu:[], 163:[], github:[], youtube:[] },
-        _prevPath: { baidu: null, 163: null, github: null, youtube: null },
+        prevPath: { baidu: null, 163: null, github: null, youtube: null },
         push: function(svc, ms) {
             this.data[svc].push(ms);
             if (this.data[svc].length > this.max) this.data[svc].shift();
         },
-        _buildPath: function(pts) {
+        buildPath: function(pts) {
             var w = 90, h = 20, pad = 4;
             var max = Math.max.apply(null, pts), min = Math.min.apply(null, pts);
             var range = max - min || 1;
@@ -272,14 +272,14 @@
                 return;
             }
 
-            var g = this._buildPath(pts);
+            var g = this.buildPath(pts);
             var points = g.points || [];
 
             var ghostHTML = '';
-            if (this._prevPath[svc] && pts.length >= 3) {
-                ghostHTML = '<path d="' + this._prevPath[svc] + '" class="spark-ghost" style="stroke:' + stroke + '"/>';
+            if (this.prevPath[svc] && pts.length >= 3) {
+                ghostHTML = '<path d="' + this.prevPath[svc] + '" class="spark-ghost" style="stroke:' + stroke + '"/>';
             }
-            this._prevPath[svc] = g.d;
+            this.prevPath[svc] = g.d;
 
             el.innerHTML =
                 '<svg viewBox="0 0 ' + g.w + ' ' + g.h + '" class="myip-sparkline-svg">' +
@@ -395,7 +395,7 @@
         },
         reset: function(svc) {
             this.data[svc] = [];
-            this._prevPath[svc] = null;
+            this.prevPath[svc] = null;
         }
     };
 
