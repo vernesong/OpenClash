@@ -724,7 +724,7 @@ begin
          end
          # Set chnroute_pass domains
          if fake_ip_mode == 'fake-ip' && enable_redirect_dns != '2' && File.exist?('/tmp/yaml_openclash_fake_filter_include')
-            pass_domains = File.readlines('/tmp/yaml_openclash_fake_filter_include').map { |l| l.gsub(/#.*$/, '').strip }.reject(&:empty?)
+            pass_domains = File.readlines('/tmp/yaml_openclash_fake_filter_include').map { |l| l.gsub(/#.*$/, '').strip }.reject(&:empty?).uniq
             if pass_domains.any?
                filter_mode = Value.dig('dns', 'fake-ip-filter-mode')
                if filter_mode == 'whitelist'
