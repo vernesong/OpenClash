@@ -4926,8 +4926,8 @@ function action_add_subscription()
 	local is_valid_url = false
 
 	if address and address ~= "" and sub_convert == "1" then
-		local prefixed_http_pattern = "^[^,%s]+,https?://.+"
-		local encoded_prefixed_http_pattern = "^[^%%%s]+%%2[Cc]https?%%3[Aa]%%2[Ff]%%2[Ff].+"
+		local prefixed_url_pattern = "^.-,[a-zA-Z][a-zA-Z0-9+%.%-]*://%S+$"
+		local encoded_prefixed_url_pattern = "^.-%%2[Cc][a-zA-Z][a-zA-Z0-9+%.%-]*%%3[Aa]%%2[Ff]%%2[Ff].+"
 
 		if string.find(address, "\n") or string.find(address, "|") then
 			local links = {}
@@ -4945,8 +4945,8 @@ function action_add_subscription()
 				if link and link ~= "" then
 					if string.find(link, "^https?://")
 						or string.find(link, "^[a-zA-Z]+://")
-						or string.find(link, prefixed_http_pattern)
-						or string.find(link, encoded_prefixed_http_pattern) then
+						or string.find(link, prefixed_url_pattern)
+						or string.find(link, encoded_prefixed_url_pattern) then
 						is_valid_url = true
 						break
 					end
@@ -4955,8 +4955,8 @@ function action_add_subscription()
 		else
 			if string.find(address, "^https?://")
 				or string.find(address, "^[a-zA-Z]+://")
-				or string.find(address, prefixed_http_pattern)
-				or string.find(address, encoded_prefixed_http_pattern) then
+				or string.find(address, prefixed_url_pattern)
+				or string.find(address, encoded_prefixed_url_pattern) then
 				is_valid_url = true
 			end
 		end

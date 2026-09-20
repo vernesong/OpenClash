@@ -4437,6 +4437,78 @@ msgstr "la versión"
 msgid "to update individually"
 msgstr "para actualizar individualmente"
 
+msgid "Subscription URL or Node URI"
+msgstr "URL de suscripción o URI de nodo"
+
+msgid "Tag (Optional)"
+msgstr "Etiqueta (opcional)"
+
+msgid "Leave blank by default"
+msgstr "Vacío de forma predeterminada"
+
+msgid "Proxy Provider Name"
+msgstr "Nombre del proveedor de proxies"
+
+msgid "Automatic if blank"
+msgstr "Automático si se deja vacío"
+
+msgid "When blank, the proxy provider name is generated as Provider_ plus the first 6 characters of the URL MD5."
+msgstr "Si se deja vacío, el nombre del proveedor de proxies se genera como Provider_ seguido de los primeros 6 caracteres del MD5 de la URL."
+
+msgid "Update Interval (Seconds)"
+msgstr "Intervalo de actualización (segundos)"
+
+msgid "Default: 3600"
+msgstr "Predeterminado: 3600"
+
+msgid "Proxy Provider Download Method"
+msgstr "Método de descarga del proveedor de proxies"
+
+msgid "Follow Backend Settings"
+msgstr "Seguir la configuración del backend"
+
+msgid "Follow Rules"
+msgstr "Seguir las reglas"
+
+msgid "Add Subscription"
+msgstr "Añadir suscripción"
+
+msgid "Parameters"
+msgstr "Parámetros"
+
+msgid "Batch Import"
+msgstr "Importación por lotes"
+
+msgid "Import Subscriptions"
+msgstr "Importar suscripciones"
+
+msgid "One subscription per line; vertical bars are also supported"
+msgstr "Una suscripción por línea; también se pueden separar con barras verticales"
+
+msgid "Raw Text"
+msgstr "Texto original"
+
+msgid "Form View"
+msgstr "Edición por campos"
+
+msgid "This address contains syntax that cannot be edited safely. Continue with the original text."
+msgstr "La dirección contiene una sintaxis que no se puede editar de forma segura. Continúa con el texto original."
+
+msgid "Please enter at least one subscription URL or node URI."
+msgstr "Introduce al menos una URL de suscripción o un URI de nodo."
+
+msgid "Subscription {index} is not a valid subscription URL or node URI."
+msgstr "La suscripción {index} no es una URL de suscripción ni un URI de nodo válido."
+
+msgid "Subscription {index} contains an invalid prefix value."
+msgstr "La suscripción {index} contiene un valor de prefijo no válido."
+
+msgid "Subscription {index} has an invalid update interval."
+msgstr "La suscripción {index} tiene un intervalo de actualización no válido."
+
+msgid "The imported text contains an unsupported or invalid subscription."
+msgstr "El texto importado contiene una suscripción no compatible o no válida."
+
 msgid "A custom planet file. An orbit (a world and its seed) belongs to Other Parameters"
 msgstr "Archivo planet personalizado. Un orbit (un world y su seed) va en Otros parámetros"
 

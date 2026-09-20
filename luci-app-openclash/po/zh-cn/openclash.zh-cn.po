@@ -4446,6 +4446,78 @@ msgstr "版本号"
 msgid "to update individually"
 msgstr "则独立更新"
 
+msgid "Subscription URL or Node URI"
+msgstr "订阅 URL 或节点 URI"
+
+msgid "Tag (Optional)"
+msgstr "标签（可选）"
+
+msgid "Leave blank by default"
+msgstr "默认留空"
+
+msgid "Proxy Provider Name"
+msgstr "代理集合名称"
+
+msgid "Automatic if blank"
+msgstr "留空则自动命名"
+
+msgid "When blank, the proxy provider name is generated as Provider_ plus the first 6 characters of the URL MD5."
+msgstr "留空时，代理集合名称自动生成为 Provider_ 加 URL MD5 的前 6 位。"
+
+msgid "Update Interval (Seconds)"
+msgstr "更新间隔（秒）"
+
+msgid "Default: 3600"
+msgstr "默认：3600"
+
+msgid "Proxy Provider Download Method"
+msgstr "代理集合下载方式"
+
+msgid "Follow Backend Settings"
+msgstr "跟随后端设置"
+
+msgid "Follow Rules"
+msgstr "遵循规则"
+
+msgid "Add Subscription"
+msgstr "添加订阅"
+
+msgid "Parameters"
+msgstr "参数"
+
+msgid "Batch Import"
+msgstr "批量导入"
+
+msgid "Import Subscriptions"
+msgstr "导入订阅"
+
+msgid "One subscription per line; vertical bars are also supported"
+msgstr "每行一个订阅，也可以使用竖线分隔"
+
+msgid "Raw Text"
+msgstr "原始文本"
+
+msgid "Form View"
+msgstr "分项填写"
+
+msgid "This address contains syntax that cannot be edited safely. Continue with the original text."
+msgstr "当前订阅地址包含无法安全编辑的语法，请继续使用原始文本。"
+
+msgid "Please enter at least one subscription URL or node URI."
+msgstr "请至少填写一个订阅 URL 或节点 URI。"
+
+msgid "Subscription {index} is not a valid subscription URL or node URI."
+msgstr "订阅 {index} 不是有效的订阅 URL 或节点 URI。"
+
+msgid "Subscription {index} contains an invalid prefix value."
+msgstr "订阅 {index} 包含无效的前缀值。"
+
+msgid "Subscription {index} has an invalid update interval."
+msgstr "订阅 {index} 的更新间隔无效。"
+
+msgid "The imported text contains an unsupported or invalid subscription."
+msgstr "导入内容包含不支持或无效的订阅。"
+
 msgid "A custom planet file. An orbit (a world and its seed) belongs to Other Parameters"
 msgstr "自定义 planet 文件。orbit（world 与其 seed）请写在“其他参数”里"
 

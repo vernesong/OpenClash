@@ -4,6 +4,7 @@
 %>
 <div class="oc-subconverter-version-loader" hidden></div>
 <script src="/luci-static/resources/openclash/js/subconverter-version.js?v=<%=plugin_version%>"></script>
+<script src="/luci-static/resources/openclash/js/subconverter-source.js?v=<%=plugin_version%>"></script>
 <script type="text/javascript">//<![CDATA[
 document.addEventListener('DOMContentLoaded', function() {
 	var attempts = 0;
@@ -11,16 +12,59 @@ document.addEventListener('DOMContentLoaded', function() {
 	function initSubconverterVersionStatus() {
 		var selectSelector = 'div[id$=".convert_address"].cbi-dropdown, select[name$=".convert_address"], input[name$=".convert_address"]';
 		var select = document.querySelector(selectSelector);
+		var enable = document.querySelector('input[type="checkbox"][name$=".sub_convert"]');
+		var address = document.querySelector('textarea[name$=".address"]');
 		var status = document.getElementById('subconverter-version-status-cbi');
 
-		if (!window.OpenClashSubconverterVersion || !select || !status) {
+		if (!window.OpenClashSubconverterVersion || !window.OpenClashSubconverterSource || !select || !address || !status) {
 			if (attempts++ < 50) window.setTimeout(initSubconverterVersionStatus, 100);
 			return;
 		}
 
+		var sourceEditor = window.OpenClashSubconverterSource.init({
+			textarea: address,
+			labels: {
+				source: '<%:Subscription%>',
+				url: '<%:Subscription URL or Node URI%>',
+				tag: '<%:Tag (Optional)%>',
+				tagPlaceholder: '<%:Leave blank by default%>',
+				provider: '<%:Proxy Provider Name%>',
+				providerPlaceholder: '<%:Automatic if blank%>',
+				providerHint: '<%:When blank, the proxy provider name is generated as Provider_ plus the first 6 characters of the URL MD5.%>',
+				interval: '<%:Update Interval (Seconds)%>',
+				intervalPlaceholder: '<%:Default: 3600%>',
+				proxyDirect: '<%:Proxy Provider Download Method%>',
+				backendDefault: '<%:Follow Backend Settings%>',
+				direct: '<%:Direct%>',
+				notDirect: '<%:Follow Rules%>',
+				add: '<%:Add Subscription%>',
+				remove: '<%:Remove%>',
+				parameters: '<%:Parameters%>',
+				batch: '<%:Batch Import%>',
+				batchPlaceholder: '<%:One subscription per line; vertical bars are also supported%>',
+				import: '<%:Import Subscriptions%>',
+				cancel: '<%:Cancel%>',
+				raw: '<%:Raw Text%>',
+				structured: '<%:Form View%>',
+				fallback: '<%:This address contains syntax that cannot be edited safely. Continue with the original text.%>',
+				empty: '<%:Please enter at least one subscription URL or node URI.%>',
+				invalidUrl: '<%:Subscription {index} is not a valid subscription URL or node URI.%>',
+				invalidText: '<%:Subscription {index} contains an invalid prefix value.%>',
+				invalidInterval: '<%:Subscription {index} has an invalid update interval.%>',
+				invalidImport: '<%:The imported text contains an unsupported or invalid subscription.%>'
+			}
+		});
+
+		var form = address.closest ? address.closest('form') : null;
+		if (form) form.addEventListener('submit', function(event) {
+			if (sourceEditor && sourceEditor.isActive() && !sourceEditor.validate()) {
+				event.preventDefault();
+			}
+		}, true);
+
 		window.OpenClashSubconverterVersion.init({
 			select: selectSelector,
-			enable: document.querySelector('input[type="checkbox"][name$=".sub_convert"]'),
+			enable: enable,
 			status: status,
 			watchRoot: status.closest ? status.closest('.cbi-value') : null,
 			watchDocument: true,
@@ -32,6 +76,21 @@ document.addEventListener('DOMContentLoaded', function() {
 				invalid: '<%:Invalid backend URL%>',
 				unrecognized: '<%:Backend version information not detected%>',
 				failed: '<%:Unable to detect backend version%>'
+			},
+			onSelectionChange: function() {
+				if (sourceEditor) sourceEditor.prepareLegacy();
+			},
+			onResult: function(result) {
+				if (!sourceEditor) return;
+				if (result.state === 'success' && result.family === 'subconverter-extended') {
+					sourceEditor.setExtended(true);
+				} else if (result.state === 'success' && result.family === 'subconverter') {
+					sourceEditor.prepareLegacy();
+				} else if (result.state === 'disabled') {
+					sourceEditor.preparePlain();
+				} else if (result.state !== 'checking') {
+					sourceEditor.setExtended(false);
+				}
 			}
 		});
 	}
