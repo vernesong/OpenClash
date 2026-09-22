@@ -423,6 +423,8 @@ var OixCloud = {
 		}
 	},
 
+	// Clears this router's credentials only; the token stays on the server and is
+	// managed on the website, since every OpenClash on the account shares it
 	doLogout: function() {
 		var self = this;
 		var btn = document.querySelector('#oix-logged-section .oix-btn-danger');
