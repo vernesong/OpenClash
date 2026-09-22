@@ -332,9 +332,6 @@ msgstr "通用设置"
 msgid "Config Manage"
 msgstr "配置管理"
 
-msgid "Add Config File"
-msgstr "添加配置文件"
-
 msgid "Upload File Type"
 msgstr "上传文件类型"
 
@@ -1734,9 +1731,6 @@ msgstr "配置文件格式校验失败，尝试不使用代理下载配置文件
 msgid "Has No Proxy Field, Trying To Download Without Agent..."
 msgstr "节点部分校验失败，尝试不使用代理下载配置文件..."
 
-msgid "Config File"
-msgstr "配置文件"
-
 msgid "Subscribed Failed, Trying to Download Without Agent..."
 msgstr "订阅失败，尝试不使用代理下载配置文件..."
 
@@ -1809,14 +1803,8 @@ msgstr "下载成功，检查数据库是否已更新..."
 msgid "Has Been Updated, Starting To Replace The Old Version..."
 msgstr "有新版本，开始替换旧版本..."
 
-msgid "Update Successful!"
-msgstr "更新成功！"
-
 msgid "No Change, Do Nothing..."
 msgstr "无变化，停止操作..."
-
-msgid "Update Error, Please Try Again Later..."
-msgstr "更新失败，请稍后再试..."
 
 msgid "Start Downloading Database..."
 msgstr "开始下载数据库..."
@@ -1904,9 +1892,6 @@ msgstr "配置文件不存在，您已设置订阅信息，准备开始下载...
 
 msgid "Config Not Found"
 msgstr "缺少配置文件，请上传或更新配置文件！"
-
-msgid "Config File Format Validation Failed..."
-msgstr "配置文件格式校验失败..."
 
 msgid "Detected that the GEOIP Database is not Installed, Ready to Download..."
 msgstr "检测到 GEOIP 数据库文件不存在，准备开始下载..."
@@ -2913,9 +2898,6 @@ msgstr "客户端指纹"
 msgid "Edit Client-fingerprint Failed,"
 msgstr "修改 Client-fingerprint 失败，"
 
-msgid "Edit Client-fingerprint Failed,"
-msgstr "修改 Client-fingerprint 失败，"
-
 msgid "Traffic Control"
 msgstr "流量控制"
 
@@ -3150,17 +3132,11 @@ msgstr "Proxy-server-nameserver 选项可能全部设置了代理选项，插件
 msgid "For Avoiding Proxies Server Resolve Loop..."
 msgstr "以避免代理服务器解析回环..."
 
-msgid "Config File"
-msgstr "配置文件"
-
 msgid "Downloading URL"
 msgstr "订阅的下载链接为"
 
 msgid "Downloading User-Agent"
 msgstr "订阅的 User-Agent 为"
-
-msgid "Option"
-msgstr "选项"
 
 msgid "Option"
 msgstr "选项"
@@ -3494,9 +3470,6 @@ msgstr "文件名包含无效字符"
 
 msgid "Uploading..."
 msgstr "上传中..."
-
-msgid "Generating..."
-msgstr "生成中..."
 
 msgid "Upload completed"
 msgstr "上传完成"
@@ -4037,9 +4010,6 @@ msgstr "请输入配置..."
 
 msgid "Edit original config..."
 msgstr "编辑原始配置..."
-
-msgid "Runtime config (read only)"
-msgstr "运行配置（只读）"
 
 msgid "Set Custom Overwrite Script Failed,"
 msgstr "自定义覆写命令执行失败，"

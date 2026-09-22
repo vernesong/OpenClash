@@ -329,9 +329,6 @@ msgstr "Configuración común"
 msgid "Config Manage"
 msgstr "Gestión de configuraciones"
 
-msgid "Add Config File"
-msgstr "Añadir archivo de configuración"
-
 msgid "Upload File Type"
 msgstr "Tipo de archivo a subir"
 
@@ -1731,9 +1728,6 @@ msgstr "Validación fallida; intentando descargar sin proxy..."
 msgid "Has No Proxy Field, Trying To Download Without Agent..."
 msgstr "Falta sección de nodos; intentando descargar sin proxy..."
 
-msgid "Config File"
-msgstr "Archivo de configuración"
-
 msgid "Subscribed Failed, Trying to Download Without Agent..."
 msgstr "Suscripción fallida; intentando descarga directa..."
 
@@ -1806,14 +1800,8 @@ msgstr "Descarga correcta, comprobando actualizaciones..."
 msgid "Has Been Updated, Starting To Replace The Old Version..."
 msgstr "Tiene nueva versión; iniciando reemplazo..."
 
-msgid "Update Successful!"
-msgstr "Actualizado correctamente."
-
 msgid "No Change, Do Nothing..."
 msgstr "Sin cambios, omitido..."
-
-msgid "Update Error, Please Try Again Later..."
-msgstr "Error al actualizar; inténtalo más tarde..."
 
 msgid "Start Downloading Database..."
 msgstr "Iniciando descarga de la base de datos..."
@@ -1901,9 +1889,6 @@ msgstr "El archivo de configuración no existe; ya configuraste la suscripción,
 
 msgid "Config Not Found"
 msgstr "Archivo de configuración no encontrado"
-
-msgid "Config File Format Validation Failed..."
-msgstr "Validación del archivo de configuración fallida."
 
 msgid "Detected that the GEOIP Database is not Installed, Ready to Download..."
 msgstr "La base de datos GEOIP no está instalada; iniciando descarga..."
@@ -2389,13 +2374,13 @@ msgid "unlock node test finished, rolled back to the full support node"
 msgstr "Prueba finalizada; revertido a un nodo con desbloqueo completo"
 
 msgid "unlock node test finished, no node match the old region, rolled back to other full support node"
-"Prueba finalizada; ningún nodo coincide con la región previa, revertido a otro nodo válido"
+msgstr "Prueba finalizada; ningún nodo coincide con la región previa, revertido a otro nodo válido"
 
 msgid "unlock node test finished, no node match the regex, rolled back to other full support node"
-"Prueba finalizada; ningún nodo coincide con la expresión regular; usando otro nodo válido"
+msgstr "Prueba finalizada; ningún nodo coincide con la expresión regular; usando otro nodo válido"
 
 msgid "unlock node test finished, no node available, rolled back to the"
-"Prueba finalizada; sin nodos válidos, revertido al"
+msgstr "Prueba finalizada; sin nodos válidos, revertido al"
 
 msgid "no nodes name match the regex!"
 msgstr "No hay nodos cuyo nombre coincida con la expresión regular."
@@ -3141,17 +3126,11 @@ msgstr "Proxy-server-nameserver en modo proxy; configurando automáticamente."
 msgid "For Avoiding Proxies Server Resolve Loop..."
 msgstr "Para evitar bucles de resolución en servidores proxy..."
 
-msgid "Config File"
-msgstr "Archivo de configuración"
-
 msgid "Downloading URL"
 msgstr "URL de descarga de suscripción:"
 
 msgid "Downloading User-Agent"
 msgstr "User-Agent usado para descargar suscripción:"
-
-msgid "Option"
-msgstr "Opción"
 
 msgid "Option"
 msgstr "Opción"
@@ -3211,7 +3190,7 @@ msgid "Internal ports"
 msgstr "Puertos internos"
 
 msgid "Target"
-"Objetivo"
+msgstr "Objetivo"
 
 msgid "Network Anomaly, Suspend Unlock Detection..."
 msgstr "Anomalía de red, se suspende la detección de desbloqueo..."
@@ -3476,9 +3455,6 @@ msgstr "El nombre del archivo contiene caracteres no válidos"
 
 msgid "Uploading..."
 msgstr "Subiendo..."
-
-msgid "Generating..."
-msgstr "Generando..."
 
 msgid "Upload completed"
 msgstr "Subida completada"
@@ -4034,9 +4010,6 @@ msgstr "Introduce configuración..."
 
 msgid "Edit original config..."
 msgstr "Editar configuración original..."
-
-msgid "Runtime config (read only)"
-msgstr "Configuración en ejecución (solo lectura)"
 
 msgid "Invalid YAML Override format, skipped..."
 msgstr "Formato de sobrescritura YAML no válido, omitido..."
