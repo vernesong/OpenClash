@@ -3085,6 +3085,53 @@ overwrite_config_match_item()
    [ "$config_path_item" = "$(uci_get_config "config_path")" ] && OVERWRITE_CONFIG_MATCHED=1
 }
 
+expand_env_vars()
+{
+   #仅展开 ${VAR} / $VAR，其余字符（引号、括号、反引号、反斜杠、$1 等）原样保留
+   local rest="$1"
+   local out="" head name val c
+
+   while :; do
+      case "$rest" in
+         *'$'*) ;;
+         *) out="$out$rest"; break;;
+      esac
+      head="${rest%%\$*}"
+      out="$out$head"
+      rest="${rest#*\$}"
+      name=""
+      case "$rest" in
+         '{'*)
+            case "${rest#\{}" in
+               *'}'*)
+                  name="${rest#\{}"; name="${name%%\}*}"
+                  case "$name" in
+                     ""|*[!A-Za-z0-9_]*|[0-9]*) out="$out\${$name}";;
+                     *) eval "val=\${$name-}"; out="$out$val";;
+                  esac
+                  rest="${rest#*\}}"
+                  ;;
+               *) out="$out\$";;
+            esac
+            continue
+            ;;
+      esac
+      while :; do
+         c="${rest%"${rest#?}"}"
+         case "$c" in
+            [A-Za-z0-9_]) name="$name$c"; rest="${rest#?}";;
+            *) break;;
+         esac
+      done
+      case "$name" in
+         ""|[0-9]*) out="$out\$$name";;
+         *) eval "val=\${$name-}"; out="$out$val";;
+      esac
+   done
+
+   printf '%s' "$out"
+}
+
 overwrite_file()
 {
    clear_overwrite_set
@@ -3426,7 +3473,7 @@ EOF
                LOG_WARN "skip invalid Overwrite command【Ruby Script => $name: $trimmed】"
             fi
          elif [ "$in_yaml" -eq 1 ]; then
-            yaml_content="${yaml_content}$(eval "echo \"$line\"")"$'\n'
+            yaml_content="${yaml_content}$(expand_env_vars "$line")"$'\n'
          fi
       done < "$file"
 
@@ -3436,41 +3483,44 @@ EOF
 
       if [ -n "$yaml_content" ]; then
          LOG_TIP "Load YAML Override Block【YAML Block => $name】"
-         
-         cat >> "$overwrite_script" <<'EOF'
-ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-   # YAML Override Block Processing
-   begin
-      yaml_override_content = <<-'YAML_CONTENT'
-EOF
 
-         echo "$yaml_content" >> "$overwrite_script"
-            
-         cat >> "$overwrite_script" <<'EOF'
-      YAML_CONTENT
+         #YAML 原文单独落盘，不经过 shell 展开，避免正则里的 " $ ` ( ) \ 被吃掉
+         mkdir -p /tmp/yaml_openclash_override_parts
+         printf '%s' "$yaml_content" > "/tmp/yaml_openclash_override_parts/${sid}"
 
+         cat >> "$overwrite_script" <<'EOF'
+if [ -f "/tmp/yaml_openclash_override_parts/$OPENCLASH_OVERWRITE_SID" ]; then
+   OPENCLASH_YAML_OVERRIDE_FILE="/tmp/yaml_openclash_override_parts/$OPENCLASH_OVERWRITE_SID"
+   export OPENCLASH_YAML_OVERRIDE_FILE
+   export CONFIG_FILE
+   ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e '
+      # YAML Override Block Processing
       begin
-         yaml_data = YAML.load(yaml_override_content)
-         
-         if yaml_data.is_a?(Hash)
-            if File.exist?('/tmp/yaml_overwrite_marshal')
-               Value = Marshal.load(File.open('/tmp/yaml_overwrite_marshal', 'rb') { |f| f.read })
+         yaml_override_content = File.read(ENV["OPENCLASH_YAML_OVERRIDE_FILE"])
+
+         begin
+            yaml_data = YAML.load(yaml_override_content)
+
+            if yaml_data.is_a?(Hash)
+               if File.exist?("/tmp/yaml_overwrite_marshal")
+                  Value = Marshal.load(File.open("/tmp/yaml_overwrite_marshal", "rb") { |f| f.read })
+               else
+                  Value = YAML.load_file(ENV["CONFIG_FILE"])
+               end
+               Overwrite_Value = YAML.overwrite(Value, yaml_data)
+               YAML.dump(Overwrite_Value, ENV["CONFIG_FILE"])
+               File.open("/tmp/yaml_overwrite_marshal", "wb") { |f| Marshal.dump(Overwrite_Value, f) }
             else
-               Value = YAML.load_file('$CONFIG_FILE')
+               YAML.LOG_WARN("Invalid YAML Override format, skipped...")
             end
-            Overwrite_Value = YAML.overwrite(Value, yaml_data)
-            YAML.dump(Overwrite_Value, '$CONFIG_FILE')
-            File.open('/tmp/yaml_overwrite_marshal', 'wb') { |f| Marshal.dump(Overwrite_Value, f) }
-         else
-            YAML.LOG_WARN('Invalid YAML Override format, skipped...')
+         rescue => e
+            YAML.LOG_ERROR("Parse YAML Override failed:【%s】" % [e.message])
          end
       rescue => e
-         YAML.LOG_ERROR('Parse YAML Override failed:【%s】' % [e.message])
+         YAML.LOG_ERROR("Parse YAML Override failed:【%s】" % [e.message])
       end
-   rescue => e
-      YAML.LOG_ERROR('Parse YAML Override failed:【%s】' % [e.message])
-   end
-" >> $LOG_FILE 2>&1
+   ' >> $LOG_FILE 2>&1
+fi
 EOF
       fi
 
@@ -3680,6 +3730,7 @@ start_service()
             chmod +x /tmp/yaml_overwrite.sh
             CONFIG_FILE="${TMP_CONFIG_FILE}" /tmp/yaml_overwrite.sh
             rm -rf /tmp/yaml_openclash_ruby_parts
+            rm -rf /tmp/yaml_openclash_override_parts
          fi
 
          if [ -f "/etc/openclash/custom/openclash_custom_overwrite.sh" ]; then
