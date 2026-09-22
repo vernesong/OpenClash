@@ -22,19 +22,19 @@ module YAML
 	end
 
 	def self.load_file(filename, *args, **kwargs)
-		yaml_content = File.read(filename, mode: "r:bom|utf-8")
-
 		secret = nil
 		if kwargs.key?(:secret)
 			secret = kwargs.delete(:secret)
 		end
 
-		if yaml_content.include?("BEGIN AGE ENCRYPTED FILE")
+		header = File.binread(filename, 512).to_s
+
+		if header.include?("BEGIN AGE ENCRYPTED FILE")
+			yaml_content = File.read(filename, mode: "r:bom|utf-8")
 			if secret && secret.to_s.strip != ""
 				decrypted = decrypt_content_with_secret(secret.to_s, yaml_content)
 				if decrypted && !decrypted.empty? && !decrypted.include?("BEGIN AGE ENCRYPTED FILE")
-					processed = fix_short_id_quotes(decrypted)
-					return load(processed, *args, **kwargs)
+					return fix_and_load(decrypted, *args, **kwargs)
 				else
 					raise "Decrypted content empty or still encrypted: [#{filename}]"
 				end
@@ -46,8 +46,7 @@ module YAML
 				begin
 					decrypted = decrypt_content_with_secret(sec, yaml_content)
 					if decrypted && !decrypted.empty? && !decrypted.include?("BEGIN AGE ENCRYPTED FILE")
-						processed = fix_short_id_quotes(decrypted)
-						return load(processed, *args, **kwargs)
+						return fix_and_load(decrypted, *args, **kwargs)
 					end
 				rescue => e
 					last_error = e.message
@@ -58,13 +57,80 @@ module YAML
 			raise "Encrypted file: decryption failed for [#{filename}]: [#{detail}]"
 		end
 
-		processed_content = fix_short_id_quotes(yaml_content)
-		load(processed_content, *args, **kwargs)
+		base64, short_id, protocol_param = File.open(filename, "r:bom|utf-8") do |io|
+			scan_for_fixes(io)
+		end
+
+		if base64 || protocol_param
+			fix_and_load(File.read(filename, mode: "r:bom|utf-8"), *args, **kwargs)
+		elsif short_id
+			fixed = File.open(filename, "r:bom|utf-8") { |io| fix_short_id_text(io) }
+			begin
+				load(fixed, *args, **kwargs)
+			rescue => e
+				raise "fix short-id values type failed: #{e.message}"
+			end
+		else
+			result = File.open(filename, "r:bom|utf-8") do |io|
+				load(io, *args, **kwargs)
+			end
+			if result.nil? || result == false
+				result = fix_and_load(File.read(filename, mode: "r:bom|utf-8"), *args, **kwargs)
+			end
+			result
+		end
+	end
+
+	# The pipeline loads the same large file repeatedly, cache it by mtime/size.
+	def self.load_file_cached(filename, cache_file, *args, **kwargs)
+		if File.exist?(cache_file)
+			begin
+				entry = Marshal.load(File.binread(cache_file))
+				if entry.is_a?(Array) && entry.length == 3 &&
+						entry[0] == File.mtime(filename).to_i && entry[1] == File.size(filename)
+					return entry[2]
+				end
+			rescue ::Exception
+				# ignore broken cache, parse the file again
+			end
+		end
+
+		value = load_file(filename, *args, **kwargs)
+		cache_write(filename, value, cache_file)
+		value
+	end
+
+	def self.cache_write(filename, value, cache_file)
+		begin
+			File.open(cache_file, 'wb') do |file|
+				Marshal.dump([File.mtime(filename).to_i, File.size(filename), value], file)
+			end
+		rescue ::Exception
+			File.delete(cache_file) rescue nil
+		end
 	end
 
 	def self.dump(obj, io = nil, **options)
-		yaml_content = original_dump(obj, **options)
-		processed = fix_short_id_quotes(yaml_content)
+		if obj.nil? || obj == false
+			target = ""
+			if io.is_a?(String)
+				target = " [#{io}]"
+			elsif io && io.respond_to?(:path)
+				target = " [#{io.path}]"
+			elsif options.key?(:filename)
+				target = " [#{options[:filename]}]"
+			end
+			raise "YAML.dump: refusing to write nil/false config content#{target} (previous load may have failed)"
+		end
+
+		if io.is_a?(String)
+			dump_to_path(obj, io, **options)
+		else
+			dump_to_io(obj, io, **options)
+		end
+	end
+
+	def self.dump_to_io(obj, io = nil, **options)
 		public_key = nil
 		fname = nil
 		if options.key?(:public)
@@ -86,7 +152,11 @@ module YAML
 			end
 		end
 
+		needs_fix = contains_short_id?(obj)
+
 		if public_key && public_key.to_s.strip != ""
+			yaml_content = original_dump(obj, **options)
+			processed = needs_fix ? fix_short_id_quotes(yaml_content) : yaml_content
 			begin
 				encrypted = encrypt_content_with_public(public_key.to_s, processed)
 				if encrypted && !encrypted.empty?
@@ -107,14 +177,52 @@ module YAML
 			end
 		end
 
-		if io.nil?
-			processed
-		elsif io.respond_to?(:write)
-			io.write(processed)
+		stream = options.empty? && StreamDump.supported?(obj)
+
+		if io.respond_to?(:write)
+			if stream
+				StreamDump.new(io).dump(obj, short_id: needs_fix)
+			elsif needs_fix
+				fix_short_id_text(original_dump(obj, **options), io)
+			else
+				original_dump(obj, io, **options)
+			end
 			io
+		elsif stream
+			stream_dump_to_string(obj, needs_fix)
 		else
-			processed
+			dump_string(obj, options, needs_fix)
 		end
+	end
+
+	def self.stream_dump_to_string(obj, needs_fix)
+		sink = StringSink.new
+		StreamDump.new(sink).dump(obj, short_id: needs_fix)
+		sink.string
+	end
+
+	def self.dump_string(obj, options, needs_fix)
+		yaml_content = original_dump(obj, **options)
+		needs_fix ? fix_short_id_quotes(yaml_content) : yaml_content
+	end
+
+	def self.dump_to_path(obj, path, **options)
+		real = File.symlink?(path) ? File.realpath(path) : path
+		dir = File.dirname(real)
+		tmp = File.join(dir, ".#{File.basename(real)}.tmp#{Process.pid}.#{rand(1000)}")
+		mode = File.exist?(real) ? File.stat(real).mode & 07777 : nil
+		begin
+			File.open(tmp, 'w') { |f| dump_to_io(obj, f, **options.merge(filename: real)) }
+			File.chmod(mode, tmp) if mode
+			File.rename(tmp, real)
+		rescue ::Exception
+			begin
+				File.unlink(tmp) if File.exist?(tmp)
+			rescue
+			end
+			raise
+		end
+		path
 	end
 
 	def self.popen_stream(cmd, input, chunk_size: 64 * 1024)
@@ -155,22 +263,49 @@ module YAML
 		input
 	end
 
+	AGE_KEYS_UCI_CONFIG = "/etc/config/openclash"
+	AGE_KEYS_SECTION = "config_age_secret".freeze
+
+	# The file itself says whether a lookup is needed: the common case has no age key and must
+	# not pay for a fork and a uci parse.
+	def self.age_keys_enabled?
+		File.read(AGE_KEYS_UCI_CONFIG).include?(AGE_KEYS_SECTION)
+	rescue StandardError
+		true
+	end
+
+	# One "uci show" dump resolves every name and both key types
+	def self.age_keys
+		@age_keys ||= begin
+			keys = {}
+			if age_keys_enabled?
+				cmd = ["/bin/sh", "-c", ". /usr/share/openclash/uci.sh; uci_age_keys_dump"]
+				IO.popen(cmd, "r") do |io|
+					io.each_line do |line|
+						tag, name, value = line.strip.split("\t", 3)
+						next if name.nil? || value.nil? || value.strip == ""
+						keys[name] ||= { publics: [], secrets: [] }
+						(tag == "P" ? keys[name][:publics] : keys[name][:secrets]) << value.strip
+					end
+				end
+			end
+			keys
+		rescue Errno::ENOENT
+			{}
+		end
+	end
+
 	def self.find_age_keys_for_filename(filename)
-		basename = File.basename(filename)
-		basename_no_ext = File.basename(filename, File.extname(filename))
+		keys = age_keys
 		publics = []
 		secrets = []
 
-		[basename, basename_no_ext].uniq.each do |n|
-			cmd_public = ["/bin/sh", "-c", ". /usr/share/openclash/uci.sh; uci_get_age_public_keys \"$1\"", "sh", n]
-			IO.popen(cmd_public, "r") do |io|
-				io.each_line { |l| publics << l.strip unless l.nil? || l.strip == "" }
-			end
+		[File.basename(filename), File.basename(filename, File.extname(filename))].uniq.each do |n|
+			entry = keys[n]
+			next if entry.nil?
 
-			cmd_secret = ["/bin/sh", "-c", ". /usr/share/openclash/uci.sh; uci_get_age_secret_keys \"$1\"", "sh", n]
-			IO.popen(cmd_secret, "r") do |io|
-				io.each_line { |l| secrets << l.strip unless l.nil? || l.strip == "" }
-			end
+			publics.concat(entry[:publics])
+			secrets.concat(entry[:secrets])
 		end
 		{ publics: publics, secrets: secrets }
 	end
@@ -229,73 +364,372 @@ module YAML
 	#   Input:  short-id: "1600e237"  -> Output: short-id: "1600e237"
 	#   Input:  short-id: null        -> Output: short-id: ""
 
-	def self.fix_short_id_quotes(yaml_content)
+	def self.fix_and_load(yaml_content, *args, **kwargs)
 		yaml_content = decode64(yaml_content)
-
-		return yaml_content unless yaml_content.include?('short-id:')
+		# Fix bare protocol-param values that break YAML parsing (e.g. "1.2.3.4:8080#test")
+		yaml_content.gsub!(/^(\s*protocol-param:\s+)([^\s"'][^"\n\r]*[#:][^"\n\r]*)$/, '\1"\2"')
+		return load(yaml_content, *args, **kwargs) unless yaml_content.include?('short-id:')
 
 		begin
-			stream = Psych.parse_stream(yaml_content)
-
-			traverse = lambda do |node|
-				case node
-				when Psych::Nodes::Mapping
-					children = node.children || []
-					i = 0
-					while i < children.length
-						key = children[i]
-						val = children[i + 1]
-						if key.is_a?(Psych::Nodes::Scalar) && key.value == 'short-id'
-							if val.is_a?(Psych::Nodes::Scalar)
-								is_null_scalar = (val.tag == 'tag:yaml.org,2002:null') || (val.tag == '!!null') || (val.value =~ /^\s*(~|null|NULL|Null)\s*$/)
-								unless is_null_scalar
-									val.tag = nil
-									val.style = defined?(Psych::Nodes::Scalar::DOUBLE_QUOTED) ? Psych::Nodes::Scalar::DOUBLE_QUOTED : 2
-								end
-							elsif val.is_a?(Psych::Nodes::Sequence)
-								val.children.each do |child|
-									if child.is_a?(Psych::Nodes::Scalar)
-										is_null_child = (child.tag == 'tag:yaml.org,2002:null') || (child.tag == '!!null') || (child.value =~ /^\s*(~|null|NULL|Null)\s*$/)
-										unless is_null_child
-											child.tag = nil
-											child.style = defined?(Psych::Nodes::Scalar::DOUBLE_QUOTED) ? Psych::Nodes::Scalar::DOUBLE_QUOTED : 2
-										end
-									end
-								end
-							end
-						else
-							traverse.call(key) if key.respond_to?(:children)
-							traverse.call(val) if val.respond_to?(:children)
-						end
-						i += 2
-					end
-				when Psych::Nodes::Sequence
-					(node.children || []).each { |c| traverse.call(c) }
-				when Psych::Nodes::Document, Psych::Nodes::Stream
-					(node.children || []).each { |c| traverse.call(c) }
-				else
-					if node.respond_to?(:children)
-						(node.children || []).each { |c| traverse.call(c) }
-					end
-				end
-			end
-
-			stream.children.each do |doc_node|
-				if doc_node.is_a?(Psych::Nodes::Document)
-					traverse.call(doc_node.root) if doc_node.root
-				end
-			end
-
-			if stream.respond_to?(:to_yaml)
-				processed_yaml = stream.to_yaml
-				processed_yaml = processed_yaml.gsub(/^([ \t]*short-id:\s*)!\s*/, "\\1")
-				processed_yaml
-			else
-				yaml_content
-			end
+			load(fix_short_id_text(yaml_content), *args, **kwargs)
 		rescue => e
 			raise "fix short-id values type failed: #{e.message}"
 		end
+	end
+
+	def self.quote_short_id_scalar(value)
+		v = value.strip
+		return value if v.empty?
+		return '""' if v =~ /\A(?:~|null|NULL|Null)\z/
+		if v.start_with?("'")
+			if (m = v.match(/\A'((?:[^']|'')*)'(\s+#.*)?\z/))
+				inner = m[1].gsub("''", "'")
+				return "\"#{inner.gsub(/["\\]/) { |c| "\\#{c}" }}\"#{m[2]}"
+			end
+			return value
+		end
+		return value if v.start_with?('"')
+		return value if v =~ /[:{}\[\],|>]/
+		if (m = v.match(/\A(\S+)(\s+#.*)?\z/))
+			"\"#{m[1].gsub('"', '\\"')}\"#{m[2]}"
+		else
+			"\"#{v.gsub('"', '\\"')}\""
+		end
+	end
+
+	def self.fix_short_id_text(yaml_content, output = nil)
+		out = output || String.new
+		in_seq = false
+		seq_indent = -1
+		in_block = false
+		block_indent = -1
+		pending = nil
+
+		yaml_content.each_line do |line|
+			if in_block
+				if line.strip.empty? || (line =~ /^(\s*)/ && Regexp.last_match(1).length > block_indent)
+					out << line
+					next
+				else
+					in_block = false
+				end
+			end
+
+			if pending
+				if (m = line.match(/^(\s*)-(\s*)(.*?)(\r?\n)?\z/)) && m[1].length >= seq_indent
+					out << pending
+					in_seq = true
+				else
+					out << pending.sub(/^(\s*)short-id:.*?(\r?\n)?\z/, '\1short-id: ""\2')
+					in_seq = false
+				end
+				pending = nil
+			end
+
+			if (m = line.match(/^(\s*)short-id:(\s*)(.*?)(\r?\n)?\z/))
+				indent = m[1]
+				rest = m[3].to_s.strip
+				if rest.empty? || rest.start_with?('#')
+					in_seq = true
+					seq_indent = indent.length
+					pending = line
+				else
+					in_seq = false
+					out << indent + "short-id:" + m[2] + quote_short_id_scalar(rest) + m[4].to_s
+				end
+			elsif (m = line.match(/^(\s*)[^:\s][^:]*:\s*[|>](\s*.*)?$/))
+				in_block = true
+				in_seq = false
+				block_indent = m[1].length
+				out << line
+			elsif line.strip.empty?
+				out << line
+			elsif in_seq && (m = line.match(/^(\s*)-(\s*)(.*?)(\r?\n)?\z/)) && m[1].length >= seq_indent
+				out << m[1] + "-" + m[2] + quote_short_id_scalar(m[3]) + m[4].to_s
+			else
+				in_seq = false
+				out << line
+			end
+		end
+
+		if pending
+			out << pending.sub(/^(\s*)short-id:.*?(\r?\n)?\z/, '\1short-id: ""\2')
+		end
+
+		out
+	end
+
+	def self.fix_short_id_quotes(yaml_content)
+		begin
+			fix_short_id_text(yaml_content)
+		rescue => e
+			raise "fix short-id values type failed: #{e.message}"
+		end
+	end
+
+	def self.scan_for_fixes(io)
+		base64 = false
+		short_id = false
+		protocol_param = false
+		first_nonempty_seen = false
+		buffer = String.new
+		chunk_size = 64 * 1024
+
+		while (chunk = io.read(chunk_size))
+			buffer << chunk
+
+			unless first_nonempty_seen
+				if (idx = buffer.index("\n"))
+					stripped = buffer[0...idx].strip
+					if !stripped.empty?
+						first_nonempty_seen = true
+						base64 = stripped.match?(/\A[A-Za-z0-9+\/=]+\z/)
+					end
+				end
+			end
+
+			short_id ||= buffer.include?('short-id:')
+			protocol_param ||= buffer.include?('protocol-param:')
+
+			if first_nonempty_seen && buffer.bytesize > chunk_size + 4096
+				buffer = buffer[-4096, 4096]
+			end
+
+			break if base64 || short_id || protocol_param
+		end
+
+		unless first_nonempty_seen
+			stripped = buffer.strip
+			base64 = !stripped.empty? && stripped.match?(/\A[A-Za-z0-9+\/=]+\z/)
+		end
+
+		[base64, short_id, protocol_param]
+	end
+
+	def self.contains_short_id?(obj, depth = 0)
+		return false if depth > 64
+		case obj
+		when Hash
+			return true if obj.key?('short-id') || obj.key?(:"short-id")
+			obj.each_value { |v| return true if contains_short_id?(v, depth + 1) }
+			false
+		when Array
+			obj.any? { |v| contains_short_id?(v, depth + 1) }
+		else
+			false
+		end
+	end
+
+	# StreamDump writes the data tree directly into libyaml, Psych.dump builds a full AST first
+	# and nearly doubles the peak memory. supported? skips trees with anchors or tags,
+	# and the scalar style rules below reproduce Psych::Visitors::YAMLTree#visit_String.
+	class StringSink
+		attr_reader :string
+
+		def initialize
+			@string = String.new
+		end
+
+		def write(data)
+			@string << data
+			data.to_s.bytesize
+		end
+	end
+
+	class StreamDump
+		ANY = Psych::Nodes::Scalar::ANY
+		PLAIN = Psych::Nodes::Scalar::PLAIN
+		SINGLE_QUOTED = Psych::Nodes::Scalar::SINGLE_QUOTED
+		DOUBLE_QUOTED = Psych::Nodes::Scalar::DOUBLE_QUOTED
+		LITERAL = Psych::Nodes::Scalar::LITERAL
+		MAP_BLOCK = Psych::Nodes::Mapping::BLOCK
+		SEQ_BLOCK = Psych::Nodes::Sequence::BLOCK
+		NULL_TAG = 'tag:yaml.org,2002:null'
+		STR_TAG = 'tag:yaml.org,2002:str'
+
+		def self.available?
+			defined?(Psych::Emitter) && defined?(Psych::ScalarScanner) && defined?(Psych::ClassLoader)
+		end
+
+		def self.supported?(obj)
+			return false unless available?
+
+			seen = {}.compare_by_identity
+			stack = [obj]
+			until stack.empty?
+				item = stack.pop
+				case item
+				when Hash
+					return false unless item.class == ::Hash
+					return false if seen.key?(item)
+					seen[item] = true
+					item.each do |key, value|
+						stack << key
+						stack << value
+					end
+				when Array
+					return false unless item.class == ::Array
+					return false if seen.key?(item)
+					seen[item] = true
+					stack.concat(item)
+				when String
+					return false unless item.class == ::String
+					return false if item.instance_variables.any?
+					return false if item.encoding == Encoding::ASCII_8BIT && !item.ascii_only?
+				when Integer, Float, TrueClass, FalseClass, NilClass
+					# dumped through to_s, exactly like Psych does
+				else
+					return false
+				end
+			end
+			true
+		end
+
+		def initialize(io)
+			@io = io
+			@scanner = Psych::ScalarScanner.new(Psych::ClassLoader.new)
+			@short_id = false
+		end
+
+		def dump(obj, short_id: false)
+			@short_id = short_id
+			emitter = Psych::Emitter.new(@io)
+			@emitter = emitter
+			emitter.start_stream(Psych::Parser::UTF8)
+			emitter.start_document([], [], false)
+			emit(obj)
+			emitter.end_document(true)
+			emitter.end_stream
+			@emitter = nil
+			@io
+		end
+
+		private
+
+		def emit(obj)
+			case obj
+			when Hash
+				@emitter.start_mapping(nil, nil, true, MAP_BLOCK)
+				obj.each do |key, value|
+					emit(key)
+					emit_value(value, key)
+				end
+				@emitter.end_mapping
+			when Array
+				@emitter.start_sequence(nil, nil, true, SEQ_BLOCK)
+				obj.each { |value| emit(value) }
+				@emitter.end_sequence
+			when String
+				emit_string(obj)
+			when Integer, TrueClass, FalseClass
+				@emitter.scalar(obj.to_s, nil, nil, true, false, ANY)
+			when Float
+				emit_float(obj)
+			when NilClass
+				@emitter.scalar('', nil, NULL_TAG, true, false, ANY)
+			end
+		end
+
+		def emit_value(value, key)
+			if @short_id && (key == 'short-id' || key == :'short-id')
+				emit_short_id(value)
+			else
+				emit(value)
+			end
+		end
+
+		def emit_float(value)
+			if value.nan?
+				@emitter.scalar('.nan', nil, nil, true, false, ANY)
+			elsif value.infinite?
+				@emitter.scalar(value.infinite? > 0 ? '.inf' : '-.inf', nil, nil, true, false, ANY)
+			else
+				@emitter.scalar(value.to_s, nil, nil, true, false, ANY)
+			end
+		end
+
+		# short-id values are always double quoted: same result as
+		# fix_short_id_text, without building the intermediate document string
+		def emit_short_id(value)
+			if value.is_a?(Array)
+				@emitter.start_sequence(nil, nil, true, SEQ_BLOCK)
+				value.each { |item| emit_quoted(item) }
+				@emitter.end_sequence
+			else
+				emit_quoted(value)
+			end
+		end
+
+		def emit_quoted(value)
+			case value
+			when String, Integer, Float
+				@emitter.scalar(value.to_s, nil, nil, false, true, DOUBLE_QUOTED)
+			when nil
+				@emitter.scalar('', nil, nil, false, true, DOUBLE_QUOTED)
+			else
+				emit(value)
+			end
+		end
+
+		def emit_string(value)
+			plain = true
+			quote = true
+			style = PLAIN
+			tag = nil
+
+			if value.match?(/\n(?!\Z)/)
+				style = LITERAL
+			elsif value == '<<'
+				style = SINGLE_QUOTED
+				tag = STR_TAG
+				plain = false
+				quote = false
+			elsif value == 'y' || value == 'Y' || value == 'n' || value == 'N'
+				style = DOUBLE_QUOTED
+			elsif value.match?(/^[^[:word:]][^"]*$/)
+				style = DOUBLE_QUOTED
+			elsif !(String === @scanner.tokenize(value)) || /\A0[0-7]*[89]/.match?(value)
+				style = SINGLE_QUOTED
+			end
+
+			@emitter.scalar(value, nil, tag, plain, quote, style)
+		end
+	end
+
+	# Inline replaces the "one Thread per field" pattern: a finished Thread keeps its stack
+	# until it is joined, which costs hundreds of MB for thousands of entries.
+	class Inline
+		def initialize(*args, &block)
+			@error = nil
+			begin
+				block.call(*args)
+			rescue ::Exception => e
+				@error = e
+			end
+		end
+
+		def join
+			raise @error if @error
+			self
+		end
+
+		def value
+			raise @error if @error
+			self
+		end
+
+		def alive?
+			false
+		end
+
+		def status
+			@error ? nil : false
+		end
+
+		def kill
+			self
+		end
+		alias_method :terminate, :kill
 	end
 
 	def self.overwrite(base, override)

@@ -322,17 +322,13 @@ function normalizeListValue(value) {
 function isMultiValueField(field) {
     return {
         alpn: true,
-        hysteria_alpn: true,
-        tc_alpn: true,
-        ws_opts_headers: true,
-        trojan_ws_headers: true,
+        ws_headers: true,
         http_headers: true,
         h2_host: true,
         http_path: true,
-        wg_dns: true,
+        dns: true,
         host_key: true,
-        host_key_algorithms: true,
-        masque_dns: true
+        host_key_algorithms: true
     }[field] === true;
 }
 
@@ -715,9 +711,7 @@ function getDefaultOtherParamSkipKeys() {
         username: true,
         password: true,
         uuid: true,
-        token: true,
-        auth_name: true,
-        auth_pass: true
+        token: true
     };
 }
 
@@ -891,7 +885,7 @@ function exportSSR(sid) {
     var server = getFormValue(sid, 'server');
     var port = getFormValue(sid, 'port');
     var protocol = getFormValue(sid, 'protocol');
-    var method = getFormValue(sid, 'cipher_ssr');
+    var method = getFormValue(sid, 'cipher');
     var obfs = getFormValue(sid, 'obfs_ssr');
     var password = getFormValue(sid, 'password');
     var obfs_param = getFormValue(sid, 'obfs_param');
@@ -920,7 +914,7 @@ function exportVmess(sid) {
     var port = getFormValue(sid, 'port');
     var uuid = getFormValue(sid, 'uuid');
     var alterId = getFormValue(sid, 'alterId');
-    var security = getFormValue(sid, 'securitys');
+    var security = getFormValue(sid, 'cipher');
     var name = getFormValue(sid, 'name');
     var obfs = getFormValue(sid, 'obfs_vmess');
     var tls = getFormValue(sid, 'tls');
@@ -957,8 +951,8 @@ function exportVmess(sid) {
     // Handle network type
     if (obfs === 'websocket') {
         info.net = "ws";
-        info.path = getFormValue(sid, 'ws_opts_path') || '/';
-        var headers = getFormValue(sid, 'ws_opts_headers');
+        info.path = getFormValue(sid, 'ws_path') || '/';
+        var headers = getFormValue(sid, 'ws_headers');
         if (headers && headers.includes('Host:')) {
             info.host = headers.split('Host:')[1].trim();
         }
@@ -1039,11 +1033,11 @@ function exportVless(sid) {
 
     if (obfs === 'ws') {
         queryMap.type = 'ws';
-        var path = getFormValue(sid, 'ws_opts_path');
+        var path = getFormValue(sid, 'ws_path');
         if (path) {
             queryMap.path = path;
         }
-        var headers = getFormValue(sid, 'ws_opts_headers');
+        var headers = getFormValue(sid, 'ws_headers');
         if (headers && headers.includes('Host:')) {
             var host = headers.split('Host:')[1].trim();
             queryMap.host = host;
@@ -1107,8 +1101,8 @@ function exportTrojan(sid) {
 
     if (obfs === 'ws') {
         queryMap.type = 'ws';
-        var wsPath = getFormValue(sid, 'trojan_ws_path');
-        var wsHeaders = getFormValue(sid, 'trojan_ws_headers');
+        var wsPath = getFormValue(sid, 'ws_path');
+        var wsHeaders = getFormValue(sid, 'ws_headers');
         if (wsPath) queryMap.path = wsPath;
         if (wsHeaders && wsHeaders.indexOf('Host:') !== -1) {
             queryMap.host = wsHeaders.split('Host:')[1].trim();
@@ -1150,7 +1144,7 @@ function exportHysteria(sid) {
     var down = getFormValue(sid, 'hysteria_down');
     var obfs = getFormValue(sid, 'hysteria_obfs');
     var sni = getFormValue(sid, 'sni');
-    var alpn = getFormValue(sid, 'hysteria_alpn');
+    var alpn = getFormValue(sid, 'alpn');
     var skip_cert = getFormValue(sid, 'skip_cert_verify');
     var ports = getFormValue(sid, 'ports');
     var hopInterval = getFormValue(sid, 'hop_interval');
@@ -1247,14 +1241,13 @@ function exportHysteria2(sid) {
     var password = getFormValue(sid, 'password');
     var name = getFormValue(sid, 'name');
     var obfs = getFormValue(sid, 'hysteria_obfs');
-    var obfs_password = getFormValue(sid, 'hysteria_obfs_password');
+    var obfs_password = getFormValue(sid, 'obfs_password');
     var up = getFormValue(sid, 'hysteria_up');
     var down = getFormValue(sid, 'hysteria_down');
     var sni = getFormValue(sid, 'sni');
-    var alpn = getFormValue(sid, 'hysteria_alpn');
+    var alpn = getFormValue(sid, 'alpn');
     var skip_cert = getFormValue(sid, 'skip_cert_verify');
     var fingerprint = getFormValue(sid, 'fingerprint');
-    var protocol = getFormValue(sid, 'hysteria2_protocol');
     var ports = getFormValue(sid, 'ports');
     var hopInterval = getFormValue(sid, 'hop_interval');
     var initialStreamReceiveWindow = getFormValue(sid, 'initial_stream_receive_window');
@@ -1306,10 +1299,6 @@ function exportHysteria2(sid) {
         queryMap.pinSHA256 = fingerprint;
     }
 
-    if (protocol) {
-        queryMap.protocol = protocol;
-    }
-
     if (ports) {
         queryMap.ports = ports;
     }
@@ -1349,12 +1338,12 @@ function exportHysteria2(sid) {
 function exportTuic(sid) {
     var server = getFormValue(sid, 'server');
     var port = getFormValue(sid, 'port');
-    var uuid = getFormValue(sid, 'tc_uuid');
-    var password = getFormValue(sid, 'tc_password');
-    var token = getFormValue(sid, 'tc_token');
+    var uuid = getFormValue(sid, 'uuid');
+    var password = getFormValue(sid, 'password');
+    var token = getFormValue(sid, 'token');
     var name = getFormValue(sid, 'name');
     var cc = getFormValue(sid, 'congestion_controller');
-    var alpn = getFormValue(sid, 'tc_alpn');
+    var alpn = getFormValue(sid, 'alpn');
     var sni = getFormValue(sid, 'sni');
     var disable_sni = getFormValue(sid, 'disable_sni');
     var udp_relay = getFormValue(sid, 'udp_relay_mode');
@@ -1449,8 +1438,8 @@ function exportTuic(sid) {
 function exportSocks(sid) {
     var server = getFormValue(sid, 'server');
     var port = getFormValue(sid, 'port');
-    var username = getFormValue(sid, 'auth_name');
-    var password = getFormValue(sid, 'auth_pass');
+    var username = getFormValue(sid, 'username');
+    var password = getFormValue(sid, 'password');
     var name = getFormValue(sid, 'name');
 
     if (!server || !port) {
@@ -1481,8 +1470,8 @@ function exportSocks(sid) {
 function exportHttp(sid) {
     var server = getFormValue(sid, 'server');
     var port = getFormValue(sid, 'port');
-    var username = getFormValue(sid, 'auth_name');
-    var password = getFormValue(sid, 'auth_pass');
+    var username = getFormValue(sid, 'username');
+    var password = getFormValue(sid, 'password');
     var name = getFormValue(sid, 'name');
     var tls = getFormValue(sid, 'tls');
 
@@ -1956,7 +1945,7 @@ function parseSSR(body, sid) {
     setFormValue(sid, 'server', host);
     setFormValue(sid, 'port', port);
     setFormValue(sid, 'protocol', protocol);
-    setFormValue(sid, 'cipher_ssr', method);
+    setFormValue(sid, 'cipher', method);
     setFormValue(sid, 'obfs_ssr', obfs);
     setFormValue(sid, 'password', password);
 
@@ -2008,7 +1997,7 @@ function parseVmess(body, sid) {
         setFormValue(sid, 'uuid', ssm.id);
 
         if (ssm.scy) {
-            setFormValue(sid, 'securitys', ssm.scy);
+            setFormValue(sid, 'cipher', ssm.scy);
         }
 
         if (ssm.tls === "tls") {
@@ -2025,9 +2014,9 @@ function parseVmess(body, sid) {
         var network = (ssm.net || 'tcp').toLowerCase();
         if (network === 'ws') {
             setFormValue(sid, 'obfs_vmess', 'websocket');
-            setFormValue(sid, 'ws_opts_path', ssm.path || '/');
+            setFormValue(sid, 'ws_path', ssm.path || '/');
             if (ssm.host) {
-                setFormValue(sid, 'ws_opts_headers', 'Host: ' + ssm.host);
+                setFormValue(sid, 'ws_headers', 'Host: ' + ssm.host);
             }
         } else if (network === 'h2') {
             setFormValue(sid, 'obfs_vmess', 'h2');
@@ -2107,7 +2096,7 @@ function parseVmess(body, sid) {
             setFormValue(sid, 'port', parsed.port || '443');
             setFormValue(sid, 'uuid', decodeURIComponentSafe(parsed.username));
             setFormValue(sid, 'alterId', 0);
-            setFormValue(sid, 'securitys', query.encryption || 'auto');
+            setFormValue(sid, 'cipher', query.encryption || 'auto');
 
             var security = (query.security || '').toLowerCase();
             if (security === 'tls' || security === 'xtls' || security === 'reality') {
@@ -2123,9 +2112,9 @@ function parseVmess(body, sid) {
             }
 
             if (network === 'ws') {
-                setFormValue(sid, 'ws_opts_path', decodeURIComponentSafe(query.path || '/'));
+                setFormValue(sid, 'ws_path', decodeURIComponentSafe(query.path || '/'));
                 if (query.host) {
-                    setFormValue(sid, 'ws_opts_headers', 'Host: ' + decodeURIComponentSafe(query.host));
+                    setFormValue(sid, 'ws_headers', 'Host: ' + decodeURIComponentSafe(query.host));
                 }
             } else if (network === 'grpc') {
                 setFormValue(sid, 'grpc_service_name', decodeURIComponentSafe(query.serviceName || query.path || ''));
@@ -2228,9 +2217,9 @@ function parseVless(url, sid) {
     }
 
     if (network === 'ws') {
-        setFormValue(sid, 'ws_opts_path', decodeURIComponent(query.path || '/'));
+        setFormValue(sid, 'ws_path', decodeURIComponent(query.path || '/'));
         if (query.host) {
-            setFormValue(sid, 'ws_opts_headers', 'Host: ' + decodeURIComponent(query.host));
+            setFormValue(sid, 'ws_headers', 'Host: ' + decodeURIComponent(query.host));
         }
     } else if (network === 'grpc') {
         setFormValue(sid, 'grpc_service_name', decodeURIComponent(query.serviceName || query.path || ''));
@@ -2299,9 +2288,9 @@ function parseTrojan(url, sid) {
     var network = (query.type || '').toLowerCase();
     if (network === 'ws') {
         setFormValue(sid, 'obfs_trojan', 'ws');
-        setFormValue(sid, 'trojan_ws_path', decodeURIComponent(query.path || '/'));
+        setFormValue(sid, 'ws_path', decodeURIComponent(query.path || '/'));
         if (query.host) {
-            setFormValue(sid, 'trojan_ws_headers', 'Host: ' + decodeURIComponent(query.host));
+            setFormValue(sid, 'ws_headers', 'Host: ' + decodeURIComponent(query.host));
         }
     } else if (network === 'grpc') {
         setFormValue(sid, 'obfs_trojan', 'grpc');
@@ -2333,6 +2322,26 @@ function parseTrojan(url, sid) {
     return true;
 }
 
+// hysteria/hysteria2 may carry a port list (example.com:123,5000-6000): the first entry
+// is the node port, the rest are the hopping ports.
+function applyHysteriaAuthorityPort(sid, authorityPort) {
+    var parts = String(authorityPort || '').split(',');
+    var basePort = parts[0] || '443';
+    var hopPorts = parts.slice(1).join(',');
+
+    if (basePort.indexOf('-') !== -1) {
+        hopPorts = hopPorts ? basePort + ',' + hopPorts : basePort;
+        basePort = basePort.split('-')[0];
+    }
+
+    setFormValue(sid, 'port', basePort);
+
+    if (hopPorts) {
+        setFormValue(sid, 'flag_port_hopping', '1');
+        setFormValue(sid, 'ports', hopPorts);
+    }
+}
+
 function parseHysteria(url, sid) {
     var parsed = parseUrl(url);
     if (!parsed) return false;
@@ -2341,7 +2350,7 @@ function parseHysteria(url, sid) {
 
     setFormValue(sid, 'type', 'hysteria');
     setFormValue(sid, 'server', parsed.hostname);
-    setFormValue(sid, 'port', parsed.port || '443');
+    applyHysteriaAuthorityPort(sid, parsed.port);
 
     if (query.auth) {
         setFormValue(sid, 'hysteria_auth_str', decodeURIComponentSafe(query.auth));
@@ -2384,7 +2393,7 @@ function parseHysteria(url, sid) {
     }
 
     if (query.alpn) {
-        setFormValue(sid, 'hysteria_alpn', decodeURIComponentSafe(query.alpn));
+        setFormValue(sid, 'alpn', decodeURIComponentSafe(query.alpn));
     }
 
     if (query.insecure === '1' || query.insecure === 'true') {
@@ -2452,7 +2461,7 @@ function parseHysteria2(url, sid) {
 
     setFormValue(sid, 'type', 'hysteria2');
     setFormValue(sid, 'server', parsed.hostname);
-    setFormValue(sid, 'port', parsed.port || '443');
+    applyHysteriaAuthorityPort(sid, parsed.port);
 
     if (parsed.username) {
         setFormValue(sid, 'password', decodeURIComponentSafe(parsed.username));
@@ -2463,7 +2472,7 @@ function parseHysteria2(url, sid) {
     }
 
     if (query['obfs-password']) {
-        setFormValue(sid, 'hysteria_obfs_password', decodeURIComponentSafe(query['obfs-password']));
+        setFormValue(sid, 'obfs_password', decodeURIComponentSafe(query['obfs-password']));
     }
 
     if (query.up) {
@@ -2479,7 +2488,7 @@ function parseHysteria2(url, sid) {
     }
 
     if (query.alpn) {
-        setFormValue(sid, 'hysteria_alpn', decodeURIComponentSafe(query.alpn));
+        setFormValue(sid, 'alpn', decodeURIComponentSafe(query.alpn));
     }
 
     if (query.insecure === '1' || query.insecure === 'true') {
@@ -2488,11 +2497,6 @@ function parseHysteria2(url, sid) {
 
     if (query.pinSHA256) {
         setFormValue(sid, 'fingerprint', decodeURIComponentSafe(query.pinSHA256));
-    }
-
-    if (query.protocol) {
-        setFormValue(sid, 'flag_transport', '1');
-        setFormValue(sid, 'hysteria2_protocol', decodeURIComponentSafe(query.protocol));
     }
 
     if (query.ports) {
@@ -2562,10 +2566,10 @@ function parseTuic(url, sid) {
 
     // Check if it's v5 (has password) or v4 (token only)
     if (parsed.password) {
-        setFormValue(sid, 'tc_uuid', decodeURIComponentSafe(parsed.username));
-        setFormValue(sid, 'tc_password', decodeURIComponentSafe(parsed.password));
+        setFormValue(sid, 'uuid', decodeURIComponentSafe(parsed.username));
+        setFormValue(sid, 'password', decodeURIComponentSafe(parsed.password));
     } else {
-        setFormValue(sid, 'tc_token', decodeURIComponentSafe(parsed.username));
+        setFormValue(sid, 'token', decodeURIComponentSafe(parsed.username));
     }
 
     if (query.congestion_control || query['congestion-controller']) {
@@ -2573,7 +2577,7 @@ function parseTuic(url, sid) {
     }
 
     if (query.alpn) {
-        setFormValue(sid, 'tc_alpn', decodeURIComponent(query.alpn));
+        setFormValue(sid, 'alpn', decodeURIComponent(query.alpn));
     }
 
     if (query.sni) {
@@ -2650,9 +2654,9 @@ function parseSocks(url, sid) {
     setFormValue(sid, 'port', parsed.port || '1080');
 
     if (parsed.username) {
-        setFormValue(sid, 'auth_name', decodeURIComponentSafe(parsed.username));
+        setFormValue(sid, 'username', decodeURIComponentSafe(parsed.username));
         if (parsed.password) {
-            setFormValue(sid, 'auth_pass', decodeURIComponentSafe(parsed.password));
+            setFormValue(sid, 'password', decodeURIComponentSafe(parsed.password));
         }
     }
 
@@ -2682,9 +2686,9 @@ function parseHttp(url, sid) {
     }
 
     if (parsed.username) {
-        setFormValue(sid, 'auth_name', decodeURIComponentSafe(parsed.username));
+        setFormValue(sid, 'username', decodeURIComponentSafe(parsed.username));
         if (parsed.password) {
-            setFormValue(sid, 'auth_pass', decodeURIComponentSafe(parsed.password));
+            setFormValue(sid, 'password', decodeURIComponentSafe(parsed.password));
         }
     }
 
@@ -2708,7 +2712,6 @@ function parseAnyTLS(url, sid) {
     setFormValue(sid, 'type', 'anytls');
     setFormValue(sid, 'server', parsed.hostname);
     setFormValue(sid, 'port', parsed.port || '443');
-    setFormValue(sid, 'auth_name', '');
     setFormValue(sid, 'password', decodeURIComponentSafe(parsed.password || parsed.username));
 
     if (query.sni) {

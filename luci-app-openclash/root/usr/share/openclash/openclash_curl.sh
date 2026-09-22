@@ -2,6 +2,8 @@
 . /usr/share/openclash/log.sh
 . /usr/share/openclash/openclash_etag.sh
 
+DEFAULT_UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+
 DOWNLOAD_FAILURE_OUTPUT() {
     failure_exit_code="$1"
     failure_http_code="$2"
@@ -26,7 +28,7 @@ DOWNLOAD_FILE_CURL() {
     DOWNLOAD_UA=$4
     SECRET_KEY=$5
     CUSTOM_HEADERS=$6
-    [ -z "$DOWNLOAD_UA" ] && DOWNLOAD_UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+    [ -z "$DOWNLOAD_UA" ] && DOWNLOAD_UA="$DEFAULT_UA"
     HEADER_TMP="/tmp/openclash_curl_header_$$"
     DOWNLOAD_TMP="${DOWNLOAD_PATH}.download.$$"
     CACHED_ETAG=$(GET_ETAG_BY_PATH "$FILE_PATH")
@@ -54,7 +56,7 @@ EOF
     if [ "$SHOW_DOWNLOAD_PROGRESS" = "1" ] || [ "$SHOW_DOWNLOAD_PROGRESS" = "true" ]; then
         TEMP_LOG="/tmp/curl_log_$$"
 
-        LOG_OUT "Downloading:【$(basename "$DOWNLOAD_PATH") - 0%】"
+        LOG_OUT "Downloading:【$(basename "$DOWNLOAD_PATH") - 0%】..."
 
         (
             if [ -n "$SECRET_KEY" ] && [ -n "$ETAG_HEADER" ]; then
@@ -101,7 +103,7 @@ EOF
 
                 if [ -n "$PROGRESS" ] && [ "$PROGRESS" -ne "$LAST_PROGRESS" ]; then
                     if [ "$PROGRESS" -gt "$LAST_PROGRESS" ]; then
-                        LOG_OUT "Downloading:【$(basename "$DOWNLOAD_PATH") - ${PROGRESS}%】"
+                        LOG_OUT "Downloading:【$(basename "$DOWNLOAD_PATH") - ${PROGRESS}%】..."
                         LAST_PROGRESS="$PROGRESS"
                     fi
                 fi
@@ -114,7 +116,7 @@ EOF
         HTTP_CODE=$(grep -i "^HTTP" "$HEADER_TMP" 2>/dev/null | tail -1 | cut -d' ' -f2)
 
         if [ "$EXIR_CODE" -eq 0 ] && [ "$LAST_PROGRESS" -ne 100 ]; then
-            LOG_OUT "Downloading:【$(basename "$DOWNLOAD_PATH") - 100%】"
+            LOG_OUT "Downloading:【$(basename "$DOWNLOAD_PATH") - 100%】..."
         fi
 
         if [ "$EXIR_CODE" -ne 0 ]; then
@@ -132,7 +134,6 @@ EOF
             OUTPUT=$(DOWNLOAD_FAILURE_OUTPUT "$EXIR_CODE" "$HTTP_CODE" "${OUTPUT:-}")
             LOG_OUT "【${DOWNLOAD_PATH}】Download Failed:【${OUTPUT}】"
             rm -f "$HEADER_TMP" "$DOWNLOAD_TMP"
-            SLOG_CLEAN
             return 1
         fi
     else
@@ -188,15 +189,21 @@ EOF
             OUTPUT=$(DOWNLOAD_FAILURE_OUTPUT "$EXIR_CODE" "$HTTP_CODE" "$OUTPUT")
             LOG_OUT "【${DOWNLOAD_PATH}】Download Failed:【${OUTPUT}】"
             rm -f "$HEADER_TMP" "$DOWNLOAD_TMP"
-            SLOG_CLEAN
             return 1
         fi
+    fi
+
+    resolve_checksum_from_url "$DOWNLOAD_URL"
+
+    if ! verify_sha256_checksum "$DOWNLOAD_TMP" "$CHECKSUM_FILENAME" "$CHECKSUM_URL" "$DOWNLOAD_UA"; then
+        LOG_OUT "【${DOWNLOAD_PATH}】Checksum Verification Failed"
+        rm -f "$HEADER_TMP" "$DOWNLOAD_TMP"
+        return 1
     fi
 
     if ! mv -f "$DOWNLOAD_TMP" "$DOWNLOAD_PATH"; then
         LOG_OUT "【${DOWNLOAD_PATH}】Download Failed:【Unable to save download file】"
         rm -f "$HEADER_TMP" "$DOWNLOAD_TMP"
-        SLOG_CLEAN
         return 1
     fi
     NEW_ETAG=$(grep -i "^etag:" "$HEADER_TMP" 2>/dev/null | tail -1 | cut -d' ' -f2- | tr -d '\r\n' | sed 's/^"//;s/"$//')
@@ -208,4 +215,84 @@ EOF
     rm -f "$HEADER_TMP" "$DOWNLOAD_TMP"
 
     return 0
+}
+
+CHECKSUM_RAW_PREFIX="https://raw.githubusercontent.com/vernesong/OpenClash"
+CHECKSUM_OIX_URL="https://github.com/vernesong/mihomo-oix/releases/download/Pre-Alpha/checksums.txt"
+
+resolve_checksum_from_url() {
+    local url="$1"
+    local base name path
+
+    CHECKSUM_URL=""
+    CHECKSUM_FILENAME=""
+
+    [ -z "$url" ] && return 1
+
+    base="${url%%\?*}"
+    base="${base%%#*}"
+    name="${base##*/}"
+    [ -n "$name" ] || return 1
+
+    case "$name" in
+        clash-*.tar.gz|luci-app-openclash_*.ipk|luci-app-openclash-*.apk|mihomo-*.gz) ;;
+        *)
+            return 1
+            ;;
+    esac
+
+    case "$base" in
+        *"jsdelivr.net/gh/vernesong/OpenClash@"*)
+            path="${base#*OpenClash@}"
+            [ "${path%/*}" = "$path" ] && return 1
+            CHECKSUM_URL="${CHECKSUM_RAW_PREFIX}/${path%/*}/checksums.txt"
+            ;;
+        *"raw.githubusercontent.com/vernesong/OpenClash/"*)
+            path="${base#*OpenClash/}"
+            [ "${path%/*}" = "$path" ] && return 1
+            CHECKSUM_URL="${CHECKSUM_RAW_PREFIX}/${path%/*}/checksums.txt"
+            ;;
+        *"mihomo-oix/"*)
+            CHECKSUM_URL="$CHECKSUM_OIX_URL"
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+
+    CHECKSUM_FILENAME="$name"
+    return 0
+}
+
+verify_sha256_checksum() {
+    local file="$1"
+    local expected_name="$2"
+    local checksum_url="$3"
+    local ua="${4:-$DEFAULT_UA}"
+
+    [ -z "$file" ] || [ -z "$checksum_url" ] && return 0
+    [ -s "$file" ] || return 0
+
+    local expected_hash
+    expected_hash=$(curl -sL -m 15 --connect-timeout 5 -H "User-Agent: $ua" "$checksum_url" 2>/dev/null \
+        | awk -v n="$expected_name" '$2 ~ n {print $1; exit} $0 ~ n {print $1; exit}')
+
+    if [ -z "$expected_hash" ]; then
+        LOG_WARN "Checksum file unavailable or entry not found, skip verification for【$expected_name】"
+        return 0
+    fi
+
+    local actual_hash
+    actual_hash=$(sha256sum "$file" 2>/dev/null | awk '{print $1}')
+    if [ -z "$actual_hash" ]; then
+        LOG_WARN "Unable to compute checksum, skip verification for【$expected_name】"
+        return 0
+    fi
+    if [ "$actual_hash" = "$expected_hash" ]; then
+        LOG_OUT "Checksum Verification Successful for【$expected_name】"
+        return 0
+    fi
+
+    LOG_ERROR "Checksum mismatch for【$expected_name】(expected【$expected_hash】,got【$actual_hash】)"
+    return 1
 }

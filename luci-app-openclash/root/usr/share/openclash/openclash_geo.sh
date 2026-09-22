@@ -174,6 +174,5 @@ case "$1" in
       ;;
 esac
 
-SLOG_CLEAN
 dec_job_counter_and_restart "$restart"
 del_lock

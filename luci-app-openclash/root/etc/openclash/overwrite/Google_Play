@@ -1,0 +1,20 @@
+# Google Play download/update fix: these domains are resolved to Google's China CDN IPs
+# by China DNS servers, and those CDN IPs refuse connections from proxy (overseas) IPs.
+[YAML]
+dns:
+  nameserver-policy:
+    '+.services.googleapis.cn':
+      - https://8.8.8.8/dns-query#RULES
+      - https://dns.google/dns-query#RULES
+    '+.googleapis.cn':
+      - https://8.8.8.8/dns-query#RULES
+      - https://dns.google/dns-query#RULES
+    '+.xn--ngstr-lra8j.com':
+      - https://8.8.8.8/dns-query#RULES
+      - https://dns.google/dns-query#RULES
+
+# Uncomment when the rule set treats these domains as China domains (eg. DOMAIN-SUFFIX,cn,DIRECT),
+# the overseas IP above is dialed directly and unreachable, while a China CDN IP works.
+#  direct-nameserver:
+#    - 114.114.114.114
+#    - 223.5.5.5

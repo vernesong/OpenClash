@@ -8,7 +8,7 @@
 <head>
 <script src="/luci-static/resources/openclash/js/common.js?v=<%=plugin_version%>"></script>
 <link rel="stylesheet" href="/luci-static/resources/openclash/css/oc.css?v=<%=plugin_version%>">
-<script src="/luci-static/resources/openclash/js/cm6.min.js?v=<%=plugin_version%>"></script>
+<script src="/luci-static/resources/openclash/js/chart.umd.min.js?v=<%=plugin_version%>"></script>
 </head>
 <fieldset class="cbi-section">
     <table width="100%">
@@ -19,9 +19,7 @@
                     <div class="announcement-card">
                         <div id="announcement-banner" class="announcement-banner">
                             <div class="megaphone-container">
-                                <svg id="megaphone" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 256 256">
-                                    <path d="M228.54,86.66l-176.06-54A16,16,0,0,0,32,48V192a16,16,0,0,0,16,16,16,16,0,0,0,4.52-.65L136,181.73V192a16,16,0,0,0,16,16h32a16,16,0,0,0,16-16v-29.9l28.54-8.75A16.09,16.09,0,0,0,240,138V102A16.09,16.09,0,0,0,228.54,86.66ZM136,165,48,192V48l88,27Zm48,27H152V176.82L184,167Zm40-54-.11,0L152,160.08V79.92l71.89,22,.11,0v36Z"></path>
-                                </svg>
+                                <svg id="megaphone" width="15" height="15"><use href="#oc-icon-megaphone"/></svg>
                             </div>
                             <div id="announcement-content" class="announcement-content"></div>
                         </div>
@@ -32,17 +30,19 @@
                             <div class="sub-card">
                                 <div class="card-title"><%:Running Status%></div>
                                 <div class="version-display-container">
-                                    <div class="version-display" id="plugin-version-display" style="display: none;">
+                                    <div class="version-display oc-hidden" id="plugin-version-display">
+                                        <svg width="12" height="12"><use href="#oc-icon-package"/></svg>
                                         <span class="version-text" id="plugin-version-text">-</span>
                                     </div>
-                                    <div class="version-display" id="core-version-display" style="display: none;">
+                                    <div class="version-display oc-hidden" id="core-version-display">
+                                        <svg width="12" height="12"><use href="#oc-icon-cpu"/></svg>
                                         <span class="version-text" id="core-version-text">-</span>
                                     </div>
                                 </div>
                                 <div class="core-main-controls">
                                     <div class="core-status-toggle">
                                         <span id="_clash" class="value-indicator"><%:Collecting data...%></span>
-                                        <span id="_oclog" class="value-indicator" style="display: none;"><%:Collecting data...%></span>
+                                        <span id="_oclog" class="value-indicator oc-hidden"><b><%:Collecting data...%></b></span>
                                         <div class="plugin-toggle-container">
                                             <label class="plugin-toggle-switch">
                                                 <input type="checkbox" id="plugin_toggle" onchange="togglePlugin(this)">
@@ -63,15 +63,15 @@
                                 <div class="card-actions">
                                     <button type="button" class="icon-btn theme-toggle-btn" id="theme-toggle" onclick="toggleThemeMode()">
                                         <svg id="sun-icon" width="14" height="14"><use href="#oc-icon-sun"/></svg>
-                                        <svg id="moon-icon" width="14" height="14" style="display: none"><use href="#oc-icon-moon"/></svg>
-                                        <svg id="auto-icon" width="14" height="14" style="display: none"><use href="#oc-icon-auto-theme"/></svg>
+                                        <svg id="moon-icon" width="14" height="14" class="oc-hidden"><use href="#oc-icon-moon"/></svg>
+                                        <svg id="auto-icon" width="14" height="14" class="oc-hidden"><use href="#oc-icon-auto-theme"/></svg>
                                     </button>
                                     <button type="button" class="icon-btn action-btn" id="go_wiki" title="<%:Wiki%>" onclick="return wikipage()"><svg width="14" height="14"><use href="#oc-icon-wiki"/></svg></button>
                                     <button type="button" class="icon-btn action-btn" id="go_tutorials" title="<%:Tutorials%>" onclick="return gitbookpage()"><svg width="14" height="14"><use href="#oc-icon-book"/></svg></button>
                                     <button type="button" class="icon-btn action-btn" id="go_star" title="<%:Star%>" onclick="return homepage()"><svg width="14" height="14"><use href="#oc-icon-star"/></svg></button>
                                     <button type="button" class="icon-btn action-btn" id="go_telegram" title="<%:Telegram%>" onclick="return telegrampage()"><svg width="14" height="14"><use href="#oc-icon-telegram"/></svg></button>
                                     <button type="button" class="icon-btn action-btn" id="go_sponsor" title="<%:Sponsor%>" onclick="return sponsorpage()"><svg width="14" height="14"><use href="#oc-icon-heart"/></svg></button>
-                                    <button type="button" class="icon-btn action-btn" id="logo_btn" title="Mihomo" onclick="return go_mihomo();">
+                                    <button type="button" class="icon-btn action-btn" id="logo_btn" title="Mihomo" onclick="return winOpen('https://www.github.com/metacubex/mihomo');">
                                         <img id="_logo" src="/luci-static/resources/openclash/img/logo.png?v=<%=plugin_version%>" loading="lazy" width="14px" height="14px" alt="Mihomo"/>
                                         <span class="logo-text">Powered by <span class="mihomo-link">Mihomo</span></span>
                                     </button>
@@ -82,26 +82,45 @@
                         <!-- Row 2: Running Mode & Proxy Mode -->
                         <div class="card-row dual-cards mode-row">
                             <div class="sub-card">
-                                <div class="card-title"><%:Running Mode%></div>
+                                <div class="stats-card-header">
+                                    <div class="stats-title"><%:Running Mode%></div>
+                                    <span class="mode-pill" id="mode-pill">
+                                        <input type="radio" id="dns_fakeip" name="radios-dns" value="fake-ip" onclick="return switch_dns_mode(this.value)"/>
+                                        <label for="dns_fakeip" class="mode-pill-opt" title="<%:Fake-IP%>">
+                                            <svg width="13" height="13"><use href="#oc-icon-cloud"/></svg>
+                                        </label>
+                                        <input type="radio" id="dns_redirhost" name="radios-dns" value="redir-host" onclick="return switch_dns_mode(this.value)"/>
+                                        <label for="dns_redirhost" class="mode-pill-opt" title="<%:Redir-Host%>">
+                                            <svg width="13" height="13"><use href="#oc-icon-device-desktop"/></svg>
+                                        </label>
+                                    </span>
+                                </div>
                                 <div class="card-content">
-                                    <div class="card-value"><span id="_mode" class="value-indicator"><%:Collecting data...%></span></div>
                                     <div class="card-controls">
-                                        <div id="radio-ru-mode" class="cbi-button-group" style="display: inline-flex;">
-                                            <input type="radio" id="normal" name="radios-ru" value="" onclick="return switch_run_mode(this.value)"/><label for="normal" id="run_normal" class="cbi-button-option"><%:Compat%></label>
-                                            <input type="radio" id="tun" name="radios-ru" value="-tun" onclick="return switch_run_mode(this.value)"/><label for="tun" class="cbi-button-option"><%:TUN%></label>
-                                            <input type="radio" id="mix" name="radios-ru" value="-mix" onclick="return switch_run_mode(this.value)"/><label for="mix" class="cbi-button-option"><%:Mix%></label>
+                                        <div id="radio-ru-mode" class="cbi-button-group oc-inline-flex">
+                                            <input type="radio" id="normal" name="radios-ru" value="" onclick="return switch_run_mode(this.value)"/>
+                                            <label for="normal" id="run_normal" class="cbi-button-option"><%:Compat%></label>
+                                            <input type="radio" id="tun" name="radios-ru" value="-tun" onclick="return switch_run_mode(this.value)"/>
+                                            <label for="tun" class="cbi-button-option"><%:TUN%></label>
+                                            <input type="radio" id="mix" name="radios-ru" value="-mix" onclick="return switch_run_mode(this.value)"/>
+                                            <label for="mix" class="cbi-button-option"><%:Mix%></label>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="sub-card">
-                                <div class="card-title"><%:Proxy Mode%></div>
+                                <div class="stats-card-header">
+                                    <div class="stats-title"><%:Proxy Mode%></div>
+                                </div>
                                 <div class="card-content">
                                     <div class="card-controls">
-                                        <div id="radio-mode" class="cbi-button-group" style="display: inline-flex;">
-                                            <input type="radio" id="rule" name="radios" value="rule" onclick="return switch_rule_mode(this.value)"/><label for="rule" class="cbi-button-option"><%:Rule%></label>
-                                            <input type="radio" id="global" name="radios" value="global" onclick="return switch_rule_mode(this.value)"/><label for="global" class="cbi-button-option"><%:Global%></label>
-                                            <input type="radio" id="direct" name="radios" value="direct" onclick="return switch_rule_mode(this.value)"/><label for="direct" class="cbi-button-option"><%:Direct%></label>
+                                        <div id="radio-mode" class="cbi-button-group oc-inline-flex">
+                                            <input type="radio" id="rule" name="radios" value="rule" onclick="return switch_rule_mode(this.value)"/>
+                                            <label for="rule" class="cbi-button-option"><%:Rule%></label>
+                                            <input type="radio" id="global" name="radios" value="global" onclick="return switch_rule_mode(this.value)"/>
+                                            <label for="global" class="cbi-button-option"><%:Global%></label>
+                                            <input type="radio" id="direct" name="radios" value="direct" onclick="return switch_rule_mode(this.value)"/>
+                                            <label for="direct" class="cbi-button-option"><%:Direct%></label>
                                         </div>
                                     </div>
                                 </div>
@@ -114,10 +133,13 @@
                                 <div class="card-title"><%:Area Bypass%><div class="help-link" title="<%:Bypass Specified Regions Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option%>"><svg width="12" height="12"><use href="#oc-icon-help"/></svg></div></div>
                                 <div class="card-content">
                                     <div class="card-controls">
-                                        <div id="oc-setting-oversea" class="cbi-button-group" style="display: inline-flex;">
-                                            <input type="radio" id="oc_setting_oversea_1" name="oc-setting-oversea" value="1" onclick="return switch_oc_setting_oversea('1')"/><label for="oc_setting_oversea_1" class="cbi-button-option"><%:Mainland%></label>
-                                            <input type="radio" id="oc_setting_oversea_2" name="oc-setting-oversea" value="2" onclick="return switch_oc_setting_oversea('2')"/><label for="oc_setting_oversea_2" class="cbi-button-option"><%:Oversea%></label>
-                                            <input type="radio" id="oc_setting_oversea_0" name="oc-setting-oversea" value="0" onclick="return switch_oc_setting_oversea('0')"/><label for="oc_setting_oversea_0" class="cbi-button-option"><%:Off%></label>
+                                        <div id="oc-setting-oversea" class="cbi-button-group oc-inline-flex">
+                                            <input type="radio" id="oc_setting_oversea_1" name="oc-setting-oversea" value="1" onclick="return switch_oc_setting_oversea('1')"/>
+                                            <label for="oc_setting_oversea_1" class="cbi-button-option"><%:Mainland%></label>
+                                            <input type="radio" id="oc_setting_oversea_2" name="oc-setting-oversea" value="2" onclick="return switch_oc_setting_oversea('2')"/>
+                                            <label for="oc_setting_oversea_2" class="cbi-button-option"><%:Oversea%></label>
+                                            <input type="radio" id="oc_setting_oversea_0" name="oc-setting-oversea" value="0" onclick="return switch_oc_setting_oversea('0')"/>
+                                            <label for="oc_setting_oversea_0" class="cbi-button-option"><%:Off%></label>
                                         </div>
                                     </div>
                                 </div>
@@ -126,9 +148,11 @@
                                 <div class="card-title"><%:Sniffer%><a href="javascript:void(0);" onclick="window.open('https://wiki.metacubex.one/config/sniff/?h=sniff#_1', '_blank');" class="help-link" title="<%:Sniff the domain name of the traffics to avoid rule-based proxy failure%>"><svg width="12" height="12"><use href="#oc-icon-help"/></svg></a></div>
                                 <div class="card-content">
                                     <div class="card-controls">
-                                        <div id="dns-setting-sniffer" class="cbi-button-group" style="display: inline-flex;">
-                                            <input type="radio" id="meta_sniffer_on" name="meta-sniffer-radios" value="1" onclick="return switch_meta_sniffer('1')"/><label for="meta_sniffer_on" class="cbi-button-option"><%:On%></label>
-                                            <input type="radio" id="meta_sniffer_off" name="meta-sniffer-radios" value="0" onclick="return switch_meta_sniffer('0')"/><label for="meta_sniffer_off" class="cbi-button-option"><%:Off%></label>
+                                        <div id="dns-setting-sniffer" class="cbi-button-group oc-inline-flex">
+                                            <input type="radio" id="meta_sniffer_on" name="meta-sniffer-radios" value="1" onclick="return switch_meta_sniffer('1')"/>
+                                            <label for="meta_sniffer_on" class="cbi-button-option"><%:On%></label>
+                                            <input type="radio" id="meta_sniffer_off" name="meta-sniffer-radios" value="0" onclick="return switch_meta_sniffer('0')"/>
+                                            <label for="meta_sniffer_off" class="cbi-button-option"><%:Off%></label>
                                         </div>
                                     </div>
                                 </div>
@@ -137,9 +161,11 @@
                                 <div class="card-title"><%:DNS Proxy%><a href="javascript:void(0);" onclick="window.open('https://wiki.metacubex.one/config/dns/?h=res#respect-rules', '_blank');" class="help-link" title="<%:DNS querys respect-rules to preventing access failure%>"><svg width="12" height="12"><use href="#oc-icon-help"/></svg></a></div>
                                 <div class="card-content">
                                     <div class="card-controls">
-                                        <div id="dns-setting-respect" class="cbi-button-group" style="display: inline-flex;">
-                                            <input type="radio" id="respect_rules_on" name="respect-rules-radios" value="1" onclick="return switch_respect_rules('1')"/><label for="respect_rules_on" class="cbi-button-option"><%:On%></label>
-                                            <input type="radio" id="respect_rules_off" name="respect-rules-radios" value="0" onclick="return switch_respect_rules('0')"/><label for="respect_rules_off" class="cbi-button-option"><%:Off%></label>
+                                        <div id="dns-setting-respect" class="cbi-button-group oc-inline-flex">
+                                            <input type="radio" id="respect_rules_on" name="respect-rules-radios" value="1" onclick="return switch_respect_rules('1')"/>
+                                            <label for="respect_rules_on" class="cbi-button-option"><%:On%></label>
+                                            <input type="radio" id="respect_rules_off" name="respect-rules-radios" value="0" onclick="return switch_respect_rules('0')"/>
+                                            <label for="respect_rules_off" class="cbi-button-option"><%:Off%></label>
                                         </div>
                                     </div>
                                 </div>
@@ -148,9 +174,11 @@
                                 <div class="card-title"><%:Stream Unlock%><div class="help-link" title="<%:Auto Select Proxy For Streaming Unlock, Support Netflix, Disney Plus, HBO And YouTube Premium, etc%>"><svg width="12" height="12"><use href="#oc-icon-help"/></svg></div></div>
                                 <div class="card-content">
                                     <div class="card-controls">
-                                        <div id="stream-unlock-setting" class="cbi-button-group" style="display: inline-flex;">
-                                            <input type="radio" id="stream_unlock_on" name="stream-unlock-radios" value="1" onclick="return switch_stream_unlock('1')"/><label for="stream_unlock_on" class="cbi-button-option"><%:On%></label>
-                                            <input type="radio" id="stream_unlock_off" name="stream-unlock-radios" value="0" onclick="return switch_stream_unlock('0')"/><label for="stream_unlock_off" class="cbi-button-option"><%:Off%></label>
+                                        <div id="stream-unlock-setting" class="cbi-button-group oc-inline-flex">
+                                            <input type="radio" id="stream_unlock_on" name="stream-unlock-radios" value="1" onclick="return switch_stream_unlock('1')"/>
+                                            <label for="stream_unlock_on" class="cbi-button-option"><%:On%></label>
+                                            <input type="radio" id="stream_unlock_off" name="stream-unlock-radios" value="0" onclick="return switch_stream_unlock('0')"/>
+                                            <label for="stream_unlock_off" class="cbi-button-option"><%:Off%></label>
                                         </div>
                                     </div>
                                 </div>
@@ -160,44 +188,38 @@
                         <!-- Row 4: Config File -->
                         <div class="card-row full-width">
                             <div class="sub-card">
-                                <div class="card-title"><%:Config File%></div>
+                                <div class="stats-card-header">
+                                    <div class="stats-title"><%:Config File%></div>
+                                </div>
                                 <div class="config-file-content">
-                                    <div id="subscription-info-display" class="subscription-info-container" style="display: none;">
+                                    <div id="subscription-info-display" class="subscription-info-container oc-hidden">
                                         <div class="subscription-nav-arrow left" id="subscription-prev-arrow" onclick="switchToPreviousConfig()" title="<%:Previous%>"></div>
                                         <div class="subscription-nav-arrow right" id="subscription-next-arrow" onclick="switchToNextConfig()" title="<%:Next%>"></div>
                                         <div class="subscription-info-main">
                                             <div class="subscription-info-header">
                                                 <div class="config-file-name-wrapper">
                                                     <div class="config-file-name" id="current-config-name"><%:No Config Selected%></div>
-                                                    <span id="age-file-icon" class="age-file-icon" style="display:none;"></span>
+                                                    <span id="age-file-icon" class="age-file-icon oc-hidden"></span>
                                                 </div>
                                                 <div class="file-info" id="file-info-section">
-                                                    <span id="file-modify-time" class="file-info-item"><%:Modified: %> --</span>
+                                                    <span id="file-modify-time" class="file-info-item" title="<%:Modified%>"><svg class="file-modify-icon" width="14" height="14"><use href="#oc-icon-clock-edit"/></svg><span id="file-modify-time-value">--</span></span>
                                                 </div>
                                             </div>
                                             <div class="subscription-info-details">
-                                                <div class="subscription-progress" id="subscription-progress-section" style="display: none;">
+                                                <div class="subscription-progress oc-hidden" id="subscription-progress-section">
                                                     <div class="subscription-progress-bar">
                                                         <div id="subscription-progress-fill" class="subscription-progress-fill high" style="width: 0%"></div>
                                                     </div>
                                                     <div id="subscription-info-text" class="subscription-info-text"><%:Collecting data...%></div>
                                                 </div>
                                                 <div class="card-actions subscription-actions-row">
-                                                    <div id="subscription-overwrite-tags" class="subscription-overwrite-tags" style="display: none;"></div>
+                                                    <div id="subscription-overwrite-tags" class="subscription-overwrite-tags oc-hidden"></div>
                                                     <div class="subscription-action-buttons">
                                                         <button type="button" class="icon-btn action-btn" id="refresh-subscription" title="<%:Refresh%>" onclick="return refreshSubscriptionInfo()">
-                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                                <path d="M23 4v6h-6"></path>
-                                                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-                                                            </svg>
+                                                            <svg width="14" height="14"><use href="#oc-icon-refresh"/></svg>
                                                         </button>
                                                         <button type="button" class="icon-btn action-btn" id="config-subscription-url" title="<%:Specify URL%>" onclick="return setSubscriptionUrl()">
-                                                            <svg width="14" height="14" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="4">
-                                                                <path d="M4 6H44V36H29L24 41L19 36H4V6Z"/>
-                                                                <path d="M23 21H25.0025" />
-                                                                <path d="M33.001 21H34.9999"/>
-                                                                <path d="M13.001 21H14.9999"/>
-                                                            </svg>
+                                                            <svg width="14" height="14"><use href="#oc-icon-chat"/></svg>
                                                         </button>
                                                     </div>
                                                 </div>
@@ -205,10 +227,10 @@
                                         </div>
                                     </div>
 
-                                    <div id="config-file-empty-state" class="config-file-empty-state" style="display: none;">
+                                    <div id="config-file-empty-state" class="config-file-empty-state oc-hidden">
                                         <div class="config-file-empty-message"><%:No config files found, Please upload a config file to get started%></div>
                                         <button type="button" class="config-upload-btn-large" id="upload_config_large" onclick="return uploadConfig()">
-                                            <svg width="20" height="20"><use href="#oc-icon-download"/></svg>
+                                            <svg width="20" height="20"><use href="#oc-icon-upload"/></svg>
                                             <%:Add Config File%>
                                         </button>
                                     </div>
@@ -222,7 +244,7 @@
                                             <button type="button" class="icon-btn action-btn" id="update_config" title="<%:Update%>" onclick="return updateConfig()"><svg width="14" height="14"><use href="#oc-icon-update"/></svg></button>
                                             <button type="button" class="icon-btn action-btn" id="edit_config" title="<%:Edit%>" onclick="return editConfig()"><svg width="14" height="14"><use href="#oc-icon-edit"/></svg></button>
                                             <button type="button" class="icon-btn action-btn" id="edit_subscribe" title="<%:Edit Subscription%>" onclick="return editSubscribe()"><svg width="14" height="14"><use href="#oc-icon-settings"/></svg></button>
-                                            <button type="button" class="icon-btn action-btn" id="upload_config" title="<%:Add%>" onclick="return uploadConfig()"><svg width="14" height="14"><use href="#oc-icon-upload"/></svg></button>
+                                            <button type="button" class="icon-btn action-btn" id="upload_config" title="<%:Add%>" onclick="return uploadConfig()"><svg width="14" height="14"><use href="#oc-icon-add"/></svg></button>
                                         </div>
                                     </div>
                                 </div>
@@ -263,12 +285,13 @@
                         <!-- Row 2: Dashboards -->
                         <div class="card-row full-width">
                             <div class="sub-card dashboard-container">
-                                <div class="card-title"><%:Control Panel%></div>
+                                <div class="card-title"><%:Control Panel%><div class="help-link" title="<%:If the control panel does not open properly, please try going to Plugin Settings - Dashboard Settings to reset the panel%>"><svg width="12" height="12"><use href="#oc-icon-help"/></svg></div></div>
                                 <div class="dashboard-buttons">
                                     <button class="dashboard-btn" id="_web"><%:Collecting data...%></button>
                                     <button class="dashboard-btn" id="_webm"><%:Collecting data...%></button>
                                     <button class="dashboard-btn" id="_webz"><%:Collecting data...%></button>
                                     <button class="dashboard-btn" id="_webo"><%:Collecting data...%></button>
+                                    <button class="dashboard-btn hidden" id="_web_external"><%:Collecting data...%></button>
                                 </div>
                             </div>
                         </div>
@@ -287,21 +310,53 @@
                         </div>
 
                         <!-- Row 4: Statistics -->
-                        <div class="card-row stats-grid">
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Up%></span><span id="upload_" class="stat-value">0 KB/S</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Down%></span><span id="download_" class="stat-value">0 KB/S</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Up Total%></span><span id="uploadtotal_" class="stat-value">0 KB</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Down Total%></span><span id="downloadtotal_" class="stat-value">0 KB</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Connect%></span><span id="connect_t" class="stat-value">0</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Ram%></span><span id="mem_t" class="stat-value">0 KB</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:CPU%></span><span id="cpu_t" class="stat-value">0 %</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Load Avg%></span><span id="load_a" class="stat-value">0 %</span></div>
+                        <div class="stats-section">
+                            <div class="stats-card-header">
+                                <div class="stats-title"><%:Statistics%></div>
+                                <div class="icon-pill stats-view-toggle" id="stats-view-toggle" role="group" aria-label="<%:View Mode%>">
+                                    <button type="button" class="icon-pill-opt" id="stats-cards-btn" title="<%:Cards%>" data-view="cards">
+                                        <svg width="13" height="13"><use href="#oc-icon-grid"/></svg>
+                                    </button>
+                                    <button type="button" class="icon-pill-opt" id="stats-chart-btn" title="<%:Chart%>" data-view="chart">
+                                        <svg width="13" height="13"><use href="#oc-icon-chart"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-row stats-grid" id="stats-view-cards">
+                                <div class="sub-card stat-item"><span class="stat-label"><%:Up%></span><span id="upload_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB/S</span></span></div>
+                                <div class="sub-card stat-item"><span class="stat-label"><%:Down%></span><span id="download_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB/S</span></span></div>
+                                <div class="sub-card stat-item"><span class="stat-label"><%:Up Total%></span><span id="uploadtotal_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB</span></span></div>
+                                <div class="sub-card stat-item"><span class="stat-label"><%:Down Total%></span><span id="downloadtotal_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB</span></span></div>
+                                <div class="sub-card stat-item"><span class="stat-label"><%:Connect%></span><span id="connect_t" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span></span></div>
+                                <div class="sub-card stat-item"><span class="stat-label"><%:Ram%></span><span id="mem_t" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB</span></span></div>
+                                <div class="sub-card stat-item"><span class="stat-label"><%:CPU%></span><span id="cpu_t" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">%</span></span></div>
+                                <div class="sub-card stat-item"><span class="stat-label"><%:Load Avg%></span><span id="load_a" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">%</span></span></div>
+                            </div>
+
+                            <div class="stats-chart-card oc-hidden" id="stats-view-chart">
+                                <div class="stats-chart-header">
+                                    <div class="stats-legend" id="stats-legend"></div>
+                                </div>
+                                <div class="stats-chart-wrap"><canvas id="stats-chart"></canvas></div>
+                            </div>
+                            <div class="cbi-button-group stats-tabs oc-hidden" id="stats-tabs">
+                                <input type="radio" id="stats-metric-traffic" name="stats-metric" value="traffic" checked/>
+                                <label for="stats-metric-traffic" class="cbi-button-option"><%:Traffic%></label>
+                                <input type="radio" id="stats-metric-connections" name="stats-metric" value="connections"/>
+                                <label for="stats-metric-connections" class="cbi-button-option"><%:Connect%></label>
+                                <input type="radio" id="stats-metric-memory" name="stats-metric" value="memory"/>
+                                <label for="stats-metric-memory" class="cbi-button-option"><%:Ram%></label>
+                                <input type="radio" id="stats-metric-cpu" name="stats-metric" value="cpu"/>
+                                <label for="stats-metric-cpu" class="cbi-button-option"><%:CPU%></label>
+                                <input type="radio" id="stats-metric-load" name="stats-metric" value="load"/>
+                                <label for="stats-metric-load" class="cbi-button-option"><%:Load Avg%></label>
+                            </div>
                         </div>
                     </div>
                 </div>
 
             <!-- Usage Help Model -->
-            <div class="config-upload-model-overlay" id="usage-help-overlay" style="display: none;">
+            <div class="config-upload-model-overlay" id="usage-help-overlay">
                 <div class="config-upload-model usage-help-model" id="usage-help-model">
                     <div class="config-upload-header">
                         <div class="config-upload-title"><%:Usage Help%></div>
@@ -312,8 +367,8 @@
                     <div class="config-upload-content">
                         <div class="form-group">
                             <label class="highlight-label"><%:Copy the following text to any AI (ChatGPT, DeepSeek, etc.) to get usage help for OpenClash:%></label>
-                            <textarea id="usage-help-textarea" class="form-textarea" style="display:none"></textarea>
-                            <div id="usage-help-editor" style="height: 400px;"></div>
+                            <textarea id="usage-help-textarea" class="form-textarea oc-hidden"></textarea>
+                            <div id="usage-help-editor"></div>
                         </div>
                     </div>
                     <div class="config-upload-footer">
@@ -325,27 +380,39 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Usage Help Button -->
+            <div class="oc-usage-help-float" id="usage-help-float" title="<%:Usage Help%>" onclick="UsageHelpManager.show()">
+                <svg width="24" height="24"><use href="#oc-icon-usage-help"/></svg>
+                <span class="oc-usage-help-bubble" id="usage-help-bubble"><%:Click to get usage help%></span>
+            </div>
             </div>
         </td>
     </tr>
 </table>
 </fieldset>
 
-<!-- Usage Help Button -->
-<div class="oc-usage-help-float" id="usage-help-float" title="<%:Usage Help%>" onclick="UsageHelpManager.show()">
-    <svg width="24" height="24"><use href="#oc-icon-usage-help"/></svg>
-</div>
-
 <script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
-<%+openclash/common%>
 <script type="text/javascript">//<![CDATA[
+    window.ocCM6Url = '/luci-static/resources/openclash/js/cm6.min.js?v=<%=plugin_version%>';
+    window.levelTranslations = {
+        'info': '<%:Info%>',
+        'warning': '<%:Warning%>',
+        'error': '<%:Error%>',
+        'debug': '<%:Debug%>',
+        'tip': '<%:Tip%>',
+        'watchdog': '<%:Watchdog%>',
+        'fatal': '<%:Fatal%>'
+    };
     var DOMCache = {
         clash: document.getElementById('_clash'),
-        mode: document.getElementById('_mode'),
+        dns_fakeip: document.getElementById('dns_fakeip'),
+        dns_redirhost: document.getElementById('dns_redirhost'),
         web: document.getElementById('_web'),
         webo: document.getElementById('_webo'),
         webm: document.getElementById('_webm'),
         webz: document.getElementById('_webz'),
+        web_external: document.getElementById('_web_external'),
         daip: document.getElementById('_daip'),
         oclog: document.getElementById('_oclog'),
         close_all_connection: document.getElementById('_close_all_connection_btn'),
@@ -382,9 +449,21 @@
     };
 
     var getDashboardBaseURL = ocGetDashboardBaseURL;
+    var getDashboardWebSocketOrigin = ocGetDashboardWebSocketOrigin;
     var buildDashboardURL = ocBuildDashboardURL;
+    var buildExternalDashboardURL = ocBuildExternalDashboardURL;
     var bytesToSize = ocFormatBytes;
     var debounceButton = ocDebounce;
+
+    function ocStatHtml(text, color) {
+        color = color || 'var(--success-color)';
+        var s = String(text);
+        var m = s.match(/^([\d.]+)\s*(.*)$/);
+        var num = m ? m[1] : s;
+        var unit = m ? m[2] : '';
+        return '<span class="stat-num" style="color:' + color + '">' + num + '</span>'
+            + (unit ? '<span class="stat-unit">' + unit + '</span>' : '');
+    }
 
     var DarkModeDetector = {
         init: function() {
@@ -392,23 +471,21 @@
         },
 
         applyDarkMode: function() {
-            ocUpdateTheme();
-
             var sunIcon = document.getElementById('sun-icon');
             var moonIcon = document.getElementById('moon-icon');
             var autoIcon = document.getElementById('auto-icon');
             if (sunIcon && moonIcon && autoIcon) {
                 var theme = localStorage.getItem('oc-theme') || 'auto';
-                sunIcon.style.display = 'none';
-                moonIcon.style.display = 'none';
-                autoIcon.style.display = 'none';
+                sunIcon.classList.add('oc-hidden');
+                moonIcon.classList.add('oc-hidden');
+                autoIcon.classList.add('oc-hidden');
 
                 if (theme === 'light') {
-                    sunIcon.style.display = 'inline';
+                    sunIcon.classList.remove('oc-hidden');
                 } else if (theme === 'dark') {
-                    moonIcon.style.display = 'inline';
+                    moonIcon.classList.remove('oc-hidden');
                 } else {
-                    autoIcon.style.display = 'inline';
+                    autoIcon.classList.remove('oc-hidden');
                 }
             }
         }
@@ -422,7 +499,7 @@
         cache_ttl: 5000,
         pending_requests: new Map(),
 
-        _cachedXHR: function(url, params, callback, force) {
+        cachedXHR: function(url, params, callback, force) {
             var cacheKey = params ? url + JSON.stringify(params) : url;
             var now = Date.now();
 
@@ -445,7 +522,7 @@
                 setTimeout(function() {
                     callback({ status: 200, fromCache: true, stale: true }, StateManager.request_cache[cacheKey]);
                 }, 0);
-                this._refreshCacheSilent(url, params, cacheKey);
+                this.refreshCacheSilent(url, params, cacheKey);
                 return;
             }
 
@@ -472,11 +549,11 @@
         },
 
         cachedXHRGet: function(url, callback, force) {
-            this._cachedXHR(url, null, callback, force);
+            this.cachedXHR(url, null, callback, force);
         },
 
         cachedXHRGetWithParams: function(url, params, callback, force) {
-            this._cachedXHR(url, params, callback, force);
+            this.cachedXHR(url, params, callback, force);
         },
 
         clearCache: function(url, params) {
@@ -511,12 +588,14 @@
             for (var i = 0; i < updates.length; i++) {
                 var update = updates[i];
                 if (update.element && update.content !== undefined) {
-                    update.element.innerHTML = update.content;
+                    if (update.element.innerHTML !== update.content) {
+                        update.element.innerHTML = update.content;
+                    }
                 }
             }
         },
 
-        _refreshCacheSilent: function(url, params, cacheKey) {
+        refreshCacheSilent: function(url, params, cacheKey) {
             var self = this;
             XHR.get(url, params, function(x, data) {
                 if (x && x.status == 200 && data) {
@@ -559,8 +638,8 @@
         reconnectDelay: 5000,
         heartbeatInterval: 30000,
         heartbeatTimers: {},
-        _ws_connect: false,
-        _allowedCloseCodes: [1000, 1001, 1005, 1006],
+        wsConnect: false,
+        allowedCloseCodes: [1000, 1001, 1005, 1006],
 
         isSupported: function() {
             return typeof window.WebSocket !== "undefined";
@@ -621,7 +700,7 @@
                 }
             }, this.heartbeatInterval);
 
-            if (!this._visibilityHandlerAdded) {
+            if (!this.visibilityHandlerAdded) {
                 document.addEventListener('visibilitychange', function() {
                     if (document.hidden) {
                         for (var t in self.heartbeatTimers) {
@@ -635,7 +714,7 @@
                         }
                     }
                 });
-                this._visibilityHandlerAdded = true;
+                this.visibilityHandlerAdded = true;
             }
         },
 
@@ -655,6 +734,10 @@
 
         closeConnection: function(type) {
             var connection = this.connections[type];
+            if (this.pendingReconnect && this.pendingReconnect[type]) {
+                clearTimeout(this.pendingReconnect[type]);
+                delete this.pendingReconnect[type];
+            }
             if (connection && connection.socket) {
                 this.stopHeartbeat(type);
                 try {
@@ -669,7 +752,7 @@
             for (var i = 0; i < types.length; i++) {
                 this.closeConnection(types[i]);
             }
-            this._ws_connect = false;
+            this.wsConnect = false;
         },
 
         handleMessage: function(type, event) {
@@ -698,7 +781,7 @@
             }
             this.startHeartbeat(type);
 
-            if (!this._ws_connect) {
+            if (!this.wsConnect) {
                 var connectedCount = 0;
                 for (var t in this.connections) {
                     if (this.connections[t].state === this.connectionStates.CONNECTED) {
@@ -706,7 +789,7 @@
                     }
                 }
                 if (connectedCount >= 1) {
-                    this._ws_connect = true;
+                    this.wsConnect = true;
                     if (NetworkStatsManager.isEnabled) {
                         NetworkStatsManager.stop();
                     }
@@ -720,18 +803,23 @@
                 connection.state = this.connectionStates.ERROR;
             }
             this.stopHeartbeat(type);
+            this.scheduleReconnect(type);
             this.enableFallbackMode();
         },
 
         handleClose: function(type, event) {
             var connection = this.connections[type];
-            if (connection) {
+            if (connection && connection.socket === event.target) {
                 connection.state = this.connectionStates.DISCONNECTED;
-            }
-            this.stopHeartbeat(type);
+                this.stopHeartbeat(type);
 
-            if (this._allowedCloseCodes.indexOf(event.code) === -1) {
-                this.scheduleReconnect(type);
+                if (typeof StatsChart !== 'undefined' && StatsChart.resetToZero) {
+                    StatsChart.resetToZero();
+                }
+
+                if (this.allowedCloseCodes.indexOf(event.code) === -1) {
+                    this.scheduleReconnect(type);
+                }
             }
         },
 
@@ -740,6 +828,7 @@
             if (connection) {
                 connection.state = this.connectionStates.ERROR;
             }
+            this.scheduleReconnect(type);
             this.enableFallbackMode();
         },
 
@@ -752,20 +841,34 @@
                 return;
             }
 
-            setTimeout(function() {
-                if (self.connections[type] && self.connections[type].state !== self.connectionStates.CONNECTED) {
-                    self.createConnection(type, connection.url, connection.messageHandler, connection.options);
-                }
+            var url = connection.url;
+            var handler = connection.messageHandler;
+            var options = connection.options;
+
+            this.pendingReconnect = this.pendingReconnect || {};
+            this.pendingReconnect[type] = setTimeout(function() {
+                delete self.pendingReconnect[type];
+                self.createConnection(type, url, handler, options);
             }, this.reconnectDelay);
         },
 
         enableFallbackMode: function() {
-            this._ws_connect = false;
-            this.closeAll();
-            LogManager.startLogDisplay();
-            if (!NetworkStatsManager.isEnabled) {
-                NetworkStatsManager.start();
+            this.wsConnect = false;
+            var types = Object.keys(this.connections);
+            for (var i = 0; i < types.length; i++) {
+                var connection = this.connections[types[i]];
+                if (connection && connection.socket) {
+                    this.stopHeartbeat(types[i]);
+                    try {
+                        connection.socket.close(1000, 'Normal closure');
+                    } catch (error) {}
+                    delete this.connections[types[i]];
+                }
             }
+            NetworkStatsManager.resetStats();
+            if (typeof StatsChart !== 'undefined' && StatsChart.resetToZero) StatsChart.resetToZero();
+            if (typeof StatsWSMeta !== 'undefined') StatsWSMeta.protocol = null;
+            if (typeof syncDataSource === 'function') syncDataSource();
         },
 
         getConnectionState: function(type) {
@@ -931,9 +1034,9 @@
 
                 this.updateNavigationArrows();
 
-                if (this._retryGetConfigList) {
-                    clearInterval(this._retryGetConfigList);
-                    this._retryGetConfigList = null;
+                if (this.retryGetConfigList) {
+                    clearInterval(this.retryGetConfigList);
+                    this.retryGetConfigList = null;
                 }
 
             } catch (e) {
@@ -949,9 +1052,9 @@
             this.toggleEmptyState(true);
             this.hideSubscriptionDisplay();
 
-            if (!this._retryGetConfigList) {
+            if (!this.retryGetConfigList) {
                 var self = this;
-                this._retryGetConfigList = setInterval(function() {
+                this.retryGetConfigList = setInterval(function() {
                     self.loadConfigFileList(true);
                 }, 5000);
             }
@@ -964,10 +1067,10 @@
 
             if (isEmpty) {
                 if (emptyStateElement) {
-                    emptyStateElement.style.display = 'flex';
+                    emptyStateElement.classList.remove('oc-hidden');
                 }
                 if (configFileBottom) {
-                    configFileBottom.style.display = 'none';
+                    configFileBottom.classList.add('oc-hidden');
                 }
                 if (configFileContent) {
                     configFileContent.classList.add('empty-state');
@@ -975,10 +1078,10 @@
                 this.hideSubscriptionDisplay();
             } else {
                 if (emptyStateElement) {
-                    emptyStateElement.style.display = 'none';
+                    emptyStateElement.classList.add('oc-hidden');
                 }
                 if (configFileBottom) {
-                    configFileBottom.style.display = 'flex';
+                    configFileBottom.classList.remove('oc-hidden');
                 }
                 if (configFileContent) {
                     configFileContent.classList.remove('empty-state');
@@ -989,7 +1092,7 @@
         hideSubscriptionDisplay: function() {
             var subscriptionDisplay = document.getElementById('subscription-info-display');
             if (subscriptionDisplay) {
-                subscriptionDisplay.style.display = 'none';
+                subscriptionDisplay.classList.add('oc-hidden');
             }
         },
 
@@ -1003,12 +1106,6 @@
                     disabled: true
                 });
             } else {
-                options.push({
-                    value: '',
-                    text: '<%:Please select a config file%>',
-                    disabled: false
-                });
-
                 configFiles.forEach(function(file) {
                     var fileName, filePath;
 
@@ -1061,21 +1158,21 @@
             if (!container) return;
 
             if (this.configList.length === 0) {
-                container.style.display = 'none';
+                container.classList.add('oc-hidden');
                 return;
             }
 
             if (!configFile) {
-                container.style.display = 'none';
+                container.classList.add('oc-hidden');
                 return;
             }
 
             if (configFileContent && configFileContent.classList.contains('empty-state')) {
-                container.style.display = 'none';
+                container.classList.add('oc-hidden');
                 return;
             }
 
-            container.style.display = 'flex';
+            container.classList.remove('oc-hidden');
 
             if (configNameElement) {
                 var displayName = this.formatDisplayName(configFile);
@@ -1095,12 +1192,8 @@
             if (fileInfo) {
                 if (fileModifyTimeElement) {
                     var modifyTime = this.formatUnixTime(fileInfo.mtime);
-                    fileModifyTimeElement.textContent = '<%:Update Time%>: ' + modifyTime;
-                    if (fileModifyTimeElement.scrollWidth > fileModifyTimeElement.clientWidth) {
-                        fileModifyTimeElement.title = fileModifyTimeElement.textContent;
-                    } else {
-                        fileModifyTimeElement.title = '';
-                    }
+                    var fileModifyTimeValue = document.getElementById('file-modify-time-value');
+                    fileModifyTimeValue.textContent = modifyTime;
                 }
 
                 if (detailsSection) {
@@ -1111,15 +1204,17 @@
                     if (fileInfo.age) {
                         ageFileIconElement.innerHTML = '<svg width="16" height="16"><use href="#oc-icon-shield-check"/></svg>';
                         ageFileIconElement.title = '<%:Age Encryption File%>';
-                        ageFileIconElement.style.display = 'inline-flex';
+                        ageFileIconElement.classList.remove('oc-hidden');
                     } else {
                         ageFileIconElement.innerHTML = '';
-                        ageFileIconElement.style.display = 'none';
+                        ageFileIconElement.classList.add('oc-hidden');
                     }
                 }
             } else {
                 if (fileModifyTimeElement) {
-                    fileModifyTimeElement.textContent = '<%:Update Time%> --';
+                    var fileModifyTimeValue = document.getElementById('file-modify-time-value');
+                    var modifyTimeText = '--';
+                    fileModifyTimeValue.textContent = modifyTimeText;
                 }
 
                 if (detailsSection) {
@@ -1128,7 +1223,7 @@
 
                 if (ageFileIconElement) {
                     ageFileIconElement.innerHTML = '';
-                    ageFileIconElement.style.display = 'none';
+                    ageFileIconElement.classList.add('oc-hidden');
                 }
             }
         },
@@ -1292,18 +1387,7 @@
         enableOverflowDrag: function(element) {
             if (!element) return;
 
-            function updateDragState() {
-                var isOverflowing = element.scrollWidth > element.clientWidth + 1;
-                if (isOverflowing) {
-                    element.classList.add('is-draggable');
-                } else {
-                    element.classList.remove('is-draggable');
-                    element.classList.remove('dragging');
-                    element.scrollLeft = 0;
-                }
-            }
-
-            if (!element._dragBound) {
+            if (!element.dragBound) {
                 var isDragging = false;
                 var startX = 0;
                 var startScrollLeft = 0;
@@ -1317,7 +1401,6 @@
                 }
 
                 element.addEventListener('mousedown', function(e) {
-                    if (!element.classList.contains('is-draggable')) return;
                     isDragging = true;
                     startX = e.pageX - element.getBoundingClientRect().left;
                     startScrollLeft = element.scrollLeft;
@@ -1342,7 +1425,6 @@
                 });
 
                 element.addEventListener('touchstart', function(e) {
-                    if (!element.classList.contains('is-draggable')) return;
                     if (!e.touches || e.touches.length !== 1) return;
 
                     var touch = e.touches[0];
@@ -1384,10 +1466,8 @@
                     e.preventDefault();
                 });
 
-                element._dragBound = true;
+                element.dragBound = true;
             }
-
-            updateDragState();
         },
 
         init: function() {
@@ -1507,7 +1587,7 @@
                 return;
             }
 
-            container.style.display = 'flex';
+            container.classList.remove('oc-hidden');
 
             if (data && data.providers && data.providers.length > 0) {
                 if (data.providers.length > 1 || data.providers[0].provider_name) {
@@ -1516,7 +1596,7 @@
                     this.displaySingleProvider(data.providers[0], progressSection);
                 }
             } else {
-                progressSection.style.display = 'none';
+                progressSection.classList.add('oc-hidden');
             }
 
             if (detailsSection) {
@@ -1528,7 +1608,7 @@
             if (!progressSection) return;
 
             progressSection.innerHTML = '';
-            progressSection.style.display = 'flex';
+            progressSection.classList.remove('oc-hidden');
             progressSection.className = 'subscription-progress';
 
             var progressBar = document.createElement('div');
@@ -1574,7 +1654,7 @@
             var providerCount = displayProviders.length;
 
             progressSection.innerHTML = '';
-            progressSection.style.display = 'flex';
+            progressSection.classList.remove('oc-hidden');
             progressSection.className = 'subscription-providers-grid';
             progressSection.setAttribute('data-count', providerCount);
 
@@ -1702,11 +1782,11 @@
                 return;
             }
 
-            container.style.display = 'flex';
+            container.classList.remove('oc-hidden');
 
             if (progressSection) {
                 progressSection.innerHTML = '<div class="subscription-no-info"><%:No Sub Info Found%></div>';
-                progressSection.style.display = 'flex';
+                progressSection.classList.remove('oc-hidden');
                 progressSection.className = 'subscription-progress';
             }
 
@@ -1739,11 +1819,11 @@
                 return;
             }
 
-            container.style.display = 'flex';
+            container.classList.remove('oc-hidden');
 
             if (progressSection) {
-                progressSection.innerHTML = '<div class="subscription-loading"><%:Collecting data...%></div>';
-                progressSection.style.display = 'flex';
+                progressSection.innerHTML = '<div class="subscription-loading"><span class="loading-spinner"></span><%:Collecting data...%></div>';
+                progressSection.classList.remove('oc-hidden');
                 progressSection.className = 'subscription-progress';
             }
 
@@ -1812,11 +1892,11 @@
         container: null,
         data: null,
         isLoading: false,
-        _dragBound: false,
-        _isDragging: false,
-        _dragStartX: 0,
-        _dragStartScrollLeft: 0,
-        _touchIdentifier: null,
+        dragBound: false,
+        isDragging: false,
+        dragStartX: 0,
+        dragStartScrollLeft: 0,
+        touchIdentifier: null,
 
         init: function() {
             this.container = document.getElementById('subscription-overwrite-tags');
@@ -1841,16 +1921,16 @@
         },
 
         bindDragScroll: function() {
-            if (!this.container || this._dragBound) {
+            if (!this.container || this.dragBound) {
                 return;
             }
 
             var self = this;
 
             function endDrag() {
-                if (!self._isDragging) return;
-                self._isDragging = false;
-                self._touchIdentifier = null;
+                if (!self.isDragging) return;
+                self.isDragging = false;
+                self.touchIdentifier = null;
                 self.container.classList.remove('dragging');
             }
 
@@ -1858,20 +1938,20 @@
                 if (!self.hasOverflow()) {
                     return;
                 }
-                self._isDragging = true;
-                self._dragStartX = e.pageX - self.container.offsetLeft;
-                self._dragStartScrollLeft = self.container.scrollLeft;
+                self.isDragging = true;
+                self.dragStartX = e.pageX - self.container.offsetLeft;
+                self.dragStartScrollLeft = self.container.scrollLeft;
                 self.container.classList.add('dragging');
                 e.preventDefault();
             });
 
             this.container.addEventListener('mousemove', function(e) {
-                if (!self._isDragging) {
+                if (!self.isDragging) {
                     return;
                 }
                 var x = e.pageX - self.container.offsetLeft;
-                var walk = (x - self._dragStartX) * 1.5;
-                self.container.scrollLeft = self._dragStartScrollLeft - walk;
+                var walk = (x - self.dragStartX) * 1.5;
+                self.container.scrollLeft = self.dragStartScrollLeft - walk;
                 e.preventDefault();
             });
 
@@ -1888,21 +1968,21 @@
                     return;
                 }
                 var touch = e.touches[0];
-                self._isDragging = true;
-                self._touchIdentifier = touch.identifier;
-                self._dragStartX = touch.pageX - self.container.offsetLeft;
-                self._dragStartScrollLeft = self.container.scrollLeft;
+                self.isDragging = true;
+                self.touchIdentifier = touch.identifier;
+                self.dragStartX = touch.pageX - self.container.offsetLeft;
+                self.dragStartScrollLeft = self.container.scrollLeft;
                 self.container.classList.add('dragging');
             }, { passive: true });
 
             this.container.addEventListener('touchmove', function(e) {
-                if (!self._isDragging || !e.touches || e.touches.length === 0) {
+                if (!self.isDragging || !e.touches || e.touches.length === 0) {
                     return;
                 }
 
                 var touch = null;
                 for (var i = 0; i < e.touches.length; i++) {
-                    if (e.touches[i].identifier === self._touchIdentifier) {
+                    if (e.touches[i].identifier === self.touchIdentifier) {
                         touch = e.touches[i];
                         break;
                     }
@@ -1912,8 +1992,8 @@
                 }
 
                 var x = touch.pageX - self.container.offsetLeft;
-                var walk = (x - self._dragStartX) * 1.5;
-                self.container.scrollLeft = self._dragStartScrollLeft - walk;
+                var walk = (x - self.dragStartX) * 1.5;
+                self.container.scrollLeft = self.dragStartScrollLeft - walk;
                 e.preventDefault();
             }, { passive: false });
 
@@ -1929,7 +2009,7 @@
                 e.preventDefault();
             });
 
-            this._dragBound = true;
+            this.dragBound = true;
         },
 
         load: function(force) {
@@ -1971,8 +2051,9 @@
 
         isModuleForCurrentConfig: function(moduleInfo, currentConfigPath) {
             var configList = this.parseModuleConfigList(moduleInfo ? moduleInfo.config : null);
+            // an empty match list never applies (init.d skips overwrite modules without config)
             if (!configList.length) {
-                return true;
+                return false;
             }
 
             if (configList.indexOf('all') !== -1) {
@@ -2027,7 +2108,7 @@
             this.container.innerHTML = '';
 
             if (enabledModules.length === 0) {
-                this.container.style.display = 'none';
+                this.container.classList.add('oc-hidden');
                 this.updateDragScrollState();
                 return;
             }
@@ -2048,196 +2129,299 @@
                 this.container.appendChild(tag);
             }
 
-            this.container.style.display = 'flex';
+            this.container.classList.remove('oc-hidden');
             this.updateDragScrollState();
         }
     };
 
     var LogManager = {
-        isPolling: false,
-        pollTimer: null,
-        maxPollTime: 60000,
-        pollInterval: 1000,
-        startTime: 0,
-        lastLogContent: '',
+        streamingXHR: null,
         retryCount: 0,
         maxRetries: 3,
         retryDelay: 1000,
+        lastLogLineCount: null,
+        reconnectTimer: null,
+        logLines: [],
 
-        startLogDisplay: function(initialMessage) {
-            if (this.isPolling) {
-                return;
+        // Clear the log before streaming so the operation API is served first and the stream does not block it
+        startLogDisplay: function(initialMessage, skipClearLog, scriptName) {
+            if (this.reconnectTimer) { clearTimeout(this.reconnectTimer); this.reconnectTimer = null; }
+            if (this.streamingXHR) {
+                if (initialMessage) {
+                    this.streamingXHR.abort();
+                    this.streamingXHR = null;
+                } else {
+                    return;
+                }
             }
-            if (this.pollTimer) {
-                clearTimeout(this.pollTimer);
-                this.pollTimer = null;
+            if (initialMessage) {
+                this.retryCount = 0;
+                this.lastLogLineCount = null;
+                this.logLines = [];
+                if (DOMCache.oclog) {
+                    DOMCache.oclog.ocScrollPending = false;
+                    DOMCache.oclog.ocScrollFlush = null;
+                    if (DOMCache.oclog.ocScrollAnimId) {
+                        cancelAnimationFrame(DOMCache.oclog.ocScrollAnimId);
+                    }
+                    DOMCache.oclog.ocScrollAnimId = null;
+                    DOMCache.oclog.ocScrollAnim = null;
+                    DOMCache.oclog.style.willChange = '';
+                    DOMCache.oclog.scrollTop = 0;
+                }
             }
 
             StateManager.clearCache('<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>');
 
-            if (DOMCache.oclog && initialMessage) {
-                DOMCache.oclog.style.display = 'inline-flex';
-                DOMCache.oclog.innerHTML = '<b style="color:var(--tip-color)">' + initialMessage + '</b>';
+            var self = this;
+            var hasInitialMessage = !!initialMessage;
+            var watchMode = !!scriptName && scriptName !== 'view';
+            var streamUrl = '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>';
+            if (watchMode) {
+                streamUrl += '?script=' + encodeURIComponent(scriptName);
             }
 
-            this.isPolling = true;
-            this.startTime = Date.now();
-            this.lastLogContent = '';
-            this.retryCount = 0;
+            if (hasInitialMessage) {
+                if (this.maxWaitTimer) { clearTimeout(this.maxWaitTimer); }
+                this.maxWaitTimer = setTimeout(function() {
+                    if (self.streamingXHR) {
+                        self.streamingXHR.abort();
+                        self.streamingXHR = null;
+                    }
+                }, 600000);
+            }
 
-            var self = this;
-            setTimeout(function() {
-                if (self.isPolling) {
-                    self.pollLog();
+            function openStream() {
+                if (self.streamingXHR) {
+                    self.streamingXHR.abort();
+                    self.streamingXHR = null;
                 }
-            }, 2000);
+                var xhr = new XMLHttpRequest();
+                xhr.timeout = 0;
+                xhr.open('GET', streamUrl, true);
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                var streamEnded = false;
+                var gotData = false;
+                var processedLines = 0;
+                var processedLength = 0;
+                var pendingLine = '';
+                var cursorInitialized = false;
+                var finishTimer = null;
+
+                function consumeStreamText(text, flush) {
+                    if (!cursorInitialized) {
+                        if (self.lastLogLineCount != null) {
+                            for (var lineIndex = 0; lineIndex < self.lastLogLineCount; lineIndex++) {
+                                var newlineIndex = text.indexOf('\n', processedLength);
+                                if (newlineIndex < 0) {
+                                    processedLength = text.length;
+                                    break;
+                                }
+                                processedLength = newlineIndex + 1;
+                            }
+                        }
+                        cursorInitialized = true;
+                    }
+                    if (text.length < processedLength) {
+                        processedLength = 0;
+                        pendingLine = '';
+                    }
+                    pendingLine += text.substring(processedLength);
+                    processedLength = text.length;
+                    var parts = pendingLine.split('\n');
+                    if (flush) {
+                        pendingLine = '';
+                    } else {
+                        pendingLine = parts.pop() || '';
+                    }
+                    var raw = parts.join('\n').replace(/##FINISHED##|##CONTINUE##|##FINISH##/g, '');
+                    if (raw.trim()) {
+                        gotData = true;
+                        self.displayLog(raw);
+                    }
+                }
+
+                function finalCleanup(hidePanel) {
+                    if (self.streamingXHR === xhr) {
+                        self.streamingXHR = null;
+                    }
+                    if (hidePanel) {
+                        var capturedXhr = xhr;
+                        if (DOMCache.oclog) {
+                            if (DOMCache.oclog.ocScrollAnimId) {
+                                cancelAnimationFrame(DOMCache.oclog.ocScrollAnimId);
+                            }
+                            DOMCache.oclog.ocScrollAnimId = null;
+                            DOMCache.oclog.ocScrollAnim = null;
+                            DOMCache.oclog.ocScrollPending = false;
+                            DOMCache.oclog.ocScrollFlush = null;
+                            DOMCache.oclog.style.willChange = '';
+                        }
+                        setTimeout(function() {
+                            if (self.streamingXHR !== capturedXhr && !self.streamingXHR) {
+                                if (DOMCache.oclog) {
+                                    DOMCache.oclog.classList.add('oc-hidden');
+                                    DOMCache.oclog.innerHTML = '';
+                                }
+                            }
+                        }, 1000);
+                    }
+                }
+
+                xhr.onprogress = function() {
+                    if (self.streamingXHR !== xhr) return;
+                    if (streamEnded) return;
+                    var text = xhr.responseText || '';
+                    consumeStreamText(text, false);
+                    if (/##FINISHED##\s*$/.test(text) && !finishTimer) {
+                        finishTimer = setTimeout(function() {
+                            streamEnded = true;
+                            finalCleanup(true);
+                        }, 10000);
+                    }
+                };
+
+                xhr.onload = function() {
+                    if (self.streamingXHR !== xhr) return;
+                    if (streamEnded) return;
+                    var text = xhr.responseText || '';
+                    consumeStreamText(text, true);
+                    if (!watchMode || /##FINISHED##\s*$/.test(text)) {
+                        if (!finishTimer) {
+                            finishTimer = setTimeout(function() {
+                                streamEnded = true;
+                                finalCleanup(true);
+                            }, 10000);
+                        }
+                        return;
+                    }
+                    if (finishTimer) { clearTimeout(finishTimer); finishTimer = null; }
+                    streamEnded = true;
+                    self.lastLogLineCount = text.replace(/##FINISHED##\s*$|##CONTINUE##\s*$/, '').replace(/\n+$/, '').split('\n').length;
+                    finalCleanup(false);
+                    self.reconnectTimer = setTimeout(function() {
+                        self.reconnectTimer = null;
+                        if (!self.streamingXHR) self.startLogDisplay(null, true, scriptName);
+                    }, 1000);
+                };
+
+                xhr.onerror = function() {
+                    if (self.streamingXHR !== xhr) return;
+                    if (finishTimer) { clearTimeout(finishTimer); finishTimer = null; }
+                    streamEnded = true;
+                    self.lastLogLineCount = (xhr.responseText || '').replace(/##FINISHED##\s*$|##CONTINUE##\s*$/, '').replace(/\n+$/, '').split('\n').length;
+                    finalCleanup(false);
+                    if (watchMode) {
+                        self.reconnectTimer = setTimeout(function() {
+                            self.reconnectTimer = null;
+                            if (!self.streamingXHR) self.startLogDisplay(null, true, scriptName);
+                        }, 1000);
+                    }
+                };
+
+                xhr.send();
+                self.streamingXHR = xhr;
+                if (hasInitialMessage) {
+                    self.displayLog(initialMessage);
+                }
+            }
+
+            if (skipClearLog) {
+                openStream();
+            } else {
+                XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function() {
+                    openStream();
+                });
+            }
         },
 
         stopLogDisplay: function() {
-            this.isPolling = false;
-            if (this.pollTimer) {
-                clearTimeout(this.pollTimer);
-                this.pollTimer = null;
+            if (this.reconnectTimer) { clearTimeout(this.reconnectTimer); this.reconnectTimer = null; }
+            if (this.maxWaitTimer) { clearTimeout(this.maxWaitTimer); this.maxWaitTimer = null; }
+            if (DOMCache.oclog) {
+                DOMCache.oclog.ocScrollPending = false;
+                DOMCache.oclog.ocScrollFlush = null;
+                if (DOMCache.oclog.ocScrollAnimId) {
+                    cancelAnimationFrame(DOMCache.oclog.ocScrollAnimId);
+                    DOMCache.oclog.ocScrollAnimId = null;
+                    DOMCache.oclog.ocScrollAnim = null;
+                    DOMCache.oclog.style.willChange = '';
+                }
             }
-            this.lastLogContent = '';
-            this.retryCount = 0;
+            var xhr = this.streamingXHR;
+            this.streamingXHR = null;
+            if (xhr) {
+                xhr.abort();
+            }
             if (DOMCache.oclog) {
                 setTimeout(function() {
-                    if (!LogManager.isPolling) {
-                        DOMCache.oclog.style.display = 'none';
+                    if (!LogManager.streamingXHR) {
+                        DOMCache.oclog.classList.add('oc-hidden');
+                        DOMCache.oclog.innerHTML = '';
                     }
                 }, 1000);
             }
         },
 
-        pollLog: function() {
-            if (!this.isPolling) return;
-
-            if (Date.now() - this.startTime > this.maxPollTime) {
-                this.stopLogDisplay();
-                return;
+        renderLog: function() {
+            var el = DOMCache.oclog;
+            if (!el) return;
+            if (!el.wheelBlocked) {
+                el.addEventListener('wheel', function(e) { e.preventDefault(); }, { passive: false });
+                el.wheelBlocked = true;
             }
-
-            var self = this;
-            StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', function(x, status) {
-                if (!self.isPolling) return;
-
-                if (x && x.status == 200 && status && typeof status.startlog !== 'undefined') {
-                    var logContent = (status.startlog || '').trim();
-
-                    if (self.checkForErrors(logContent)) {
-                        self.stopLogDisplay();
-                        return;
-                    }
-
-                    var contentToDisplay = logContent.replace('##FINISH##', '').trim();
-                    if (contentToDisplay && contentToDisplay !== self.lastLogContent) {
-                        self.displayLog(contentToDisplay);
-                    }
-
-                    if (logContent.includes('##FINISH##')) {
-                        setTimeout(function() {
-                            self.stopLogDisplay();
-                        }, 3000);
-                        return;
-                    }
-
-                    if (logContent !== '') {
-                        self.retryCount = 0;
-                        self.scheduleNextPoll(self.pollInterval);
-                    } else {
-                        self.handleEmptyResponse();
-                    }
-                } else {
-                    self.handleFailure();
-                }
-            }, true);
-        },
-
-        handleEmptyResponse: function() {
-            this.scheduleNextPoll(this.pollInterval);
-        },
-
-        handleFailure: function() {
-            if (this.retryCount < this.maxRetries) {
-                this.retryCount++;
-                var delay = Math.min(this.retryDelay * Math.pow(2, this.retryCount - 1), 5000);
-                this.scheduleNextPoll(delay);
-            } else {
-                this.stopLogDisplay();
+            var minVisibleLines = 8;
+            var merged = this.logLines;
+            el.innerHTML = '';
+            var fragment = document.createDocumentFragment();
+            for (var j = 0; j < merged.length; j++) {
+                var color = ocGetLogColor(merged[j]);
+                var div = document.createElement('div');
+                div.style.whiteSpace = 'nowrap';
+                div.innerHTML = '<b style="color:' + color + '">' + merged[j] + '</b>';
+                fragment.appendChild(div);
             }
-        },
-
-        scheduleNextPoll: function(delay) {
-            var self = this;
-            this.pollTimer = setTimeout(function() {
-                self.pollLog();
-            }, delay);
-        },
-
-        checkForErrors: function(log) {
-            if (!log) return false;
-            if (log.match(/level=(fatal|error)/)) {
-                XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function(x) {});
-
-                var msgParts = log.split('msg=');
-                var errorMsg = msgParts.length > 1 ? msgParts[1].replace(/"/g, '') : log;
-
-                setTimeout(function() {
-                    alert('<%:OpenClash Start Failed%>:\n\n' + errorMsg);
-                }, 500);
-
-                return true;
+            for (var spacerCount = merged.length; spacerCount < minVisibleLines; spacerCount++) {
+                var spacer = document.createElement('div');
+                spacer.className = 'oc-log-spacer';
+                spacer.style.visibility = 'hidden';
+                spacer.style.whiteSpace = 'nowrap';
+                spacer.textContent = '\u200B';
+                fragment.insertBefore(spacer, fragment.firstChild);
             }
-            return false;
+            el.appendChild(fragment);
+            el.classList.remove('oc-hidden');
+        },
+
+        flushLog: function() {
+            var el = DOMCache.oclog;
+            if (!el) return;
+            LogManager.renderLog();
+            ocAnimateScroll(el, LogManager.flushLog);
         },
 
         displayLog: function(logContent) {
-            if (!this.isPolling || !DOMCache.oclog) return;
-
-            var cleanLog = this.cleanLogContent(logContent);
-            this.lastLogContent = cleanLog;
-
-            var color = this.getLogColor(cleanLog);
-            var displayText = this.formatLogText(cleanLog);
-
-            DOMCache.oclog.style.display = 'inline-flex';
-            DOMCache.oclog.innerHTML = '<b style="color:' + color + '">' + displayText + '</b>';
-        },
-
-        cleanLogContent: function(content) {
-            return content ? content.replace(/[\r\n]+/g, ' ').replace('##FINISH##', '').trim() : '';
-        },
-
-        getLogColor: function(log) {
-            for (var levelKey in window.levelTranslations) {
-                var translatedText = '[' + window.levelTranslations[levelKey] + ']';
-                if (log.includes(translatedText)) {
-                    return "var(--" + levelKey + "-color)";
-                }
+            if (!this.streamingXHR || !DOMCache.oclog) return;
+            var lines = logContent.split('\n');
+            var allLines = [];
+            for (var i = 0; i < lines.length; i++) {
+                var t = lines[i].replace(/##FINISHED##|##CONTINUE##|##FINISH##/g, '').trim().replace(/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\s*/, '');
+                if (t) allLines.push(t);
             }
-            return "var(--info-color)";
-        },
+            if (allLines.length === 0) return;
 
-        formatLogText: function(log) {
-            if (!log) return '<%:Processing...%>';
+            var isFirst = this.logLines.length === 0 && allLines.length === 1;
+            this.logLines = this.logLines.concat(allLines);
 
-            var cleanText = log.replace(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[.\d]*Z?\s*/, '')
-                            .replace(/^time="[^"]*"\s*/, '')
-                            .replace(/^level=\w+\s*/, '')
-                            .replace(/^msg="?([^"]*)"?\s*/, '$1');
-
-            if (cleanText.length > 60) {
-                cleanText = cleanText.substring(0, 57) + '...';
+            // A batch is still animating: buffer the lines and let the current
+            // animation finish before rendering the next batch.
+            if (DOMCache.oclog.ocScrollAnim) {
+                ocAnimateScroll(DOMCache.oclog, LogManager.flushLog);
+                return;
             }
 
-            return this.escapeHtml(cleanText) || '<%:Processing...%>';
-        },
-
-        escapeHtml: function(text) {
-            var div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+            this.renderLog();
+            ocAnimateScroll(DOMCache.oclog, LogManager.flushLog, isFirst);
         }
     };
 
@@ -2247,6 +2431,19 @@
         retryCount: 0,
         maxRetries: 3,
         isEnabled: false,
+
+        ZERO_SYS_STATS: [
+            {id: "cpu_t", html: ocStatHtml("0 %")},
+            {id: "load_a", html: ocStatHtml("0 %")}
+        ],
+
+        resetSysStats: function() {
+            for (var i = 0; i < this.ZERO_SYS_STATS.length; i++) {
+                var item = this.ZERO_SYS_STATS[i];
+                var el = document.getElementById(item.id);
+                if (el) el.innerHTML = item.html;
+            }
+        },
 
         start: function() {
             if (this.isEnabled) return;
@@ -2268,15 +2465,21 @@
 
             var self = this;
             StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show_sys")%>', function(x, status) {
-                if (x && x.status == 200 && x.responseText != "") {
+                if (x && x.status == 200 && x.responseText != "" && status) {
                     self.retryCount = 0;
-                    var cpuColor = status.cpu <= 50 ? "var(--success-color)" : (status.cpu <= 80 ? "var(--tip-color)" : "var(--error-color)");
-                    var cpuValue = status.cpu <= 100 ? status.cpu + " %" : "0 %";
-                    document.getElementById("cpu_t").innerHTML = "<font style=\"color:"+cpuColor+"\">"+cpuValue+"</font>";
+                    var cpuValueNumber = Number(status.cpu);
+                    if (!isFinite(cpuValueNumber) || cpuValueNumber < 0) cpuValueNumber = 0;
+                    var cpuColor = cpuValueNumber <= 50 ? "var(--success-color)" : (cpuValueNumber <= 80 ? "var(--tip-color)" : "var(--error-color)");
+                    var cpuValue = ocFormatOneDecimal(cpuValueNumber) + " %";
+                    document.getElementById("cpu_t").innerHTML = ocStatHtml(cpuValue, cpuColor);
 
                     var loadValue = parseFloat(status.load_avg) || 0;
+                    if (!isFinite(loadValue) || loadValue < 0) loadValue = 0;
                     var loadColor = loadValue <= 50 ? "var(--success-color)" : (loadValue <= 80 ? "var(--tip-color)" : "var(--error-color)");
-                    document.getElementById("load_a").innerHTML = "<font style=\"color:"+loadColor+"\">"+status.load_avg+" %</font>";
+                    var loadText = ocFormatOneDecimal(loadValue);
+                    document.getElementById("load_a").innerHTML = ocStatHtml(loadText + " %", loadColor);
+                    StatsChart.feed("cpu", cpuValueNumber);
+                    StatsChart.feed("load", loadValue);
                 } else {
                     self.handleError();
                 }
@@ -2290,13 +2493,10 @@
         },
 
         handleError: function() {
-            this.retryCount++;
-
-            if (this.retryCount >= this.maxRetries) {
-                document.getElementById("cpu_t").innerHTML = "<font style=\"color:var(--success-color)\">0 %</font>";
-                document.getElementById("load_a").innerHTML = "<font style=\"color:var(--success-color)\">0 %</font>";
-                this.retryCount = 0;
-            }
+            this.retryCount = 0;
+            this.resetSysStats();
+            StatsChart.feed("cpu", 0);
+            StatsChart.feed("load", 0);
         },
 
         setPollInterval: function(interval) {
@@ -2310,6 +2510,23 @@
         retryCount: 0,
         maxRetries: 3,
         isEnabled: false,
+
+        ZERO_STATS: [
+            {id: "upload_", html: ocStatHtml("0 B/S")},
+            {id: "download_", html: ocStatHtml("0 B/S")},
+            {id: "uploadtotal_", html: ocStatHtml("0 KB")},
+            {id: "downloadtotal_", html: ocStatHtml("0 KB")},
+            {id: "mem_t", html: ocStatHtml("0 KB")},
+            {id: "connect_t", html: ocStatHtml("0")}
+        ],
+
+        resetStats: function() {
+            for (var i = 0; i < this.ZERO_STATS.length; i++) {
+                var item = this.ZERO_STATS[i];
+                var el = document.getElementById(item.id);
+                if (el) el.innerHTML = item.html;
+            }
+        },
 
         start: function() {
             if (this.isEnabled) return;
@@ -2331,7 +2548,7 @@
 
             var self = this;
             StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show")%>', function(x, status) {
-                if (x && x.status == 200 && x.responseText != "") {
+                if (x && x.status == 200 && x.responseText != "" && status) {
                     self.retryCount = 0;
                     self.updateNetworkStats(status);
                 } else {
@@ -2347,34 +2564,41 @@
         },
 
         updateNetworkStats: function(status) {
+            var up = Number(status && status.up);
+            var down = Number(status && status.down);
+            var upTotal = Number(status && status.up_total);
+            var downTotal = Number(status && status.down_total);
+            var mem = Number(status && status.mem);
+            var connections = Number(status && status.connections);
+            if (!isFinite(up)) up = 0;
+            if (!isFinite(down)) down = 0;
+            if (!isFinite(upTotal)) upTotal = 0;
+            if (!isFinite(downTotal)) downTotal = 0;
+            if (!isFinite(mem)) mem = 0;
+            if (!isFinite(connections)) connections = 0;
             var updates = [
-                {element: document.getElementById("upload_"), content: "<font style=\"color:var(--success-color)\">"+status.up+"</font>"},
-                {element: document.getElementById("download_"), content: "<font style=\"color:var(--success-color)\">"+status.down+"</font>"},
-                {element: document.getElementById("uploadtotal_"), content: "<font style=\"color:var(--success-color)\">"+status.up_total+"</font>"},
-                {element: document.getElementById("downloadtotal_"), content: "<font style=\"color:var(--success-color)\">"+status.down_total+"</font>"},
-                {element: document.getElementById("mem_t"), content: "<font style=\"color:var(--success-color)\">"+status.mem+"</font>"},
-                {element: document.getElementById("connect_t"), content: "<font style=\"color:var(--success-color)\">"+status.connections+"</font>"}
+                {element: document.getElementById("upload_"), content: ocStatHtml(bytesToSize(up) + "/S")},
+                {element: document.getElementById("download_"), content: ocStatHtml(bytesToSize(down) + "/S")},
+                {element: document.getElementById("uploadtotal_"), content: ocStatHtml(bytesToSize(upTotal))},
+                {element: document.getElementById("downloadtotal_"), content: ocStatHtml(bytesToSize(downTotal))},
+                {element: document.getElementById("mem_t"), content: ocStatHtml(bytesToSize(mem))},
+                {element: document.getElementById("connect_t"), content: ocStatHtml(String(connections))}
             ];
 
             StateManager.batchUpdateDOM(updates);
+            StatsChart.feed("up", up / 1048576);
+            StatsChart.feed("down", down / 1048576);
+            StatsChart.feed("mem", mem / 1048576);
+            StatsChart.feed("conn", connections);
         },
 
         handleError: function() {
-            this.retryCount++;
-
-            if (this.retryCount >= this.maxRetries) {
-                var fallbackUpdates = [
-                    {element: document.getElementById("upload_"), content: "<font style=\"color:var(--success-color)\">0 B/S</font>"},
-                    {element: document.getElementById("download_"), content: "<font style=\"color:var(--success-color)\">0 B/S</font>"},
-                    {element: document.getElementById("uploadtotal_"), content: "<font style=\"color:var(--success-color)\">0 KB</font>"},
-                    {element: document.getElementById("downloadtotal_"), content: "<font style=\"color:var(--success-color)\">0 KB</font>"},
-                    {element: document.getElementById("mem_t"), content: "<font style=\"color:var(--success-color)\">0 KB</font>"},
-                    {element: document.getElementById("connect_t"), content: "<font style=\"color:var(--success-color)\">0</font>"}
-                ];
-
-                StateManager.batchUpdateDOM(fallbackUpdates);
-                this.retryCount = 0;
-            }
+            this.retryCount = 0;
+            this.resetStats();
+            StatsChart.feed("up", 0);
+            StatsChart.feed("down", 0);
+            StatsChart.feed("mem", 0);
+            StatsChart.feed("conn", 0);
         },
 
         setPollInterval: function(interval) {
@@ -2648,14 +2872,11 @@
         function updateIconShape(megaphoneSvgElement, isRandomTips) {
             if (!megaphoneSvgElement) return;
             if (isRandomTips) {
-                megaphoneSvgElement.innerHTML = '<path d="M176,232a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h80A8,8,0,0,1,176,232Zm40-128a87.55,87.55,0,0,1-33.64,69.21A16.24,16.24,0,0,0,176,186v6a16,16,0,0,1-16,16H96a16,16,0,0,1-16-16v-6a16,16,0,0,0-6.23-12.66A87.59,87.59,0,0,1,40,104.49C39.74,56.83,78.26,17.14,125.88,16A88,88,0,0,1,216,104Zm-16,0a72,72,0,0,0-73.74-72c-39,.92-70.47,33.39-70.26,72.39a71.65,71.65,0,0,0,27.64,56.3A32,32,0,0,1,96,186v6h64v-6a32.15,32.15,0,0,1,12.47-25.35A71.65,71.65,0,0,0,200,104Zm-16.11-9.34a57.6,57.6,0,0,0-46.56-46.55,8,8,0,0,0-2.66,15.78c16.57,2.79,30.63,16.85,33.44,33.45A8,8,0,0,0,176,104a9,9,0,0,0,1.35-.11A8,8,0,0,0,183.89,94.66Z" stroke-width="2"></path>';
-                megaphoneSvgElement.setAttribute('viewBox', '0 0 256 256');
-                megaphoneSvgElement.setAttribute('stroke-width', '3');
+                megaphoneSvgElement.innerHTML = '<use href="#oc-icon-bell-phosphor"/>';
             } else {
-                megaphoneSvgElement.innerHTML = '<path d="M228.54,86.66l-176.06-54A16,16,0,0,0,32,48V192a16,16,0,0,0,16,16,16,16,0,0,0,4.52-.65L136,181.73V192a16,16,0,0,0,16,16h32a16,16,0,0,0,16-16v-29.9l28.54-8.75A16.09,16.09,0,0,0,240,138V102A16.09,16.09,0,0,0,228.54,86.66ZM136,165,48,192V48l88,27Zm48,27H152V176.82L184,167Zm40-54-.11,0L152,160.08V79.92l71.89,22,.11,0v36Z"></path>';
-                megaphoneSvgElement.setAttribute('viewBox', '0 0 256 256');
-                megaphoneSvgElement.removeAttribute('stroke-width');
+                megaphoneSvgElement.innerHTML = '<use href="#oc-icon-megaphone"/>';
             }
+            megaphoneSvgElement.setAttribute('viewBox', '0 0 256 256');
         }
 
         return {
@@ -2671,6 +2892,7 @@
         textarea: null,
         statusEl: null,
         initialized: false,
+        bubbleTimer: null,
 
         init: function() {
             if (this.initialized) return;
@@ -2680,7 +2902,12 @@
 
             var floatBtn = document.getElementById('usage-help-float');
             if (floatBtn) {
-                floatBtn.addEventListener('click', function() { UsageHelpManager.show(); });
+                floatBtn.addEventListener('click', function() {
+                    UsageHelpManager.show();
+                });
+                floatBtn.addEventListener('mouseenter', function() {
+                    UsageHelpManager.dismissBubble();
+                });
             }
 
             document.addEventListener('keydown', function(e) {
@@ -2689,6 +2916,8 @@
                 }
             });
 
+            this.startBubbleTimer();
+
             this.initialized = true;
         },
 
@@ -2696,27 +2925,10 @@
             var skillUrl = 'https://raw.githubusercontent.com/vernesong/OpenClash/dev/.github/skills/openclash-user-guide/SKILL.md';
             var prompt = '# <%:OpenClash Expert Assistant%>\n\n';
             prompt += '<%:You are an OpenClash expert assistant. OpenClash is a LuCI plugin for OpenWrt that manages the Mihomo core.%>\n\n';
-            prompt += '## <%:Reference Guide%>\n\n';
-            prompt += '<%:**IMPORTANT** — Before answering, you MUST fetch and read this authoritative reference guide:%>\n';
+            prompt += '<%:**IMPORTANT** — Before answering, you MUST fetch and read this authoritative reference guide. ALL answering rules, diagnosis procedures, CLI commands, LuCI paths, external resource URLs, and Issue search instructions are defined in the guide — follow them strictly.%>\n';
             prompt += '- [<%:OpenClash User Guide%>](' + skillUrl + ')\n\n';
-            prompt += '<%:This guide contains: complete dependency checklist, error message lookup tables with exact fixes, nftables/iptables firewall chain rules, all LuCI configuration options with UCI paths, DNS setup and leak prevention, subscription/GEO update procedures, and more.%>\n\n';
-            prompt += '## <%:Answering Rules%>\n\n';
-            prompt += '1. <%:Always provide LuCI web UI navigation paths (e.g. **Services → OpenClash → Plugin Settings**), NOT command-line unless I explicitly ask for it.%>\n';
-            prompt += '2. <%:Explain underlying principles (firewall chains, YAML transformation logic) — not just click-here-click-there steps.%>\n';
-            prompt += '3. <%:Check dependency integrity first when troubleshooting — guide me to check dependencies from the **System → Software** page, or generate a debug log from **Server Logs → Debug Logs**.%>\n';
-            prompt += '4. <%:Never guess or fabricate information. If the reference guide does not cover something, actively query these external resources using web fetch / code search tools (in priority order):%>\n';
-            prompt += '   - [<%:Mihomo Wiki%>](https://wiki.metacubex.one/config/)\n';
-            prompt += '   - [<%:Meta-Docs%>](https://github.com/MetaCubeX/Meta-Docs)\n';
-            prompt += '   - [<%:OpenClash source%>](https://github.com/vernesong/OpenClash/tree/dev)\n';
-            prompt += '   - [<%:Mihomo core source%>](https://github.com/MetaCubeX/mihomo/tree/Alpha)\n';
-            prompt += '   - [<%:Smart core source%>](https://github.com/vernesong/mihomo/tree/Alpha)\n';
-            prompt += '   - <%:Fetch Wiki pages to read docs; search repos to find implementation code. Do NOT answer from memory — always verify against the actual source.%>\n';
-            prompt += '5. <%:For bug reports or failure scenarios not covered by the guide, search GitHub Issues first:%>\n';
-            prompt += '   - [<%:OpenClash Issues (config/subscribe/firewall/UI)%>](https://github.com/vernesong/OpenClash/issues)\n';
-            prompt += '   - [<%:Mihomo Issues (proxy protocols/TUN/DNS/rule engine)%>](https://github.com/MetaCubeX/mihomo/issues)\n';
-            prompt += '   - <%:Prioritize maintainer replies and highly upvoted community answers.%>\n';
-            prompt += '6. <%:Cite specific sources — mention which section of the reference guide, external resource, or Issue number your answer is based on.%>\n';
-            prompt += '7. <%:If my problem description is incomplete or lacks error messages, ask me to generate a debug log first (**Server Logs → Debug Logs → Generate Logs**) — do NOT speculate about the cause.%>\n\n';
+            prompt += '<%:The guide is the single source of truth — it covers everything from debug log procedures to external resource queries. Do NOT rely on memory; always verify against the guide.%>\n\n';
+            prompt += '<%:Routing: After reading the guide, consult its Document Routing Table, pick the sub-document(s) matching my question, and fetch their content via the raw URLs given in the table before answering.%>\n\n';
             prompt += '## <%:Question%>\n\n';
             prompt += '<%:My question is:%>\n';
             return prompt;
@@ -2725,50 +2937,59 @@
         show: function() {
             this.init();
             if (!this.overlay || !this.textarea) return;
-            if (!this._portal) {
-                this._portal = document.createElement('div');
-                this._portal.className = 'oc';
-                this._portal.style.overflow = 'visible';
-                document.body.appendChild(this._portal);
-                this._portal.appendChild(this.overlay);
-                ocUpdateTheme();
+            if (!this.portal) {
+                this.portal = document.createElement('div');
+                this.portal.className = 'oc';
+                this.portal.style.overflow = 'visible';
+                document.body.appendChild(this.portal);
+                this.portal.appendChild(this.overlay);
             }
-            this.overlay.style.display = 'flex';
+            this.overlay.classList.add('show');
             if (this.statusEl) {
                 this.statusEl.textContent = '';
             }
 
-            if (!this._editor) {
+            var self = this;
+            if (!this.editor) {
                 var prompt = this.buildPrompt();
                 this.textarea.value = prompt;
-                var container = document.getElementById('usage-help-editor');
-                var isDark = isDarkBackground(document.body);
-                var exts = [CM6.lineNumbers(), CM6.EditorView.lineWrapping, CM6.themeExtension(isDark), CM6.markdown()];
-                var view = new CM6.EditorView({
-                    state: CM6.EditorState.create({ doc: prompt, extensions: exts })
+                this.statusEl.textContent = '<%:Loading...%>';
+                ocRequireCM6(function() {
+                    var container = document.getElementById('usage-help-editor');
+                    var isDark = isDarkBackground(document.body);
+                    var exts = [CM6.lineNumbers(), CM6.EditorView.lineWrapping, CM6.themeExtension(isDark), CM6.markdown()];
+                    var view = new CM6.EditorView({
+                        state: CM6.EditorState.create({ doc: prompt, extensions: exts })
+                    });
+                    container.innerHTML = '';
+                    container.appendChild(view.dom);
+                    self.editor = view;
+                    self.statusEl.textContent = '';
+                    setTimeout(function() {
+                        if (self.editor && self.editor.contentDOM) {
+                            self.editor.focus();
+                        }
+                    }, 100);
                 });
-                container.innerHTML = '';
-                container.appendChild(view.dom);
-                this._editor = view;
+                return;
             }
 
-            var self = this;
             setTimeout(function() {
-                if (self._editor && self._editor.contentDOM) {
-                    self._editor.focus();
+                if (self.editor && self.editor.contentDOM) {
+                    self.editor.focus();
                 }
             }, 100);
         },
 
         hide: function() {
             if (this.overlay) {
-                this.overlay.style.display = 'none';
+                this.overlay.classList.remove('show');
             }
         },
 
         copyAndHide: function() {
-            if (!this._editor) return;
-            var text = this._editor.state.sliceDoc();
+            if (!this.editor) return;
+            var text = this.editor.state.sliceDoc();
             if (!text) return;
             var self = this;
             ocCopyToClipboard(text, null);
@@ -2782,17 +3003,639 @@
                 if (btn) { btn.innerHTML = origHTML; btn.disabled = false; }
                 self.hide();
             }, 2000);
+        },
+
+        startBubbleTimer: function() {
+            var bubble = document.getElementById('usage-help-bubble');
+            if (!bubble) return;
+
+            var delay = Math.random() * 60000;
+            if (delay > 20000) return;
+
+            var self = this;
+            this.bubbleTimer = setTimeout(function() {
+                bubble.classList.add('show');
+            }, Math.min(delay, 5000));
+        },
+
+        dismissBubble: function() {
+            var bubble = document.getElementById('usage-help-bubble');
+            if (!bubble) return;
+            bubble.classList.remove('show');
+            if (this.bubbleAutoHide) {
+                clearTimeout(this.bubbleAutoHide);
+                this.bubbleAutoHide = null;
+            }
+            if (this.bubbleTimer) {
+                clearTimeout(this.bubbleTimer);
+                this.bubbleTimer = null;
+            }
         }
     };
 
+    var StatsChart = {
+        N: 60,
+        rightLeadMs: 1000,
+        metric: 'traffic',
+        view: 'cards',
+        chart: null,
+        latest: { up: 0, down: 0, mem: 0, cpu: 0, load: 0, conn: 0 },
+        buf: { t: [], realT: [], up: [], down: [], mem: [], cpu: [], load: [], conn: [] },
+        lastTick: 0,
+        timer: null,
+        metrics: null,
+        totals: { up: null, down: null },
+        rateUnitCache: null,
+
+        ocVar: function(name, fallback) {
+            var el = document.querySelector('.oc');
+            if (!el) return fallback;
+            var v = (getComputedStyle(el).getPropertyValue(name) || '').trim();
+            return v || fallback;
+        },
+
+        seriesColor: function(key) {
+            var vars = { up: '--violet', down: '--info-color', mem: '--success-color', cpu: '--tip-color', load: '--warning-color', conn: '--teal' };
+            var fallback = { up: '#7c3aed', down: '#3b82f6', mem: '#059669', cpu: '#f59e0b', load: '#ff00bb', conn: '#25b5b8' };
+            return this.ocVar(vars[key], fallback[key]);
+        },
+
+        hexToRgba: function(hex, a) {
+            var h = String(hex).replace('#', '');
+            if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+            var r = parseInt(h.substring(0, 2), 16), g = parseInt(h.substring(2, 4), 16), b = parseInt(h.substring(4, 6), 16);
+            if (isNaN(r) || isNaN(g) || isNaN(b)) return hex;
+            return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+        },
+
+        requiredSources: function() {
+            var ws = [];
+            var sys = false;
+            if (this.view === 'cards') {
+                ws = ['traffic', 'connections', 'memory'];
+                sys = true;
+            } else if (this.metric === 'traffic') {
+                ws = ['traffic', 'connections'];
+            } else if (this.metric === 'memory') {
+                ws = ['memory'];
+            } else if (this.metric === 'connections') {
+                ws = ['connections'];
+            } else {
+                sys = true;
+            }
+            return { ws: ws, sys: sys };
+        },
+
+        notifyDataSource: function() {
+            if (typeof syncDataSource === 'function') syncDataSource();
+        },
+
+        init: function() {
+            var savedView = localStorage.getItem('oc-stats-view');
+            if (savedView === 'chart' || savedView === 'cards') {
+                this.view = savedView;
+            }
+            this.resetBuffer(Date.now());
+            this.metrics = {
+                traffic: { unit: ' MB/s', series: [{ key: 'up', name: '<%:Up%>' }, { key: 'down', name: '<%:Down%>' }] },
+                memory: { unit: ' MB', series: [{ key: 'mem', name: '<%:Ram%>' }] },
+                cpu: { unit: ' %', series: [{ key: 'cpu', name: '<%:CPU%>' }] },
+                load: { unit: ' %', series: [{ key: 'load', name: '<%:Load Avg%>' }] },
+                connections: { unit: '', series: [{ key: 'conn', name: '<%:Connect%>' }] }
+            };
+            var savedMetric = localStorage.getItem('oc-stats-metric');
+            if (savedMetric && this.metrics[savedMetric]) {
+                this.metric = savedMetric;
+            }
+            this.syncTabs();
+            this.bind();
+            this.applyView();
+            this.renderLegend();
+            this.initCardDots();
+            this.startTimer();
+            if (this.view === 'chart') {
+                this.render();
+            }
+        },
+
+        applyView: function() {
+            document.getElementById('stats-view-cards').classList.toggle('oc-hidden', this.view !== 'cards');
+            document.getElementById('stats-view-chart').classList.toggle('oc-hidden', this.view !== 'chart');
+            var statsTabs = document.getElementById('stats-tabs');
+            if (statsTabs) statsTabs.classList.toggle('oc-hidden', this.view !== 'chart');
+            var cardsBtn = document.getElementById('stats-cards-btn');
+            var chartBtn = document.getElementById('stats-chart-btn');
+            if (cardsBtn) cardsBtn.classList.toggle('active', this.view === 'cards');
+            if (chartBtn) chartBtn.classList.toggle('active', this.view === 'chart');
+        },
+
+        initCardDots: function() {
+            var map = {
+                upload_: 'up', download_: 'down', uploadtotal_: 'up', downloadtotal_: 'down',
+                connect_t: 'conn', mem_t: 'mem', cpu_t: 'cpu', load_a: 'load'
+            };
+            for (var id in map) {
+                var el = document.getElementById(id);
+                if (!el) continue;
+                var item = el.closest('.stat-item');
+                if (!item) continue;
+                var label = item.querySelector('.stat-label');
+                if (!label || label.querySelector('.stat-dot')) continue;
+                var dot = document.createElement('span');
+                dot.className = 'stat-dot';
+                dot.style.background = this.seriesColor(map[id]);
+                label.insertBefore(dot, label.firstChild);
+            }
+        },
+
+        feed: function(key, val) {
+            this.latest[key] = val;
+        },
+
+        resetToZero: function() {
+            var keys = ['up', 'down', 'mem', 'cpu', 'load', 'conn'];
+            var changed = false;
+            for (var i = 0; i < keys.length; i++) {
+                if (this.latest[keys[i]] !== 0) {
+                    this.latest[keys[i]] = 0;
+                    changed = true;
+                }
+            }
+            if (this.totals && (this.totals.up !== null || this.totals.down !== null)) {
+                this.totals = { up: null, down: null };
+                changed = true;
+            }
+            if (!changed) return;
+
+            this.updateLegendValues();
+
+            if (this.view === 'chart' && this.chart) {
+                this.pushSample(Date.now());
+                this.chartDirty = true;
+                this.update(true);
+            }
+        },
+
+        resetBuffer: function(now) {
+            var keys = ['t', 'realT', 'up', 'down', 'mem', 'cpu', 'load', 'conn'];
+            for (var i = 0; i < keys.length; i++) {
+                this.buf[keys[i]] = [];
+            }
+            for (var j = 0; j < this.N; j++) {
+                this.buf.t.push(j * 1000);
+                this.buf.realT.push(now - (this.N - 1 - j) * 1000);
+                this.buf.up.push(0);
+                this.buf.down.push(0);
+                this.buf.mem.push(0);
+                this.buf.cpu.push(0);
+                this.buf.load.push(0);
+                this.buf.conn.push(0);
+            }
+        },
+
+        startTimer: function() {
+            if (this.timer) return;
+            var self = this;
+            this.timer = setInterval(function() {
+                self.tick();
+            }, 1000);
+        },
+
+        stopTimer: function() {
+            if (!this.timer) return;
+            clearInterval(this.timer);
+            this.timer = null;
+        },
+
+        tick: function() {
+            var now = Date.now();
+            var gap = this.lastTick ? now - this.lastTick : 0;
+            this.lastTick = now;
+            var isRecovery = gap > 3000;
+            this.pushSample(now);
+            this.rateUnitCache = null;
+            if (this.view === 'chart') {
+                this.updateLegendValues();
+                if (this.chart) {
+                    this.update(isRecovery);
+                }
+            }
+        },
+
+        pushSample: function(now) {
+            var lastX = this.buf.t.length ? this.buf.t[this.buf.t.length - 1] : 0;
+            this.buf.t.push(lastX + 1000);
+            this.buf.t.shift();
+            this.buf.realT.push(now);
+            this.buf.realT.shift();
+            var keys = ['up', 'down', 'mem', 'cpu', 'load', 'conn'];
+            for (var i = 0; i < keys.length; i++) {
+                var k = keys[i];
+                this.buf[k].push(this.latest[k]);
+                this.buf[k].shift();
+            }
+        },
+
+        syncChartFromBuf: function(series) {
+            var c = this.chart;
+            if (!c) return;
+            for (var j = 0; j < series.length; j++) {
+                var key = series[j].key;
+                var arr = [];
+                for (var i = 0; i < this.N; i++) {
+                    arr.push({ x: this.buf.t[i] + this.rightLeadMs, y: this.buf[key][i], r: this.buf.realT[i] });
+                }
+                c.data.datasets[j].data = arr;
+            }
+        },
+
+        bind: function() {
+            var self = this;
+            var cardsBtn = document.getElementById('stats-cards-btn');
+            var chartBtn = document.getElementById('stats-chart-btn');
+            if (cardsBtn) {
+                cardsBtn.addEventListener('click', function() { self.setView('cards'); });
+            }
+            if (chartBtn) {
+                chartBtn.addEventListener('click', function() { self.setView('chart'); });
+            }
+            var tabs = document.getElementById('stats-tabs');
+            if (tabs) {
+                var drag = { active: false, startX: 0, startScroll: 0, moved: false };
+                tabs.addEventListener('mousedown', function(e) {
+                    drag.active = true;
+                    drag.moved = false;
+                    drag.startX = e.clientX;
+                    drag.startScroll = tabs.scrollLeft;
+                    tabs.classList.add('dragging');
+                });
+                window.addEventListener('mousemove', function(e) {
+                    if (!drag.active) return;
+                    if (Math.abs(e.clientX - drag.startX) > 4) drag.moved = true;
+                    tabs.scrollLeft = drag.startScroll - (e.clientX - drag.startX);
+                });
+                window.addEventListener('mouseup', function() {
+                    drag.active = false;
+                    tabs.classList.remove('dragging');
+                });
+                tabs.addEventListener('click', function(e) {
+                    if (drag.moved) {
+                        drag.moved = false;
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                });
+                tabs.addEventListener('change', function(e) {
+                    var input = e.target;
+                    if (!input || input.type !== 'radio') return;
+                    self.metric = input.value;
+                    localStorage.setItem('oc-stats-metric', self.metric);
+                    self.syncTabs();
+                    self.notifyDataSource();
+                    if (self.view === 'chart') self.render();
+                });
+            }
+        },
+
+        setView: function(view) {
+            if (view !== 'cards' && view !== 'chart') return;
+            if (this.view === view) return;
+            this.view = view;
+            this.applyView();
+            this.notifyDataSource();
+            localStorage.setItem('oc-stats-view', this.view);
+            if (this.view === 'chart') {
+                this.render();
+            } else if (this.chart) {
+                this.chart.destroy();
+                this.chart = null;
+            }
+        },
+
+        syncTabs: function() {
+            var inputs = document.querySelectorAll('#stats-tabs input[type="radio"]');
+            for (var i = 0; i < inputs.length; i++) {
+                inputs[i].checked = (inputs[i].value === this.metric);
+            }
+        },
+
+        renderLegend: function() {
+            var el = document.getElementById('stats-legend');
+            if (!el || !this.metrics) return;
+            var html = '';
+            if (this.metric === 'traffic') {
+                html += this.legendItem('up', '<%:Up Total%>', 'legend_val_uptotal');
+                html += this.legendItem('down', '<%:Down Total%>', 'legend_val_downtotal');
+            } else {
+                var series = this.metrics[this.metric].series;
+                for (var i = 0; i < series.length; i++) {
+                    html += this.legendItem(series[i].key, series[i].name, 'legend_val_' + series[i].key);
+                }
+            }
+            el.innerHTML = html;
+            this.updateLegendValues();
+        },
+
+        legendItem: function(key, name, valId) {
+            var c = this.seriesColor(key);
+            return '<span class="stats-legend-item"><i style="background:' + c + '"></i><span class="stats-legend-name">' + name + '</span><span class="stats-legend-val" id="' + valId + '" style="color:' + c + '"></span></span>';
+        },
+
+        formatLegendValue: function(key, val) {
+            if (key === 'mem') return Math.round(val) + ' MB';
+            if (key === 'cpu' || key === 'load') return ocFormatOneDecimal(val) + ' %';
+            if (key === 'conn') return String(Math.round(val));
+            return String(Math.round(val * 10) / 10);
+        },
+
+        updateLegendValues: function() {
+            if (this.metric === 'traffic') {
+                var upEl = document.getElementById('legend_val_uptotal');
+                var downEl = document.getElementById('legend_val_downtotal');
+                if (upEl) {
+                    var upText = this.totals.up != null ? bytesToSize(this.totals.up) : '0 KB';
+                    if (upEl.textContent !== upText) upEl.textContent = upText;
+                }
+                if (downEl) {
+                    var downText = this.totals.down != null ? bytesToSize(this.totals.down) : '0 KB';
+                    if (downEl.textContent !== downText) downEl.textContent = downText;
+                }
+                return;
+            }
+            var series = this.metrics[this.metric].series;
+            for (var i = 0; i < series.length; i++) {
+                var key = series[i].key;
+                var el = document.getElementById('legend_val_' + key);
+                if (el) {
+                    var text = this.formatLegendValue(key, this.latest[key]);
+                    if (el.textContent !== text) el.textContent = text;
+                }
+            }
+        },
+
+        fmtTime: function(ms) {
+            var d = new Date(ms);
+            var p = function(x) { return (x < 10 ? '0' : '') + x; };
+            return p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+        },
+
+        rateUnitOf: function() {
+            if (this.rateUnitCache) return this.rateUnitCache;
+            var max = 0;
+            var keys = ['up', 'down'];
+            for (var i = 0; i < keys.length; i++) {
+                var arr = this.buf[keys[i]];
+                for (var j = 0; j < arr.length; j++) {
+                    if (arr[j] > max) max = arr[j];
+                }
+            }
+            if (max >= 1024) this.rateUnitCache = { scale: 1 / 1024, unit: ' GB/s' };
+            else if (max < 1) this.rateUnitCache = { scale: 1024, unit: ' KB/s' };
+            else this.rateUnitCache = { scale: 1, unit: ' MB/s' };
+            return this.rateUnitCache;
+        },
+
+        formatVal: function(val, scale) {
+            var v = val * scale;
+            var a = Math.abs(v);
+            if (a >= 100) return String(Math.round(v));
+            if (a >= 10) return String(Math.round(v * 10) / 10);
+            return String(Math.round(v * 100) / 100);
+        },
+
+        formatTooltipValue: function(key, val) {
+            if (this.metric === 'traffic') {
+                var rate = this.rateUnitOf();
+                return this.formatVal(val, rate.scale) + rate.unit;
+            }
+            return Math.round(val * 10) / 10 + this.metrics[this.metric].unit;
+        },
+
+        formatYAxis: function(value) {
+            if (this.metric === 'traffic') {
+                var rate = this.rateUnitOf();
+                return this.formatVal(value, rate.scale) + rate.unit;
+            }
+            return Math.round(value * 10) / 10;
+        },
+
+        buildConfig: function() {
+            var self = this;
+            var p = {
+                text: this.ocVar('--text-secondary', '#64748b'),
+                axis: this.ocVar('--border-light', '#e2e8f0'),
+                panel: this.ocVar('--bg-white', '#ffffff'),
+                panelText: this.ocVar('--text-primary', '#374151')
+            };
+            var axisRgba = this.hexToRgba(p.axis, 0.4);
+            var series = this.metrics[this.metric].series;
+            var winMax = self.buf.t[self.buf.t.length - 1];
+            var winMin = self.buf.t[0] + self.rightLeadMs * 3;
+            return {
+                type: 'line',
+                data: {
+                    datasets: series.map(function(s) {
+                        var color = self.seriesColor(s.key);
+                        return {
+                            label: s.name,
+                            data: self.buf[s.key].map(function(v, i) { return { x: self.buf.t[i] + self.rightLeadMs, y: v, r: self.buf.realT[i] }; }),
+                            parsing: false,
+                            borderColor: color,
+                            backgroundColor: self.hexToRgba(color, 0.14),
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 4,
+                            pointHoverBackgroundColor: color,
+                            pointHoverBorderColor: '#ffffff',
+                            pointHoverBorderWidth: 2,
+                            borderWidth: 2
+                        };
+                    })
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    resizeDelay: 100,
+                    animation: { duration: 1000, easing: 'linear' },
+                    animations: { colors: false },
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            enabled: false,
+                            external: function(context) {
+                                var chart = context.chart;
+                                var tooltip = context.tooltip;
+                                var canvas = chart.canvas;
+                                var wrap = canvas.parentNode;
+                                if (!wrap) return;
+                                var el = wrap.querySelector('.oc-stats-tooltip');
+                                if (!el) {
+                                    el = document.createElement('div');
+                                    el.className = 'oc-stats-tooltip';
+                                    wrap.appendChild(el);
+                                }
+                                if (tooltip.opacity === 0) {
+                                    el.style.display = 'none';
+                                    return;
+                                }
+                                var panel = self.ocVar('--bg-white', '#ffffff');
+                                var text = self.ocVar('--text-primary', '#374151');
+                                var titleBg = self.ocVar('--bg-gray', 'rgba(59,130,246,0.1)');
+                                var border = self.ocVar('--border-light', '#e2e8f0');
+
+                                var html = '';
+                                if (tooltip.title && tooltip.title.length) {
+                                    html += '<div style="background:' + titleBg + ';color:' + text + ';padding:5px 10px;font-weight:600;border-bottom:1px solid ' + border + ';">' + tooltip.title[0] + '</div>';
+                                }
+                                if (tooltip.body) {
+                                    for (var i = 0; i < tooltip.body.length; i++) {
+                                        var b = tooltip.body[i];
+                                        var dp = tooltip.dataPoints && tooltip.dataPoints[i];
+                                        var s = dp ? self.metrics[self.metric].series[dp.datasetIndex] : null;
+                                        var color = s ? self.seriesColor(s.key) : '#888';
+                                        var rowText = b.lines ? b.lines.join(' ') : '';
+                                        html += '<div style="color:' + text + ';padding:4px 10px;display:flex;align-items:center;gap:6px;"><i style="width:8px;height:8px;border-radius:50%;background:' + color + ';flex:0 0 auto;display:inline-block;"></i><span>' + rowText + '</span></div>';
+                                    }
+                                }
+                                el.innerHTML = html;
+
+                                el.style.position = 'absolute';
+                                el.style.zIndex = '10';
+                                el.style.pointerEvents = 'none';
+                                el.style.backgroundColor = panel;
+                                el.style.border = '1px solid ' + border;
+                                el.style.borderRadius = '8px';
+                                el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                                el.style.fontSize = '12px';
+                                el.style.overflow = 'hidden';
+                                el.style.whiteSpace = 'nowrap';
+                                el.style.display = 'block';
+
+                                var wrapRect = wrap.getBoundingClientRect();
+                                var canvasRect = canvas.getBoundingClientRect();
+                                var x = tooltip.caretX + canvasRect.left - wrapRect.left;
+                                var y = tooltip.caretY + canvasRect.top - wrapRect.top;
+                                var tw = el.offsetWidth;
+                                var th = el.offsetHeight;
+                                y = y - th - 12;
+                                if (y < 2) {
+                                    y = tooltip.caretY + canvasRect.top - wrapRect.top + 14;
+                                }
+                                if (y + th > wrap.clientHeight - 2) {
+                                    y = wrap.clientHeight - th - 2;
+                                }
+                                if (y < 2) y = 2;
+                                x = Math.max(2, Math.min(x, wrap.clientWidth - tw - 2));
+                                el.style.left = x + 'px';
+                                el.style.top = y + 'px';
+                            },
+                            callbacks: {
+                                title: function(items) {
+                                    return self.fmtTime(items[0].raw.r);
+                                },
+                                label: function(item) {
+                                    var key = series[item.datasetIndex].key;
+                                    return series[item.datasetIndex].name + ': ' + self.formatTooltipValue(key, item.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            min: winMin,
+                            max: winMax,
+                            grid: { display: false },
+                            border: { display: false },
+                            ticks: { display: false }
+                        },
+                        y: {
+                            min: 0,
+                            beginAtZero: true,
+                            grace: '20%',
+                            grid: {
+                                drawTicks: false,
+                                color: function(ctx) {
+                                    if (ctx.tick && ctx.tick.value === 0) return 'transparent';
+                                    return axisRgba;
+                                }
+                            },
+                            border: { color: p.axis },
+                            ticks: {
+                                color: p.text,
+                                font: { size: 11 },
+                                padding: 8,
+                                callback: function(value) {
+                                    return self.formatYAxis(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+        },
+
+        render: function() {
+            var el = document.getElementById('stats-chart');
+            if (!el || typeof Chart === 'undefined') return;
+            if (this.chart) this.chart.destroy();
+            this.renderLegend();
+            this.chart = new Chart(el, this.buildConfig());
+        },
+
+        update: function(isRecovery) {
+            var c = this.chart;
+            if (!c) return;
+            var series = this.metrics[this.metric].series;
+            var t = this.buf.t;
+            var rt = this.buf.realT;
+            var curX = t.length ? t[t.length - 1] : 0;
+            var curReal = rt.length ? rt[rt.length - 1] : 0;
+
+            if (this.chartDirty) {
+                this.chartDirty = false;
+                this.syncChartFromBuf(series);
+            }
+
+            var newX = curX + this.rightLeadMs;
+
+            for (var i = 0; i < c.data.datasets.length; i++) {
+                var data = c.data.datasets[i].data;
+                while (data.length > this.N) {
+                    data.shift();
+                }
+            }
+            var first = c.data.datasets[0].data[0];
+            var min = first ? first.x + this.rightLeadMs * 3 : curX - (this.N - 1) * 1000;
+            for (var j = 0; j < series.length; j++) {
+                c.data.datasets[j].data.push({ x: newX, y: this.latest[series[j].key], r: curReal });
+            }
+            c.options.scales.x.min = min;
+            c.options.scales.x.max = curX;
+            if (isRecovery) {
+                c.stop();
+                c.update('none');
+            } else {
+                c.update();
+            }
+        },
+
+        refresh: function() {
+            this.renderLegend();
+            if (this.view === 'chart') this.render();
+        }
+    };
+
+    StatsChart.init();
+
     var pluginToggleUserAction = false;
-    var _lastNotRunningPoll = 0;
+
+    get_op_mode();
 
     XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
         if (x && x.status == 200) {
-
-            if (!status.clash && Date.now() - _lastNotRunningPoll < 30000) return;
-            if (!status.clash) _lastNotRunningPoll = Date.now();
             var updates = [];
 
             if (!pluginToggleUserAction) {
@@ -2805,13 +3648,6 @@
             }
 
             if (status.run_mode && !SettingsManager.pendingOperations.has('run_mode_' + status.run_mode)) {
-                if (status.run_mode.indexOf("fake-ip") === 0) {
-                    DOMCache.mode.innerHTML = "<b style=color:var(--success-color)><%:Fake-IP%></b>";
-                    DOMCache.radio_run_normal.innerHTML = "<%:Enhance%>";
-                } else if (status.run_mode.indexOf("redir-host") === 0) {
-                    DOMCache.mode.innerHTML = "<b style=color:var(--success-color)><%:Redir-Host%></b>";
-                    DOMCache.radio_run_normal.innerHTML = "<%:Compat%>";
-                }
                 var expectedValue = status.run_mode.split("-")[2] == undefined ? "" : ("-" + status.run_mode.split("-")[2]);
                 for (var i = 0; i < DOMCache.radio_ru.length; i++) {
                     if (DOMCache.radio_ru[i].value == expectedValue && !DOMCache.radio_ru[i].checked) {
@@ -2859,6 +3695,9 @@
             var webzContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Zashboard%>" onclick="return net_zashboard(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Zashboard%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: DOMCache.webz, content: webzContent});
 
+            var externalWebContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:External Dashboard%>" onclick="return external_dashboard(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:External Dashboard%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
+            updates.push({element: DOMCache.web_external, content: externalWebContent});
+
             var closeConnContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Close Connect%>" onclick="return b_close_all_connection(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Close Connect%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: document.getElementById('_close_all_connection_btn'), content: closeConnContent});
 
@@ -2889,21 +3728,16 @@
                 DOMCache.webz.classList.add('hidden');
             }
 
+            DOMCache.web_external.classList.toggle('hidden', !ocGetCustomDashboardURL(status));
+
             StateManager.current_status = status;
 
             if (status.daip) {
                 var daipContent, dapoContent;
 
-                if (status.daip && window.location.hostname == status.daip) {
-                    dapoContent = status.cn_port ? ":"+status.cn_port : "";
-                    daipContent = status.daip ? "<b style=color:var(--success-color)>"+status.daip+dapoContent+"</b>" : "<b style=color:var(--error-color)>"+"<%:Not Set%>"+"</b>";
-                } else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
-                    dapoContent = status.db_foward_port ? ":"+status.db_foward_port : "";
-                    daipContent = status.db_foward_domain ? "<b style=color:var(--success-color)>"+status.db_foward_domain+dapoContent+"</b>" : "<b style=color:var(--error-color)>"+"<%:Not Set%>"+"</b>";
-                } else {
-                    dapoContent = status.cn_port ? ":"+status.cn_port : "";
-                    daipContent = status.daip ? "<b style=color:var(--success-color)>"+status.daip+dapoContent+"</b>" : "<b style=color:var(--error-color)>"+"<%:Not Set%>"+"</b>";
-                }
+                var dashboardBase = getDashboardBaseURL(status);
+                dapoContent = dashboardBase.port ? ":" + dashboardBase.port : "";
+                daipContent = "<b style=color:var(--success-color)>" + dashboardBase.host + dapoContent + "</b>";
 
                 DOMCache.daip.innerHTML = daipContent;   
 
@@ -2922,34 +3756,26 @@
                 DOMCache.copy_pac_config.style.display = "none";
             }
 
-            if (status.clash) {
-                if (!SystemStatusManager.isEnabled) {
-                    SystemStatusManager.start();
-                }
-            } else {
+            if (!status.clash) {
                 SystemStatusManager.stop();
-                document.getElementById("cpu_t").innerHTML = "<font style=\"color:var(--success-color)\">0 %</font>";
-                document.getElementById("load_a").innerHTML = "<font style=\"color:var(--success-color)\">0 %</font>";
+                SystemStatusManager.resetSysStats();
+                StatsChart.resetToZero();
             }
 
             if (status.clash && status.daip) {
                 if (!WSManager.hasActiveConnections()) {
-                    LogManager.startLogDisplay();
-                    initializeWebSocketConnections(status);
-                } else {
-                    if (NetworkStatsManager.isEnabled) {
-                        NetworkStatsManager.stop();
-                    }
+                    LogManager.startLogDisplay(null, false, 'view');
                 }
+                initializeWebSocketConnections(status);
             } else {
                 WSManager.closeAll();
-                NetworkStatsManager.stop();
-                document.getElementById("upload_").innerHTML = "<font style=\"color:var(--success-color)\">0 B/S</font>";
-                document.getElementById("download_").innerHTML = "<font style=\"color:var(--success-color)\">0 B/S</font>";
-                document.getElementById("uploadtotal_").innerHTML = "<font style=\"color:var(--success-color)\">0 KB</font>";
-                document.getElementById("downloadtotal_").innerHTML = "<font style=\"color:var(--success-color)\">0 KB</font>";
-                document.getElementById("mem_t").innerHTML = "<font style=\"color:var(--success-color)\">0 KB</font>";
-                document.getElementById("connect_t").innerHTML = "<font style=\"color:var(--success-color)\">0</font>";
+                StatsWSMeta.protocol = null;
+                if (status.clash) {
+                    syncDataSource();
+                } else {
+                    NetworkStatsManager.stop();
+                    NetworkStatsManager.resetStats();
+                }
             }
         }
         clashversion_check();
@@ -2965,6 +3791,7 @@
     setTimeout(function() {
         OverwriteSubscribeManager.init();
         SubscriptionManager.init();
+        UsageHelpManager.init();
         loadAnnouncement();
     }, 300);
 
@@ -2973,6 +3800,7 @@
     window.addEventListener('beforeunload', function() {
         WSManager.closeAll();
         LogManager.stopLogDisplay();
+        StatsChart.stopTimer();
         SystemStatusManager.stop();
         NetworkStatsManager.stop();
         StateManager.clearAllCache();
@@ -2981,57 +3809,68 @@
         }
     });
 
+    var StatsWSMeta = {
+        protocol: null,
+        token: null,
+        endpoints: {
+            traffic: '/traffic',
+            connections: '/connections',
+            memory: '/memory'
+        },
+        handlers: {
+            traffic: ws_tmessage,
+            connections: ws_cmessage,
+            memory: ws_mmessage
+        }
+    };
+
+    function syncDataSource() {
+        var status = StateManager.current_status;
+        var req = (typeof StatsChart !== 'undefined' && StatsChart.requiredSources) ? StatsChart.requiredSources() : { ws: [], sys: true };
+        var needsNetworkFallback = status && status.clash && status.daip && !StatsWSMeta.protocol &&
+            (StatsChart.view === 'cards' || req.ws.length > 0);
+
+        if (status && status.clash && req.sys) {
+            if (!SystemStatusManager.isEnabled) SystemStatusManager.start();
+        } else {
+            SystemStatusManager.stop();
+        }
+
+        if (needsNetworkFallback) {
+            if (!NetworkStatsManager.isEnabled) NetworkStatsManager.start();
+        } else {
+            NetworkStatsManager.stop();
+        }
+
+        if (!StatsWSMeta.protocol) return;
+
+        var types = ['traffic', 'connections', 'memory'];
+        for (var i = 0; i < types.length; i++) {
+            var t = types[i];
+            if (req.ws.indexOf(t) >= 0) {
+                var conn = WSManager.connections[t];
+                var active = conn && (conn.state === WSManager.connectionStates.CONNECTED || conn.state === WSManager.connectionStates.CONNECTING);
+                if (!active) {
+                    var url = StatsWSMeta.protocol + StatsWSMeta.endpoints[t] + (StatsWSMeta.token ? '?token=' + StatsWSMeta.token : '');
+                    WSManager.createConnection(t, url, StatsWSMeta.handlers[t]);
+                }
+            } else {
+                WSManager.closeConnection(t);
+            }
+        }
+    }
+
     function initializeWebSocketConnections(status) {
         if (!status || !status.clash || !status.daip) {
+            StatsWSMeta.protocol = null;
+            syncDataSource();
             return false;
         }
 
-        var protocol = getWebSocketProtocol(status);
-        var token = status.dase;
-
-        var connections = [
-            {
-                type: 'traffic',
-                endpoint: '/traffic',
-                handler: ws_tmessage
-            },
-            {
-                type: 'connections', 
-                endpoint: '/connections',
-                handler: ws_cmessage
-            },
-            {
-                type: 'memory',
-                endpoint: '/memory', 
-                handler: ws_mmessage
-            }
-        ];
-
-        connections.forEach(function(conn) {
-            var url = protocol + conn.endpoint + (token ? '?token=' + token : '');
-            WSManager.createConnection(conn.type, url, conn.handler);
-        });
-
+        StatsWSMeta.protocol = getDashboardWebSocketOrigin(status);
+        StatsWSMeta.token = status.dase;
+        syncDataSource();
         return true;
-    }
-
-    function getWebSocketProtocol(status) {
-        var protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
-        var host, port;
-
-        if (status.daip && window.location.hostname === status.daip) {
-            host = status.daip;
-            port = status.cn_port;
-        } else if (status.daip && window.location.hostname !== status.daip && 
-                   status.db_foward_domain && status.db_foward_port) {
-            host = status.db_foward_domain;
-            port = status.db_foward_port;
-        } else {
-            host = status.daip;
-            port = status.cn_port;
-        }
-
-        return protocol + host + ":" + port;
     }
 
     function AnnouncementAnimator(config) {
@@ -3051,18 +3890,18 @@
         var resizeTimeout = null;
         var animationEndHandler = null;
         var destroyed = false;
-        var _cachedBannerWidth = 0;
-        var _cachedContentWidth = 0;
-        var _cachedDuration = 0;
+        var cachedBannerWidth = 0;
+        var cachedContentWidth = 0;
+        var cachedDuration = 0;
 
         function calculateAnimationDuration() {
             var bannerWidth = bannerElement.offsetWidth;
             var contentWidth = contentElement.offsetWidth;
-            if (bannerWidth === _cachedBannerWidth && contentWidth === _cachedContentWidth && _cachedDuration > 0) {
-                return _cachedDuration;
+            if (bannerWidth === cachedBannerWidth && contentWidth === cachedContentWidth && cachedDuration > 0) {
+                return cachedDuration;
             }
-            _cachedBannerWidth = bannerWidth;
-            _cachedContentWidth = contentWidth;
+            cachedBannerWidth = bannerWidth;
+            cachedContentWidth = contentWidth;
             var refreshRate = window.screen && window.screen.refreshRate ? window.screen.refreshRate : 60;
             if (refreshRate <= 0) refreshRate = 60;
             if (refreshRate > 480) refreshRate = 480;
@@ -3084,8 +3923,8 @@
             }
             duration = duration * refreshRateMultiplier;
 
-            _cachedDuration = Math.max(4000, Math.min(duration, 50000));
-            return _cachedDuration;
+            cachedDuration = Math.max(4000, Math.min(duration, 50000));
+            return cachedDuration;
         }
 
         function updateScrollAnimation(duration) {
@@ -3202,9 +4041,9 @@
         function mouseLeaveHandler() { resume(); }
         function resizeHandler() {
             clearTimeout(resizeTimeout);
-            _cachedBannerWidth = 0;
-            _cachedContentWidth = 0;
-            _cachedDuration = 0;
+            cachedBannerWidth = 0;
+            cachedContentWidth = 0;
+            cachedDuration = 0;
             resizeTimeout = setTimeout(function() {
                 if (!destroyed && contentElement.classList.contains('scrolling')) {
                     refreshAnimation();
@@ -3324,14 +4163,6 @@
 
         StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_run_mode")%>', function(x, status) {
             if (x && x.status == 200 && status.mode) {
-                if (status.mode == "fake-ip" || status.mode == "fake-ip-tun" || status.mode == "fake-ip-mix") {
-                    DOMCache.mode.innerHTML = "<b style=color:var(--success-color)><%:Fake-IP%></b>";
-                    DOMCache.radio_run_normal.innerHTML = "<%:Enhance%>";
-                } else if (status.mode == "redir-host" || status.mode == "redir-host-tun" ||  status.mode == "redir-host-mix") {
-                    DOMCache.mode.innerHTML = "<b style=color:var(--success-color)><%:Redir-Host%></b>";
-                    DOMCache.radio_run_normal.innerHTML = "<%:Compat%>";
-                }
-
                 var expectedValue = status["mode"].split("-")[2] == undefined ? "" : ("-" + status["mode"].split("-")[2]);
                 var operationKey = 'run_mode_' + status.mode;
 
@@ -3347,12 +4178,85 @@
     }
 
     function switch_run_mode(value) {
-        LogManager.startLogDisplay('<%:Saving...%>');
+        LogManager.startLogDisplay('<%:Saving...%>', false, 'init');
         return SettingsManager.switchSetting(
             'run_mode', 
             value, 
             '<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_run_mode")%>'
         );
+    }
+
+    var currentDnsMode = '';
+
+    function setDnsModeUI(mode) {
+        currentDnsMode = mode;
+        if (DOMCache.dns_fakeip) DOMCache.dns_fakeip.checked = (mode === 'fake-ip');
+        if (DOMCache.dns_redirhost) DOMCache.dns_redirhost.checked = (mode === 'redir-host');
+        if (DOMCache.radio_run_normal) {
+            DOMCache.radio_run_normal.innerHTML = (mode === 'fake-ip') ? '<%:Enhance%>' : '<%:Compat%>';
+        }
+    }
+
+    function get_op_mode() {
+        StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "op_mode")%>', function(x, status) {
+            if (x && x.status == 200 && status.op_mode) {
+                setDnsModeUI(status.op_mode);
+            }
+        }, true);
+    }
+
+    function switch_dns_mode(value) {
+        var opKey = 'dns_mode_' + value;
+        if (SettingsManager.pendingOperations.has(opKey) || value === currentDnsMode) {
+            return false;
+        }
+        SettingsManager.pendingOperations.add(opKey);
+        SettingsManager.pausePoll('run_mode', 3000);
+
+        var previous = currentDnsMode;
+
+        LogManager.startLogDisplay('<%:Saving...%>', false, 'init');
+        setDnsModeUI(value);
+        if (DOMCache.dns_fakeip) DOMCache.dns_fakeip.disabled = true;
+        if (DOMCache.dns_redirhost) DOMCache.dns_redirhost.disabled = true;
+        for (var r = 0; r < DOMCache.radio_ru.length; r++) {
+            DOMCache.radio_ru[r].disabled = true;
+        }
+
+        var suffix = '';
+        var ru = document.getElementsByName("radios-ru");
+        for (var i = 0; i < ru.length; i++) {
+            if (ru[i].checked) {
+                suffix = ru[i].value;
+                break;
+            }
+        }
+
+        function finish(success) {
+            SettingsManager.pendingOperations.delete(opKey);
+            if (DOMCache.dns_fakeip) DOMCache.dns_fakeip.disabled = false;
+            if (DOMCache.dns_redirhost) DOMCache.dns_redirhost.disabled = false;
+            for (var r = 0; r < DOMCache.radio_ru.length; r++) {
+                DOMCache.radio_ru[r].disabled = false;
+            }
+            if (success) {
+                get_op_mode();
+            } else {
+                setDnsModeUI(previous);
+                alert('<%:Switch mode failed!%>');
+            }
+        }
+
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_mode")%>', null, function(x1) {
+            if (!x1 || x1.status != 200) {
+                setTimeout(function() { finish(false); }, 1500);
+                return;
+            }
+            XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_run_mode")%>', { run_mode: suffix }, function(x2) {
+                setTimeout(function() { finish(x2 && x2.status == 200); }, 1500);
+            });
+        });
+        return true;
     }
 
     function ws_tmessage(event) {
@@ -3369,8 +4273,10 @@
         }
         var uploadElement = document.getElementById("upload_");
         var downloadElement = document.getElementById("download_");
-        uploadElement.innerHTML = data.up ? "<font style=\"color:var(--success-color)\">"+bytesToSize(data.up)+"/S</font>" : "<font style=\"color:var(--success-color)\">0 B/S</font>";
-        downloadElement.innerHTML = data.down ? "<font style=\"color:var(--success-color)\">"+bytesToSize(data.down)+"/S</font>" : "<font style=\"color:var(--success-color)\">0 B/S</font>";
+        uploadElement.innerHTML = data.up ? ocStatHtml(bytesToSize(data.up) + "/S") : ocStatHtml("0 B/S");
+        downloadElement.innerHTML = data.down ? ocStatHtml(bytesToSize(data.down) + "/S") : ocStatHtml("0 B/S");
+        StatsChart.feed("up", data.up ? (data.up / 1048576) : 0);
+        StatsChart.feed("down", data.down ? (data.down / 1048576) : 0);
     }
 
     function ws_cmessage(event) {
@@ -3388,18 +4294,21 @@
         var updates = [
             {
                 element: document.getElementById("uploadtotal_"),
-                content: data.uploadTotal ? "<font style=\"color:var(--success-color)\">"+bytesToSize(data.uploadTotal)+"</font>" : "<font style=\"color:var(--success-color)\">0 KB</font>"
+                content: data.uploadTotal ? ocStatHtml(bytesToSize(data.uploadTotal)) : ocStatHtml("0 KB")
             },
             {
                 element: document.getElementById("downloadtotal_"),
-                content: data.downloadTotal ? "<font style=\"color:var(--success-color)\">"+bytesToSize(data.downloadTotal)+"</font>" : "<font style=\"color:var(--success-color)\">0 KB</font>"
+                content: data.downloadTotal ? ocStatHtml(bytesToSize(data.downloadTotal)) : ocStatHtml("0 KB")
             },
             {
                 element: document.getElementById("connect_t"),
-                content: data.connections ? "<font style=\"color:var(--success-color)\">"+Object.keys(data.connections).length+"</font>" : "<font style=\"color:var(--success-color)\">0</font>"
+                content: data.connections ? ocStatHtml(String(Object.keys(data.connections).length)) : ocStatHtml("0")
             }
         ];
         StateManager.batchUpdateDOM(updates);
+        StatsChart.totals = { up: data.uploadTotal || null, down: data.downloadTotal || null };
+        if (StatsChart.metric === 'traffic') StatsChart.updateLegendValues();
+        StatsChart.feed("conn", data.connections ? Object.keys(data.connections).length : 0);
     }
 
     function ws_mmessage(event) {
@@ -3415,12 +4324,13 @@
             data = dataObj;
         }
         var memElement = document.getElementById("mem_t");
-        memElement.innerHTML = data.inuse ? "<font style=\"color:var(--success-color)\">"+bytesToSize(data.inuse)+"</font>" : "<font style=\"color:var(--success-color)\">0 KB</font>";
+        memElement.innerHTML = data.inuse ? ocStatHtml(bytesToSize(data.inuse)) : ocStatHtml("0 KB");
+        StatsChart.feed("mem", data.inuse ? (data.inuse / 1048576) : 0);
     }
 
     var all_one_key_update = debounceButton(function(btn) {
         btn.value = '<%:Checking...%>';
-        select_git_cdn();
+        update();
         btn.value = '<%:Check Update%>';
         btn.disabled = false;
         return false;
@@ -3432,7 +4342,7 @@
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash","flush_dns_cache")%>', null, function(x, status) {
             btn.disabled = false;
             if (x && x.status == 200) {
-                btn.value = (status.flush_status == "0" || status.flush_status != "") ? '<%:Flush Failed%>' : '<%:Flush Successful%>';
+                btn.value = (status.fakeip_flush === "" && status.dns_flush === "") ? '<%:Flush Successful%>' : '<%:Flush Failed%>';
             } else {
                 btn.value = '<%:Flush Timeout%>';
             }
@@ -3443,7 +4353,7 @@
     var b_reload_firewall = debounceButton(function(btn) {
         btn.disabled = true;
         btn.value = '<%:Reloading...%>';
-        LogManager.startLogDisplay('<%:Reloading...%>');
+        LogManager.startLogDisplay('<%:Reloading...%>', false, 'init');
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "reload_firewall")%>', null, function(x, status) {
             btn.disabled = false;
             btn.value = (x && x.status == 200) ? '<%:Reload Firewall%>' : '<%:Firewall Rules Reset Failed%>';
@@ -3501,6 +4411,17 @@
         return false;
     }
 
+    function external_dashboard(btn) {
+        btn.disabled = true;
+        btn.value = '<%:External Dashboard%>';
+        var status = StateManager.current_status;
+        if (!status) { setTimeout(function() { external_dashboard(btn); }, 500); return false; }
+        var url = buildExternalDashboardURL(status);
+        if (url) winOpen(url);
+        btn.disabled = false;
+        return false;
+    }
+
     function homepage() {
         winOpen('https://github.com/vernesong/OpenClash');
     }
@@ -3519,10 +4440,6 @@
 
     function sponsorpage() {
         winOpen('https://ko-fi.com/vernesong');
-    }
-
-    function go_mihomo() {
-        winOpen('https://www.github.com/metacubex/mihomo');
     }
 
     function clashversion_check() {
@@ -3544,92 +4461,101 @@
             return 0;
         }
 
+        function updateCoreDot(corelv) {
+            if (DOMCache.core_version_display.classList.contains('oc-hidden')) return;
+            var coremetacv = DOMCache.core_version_text.textContent;
+            var hasUpdate = corelv && corelv !== "" && corelv !== "loading..." && corelv !== coremetacv;
+            var existingDot = DOMCache.core_version_display.querySelector('.update-dot');
+            if (hasUpdate) {
+                if (!existingDot) {
+                    var updateDot = document.createElement('span');
+                    updateDot.className = 'update-dot';
+                    DOMCache.core_version_display.appendChild(updateDot);
+                }
+                DOMCache.core_version_display.title = '<%:New version available%>: ' + corelv;
+                DOMCache.core_version_text.removeAttribute('title');
+            } else {
+                if (existingDot) {
+                    existingDot.remove();
+                }
+                DOMCache.core_version_display.title = '';
+            }
+        }
+
+        function updatePluginDot(oplv) {
+            if (DOMCache.plugin_version_display.classList.contains('oc-hidden')) return;
+            var opcv = DOMCache.plugin_version_text.textContent;
+            var hasUpdate = false;
+            if (oplv && oplv !== "" && oplv !== "loading...") {
+                if (compareVersions(oplv, opcv) > 0) {
+                    hasUpdate = true;
+                }
+            }
+            var existingDot = DOMCache.plugin_version_display.querySelector('.update-dot');
+            if (hasUpdate) {
+                if (!existingDot) {
+                    var updateDot = document.createElement('span');
+                    updateDot.className = 'update-dot';
+                    DOMCache.plugin_version_display.appendChild(updateDot);
+                }
+                DOMCache.plugin_version_display.title = '<%:New version available%>: ' + oplv;
+                DOMCache.plugin_version_text.removeAttribute('title');
+            } else {
+                if (existingDot) {
+                    existingDot.remove();
+                }
+                DOMCache.plugin_version_display.title = '';
+            }
+        }
+
         StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', function(x, status) {
             if (x && x.status == 200) {
                 if (status.coremetacv && status.coremetacv !== "0") {
                     var coreVersionText = status.coremetacv;
-                    var hasUpdate = false;
-
-                    if (status.corelv && status.corelv !== "" && status.corelv !== "loading..." && status.corelv !== status.coremetacv) {
-                        hasUpdate = true;
-                    }
-
                     DOMCache.core_version_text.textContent = coreVersionText;
                     if (DOMCache.core_version_text.scrollWidth > DOMCache.core_version_text.clientWidth) {
                         DOMCache.core_version_text.title = coreVersionText;
                     } else {
                         DOMCache.core_version_text.title = '';
                     }
-                    DOMCache.core_version_display.style.display = 'flex';
-
-                    var existingDot = DOMCache.core_version_display.querySelector('.update-dot');
-                    if (existingDot) {
-                        existingDot.remove();
-                    }
-
-                    if (hasUpdate) {
-                        var updateDot = document.createElement('span');
-                        updateDot.className = 'update-dot';
-                        DOMCache.core_version_display.appendChild(updateDot);
-                        DOMCache.core_version_display.title = '<%:New version available%>: ' + status.corelv;
-                        DOMCache.core_version_text.removeAttribute('title');
-                    } else {
-                        DOMCache.core_version_display.title = '';
-                    }
+                    DOMCache.core_version_display.classList.remove('oc-hidden');
                 } else {
-                    DOMCache.core_version_display.style.display = 'none';
+                    DOMCache.core_version_display.classList.add('oc-hidden');
                     DOMCache.core_version_display.title = '';
                 }
 
                 if (status.opcv && status.opcv !== "0") {
                     var pluginVersionText = status.opcv;
-                    var hasUpdate = false;
-
-                    if (status.oplv && status.oplv !== "" && status.oplv !== "loading...") {
-                        if (compareVersions(status.oplv, status.opcv) > 0) {
-                            hasUpdate = true;
-                        }
-                    }
-
                     DOMCache.plugin_version_text.textContent = pluginVersionText;
                     if (DOMCache.plugin_version_text.scrollWidth > DOMCache.plugin_version_text.clientWidth) {
                         DOMCache.plugin_version_text.title = pluginVersionText;
                     } else {
                         DOMCache.plugin_version_text.title = '';
                     }
-                    DOMCache.plugin_version_display.style.display = 'flex';
-
-                    var existingDot = DOMCache.plugin_version_display.querySelector('.update-dot');
-                    if (existingDot) {
-                        existingDot.remove();
-                    }
-
-                    if (hasUpdate) {
-                        var updateDot = document.createElement('span');
-                        updateDot.className = 'update-dot';
-                        DOMCache.plugin_version_display.appendChild(updateDot);
-                        DOMCache.plugin_version_display.title = '<%:New version available%>: ' + status.oplv;
-                        DOMCache.plugin_version_text.removeAttribute('title');
-                    } else {
-                        DOMCache.plugin_version_display.title = '';
-                    }
+                    DOMCache.plugin_version_display.classList.remove('oc-hidden');
                 } else {
-                    DOMCache.plugin_version_display.style.display = 'none';
+                    DOMCache.plugin_version_display.classList.add('oc-hidden');
                     DOMCache.plugin_version_display.title = '';
                 }
             }
+            checkLatestVersions();
         });
+
+        function checkLatestVersions() {
+            StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "last_version")%>', function(x, data) {
+                if (x && x.status == 200 && data) {
+                    updateCoreDot(data.corelv);
+                    updatePluginDot(data.oplv);
+                } else {
+                    updateCoreDot('');
+                    updatePluginDot('');
+                }
+            });
+        }
     }
 
     function logo_error(imgobj, imgSrc) {
         imgobj.src = imgSrc;
-    }
-
-    function imgerrorfuns(imgobj, imgSrc) {
-        setTimeout(function() {
-            imgobj.src = imgSrc;
-            imgobj.loading = "lazy";
-        }, 10000);
     }
 
     function check_core() {
@@ -3638,7 +4564,7 @@
                 if (status.core_status != "1") {
                     var r = confirm("<%:You have not installed the core yet, do you want to download and install it now?%>");
                     if (r == true) {
-                        return select_git_cdn("core_download");
+                        return update("core_download");
                     }
                 }
             }
@@ -3646,28 +4572,18 @@
     }
 
     function copyAddress() {
+        var currentStatus = StateManager.current_status;
+        var externalURL = currentStatus ? buildExternalDashboardURL(currentStatus) : '';
+        if (externalURL) {
+            ocCopyToClipboard(externalURL, DOMCache.copy_address, '<%:Control panel address copied:%> ', '<%:Copy failed, please copy manually:%>');
+            return false;
+        }
+
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dashboard_type")%>', null, function(x, status) {
             if (x && x.status == 200) {
                 var panel = status.default_dashboard;
                 if (panel && StateManager.current_status[panel]) {
-                    var url;
-                    var currentStatus = StateManager.current_status;
-                    if (currentStatus.daip && window.location.hostname == currentStatus.daip) {
-                        url = 'http://' + window.location.hostname + ':' + currentStatus.cn_port + '/ui/' + panel;
-                    } else if (currentStatus.daip && window.location.hostname != currentStatus.daip && currentStatus.db_foward_domain && currentStatus.db_foward_port) {
-                        var ui_proto = currentStatus.db_forward_ssl == 0 ? 'http://' : 'https://';
-                        url = ui_proto + currentStatus.db_foward_domain + ':' + currentStatus.db_foward_port + '/ui/' + panel;
-                    } else {
-                        url = 'http://' + window.location.hostname + ':' + currentStatus.cn_port + '/ui/' + panel;
-                    }
-
-                    if (panel === 'zashboard' || panel === 'metacubexd') {
-                        url += '/#/setup?hostname=' + (currentStatus.daip && window.location.hostname == currentStatus.daip ? window.location.hostname : (currentStatus.db_foward_domain || window.location.hostname)) + '&port=' + (currentStatus.daip && window.location.hostname == currentStatus.daip ? currentStatus.cn_port : (currentStatus.db_foward_port || currentStatus.cn_port)) + (currentStatus.dase ? '&secret=' + currentStatus.dase : '');
-                    } else if (panel === 'yacd') {
-                        url += '/?hostname=' + (currentStatus.daip && window.location.hostname == currentStatus.daip ? window.location.hostname : (currentStatus.db_foward_domain || window.location.hostname)) + '&port=' + (currentStatus.daip && window.location.hostname == currentStatus.daip ? currentStatus.cn_port : (currentStatus.db_foward_port || currentStatus.cn_port)) + (currentStatus.dase ? '&secret=' + currentStatus.dase : '');
-                    } else if (panel === 'dashboard') {
-                        url += '/#/?host=' + (currentStatus.daip && window.location.hostname == currentStatus.daip ? window.location.hostname : (currentStatus.db_foward_domain || window.location.hostname)) + '&port=' + (currentStatus.daip && window.location.hostname == currentStatus.daip ? currentStatus.cn_port : (currentStatus.db_foward_port || currentStatus.cn_port)) + (currentStatus.dase ? '&secret=' + currentStatus.dase : '');
-                    }
+                    var url = buildDashboardURL(currentStatus, panel, panel === 'zashboard' || panel === 'metacubexd');
 
                     ocCopyToClipboard(url, DOMCache.copy_address, '<%:Control panel address copied:%> ', '<%:Copy failed, please copy manually:%>');
                 } else {
@@ -3758,7 +4674,7 @@
     }
 
     function switch_oc_setting_oversea(value) {
-        LogManager.startLogDisplay('<%:Saving...%>');
+        LogManager.startLogDisplay('<%:Saving...%>', false, 'view');
         return SettingsManager.switchSetting(
             'oversea', 
             value, 
@@ -3845,9 +4761,16 @@
         toggleElement.disabled = true;
         pluginToggleUserAction = true;
         var action = isEnabled ? 'start' : 'stop';
-        var initialMessage = isEnabled ? '<%:Starting...%>' : '<%:Stopping...%>';
 
-        LogManager.startLogDisplay(initialMessage);
+        if (DOMCache.clash) {
+            if (isEnabled) {
+                var coreType = (StateManager.current_status && StateManager.current_status.core_type) || '';
+                DOMCache.clash.innerHTML = '<b style=color:var(--success-color)>' + coreType + '&nbsp;<%:Running%></b>';
+            } else {
+                DOMCache.clash.innerHTML = '<b style=color:var(--error-color)><%:Not Running%></b>';
+            }
+        }
+        StateManager.current_status.clash = isEnabled;
 
         var requestParams = { action: action };
 
@@ -3860,6 +4783,8 @@
             }
         }
 
+        LogManager.startLogDisplay(isEnabled ? '<%:Starting...%>' : '<%:Stopping...%>', false, 'init');
+
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "action")%>', requestParams, function(x, status) {
             if (x && x.status == 200) {
                 setTimeout(function() {
@@ -3868,6 +4793,7 @@
                 }, 2000);
             } else {
                 toggleElement.checked = !isEnabled;
+                StateManager.current_status.clash = !isEnabled;
 
                 var errorMessage = isEnabled ? 
                     '<%:Failed to start OpenClash%>' : 
@@ -3911,7 +4837,7 @@
 
         pluginToggleUserAction = true;
 
-        LogManager.startLogDisplay('<%:Switching Config...%>');
+        LogManager.startLogDisplay('<%:Switching Config...%>', false, 'init');
 
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_config")%>', {
             config_file: currentConfig
@@ -3951,7 +4877,7 @@
 
         pluginToggleUserAction = true;
 
-        LogManager.startLogDisplay('<%:Updating Config...%>');
+        LogManager.startLogDisplay('<%:Updating Config...%>', false, 'openclash.sh');
 
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_config")%>', {
             filename: filename
@@ -4003,8 +4929,10 @@
         if (toggleElement) {
             toggleElement.disabled = true;
         }
-
-        LogManager.startLogDisplay('<%:Restarting...%>');
+        var restartBtn = document.getElementById('restart_core');
+        if (restartBtn) {
+            restartBtn.disabled = true;
+        }
 
         var requestParams = { action: 'restart' };
 
@@ -4015,7 +4943,12 @@
             requestParams.config_file = selectedConfig;
         }
 
+        LogManager.startLogDisplay('<%:Restarting...%>', false, 'init');
+
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "action")%>', requestParams, function(x, status) {
+            if (restartBtn) {
+                restartBtn.disabled = false;
+            }
             if (x && x.status == 200) {
                 setTimeout(function() {
                     pluginToggleUserAction = false;
@@ -4188,7 +5121,9 @@
         var newIndex = (currentIndex + 1) % themes.length;
         var newTheme = themes[newIndex];
         localStorage.setItem('oc-theme', newTheme);
+        ocUpdateTheme();
         DarkModeDetector.init();
+        StatsChart.refresh();
     }
 //]]></script>
 </html>

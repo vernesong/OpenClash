@@ -1,8 +1,8 @@
 #!/usr/bin/lua
 
 require "nixio"
-require "luci.util"
 require "luci.sys"
+local util = require "luci.util"
 local ntm = require "luci.model.network".init()
 local cidr = require "luci.ip"
 local fs = require "luci.openclash"
@@ -12,18 +12,62 @@ local wan, wan6
 
 if not type then os.exit(0) end
 
-if pcall(function() local x = ntm:get_all_wan_networks(); local y = ntm:get_all_wan6_networks(); end) then
-	wan = ntm:get_all_wan_networks()
-	wan6 = ntm:get_all_wan6_networks()
-elseif pcall(function() local x = ntm:get_wan_networks(); local y = ntm:get_wan6_networks(); end) then
-	wan = ntm:get_wan_networks()
-	wan6 = ntm:get_wan6_networks()
-elseif pcall(function() local x = ntm:get_wannet(); local y = ntm:get_wan6net(); end) then
-	wan = {}
-	wan6 = {}
-	wan[1] =  ntm:get_wannet()
-	wan6[1] = ntm:get_wan6net()
-else
+local function get_all_wan_networks()
+	local nets = { }
+	local _, object
+	for _, object in ipairs(util.ubus()) do
+		local name = object:match("^network%.interface%.(.+)")
+		if name then
+			local stat = util.ubus(object, "status", { })
+			if stat and stat.route then
+				local rt
+				for _, rt in ipairs(stat.route) do
+					if not rt.table and rt.target == "0.0.0.0" and rt.mask == 0 then
+						local net = ntm:get_network(name)
+						if net then
+							nets[#nets+1] = net
+						end
+						break
+					end
+				end
+			end
+		end
+	end
+	return nets
+end
+
+local function get_all_wan6_networks()
+	local nets = { }
+	local _, object
+	for _, object in ipairs(util.ubus()) do
+		local name = object:match("^network%.interface%.(.+)")
+		if name then
+			local stat = util.ubus(object, "status", { })
+			if stat and stat.route then
+				local rt
+				for _, rt in ipairs(stat.route) do
+					if not rt.table and rt.target == "::" and rt.mask == 0 then
+						local net = ntm:get_network(name)
+						if net then
+							nets[#nets+1] = net
+						end
+						break
+					end
+				end
+			end
+		end
+	end
+	return nets
+end
+
+local ok = pcall(function() wan = get_all_wan_networks(); wan6 = get_all_wan6_networks(); end)
+if not ok then
+	ok = pcall(function() wan = ntm:get_wan_networks(); wan6 = ntm:get_wan6_networks(); end)
+end
+if not ok then
+	ok = pcall(function() wan = { ntm:get_wannet() }; wan6 = { ntm:get_wan6net() }; end)
+end
+if not ok then
 	os.exit(0)
 end
 
@@ -63,7 +107,7 @@ if type == "dns" then
 	if wan then
 		for o = 1, #(rv.wan) do
 			for i = 1, #(rv.wan[o].dns) do
-				if rv.wan[o].dns[i] ~= rv.wan[o].gwaddr and rv.wan[o].dns[i] ~= rv.wan[o].ipaddr then
+				if rv.wan[o].dns[i] ~= rv.wan[o].ipaddr then
 					print(rv.wan[o].dns[i])
 				end
 			end
@@ -75,7 +119,7 @@ if type == "dns6" then
 	if wan6 then
 		for o = 1, #(rv.wan6) do
 			for i = 1, #(rv.wan6[o].dns) do
-				if rv.wan6[o].dns[i] ~= rv.wan6[o].gw6addr and rv.wan6[o].ip6addr then
+				if rv.wan6[o].dns[i] ~= rv.wan6[o].ip6addr then
 					print(rv.wan6[o].dns[i])
 				end
 			end

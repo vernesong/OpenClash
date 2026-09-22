@@ -24,9 +24,9 @@ local dns_host = "www.instagram.com"
 					output.innerHTML = '';
 					var ta = document.createElement('textarea');
 					ta.style.width = '100%';
-					ta.value = x.responseText;
+					ta.value = x.responseText.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l !== ''; }).join('\n');
 					output.appendChild(ta);
-					_cmWhenReady(function() {
+					cmWhenReady(function() {
 						other_editor(ta, true, '100%', '400px');
 					});
 				}
@@ -51,11 +51,11 @@ local dns_host = "www.instagram.com"
 		if (legend && output)
 		{
 			output.innerHTML =
-				'<img src="<%=resource%>/icons/loading.svg" onerror="this.onerror=null;this.src=\'<%=resource%>/icons/loading.gif\'" alt="<%:Loading...%>" style="vertical-align:middle" /> ' +
+				'<span class="loading-spinner" style="vertical-align:middle"></span> ' +
 				'<%:Waiting for command to complete...%>';
 
 			legend.textContent = '<%:Collecting data...%>';
-			legend.parentNode.style.display = 'block';
+			legend.parentNode.classList.remove('oc-hidden');
 			legend.style.display = 'block';
 		}
 		
@@ -95,11 +95,11 @@ local dns_host = "www.instagram.com"
 		if (legend && output)
 		{
 			output.innerHTML =
-				'<img src="<%=resource%>/icons/loading.svg" onerror="this.onerror=null;this.src=\'<%=resource%>/icons/loading.gif\'" alt="<%:Loading...%>" style="vertical-align:middle" /> ' +
+				'<span class="loading-spinner" style="vertical-align:middle"></span> ' +
 				'<%:Waiting for command to complete...%>';
 
 			legend.textContent = '<%:Collecting data...%>';
-			legend.parentNode.style.display = 'block';
+			legend.parentNode.classList.remove('oc-hidden');
 			legend.style.display = 'block';
 		}
 		
@@ -112,9 +112,9 @@ local dns_host = "www.instagram.com"
 					output.innerHTML = '';
 					var ta = document.createElement('textarea');
 					ta.style.width = '100%';
-					ta.value = x.responseText;
+					ta.value = x.responseText.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l !== ''; }).join('\n');
 					output.appendChild(ta);
-					_cmWhenReady(function() {
+					cmWhenReady(function() {
 						other_editor(ta, true, '100%', '400px');
 					});
 				}
@@ -134,24 +134,24 @@ local dns_host = "www.instagram.com"
 <div class="oc">
 <form>
 	<fieldset class="diag-style">
-		<div style="width:50%; float: left; text-align: center; white-space: nowrap;">
+		<div class="oc-text-center" style="width:50%;float:left;white-space:nowrap;">
 			<%:Connection Test%>&nbsp;&nbsp;&nbsp;&nbsp;
 			<input type="text" value="<%=diag_host%>" name="diag" />
 			<input type="button" value="<%:Click to Test%>" class="btn cbi-button cbi-button-apply" onclick="update_status(this.form.diag)" />
 		</div>
-		<div style="width:50%; float: left; text-align: center; white-space: nowrap;">
+		<div class="oc-text-center" style="width:50%;float:left;white-space:nowrap;">
 			<%:DNS Test%>&nbsp;&nbsp;&nbsp;&nbsp;
 			<input type="text" value="<%=dns_host%>" name="dns_host" />
 			<input type="button" value="<%:Click to Test%>" class="btn cbi-button cbi-button-apply" onclick="diag_dns(this.form.dns_host)" />
 		</div>
 	</fieldset>
 
-	<div class="diag-style" style="display:none">
+	<div class="diag-style oc-hidden">
 		<div id="diag-rc-legend" class="diag-legend"><%:Collecting data...%></div>
 		<span id="diag-rc-output"></span>
 	</div>
 
-	<div class="diag-style" style="display:none">
+	<div class="diag-style oc-hidden">
 		<div id="dns-rc-legend" class="diag-legend"><%:Collecting data...%></div>
 		<span id="dns-rc-output"></span>
 	</div>

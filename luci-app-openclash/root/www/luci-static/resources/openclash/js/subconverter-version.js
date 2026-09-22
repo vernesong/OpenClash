@@ -1,3 +1,5 @@
+// Guard: skip if already loaded (handles multi-template page loads)
+ocGuard: { if (window.ocSubconverterLoaded) break ocGuard; window.ocSubconverterLoaded = true; }
 (function(window, document) {
 	'use strict';
 

@@ -4,22 +4,21 @@
     local plugin_version = fs.oc_version()
 %>
 <script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
-<%+openclash/common%>
 <body>
-    <div id="tab" class="cbi-section oc">
+    <div id="tab" class="oc">
         <div id="tab-header">
-            <ul class="cbi-tabmenu">
-                <li name="tab-header" class="cbi-tab"><a href="#"><%:OpenClash Log%></a></li>
-                <li name="tab-header" class="cbi-tab-disabled"><a href="#"><%:Core Log%></a></li>
-                <li name="tab-header" class="cbi-tab-disabled"><a href="#"><%:Debug Logs%></a></li>
+            <ul class="oc-tabmenu">
+                <li name="tab-header" class="oc-tab"><a href="#"><svg width="14" height="14"><use href="#oc-icon-package"/></svg><span><%:Plugin Logs%></span></a></li>
+                <li name="tab-header" class="oc-tab-disabled"><a href="#"><svg width="14" height="14"><use href="#oc-icon-cpu"/></svg><span><%:Core Logs%></span></a></li>
+                <li name="tab-header" class="oc-tab-disabled"><a href="#"><svg width="14" height="14"><use href="#oc-icon-bug"/></svg><span><%:Debug Logs%></span></a></li>
             </ul>
         </div>
         <div id="tab-content">
             <div class="dom" style="display: block;">
-                <textarea id="cbid.openclash.config.clog" class="cbi-input-textarea" style="width: 100%;display:inline" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
+                <textarea id="cbid.openclash.config.clog" class="oc-input-textarea" style="display:inline" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
             </div>
             <div class="dom">
-                <textarea id="core_log" class="cbi-input-textarea" style="width: 100%;display:inline" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
+                <textarea id="core_log" class="oc-input-textarea" style="display:inline" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
                 <div class="radio-button">
                     <input type="radio" id="info" name="radios" value="info" checked onclick="return switch_log_level(this.value)"/>
                     <label for="info"><%:Info%></label>
@@ -34,7 +33,7 @@
                 </div>
             </div>
             <div class="dom">
-                <textarea id="debug_log" class="cbi-input-textarea" style="width: 100%;display:none" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
+                <textarea id="debug_log" class="oc-input-textarea oc-hidden" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
                 <div id="debug-render-wrapper">
                     <div id="debug-rendered"></div>
                     <div class="oc-usage-help-float" id="debug-copy-source" onclick="copyDebugSource()" title="<%:Copy Debug%>"><svg width="20" height="20"><use href="#oc-icon-copy"/></svg></div>
@@ -43,21 +42,27 @@
         </div>
     </div>
 
-<fieldset style="text-align: center; width: 100%" class="cbi-section">
-    <div class="btn-group">
-        <input type="button" class="btn cbi-button cbi-button-apply" id="stop_refresh_button" value="<%:Stop Refresh%>" onclick=" return stop_refresh() "/>
-        <input type="button" class="btn cbi-button cbi-button-apply" id="start_refresh_button" value="<%:Start Refresh%>" onclick=" return start_refresh() "/>
-        <input type="button" class="btn cbi-button cbi-button-apply" id="del_log_button" value="<%:Clean%>" onclick=" return del_log() " />
-        <input type="button" class="btn cbi-button cbi-button-apply" id="down_log_button" value="<%:Download Log%>" onclick=" return download_log() " />
-        <span style="display:inline-flex; align-items:center; gap:4px;">
-            <input type="button" class="btn cbi-button cbi-button-apply" id="gen_debug_button" value="<%:Generate Logs%>" onclick="return gen_debug_logs()" />
-            <span id="debug_loading" style="display:none; vertical-align:middle; line-height:1;"><img src="<%=resource%>/icons/loading.svg" onerror="this.onerror=null;this.src='<%=resource%>/icons/loading.gif'" alt="<%:Loading...%>" style="vertical-align:middle; height:1.6em; width:auto;" /></span>
-        </span>
+<div class="oc oc-text-center oc-w100">
+    <div class="select-popup-footer log-footer">
+        <button type="button" class="footer-btn" id="stop_refresh_button" onclick="return stop_refresh()"><svg width="14" height="14"><use href="#oc-icon-player-pause"/></svg><span><%:Stop Refresh%></span></button>
+        <button type="button" class="footer-btn" id="start_refresh_button" onclick="return start_refresh()"><svg width="14" height="14"><use href="#oc-icon-player-play"/></svg><span><%:Start Refresh%></span></button>
+        <button type="button" class="footer-btn" id="del_log_button" onclick="return del_log()"><svg width="14" height="14"><use href="#oc-icon-trash"/></svg><span><%:Clean%></span></button>
+        <button type="button" class="footer-btn" id="down_log_button" onclick="return download_log()"><svg width="14" height="14"><use href="#oc-icon-download"/></svg><span><%:Download Log%></span></button>
+        <button type="button" class="footer-btn" id="gen_debug_button" onclick="return gen_debug_logs()"><svg width="14" height="14"><use href="#oc-icon-play-bugs"/></svg><span><%:Generate Logs%></span></button>
     </div>
-</fieldset>
+</div>
 </body>
 
 <script type="text/javascript">//<![CDATA[
+window.levelTranslations = {
+	'info': '<%:Info%>',
+	'warning': '<%:Warning%>',
+	'error': '<%:Error%>',
+	'debug': '<%:Debug%>',
+	'tip': '<%:Tip%>',
+	'watchdog': '<%:Watchdog%>',
+	'fatal': '<%:Fatal%>'
+};
 var r;
 var s;
 var log_len = 0;
@@ -74,8 +79,11 @@ var wsRetryDelay = 2000;
 var wsRetryTimer = null;
 var isPolling = false;
 var core_refresh = true;
+var wsHasData = false;
 var coreEditorInitialized = false;
+var editor_oc;
 var editor_core;
+var editor_debug;
 var coreLogAccumulator = '';
 var pollInterval = 1000;
 
@@ -169,7 +177,7 @@ function download_log(){
     var activeTabId = 0;
     var titles = document.getElementsByName('tab-header');
     for(var i=0; i<titles.length; i++){
-        if(titles[i].className === 'cbi-tab') {
+        if(titles[i].className === 'oc-tab') {
             activeTabId = i;
             break;
         }
@@ -212,48 +220,56 @@ function download_log(){
     }
 
     if (oc_content.trim()) {
-        downloadContent += "<%:OpenClash Log%>:\n" + oc_content + "\n\n";
+        downloadContent += "<%:Plugin Logs%>:\n" + oc_content + "\n\n";
     }
     if (core_content.trim()) {
-        downloadContent += "<%:Core Log%>:\n" + core_content;
+        downloadContent += "<%:Core Logs%>:\n" + core_content;
     }
 
     createAndDownloadFile("OpenClash-"+timestamp+".log", downloadContent);
     return;
 };
 
+function restoreDebugEditor() {
+    var wrapper = document.getElementById('debug-render-wrapper');
+    var rendered = document.getElementById('debug-rendered');
+    if (wrapper) { wrapper.style.display = 'none'; }
+    if (rendered) { rendered.innerHTML = ''; }
+    dl.value = "";
+    if (typeof editor_debug !== 'undefined' && editor_debug) {
+        editor_debug.setValue("");
+        if (editor_debug.dom) {
+            editor_debug.dom.style.setProperty('display', '', 'important');
+        }
+        editor_debug.refresh();
+    }
+}
+
 function del_log() {
     var activeTabId = 0;
     var titles = document.getElementsByName('tab-header');
     for(var i=0; i<titles.length; i++){
-        if(titles[i].className === 'cbi-tab') {
+        if(titles[i].className === 'oc-tab') {
             activeTabId = i;
             break;
         }
     }
 
     if (activeTabId === 2) {
+        restoreDebugEditor();
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_log")%>', {type: "debug"}, function(x, data){
-            dl.value = "";
-            var wrapper = document.getElementById('debug-render-wrapper');
-            var rendered = document.getElementById('debug-rendered');
-            if (wrapper) { wrapper.style.display = 'none'; }
-            if (rendered) { rendered.innerHTML = ''; }
-            if (typeof editor_debug !== 'undefined' && editor_debug) {
-                editor_debug.setValue("");
-                if (editor_debug.dom) {
-                    editor_debug.dom.style.setProperty('display', '', 'important');
+            if (typeof editor_debug === 'undefined' || !editor_debug) {
+                if (typeof markdown_editor === 'function' && dl) {
+                    markdown_editor(dl, 'debug', true, '100%', '540px');
                 }
-                editor_debug.refresh();
-            } else if (typeof markdown_editor === 'function' && dl) {
-                markdown_editor(dl, 'debug', true, '100%', '540px');
             }
         });
     } else {
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_log")%>', null, function(x, data){
-            lv.innerHTML="";
-            cl.innerHTML="";
+            lv.value = "";
+            cl.value = "";
             coreLogBuffer = [];
+            coreLogAccumulator = '';
             log_len = 0;
             if (typeof editor_oc !== 'undefined' && editor_oc) {
                 editor_oc.setValue(lv.value);
@@ -304,6 +320,7 @@ function coreLogWebSocketStop() {
     } catch (e) {}
 
     coreLogBuffer = [];
+    wsHasData = false;
 }
 
 function coreLogWebSocketRetry() {
@@ -320,29 +337,15 @@ function coreLogWebSocket() {
             return;
         }
 
-        var protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
-        var host, port;
-
-        if (status.daip && window.location.hostname === status.daip) {
-            host = status.daip;
-            port = status.cn_port;
-        } else if (status.daip && window.location.hostname !== status.daip && 
-                   status.db_foward_domain && status.db_foward_port) {
-            host = status.db_foward_domain;
-            port = status.db_foward_port;
-        } else {
-            host = status.daip;
-            port = status.cn_port;
-        }
-
         var token = status.dase;
         var level = currentLogLevel;
-        var wsUrl = protocol + host + ":" + port + "/logs?token=" + token + "&level=" + level;
+        var wsUrl = ocGetDashboardWebSocketOrigin(status) + "/logs?token=" + encodeURIComponent(token || "") + "&level=" + encodeURIComponent(level);
 
         try {
             coreWebSocket = new WebSocket(wsUrl);
             coreWebSocket.onopen = function() {
                 coreLogBuffer = [];
+                wsHasData = false;
             };
 
             coreWebSocket.onmessage = function(event) {
@@ -350,6 +353,7 @@ function coreLogWebSocket() {
                     try {
                         var msgData = JSON.parse(event.data);
                         if (msgData && msgData.payload) {
+                            wsHasData = true;
                             var now = new Date();
                             var timestamp = now.getFullYear() + "-" + p(now.getMonth() + 1) + "-" + p(now.getDate()) + " " + 
                                            p(now.getHours()) + ":" + p(now.getMinutes()) + ":" + p(now.getSeconds());
@@ -381,31 +385,119 @@ function coreLogWebSocket() {
 
 function gen_debug_logs()
 {
-    var loading_el = document.getElementById('debug_loading');
     var btn = document.getElementById('gen_debug_button');
-    var originalText = btn.value;
-    if (loading_el) { loading_el.style.display = 'inline'; }
-    if (btn) { btn.value = '<%:Generating...%>'; btn.disabled = true; }
-
-    XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "gen_debug_logs")%>', null, function(x, status) {
-        if (loading_el) { loading_el.style.display = 'none'; }
-        if (btn) { btn.value = originalText; btn.disabled = false; }
-        dl.value = x.responseText || '<%:Some error occurred!%>';
-        if (typeof editor_debug !== 'undefined' && editor_debug) {
-            editor_debug.setValue(dl.value);
+    var btnText = btn ? btn.querySelector('span') : null;
+    var btnSvg = btn ? btn.querySelector('svg') : null;
+    var originalText = btnText ? btnText.textContent : '';
+    var originalSvg = btnSvg ? btnSvg.outerHTML : '';
+    if (btn) {
+        if (btnText) { btnText.textContent = '<%:Generating...%>'; }
+        btn.disabled = true;
+        if (btnSvg) {
+            var spinner = document.createElement('span');
+            spinner.className = 'loading-spinner oc-btn-spinner';
+            btnSvg.replaceWith(spinner);
         }
-        renderDebugView();
-    });
+    }
 
+    function restoreGenerateBtn() {
+        if (!btn) return;
+        if (btnText) { btnText.textContent = originalText; }
+        btn.disabled = false;
+        var sp = btn.querySelector('.loading-spinner');
+        if (sp) { sp.outerHTML = originalSvg; }
+    }
+
+    restoreDebugEditor();
+
+    var titles = document.getElementsByName('tab-header');
+    if (titles.length > 2 && titles[2].className !== 'oc-tab') {
+        titles[2].click();
+    }
+
+    if (typeof editor_debug === 'undefined' || !editor_debug) {
+        if (typeof markdown_editor === 'function' && dl) {
+            markdown_editor(dl, 'debug', true, '100%', '540px');
+        }
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.timeout = 0;
+    xhr.open('GET', '<%=luci.dispatcher.build_url("admin", "services", "openclash", "gen_debug_logs")%>', true);
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+    var lastLen = 0;
+    xhr.onprogress = function() {
+        var text = xhr.responseText;
+        if (text.length <= lastLen) return;
+        lastLen = text.length;
+        var lines = text.split('\n');
+        lines.pop();
+        if (lines.length > 0 && lines[0].length === 8192 && /^ +$/.test(lines[0])) {
+            lines.shift();
+        }
+        var preview = lines.join('\n');
+        if (editor_debug && editor_debug.setValue) {
+            editor_debug.setValue(preview);
+            if (editor_debug.scrollDOM) editor_debug.scrollDOM.scrollTop = editor_debug.scrollDOM.scrollHeight;
+        } else {
+            dl.value = preview;
+        }
+    };
+
+    xhr.onload = function() {
+        restoreGenerateBtn();
+        var finalText = xhr.responseText || '';
+
+        if (xhr.status != 200 && finalText == "") {
+            if (editor_debug && editor_debug.setValue) {
+                editor_debug.setValue('<%:Some error occurred!%>');
+            } else {
+                dl.value = '<%:Some error occurred!%>';
+            }
+            return;
+        }
+
+        // reload after sed, because log changed
+        load_debug_log();
+    };
+
+    xhr.ontimeout = function() {
+        restoreGenerateBtn();
+        if (xhr.responseText == "") {
+            if (editor_debug && editor_debug.setValue) {
+                editor_debug.setValue('<%:Request Timeout...%>');
+            } else {
+                dl.value = '<%:Request Timeout...%>';
+            }
+        }
+    };
+
+    xhr.onerror = function() {
+        restoreGenerateBtn();
+        if (xhr.responseText == "") {
+            if (editor_debug && editor_debug.setValue) {
+                editor_debug.setValue('<%:Some error occurred!%>');
+            } else {
+                dl.value = '<%:Some error occurred!%>';
+            }
+        }
+    };
+
+    xhr.send();
     return;
 };
 
-function load_existing_debug_log()
+function load_debug_log()
 {
     XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_debug_logs")%>', null, function(x, status) {
         if (x && x.status == 200 && x.responseText != "")
         {
             dl.value = x.responseText;
+            if (typeof editor_debug !== 'undefined' && editor_debug && editor_debug.setValue) {
+                editor_debug.setValue(x.responseText);
+                setCursorToFirstLineEnd(editor_debug);
+            }
             renderDebugView();
         }
         else
@@ -417,65 +509,81 @@ function load_existing_debug_log()
     });
 };
 
-function line_tolocal(str) {
+function line_tolocal(input) {
     var trans_local = new Array();
     var local_count = 0;
+    var lines;
 
-    str.trim().split('\n').forEach(function(v, i) {
-        var regex = /(time=)"([^"]*)"/g;
-        var res = regex.exec(v);
+    if (Array.isArray(input)) {
+        lines = input;
+    } else {
+        lines = input.trim().split('\n');
+    }
+
+    for (var i = 0; i < lines.length; i++) {
+        var v = lines[i];
+        if (!v) continue;
 
         try {
-            if (res) {
-                var dt = new Date(res[2]);
+            if (v.indexOf('time=') >= 0) {
+                var regex = /(time=)"([^"]*)"/g;
+                var res = regex.exec(v);
 
-                if (!isNaN(dt.getTime())) {
-                    var timestamp = dt.getFullYear() + "-" + p(dt.getMonth() + 1) + "-" + p(dt.getDate()) + " " + 
-                                   p(dt.getHours()) + ":" + p(dt.getMinutes()) + ":" + p(dt.getSeconds());
-                    
-                    var levelMatch = v.match(/level=(\w+)/);
-                    var level = levelMatch ? levelMatch[1] : 'info';
-                    var translatedLevel = levelTranslations[level] || level;
-                    var msgMatch = v.match(/msg="(.*)"/);
-                    var msg = msgMatch ? msgMatch[1] : '';
-                    trans_local[local_count] = timestamp + " [" + translatedLevel + "] " + msg;
+                if (res) {
+                    var dt = new Date(res[2]);
+
+                    if (!isNaN(dt.getTime())) {
+                        var timestamp = dt.getFullYear() + "-" + p(dt.getMonth() + 1) + "-" + p(dt.getDate()) + " " + 
+                                       p(dt.getHours()) + ":" + p(dt.getMinutes()) + ":" + p(dt.getSeconds());
+                        var levelMatch = v.match(/level=(\w+)/);
+                        var level = levelMatch ? levelMatch[1] : 'info';
+                        var translatedLevel = levelTranslations[level] || level;
+                        var msgMatch = v.match(/msg="(.*)"/);
+                        var msg = msgMatch ? msgMatch[1] : '';
+                        trans_local[local_count] = timestamp + " [" + translatedLevel + "] " + msg;
+                        local_count++;
+                        continue;
+                    }
+                }
+            }
+
+            try {
+                var dtt = new Date(v.substring(0, 19));
+
+                if (!isNaN(dtt.getTime()) && v.substring(0, 19).match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)) {
+                    trans_local[local_count] = v;
                     local_count++;
                 } else {
                     trans_local[local_count] = v;
                     local_count++;
                 }
-            } else {
-                try {
-                    var dtt = new Date(v.substring(0, 19));
-
-                    if (!isNaN(dtt.getTime()) && v.substring(0, 19).match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)) {
-                        trans_local[local_count] = v;
-                        local_count++;
-                    } else {
-                        trans_local[local_count] = v;
-                        local_count++;
-                    }
-                } catch (e) {
-                    trans_local[local_count] = v;
-                    local_count++;
-                }
+            } catch (e) {
+                trans_local[local_count] = v;
+                local_count++;
             }
         } catch (e) {
             trans_local[local_count] = v;
             local_count++;
         }
-    });
+    }
 
     return trans_local;
 };
+
+function setCursorToFirstLineEnd(editor) {
+    if (!editor || !editor.state) return;
+    var doc = editor.state.doc;
+    if (doc.lines >= 1) {
+        var fl = doc.line(1);
+        editor.dispatch({ selection: { anchor: fl.to }, scrollIntoView: true });
+    }
+}
 
 function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiveTab) {
     var scrollPosition = null;
     var isAtTop = false;
     var cursorPos = null;
     var selectionRange = null;
-
-    var isFirstLoad = !currentContent || currentContent.trim() === "";
 
     if (isEditor && target) {
         scrollPosition = target.getScrollInfo();
@@ -504,14 +612,9 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
         isAtTop = (target.scrollTop < 20);
     }
 
-    if ((target === editor_oc && animatingOC) || (target === editor_core && animatingCore) || !isActiveTab) {
-        var content = "";
+    if ((target === editor_oc && animatingOC) || (target === editor_core && animatingCore) || (target === editor_debug && animatingDebug) || !isActiveTab) {
         var lines = newLines.slice().reverse();
-        for (var i = 0; i < lines.length; i++) {
-            content += lines[i] + "\n";
-        }
-        content = content + (currentContent || "");
-
+        var content = lines.join('\n') + (lines.length > 0 ? '\n' : '') + (currentContent || '');
         var allLines = content.split("\n");
         if (allLines.length > 2000) {
             allLines = allLines.slice(0, 1999);
@@ -527,7 +630,6 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
                 if (cursorPos) {
                     cursorPos.line += addedLines;
                     target.setCursor(cursorPos);
-
                     target.scrollIntoView({line: cursorPos.line, ch: cursorPos.ch}, 300);
                 } else {
                     target.scrollTo(scrollPosition.left, scrollPosition.top);
@@ -537,7 +639,6 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
                     selectionRange.from.line += addedLines;
                     selectionRange.to.line += addedLines;
                     target.setSelection(selectionRange.from, selectionRange.to);
-
                     target.scrollIntoView({
                         from: selectionRange.from,
                         to: selectionRange.to
@@ -550,8 +651,6 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
                     target.setCursor({line: 0, ch: firstLineLen});
                 }
             }
-
-            target.refresh();
         } else {
             var oldScrollTop = scrollPosition;
             target.innerHTML = content;
@@ -564,6 +663,8 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
 
     if (target === editor_oc || target === lv) {
         animatingOC = true;
+    } else if (target === editor_debug) {
+        animatingDebug = true;
     } else {
         animatingCore = true;
     }
@@ -572,25 +673,25 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
     var batchSize, interval;
 
     if (totalLines <= 10) {
-        batchSize = 2;
-        interval = 90;
+        batchSize = 5;
+        interval = 80;
     } else if (totalLines <= 50) {
-        batchSize = 10;
-        interval = 60;
+        batchSize = 25;
+        interval = 50;
     } else if (totalLines <= 200) {
-        batchSize = 30;
-        interval = 35;
-    } else if (totalLines <= 500) {
         batchSize = 60;
-        interval = 25;
+        interval = 30;
+    } else if (totalLines <= 500) {
+        batchSize = 150;
+        interval = 20;
     } else if (totalLines <= 1000) {
-        batchSize = 120;
-        interval = 15;
+        batchSize = 300;
+        interval = 12;
     } else if (totalLines <= 1500) {
-        batchSize = 180;
-        interval = 10;
+        batchSize = 400;
+        interval = 8;
     } else {
-        batchSize = 250;
+        batchSize = 500;
         interval = 5;
     }
 
@@ -603,6 +704,8 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
         if (currentBatchCount >= logLines.length) {
             if (target === editor_oc || target === lv) {
                 animatingOC = false;
+            } else if (target === editor_debug) {
+                animatingDebug = false;
             } else {
                 animatingCore = false;
             }
@@ -625,11 +728,7 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
                 }
             }
             if (isEditor && !cursorPos) {
-                var doc = target.state.doc;
-                if (doc.lines >= 1) {
-                    var fl = doc.line(1);
-                    target.dispatch({ selection: { anchor: fl.to } });
-                }
+                setCursorToFirstLineEnd(target);
             }
             return;
         }
@@ -647,13 +746,6 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
 
         var content = accumulatedContent + (displayedContent ? "\n" + displayedContent : "");
 
-        var contentLines = content.split("\n");
-        if (contentLines.length > 2000) {
-            contentLines = contentLines.slice(0, 1999);
-            contentLines.push("...");
-            content = contentLines.join("\n");
-        }
-
         if (isEditor) {
             var currentScrollInfo = isAtTop ? null : target.getScrollInfo();
             target.setValue(content);
@@ -661,7 +753,6 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
             if (!isAtTop && currentScrollInfo) {
                 target.scrollTo(currentScrollInfo.left, currentScrollInfo.top);
             }
-            target.refresh();
         } else {
             var currentScrollTop = isAtTop ? null : target.scrollTop;
             target.innerHTML = content;
@@ -675,6 +766,8 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
         } else {
             if (target === editor_oc || target === lv) {
                 animatingOC = false;
+            } else if (target === editor_debug) {
+                animatingDebug = false;
             } else {
                 animatingCore = false;
             }
@@ -697,10 +790,19 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
                 }
             }
             if (isEditor && !cursorPos) {
-                var doc = target.state.doc;
-                if (doc.lines >= 1) {
-                    var fl = doc.line(1);
-                    target.dispatch({ selection: { anchor: fl.to } });
+                setCursorToFirstLineEnd(target);
+            }
+
+            if (isEditor) {
+                var finalContent = target.getValue();
+                var finalLines = finalContent.split("\n");
+                if (finalLines.length > 2000) {
+                    finalLines = finalLines.slice(0, 1999);
+                    finalLines.push("...");
+                    target.setValue(finalLines.join("\n"));
+                    if (!cursorPos) {
+                        setCursorToFirstLineEnd(target);
+                    }
                 }
             }
         }
@@ -721,18 +823,18 @@ function poll_log(){
     clearTimeout(r);
 
     for(var i=0; i<titles.length; i++){
-        if(titles[i].className === 'cbi-tab') {
+        if(titles[i].className === 'oc-tab') {
             activeTabId = i;
             break;
         }
     }
 
     if (coreWebSocket && coreWebSocket.readyState == WebSocket.OPEN) {
-        core_refresh = false;
+        core_refresh = !wsHasData;
         if (coreLogBuffer.length > 0) {
             bufferToProcess = coreLogBuffer;
             coreLogBuffer = [];
-            core_logs = line_tolocal(bufferToProcess.join('\n'));
+            core_logs = line_tolocal(bufferToProcess);
             if (editor_core && activeTabId === 1) {
                 currentCoreContent = editor_core.getValue();
                 smoothlyDisplayLogs(core_logs, editor_core, true, currentCoreContent, true);
@@ -821,14 +923,14 @@ window.onload = function(){
         li.id = i;
         function handleTabSwitch(tab) {
             return function(e) {
-                if (tab.className === 'cbi-tab') return;
+                if (tab.className === 'oc-tab') return;
                 var prevTabId = -1;
                 for(var j=0; j<titles.length; j++){
-                    if (titles[j].className === 'cbi-tab') prevTabId = j;
-                    titles[j].className = 'cbi-tab-disabled';
+                    if (titles[j].className === 'oc-tab') prevTabId = j;
+                    titles[j].className = 'oc-tab-disabled';
                     divs[j].classList.remove('active');
                 }
-                tab.className = 'cbi-tab';
+                tab.className = 'oc-tab';
                 divs[tab.id].classList.add('active');
 
                 if (prevTabId == 1 && editor_core) {
@@ -836,15 +938,24 @@ window.onload = function(){
                     cl.value = coreLogAccumulator;
                 }
 
+                if (tab.id == 0 && typeof editor_oc !== 'undefined' && editor_oc) {
+                    setCursorToFirstLineEnd(editor_oc);
+                }
+
                 if (tab.id == 1 && !coreEditorInitialized) {
                     coreEditorInitialized = true;
                     if (typeof log_editor === 'function' && cl) {
-                        cl.value = coreLogAccumulator;
+                        cl.value = coreLogAccumulator.replace(/\n+$/, '');
                         log_editor(cl, 'core', true, '100%', '540px');
                     }
                 } else if (tab.id == 1 && editor_core) {
-                    editor_core.setValue(coreLogAccumulator);
+                    editor_core.setValue(coreLogAccumulator.replace(/\n+$/, ''));
                     editor_core.refresh();
+                    setCursorToFirstLineEnd(editor_core);
+                }
+
+                if (tab.id == 2 && typeof editor_debug !== 'undefined' && editor_debug) {
+                    setCursorToFirstLineEnd(editor_debug);
                 }
 
                 pollInterval = (tab.id == 1) ? 5000 : 1000;
@@ -859,19 +970,20 @@ window.onload = function(){
     get_log_level();
     poll_log();
     setTimeout(function() {
-        load_existing_debug_log();
+        load_debug_log();
     }, 500);
 };
 
-function renderDebugView() {
+function renderDebugView(src) {
     var wrapper = document.getElementById('debug-render-wrapper');
     var rendered = document.getElementById('debug-rendered');
     if (!wrapper || !rendered) return;
-    var src = '';
-    if (typeof editor_debug !== 'undefined' && editor_debug) {
-        src = editor_debug.getValue();
-    } else if (dl) {
-        src = dl.value || '';
+    if (!src) {
+        if (typeof editor_debug !== 'undefined' && editor_debug) {
+            src = editor_debug.getValue();
+        } else if (dl) {
+            src = dl.value || '';
+        }
     }
     if (!src) return;
 
@@ -916,7 +1028,6 @@ function renderDebugView() {
     if (dl.parentNode && dl.parentNode.className.indexOf('oc') < 0) {
         dl.parentNode.classList.add('oc');
     }
-    ocUpdateTheme();
 }
 
 function copyDebugSource() {

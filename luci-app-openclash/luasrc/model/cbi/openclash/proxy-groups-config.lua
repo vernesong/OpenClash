@@ -2,6 +2,7 @@
 local m, s, o
 local openclash = "openclash"
 local uci = luci.model.uci.cursor()
+local main_uci = luci.model.uci.cursor()
 local fs = require "luci.openclash"
 local sys = require "luci.sys"
 local HTTP = require "luci.http"
@@ -20,15 +21,16 @@ bold_on = [[<strong>]]
 bold_off = [[</strong>]]
 
 m = Map(openclash, translate("Edit Group"))
+m.uci = uci
 m.pageaction = false
 m.redirect = DISP.build_url("admin/services/openclash/servers") .. "?file=" .. HTTP.urlencode(file_path)
-if m.uci:get(openclash, sid) ~= "groups" then
+if m.uci:get(openclash, sid) ~= "proxy_groups" then
 	HTTP.redirect(m.redirect)
 	return
 end
 
 -- [[ Groups Setting ]]--
-s = m:section(NamedSection, sid, "groups")
+s = m:section(NamedSection, sid, "proxy_groups")
 s.anonymous = true
 s.addremove = false
 
@@ -178,8 +180,8 @@ end
 o = s:option(DynamicList, "other_group", translate("Other Group (Support Regex)"))
 o.description = font_red..bold_on..translate("The Added Proxy Groups Must Exist Except 'DIRECT' & 'REJECT' & 'REJECT-DROP' & 'PASS' & 'GLOBAL'")..bold_off..font_off
 o:value("all", translate("All Groups"))
-uci:foreach("openclash", "groups",
-	function(s)
+uci:foreach("openclash", "proxy_groups",
+function(s)
 		if s.name ~= "" and s.name ~= nil and s.name ~= m.uci:get(openclash, sid, "name") and (s.config == m.uci:get(openclash, sid, "config") or s.config == "all") then
 			o:value(s.name)
 		end
@@ -208,9 +210,8 @@ local function sync_group_name(section, old_name, new_name)
 		return value == pattern
 	end
 
-	-- servers 的 groups 列表
-	uci:foreach(openclash, "servers", function(s)
-		local groups = uci:get(openclash, s[".name"], "groups")
+	uci:foreach("openclash", "proxies", function(s)
+		local groups = uci:get("openclash", s[".name"], "groups")
 		if groups then
 			local new_groups = {}
 			local changed = false
@@ -223,15 +224,14 @@ local function sync_group_name(section, old_name, new_name)
 				end
 			end
 			if changed then
-				uci:delete(openclash, s[".name"], "groups")
-				uci:set_list(openclash, s[".name"], "groups", new_groups)
+				uci:delete("openclash", s[".name"], "groups")
+				uci:set_list("openclash", s[".name"], "groups", new_groups)
 			end
 		end
 	end)
 
-	-- proxy-provider 的 groups 列表
-	uci:foreach(openclash, "proxy-provider", function(s)
-		local groups = uci:get(openclash, s[".name"], "groups")
+	uci:foreach("openclash", "proxy_providers", function(s)
+		local groups = uci:get("openclash", s[".name"], "groups")
 		if groups then
 			local new_groups = {}
 			local changed = false
@@ -244,16 +244,15 @@ local function sync_group_name(section, old_name, new_name)
 				end
 			end
 			if changed then
-				uci:delete(openclash, s[".name"], "groups")
-				uci:set_list(openclash, s[".name"], "groups", new_groups)
+				uci:delete("openclash", s[".name"], "groups")
+				uci:set_list("openclash", s[".name"], "groups", new_groups)
 			end
 		end
 	end)
 
-	-- groups 的 other_group 列表
-	uci:foreach(openclash, "groups", function(s)
+	uci:foreach("openclash", "proxy_groups", function(s)
 		if s[".name"] ~= section then
-			local other_group = uci:get(openclash, s[".name"], "other_group")
+			local other_group = uci:get("openclash", s[".name"], "other_group")
 			if other_group then
 				local new_other = {}
 				local changed = false
@@ -266,30 +265,29 @@ local function sync_group_name(section, old_name, new_name)
 					end
 				end
 				if changed then
-					uci:delete(openclash, s[".name"], "other_group")
-					uci:set_list(openclash, s[".name"], "other_group", new_other)
+				uci:delete("openclash", s[".name"], "other_group")
+				uci:set_list("openclash", s[".name"], "other_group", new_other)
 				end
 			end
 		end
 	end)
 
-	-- dns_servers 的 specific_group 选项
-	uci:foreach(openclash, "dns_servers", function(s)
-		local specific_group = uci:get(openclash, s[".name"], "specific_group")
+	main_uci:foreach("openclash", "dns_servers", function(s)
+		local specific_group = main_uci:get("openclash", s[".name"], "specific_group")
 		if matches(old_name, specific_group) then
-			uci:set(openclash, s[".name"], "specific_group", new_name)
+			main_uci:set("openclash", s[".name"], "specific_group", new_name)
 		end
 	end)
 
-	-- servers 的 dialer_proxy 选项
-	uci:foreach(openclash, "servers", function(s)
-		local dialer_proxy = uci:get(openclash, s[".name"], "dialer_proxy")
+	uci:foreach("openclash", "proxies", function(s)
+		local dialer_proxy = uci:get("openclash", s[".name"], "dialer_proxy")
 		if matches(old_name, dialer_proxy) then
-			uci:set(openclash, s[".name"], "dialer_proxy", new_name)
+			uci:set("openclash", s[".name"], "dialer_proxy", new_name)
 		end
 	end)
 
-	uci:commit(openclash)
+	main_uci:commit("openclash")
+	uci:commit("openclash")
 end
 
 local t = {

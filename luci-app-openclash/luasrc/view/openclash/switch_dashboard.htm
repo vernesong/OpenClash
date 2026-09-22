@@ -1,5 +1,5 @@
 <%+cbi/valueheader%>
-<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px;">
+<div class="oc-flex-center" style="flex-wrap: wrap; gap: 6px;">
     <div class="cbi-value-field" id="switch_dashboard_<%=self.option%>"><%:Collecting data...%></div>
     <div class="cbi-value-field" id="delete_dashboard_<%=self.option%>">
         <input type="button" class="btn cbi-button cbi-button-reset" value="<%:Delete%>" onclick="return delete_dashboard(this, '<%=self.option%>')"/>

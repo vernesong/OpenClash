@@ -4,11 +4,11 @@
 	local val = self:cfgvalue(section)
 	if val == translate("Enable") or val == translate("Enabled") or val == translate("Config Normal") or val == translate("Exist") then
 %>
-     <div style="color: green; font-weight:bold;">
+     <div class="oc" style="color: var(--success-color); font-weight:bold;">
 <%
   else
 %>	
-     <div style="color: red; font-weight:bold;">
+     <div class="oc" style="color: var(--error-color); font-weight:bold;">
 <%	
   end
   write(pcdata(val))

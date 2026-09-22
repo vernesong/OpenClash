@@ -32,7 +32,7 @@
                 </div>
                 <div class="general">
                     <h1 id="oix-plan"></h1>
-                    <div class="oix-announcement" id="oix-announcement" style="display: none;">
+                    <div class="oix-announcement" id="oix-announcement">
                         <div id="oix-announcement-banner" class="oix-announcement-banner">
                             <div class="oix-megaphone-container">
                                 <svg id="oix-megaphone" width="15" height="15"><use href="#oc-icon-megaphone"/></svg>
@@ -140,7 +140,7 @@
         oix_integral.title = status.result.integral;
 
         if (status.result.announcement && status.result.announcement.content != "") {
-            oix_plan.style.display = 'none';
+            oix_plan.classList.add('oc-hidden');
             loadOixAnnouncement(status.result.announcement.date + ": " + status.result.announcement.content);
         }
         show_info();
@@ -188,11 +188,11 @@
     result = result.replace(/\s+/g, ' ').trim();
 
     if (!result) {
-        oix_container.style.display = 'none';
+        oix_container.classList.add('oc-hidden');
         return;
     }
 
-    oix_container.style.display = 'flex';
+    oix_container.classList.remove('oc-hidden');
 
     var oixAnimator = new AnnouncementAnimator({
         bannerElement: oix_banner,
@@ -209,8 +209,8 @@
     });
 
     setTimeout(function() {
-        oix_plan.style.display = 'block';
-        oix_container.style.display = 'none';
+        oix_plan.classList.remove('oc-hidden');
+        oix_container.classList.add('oc-hidden');
         oixAnimator.destroy();
     }, 1000 * 60);
   }
@@ -294,13 +294,6 @@
       obj.classList.add('collapsed');
       obj.classList.remove('expanded');
     }
-  }
-
-  function imgerrorfuns(imgobj,imgSrc)
-  {
-    setTimeout(function(){
-        imgobj.src=imgSrc;
-    },1000*10);
   }
 
 //]]></script>

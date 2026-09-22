@@ -93,12 +93,15 @@ o:value("https://cp.cloudflare.com/generate_204")
 o:value("http://captive.apple.com/generate_204")
 o.default = "0"
 
-o = s:taboption("settings", Value, "github_address_mod", translate("Github Address Modify"))
-o.description = translate("Modify The Github Address In The Config And OpenClash With Proxy(CDN) To Prevent File Download Failed. Format Reference:").." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://ghfast.top/\")'>https://ghfast.top/</a>"
+o = s:taboption("settings", Value, "github_address_mod", font_red..bold_on..translate("GitHub Address Proxy")..bold_off..font_off)
+o.description = translate("Proxy The GitHub Address In The Config And OpenClash With Proxy(CDN) To Prevent File Download Failed.").." "..translate("Format Reference:").." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://ghfast.top/\")'>https://ghfast.top/</a>"
 o:value("0", translate("Disable"))
 o:value("https://fastly.jsdelivr.net/")
 o:value("https://testingcf.jsdelivr.net/")
 o:value("https://cdn.jsdelivr.net/")
+for _, cdn in ipairs(fs.cdn_list()) do
+	o:value(cdn)
+end
 o.default = "0"
 
 o = s:taboption("settings", ListValue, "log_level", translate("Log Level"))
@@ -360,7 +363,7 @@ o.default = 0
 
 o = s:taboption("meta", Flag, "enable_meta_sniffer", font_red..bold_on..translate("Enable Sniffer")..bold_off..font_off)
 o.description = font_red..bold_on..translate("Sniffer Will Prevent Domain Name Proxy and DNS Hijack Failure")..bold_off..font_off
-o.default = 1
+o.default = 0
 
 o = s:taboption("meta", Flag, "enable_meta_sniffer_pure_ip", translate("Forced Sniff Pure IP"))
 o.description = translate("Forced Sniff Pure IP Connections")
@@ -405,6 +408,14 @@ o.description = translate("Nodes Weight Priority, <1 Means Lower Priority, >1 Me
 o = s:taboption("smart", Flag, "smart_prefer_asn", font_red..bold_on..translate("Prefer-ASN")..bold_off..font_off)
 o.description = translate("Select Nodes Force Lookup and Use Target ASN Info First For More Stable Experience")
 o.default = 0
+
+o = s:taboption("smart", Value, "smart_tolerance", translate("Smart Group Tolerance").."(ms)")
+o.description = translate("Sort When Proxies Delays Within Tolerance are Treated as Equal, Preventing Jitter")
+o:value("0", translate("Disable"))
+o:value("100")
+o:value("150")
+o.datatype = "uinteger"
+o.default = "0"
 
 o = s:taboption("smart", Flag, "smart_enable_lgbm", font_red..bold_on..translate("Enable LightGBM Model")..bold_off..font_off)
 o.description = font_red..bold_on..translate("Use LightGBM Model To Predict Weight")..bold_off..font_off

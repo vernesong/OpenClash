@@ -8,11 +8,25 @@ local fs = require "luci.openclash"
 local uci = require "luci.model.uci".cursor()
 local json = require "luci.jsonc"
 local datatype = require "luci.cbi.datatypes"
-local net = require "luci.model.network".init()
 local devices = {}
-for _, iface in ipairs(net:get_interfaces()) do
-	if iface:name() then
-		table.insert(devices, {name = iface:name()})
+local seen_devices = {}
+local function add_device(dev)
+	if dev and dev ~= "" and not seen_devices[dev] then
+		seen_devices[dev] = true
+		table.insert(devices, {name = dev})
+	end
+end
+uci:foreach("network", "interface", function(s)
+	local ifname = type(s.ifname) == "table" and table.concat(s.ifname, " ") or s.ifname
+	if type(ifname) == "string" then
+		for dev in ifname:gmatch("[^%s]+") do
+			add_device(dev)
+		end
+	end
+end)
+for dev in SYS.exec("ls -1 /sys/class/net/ 2>/dev/null"):gmatch("[^%s]+") do
+	if dev ~= "lo" then
+		add_device(dev)
 	end
 end
 
@@ -76,9 +90,9 @@ s:tab("rules_update", translate("Rules Update"))
 s:tab("geo_update", translate("GEO Update"))
 s:tab("chnr_update", translate("Chnroute Update"))
 s:tab("auto_restart", translate("Auto Restart"))
-s:tab("version_update", translate("Version Update"))
-s:tab("developer", translate("Developer Settings"))
 s:tab("debug", translate("Core Tests"))
+s:tab("developer", translate("Developer Settings"))
+s:tab("version_update", translate("Version Update"))
 s:tab("oixcloud", translate("oixCloud"))
 
 o = s:taboption("op_mode", ListValue, "en_mode", font_red..bold_on..translate("Select Mode")..bold_off..font_off)
@@ -110,6 +124,7 @@ o:depends("en_mode", "fake-ip-mix")
 o:value("system", translate("System　"))
 o:value("gvisor", translate("gVisor"))
 o:value("mixed", translate("Mixed"))
+o:value("mips", translate("Mips"))
 o.default = "system"
 
 o = s:taboption("op_mode", ListValue, "proxy_mode", translate("Proxy Mode"))
@@ -502,6 +517,18 @@ o.default = 0
 o:value("0", translate("Disable"))
 o:value("1", translate("Bypass Mainland China"))
 o:value("2", translate("Bypass Overseas"))
+
+if op_mode == "fake-ip" then
+o = s:taboption("traffic_control", ListValue, "china_ip_route_domain_source", translate("China IP Route Domain Source"))
+o.description = translate("Select The China Domain Data Source Used by China IP Route in Fake-IP Mode. MetaCubeX Uses cn.mrs from MetaCubeX/meta-rules-dat; GeoSite Uses The cn Category in The Current GeoSite Database")
+o:value("mrs", translate("MetaCubeX Rules cn.mrs (Default)"))
+o:value("geosite", translate("GeoSite Rules geosite:cn"))
+o.default = "mrs"
+o:depends("china_ip_route", "1")
+o:depends("china_ip_route", "2")
+o:depends("china_ip6_route", "1")
+o:depends("china_ip6_route", "2")
+end
 
 o = s:taboption("traffic_control", Flag, "intranet_allowed", translate("Only intranet allowed"))
 o.description = translate("When Enabled, The Control Panel And The Connection Broker Port Will Not Be Accessible From The Public Network")
@@ -1249,6 +1276,12 @@ o.default = "9090"
 o.datatype = "port"
 o.rmempty = false
 o.description = translate("Dashboard Address Example:").." "..font_green..bold_on..lan_ip..':'..cn_port..'/ui/yacd'..'、'..lan_ip..':'..cn_port..'/ui/dashboard'..bold_off..font_off
+local cn_port_write = o.write
+o.write = function(self, section, value)
+	local ret = cn_port_write(self, section, value)
+	SYS.exec("/usr/share/openclash/openclash_nginx.sh >/dev/null 2>&1 &")
+	return ret
+end
 
 o = s:taboption("dashboard", Value, "dashboard_password")
 o.title = translate("Dashboard Secret")
@@ -1258,20 +1291,83 @@ o.description = translate("Set Dashboard Secret")
 o = s:taboption("dashboard", Value, "dashboard_forward_domain")
 o.title = translate("Public Dashboard Address")
 o.datatype = "or(host, string)"
-o.placeholder = "example.com"
+o.placeholder = "example.com or 192.168.1.1 or [2001:db8::1]"
 o.rmempty = true
-o.description = translate("Domain Name For Dashboard Login From Public Network")
+o.description = translate("Domain Name or IP For Dashboard Login From Public Network (without http:// or https://)")
+function o.validate(self, value)
+	if value == nil or value == "" then
+		return value
+	end
+	value = value:match("^%s*(.-)%s*$"):gsub("^[Hh][Tt][Tt][Pp][Ss]?://", "")
+	if value:find("/", 1, true) or value:find("@", 1, true) or value:find("?", 1, true) or value:find("#", 1, true) or value:find("\\", 1, true) or value:match("%s") then
+		return nil, translate("Enter a valid hostname or IP address without a path or user information")
+	end
+	local host, port = value:match("^%[([^%]]+)%]:(%d+)$")
+	if not host then
+		host = value:match("^%[([^%]]+)%]$")
+	end
+	if not host then
+		host, port = value:match("^([^:]+):(%d+)$")
+	end
+	if not host then
+		host = value:match("^([^:]+)$")
+	end
+	if not host or not datatype.host(host) or (port and (tonumber(port) < 1 or tonumber(port) > 65535)) then
+		return nil, translate("Enter a valid hostname or IP address without a path or user information")
+	end
+	return value
+end
 
 o = s:taboption("dashboard", Value, "dashboard_forward_port")
 o.title = translate("Public Dashboard Port")
 o.datatype = "port"
 o.rmempty = true
-o.description = translate("Port For Dashboard Login From Public Network")
+o.description = translate("Optional Port For Dashboard Login From Public Network (defaults to 443 with SSL or 80 without SSL)")
 
 o = s:taboption("dashboard", Flag, "dashboard_forward_ssl")
 o.title = translate("Public Dashboard SSL enabled")
 o.default = 0
 o.description = translate("Is SSL enabled For Dashboard Login From Public Network")
+
+o = s:taboption("dashboard", Value, "dashboard_custom_url")
+o.title = translate("Custom Dashboard URL")
+o.placeholder = "https://board.example.com/ or http://192.168.1.1:9090 or https://[2001:db8::1]:8443"
+o.rmempty = true
+o.description = translate("Optional complete HTTP(S) URL for an externally hosted Dashboard. OpenClash appends hostname, port and secret parameters without adding a local UI path. Include a hash route such as #/setup in the URL when required by the panel.")
+function o.validate(self, value)
+	if value == nil or value == "" then
+		return value
+	end
+	value = value:match("^%s*(.-)%s*$")
+	local scheme, authority = value:match("^([Hh][Tt][Tt][Pp][Ss]?)://([^/%?#]+)")
+	local without_escapes = value:gsub("%%[0-9a-fA-F][0-9a-fA-F]", "")
+	if not scheme or not authority or authority:find("@", 1, true) or value:find("\\", 1, true) or value:match("[%c%s]") or value:match('[<>"{}|^`]') or value:match("[\128-\255]") or without_escapes:find("%%", 1, true) then
+		return nil, translate("Enter a valid complete HTTP or HTTPS URL without user information")
+	end
+	local host, port = authority:match("^%[([^%]]+)%]:(%d+)$")
+	if not host then
+		host = authority:match("^%[([^%]]+)%]$")
+	end
+	if not host then
+		host, port = authority:match("^([^:]+):(%d+)$")
+	end
+	if not host then
+		host = authority:match("^([^:]+)$")
+	end
+	if not host or not datatype.host(host) then
+		return nil, translate("Enter a valid complete HTTP or HTTPS URL without user information")
+	end
+	if port and (tonumber(port) < 1 or tonumber(port) > 65535) then
+		return nil, translate("Enter a valid complete HTTP or HTTPS URL without user information")
+	end
+	return value
+end
+
+o = s:taboption("dashboard", Flag, "dashboard_custom_clash_compatible")
+o.title = translate("Clash Dashboard Compatibility Mode")
+o.default = 0
+o.rmempty = false
+o.description = translate("Use Clash Dashboard-compatible #/?host=... login parameters for the custom Dashboard URL instead of the standard hostname parameters.")
 
 o = s:taboption("dashboard", DummyValue, "Dashboard", translate("Switch(Update) Dashboard Version"))
 o.template="openclash/switch_dashboard"
@@ -1311,6 +1407,7 @@ o:depends({ipv6_mode= "3", en_mode = "fake-ip"})
 o:value("system", translate("System　"))
 o:value("gvisor", translate("gVisor"))
 o:value("mixed", translate("Mixed"))
+o:value("mips", translate("Mips"))
 o.default = "system"
 
 o = s:taboption("ipv6", Flag, "enable_v6_udp_proxy", translate("Proxy UDP Traffics"))
@@ -1394,8 +1491,9 @@ function o.write(self, section, value)
 end
 
 ---- version update
-core_update = s:taboption("version_update", DummyValue, "", nil)
-core_update.template = "openclash/update"
+version_update_panel = s:taboption("version_update", DummyValue, "", nil)
+version_update_panel.template = "openclash/update"
+version_update_panel.version_tab = true
 
 ---- developer
 o = s:taboption("developer", Value, "firewall_custom")
@@ -1464,8 +1562,7 @@ o.write = function()
 	HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
-m:append(Template("openclash/config_editor"))
 m:append(Template("openclash/toolbar_show"))
-m:append(Template("openclash/select_git_cdn"))
+m:append(Template("openclash/config_editor"))
 
 return m

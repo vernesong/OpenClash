@@ -1,6 +1,7 @@
 local m, s, o
 local openclash = "openclash"
 local uci = luci.model.uci.cursor()
+local dynamic_uci = luci.model.uci.cursor()
 local fs = require "luci.openclash"
 local SYS = require "luci.sys"
 local DISP = require "luci.dispatcher"
@@ -146,7 +147,7 @@ if filename then
 	end
 end
 
-m.uci:foreach("openclash", "groups",
+dynamic_uci:foreach("openclash", "proxy_groups",
 function(s)
 	if s.name ~= "" and s.name ~= nil then
 		o:value(s.name)

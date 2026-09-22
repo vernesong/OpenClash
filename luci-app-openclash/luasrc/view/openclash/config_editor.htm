@@ -12,7 +12,6 @@ local path_info = os.getenv("PATH_INFO") or ""
 local sid = path_info:match("(cfg[0-9a-f]+)") or ""
 -%>
 
-<%+openclash/common%>
 <script type="text/javascript">//<![CDATA[
 
 ocRegisterEditorHotkeys();
@@ -47,7 +46,6 @@ function editor(id, readOnly, wid, height) {
 	});
 	id.parentNode.insertBefore(view.dom, id.nextSibling);
 	ocHideLoading(id.parentNode);
-	ocUpdateTheme();
 	if (wid && height) {
 		view.dom.style.width = wid;
 		view.dom.style.height = height;
@@ -75,7 +73,6 @@ function shell_editor(id, readOnly, wid, height) {
 	});
 	id.parentNode.insertBefore(view.dom, id.nextSibling);
 	ocHideLoading(id.parentNode);
-	ocUpdateTheme();
 	if (wid && height) {
 		view.dom.style.width = wid;
 		view.dom.style.height = height;
@@ -103,7 +100,6 @@ function other_editor(id, readOnly, wid, height) {
 	});
 	id.parentNode.insertBefore(view.dom, id.nextSibling);
 	ocHideLoading(id.parentNode);
-	ocUpdateTheme();
 	if (wid && height) {
 		view.dom.style.width = wid;
 		view.dom.style.height = height;
@@ -131,8 +127,16 @@ function log_editor(id, name, readOnly, wid, height) {
 	});
 	id.parentNode.insertBefore(view.dom, id.nextSibling);
 	ocHideLoading(id.parentNode);
-	ocUpdateTheme();
+	if (CM6.dispatchTheme) CM6.dispatchTheme(view, isDark);
 	window['editor_' + name] = view;
+	if (id.value && id.value.length > 0) {
+		requestAnimationFrame(function() {
+			if (view.state && view.state.doc) {
+				var txt = view.state.doc.toString();
+				if (txt) view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: txt } });
+			}
+		});
+	}
 	if (wid && height) {
 		view.dom.style.width = wid;
 		view.dom.style.height = height;
@@ -144,15 +148,15 @@ function log_editor(id, name, readOnly, wid, height) {
 	view.scrollTo = function(l, t) { if (typeof l === 'object') { t = l.top; l = l.left; } view.scrollDOM.scrollTop = t || 0; view.scrollDOM.scrollLeft = l || 0; };
 	view.getCursor = function() { var h = view.state.selection.main.head, ln = view.state.doc.lineAt(h); return { line: ln.number - 1, ch: h - ln.from }; };
 	view.setCursor = function(p) { var ln = view.state.doc.line(p.line + 1); view.dispatch({ selection: { anchor: ln.from + p.ch } }); };
-	var _hasFocusDesc = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(view), 'hasFocus');
-	var _hf;
-	if (_hasFocusDesc && _hasFocusDesc.get) {
-		try { _hf = function() { return _hasFocusDesc.get.call(view); }; } catch(e) { _hf = null; }
+	var hasFocusDesc = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(view), 'hasFocus');
+	var hf;
+	if (hasFocusDesc && hasFocusDesc.get) {
+		try { hf = function() { return hasFocusDesc.get.call(view); }; } catch(e) { hf = null; }
 	}
-	if (!_hf) {
-		_hf = function() { try { return view.contentDOM.ownerDocument.activeElement === view.contentDOM; } catch(e) { return false; } };
+	if (!hf) {
+		hf = function() { try { return view.contentDOM.ownerDocument.activeElement === view.contentDOM; } catch(e) { return false; } };
 	}
-	Object.defineProperty(view, 'hasFocus', { value: _hf, writable: true, configurable: true });
+	Object.defineProperty(view, 'hasFocus', { value: hf, writable: true, configurable: true });
 	view.somethingSelected = function() { return !view.state.selection.main.empty; };
 	view.setSelection = function(f, t) { var lf = view.state.doc.line(f.line + 1), lt = view.state.doc.line(t.line + 1); view.dispatch({ selection: { anchor: lf.from + f.ch, head: lt.from + t.ch } }); };
 	view.scrollIntoView = function(p, m) { if (p && p.line !== undefined) { var ln = view.state.doc.line(p.line + 1); view.dispatch({ selection: { anchor: ln.from + (p.ch || 0) }, scrollIntoView: true }); } else { view.dispatch({ selection: { anchor: view.state.selection.main.head }, scrollIntoView: true }); } };
@@ -176,8 +180,16 @@ function markdown_editor(id, name, readOnly, wid, height) {
 	});
 	id.parentNode.insertBefore(view.dom, id.nextSibling);
 	ocHideLoading(id.parentNode);
-	ocUpdateTheme();
+	if (CM6.dispatchTheme) CM6.dispatchTheme(view, isDark);
 	window['editor_' + name] = view;
+	if (id.value && id.value.length > 0) {
+		requestAnimationFrame(function() {
+			if (view.state && view.state.doc) {
+				var txt = view.state.doc.toString();
+				if (txt) view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: txt } });
+			}
+		});
+	}
 	if (wid && height) {
 		view.dom.style.width = wid;
 		view.dom.style.height = height;
@@ -189,7 +201,7 @@ function markdown_editor(id, name, readOnly, wid, height) {
 	return view;
 }
 
-var _cmWhenReady = window._cmWhenReady;
+var cmWhenReady = window.cmWhenReady;
 
 (function() {
 var oc_log = document.getElementById("cbid.openclash.config.clog");

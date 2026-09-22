@@ -22,6 +22,19 @@ mkdir -p /etc/openclash/core
 mkdir -p /etc/openclash/history
 mkdir -p /usr/share/openclash/backup/overwrite
 
+#move the dynamic sections written by older builds (separate storage directory) into the
+#main configuration, and drop the section types that no longer exist
+if [ -f /etc/openclash/uci/openclash ]; then
+	cp -f /etc/config/openclash /tmp/openclash.config.before_merge 2>/dev/null
+	awk -v keep=1 '/^config /{ keep = ($2 != "groups" && $2 != "proxy-provider" && $2 != "servers") } keep' /etc/config/openclash > /tmp/openclash.merged 2>/dev/null
+	echo >> /tmp/openclash.merged
+	cat /etc/openclash/uci/openclash >> /tmp/openclash.merged
+	if /sbin/uci -q -f /tmp/openclash.merged import openclash && /sbin/uci -q commit openclash; then
+		rm -rf /etc/openclash/uci
+	fi
+	rm -f /tmp/openclash.merged
+fi
+
 mkdir -p /lib/upgrade/keep.d
 cat > "/lib/upgrade/keep.d/luci-app-openclash" <<-EOF
 /etc/openclash/
@@ -81,10 +94,13 @@ case "${DISTRIB_ARCH}" in
 	aarch64_*)
 		CORE_ARCH="linux-arm64"
 		;;
-	arm_*_neon-vfp*)
+	armeb_*)
+		CORE_ARCH="0"
+		;;
+	arm_cortex-a5|arm_cortex-a5[^0-9]*|arm_cortex-a7|arm_cortex-a7[^0-9]*|arm_cortex-a8*|arm_cortex-a9*|arm_cortex-a12*|arm_cortex-a15*|arm_cortex-a17*)
 		CORE_ARCH="linux-armv7"
 		;;
-	arm_*_neon|arm_*_vfp*)
+	arm_arm1176jzf-s*|arm_arm1136*|arm_mpcore*)
 		CORE_ARCH="linux-armv6"
 		;;
 	arm*)
@@ -92,6 +108,9 @@ case "${DISTRIB_ARCH}" in
 		;;
 	i386_*)
 		CORE_ARCH="linux-386"
+		;;
+	mips64el_*)
+		CORE_ARCH="linux-mips64le"
 		;;
 	mips64_*)
 		CORE_ARCH="linux-mips64"
@@ -101,6 +120,12 @@ case "${DISTRIB_ARCH}" in
 		;;
 	mipsel_*)
 		CORE_ARCH="linux-mipsle-softfloat"
+		;;
+	riscv64*)
+		CORE_ARCH="linux-riscv64"
+		;;
+	loongarch64*|loongarch_*)
+		CORE_ARCH="linux-loong64-abi2"
 		;;
 	x86_64)
 		CORE_ARCH="linux-amd64-v1"
@@ -200,69 +225,33 @@ if [ -f "/tmp/openclash.bak" ]; then
 	rm -rf "/etc/openclash/backup" >/dev/null 2>&1
 fi
 
-if [ -f "/usr/lib/lua/luci/model/network.lua" ]; then
-   sed -i '/OpenClash Append/,/OpenClash Append End/d' "/usr/lib/lua/luci/model/network.lua" >/dev/null 2>&1
-   cat >> "/usr/lib/lua/luci/model/network.lua" << EOF
--------------- OpenClash Append --------------
-
-function get_all_wan_networks(self)
-	local k, v
-	local wan_nets = { }
-	local route_statuses = self:get_all_status_by_route("0.0.0.0", 0)
-
-	for k, v in pairs(route_statuses) do
-		wan_nets[#wan_nets+1] = network(k, v.proto)
-	end
-
-	return wan_nets
-end
-
-function get_all_wan6_networks(self)
-	local k, v
-	local wan6_nets = { }
-	local route_statuses = self:get_all_status_by_route("::", 0)
-
-	for k, v in pairs(route_statuses) do
-		wan6_nets[#wan6_nets+1] = network(k, v.proto)
-	end
-
-	return wan6_nets
-end
-
-function get_all_status_by_route(self, addr, mask)
-	local route_statuses = { }
-	local _, object
-	for _, object in ipairs(utl.ubus()) do
-		local net = object:match("^network%.interface%.(.+)")
-		if net then
-			local s = utl.ubus(object, "status", {})
-			if s and s.route then
-				local rt
-				for _, rt in ipairs(s.route) do
-					if not rt.table and rt.target == addr and rt.mask == mask then
-						route_statuses[net] = s
-					end
-				end
-			end
-		end
-	end
-
-	return route_statuses
-end
-
--------------- OpenClash Append End --------------
-EOF
+#allow large config file upload (HTTP_MAX_CONTENT) and long-running requests (streaming log)
+#uhttpd backend (older LuCI)
+if [ -x /etc/init.d/uhttpd ]; then
+	uci -q set uhttpd.@uhttpd[0].max_requests=50
+	uci -q set uhttpd.@uhttpd[0].script_timeout=3600
+	uci -q commit uhttpd
+fi
+#nginx backend (luci-nginx, newer LuCI)
+#gzip_types: nginx only compresses text/html by default, so the openclash
+#static assets (js/css/svg) and the JSON API answers are sent uncompressed
+if [ -d /etc/nginx/conf.d ]; then
+	cat > /etc/nginx/conf.d/openclash.conf <<-EOF
+	uwsgi_read_timeout 3600;
+	gzip_types text/css application/javascript image/svg+xml application/json;
+	EOF
+	#same-origin proxy for the dashboard API so https pages can use wss
+	[ -x /usr/share/openclash/openclash_nginx.sh ] && /usr/share/openclash/openclash_nginx.sh -n
+fi
+if grep -q 'HTTP_MAX_CONTENT' /usr/lib/lua/luci/http.lua 2>/dev/null; then
+   sed -i 's/\(HTTP_MAX_CONTENT[[:space:]]*=[[:space:]]*\)[0-9][0-9]*\([[:space:]]*\*[[:space:]]*[0-9][0-9]*\)*/\11024*10240/' /usr/lib/lua/luci/http.lua
+fi
+if grep -q 'HTTP_MAX_CONTENT' /usr/share/ucode/luci/http.uc 2>/dev/null; then
+   sed -i 's/\(HTTP_MAX_CONTENT[[:space:]]*=[[:space:]]*\)[0-9][0-9]*\([[:space:]]*\*[[:space:]]*[0-9][0-9]*\)*/\11024*10240/' /usr/share/ucode/luci/http.uc
 fi
 
-#set uhttpd && HTTP_MAX_CONTENT for large file edit
-uci -q set uhttpd.main.max_requests=50
-uci -q set uhttpd.main.max_connections=100
-uci -q set uhttpd.main.script_timeout=3600
-uci -q commit uhttpd
-sed -i '/.*kB maximum content size*/c\HTTP_MAX_CONTENT = 1024*10240		-- 100 kB maximum content size' /usr/lib/lua/luci/http.lua >/dev/null 2>&1
-sed -i '/.*kB maximum content size*/c\export let HTTP_MAX_CONTENT = 1024*10240;		// 100 kB maximum content size' /usr/share/ucode/luci/http.uc >/dev/null 2>&1
-
-/etc/init.d/uhttpd restart >/dev/null 2>&1
+[ -x /etc/init.d/uhttpd ] && /etc/init.d/uhttpd restart >/dev/null 2>&1
+[ -x /etc/init.d/nginx ] && /etc/init.d/nginx reload >/dev/null 2>&1
 
 rm -rf /tmp/luci-indexcache /tmp/luci-indexcache.* /var/luci-indexcache /var/luci-indexcache.* >/dev/null 2>&1
 rm -rf /tmp/luci-modulecache /var/luci-modulecache >/dev/null 2>&1

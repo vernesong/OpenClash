@@ -115,6 +115,5 @@ fi
 
 rm -rf /tmp/china_ip*_route* >/dev/null 2>&1
 
-SLOG_CLEAN
 dec_job_counter_and_restart "$restart"
 del_lock

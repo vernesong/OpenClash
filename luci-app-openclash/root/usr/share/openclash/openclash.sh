@@ -67,6 +67,24 @@ config_test()
    fi
 }
 
+yaml_sub_validate()
+{
+   rm -f /tmp/yaml_sub_status 2>/dev/null
+   ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+   begin
+     Value = YAML.load_file('$CFG_FILE')
+     unless Value.key?('proxies') || Value.key?('proxy-providers')
+       File.open('/tmp/yaml_sub_status', 'w') { |f| f.puts 'NO_CONTENT' }
+     end
+   rescue Exception => e
+     YAML.LOG_ERROR('Unable To Parse Config File,【' + e.message + '】')
+     system 'rm -rf ${CFG_FILE} 2>/dev/null'
+   end
+   " 2>/dev/null >> $LOG_FILE
+   YAML_SUB_STATUS=$(cat /tmp/yaml_sub_status 2>/dev/null)
+   rm -f /tmp/yaml_sub_status 2>/dev/null
+}
+
 config_download()
 {
 LOG_TIP "Config File【$name】Downloading User-Agent【$sub_ua】..."
@@ -99,7 +117,7 @@ config_cus_up()
 	            Value['proxies'].reverse.each{
 	            |x|
                   if not '$key_match_param'.empty? then
-                     threads << Thread.new {
+                     threads << YAML::Inline.new {
                         if not /$key_match_param/i =~ x['name'] then
                            Value['proxies'].delete(x)
                            Value['proxy-groups'].each{
@@ -115,7 +133,7 @@ config_cus_up()
                      };
                   end;
                   if not '$key_ex_match_param'.empty? then
-                     threads << Thread.new {
+                     threads << YAML::Inline.new {
                         if /$key_ex_match_param/i =~ x['name'] then
                            if Value['proxies'].include?(x) then
                               Value['proxies'].delete(x)
@@ -137,7 +155,7 @@ config_cus_up()
             if Value.key?('proxy-providers') and not Value['proxy-providers'].nil? then
                Value['proxy-providers'].values.each do
                   |i|
-                  threads << Thread.new {
+                  threads << YAML::Inline.new {
                      if not '$key_match_param'.empty? then
                         i['filter'] = '(?i)$key_match_param';
                      end;
@@ -152,7 +170,7 @@ config_cus_up()
 	         YAML.LOG_ERROR('Filter Proxies Failed,【' + e.message + '】');
 	      ensure
 	         begin
-	            File.open('$CFG_FILE','w') {|f| YAML.dump(Value, f)};
+	            YAML.dump(Value, '$CFG_FILE');
 	         rescue Exception => e
 	            YAML.LOG_ERROR('Write file failed:【%s】' % [e.message])
 	         end
@@ -222,8 +240,6 @@ config_download_direct()
 
       if [ "$DOWNLOAD_RESULT" -eq 0 ] && [ -s "$CFG_FILE" ]; then
          #prevent ruby unexpected error
-         sed -i -E 's/protocol-param: ([^,'"'"'"''}( *#)\n\r]+)/protocol-param: "\1"/g' "$CFG_FILE" 2>/dev/null
-         sed -i '/^ \{0,\}enhanced-mode:/d' "$CFG_FILE" >/dev/null 2>&1
          config_test
          if [ $? -ne 0 ]; then
             LOG_ERROR "Config File Tested Failed, Please Check The Log Infos!"
@@ -231,14 +247,7 @@ config_download_direct()
             config_error
             return
          fi
-         ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-         begin
-         YAML.load_file('$CFG_FILE');
-         rescue Exception => e
-         YAML.LOG_ERROR('Unable To Parse Config File,【' + e.message + '】');
-         system 'rm -rf ${CFG_FILE} 2>/dev/null'
-         end
-         " 2>/dev/null >> $LOG_FILE
+         yaml_sub_validate
          if [ $? -ne 0 ]; then
             LOG_ERROR "Ruby Works Abnormally, Please Check The Ruby Library Depends!"
             only_download=1
@@ -248,7 +257,7 @@ config_download_direct()
             LOG_OUT "Config File Format Validation Failed..."
             change_dns
             config_error
-         elif ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ; then
+         elif [ "$YAML_SUB_STATUS" = "NO_CONTENT" ]; then
             LOG_ERROR "Updated Config【$name】Has No Proxy Field, Update Exit..."
             change_dns
             config_error
@@ -340,6 +349,7 @@ sub_info_get()
    config_get "address" "$section" "address" ""
    config_get "keyword" "$section" "keyword" ""
    config_get "ex_keyword" "$section" "ex_keyword" ""
+   config_get_bool "keyword_option" "$section" "keyword_option" "1"
    config_get "emoji" "$section" "emoji" ""
    config_get "udp" "$section" "udp" ""
    config_get "skip_cert_verify" "$section" "skip_cert_verify" ""
@@ -387,20 +397,22 @@ sub_info_get()
       return
    fi
 
-   if [ ! -z "$keyword" ] || [ ! -z "$ex_keyword" ]; then
-      config_list_foreach "$section" "keyword" server_key_match "keyword"
-      config_list_foreach "$section" "ex_keyword" server_key_match "ex_keyword"
-   fi
+   if [ "$keyword_option" -eq 1 ]; then
+      if [ ! -z "$keyword" ] || [ ! -z "$ex_keyword" ]; then
+         config_list_foreach "$section" "keyword" server_key_match "keyword"
+         config_list_foreach "$section" "ex_keyword" server_key_match "ex_keyword"
+      fi
 
-   if [ -n "$de_ex_keyword" ]; then
-      for i in $de_ex_keyword;
-      do
-      	if [ -z "$key_ex_match_param" ]; then
-      	   key_ex_match_param="($i)"
-      	else
-      	   key_ex_match_param="$key_ex_match_param|($i)"
-        fi
-      done
+      if [ -n "$de_ex_keyword" ]; then
+         for i in $de_ex_keyword;
+         do
+         	if [ -z "$key_ex_match_param" ]; then
+         	   key_ex_match_param="($i)"
+         	else
+         	   key_ex_match_param="$key_ex_match_param|($i)"
+            fi
+         done
+      fi
    fi
 
    if [ "$sub_convert" -eq 0 ]; then
@@ -434,7 +446,6 @@ sub_info_get()
    config_download
    if [ "$DOWNLOAD_RESULT" -eq 0 ] && [ -s "$CFG_FILE" ]; then
       #prevent ruby unexpected error
-      sed -i -E 's/protocol-param: ([^,'"'"'"''}( *#)\n\r]+)/protocol-param: "\1"/g' "$CFG_FILE" 2>/dev/null
       config_test
       if [ $? -ne 0 ]; then
          LOG_ERROR "Config File Tested Failed, Please Check The Log Infos!"
@@ -442,14 +453,7 @@ sub_info_get()
          config_download_direct
          return
       fi
-      ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-      begin
-      YAML.load_file('$CFG_FILE');
-      rescue Exception => e
-      YAML.LOG_ERROR('Unable To Parse Config File,【' + e.message + '】');
-      system 'rm -rf ${CFG_FILE} 2>/dev/null'
-      end
-      " 2>/dev/null >> $LOG_FILE
+      yaml_sub_validate
       if [ $? -ne 0 ]; then
          LOG_ERROR "Ruby Works Abnormally, Please Check The Ruby Library Depends!"
          only_download=1
@@ -457,7 +461,7 @@ sub_info_get()
       elif [ ! -f "$CFG_FILE" ]; then
          LOG_OUT "Config File Format Validation Failed, Trying To Download Without Agent..."
          config_download_direct
-      elif ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ; then
+      elif [ "$YAML_SUB_STATUS" = "NO_CONTENT" ]; then
          LOG_ERROR "Updated Config【$name】Has No Proxy Field, Trying To Download Without Agent..."
          config_download_direct
       else
@@ -474,6 +478,5 @@ sub_info_get()
 #分别获取订阅信息进行处理
 config_load "openclash"
 config_foreach sub_info_get "config_subscribe" "$1"
-SLOG_CLEAN
 dec_job_counter_and_restart "$restart"
 del_lock

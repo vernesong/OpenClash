@@ -1,27 +1,89 @@
 <%+cbi/valueheader%>
-<div style="text-align: center; margin:0 auto; display:block; white-space: nowrap;">
-	<label class="cbi-value" style="display:inline-block; width: 100%;" for="ulfiles"><%:Upload File Type%>&nbsp;<%:(Click to select)%>&nbsp;&nbsp;&nbsp;
-	<select name="file_type" style="width:auto">&nbsp;&nbsp;&nbsp;
-		<option value="config" selected="selected"><%:Config File%> (.yaml)</option>
-		<option value="proxy-provider"><%:Proxy Provider File%></option>
-		<option value="rule-provider"><%:Rule Provider File%></option>
-		<option value="clash_meta">[Meta] <%:Core File%> (.tar.gz)</option>
-		<option value="backup-file"><%:Backup File%> (.tar.gz)</option>
-	</select>
-  <input class="cbi-input-file" style="width: 30%" type="file" id="ulfile" name="ulfile" />
-	<input type="submit" class="btn cbi-button cbi-input-reload" name="upload" value="<%:Upload%>" />
-	<input type="submit" class="btn cbi-button cbi-button-reset" value="<%:Backup%>" onclick="return backup_all_file(this)"/>
+<%
+    local fs = require "luci.openclash"
+    local plugin_version = fs.oc_version()
+%>
+<script src="/luci-static/resources/openclash/js/common.js?v=<%=plugin_version%>"></script>
+<div class="oc">
+<div class="upload-bar">
+	<label for="file_type"><%:Upload File Type%>:</label>
+	<div class="form-select-wrapper oc-w-auto">
+		<select name="file_type" id="file_type" class="form-select">
+			<option value="config" selected="selected"><%:Config File%> (.yaml)</option>
+			<option value="proxy-provider"><%:Proxy Provider File%></option>
+			<option value="rule-provider"><%:Rule Provider File%></option>
+			<option value="clash_meta">[Meta] <%:Core File%> (.tar.gz)</option>
+			<option value="backup-file"><%:Backup File%> (.tar.gz)</option>
+		</select>
+	</div>
+	<input type="file" id="ulfile" name="ulfile" class="form-file" />
+	<div class="config-upload-buttons">
+		<button type="submit" class="btn" name="upload">
+			<svg width="14" height="14"><use href="#oc-icon-upload"/></svg>
+			<span><%:Upload%></span>
+		</button>
+		<button type="button" class="btn" onclick="return backup_all_file(this)">
+			<svg width="14" height="14"><use href="#oc-icon-download"/></svg>
+			<span><%:Backup%></span>
+		</button>
+	</div>
+</div>
+<%
+	local msg = self:cfgvalue(section) or ""
+%>
+<div class="upload-note" id="upload-note">
+	<div class="upload-note-default" id="upload-note-default"><%:Note: Please Upload File According To File Type, File Will Be Saved To The Prompt Path%></div>
+	<% if msg and msg ~= "" then %>
+	<div class="upload-result" id="upload-result"><%=pcdata(msg)%></div>
+	<% end %>
+</div>
 </div>
 <%+cbi/valuefooter%>
 
 <script type="text/javascript">//<![CDATA[
 
+(function() {
+	var result = document.getElementById('upload-result');
+	var defaultNote = document.getElementById('upload-note-default');
+	if (result && defaultNote) {
+		defaultNote.classList.add('oc-hidden');
+		setTimeout(function() {
+			result.classList.add('oc-hidden');
+			defaultNote.classList.remove('oc-hidden');
+		}, 10000);
+	}
+})();
+
 function backup_all_file(btn)
 {
-	btn.value    = '<%:Backup%>';
-	btn.disabled = true;
-	window.location.href='<%="backup"%>';
-	btn.disabled = false;
+	ocSetBtnLoading(btn, true);
+	var xhr = new XMLHttpRequest();
+	xhr.open('GET', '<%=luci.dispatcher.build_url("admin", "services", "openclash", "backup")%>', true);
+	xhr.responseType = 'blob';
+	xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+	xhr.onload = function() {
+		ocSetBtnLoading(btn, false);
+		if (xhr.status == 200 && xhr.response) {
+			var disposition = xhr.getResponseHeader('Content-Disposition') || '';
+			var match = disposition.match(/filename="?([^";]+)"?/);
+			var filename = match ? match[1] : 'Backup-OpenClash.tar.gz';
+			var blobUrl = URL.createObjectURL(xhr.response);
+			var a = document.createElement('a');
+			a.href = blobUrl;
+			a.download = filename;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 1000);
+		} else {
+			alert('<%:Backup failed!%>');
+		}
+	};
+	xhr.onerror = function() {
+		ocSetBtnLoading(btn, false);
+		alert('<%:Backup failed!%>');
+	};
+	xhr.send();
 	return false;
 };
 

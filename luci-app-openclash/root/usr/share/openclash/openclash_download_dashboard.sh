@@ -57,7 +57,7 @@ EOF
    }
 
    log_unzip_error() {
-      LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Unzip Error!" && SLOG_CLEAN
+      LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Unzip Error!"
       cleanup_dashboard_tmp
       del_lock
       exit 2
@@ -121,7 +121,7 @@ EOF
             fi
             if mv "$NEW_FILE_DIR" "$TARGET_FILE_DIR" >/dev/null 2>&1 && validate_dashboard_dir "$TARGET_FILE_DIR"; then
                cleanup_dashboard_tmp
-               LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Download Successful!" && SLOG_CLEAN
+               LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Download Successful!"
                del_lock
                exit 0
             else
@@ -137,7 +137,7 @@ EOF
    elif [ "$DOWNLOAD_RESULT" -eq 2 ]; then
       if validate_dashboard_dir "$UNPACK_FILE_DIR"; then
          cleanup_dashboard_tmp
-         LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Download Successful!" && SLOG_CLEAN
+         LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Download Successful!"
          del_lock
          exit 0
       else
@@ -145,7 +145,7 @@ EOF
       fi
    else
       cleanup_dashboard_tmp
-      LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Download Error!" && SLOG_CLEAN
+      LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Download Error!"
       del_lock
       exit 1
    fi

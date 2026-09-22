@@ -29,15 +29,26 @@ local os    = require "os"
 local ltn12 = require "luci.ltn12"
 local fs	= require "nixio.fs"
 local nutil = require "nixio.util"
+-- The section types used to be written with a hyphen, convert the stored package once.
+do
+	local sys = require "luci.sys"
+	if sys.call("grep -q '^config proxy-groups\\|^config proxy-providers' /etc/config/openclash /tmp/.uci/openclash 2>/dev/null") == 0 then
+		sys.call("sed -i 's/^config proxy-groups/config proxy_groups/;s/^config proxy-providers/config proxy_providers/' /etc/config/openclash /tmp/.uci/openclash 2>/dev/null")
+	end
+end
+
 local uci = require "luci.model.uci".cursor()
+local dynamic_uci = require "luci.model.uci".cursor()
 local SYS  = require "luci.sys"
 local HTTP = require "luci.http"
+local json = require "luci.jsonc"
 
 local type  = type
 local string  = string
 local tostring = tostring
 local table = table
 local math = math
+local pcall = pcall
 local b64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 
 --- LuCI filesystem library.
@@ -91,7 +102,7 @@ end
 function readfile(filename)
 	local content, err = fs.readfile(filename)
 	if not content then return nil, err end
-	if content:find("BEGIN AGE ENCRYPTED FILE") then
+	if content:sub(1, 1024):find("BEGIN AGE ENCRYPTED FILE", 1, true) then
 		local keys = get_age_keys(filename)
 		if keys and keys.secret and keys.secret ~= "" then
 			return age_decrypt(keys.secret, content) or content
@@ -296,7 +307,10 @@ function filesize(e)
 	return string.format("%.1f",e)..a[t] or "0.0 KB"
 end
 
-function lanip()
+function lanip(loopback)
+	if loopback then
+		return "127.0.0.1"
+	end
 	local lan_int_name = uci:get("openclash", "@overwrite[0]", "lan_interface_name") or uci:get("openclash", "config", "lan_interface_name") or "0"
 	local lan_ip
 	if lan_int_name == "0" then
@@ -335,16 +349,24 @@ function get_resourse_mtime(path)
         local found = find_case_insensitive_path(path)
         if found then
             real_path = found
+        elseif uci_get_config("config", "small_flash_memory") == "1" then
+            local fallback_path = path:gsub("^/etc/openclash/", "/tmp/etc/openclash/")
+            local fallback_found = find_case_insensitive_path(fallback_path)
+            if fallback_found then
+                real_path = fallback_found
+            else
+                return "File Not Exist"
+            end
         else
             return "File Not Exist"
         end
     end
     local file = fs.readlink(real_path) or real_path
-	local resourse_etag_version = SYS.exec(string.format("source /usr/share/openclash/openclash_etag.sh && GET_ETAG_TIMESTAMP_BY_PATH '%s'", real_path))
+	local resourse_etag_version = SYS.exec(string.format("source /usr/share/openclash/openclash_etag.sh && GET_ETAG_TIMESTAMP_BY_PATH '%s'", file))
     if resourse_etag_version and resourse_etag_version ~= "" then
 		return resourse_etag_version
 	end
-	local resourse_version = os.date("%Y-%m-%d %H:%M:%S", mtime(real_path))
+	local resourse_version = os.date("%Y-%m-%d %H:%M:%S", mtime(file))
 	if resourse_version and resourse_version ~= "" then
         return resourse_version
 	end
@@ -363,20 +385,20 @@ function uci_get_config(section, key)
 end
 
 function get_file_path_from_request()
-	local file_path
-	local referer = HTTP.getenv("HTTP_REFERER")
-	if referer then
-		local _, _, file_value = referer:find("file=([^&]*)$")
-		if file_value and file_value ~= "" then
-			file_path = HTTP.urldecode(file_value)
+	local file_path = HTTP.formvalue("file")
+
+	if not file_path or file_path == "" then
+		local referer = HTTP.getenv("HTTP_REFERER")
+		if referer then
+			local file_value = referer:match("[?&]file=([^&]*)")
+			if file_value and file_value ~= "" then
+				file_path = HTTP.urldecode(file_value)
+			end
 		end
 	end
 
-	if not file_path or file_path == "/" then
-		file_path = HTTP.formvalue("file")
-		if not file_path then
-			file_path = HTTP.urldecode(file_path)
-		end
+	if file_path == "/" or file_path == "" then
+		file_path = nil
 	end
 
 	return file_path
@@ -526,37 +548,37 @@ function config_refs(old_file_name, new_file_name)
 		end
 	)
 
-	uci:foreach("openclash", "groups",
+	dynamic_uci:foreach("openclash", "proxy_groups",
 		function(s)
 			if s.config == old_file_full then
 				if is_rename and new_name_no_ext ~= new_file_name then
-					uci:set("openclash", s[".name"], "config", new_file_full)
+					dynamic_uci:set("openclash", s[".name"], "config", new_file_full)
 				else
-					uci:delete("openclash", s[".name"])
+					dynamic_uci:delete("openclash", s[".name"])
 				end
 			end
 		end
 	)
 
-	uci:foreach("openclash", "proxy-provider",
+	dynamic_uci:foreach("openclash", "proxy_providers",
 		function(s)
 			if s.config == old_file_full then
 				if is_rename and new_name_no_ext ~= new_file_name then
-					uci:set("openclash", s[".name"], "config", new_file_full)
+					dynamic_uci:set("openclash", s[".name"], "config", new_file_full)
 				else
-					uci:delete("openclash", s[".name"])
+					dynamic_uci:delete("openclash", s[".name"])
 				end
 			end
 		end
 	)
 
-	uci:foreach("openclash", "servers",
+	dynamic_uci:foreach("openclash", "proxies",
 		function(s)
 			if s.config == old_file_full then
 				if is_rename and new_name_no_ext ~= new_file_name then
-					uci:set("openclash", s[".name"], "config", new_file_full)
+					dynamic_uci:set("openclash", s[".name"], "config", new_file_full)
 				else
-					uci:delete("openclash", s[".name"])
+					dynamic_uci:delete("openclash", s[".name"])
 				end
 			end
 		end
@@ -576,6 +598,7 @@ function config_refs(old_file_name, new_file_name)
 	)
 
 	uci:commit("openclash")
+	dynamic_uci:commit("openclash")
 end
 
 --- Returns the appropriate ps command string for the system's ps implementation.
@@ -600,33 +623,116 @@ function pkg_type()
 	end
 end
 
---- Returns the installed version of luci-app-openclash.
--- Supports both opkg and apk package managers.
--- @return String containing the version number, or "0" if not found
--- NOTE: The module-level cache (_oc_version_cache) provides per-request
--- deduplication. In OpenWrt LuCI CGI mode each HTTP request spawns a new Lua
--- process, so cross-request caching is impossible.
--- Since require() returns the same module instance (package.loaded), the
--- first call caches the result and subsequent calls avoid redundant shell
--- commands. No time-based expiration is needed — the version is immutable
--- for the lifetime of a request.
-local _oc_version_cache = nil
+--- Reads the CDN proxy address list from /usr/share/openclash/res/cdn.list.
+-- Lines starting with "#" are treated as comments and skipped.
+-- @return Table of CDN address strings (deduplicated, in file order)
+function cdn_list()
+	local list = {}
+	local seen = {}
+	local raw = fs.readfile("/usr/share/openclash/res/cdn.list")
+	if raw then
+		for line in raw:gmatch("[^\r\n]+") do
+			line = line:gsub("^%s+", ""):gsub("%s+$", "")
+			if line ~= "" and line:sub(1, 1) ~= "#" and not seen[line] then
+				seen[line] = true
+				list[#list + 1] = line
+			end
+		end
+	end
+	return list
+end
+
+--- Read a field of an installed package directly from the package database
+-- (/usr/lib/opkg/status or /lib/apk/db/installed), avoiding the opkg/apk
+-- binaries and their lock files (/var/lock/opkg.lock, /lib/apk/db/lock).
+-- Safe to call repeatedly/concurrently and never blocks on a lock.
+-- @param pkg   Package name, e.g. "luci-app-openclash" or "libc"
+-- @param field Field name; opkg: "Version"/"Architecture", apk: "V"/"A"
+-- @return String field value, or "" when not found
+function read_pkg_field(pkg, field)
+	local text
+	if pkg_type() == "opkg" then
+		text = fs.readfile("/usr/lib/opkg/status")
+	else
+		text = fs.readfile("/lib/apk/db/installed")
+	end
+	if not text then return "" end
+	text = text:gsub("\r\n", "\n")
+
+	local prefix = (pkg_type() == "opkg") and ("Package: " .. pkg .. "\n") or ("P:" .. pkg .. "\n")
+	local start = text:find(prefix, 1, true)
+	if not start then return "" end
+	local block_end = text:find("\n\n", start + #prefix, true) or #text
+	local block = text:sub(start + #prefix, block_end - 1)
+	local colon = (pkg_type() == "opkg") and ": " or ":"
+	local val = block:match("\n" .. field .. colon .. "([^\r\n]+)")
+	if not val then
+		val = block:match("^" .. field .. colon .. "([^\r\n]+)")
+	end
+	return val or ""
+end
+
+--- Path of the shared version cache (also used by openclash_version.lua)
+local VERSION_CACHE_FILE = "/tmp/openclash_version_history.json"
+
+--- Read the shared version cache, or nil when missing/invalid
+function read_version_cache()
+	local raw = fs.readfile(VERSION_CACHE_FILE)
+	if not raw or raw == "" then return nil end
+	local ok, parsed = pcall(json.parse, raw)
+	if ok and parsed and type(parsed) == "table" then
+		return parsed
+	end
+	return nil
+end
+
+--- Update the shared version cache, keeping the other fields intact
+function update_version_cache(updater)
+	local parsed = read_version_cache() or {}
+	updater(parsed)
+	local tmp = VERSION_CACHE_FILE .. ".tmp"
+	fs.writefile(tmp, json.stringify(parsed))
+	os.rename(tmp, VERSION_CACHE_FILE)
+end
+
+--- Read a keyed value from the shared version cache, computing it on miss
+-- @param field Top-level field name of the shared cache
+-- @param key Invalidation key; an empty string disables caching
+-- @param compute Function returning the value to cache, nil to skip caching
+-- @return Cached or freshly computed value, nil when unavailable
+function cached_value(field, key, compute)
+	if key ~= "" then
+		local cache = read_version_cache()
+		local cached = cache and cache[field]
+		if cached and cached.key == key and cached.version then
+			return cached.version
+		end
+	end
+
+	local v = compute()
+	if v == nil or v == "" then return nil end
+
+	if key ~= "" then
+		update_version_cache(function(cache)
+			cache[field] = { key = key, version = v }
+		end)
+	end
+
+	return v
+end
 
 function oc_version()
-	if _oc_version_cache ~= nil then
-		return _oc_version_cache
-	end
-	local v
-	if pkg_type() == "opkg" then
-		v = SYS.exec("rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep '^Version:' |awk '{print $2}' |tr -d '\n'")
-	else
-		v = SYS.exec("rm -f /lib/apk/db/lock && apk info luci-app-openclash 2>/dev/null |grep '^luci-app-openclash-[0-9]' |sed 's/luci-app-openclash-//' |tr -d '\n'")
-	end
-	if v == "" then
-		v = "0"
-	end
-	_oc_version_cache = v
-	return v
+	local db = (pkg_type() == "opkg") and "/usr/lib/opkg/status" or "/lib/apk/db/installed"
+	local st = fs.stat(db)
+	local key = st and (tostring(st.mtime) .. "-" .. tostring(st.size)) or ""
+
+	local v = cached_value("plugin_cv_cache", key, function()
+		local pkgv = read_pkg_field("luci-app-openclash", pkg_type() == "opkg" and "Version" or "V")
+		if pkgv == "" then return "0" end
+		return pkgv
+	end)
+
+	return v or "0"
 end
 
 function IsYamlExt(e)

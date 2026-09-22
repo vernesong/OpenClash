@@ -11,19 +11,30 @@ custom_fakeip_filter=$(uci_get_config "custom_fakeip_filter" || echo 0)
 custom_name_policy=$(uci_get_config "custom_name_policy" || echo 0)
 custom_proxy_server_policy=$(uci_get_config "custom_proxy_server_policy" || echo 0)
 custom_host=$(uci_get_config "custom_host" || echo 0)
+system_hostname=$(uci -q get system.@system[0].hostname 2>/dev/null)
+dnsmasq_domain=$(uci -q get dhcp.@dnsmasq[0].domain 2>/dev/null)
 enable_custom_dns=$(uci_get_config "enable_custom_dns" || echo 0)
 append_wan_dns=$(uci_get_config "append_wan_dns" || echo 0)
 custom_fallback_filter=$(uci_get_config "custom_fallback_filter" || echo 0)
 china_ip_route=$(uci_get_config "china_ip_route" || echo 0)
 china_ip6_route=$(uci_get_config "china_ip6_route" || echo 0)
+china_ip_route_domain_source=$(uci_get_config "china_ip_route_domain_source" || echo "mrs")
 enable_redirect_dns=$(uci_get_config "enable_redirect_dns" || echo 1)
-fake_ip_filter_mode=${34}
+fake_ip_filter_mode="${33}"
+[ -z "$fake_ip_filter_mode" ] && fake_ip_filter_mode="blacklist"
 default_dashboard=$(uci_get_config "default_dashboard" || echo "metacubexd")
 yacd_type=$(uci_get_config "yacd_type" || echo "Official")
 dashboard_type=$(uci_get_config "dashboard_type" || echo "Official")
+dashboard_forward_port=$(uci_get_config "dashboard_forward_port" || echo 0)
+dashboard_forward_ssl=$(uci_get_config "dashboard_forward_ssl" || echo 0)
+dashboard_custom_url=$(uci_get_config "dashboard_custom_url" || echo 0)
 
 [ "$china_ip_route" -ne 0 ] && [ "$china_ip_route" -ne 1 ] && [ "$china_ip_route" -ne 2 ] && china_ip_route=0
 [ "$china_ip6_route" -ne 0 ] && [ "$china_ip6_route" -ne 1 ] && [ "$china_ip6_route" -ne 2 ] && china_ip6_route=0
+case "$china_ip_route_domain_source" in
+   mrs|geosite) ;;
+   *) china_ip_route_domain_source="mrs" ;;
+esac
 
 en_mode_tun=${11:-0}
 if [ -z "${12}" ]; then
@@ -38,22 +49,15 @@ if [ "$1" = "fake-ip" ] && [ "$enable_redirect_dns" != "2" ]; then
    
    process_pass_list() {
       [ ! -f "$1" ] && return
-      awk -v mode="$fake_ip_filter_mode" '
+      awk '
          !/^$/ && !/^#/ {
             # 跳过IPv4和IPv6地址
             if ($0 ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+(\/[0-9]+)?$/ || $0 ~ /:/) {
                next
             }
-            if (mode == "blacklist") {
-               if ($0 ~ /^\+?\./ || $0 ~ /^\*\./) {
-                  print $0
-               } else {
-                  print "+."$0
-               }
-            } else if (mode == "rule") {
-               domain = $0
-               sub(/^[\+\*\.]+/, "", domain)
-               print "DOMAIN-SUFFIX," domain ",real-ip"
+            sub(/^[\+\*\.]+/, "", $0)
+            if ($0 != "") {
+               print $0
             }
          }
       ' "$1" >> "$TMP_FILTER_FILE" 2>/dev/null
@@ -165,7 +169,7 @@ sys_dns_append()
 
 PROXY_GROUPS=$(ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    begin
-      Value = YAML.load_file('$CONFIG_FILE')
+      Value = YAML.load_file_cached('$CONFIG_FILE', '/tmp/yaml_change_marshal')
       if Value.key?('proxy-groups') && Value['proxy-groups'].is_a?(Array)
          Value['proxy-groups'].each { |x| puts x['name'] if x.key?('name') }
       end
@@ -309,6 +313,10 @@ config_load "openclash"
 config_foreach yml_auth_get "authentication"
 yml_dns_custom "$enable_custom_dns" "$5" "$append_wan_dns" "${16}"
 
+OPENCLASH_CORS_DOMAIN="${36}" \
+OPENCLASH_CORS_PORT="$dashboard_forward_port" \
+OPENCLASH_CORS_SSL="$dashboard_forward_ssl" \
+OPENCLASH_CORS_CUSTOM_URL="$dashboard_custom_url" \
 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
 
 def safe_load_yaml(file_path)
@@ -325,10 +333,66 @@ def merge_list_from_file(dns_hash, key, file_path)
    (dns_hash[key] ||= []).unshift(*lines).uniq!
 end
 
+def http_origin(raw_url)
+   raw = raw_url.to_s.strip
+   return nil if raw.empty?
+   scheme = raw[/\A(https?):\/\//i, 1]
+   return nil unless scheme
+   scheme = scheme.downcase
+   rest = raw.sub(/\Ahttps?:\/\//i, '')
+   return nil if rest.include?('@')
+   authority = rest.split(/[\/?#]/, 2).first.to_s
+   return nil if authority.empty?
+   host, port = if (m = authority.match(/\A\[([^\]]+)\](?::(\d+))?\z/))
+                  [m[1], m[2]]
+               elsif (m = authority.match(/\A([^:]+)(?::(\d+))?\z/))
+                  [m[1], m[2]]
+               else
+                  [nil, nil]
+               end
+   return nil if host.nil? || host.empty?
+   host = '[' + host + ']' if host.include?(':')
+   default_port = scheme == 'https' ? 443 : 80
+   port = port ? port.to_i : default_port
+   return nil unless port.between?(1, 65_535)
+   scheme + '://' + host + (port == default_port ? '' : ':' + port.to_s)
+rescue
+   nil
+end
+
+def controller_origin(domain, configured_port, ssl)
+   domain = domain.to_s.strip
+   return nil if domain.empty? || domain == '0'
+   return nil if domain.include?('@')
+   domain = domain.sub(/\Ahttps?:\/\//i, '')
+
+   port_text = configured_port.to_s.strip
+   authority = domain.split(/[\/?#]/, 2).first.to_s
+   embedded_port = authority[/\A\[[^\]]+\]:(\d+)\z/, 1] || authority[/\A[^:]+:(\d+)\z/, 1]
+   port_text = embedded_port if (port_text.empty? || port_text == '0') && embedded_port
+
+   scheme = ssl.to_s == '1' ? 'https' : 'http'
+   default_port = scheme == 'https' ? 443 : 80
+   port_text = default_port.to_s if port_text.empty? || port_text == '0'
+   return nil unless (port_text =~ /\A\d+\z/) && port_text.to_i.between?(1, 65_535)
+
+   host = if authority =~ /\A\[[^\]]+\]/
+              authority[/\A\[([^\]]+)\]/ , 1]
+           else
+              authority.split(':', 2).first
+           end
+   return nil if host.nil? || host.empty?
+   host = '[' + host + ']' if host.include?(':')
+   port = port_text.to_i
+   scheme + '://' + host + (port == default_port ? '' : ':' + port.to_s)
+rescue
+   nil
+end
+
 
 begin
    config_file = '$5'
-   Value = YAML.load_file(config_file)
+   Value = YAML.load_file_cached(config_file, '/tmp/yaml_change_marshal')
 rescue Exception => e
    YAML.LOG_ERROR('Load File Failed,【%s】' % [e.message])
    exit
@@ -364,10 +428,10 @@ begin
    ipv6_mode = '${29}'
    unified_delay = '${31}' == '1'
    respect_rules = '${32}' == '1'
-   fake_ip_filter_mode = '${33}'
+   fake_ip_filter_mode = '$fake_ip_filter_mode'
    routing_mark_setting = '${34}'
    quic_gso = '${35}' == '1'
-   cors_origin = '${36}'
+   cors_origin = http_origin(ENV['OPENCLASH_CORS_CUSTOM_URL']) || controller_origin(ENV['OPENCLASH_CORS_DOMAIN'], ENV['OPENCLASH_CORS_PORT'], ENV['OPENCLASH_CORS_SSL'])
    geo_custom_url = '${37}'
    geoip_custom_url = '${38}'
    geosite_custom_url = '${39}'
@@ -389,6 +453,7 @@ begin
    custom_fakeip_filter = '$custom_fakeip_filter' == '1'
    china_ip_route = '$china_ip_route' != '0'
    china_ip6_route = '$china_ip6_route' != '0'
+   china_ip_route_domain_source = '$china_ip_route_domain_source'
    custom_name_policy = '$custom_name_policy' == '1'
    custom_proxy_server_policy = '$custom_proxy_server_policy' == '1'
    custom_host = '$custom_host' == '1'
@@ -397,7 +462,7 @@ begin
    Value['dns'] ||= {}
    threads = []
 
-   threads << Thread.new do
+   threads << YAML::Inline.new do
       begin
          Value['redir-port'] = redir_port.to_i
          Value['tproxy-port'] = tproxy_port.to_i
@@ -444,7 +509,7 @@ begin
          Value['find-process-mode'] = find_process_mode if find_process_mode != '0'
 
          (Value['experimental'] ||= {})['quic-go-disable-gso'] = true if quic_gso
-         if cors_origin != '0'
+         if cors_origin
             (Value['external-controller-cors'] ||= {})['allow-origins'] = [cors_origin]
             Value['external-controller-cors']['allow-private-network'] = true
          end
@@ -542,7 +607,7 @@ begin
       end
    end
 
-   threads << Thread.new do
+   threads << YAML::Inline.new do
       begin
          if enable_custom_dns || append_wan_dns
             if (namedns_config = safe_load_yaml('/tmp/yaml_config.namedns.yaml')) && namedns_config['nameserver']
@@ -597,7 +662,7 @@ begin
    end
 
    # proxy-server-nameserver
-   threads << Thread.new do
+   threads << YAML::Inline.new do
       begin
          if enable_custom_dns
             if (proxydns = safe_load_yaml('/tmp/yaml_config.proxynamedns.yaml')) && proxydns['proxy-server-nameserver']
@@ -610,7 +675,7 @@ begin
    end
 
    # direct-nameserver
-   threads << Thread.new do
+   threads << YAML::Inline.new do
       begin
          if enable_custom_dns
             if (directdns = safe_load_yaml('/tmp/yaml_config.directnamedns.yaml')) && directdns['direct-nameserver']
@@ -623,7 +688,7 @@ begin
    end
 
    # nameserver-policy
-   threads << Thread.new do
+   threads << YAML::Inline.new do
       begin
          if custom_name_policy
             if (policy = safe_load_yaml('/etc/openclash/custom/openclash_custom_domain_dns_policy.list'))
@@ -636,7 +701,7 @@ begin
    end
 
    # proxy-server-nameserver-policy
-   threads << Thread.new do
+   threads << YAML::Inline.new do
       begin
          if custom_proxy_server_policy
             if (policy = safe_load_yaml('/etc/openclash/custom/openclash_custom_proxy_server_dns_policy.list'))
@@ -649,19 +714,41 @@ begin
    end
 
    # Fake-IP Filter
-   threads << Thread.new do
+   threads << YAML::Inline.new do
       begin
          if custom_fakeip_filter
             Value['dns']['fake-ip-filter-mode'] = fake_ip_filter_mode
             if fake_ip_mode == 'fake-ip'
                merge_list_from_file(Value['dns'], 'fake-ip-filter', '/etc/openclash/custom/openclash_custom_fake_filter.list')
-               merge_list_from_file(Value['dns'], 'fake-ip-filter', '/tmp/yaml_openclash_fake_filter_include')
+            end
+         end
+         # Set chnroute_pass domains
+         if fake_ip_mode == 'fake-ip' && enable_redirect_dns != '2' && File.exist?('/tmp/yaml_openclash_fake_filter_include')
+            pass_domains = File.readlines('/tmp/yaml_openclash_fake_filter_include').map { |l| l.gsub(/#.*$/, '').strip }.reject(&:empty?).uniq
+            if pass_domains.any?
+               filter_mode = Value.dig('dns', 'fake-ip-filter-mode')
+               if filter_mode == 'whitelist'
+                  filters = Value.dig('dns', 'fake-ip-filter')
+                  if filters.is_a?(Array)
+                     deleted_filters = filters.select { |f| pass_domains.any? { |d| f.to_s.include?(d) } }
+                     if deleted_filters.any?
+                        Value['dns']['fake-ip-filter'] -= deleted_filters
+                        deleted_filters.each do |f|
+                           YAML.LOG_TIP('Because Need Ensure Bypassing IP Option Work, Deleted The Fake-IP-Filter Rule【%s】...' % [f])
+                        end
+                     end
+                  end
+               else
+                  filter_rules = filter_mode == 'rule' ? pass_domains.map { |d| 'DOMAIN-SUFFIX,' + d + ',real-ip' } : pass_domains.map { |d| '+.' + d }
+                  (Value['dns']['fake-ip-filter'] ||= []).unshift(*filter_rules).uniq!
+                  YAML.LOG_TIP('Because Need Ensure Bypassing IP Option Work, Added The Fake-IP-Filter Rule【%s】...' % [filter_rules.join(', ')])
+               end
             end
          end
          if fake_ip_mode == 'fake-ip' && (china_ip_route || china_ip6_route)
             filter_mode = Value.dig('dns', 'fake-ip-filter-mode')
             if filter_mode == 'blacklist' || filter_mode.nil?
-               filter_rule = 'rule-set:oc-cn-domain'
+               filter_rule = china_ip_route_domain_source == 'geosite' ? 'geosite:cn' : 'rule-set:oc-cn-domain'
                (Value['dns']['fake-ip-filter'] ||= []) << filter_rule
             end
             if filter_mode == 'whitelist'
@@ -675,14 +762,32 @@ begin
                end
             end
             if filter_mode == 'rule'
-               filter_rule = 'RULE-SET,oc-cn-domain,real-ip'
+               filter_rule = china_ip_route_domain_source == 'geosite' ? 'GEOSITE,cn,real-ip' : 'RULE-SET,oc-cn-domain,real-ip'
                (Value['dns']['fake-ip-filter'] ||= []).unshift(filter_rule)
             end
-            Value['dns']['fake-ip-filter'].uniq!
+            filters = Value.dig('dns', 'fake-ip-filter')
+            filters.uniq! if filters.is_a?(Array)
             if filter_mode != 'whitelist'
-               rule_set_hash = {'rule-providers+'=>{'oc-cn-domain'=>{'type'=>'http', 'interval'=>43200, 'behavior'=>'domain', 'format'=>'mrs', 'url'=>'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.mrs', 'path'=> './rule_provider/oc-cn-domain.mrs'}}}
-               Value = YAML.overwrite(Value, rule_set_hash)
+               if china_ip_route_domain_source == 'mrs'
+                  rule_set_hash = {'rule-providers+'=>{'oc-cn-domain'=>{'type'=>'http', 'interval'=>43200, 'behavior'=>'domain', 'format'=>'mrs', 'url'=>'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.mrs', 'path'=> './rule_provider/oc-cn-domain.mrs'}}}
+                  Value = YAML.overwrite(Value, rule_set_hash)
+               end
                YAML.LOG_TIP('Because Need Ensure Bypassing IP Option Work, Added The Fake-IP-Filter Rule【%s】...' % [filter_rule])
+            end
+         end
+         if fake_ip_mode == 'fake-ip'
+            cn_domain_provider_ready = (china_ip_route || china_ip6_route) && filter_mode != 'whitelist' && china_ip_route_domain_source == 'mrs'
+            unless cn_domain_provider_ready || Value.dig('rule-providers', 'oc-cn-domain')
+               dangling_filters = Value.dig('dns', 'fake-ip-filter')
+               if dangling_filters.is_a?(Array)
+                  dangling_filters = dangling_filters.select { |f| f.to_s.strip.match?(/\A(rule-set:oc-cn-domain|RULE-SET,oc-cn-domain,real-ip)\z/i) }
+                  if dangling_filters.any?
+                     Value['dns']['fake-ip-filter'] -= dangling_filters
+                     dangling_filters.each do |f|
+                        YAML.LOG_WARN('Rule-Provider【oc-cn-domain】Is Not Registered, Deleted The Fake-IP-Filter Rule【%s】to Avoid Core Start Failed...' % [f])
+                     end
+                  end
+               end
             end
          end
       rescue Exception => e
@@ -691,7 +796,7 @@ begin
    end
 
    # Custom Hosts
-   threads << Thread.new do
+   threads << YAML::Inline.new do
       begin
          if custom_host
             if (hosts_content = safe_load_yaml('/etc/openclash/custom/openclash_custom_hosts.list')) && !hosts_content.empty?
@@ -710,7 +815,7 @@ begin
    end
 
    # Authentication
-   threads << Thread.new do
+   threads << YAML::Inline.new do
       begin
          if (auth_config = safe_load_yaml('/tmp/yaml_openclash_auth'))
             Value['authentication'] = auth_config
@@ -725,11 +830,30 @@ begin
    begin
       threads.clear
 
+      # Built-in hosts for common OpenWrt router hostnames, resolve to router LAN IP
+      begin
+         Value['hosts'] ||= {}
+         builtin_hosts = {
+            'openwrt.lan' => 'lan',
+            'immortalwrt.lan' => 'lan',
+            'lede.lan' => 'lan',
+            'router.lan' => 'lan'
+         }
+         system_hostname = '$system_hostname'
+         dnsmasq_domain = '$dnsmasq_domain'
+         builtin_hosts[system_hostname.to_s + '.lan'] = 'lan' unless system_hostname.to_s.empty?
+         builtin_hosts[system_hostname.to_s + '.' + dnsmasq_domain.to_s] = 'lan' unless system_hostname.to_s.empty? || dnsmasq_domain.to_s.empty?
+         builtin_hosts.each { |k, v| Value['hosts'][k] ||= v }
+         Value['dns']['use-hosts'] = true
+      rescue Exception => e
+         YAML.LOG_ERROR('Set Built-in Hosts Failed,【%s】' % [e.message])
+      end
+
       # DNS Loop Check
       if enable_redirect_dns == '1'
          dns_options = ['nameserver', 'fallback', 'default-nameserver', 'proxy-server-nameserver', 'nameserver-policy', 'direct-nameserver', 'proxy-server-nameserver-policy']
          dns_options.each do |option|
-            threads << Thread.new(option) do |opt|
+            threads << YAML::Inline.new(option) do |opt|
                begin
                   next unless Value['dns'].key?(opt) && !Value['dns'][opt].nil?
                      if opt != 'nameserver-policy' && opt != 'proxy-server-nameserver-policy'
@@ -811,9 +935,11 @@ rescue Exception => e
    YAML.LOG_ERROR('Config File Overwrite Failed,【%s】' % [e.message])
 ensure
    begin
-      File.open(config_file, 'w') { |f| YAML.dump(Value, f) }
+      YAML.dump(Value, config_file)
+      YAML.cache_write(config_file, Value, '/tmp/yaml_change_marshal')
    rescue Exception => e
       YAML.LOG_ERROR('Write file failed:【%s】' % [e.message])
+      File.delete('/tmp/yaml_change_marshal') rescue nil
    end
 end
 " 2>/dev/null >> $LOG_FILE

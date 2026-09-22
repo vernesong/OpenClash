@@ -13,12 +13,12 @@ m.reset = false
 m.submit = false
 
 m:section(SimpleSection).template = "openclash/status"
-if fs.uci_get_config("config", "oix_token") and fs.uci_get_config("config", "oix_show_info_page") ~= "0" then
+if fs.uci_get_config("config", "oix_token") and fs.uci_get_config("config", "oix_show_info_page") == "1" then
 	m:append(Template("openclash/oixcloud"))
 end
 m:append(Template("openclash/myip"))
 m:append(Template("openclash/developer"))
-m:append(Template("openclash/select_git_cdn"))
+m:append(Template("openclash/update"))
 m:append(Template("openclash/config_edit"))
 m:append(Template("openclash/config_upload"))
 

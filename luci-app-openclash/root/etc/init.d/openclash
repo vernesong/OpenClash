@@ -29,8 +29,46 @@ LOG_FILE="/tmp/openclash.log"
 START_LOG="/tmp/openclash_start.log"
 PROXY_FWMARK="0x162"
 PROXY_ROUTE_TABLE="0x162"
+PROXY_THROW_NETS="0.0.0.0/8 10.0.0.0/8 100.64.0.0/10 127.0.0.0/8 169.254.0.0/16 172.16.0.0/12 192.168.0.0/16"
 QUICK_START_CHECK=false
 QUICK_START=true
+
+# Escape hatch for the proxy routing table when source validation uses the fwmark.
+# With net.ipv4.conf.all.src_valid_mark=1 (Tailscale and some other policy routing
+# setups set it), fib_validate_source() looks up the packet source with skb->mark
+# applied. Marked proxy traffic then resolves its source inside the proxy table,
+# whose only route is "local default dev lo": the kernel classes it as a martian
+# source and drops every packet without any log or counter. The throw entries make
+# that lookup fall through to the main table. Ranges that overlap the fake-ip
+# range prefix are skipped so fake-ip routing stays intact.
+proxy_throw_route_add()
+{
+   local cidr fakeprefix
+   fakeprefix=$(echo "$1" | cut -d'/' -f1 | cut -d'.' -f1,2)
+   for cidr in $PROXY_THROW_NETS; do
+      [ "$(echo "$cidr" | cut -d'.' -f1,2)" = "$fakeprefix" ] && continue
+      ip route replace throw "$cidr" table "$PROXY_ROUTE_TABLE" 2>/dev/null
+   done
+}
+
+proxy_throw_route_del()
+{
+   local cidr
+   for cidr in $PROXY_THROW_NETS; do
+      ip route del throw "$cidr" table "$PROXY_ROUTE_TABLE" 2>/dev/null
+   done
+}
+
+cron_quote()
+{
+   printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"
+}
+
+cron_append()
+{
+   [ -s "$CRON_FILE" ] && [ -n "$(tail -c 1 "$CRON_FILE" 2>/dev/null)" ] && echo >> "$CRON_FILE"
+   printf '%s\n' "$1" >> "$CRON_FILE"
+}
 
 add_cron()
 {
@@ -295,6 +333,7 @@ revert_dnsmasq()
    masq_port=$(uci -q get dhcp.@dnsmasq[0].port)
    if [ "$(nslookup www.apple.com 127.0.0.1:${masq_port} >/dev/null 2>&1 || echo $?)" = "1" ]; then
       resolv_file=$(uci -q get dhcp.@dnsmasq[0].resolvfile)
+      [ -z "$resolv_file" ] && resolv_file="/tmp/resolv.conf.d/resolv.conf.auto"
       wan_dns=$(/usr/share/openclash/openclash_get_network.lua "dns")
       wan6_dns=$(/usr/share/openclash/openclash_get_network.lua "dns6")
       mkdir -p "$(dirname "$resolv_file")"
@@ -307,7 +346,7 @@ revert_dnsmasq()
          done
       fi
       if [ -n "$wan6_dns" ]; then
-         echo "# Interface LAN6" > "$resolv_file"
+         echo "# Interface LAN6" >> "$resolv_file"
          for dns6 in $wan6_dns; do
             echo "nameserver $dns6" >> "$resolv_file"
          done
@@ -567,7 +606,7 @@ do_run_file()
 
    ln -s "$meta_core_path" /etc/openclash/clash
 
-   if [ -n "$OIX_TOKEN" ] || [ "$core_type" == "Oix" ]; then
+   if [ -n "$OIX_TOKEN" ]; then
       core_type="Oix"
    elif [ "$smart_enable" -eq 1 ] || [ "$core_type" == "Smart" ]; then
       core_type="Smart"
@@ -582,7 +621,6 @@ do_run_file()
 
    [ ! -f "$CLASH" ] || { [ "$core_type" = "Smart" ] && [ -z "$($CLASH -v | grep 'smart')" ] && [ -z "$($CLASH -v | grep 'oix')" ]; } || { [ "$core_type" = "Oix" ] && [ -z "$($CLASH -v | grep 'oix')" ]; } && {
       LOG_TIP "【$core_type】Core is not Detected installed, Ready to Download..."
-      rm -rf "/tmp/clash_last_version"
       /usr/share/openclash/openclash_core.sh "$core_type"
       if [ ! -f "$meta_core_path" ]; then
          start_fail
@@ -760,10 +798,15 @@ check_core_status()
          if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
             ip -6 route add default dev utun table "$PROXY_ROUTE_TABLE"
             ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 1888
+            # the router's own fake-ip6 packets need a route before the output marking, forwarded packets still use the main table
+            if [ "$fake_ip_range6_enable" = "1" ] && { [ "$router_self_proxy" = "1" ] || ([ "$enable_redirect_dns" != "2" ] && [ "$en_mode" = "fake-ip" ]); }; then
+               ip -6 rule add iif lo to "$fakeip_range6" lookup "$PROXY_ROUTE_TABLE" pref 1887
+            fi
          fi
          if [ -n "$en_mode_tun" ]; then
             ip route add default dev utun table "$PROXY_ROUTE_TABLE"
             ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 1888
+            proxy_throw_route_add "$fakeip_range"
          fi
       fi
    else
@@ -799,7 +842,6 @@ check_core_status()
    fi
 
    write_run_quick
-   SLOG_CLEAN
 } >/dev/null 2>&1
 
 start_run_core()
@@ -817,7 +859,8 @@ start_run_core()
    procd_set_param env SAFE_PATHS=/usr/share/openclash:/etc/ssl
    procd_append_param env CLASH_AGE_SECRET_KEY="$SECRET_KEY"
    procd_append_param env OIX_TOKEN="$OIX_TOKEN"
-   procd_set_param command /bin/sh -c "$CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1"
+   procd_append_param env OIX_PARAMS="$OIX_PARAMS"
+   procd_set_param command /bin/sh -c "exec $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1"
    procd_set_param user "root"
    procd_set_param group "nogroup"
    procd_set_param limits nproc="unlimited" as="unlimited" memlock="unlimited" nofile="1000000 1000000"
@@ -1427,6 +1470,7 @@ if [ -n "$FW4" ]; then
             check_mod "nft_tproxy"
             ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
+            proxy_throw_route_add "$fakeip_range"
             nft 'add chain inet fw4 openclash_mangle'
             nft 'flush chain inet fw4 openclash_mangle'
             nft 'add chain inet fw4 openclash_upnp'
@@ -1469,6 +1513,7 @@ if [ -n "$FW4" ]; then
             check_mod "nft_tproxy"
             ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
+            proxy_throw_route_add "$fakeip_range"
             nft 'add chain inet fw4 openclash_mangle'
             nft 'flush chain inet fw4 openclash_mangle'
             nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr { "$fakeip_range" } mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept
@@ -1718,7 +1763,7 @@ if [ -n "$FW4" ]; then
             fi
             if [ "$router_self_proxy" = 1 ]; then
                nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
-               nft insert rule inet fw4 nat_output position 0 skgid != 65534 meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 ip6 daddr {::/0} counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
+               nft insert rule inet fw4 nat_output position 0 skgid != 65534 meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 ip6 daddr {::1} counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
             fi
          elif [ "$enable_redirect_dns" -eq 2 ]; then
             if [ "$lan_ac_mode" != "1" ]; then
@@ -1739,7 +1784,7 @@ if [ -n "$FW4" ]; then
             nft 'insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 counter jump openclash_dns_redirect'
             if [ "$router_self_proxy" = 1 ]; then
                nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
-               nft insert rule inet fw4 nat_output position 0 meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 ip6 daddr {::/0} meta skgid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
+               nft insert rule inet fw4 nat_output position 0 meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 ip6 daddr {::1} meta skgid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
             fi
          fi
       fi
@@ -2277,6 +2322,7 @@ if [ -z "$FW4" ]; then
             check_mod "xt_TPROXY"
             ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
+            proxy_throw_route_add "$fakeip_range"
             iptables -t mangle -N openclash
             iptables -t mangle -F openclash
             iptables -t mangle -N openclash_upnp
@@ -2318,6 +2364,7 @@ if [ -z "$FW4" ]; then
             check_mod "xt_TPROXY"
             ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
+            proxy_throw_route_add "$fakeip_range"
             iptables -t mangle -N openclash
             iptables -t mangle -F openclash
             iptables -t mangle -A openclash -p udp -d "$fakeip_range" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
@@ -2554,8 +2601,8 @@ if [ -z "$FW4" ]; then
                ip6tables -t nat -I PREROUTING -p tcp --dport 53 -m set --match-set lan_ac_white_macs src -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
             fi
             if [ "$router_self_proxy" = 1 ]; then
-               ip6tables -t nat -I OUTPUT -p tcp --dport 53 -d ::/0 $noowner -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
-               ip6tables -t nat -I OUTPUT -p udp --dport 53 -d ::/0 $noowner -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
+               ip6tables -t nat -I OUTPUT -p tcp --dport 53 -d ::1 $noowner -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
+               ip6tables -t nat -I OUTPUT -p udp --dport 53 -d ::1 $noowner -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
             fi
          elif [ "$enable_redirect_dns" -eq 2 ]; then
             ip6tables -t nat -N openclash_dns_redirect
@@ -2581,8 +2628,8 @@ if [ -z "$FW4" ]; then
             ip6tables -t nat -I PREROUTING -p udp --dport 53 -j openclash_dns_redirect
             ip6tables -t nat -I PREROUTING -p tcp --dport 53 -j openclash_dns_redirect
             if [ "$router_self_proxy" = 1 ]; then
-               ip6tables -t nat -I OUTPUT -p udp --dport 53 -d ::/0 $noowner -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
-               ip6tables -t nat -I OUTPUT -p tcp --dport 53 -d ::/0 $noowner -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
+               ip6tables -t nat -I OUTPUT -p udp --dport 53 -d ::1 $noowner -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
+               ip6tables -t nat -I OUTPUT -p tcp --dport 53 -d ::1 $noowner -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
             fi
          fi
       fi
@@ -2909,6 +2956,7 @@ revert_firewall()
 
    ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
    ip route del local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
+   proxy_throw_route_del
 
    ip -6 rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
    ip -6 route del local ::/0 dev lo table "$PROXY_ROUTE_TABLE"
@@ -2918,6 +2966,7 @@ revert_firewall()
    ip route del default dev utun table "$PROXY_ROUTE_TABLE"
    ip -6 rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
    ip -6 route del default dev utun table "$PROXY_ROUTE_TABLE"
+   ip -6 rule del iif lo to "$fakeip_range6" lookup "$PROXY_ROUTE_TABLE" pref 1887
 
    if [ -n "$FW4" ]; then
       for nft in "input" "forward" "output" "dstnat" "srcnat" "nat_output" "mangle_prerouting" "mangle_output"; do
@@ -2982,7 +3031,7 @@ revert_firewall()
 
 add_overwrite_cron()
 {
-   local section="$1" enable type day hour url name
+   local section="$1" enable type day hour url name safe_name cron_dest cron_cmd
    config_get_bool "enable" "$section" "enable" "1"
    config_get "type" "$section" "type" "file"
    config_get "url" "$section" "url" ""
@@ -2994,31 +3043,65 @@ add_overwrite_cron()
       return
    fi
 
-   eval "restart_flag=\${OVERWRITE_RESTART_FLAG_${name}}"
-   cron_cmd="$cron source /usr/share/openclash/openclash_curl.sh && DOWNLOAD_FILE_CURL \"$url\" \"/etc/openclash/overwrite/$name\" \"/etc/openclash/overwrite/$name\""
+   safe_name=$(printf '%s' "$name" | tr -c 'A-Za-z0-9' '_')
+   eval "restart_flag=\${OVERWRITE_RESTART_FLAG_${safe_name}}"
+   cron_dest="/etc/openclash/overwrite/$name"
+   cron_cmd="source /usr/share/openclash/openclash_curl.sh && DOWNLOAD_FILE_CURL $(cron_quote "$url") $(cron_quote "$cron_dest") $(cron_quote "$cron_dest")"
    if [ "$restart_flag" = "1" ]; then
       cron_cmd="$cron_cmd && [ \"\$?\" -eq 0 ] && /etc/init.d/openclash restart"
    fi
    cron_cmd="$cron_cmd #openclash-overwrite-download"
 
-   echo "0 $update_hour * * $update_days $cron_cmd" >> $CRON_FILE
+   cron_append "0 $update_hour * * $update_days $cron_cmd"
 }
 
-check_type() {
+strip_quotes()
+{
+   #Same result as sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//" but without forking
+   local v="$1" t
+   t="${v#"${v%%[![:space:]]*}"}"
+   case "$t" in [\"\']*) v="${t#?}";; esac
+   t="${v%"${v##*[![:space:]]}"}"
+   case "$t" in *[\"\']) v="${t%?}";; esac
+   OVERWRITE_STRIPPED="$v"
+}
+
+lookup_uci_name()
+{
+   #Map an allowed key to its uci option name, $1 must be an upper case allowed key
+   OVERWRITE_UCI_NAME=""
+   case " $allowed_names_map " in
+      *" $1:"*)
+         OVERWRITE_UCI_NAME="${allowed_names_map#*" $1:"}"
+         OVERWRITE_UCI_NAME="${OVERWRITE_UCI_NAME%% *}"
+         ;;
+   esac
+}
+
+check_type()
+{
    local key="$1"
    local value="$2"
-   local type=$(echo "$allowed_types_map" | grep "^${key}:" | cut -d: -f2)
+   local type=""
+   case " $allowed_types_map " in
+      *" ${key}:"*)
+         type="${allowed_types_map#*" ${key}:"}"
+         type="${type%% *}"
+         ;;
+   esac
    case "$type" in
       int)
-         echo "$value" | grep -Eq '^[0-9]+$'
-         return $?
+         case "$value" in
+            ""|*[!0-9]*) return 1;;
+            *) return 0;;
+         esac
          ;;
       int_bool)
-         [[ "$value" == "0" || "$value" == "1" ]]
+         [ "$value" = "0" ] || [ "$value" = "1" ]
          return $?
          ;;
       bool)
-         [[ "$value" == "true" || "$value" == "false" ]]
+         [ "$value" = "true" ] || [ "$value" = "false" ]
          return $?
          ;;
       string|*)
@@ -3047,6 +3130,58 @@ overwrite_config_match_item()
    [ "$config_path_item" = "$(uci_get_config "config_path")" ] && OVERWRITE_CONFIG_MATCHED=1
 }
 
+expand_env_vars()
+{
+   #Expand ${VAR} / $VAR only, keep all other characters as-is
+   local rest="$1"
+   local out="" head name val c
+
+   while :; do
+      case "$rest" in
+         *'$'*) ;;
+         *) out="$out$rest"; break;;
+      esac
+      head="${rest%%\$*}"
+      out="$out$head"
+      rest="${rest#*\$}"
+      name=""
+      case "$rest" in
+         '{'*)
+            case "${rest#\{}" in
+               *'}'*)
+                  name="${rest#\{}"; name="${name%%\}*}"
+                  case "$name" in
+                     ""|*[!A-Za-z0-9_]*|[0-9]*) out="$out\${$name}";;
+                     *) eval "val=\${$name-}"; out="$out$val";;
+                  esac
+                  rest="${rest#*\}}"
+                  ;;
+               *) out="$out\$";;
+            esac
+            continue
+            ;;
+         '$'*)
+            out="$out\$\$"
+            rest="${rest#?}"
+            continue
+            ;;
+      esac
+      while :; do
+         c="${rest%"${rest#?}"}"
+         case "$c" in
+            [A-Za-z0-9_]) name="$name$c"; rest="${rest#?}";;
+            *) break;;
+         esac
+      done
+      case "$name" in
+         ""|[0-9]*) out="$out\$$name";;
+         *) eval "val=\${$name-}"; out="$out$val";;
+      esac
+   done
+
+   printf '%s' "$out"
+}
+
 overwrite_file()
 {
    clear_overwrite_set
@@ -3068,6 +3203,7 @@ EOF
       AUTO_SMART_SWITCH:int_bool \
       BYPASS_GATEWAY_COMPATIBLE:int_bool \
       CHINA_IP_ROUTE:int \
+      CHINA_IP_ROUTE_DOMAIN_SOURCE:string \
       CHINA_IP_ROUTE_PASS:string \
       CHINA_IP6_ROUTE:int \
       CHINA_IP6_ROUTE_PASS:string \
@@ -3139,6 +3275,8 @@ EOF
       LGBM_CUSTOM_URL:string \
       LGBM_UPDATE_INTERVAL:int \
       MIXED_PORT:int \
+      OIX_TOKEN:string \
+      OIX_PARAMS:string \
       PROXY_MODE:string \
       PROXY_PORT:int \
       ROUTER_SELF_PROXY:int_bool \
@@ -3148,6 +3286,7 @@ EOF
       SMART_ENABLE_LGBM:int_bool \
       SMART_POLICY_PRIORITY:string \
       SMART_PREFER_ASN:int_bool \
+      SMART_TOLERANCE:int \
       SKIP_PROXY_ADDRESS:int_bool \
       SMALL_FLASH_MEMORY:int_bool \
       SOCKS_PORT:int \
@@ -3161,30 +3300,52 @@ EOF
       RESTART:bool \
    "
 
-   allowed_keys_list=$(echo "$allowed_keys_types" | tr ' ' '\n' | cut -d: -f1)
-   allowed_types_map=$(echo "$allowed_keys_types" | tr ' ' '\n')
+   allowed_types_map=$(printf '%s' "$allowed_keys_types" | tr ' ' '\n' | grep ':' | tr '\n' ' ')
+   allowed_names_map=$(printf '%s' "$allowed_keys_types" | tr ' ' '\n' | grep ':' | awk -F: '{printf "%s:%s ", $1, tolower($1)}')
 
    uci -q add openclash overwrite >/dev/null 2>&1
 
-   overwrite_list=$(uci -q show openclash 2>/dev/null | grep "=config_overwrite" | awk -F'[.=]' '{print $2}' | while read -r sid; do
-      order=$(uci -q get openclash."$sid".order 2>/dev/null)
-      [ -z "$order" ] && order=0
-      name=$(uci -q get openclash."$sid".name 2>/dev/null)
-      enable_flag=$(uci -q get openclash."$sid".enable 2>/dev/null || echo 0)
-      printf "%s|%s|%s|%s\n" "$order" "$name" "$sid" "$enable_flag"
-   done | sort -nr -t'|' -k1,1)
+   overwrite_list=$(uci -q show openclash 2>/dev/null | awk -F"'" '
+      $1 ~ /^openclash\.[^.]+=config_overwrite$/ {
+         sid=$1
+         sub(/^openclash\./, "", sid)
+         sub(/=config_overwrite$/, "", sid)
+         order[sid]=0
+         enable[sid]=0
+         next
+      }
+      $1 ~ /^openclash\.[^.]+\./ {
+         rest=$1
+         sub(/^openclash\./, "", rest)
+         sub(/=$/, "", rest)
+         dot=index(rest, ".")
+         sid=substr(rest, 1, dot-1)
+         if (!(sid in order)) next
+         key=substr(rest, dot+1)
+         if (key == "order") order[sid]=$2
+         else if (key == "name") name[sid]=$2
+         else if (key == "enable") enable[sid]=$2
+      }
+      END { for (sid in order) printf "%s|%s|%s|%s\n", order[sid], name[sid], sid, enable[sid] }
+   ' | sort -nr -t'|' -k1,1)
 
-   for entry in $overwrite_list; do
-      name=$(echo "$entry" | cut -d'|' -f2)
-      sid=$(echo "$entry" | cut -d'|' -f3)
-      enabled_flag=$(echo "$entry" | cut -d'|' -f4)
+   config_load "openclash"
+
+   while IFS= read -r entry; do
+      [ -z "$entry" ] && continue
+      entry="${entry#*|}"
+      name="${entry%%|*}"
+      entry="${entry#*|}"
+      sid="${entry%%|*}"
+      enabled_flag="${entry#*|}"
+
+      [ -z "$name" ] && continue
+      [ "$enabled_flag" != "1" ] && continue
+
       OVERWRITE_CONFIG_MATCHED=0
-      config_load "openclash"
       config_foreach overwrite_config_match_check "config_overwrite" "$name"
 
       [ "$OVERWRITE_CONFIG_MATCHED" -eq 0 ] && continue
-      [ "$enabled_flag" != "1" ] && continue
-      [ -z "$name" ] && continue
 
       file="/etc/openclash/overwrite/${name}"
       [ ! -f "$file" ] && continue
@@ -3198,6 +3359,7 @@ EOF
       age_config_name="${cfg_name%.*}"
       age_secret_key=""
       age_public_key=""
+      module_flag_name=$(printf '%s' "$name" | tr -c 'A-Za-z0-9' '_')
 
       param=$(uci -q get openclash."$sid".param 2>/dev/null || echo '')
       if [ -n "$param" ]; then
@@ -3223,20 +3385,26 @@ EOF
       download_file_lines=""
 
       while IFS= read -r line || [ -n "$line" ]; do
-         trimmed=$(printf "%s" "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+         trimmed="${line#"${line%%[![:space:]]*}"}"
+         trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
          case "$trimmed" in
                "[General]"*) in_general=1; in_overwrite=0; in_yaml=0; continue;;
                "[Overwrite]"*) in_general=0; in_overwrite=1; in_yaml=0; continue;;
                "[YAML]"*) in_general=0; in_overwrite=0; in_yaml=1; continue;;
-               "["*"]"*) in_general=0; in_overwrite=0; in_yaml=0; continue;;
+               "["*"]"*)
+                  unknown_section="${trimmed#\[}"; unknown_section="${unknown_section%\]}"
+                  case "$unknown_section" in
+                     ""|*[!A-Za-z0-9_-]*) ;;
+                     *) in_general=0; in_overwrite=0; in_yaml=0; continue;;
+                  esac
+                  ;;
          esac
          [ -z "$trimmed" ] && continue
-         echo "$trimmed" | grep -qE '^[#;]' && continue
+         case "$trimmed" in '#'*|';'*) continue;; esac
 
          if [ "$in_general" -eq 1 ]; then
-            key=$(printf "%s" "$trimmed" | awk -F'=' '{gsub(/[[:space:]]+$/,"",$1); print $1}' | sed 's/[[:space:]]*$//;s/ //g')
-            key_u=$(printf "%s" "$key" | tr 'a-z' 'A-Z' | tr -d ' ')
-            if printf "%s" "$key_u" | grep -q "^DOWNLOAD_FILE$"; then
+            key_u=$(printf "%s" "${trimmed%%=*}" | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/; s/ //g')
+            if [ "$key_u" = "DOWNLOAD_FILE" ]; then
                download_file_lines="${download_file_lines}
   ${trimmed}"
             fi
@@ -3248,15 +3416,13 @@ EOF
       printf "%s\n" "$download_file_lines" | sed '/^$/d' > "$download_file_lines_tmp"
 
       while IFS= read -r trimmed; do
-         key=$(printf "%s" "$trimmed" | awk -F'=' '{gsub(/[[:space:]]+$/,"",$1); print $1}' | sed 's/[[:space:]]*$//;s/ //g')
-         val=$(echo "$trimmed" | sed 's/^[^=]*=[[:space:]]*//')
-         key_u=$(printf "%s" "$key" | tr 'a-z' 'A-Z' | tr -d ' ')
-         url=$(eval "echo \"$(echo "$val" | sed -nE 's/.*url[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')\"")
-         path=$(eval "echo \"$(echo "$val" | sed -nE 's/.*path[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')\"")
-         cron=$(eval "echo \"$(echo "$val" | sed -nE 's/.*cron[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')\"")
-         force=$(eval "echo \"$(echo "$val" | sed -nE 's/.*force[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')\"")
-         ua=$(eval "echo \"$(echo "$val" | sed -nE 's/.*ua[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')\"")
-         restart=$(eval "echo \"$(echo "$val" | sed -nE 's/.*restart[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')\"")
+         val="${trimmed#*=}"
+         url=$(expand_env_vars "$(echo "$val" | sed -nE 's/.*url[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')")
+         path=$(expand_env_vars "$(echo "$val" | sed -nE 's/.*path[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')")
+         cron=$(expand_env_vars "$(echo "$val" | sed -nE 's/.*cron[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')")
+         force=$(expand_env_vars "$(echo "$val" | sed -nE 's/.*force[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')")
+         ua=$(expand_env_vars "$(echo "$val" | sed -nE 's/.*ua[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')")
+         restart=$(expand_env_vars "$(echo "$val" | sed -nE 's/.*restart[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')")
          [ -z "$cron" ] && cron=0
          if [ -z "$path" ] || [ -z "$url" ]; then
             LOG_WARN "DOWNLOAD FILE no target in【Download Job => file: $file】"
@@ -3285,17 +3451,13 @@ EOF
          fi
          if [ "$cron" != "0" ]; then
             LOG_TIP "Add Cron for【Cron Job => time: $cron, url: $url, path: $path, restart: ${restart:-false}】"
-            if ! grep -q "$url" $CRON_FILE 2>/dev/null; then
-               if [ -n "$ua" ]; then
-                  cron_cmd="$cron source /usr/share/openclash/openclash_curl.sh && DOWNLOAD_FILE_CURL \"$url\" \"$path\" \"$path\" \"$ua\""
-               else
-                  cron_cmd="$cron source /usr/share/openclash/openclash_curl.sh && DOWNLOAD_FILE_CURL \"$url\" \"$path\" \"$path\""
-               fi
+            if ! grep -qF -- "$url" "$CRON_FILE" 2>/dev/null; then
+               cron_cmd="source /usr/share/openclash/openclash_curl.sh && DOWNLOAD_FILE_CURL $(cron_quote "$url") $(cron_quote "$path") $(cron_quote "$path")"
+               [ -n "$ua" ] && cron_cmd="$cron_cmd $(cron_quote "$ua")"
                if [ "$restart" = "1" ] || [ "$restart" = "true" ]; then
                   cron_cmd="$cron_cmd && [ \"\$?\" -eq 0 ] && /etc/init.d/openclash restart"
                fi
-               cron_cmd="$cron_cmd #openclash-overwrite-download"
-               echo "$cron_cmd" >> $CRON_FILE
+               cron_append "$cron $cron_cmd #openclash-overwrite-download"
             fi
          fi
       done < "$download_file_lines_tmp"
@@ -3307,28 +3469,39 @@ EOF
       in_general=0
       in_overwrite=0
       in_yaml=0
-      yaml_content=""
+      yaml_temp_file=""
       while IFS= read -r line || [ -n "$line" ]; do
-         trimmed=$(printf "%s" "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+         trimmed="${line#"${line%%[![:space:]]*}"}"
+         trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
          case "$trimmed" in
                "[General]"*) in_general=1; in_overwrite=0; in_yaml=0; continue;;
                "[Overwrite]"*) in_general=0; in_overwrite=1; in_yaml=0; continue;;
                "[YAML]"*) in_general=0; in_overwrite=0; in_yaml=1; continue;;
-               "["*"]"*) in_general=0; in_overwrite=0; in_yaml=0; continue;;
+               "["*"]"*)
+                  unknown_section="${trimmed#\[}"; unknown_section="${unknown_section%\]}"
+                  case "$unknown_section" in
+                     ""|*[!A-Za-z0-9_-]*) ;;
+                     *) in_general=0; in_overwrite=0; in_yaml=0; continue;;
+                  esac
+                  ;;
          esac
          [ -z "$trimmed" ] && continue
-         echo "$trimmed" | grep -qE '^[#;]' && continue
+         case "$trimmed" in '#'*|';'*) continue;; esac
 
          if [ "$in_general" -eq 1 ]; then
-            key=$(printf "%s" "$trimmed" | awk -F'=' '{gsub(/[[:space:]]+$/,"",$1); print $1}' | sed 's/[[:space:]]*$//;s/ //g')
-            key_u=$(printf "%s" "$key" | tr 'a-z' 'A-Z' | tr -d ' ')
-            if printf "%s" "$key_u" | grep -q "^DOWNLOAD_FILE$"; then
+            key_u=$(printf "%s" "${trimmed%%=*}" | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/; s/ //g')
+            case "$trimmed" in
+               *=*) val="${trimmed#*=}";;
+               *) val="$trimmed";;
+            esac
+            val="${val#"${val%%[![:space:]]*}"}"
+
+            if [ "$key_u" = "DOWNLOAD_FILE" ]; then
                continue
             fi
-            val=$(echo "$trimmed" | sed 's/^[^=]*=[[:space:]]*//')
-            if printf "%s" "$key_u" | grep -q "^CONFIG_FILE$"; then
-               val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
-               RAW_CONFIG_FILE=$(eval "echo \"$val_clean\"")
+            if [ "$key_u" = "CONFIG_FILE" ]; then
+               strip_quotes "$val"
+               RAW_CONFIG_FILE=$(expand_env_vars "$OVERWRITE_STRIPPED")
                uci -q set openclash.@overwrite[0].config_path="$RAW_CONFIG_FILE"
                cfg_name=$(basename "$RAW_CONFIG_FILE" 2>/dev/null)
                if [ -n "$cfg_name" ]; then
@@ -3336,9 +3509,9 @@ EOF
                   CONFIG_FILE="/etc/openclash/${cfg_name}"
                   TMP_CONFIG_FILE="/tmp/${cfg_name}"
                fi
-            elif printf "%s" "$key_u" | grep -q "^SUB_INFO_URL$"; then
-               val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
-               url_key=$(eval "echo \"$val_clean\"")
+            elif [ "$key_u" = "SUB_INFO_URL" ]; then
+               strip_quotes "$val"
+               url_key=$(expand_env_vars "$OVERWRITE_STRIPPED")
                [ -z "$url_key" ] && continue
                config_load "openclash"
                config_foreach sub_info_set "subscribe_info" "${cfg_name%.*}" "$url_key"
@@ -3347,33 +3520,34 @@ EOF
                   uci -q set openclash.@subscribe_info[-1].name="${cfg_name%.*}"
                   uci -q add_list openclash.@subscribe_info[-1].url="$url_key"
                fi
-            elif printf "%s" "$key_u" | grep -q "^AGE_SECRET_KEY$"; then
-               val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
-               val_key=$(eval "echo \"$val_clean\"")
-               [ -z "$val_key" ] && continue
-               age_secret_key="$val_key"
-            elif printf "%s" "$key_u" | grep -q "^AGE_PUBLIC_KEY$"; then
-               val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
-               val_key=$(eval "echo \"$val_clean\"")
-               [ -z "$val_key" ] && continue
-               age_public_key="$val_key"
-            elif printf "%s" "$key_u" | grep -q "^RESTART$"; then
-               val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
-               val_key=$(eval "echo \"$val_clean\"")
-               if printf "%s" "$val_key" | grep -qE '^(1|true|yes)$'; then
-                  eval OVERWRITE_RESTART_FLAG_${name}=1
-               fi
+            elif [ "$key_u" = "AGE_SECRET_KEY" ]; then
+               strip_quotes "$val"
+               age_secret_key=$(expand_env_vars "$OVERWRITE_STRIPPED")
+               [ -z "$age_secret_key" ] && continue
+            elif [ "$key_u" = "AGE_PUBLIC_KEY" ]; then
+               strip_quotes "$val"
+               age_public_key=$(expand_env_vars "$OVERWRITE_STRIPPED")
+               [ -z "$age_public_key" ] && continue
+            elif [ "$key_u" = "RESTART" ]; then
+               strip_quotes "$val"
+               val_key=$(expand_env_vars "$OVERWRITE_STRIPPED")
+               case "$val_key" in
+                  1|true|yes) eval "OVERWRITE_RESTART_FLAG_${module_flag_name}=1";;
+               esac
             else
-               if echo "$allowed_keys_list" | grep -xq "$key_u"; then
-                  key_l=$(printf "%s" "$key_u" | tr 'A-Z' 'a-z' | tr -d ' ')
-                  val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
-                  val_key=$(eval "echo \"$val_clean\"")
-                  if check_type "$key_u" "$val_clean"; then
-                     uci -q set openclash.@overwrite[0]."$key_l"="$val_key"
-                  fi
-               else
-                  LOG_WARN "skip General key not allowed【General Key => $name: $key_u】"
-               fi
+               case " $allowed_types_map " in
+                  *" $key_u:"*)
+                     strip_quotes "$val"
+                     val_key=$(expand_env_vars "$OVERWRITE_STRIPPED")
+                     if check_type "$key_u" "$OVERWRITE_STRIPPED"; then
+                        lookup_uci_name "$key_u"
+                        uci -q set openclash.@overwrite[0]."$OVERWRITE_UCI_NAME"="$val_key"
+                     fi
+                     ;;
+                  *)
+                     LOG_WARN "skip General key not allowed【General Key => $name: $key_u】"
+                     ;;
+               esac
             fi
          elif [ "$in_overwrite" -eq 1 ]; then
             if printf "%s" "$trimmed" | grep -qE '^ruby_[a-z_]+\b'; then
@@ -3383,7 +3557,16 @@ EOF
                LOG_WARN "skip invalid Overwrite command【Ruby Script => $name: $trimmed】"
             fi
          elif [ "$in_yaml" -eq 1 ]; then
-            yaml_content="${yaml_content}$(eval "echo \"$line\"")"$'\n'
+            case "$line" in
+               *'$'*) yaml_line=$(expand_env_vars "$line");;
+               *) yaml_line="$line";;
+            esac
+            if [ -z "$yaml_temp_file" ]; then
+               mkdir -p "/tmp/yaml_openclash_override_parts"
+               yaml_temp_file="/tmp/yaml_openclash_override_parts/${sid}.tmp"
+               : > "$yaml_temp_file"
+            fi
+            printf '%s\n' "$yaml_line" >> "$yaml_temp_file"
          fi
       done < "$file"
 
@@ -3391,40 +3574,37 @@ EOF
          uci_set_age_keys_by_name "$age_config_name" "$age_secret_key" "$age_public_key"
       fi
 
-      if [ -n "$yaml_content" ]; then
+      if [ -n "$yaml_temp_file" ]; then
          LOG_TIP "Load YAML Override Block【YAML Block => $name】"
-         
+
+         #Write the YAML to a file so the shell never expands its quotes, backslashes or regex
+         mv "$yaml_temp_file" "/tmp/yaml_openclash_override_parts/${sid}"
+
          cat >> "$overwrite_script" <<'EOF'
-ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+OPENCLASH_YAML_OVERRIDE_FILE="/tmp/yaml_openclash_override_parts/$OPENCLASH_OVERWRITE_SID"
+export OPENCLASH_YAML_OVERRIDE_FILE
+ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e '
    # YAML Override Block Processing
    begin
-      yaml_override_content = <<-'YAML_CONTENT'
-EOF
+      yaml_override_content = File.read(ENV["OPENCLASH_YAML_OVERRIDE_FILE"])
+      yaml_data = YAML.load(yaml_override_content)
 
-         echo "$yaml_content" >> "$overwrite_script"
-            
-         cat >> "$overwrite_script" <<'EOF'
-      YAML_CONTENT
-
-      begin
-         yaml_data = YAML.load(yaml_override_content)
-         
-         if yaml_data.is_a?(Hash)
-            Value = YAML.load_file('$CONFIG_FILE')
-            Overwrite_Value = YAML.overwrite(Value, yaml_data)
-            File.open('$CONFIG_FILE', 'w') do |f|
-               YAML.dump(Overwrite_Value, f)
-            end
+      if yaml_data.is_a?(Hash)
+         if File.exist?("/tmp/yaml_overwrite_marshal")
+            Value = Marshal.load(File.open("/tmp/yaml_overwrite_marshal", "rb") { |f| f.read })
          else
-            YAML.LOG_WARN('Invalid YAML Override format, skipped...')
+            Value = YAML.load_file(ENV["CONFIG_FILE"])
          end
-      rescue => e
-         YAML.LOG_ERROR('Parse YAML Override failed:【%s】' % [e.message])
+         Overwrite_Value = YAML.overwrite(Value, yaml_data)
+         YAML.dump(Overwrite_Value, ENV["CONFIG_FILE"])
+         File.open("/tmp/yaml_overwrite_marshal", "wb") { |f| Marshal.dump(Overwrite_Value, f) }
+      else
+         YAML.LOG_WARN("Invalid YAML Override format, skipped...")
       end
    rescue => e
-      YAML.LOG_ERROR('Parse YAML Override failed:【%s】' % [e.message])
+      YAML.LOG_ERROR("Parse YAML Override failed:【%s】" % [e.message])
    end
-" >> $LOG_FILE 2>&1
+' >> $LOG_FILE 2>&1
 EOF
       fi
 
@@ -3433,13 +3613,15 @@ if [ -f "/tmp/yaml_openclash_ruby_parts/$OPENCLASH_OVERWRITE_SID" ]; then
    ruby_code=$(cat "/tmp/yaml_openclash_ruby_parts/$OPENCLASH_OVERWRITE_SID")
    ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
       begin
-         Value = YAML.load_file('$CONFIG_FILE')
+         if File.exist?('/tmp/yaml_overwrite_marshal')
+            Value = Marshal.load(File.open('/tmp/yaml_overwrite_marshal', 'rb') { |f| f.read })
+         else
+            Value = YAML.load_file('$CONFIG_FILE')
+         end
          threads = []
          $ruby_code
          threads.each(&:join)
-         File.open('$CONFIG_FILE', 'w') do |f|
-            YAML.dump(Value, f)
-         end
+         YAML.dump(Value, '$CONFIG_FILE')
       rescue Exception => e
          YAML.LOG_ERROR('Set Custom Overwrite Script Failed,【%s】' % [e.message])
       end
@@ -3448,15 +3630,20 @@ fi
 EOF
 
       echo "" >> "$overwrite_script"
-   done
+   done <<EOF
+$overwrite_list
+EOF
 
    if [ -n "$(uci -q show openclash.@overwrite[0] | grep -v '=overwrite$')" ]; then
-      eval "$(uci -q show openclash.@overwrite[0] | grep -v '=overwrite$' | sed 's/^openclash\.@overwrite\[0\]\.//g' | sed 's/=/="/;s/$/"/')"
       while IFS='=' read -r key value; do
          [ -z "$key" ] && continue
          key_clean=$(echo "$key" | sed 's/^openclash\.[^.]*\.//')
          value_clean=$(echo "$value" | sed "s/^'//;s/'$//")
          [ -z "$key_clean" ] && continue
+         case "$key_clean" in
+            [!A-Za-z_]*|*[!A-Za-z0-9_]*) ;;
+            *) eval "$key_clean=\$value_clean";;
+         esac
          LOG_TIP "Load Overwrite Script【$key_clean => '$value_clean'】"
       done <<EOF
 $(uci -q show openclash.@overwrite[0] | grep -v '=overwrite$' | sed 's/^openclash\.@overwrite\[0\]\.//g')
@@ -3481,6 +3668,7 @@ get_config()
    CFG_NO_EXT_NAME="${CFG_NAME%.*}"
    SECRET_KEY=$(uci_get_age_secret_keys "$CFG_NO_EXT_NAME")
    OIX_TOKEN=$(uci_get_config "oix_token")
+   OIX_PARAMS=$(uci_get_config "oix_params")
    enable=$(uci_get_config "enable")
    enable_custom_clash_rules=$(uci_get_config "enable_custom_clash_rules")
    da_password=$(uci_get_config "dashboard_password")
@@ -3575,6 +3763,7 @@ get_config()
    smart_policy_priority=$(uci_get_config "smart_policy_priority" || echo 0)
    smart_enable_lgbm=$(uci_get_config "smart_enable_lgbm" || echo 0)
    smart_prefer_asn=$(uci_get_config "smart_prefer_asn" || echo 0)
+   smart_tolerance=$(uci_get_config "smart_tolerance" || echo 0)
 
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    uci -q commit openclash
@@ -3583,7 +3772,7 @@ get_config()
 start_service()
 {
    enable=$(uci_get_config "enable")
-   [ "$enable" != "1" ] && LOG_WARN "OpenClash Now Disabled, Need Start From Luci Page, Exit..." && SLOG_CLEAN && exit 0
+   [ "$enable" != "1" ] && LOG_WARN "OpenClash Now Disabled, Need Start From Luci Page, Exit..." && exit 0
 
    if procd_running "openclash" >/dev/null; then
       LOG_TIP "OpenClash Already Running, Exit..."
@@ -3621,13 +3810,14 @@ start_service()
          /usr/share/openclash/yml_rules_change.sh \
          "$enable_custom_clash_rules" "$TMP_CONFIG_FILE"\
          "$enable_rule_proxy" "$router_self_proxy" "$lan_ip" "$enable_redirect_dns" "$en_mode"\
-         "$auto_smart_switch" "$smart_collect" "$smart_collect_rate" "$smart_policy_priority" "$smart_enable_lgbm" "$smart_prefer_asn"
+         "$auto_smart_switch" "$smart_collect" "$smart_collect_rate" "$smart_policy_priority" "$smart_enable_lgbm" "$smart_prefer_asn" "$smart_tolerance"
 
          #Custom overwrite
          if [ -f "/tmp/yaml_overwrite.sh" ]; then
             chmod +x /tmp/yaml_overwrite.sh
             CONFIG_FILE="${TMP_CONFIG_FILE}" /tmp/yaml_overwrite.sh
             rm -rf /tmp/yaml_openclash_ruby_parts
+            rm -rf /tmp/yaml_openclash_override_parts
          fi
 
          if [ -f "/etc/openclash/custom/openclash_custom_overwrite.sh" ]; then
@@ -3636,7 +3826,7 @@ start_service()
             if [ -f "/tmp/yaml_openclash_ruby_parse" ]; then
                sed -n "s/.*yaml_file_path=['\"]\([^'\"]*\)['\"].*/\1/p" /tmp/yaml_openclash_ruby_parse | sort | uniq | while read -r yaml_file; do
                   [ -z "$yaml_file" ] && continue
-                  ruby_code=$(grep "yaml_file_path=['\"]$yaml_file['\"]" /tmp/yaml_openclash_ruby_parse | sed "s/^threads << Thread.new do //;s/ end$//")
+                  ruby_code=$(grep "yaml_file_path=['\"]$yaml_file['\"]" /tmp/yaml_openclash_ruby_parse | sed "s/^threads << YAML::Inline.new do //;s/ end$//")
                   [ -z "$ruby_code" ] && continue
                   if [ -f "$yaml_file" ]; then
                      (
@@ -3646,9 +3836,7 @@ start_service()
                            threads = []
                            $ruby_code
                            threads.each(&:join)
-                           File.open('$yaml_file', 'w') do |f|
-                              YAML.dump(Value, f)
-                           end
+                           YAML.dump(Value, '$yaml_file')
                         rescue Exception => e
                            YAML.LOG_ERROR('Set Custom Overwrite Script Failed,【%s】' % [e.message])
                         end
@@ -3668,7 +3856,7 @@ start_service()
                provider_configs.each do |provider_type, path_prefix|
                   if Value.key?(provider_type) && Value[provider_type].is_a?(Hash)
                      Value[provider_type].each do |name, config|
-                        threads << Thread.new {
+                        threads << YAML::Inline.new {
                            begin
                               path_val = config['path']
                               if path_val && !path_val.to_s.match?(%r{^\./#{Regexp.escape(path_prefix)}/})
@@ -3684,7 +3872,7 @@ start_service()
                   end
                end
                threads.each(&:join)
-               File.open('$TMP_CONFIG_FILE', 'w') { |f| YAML.dump(Value, f) }
+               YAML.dump(Value, '$TMP_CONFIG_FILE')
             rescue Exception => e
                YAML.LOG_ERROR('Edit Provider Path Failed,【%s】' % [e.message])
             end
@@ -3739,11 +3927,6 @@ stop_service()
       for i in $(seq 1 10); do
          procd_running "openclash" >/dev/null && sleep 1 || break
       done
-      if procd_running "openclash" >/dev/null; then
-         for pid in $(pidof clash 2>/dev/null); do
-            kill -9 "$pid" 2>/dev/null || true
-         done
-      fi
 
       LOG_OUT "Step 4: Restart Dnsmasq..."
       revert_dnsmasq
@@ -3752,14 +3935,13 @@ stop_service()
       LOG_TIP "OpenClash Already Stop!"
 
       if [ "$enable" != "1" ]; then
-         rm -rf /tmp/clash_last_version \
-                /tmp/openclash_last_version \
+         rm -rf /tmp/openclash_version_history.json \
+                /tmp/openclash_cdn_info.json \
                 /tmp/openclash.change \
                 /tmp/openclash_announcement \
                 ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf \
                 ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf \
                 ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf
-         SLOG_CLEAN
       fi
 
       del_cron
@@ -3827,7 +4009,6 @@ reload_service()
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "revert" ]; then
       revert_firewall
       revert_dnsmasq
-      SLOG_CLEAN
    fi
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "restore" ]; then
       do_run_mode

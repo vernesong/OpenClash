@@ -42,8 +42,9 @@ ful.submit = false
 sul =ful:section(SimpleSection, "")
 o = sul:option(FileUpload, "")
 o.template = "openclash/upload"
-um = sul:option(DummyValue, "", nil)
-um.template = "openclash/dvalue"
+o.cfgvalue = function(self, section)
+	return self.value
+end
 
 local dir, fd, clash
 dir = "/etc/openclash/config/"
@@ -72,7 +73,7 @@ HTTP.setfilehandler(
 			end
 
 			if not fd then
-				um.value = translate("upload file error.")
+				o.value = translate("upload file error.")
 				return
 			end
 		end
@@ -93,11 +94,11 @@ HTTP.setfilehandler(
 						default_config_set(ymlname .. ".yaml")
 					end
 				end
-				um.value = translate("File saved to") .. ' "/etc/openclash/config/"'
+				o.value = translate("File saved to") .. ' "/etc/openclash/config/"'
 			elseif fp == "proxy-provider" then
-				um.value = translate("File saved to") .. ' "/etc/openclash/proxy_provider/"'
+				o.value = translate("File saved to") .. ' "/etc/openclash/proxy_provider/"'
 			elseif fp == "rule-provider" then
-				um.value = translate("File saved to") .. ' "/etc/openclash/rule_provider/"'
+				o.value = translate("File saved to") .. ' "/etc/openclash/rule_provider/"'
 			elseif fp == "clash_meta" then
 				local archive_path = core_dir .. meta.file
 				if string.lower(string.sub(meta.file, -7, -1)) == ".tar.gz" then
@@ -133,20 +134,20 @@ HTTP.setfilehandler(
 				
 				os.execute(string.format("chmod 4755 '/etc/openclash/core/%s' >/dev/null 2>&1", fp))
 				os.execute(string.format("rm -rf %s >/dev/null 2>&1", core_dir))
-				um.value = translate("File saved to") .. ' "/etc/openclash/core/"'
+				o.value = translate("File saved to") .. ' "/etc/openclash/core/"'
 			elseif fp == "backup-file" then
 				os.execute("tar -C '/etc/openclash/' -xzf %s >/dev/null 2>&1" % (backup_dir .. meta.file))
 				os.execute("mv /etc/openclash/openclash /etc/config/openclash >/dev/null 2>&1")
 				fs.unlink(backup_dir .. meta.file)
-				um.value = translate("Backup File Restore Successful!")
+				o.value = translate("Backup File Restore Successful!")
 			end
 		end
 	end
 )
 
 if HTTP.formvalue("upload") then
-	if not um.value then
-		um.value = translate("No Specify Upload File")
+	if not o.value then
+		o.value = translate("No Specify Upload File")
 	end
 end
 
@@ -305,9 +306,7 @@ btnapply.write = function(self, t)
 		HTTP.close()
 	elseif action == "remove" then
 		local file_name = fs.basename(e[t].name)
-
 		fs.config_refs(file_name)
-
 		fs.unlink("/etc/openclash/history/"..fs.filename(e[t].name)..".db")
 		fs.unlink("/etc/openclash/"..file_name)
 		local a=fs.unlink("/etc/openclash/config/"..file_name)
@@ -331,7 +330,7 @@ o = promg:option(Button, "proxy_mg", " ")
 o.inputtitle = translate("Proxy Provider File List")
 o.inputstyle = "reload"
 o.write = function()
-	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "proxy-provider-file-manage"))
+	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "proxy-providers-file-manage"))
 end
 
 o = promg:option(Button, "rule_mg", " ")

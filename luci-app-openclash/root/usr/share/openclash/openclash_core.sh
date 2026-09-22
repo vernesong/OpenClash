@@ -19,40 +19,54 @@ set_lock
 inc_job_counter
 
 restart=0
+UPDATE_SUCCESS=0
 github_address_mod=$(uci_get_config "github_address_mod" || echo 0)
-if [ "$github_address_mod" = "0" ] && [ -z "$(echo $2 2>/dev/null |grep -E 'http|one_key_update')" ] && [ -z "$(echo $3 2>/dev/null |grep 'http')" ]; then
-   LOG_TIP "If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
+DIRECT_CORE_URL=""
+if [ -n "$2" ] && echo "$2" | grep -qE '^https?://'; then
+   DIRECT_CORE_URL="$2"
 fi
-if [ -n "$3" ] && [ "$2" = "one_key_update" ]; then
-   github_address_mod="$3"
+if [ "$github_address_mod" = "0" ] && [ -z "$DIRECT_CORE_URL" ] && [ -z "$(echo $2 2>/dev/null |grep -E 'http|one_key_update')" ] && [ -z "$(echo $3 2>/dev/null |grep 'http')" ]; then
+   LOG_TIP "If the download fails, try setting the CDN in Overwrite Settings - General Settings - GitHub Address Proxy Options"
 fi
-if [ -n "$2" ] && [ "$2" = "one_key_update" ] && [ -z "$3" ]; then
-   github_address_mod=0
-fi
-if [ -n "$2" ] && [ "$2" != "one_key_update" ]; then
-   github_address_mod="$2"
+if [ -z "$DIRECT_CORE_URL" ]; then
+   if [ -n "$3" ] && [ "$2" = "one_key_update" ]; then
+      github_address_mod="$3"
+   fi
+   if [ -n "$2" ] && [ "$2" = "one_key_update" ] && [ -z "$3" ]; then
+      github_address_mod=0
+   fi
+   if [ -n "$2" ] && [ "$2" != "one_key_update" ]; then
+      github_address_mod="$2"
+   fi
+   if echo "$github_address_mod" | grep -q "raw\.githubusercontent\.com"; then
+      github_address_mod=0
+   fi
 fi
 CORE_TYPE="$1"
 C_CORE_TYPE=$(uci_get_config "core_type")
 SMART_ENABLE=$(uci_get_config "smart_enable" || echo 0)
 OIX_TOKEN=$(uci_get_config "oix_token")
 [ "$SMART_ENABLE" -eq 1 ] && CORE_TYPE="Smart"
-[ "$CORE_TYPE" = "Oix" ] || [ -n "$OIX_TOKEN" ] && CORE_TYPE="Oix"
+[ -n "$OIX_TOKEN" ] && CORE_TYPE="Oix"
 [ -z "$CORE_TYPE" ] && CORE_TYPE="Meta"
 small_flash_memory=$(uci_get_config "small_flash_memory")
 CPU_MODEL=$(uci_get_config "core_version")
 RELEASE_BRANCH=$(uci_get_config "release_branch" || echo "master")
 
-if [ "$github_address_mod" != "0" ]; then
-   /usr/share/openclash/clash_version.sh "$github_address_mod" 2>/dev/null
-else
-   /usr/share/openclash/clash_version.sh 2>/dev/null
-fi
-if [ ! -f "/tmp/clash_last_version" ]; then
-   LOG_ERROR "【"$CORE_TYPE"】Core Version Check Error, Please Try Again Later..."
-   SLOG_CLEAN
-   del_lock
-   exit 0
+if [ -z "$DIRECT_CORE_URL" ]; then
+   lua /usr/share/openclash/openclash_version.lua "$github_address_mod" 2>/dev/null
+   if [ "$CORE_TYPE" = "Oix" ]; then
+      CORE_LV=$(jsonfilter -i /tmp/openclash_version_history.json -e "@.oix.ver" 2>/dev/null)
+   elif [ "$CORE_TYPE" = "Smart" ]; then
+      CORE_LV=$(jsonfilter -i /tmp/openclash_version_history.json -e "@.${RELEASE_BRANCH}.latest.core_smart" 2>/dev/null)
+   else
+      CORE_LV=$(jsonfilter -i /tmp/openclash_version_history.json -e "@.${RELEASE_BRANCH}.latest.core_meta" 2>/dev/null)
+   fi
+   if [ -z "$CORE_LV" ]; then
+      LOG_ERROR "【"$CORE_TYPE"】Core Version Check Error, Please Try Again Later..."
+      del_lock
+      exit 0
+   fi
 fi
 
 if [ "$small_flash_memory" != "1" ]; then
@@ -70,23 +84,23 @@ TMP_FILE="${TARGET_CORE_PATH}.new.$$"
 if [ "$CORE_TYPE" = "Oix" ]; then
    CORE_URL_PATH=""
    DOWNLOAD_FILE="/tmp/clash_meta.gz"
-   CORE_LV=$(sed -n 1p /tmp/clash_last_version 2>/dev/null)
 elif [ "$CORE_TYPE" = "Smart" ]; then
    CORE_URL_PATH="$RELEASE_BRANCH/smart"
    DOWNLOAD_FILE="/tmp/clash_meta.tar.gz"
-   CORE_LV=$(sed -n 2p /tmp/clash_last_version 2>/dev/null)
 else
    CORE_URL_PATH="$RELEASE_BRANCH/meta"
    DOWNLOAD_FILE="/tmp/clash_meta.tar.gz"
-   CORE_LV=$(sed -n 1p /tmp/clash_last_version 2>/dev/null)
 fi
 
 [ "$C_CORE_TYPE" != "$CORE_TYPE" ] || [ -z "$C_CORE_TYPE" ] && restart=1
 
-if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
+if [ -n "$DIRECT_CORE_URL" ] || [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
    if [ "$CPU_MODEL" != 0 ]; then
-      LOG_TIP "【$CORE_TYPE】Core Downloading, Please Try to Download and Upload Manually If Fails"
-      if [ "$CORE_TYPE" = "Oix" ]; then
+      LOG_TIP "【"$CORE_TYPE"】Core Downloading, Please Try to Download and Upload Manually If Fails"
+      # If $2 is a full download URL, use it directly
+      if [ -n "$2" ] && echo "$2" | grep -qE '^https?://'; then
+         DOWNLOAD_URL="$2"
+      elif [ "$CORE_TYPE" = "Oix" ]; then
          OIX_CORE_URL="https://github.com/vernesong/mihomo-oix/releases/download/Pre-Alpha/mihomo-${CPU_MODEL}-${CORE_LV}.gz"
          OIX_CORE_P_URL="https://dl.dler.io/mihomo-oix/mihomo-${CPU_MODEL}-${CORE_LV}.gz?tag=Pre-Alpha"
          if [ "$github_address_mod" != "0" ] && [ "$github_address_mod" != "https://cdn.jsdelivr.net/" ] && [ "$github_address_mod" != "https://fastly.jsdelivr.net/" ] && [ "$github_address_mod" != "https://testingcf.jsdelivr.net/" ]; then
@@ -118,91 +132,85 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
          DOWNLOAD_RESULT=$?
 
          if [ "$DOWNLOAD_RESULT" -eq 0 ]; then
-            gzip -t "$DOWNLOAD_FILE" >/dev/null 2>&1
+            gzip_test_err=$(gzip -t "$DOWNLOAD_FILE" 2>&1)
 
             if [ "$?" -eq 0 ]; then
                LOG_TIP "【"$CORE_TYPE"】Core Download Successful, Start Update..."
                extract_success=true
+               extract_err=""
                [ -s "$DOWNLOAD_FILE" ] && {
                   if [ "$CORE_TYPE" = "Oix" ]; then
-                     gzip -dc "$DOWNLOAD_FILE" > "$TMP_FILE" 2>/dev/null || extract_success=false
+                     extract_err=$(gzip -dc "$DOWNLOAD_FILE" > "$TMP_FILE" 2>&1) || extract_success=false
                   else
-                     tar zxvfo "$DOWNLOAD_FILE" -C /tmp >/dev/null 2>&1 || extract_success=false
-                     mv /tmp/clash "$TMP_FILE" >/dev/null 2>&1 || extract_success=false
+                     extract_err=$(tar zxvfo "$DOWNLOAD_FILE" -C /tmp 2>&1) || extract_success=false
+                     [ "$extract_success" = "true" ] && { extract_err=$(mv /tmp/clash "$TMP_FILE" 2>&1) || extract_success=false; }
                   fi
                   rm -rf "$DOWNLOAD_FILE" >/dev/null 2>&1
-                  chmod 4755 "$TMP_FILE" >/dev/null 2>&1 || extract_success=false
-                  "$TMP_FILE" -v >/dev/null 2>&1 || extract_success=false
+                  [ "$extract_success" = "true" ] && { extract_err=$(chmod 4755 "$TMP_FILE" 2>&1) || extract_success=false; }
+                  [ "$extract_success" = "true" ] && { extract_err=$("$TMP_FILE" -v 2>&1) || extract_success=false; }
                }
 
                if [ "$extract_success" != "true" ]; then
                   if [ "$retry_count" -lt "$max_retries" ]; then
-                     LOG_ERROR "【$retry_count/$max_retries】【"$CORE_TYPE"】Core Update Failed..."
+                     LOG_ERROR "【$retry_count/$max_retries】【"$CORE_TYPE"】Core Update Failed:【$(echo "$extract_err" | tr '\n' ' ' | head -c 300)】..."
                      rm -rf "$TMP_FILE" >/dev/null 2>&1
                      sleep 2
                      continue
                   else
-                     LOG_ERROR "【"$CORE_TYPE"】Core Update Failed, Please Make Sure Enough Flash Memory Space or Selected Correct Core Platform And Try Again!"
+                     LOG_ERROR "【"$CORE_TYPE"】Core Update Failed:【$(echo "$extract_err" | tr '\n' ' ' | head -c 300)】..."
                      rm -rf "$TMP_FILE" >/dev/null 2>&1
-                     SLOG_CLEAN
-                     del_lock
-                     exit 0
+                     break
                   fi
                fi
 
-               mv -f "$TMP_FILE" "$TARGET_CORE_PATH" >/dev/null 2>&1
+               mv_err=$(mv -f "$TMP_FILE" "$TARGET_CORE_PATH" 2>&1)
 
                if [ "$?" == "0" ]; then
-                  LOG_TIP "【"$CORE_TYPE"】Core Update Successful!"
-                  SLOG_CLEAN
+                  LOG_TIP "【"$CORE_TYPE"】Core Update Successful"
+                  UPDATE_SUCCESS=1
                   restart=1
                   break
                else
                   if [ "$retry_count" -lt "$max_retries" ]; then
-                     LOG_ERROR "【$retry_count/$max_retries】【"$CORE_TYPE"】Core Update Failed..."
+                     LOG_ERROR "【$retry_count/$max_retries】【"$CORE_TYPE"】Core Move Failed:【$(echo "$mv_err" | tr '\n' ' ' | head -c 300)】"
                      sleep 2
                      continue
                   else
-                     LOG_ERROR "【"$CORE_TYPE"】Core Update Failed, Please Make Sure Enough Flash Memory Space And Try Again!"
-                     SLOG_CLEAN
+                     LOG_ERROR "【"$CORE_TYPE"】Core Move Failed:【$(echo "$mv_err" | tr '\n' ' ' | head -c 300)】"
                      break
                   fi
                fi
             else
                if [ "$retry_count" -lt "$max_retries" ]; then
-                  LOG_ERROR "【$retry_count/$max_retries】【"$CORE_TYPE"】Core Update Failed..."
+                  LOG_ERROR "【$retry_count/$max_retries】【"$CORE_TYPE"】Core Verification Failed:【$(echo "$gzip_test_err" | tr '\n' ' ' | head -c 300)】"
                   sleep 2
                   continue
                else
-                  LOG_ERROR "【"$CORE_TYPE"】Core Update Failed, Please Check The Network or Try Again Later!"
-                  SLOG_CLEAN
+                  LOG_ERROR "【"$CORE_TYPE"】Core Verification Failed:【$(echo "$gzip_test_err" | tr '\n' ' ' | head -c 300)】"
                   break
                fi
             fi
          elif [ "$DOWNLOAD_RESULT" -eq 2 ]; then
-            LOG_TIP "【"$CORE_TYPE"】Core Has Not Been Updated, Stop Continuing Operation!"
-            SLOG_CLEAN
+            LOG_TIP "【"$CORE_TYPE"】Core Has Not Been Updated, Stop Continuing Operation"
          else
             if [ "$retry_count" -lt "$max_retries" ]; then
-               LOG_ERROR "【$retry_count/$max_retries】【"$CORE_TYPE"】Core Download Failed..."
+               LOG_ERROR "【$retry_count/$max_retries】【"$CORE_TYPE"】Core Download Failed, Please Check The Network or Try Again Later..."
                sleep 2
                continue
             else
-               LOG_ERROR "【"$CORE_TYPE"】Core Download Failed, Please Check The Network or Try Again Later!"
-               SLOG_CLEAN
+               LOG_ERROR "【"$CORE_TYPE"】Core Download Failed, Please Check The Network or Try Again Later"
                break
             fi
          fi
       done
    else
       LOG_WARN "No Compiled Version Selected, Please Select In Update Page And Try Again!"
-      SLOG_CLEAN
    fi
 else
-   LOG_TIP "【"$CORE_TYPE"】Core Has Not Been Updated, Stop Continuing Operation!"
-   SLOG_CLEAN
+   LOG_TIP "【"$CORE_TYPE"】Core Has Not Been Updated, Stop Continuing Operation"
 fi
 
 rm -rf "$TMP_FILE" >/dev/null 2>&1
+[ "$UPDATE_SUCCESS" = "1" ] && restart=1 || restart=0
 dec_job_counter_and_restart "$restart"
 del_lock

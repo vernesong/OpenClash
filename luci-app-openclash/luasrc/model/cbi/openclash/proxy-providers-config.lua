@@ -20,15 +20,16 @@ bold_on = [[<strong>]]
 bold_off = [[</strong>]]
 
 m = Map(openclash, translate("Edit Proxy-Provider"))
+m.uci = uci
 m.pageaction = false
 m.redirect = DISP.build_url("admin/services/openclash/servers") .. "?file=" .. HTTP.urlencode(file_path)
-if m.uci:get(openclash, sid) ~= "proxy-provider" then
+if m.uci:get(openclash, sid) ~= "proxy_providers" then
 	HTTP.redirect(m.redirect)
 	return
 end
 
 -- [[ Provider Setting ]]--
-s = m:section(NamedSection, sid, "proxy-provider")
+s = m:section(NamedSection, sid, "proxy_providers")
 s.anonymous = true
 s.addremove = false
 
@@ -101,7 +102,6 @@ o = s:option(Value, "health_check_interval", translate("Health Check Interval(s)
 o.default = "300"
 o.rmempty = false
 
--- [[ other-setting ]]--
 o = s:option(Value, "other_parameters", translate("Other Parameters"))
 o.template = "cbi/tvalue"
 o.rows = 20
@@ -153,7 +153,7 @@ o = s:option(DynamicList, "groups", translate("Proxy Group (Support Regex)"))
 o.description = font_red..bold_on..translate("The added Proxy Groups Must Exist")..bold_off..font_off
 o.rmempty = true
 o:value("all", translate("All Groups"))
-m.uci:foreach("openclash", "groups",
+m.uci:foreach("openclash", "proxy_groups",
 		function(s)
 			if s.name ~= "" and s.name ~= nil and (s.config == m.uci:get(openclash, sid, "config") or s.config == "all") then
 				o:value(s.name)

@@ -6,77 +6,127 @@
 
 function act_manual_unlock_test_<%=stream_id_name%>(btn, type)
 {
-	var manual_<%=stream_id_name%>_type_legend = document.getElementById('manual-<%=stream_id_name%>-test-state');
-	var manual_<%=stream_id_name%>_type_output = document.getElementById('manual-<%=stream_id_name%>-test-output');
+	var legend = document.getElementById('manual-<%=stream_id_name%>-test-state');
+	var output = document.getElementById('manual-<%=stream_id_name%>-test-output');
 	var r = confirm("<%:Network instability may occur during testing, Are you sure want to start test?%>")
 	if (r == true) {
-		if (manual_<%=stream_id_name%>_type_legend && manual_<%=stream_id_name%>_type_output)
+		if (legend && output)
 		{
-			manual_<%=stream_id_name%>_type_output.innerHTML =
-				'<img src="<%=resource%>/icons/loading.svg" onerror="this.onerror=null;this.src=\'<%=resource%>/icons/loading.gif\'" alt="<%:Loading...%>" style="vertical-align:middle" /> ' +
+			output.innerHTML =
+			'<span class="loading-spinner" style="vertical-align:middle"></span> ' +
 				'<%:Waiting for command to complete...%>';
 
-			manual_<%=stream_id_name%>_type_legend.textContent = '<%:Collecting data...%>';
-			manual_<%=stream_id_name%>_type_legend.parentNode.style.display = 'block';
-			manual_<%=stream_id_name%>_type_legend.style.display = 'block';
+			legend.textContent = '<%:Collecting data...%>';
+			legend.parentNode.classList.remove('oc-hidden');
+			legend.style.display = 'block';
 		};
-				
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "manual_stream_unlock_test")%>', {type: type}, function(x, status) {
-			if (x && x.status == 200 && x.responseText != "")
-			{
-				manual_<%=stream_id_name%>_type_legend.textContent = '<%:Unlock Test Result%>';
-				manual_<%=stream_id_name%>_type_output.innerHTML = '';
+
+		var xhr = new XMLHttpRequest();
+		xhr.timeout = 0;
+		var url = '<%=luci.dispatcher.build_url("admin", "services", "openclash", "manual_stream_unlock_test")%>' + '?type=' + encodeURIComponent(type);
+		xhr.open('GET', url, true);
+		xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+		var editorName = 'manual_stream_unlock_test';
+		var editor = null, editorReady = false;
+		xhr.onprogress = function() {
+			if (!editorReady) {
+				output.innerHTML = '';
 				var ta = document.createElement('textarea');
-				ta.value = x.responseText;
-				manual_<%=stream_id_name%>_type_output.appendChild(ta);
-				_cmWhenReady(function() {
-					log_editor(ta, 'manual_stream_unlock_test', 'true', '600px', '250px');
-				});
+				output.appendChild(ta);
+				editor = log_editor(ta, editorName, 'true', '600px', '250px');
+				editorReady = true;
 			}
-			else
-			{
-				manual_<%=stream_id_name%>_type_output.innerHTML = '<span class="error"><%:Something Wrong While Testing...%></span>';
+			if (editor && editor.setValue) {
+				editor.setValue(xhr.responseText.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l !== ''; }).join('\n'));
+				editor.dispatch({ selection: { anchor: editor.state.doc.length } });
+				if (editor.scrollDOM) editor.scrollDOM.scrollTop = editor.scrollDOM.scrollHeight;
 			}
-		}
-		);
+		};
+		xhr.onload = function() {
+			if (editor && editor.setValue) {
+				editor.setValue(xhr.responseText.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l !== ''; }).join('\n'));
+				editor.dispatch({ selection: { anchor: editor.state.doc.length } });
+				if (editor.scrollDOM) editor.scrollDOM.scrollTop = editor.scrollDOM.scrollHeight;
+			}
+			legend.textContent = '<%:Unlock Test Result%>';
+			if (xhr.status != 200 && xhr.responseText == "") {
+				output.innerHTML = '<span class="error"><%:Something Wrong While Testing...%></span>';
+			}
+		};
+		xhr.ontimeout = function() {
+			if (xhr.responseText == "") {
+				output.innerHTML = '<span class="error"><%:Request Timeout...%></span>';
+			}
+		};
+		xhr.onerror = function() {
+			if (xhr.responseText == "") {
+				output.innerHTML = '<span class="error"><%:Something Wrong While Testing...%></span>';
+			}
+		};
+		xhr.send();
 	};
 };
 
 function act_all_proxies_test_<%=stream_id_name%>(btn, type)
 {
-	var all_<%=stream_id_name%>_legend = document.getElementById('all-<%=stream_id_name%>-test-state');
-	var all_<%=stream_id_name%>_output = document.getElementById('all-<%=stream_id_name%>-test-output');
+	var legend = document.getElementById('all-<%=stream_id_name%>-test-state');
+	var output = document.getElementById('all-<%=stream_id_name%>-test-output');
 	var r = confirm("<%:Network instability may occur during testing, Are you sure want to start test?%>")
 	if (r == true) {
-		if (all_<%=stream_id_name%>_legend && all_<%=stream_id_name%>_output)
+		if (legend && output)
 		{
-			all_<%=stream_id_name%>_output.innerHTML =
-				'<img src="<%=resource%>/icons/loading.svg" onerror="this.onerror=null;this.src=\'<%=resource%>/icons/loading.gif\'" alt="<%:Loading...%>" style="vertical-align:middle" /> ' +
+			output.innerHTML =
+			'<span class="loading-spinner" style="vertical-align:middle"></span> ' +
 				'<%:Waiting for command to complete...%>';
 
-			all_<%=stream_id_name%>_legend.textContent = '<%:Collecting data...%>';
-			all_<%=stream_id_name%>_legend.parentNode.style.display = 'block';
-			all_<%=stream_id_name%>_legend.style.display = 'block';
+			legend.textContent = '<%:Collecting data...%>';
+			legend.parentNode.classList.remove('oc-hidden');
+			legend.style.display = 'block';
 		};
-				
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "all_proxies_stream_test")%>', {type: type}, function(x, status) {
-			if (x && x.status == 200 && x.responseText != "")
-			{
-				all_<%=stream_id_name%>_legend.textContent = '<%:All Proxies Test Result%>';
-				all_<%=stream_id_name%>_output.innerHTML = '';
+
+		var xhr = new XMLHttpRequest();
+		xhr.timeout = 0;
+		var url = '<%=luci.dispatcher.build_url("admin", "services", "openclash", "all_proxies_stream_test")%>' + '?type=' + encodeURIComponent(type);
+		xhr.open('GET', url, true);
+		xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+		var editorName = 'all_proxies_stream_test';
+		var editor = null, editorReady = false;
+		xhr.onprogress = function() {
+			if (!editorReady) {
+				output.innerHTML = '';
 				var ta = document.createElement('textarea');
-				ta.value = x.responseText;
-				all_<%=stream_id_name%>_output.appendChild(ta);
-				_cmWhenReady(function() {
-					log_editor(ta, 'all_proxies_stream_test', true, '600px', '250px');
-				});
+				output.appendChild(ta);
+				editor = log_editor(ta, editorName, true, '600px', '250px');
+				editorReady = true;
 			}
-			else
-			{
-				all_<%=stream_id_name%>_output.innerHTML = '<span class="error"><%:Something Wrong While Testing...%></span>';
+			if (editor && editor.setValue) {
+				editor.setValue(xhr.responseText.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l !== ''; }).join('\n'));
+				editor.dispatch({ selection: { anchor: editor.state.doc.length } });
+				if (editor.scrollDOM) editor.scrollDOM.scrollTop = editor.scrollDOM.scrollHeight;
 			}
-		}
-		);
+		};
+		xhr.onload = function() {
+			if (editor && editor.setValue) {
+				editor.setValue(xhr.responseText.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l !== ''; }).join('\n'));
+				editor.dispatch({ selection: { anchor: editor.state.doc.length } });
+				if (editor.scrollDOM) editor.scrollDOM.scrollTop = editor.scrollDOM.scrollHeight;
+			}
+			legend.textContent = '<%:All Proxies Test Result%>';
+			if (xhr.status != 200 && xhr.responseText == "") {
+				output.innerHTML = '<span class="error"><%:Something Wrong While Testing...%></span>';
+			}
+		};
+		xhr.ontimeout = function() {
+			if (xhr.responseText == "") {
+				output.innerHTML = '<span class="error"><%:Request Timeout...%></span>';
+			}
+		};
+		xhr.onerror = function() {
+			if (xhr.responseText == "") {
+				output.innerHTML = '<span class="error"><%:Something Wrong While Testing...%></span>';
+			}
+		};
+		xhr.send();
 	};
 };
 	
@@ -85,11 +135,11 @@ function act_all_proxies_test_<%=stream_id_name%>(btn, type)
 <input type="button" class="btn cbi-button cbi-input-reload" value="<%:Unlock Test(Select)%>" onclick="return act_manual_unlock_test_<%=stream_id_name%>(this, '<%=self.value%>')" />
 <input type="button" class="btn cbi-button cbi-input-reload" value="<%:All Proxies Test%>" onclick="return act_all_proxies_test_<%=stream_id_name%>(this, '<%=self.value%>')" />
 <div class="oc">
-	<div class="diag-style" style="display:none">
+	<div class="diag-style oc-hidden">
 		<div id="manual-<%=stream_id_name%>-test-state" class="diag-legend"><%:Collecting data...%></div>
 		<div id="manual-<%=stream_id_name%>-test-output"></div>
 	</div>
-	<div class="diag-style" style="display:none">
+	<div class="diag-style oc-hidden">
 		<div id="all-<%=stream_id_name%>-test-state" class="diag-legend"><%:Collecting data...%></div>
 		<div id="all-<%=stream_id_name%>-test-output"></div>
 	</div>
