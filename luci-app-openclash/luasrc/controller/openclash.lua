@@ -4582,10 +4582,8 @@ function oix_login()
 	local passwd = fs.uci_get_config("config", "oix_passwd")
 	if input_token and input_token ~= "" then
 		-- Token direct login mode
-		local old_token = fs.uci_get_config("config", "oix_token")
-		if old_token and old_token ~= "" and old_token ~= input_token then
-			oix_logout(old_token)
-		end
+		-- Never revoke the replaced token: one token is shared by every OpenClash
+		-- instance of the account, so revoking it here would sign the others out
 		uci:set("openclash", "config", "oix_token", input_token)
 		uci:commit("openclash")
 		token = input_token
@@ -4599,9 +4597,10 @@ function oix_login()
 				info = json.parse(info)
 			end
 			if info and info.ret == 200 then
-				if token and token ~= "" then
-					oix_logout(token)
-				end
+				-- Never revoke the old token here. The panel reuses one token per
+				-- client type, so info.data.token IS the old one on every login
+				-- after the first; revoking it deleted the token we just received
+				-- and every request afterwards failed with 401
 				token = info.data.token
 				uci:set("openclash", "config", "oix_token", token)
 				uci:commit("openclash")
@@ -4637,45 +4636,25 @@ function oix_login()
 	HTTP.write_json({result = result})
 end
 
-function oix_logout(oldtoken)
-	local info, result, token
-	if not oldtoken then
-		token = fs.uci_get_config("config", "oix_token")
-	else
-		token = oldtoken
-	end
-	if token then
-		info = SYS.exec(string.format("curl -sL -H 'Content-Type: application/json' -H 'Authorization: Bearer %s' -X POST https://oix-api.dler.io/api/v1/logout", token))
-		if info then
-			info = json.parse(info)
-		end
-		if info and info.ret == 200 then
-			uci:delete("openclash", "config", "oix_token")
-			if not oldtoken then
-				uci:delete("openclash", "config", "oix_email")
-				uci:delete("openclash", "config", "oix_passwd")
-				uci:delete("openclash", "config", "oix_checkin")
-				uci:delete("openclash", "config", "oix_checkin_interval")
-				uci:delete("openclash", "config", "oix_checkin_multiple")
-			end
-			uci:commit("openclash")
-			fs.unlink("/tmp/oix_checkin")
-			fs.unlink("/tmp/oix_info")
-			result = info.ret
-		else
-			if info and info.msg then
-				result = info.msg
-			else
-				result = "logout failed"
-			end
-		end
-	else
-		result = "logout failed"
-	end
-	if not oldtoken then
-		HTTP.prepare_content("application/json")
-		HTTP.write_json({result = result})
-	end
+-- Sign out of oixCloud on this router. The token is never revoked from here:
+-- it is shared by every OpenClash on the account, so revoking would sign the
+-- others out. Tokens are managed on the website, under Access Token.
+--
+-- Clearing never depends on the network either; the old code left the user
+-- logged in whenever the request failed, with no way to get out offline.
+function oix_logout()
+	uci:delete("openclash", "config", "oix_token")
+	uci:delete("openclash", "config", "oix_email")
+	uci:delete("openclash", "config", "oix_passwd")
+	uci:delete("openclash", "config", "oix_checkin")
+	uci:delete("openclash", "config", "oix_checkin_interval")
+	uci:delete("openclash", "config", "oix_checkin_multiple")
+	uci:commit("openclash")
+	fs.unlink("/tmp/oix_checkin")
+	fs.unlink("/tmp/oix_info")
+
+	HTTP.prepare_content("application/json")
+	HTTP.write_json({result = 200})
 end
 
 function oix_info()
