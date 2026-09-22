@@ -2,6 +2,10 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-openclash
 PKG_VERSION:=0.47.165
+# Downstream packaging revision on top of the upstream PKG_VERSION. Mirroring
+# upstream's version alone collided: 0.47.133 existed upstream with different
+# code. Reset this to 1 whenever PKG_VERSION follows upstream forward.
+PKG_RELEASE:=1
 PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
