@@ -206,7 +206,7 @@
 #DOWNLOAD_FILE = url=https://default-demo.yaml, path=/etc/openclash/config/default-demo.yaml, cron=0 6 * * *, force=true, restart=false
 
 #将配置作为默认配置文件
-#ONFIG_FILE = /etc/openclash/config/default-demo.yaml
+#CONFIG_FILE = /etc/openclash/config/default-demo.yaml
 
 #指定展示订阅信息的 URL 地址
 #SUB_INFO_URL = https://default-demo.yaml
