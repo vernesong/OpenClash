@@ -3432,8 +3432,7 @@ EOF
                LOG_WARN "skip invalid Overwrite command【Ruby Script => $name: $trimmed】"
             fi
          elif [ "$in_yaml" -eq 1 ]; then
-            yaml_content="${yaml_content}$(expand_env_vars "$line")
-"
+            yaml_content="${yaml_content}$(expand_env_vars "$line")"$'\n'
          fi
       done < "$file"
 
