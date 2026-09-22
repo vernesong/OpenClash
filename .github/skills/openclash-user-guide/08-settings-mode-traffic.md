@@ -280,7 +280,7 @@
 >
 > **AI 行为指引**: 当用户询问流量路由问题时（如"TUN 和 TPROXY 有什么区别"、"如何让某设备不走代理"、
 > "旁路由/网关模式下如何配置"、"IPv6 流量如何控制"），AI 应结合本章节的防火墙规则详解
-> 和 [Mihomo 监听器文档](https://wiki.metacubex.one/config/listeners/) 回答，说明不同模式
+> 和 [Mihomo 监听器文档](https://wiki.metacubex.one/config/inbound/) 回答，说明不同模式
 > 的工作原理（而非仅给出操作步骤），帮助用户理解后做出选择。
 > 涉及防火墙实现细节时，查阅 [OpenClash 源码](https://github.com/vernesong/OpenClash/tree/dev) 中
 > `init.d/openclash` 和 `yml_change.sh` 的相关逻辑。
