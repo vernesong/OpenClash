@@ -3200,10 +3200,6 @@ html[data-darkmode="true"] .oc #config-mode-tabs .mode-tab.active {
     background: var(--primary-color);
     color: var(--text-on-primary);
 }
-html[data-darkmode="true"] .oc .config-editor-content {
-    border-bottom: 1px solid var(--border-light);
-    border-top: 1px solid var(--border-light);
-}
 html[data-darkmode="true"] .oc .overwrite-banner {
     background: var(--error-a20);
 }
@@ -3223,7 +3219,7 @@ html[data-darkmode="true"] .oc .overwrite-banner svg circle {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
     background: var(--overlay-bg);
-    z-index: 5;
+    z-index: 1000;
     display: none;
     align-items: center;
     justify-content: center;
@@ -3331,12 +3327,19 @@ html[data-darkmode="true"] .oc .overwrite-banner svg circle {
     background: var(--bg-white);
     z-index: 2;
 }
+.oc .config-editor-body {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    container-type: inline-size;
+}
 .oc .config-editor-content {
     flex: 1;
+    min-width: 0;
     position: relative;
     overflow: hidden;
-    border-bottom: 1px solid var(--border-light);
-    border-top: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
 }
 .oc .config-editor-loading {
     position: absolute;
@@ -3620,51 +3623,304 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
     opacity: 0.6;
     cursor: not-allowed;
 }
-.oc .overwrite-card-row {
-    display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    gap: var(--section-gap);
-    padding: 8px;
-    max-width: 100%;
-    min-width: 0;
-    align-items: stretch;
-    scrollbar-width: thin;
-    scrollbar-color: var(--primary-color) var(--bg-gray);
-}
-.oc .overwrite-card-row::-webkit-scrollbar {
-    height: 8px;
-}
-.oc .overwrite-card-row::-webkit-scrollbar-thumb {
-    background: var(--primary-color);
-    border-radius: 4px;
-}
-.oc .overwrite-card-row::-webkit-scrollbar-track {
-    background: var(--bg-gray);
-    border-radius: 4px;
-}
-.oc .sub-card.overwrite-item {
-    width: 190px;
-    max-width: 220px;
+.oc .overwrite-side {
     flex: 0 0 auto;
-    box-sizing: border-box;
-    gap: var(--section-gap);
-    height: 75px;
+    width: 240px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    background: var(--bg-white);
+    border: 1px solid var(--border-light);
+    border-right: none;
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
 }
-.oc .sub-card.overwrite-item,
-.oc .sub-card.overwrite-item:active,
-.oc .sub-card.overwrite-item:focus {
-    -webkit-tap-highlight-color: transparent;
+.oc .overwrite-side.rail {
+    width: 46px;
+}
+@container (max-width: 1040px) {
+    .oc .overwrite-side {
+        width: 208px;
+    }
+}
+@container (max-width: 860px) {
+    .oc .overwrite-side {
+        width: 184px;
+    }
+}
+@container (max-width: 700px) {
+    .oc .overwrite-side {
+        width: 164px;
+    }
+}
+.oc .overwrite-side-head,
+.oc .overwrite-side-foot {
+    display: flex;
+    align-items: center;
+    gap: var(--tight-gap);
+    height: 48px;
+    padding: 0 8px;
+    box-sizing: border-box;
+    background: var(--bg-gray);
+}
+.oc .overwrite-side-head {
+    border-bottom: 1px solid var(--border-light);
+}
+.oc .overwrite-side-foot {
+    border-top: 1px solid var(--border-light);
+}
+.oc .overwrite-side-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-title);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.oc .overwrite-side-count {
+    flex: 0 0 auto;
+    font-size: 11px;
+    line-height: 16px;
+    padding: 0 6px;
+    border: 1px solid var(--border-light);
+    border-radius: 9px;
+    background: var(--bg-white);
+    color: var(--text-secondary);
+}
+.oc .overwrite-side-foot .footer-btn {
+    height: 32px;
+    padding: 0 10px;
+}
+.oc .overwrite-side-body {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: var(--tight-gap);
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--bg-gray);
+    scrollbar-gutter: stable;
+}
+.oc .overwrite-side-body::-webkit-scrollbar {
+    width: 6px;
+}
+.oc .overwrite-side-body::-webkit-scrollbar-track {
+    background: var(--bg-gray);
+    border-radius: 3px;
+}
+.oc .overwrite-side-body::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 3px;
+}
+.oc .overwrite-side-body::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
 }
 .oc .overwrite-drag-line {
-    display: block;
-    min-width: 4px;
-    width: 4px;
-    background: var(--primary-color);
+    position: absolute;
+    left: 4px;
+    width: 0;
+    height: 2px;
     border-radius: 2px;
-    margin: 0 2px;
-    align-self: stretch;
-    height: auto;
+    background: var(--primary-color);
+    pointer-events: none;
+    z-index: 5;
+}
+.oc .overwrite-item-tag {
+    flex: 0 0 auto;
+    padding: 0 4px;
+    font-size: 10px;
+    line-height: 14px;
+    border: 1px solid var(--border-light);
+    border-radius: 7px;
+    background: var(--bg-gray);
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+.oc .overwrite-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--tight-gap);
+    padding: 5px 6px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    -webkit-tap-highlight-color: transparent;
+}
+.oc .overwrite-item:hover {
+    background: var(--hover-bg);
+}
+.oc .overwrite-item.active {
+    background: var(--bg-gray);
+}
+.oc .overwrite-item.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 5px;
+    bottom: 5px;
+    width: 3px;
+    border-radius: 2px;
+    background: var(--primary-color);
+}
+.oc .overwrite-item.dragging {
+    opacity: 0.55;
+    box-shadow: 0 6px 14px var(--overlay-bg);
+}
+.oc .overwrite-item-avatar {
+    display: none;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-gray);
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.oc .overwrite-item-avatar.cjk {
+    font-size: 13px;
+    font-weight: 500;
+}
+.oc .overwrite-item-tag.builtin {
+    border-color: transparent;
+    background: var(--primary-a30);
+    color: var(--primary-color);
+}
+.oc .overwrite-item-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.oc .overwrite-item-line,
+.oc .overwrite-item-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--tight-gap);
+    min-width: 0;
+}
+.oc .overwrite-item-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.oc .overwrite-item-sub {
+    flex: 0 1 auto;
+    min-width: 0;
+    font-size: 11px;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.oc .overwrite-item.off .overwrite-item-title {
+    color: var(--text-secondary);
+}
+.oc .overwrite-item.unconfigured .overwrite-item-title {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+.oc .overwrite-item.unconfigured .overwrite-item-avatar {
+    background: transparent;
+    border: 1px dashed var(--border-color);
+}
+.oc .overwrite-item.unconfigured .overwrite-item-extra {
+    display: none;
+}
+.oc .overwrite-item-extra {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+}
+.oc .overwrite-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex: 0 0 auto;
+    opacity: 0.7;
+    transition: opacity var(--transition-fast);
+}
+.oc .overwrite-item:hover .overwrite-item-actions,
+.oc .overwrite-item.active .overwrite-item-actions {
+    opacity: 1;
+}
+.oc .overwrite-item-actions .icon-btn {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    border: none;
+    background: transparent;
+}
+.oc .overwrite-item-actions .icon-btn svg {
+    width: 11px !important;
+    height: 11px !important;
+}
+.oc .overwrite-side.rail .overwrite-side-title,
+.oc .overwrite-side.rail .overwrite-side-count,
+.oc .overwrite-side.rail .overwrite-item-main,
+.oc .overwrite-side.rail .footer-btn span {
+    display: none;
+}
+.oc .overwrite-side.rail .overwrite-side-head {
+    justify-content: center;
+    padding: 0 4px;
+}
+.oc .overwrite-side.rail .overwrite-side-foot {
+    padding: 0 8px;
+}
+.oc .overwrite-side.rail .overwrite-side-foot .footer-btn {
+    padding: 0;
+}
+.oc .overwrite-side.rail .overwrite-side-body {
+    scrollbar-gutter: auto;
+}
+.oc .overwrite-side.rail .overwrite-item {
+    justify-content: center;
+    padding: 5px 0;
+}
+.oc .overwrite-side.rail .overwrite-item.active {
+    background: transparent;
+}
+.oc .overwrite-side.rail .overwrite-item.active::before {
+    display: none;
+}
+.oc .overwrite-side.rail .overwrite-item-avatar {
+    display: flex;
+}
+.oc .overwrite-side.rail .overwrite-item.active .overwrite-item-avatar {
+    background: var(--primary-color);
+    color: var(--text-on-primary);
+}
+@media (hover: none) {
+    .oc .overwrite-item-actions {
+        opacity: 1;
+    }
+    .oc .overwrite-item-actions .icon-btn {
+        width: 22px !important;
+        height: 22px !important;
+        min-width: 22px !important;
+    }
+    .oc .overwrite-item-actions .icon-btn svg {
+        width: 13px !important;
+        height: 13px !important;
+    }
 }
 .oc .oc-switch {
     position: relative;
@@ -3710,57 +3966,6 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
 }
 .oc .oc-switch input:checked + .oc-switch-slider:before {
     transform: translateX(16px);
-}
-.overwrite-add-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    color: var(--primary-color);
-}
-.overwrite-title-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--card-grid-gap);
-}
-.overwrite-title {
-    font-weight: bold;
-    font-size: 15px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 70%;
-    color: var(--text-title);
-}
-.overwrite-info {
-    font-size: 12px;
-    color: var(--text-secondary);
-}
-.overwrite-refresh-btn {
-    position: absolute;
-    right: 72px;
-    bottom: 8px;
-}
-.overwrite-gear-btn {
-    position: absolute;
-    right: 40px;
-    bottom: 8px;
-}
-.overwrite-del-btn {
-    position: absolute;
-    right: 8px;
-    bottom: 8px;
-}
-.sub-card.overwrite-item.active {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px var(--primary-color);
-}
-.sub-card.overwrite-item.dragging {
-    opacity: 0.5;
-    z-index: 1000;
-    box-shadow: 0 8px 16px var(--overlay-bg);
-    transition: none !important;
 }
 
 /* ==========================================================================
@@ -7536,9 +7741,9 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     /* config_edit.htm */
     .oc .config-editor-model { width: 95vw; height: 80vh; min-width: 320px; }
     .oc .config-editor-actions { gap: 5px; }
-    .oc .overwrite-card-row { gap: 6px; }
-    .oc .sub-card.overwrite-item { width: 185px; max-width: 200px; gap: var(--content-gap); }
-    .oc .overwrite-drag-line { margin: -2px; width: 2px; }
+    .oc .overwrite-side.rail { width: 42px; }
+    .oc .overwrite-side-head,
+    .oc .overwrite-side-foot { height: 44px; }
     .oc .config-editor-title #editTitle {
         flex: 0 1 auto;
         min-width: 0;

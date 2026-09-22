@@ -4445,3 +4445,42 @@ msgstr "未定义，已删除 Fake-IP-Filter 规则"
 
 msgid "to Avoid Core Start Failed..."
 msgstr "避免内核启动失败..."
+
+msgid "Built-in"
+msgstr "内置"
+
+msgid "Unset"
+msgstr "未配置"
+
+msgid "Collapse"
+msgstr "收起"
+
+msgid "Expand"
+msgstr "展开"
+
+msgid "Modules"
+msgstr "覆写模块"
+
+msgid "Local Mod"
+msgstr "本地模块"
+
+msgid "Sub Mod"
+msgstr "订阅模块"
+
+msgid "Local Module"
+msgstr "本地模块"
+
+msgid "New Module"
+msgstr "添加新模块"
+
+msgid "Module Name"
+msgstr "模块名称"
+
+msgid "Please enter a module name"
+msgstr "请输入模块名称"
+
+msgid "Ready to add module"
+msgstr "准备添加模块"
+
+msgid "Are you sure you want to delete this module and its subscription info?"
+msgstr "确定要删除此模块及其订阅信息吗？"

@@ -46,13 +46,27 @@
                 </div>
             </div>
 
-            <div class="config-editor-content">
-                <textarea id="config-editor-textarea" class="oc-hidden"></textarea>
-                <div id="config-mergeview-container" class="oc-hidden" style="width:100%;height:100%;"></div>
-            </div>
-
-            <div id="overwrite-card-bar" class="oc-hidden" style="position:relative;margin:12px;">
-                <div class="overwrite-card-row" id="overwrite-card-list"></div>
+            <div class="config-editor-body" id="config-editor-body">
+                <aside class="overwrite-side oc-hidden" id="overwrite-side-panel">
+                    <div class="overwrite-side-head">
+                        <span class="overwrite-side-title"><%:Modules%></span>
+                        <span class="overwrite-side-count" id="overwrite-side-count"></span>
+                        <button type="button" class="icon-btn" id="overwrite-side-toggle" title="<%:Collapse%>">
+                            <svg width="14" height="14"><use href="#oc-icon-sidebar"/></svg>
+                        </button>
+                    </div>
+                    <div class="overwrite-side-body" id="overwrite-side-list"></div>
+                    <div class="overwrite-side-foot">
+                        <button type="button" class="footer-btn" id="overwrite-new-file">
+                            <svg width="14" height="14"><use href="#oc-icon-add"/></svg>
+                            <span><%:New Module%></span>
+                        </button>
+                    </div>
+                </aside>
+                <div class="config-editor-content">
+                    <textarea id="config-editor-textarea" class="oc-hidden"></textarea>
+                    <div id="config-mergeview-container" class="oc-hidden" style="width:100%;height:100%;"></div>
+                </div>
             </div>
 
             <div class="config-editor-footer">
@@ -79,6 +93,9 @@ var ocIcons = {
 	SVG_RESTORE: '<svg width="24" height="24"><use href="#oc-icon-restore"/></svg>'
 };
 
+var OC_CUSTOM_OVERWRITE = 'openclash_custom_overwrite.sh';
+var OC_BUILTIN_OVERWRITE = [OC_CUSTOM_OVERWRITE, 'default', 'Google_Play'];
+
 // Uses EditorView.updateListener instead of view.dispatch override.
 // dispatch() can receive TransactionSpec objects which lack docChanged.
 
@@ -101,28 +118,38 @@ var ConfigEditor = {
 
     overwriteFiles: [],
     overwriteSubInfo: {},
-    overwriteCardBar: null,
+    overwriteSidePanel: null,
+    overwriteSideCollapsed: false,
+    overwriteSideKey: 'oc_overwrite_side_collapsed',
     overwriteDrag: {
         dragging: null,
         startIndex: null,
+        insertIndex: null,
         touchTimer: null,
         isTouchDragging: false,
         touchDraggingMoved: false,
-        touchDraggingCard: null,
+        touchDraggingItem: null,
         startTouch: null
     },
 
     init: function() {
         this.overlay = document.getElementById('config-editor-overlay');
         this.model = document.getElementById('config-editor-model');
-        this.overwriteCardBar = document.getElementById('overwrite-card-bar');
+        this.overwriteSidePanel = document.getElementById('overwrite-side-panel');
         this.mergeViewActive = false;
 
         if (!this.overlay || !this.model) {
             return;
         }
 
+        // keep the modal outside of the page stacking context, otherwise theme sidebars overlap it
+        var host = this.overlay.parentNode;
+        if (host && host.classList && host.classList.contains('oc') && host.parentNode !== document.body) {
+            document.body.appendChild(host);
+        }
+
         this.bindEvents();
+        this.restoreOverwriteSide();
     },
 
     bindEvents: function() {
@@ -198,6 +225,21 @@ var ConfigEditor = {
             });
         };
 
+        var sideToggle = document.getElementById('overwrite-side-toggle');
+        if (sideToggle) {
+            sideToggle.addEventListener('click', function() {
+                self.toggleOverwriteSide();
+            });
+        }
+
+        var newFileBtn = document.getElementById('overwrite-new-file');
+        if (newFileBtn) {
+            newFileBtn.addEventListener('click', function() {
+                self.showAddOverwritemodel();
+            });
+        }
+
+        this.bindOverwriteListEvents();
         this.makeDraggable();
         this.makeResizable();
     },
@@ -308,7 +350,8 @@ var ConfigEditor = {
             editTitle.textContent = '<%:Overwrite Edit%>: ';
         }
 
-        if (this.overwriteCardBar) this.overwriteCardBar.classList.remove('oc-hidden');
+        if (this.overwriteSidePanel) this.overwriteSidePanel.classList.remove('oc-hidden');
+        this.restoreOverwriteSide();
         this.loadOverwriteFiles();
 
         var configNameElement = document.getElementById('config-file-name');
@@ -362,11 +405,12 @@ var ConfigEditor = {
         this.overlay.classList.remove('show');
 
         this.destroyEditor();
+        this.finishOverwriteDrag();
         window.mergeViewInstance = null;
 
         this.isModified = false;
         this.originalContent = '';
-        this.overwriteCardBar.classList.add('oc-hidden');
+        if (this.overwriteSidePanel) this.overwriteSidePanel.classList.add('oc-hidden');
         if (!this.isOverwrite) {
             this.currentConfigFile = '';
         }
@@ -871,6 +915,50 @@ var ConfigEditor = {
         this.updateModeTabs();
     },
 
+    restoreOverwriteSide: function() {
+        var stored = null;
+        try {
+            stored = window.localStorage.getItem(this.overwriteSideKey);
+        } catch (e) {
+            stored = null;
+        }
+        if (stored === '1' || stored === '0') {
+            this.overwriteSideCollapsed = stored === '1';
+        } else {
+            this.overwriteSideCollapsed = window.innerWidth < 768;
+        }
+        this.applyOverwriteSideState();
+    },
+
+    toggleOverwriteSide: function() {
+        this.overwriteSideCollapsed = !this.overwriteSideCollapsed;
+        this.applyOverwriteSideState(true);
+    },
+
+    applyOverwriteSideState: function(persist) {
+        var panel = this.overwriteSidePanel;
+        if (!panel) return;
+
+        if (this.overwriteSideCollapsed) {
+            panel.classList.add('rail');
+        } else {
+            panel.classList.remove('rail');
+        }
+
+        var toggle = document.getElementById('overwrite-side-toggle');
+        if (toggle) {
+            toggle.title = this.overwriteSideCollapsed ? '<%:Expand%>' : '<%:Collapse%>';
+        }
+
+        if (persist) {
+            try {
+                window.localStorage.setItem(this.overwriteSideKey, this.overwriteSideCollapsed ? '1' : '0');
+            } catch (e) {
+                return;
+            }
+        }
+    },
+
     loadOverwriteFiles: function() {
         var self = this;
         fetch('/cgi-bin/luci/admin/services/openclash/overwrite_file_list')
@@ -904,112 +992,148 @@ var ConfigEditor = {
                     subInfo.config = self.parseOverwriteConfigValue(subInfo.config);
                     self.overwriteSubInfo[key] = subInfo;
                 });
-                self.overwriteFiles.sort(function(a, b) {
-                    var an = a.name || (a.path ? a.path.split('/').pop() : '');
-                    var bn = b.name || (b.path ? b.path.split('/').pop() : '');
-                    var ao = self.overwriteSubInfo[an] && self.overwriteSubInfo[an].order ? parseInt(self.overwriteSubInfo[an].order) : 0;
-                    var bo = self.overwriteSubInfo[bn] && self.overwriteSubInfo[bn].order ? parseInt(self.overwriteSubInfo[bn].order) : 0;
-                    return ao - bo;
+                var customEntry = self.overwriteFiles.filter(function(f) {
+                    return self.getOverwriteFileName(f) === OC_CUSTOM_OVERWRITE;
                 });
+                var moduleEntries = self.overwriteFiles.filter(function(f) {
+                    return self.getOverwriteFileName(f) !== OC_CUSTOM_OVERWRITE;
+                });
+                moduleEntries.sort(function(a, b) {
+                    return self.getOverwriteOrder(self.getOverwriteFileName(a)) - self.getOverwriteOrder(self.getOverwriteFileName(b));
+                });
+                // keep the built-in custom overwrite script pinned at the first position
+                self.overwriteFiles = customEntry.concat(moduleEntries);
                 self.renderOverwriteCards();
             } else {
-                var statusText = document.getElementById('overwrite-edit-status-text');
-                statusText.textContent = '<%:Failed to save subscription info:%> ' + (data.message || '');
+                var statusText = document.getElementById('config-editor-status-text');
+                if (statusText) statusText.textContent = '<%:Failed to save subscription info:%> ' + (data.message || '');
             }
         });
     },
 
     renderOverwriteCards: function() {
         var self = this;
-        var bar = this.overwriteCardBar;
-        if (!bar) return;
-        var list = document.getElementById('overwrite-card-list');
+        if (!this.overwriteSidePanel) return;
+        var list = document.getElementById('overwrite-side-list');
         if (!list) return;
         list.innerHTML = '';
 
         var statusText = document.getElementById('config-editor-status-text');
+        var itemCount = 0;
 
-        var addCard = document.createElement('div');
-        addCard.className = 'sub-card overwrite-item';
-        addCard.style.cursor = 'pointer';
-        addCard.innerHTML = '<div class="overwrite-add-icon"><svg width="20" height="20"><use href="#oc-icon-add"/></svg></div>';
-        addCard.title = '<%:Add New File%>';
-        addCard.onclick = function() {
-            ConfigEditor.showAddOverwritemodel();
+        var appendAvatar = function(item, name) {
+            var avatar = document.createElement('div');
+            avatar.className = 'overwrite-item-avatar';
+            var letter = (name.charAt(0) || '?').toUpperCase();
+            avatar.textContent = letter;
+            if (letter.charCodeAt(0) > 0x2e80) {
+                avatar.classList.add('cjk');
+            }
+            item.appendChild(avatar);
         };
-        list.appendChild(addCard);
+
+        var appendMain = function(item, name, subText, tagText, tagClass) {
+            var main = document.createElement('div');
+            main.className = 'overwrite-item-main';
+
+            var line = document.createElement('div');
+            line.className = 'overwrite-item-line';
+
+            var title = document.createElement('div');
+            title.className = 'overwrite-item-title';
+            title.textContent = name;
+            line.appendChild(title);
+            main.appendChild(line);
+
+            var meta = document.createElement('div');
+            meta.className = 'overwrite-item-meta';
+
+            if (tagText) {
+                var tag = document.createElement('span');
+                tag.className = 'overwrite-item-tag' + (tagClass ? ' ' + tagClass : '');
+                tag.textContent = tagText;
+                meta.appendChild(tag);
+            }
+
+            var info = document.createElement('div');
+            info.className = 'overwrite-item-sub';
+            info.textContent = subText;
+            meta.appendChild(info);
+            main.appendChild(meta);
+
+            item.appendChild(main);
+
+            return { line: line, meta: meta };
+        };
+
+        var selectFile = function(path) {
+            if (self.currentConfigFile === path) return;
+            self.currentConfigFile = path;
+            self.loadConfigContent();
+            self.renderOverwriteCards();
+            var configNameElement = document.getElementById('config-file-name');
+            if (configNameElement) {
+                configNameElement.textContent = self.formatDisplayName(path);
+            }
+        };
 
         var customIdx = self.overwriteFiles.findIndex(f => (f.name === 'openclash_custom_overwrite.sh' || (f.path && f.path.endsWith('/openclash_custom_overwrite.sh'))));
         var customFile = customIdx !== -1 ? self.overwriteFiles[customIdx] : null;
 
         if (customFile) {
-            var name = customFile.name || (customFile.path ? customFile.path.split('/').pop() : '');
-            var card = document.createElement('div');
-            card.className = 'sub-card overwrite-item';
-            card.dataset.file = customFile.path;
-            card.dataset.index = 'custom';
+            var customName = self.getOverwriteFileName(customFile);
+
+            var customItem = document.createElement('div');
+            customItem.className = 'overwrite-item';
+            customItem.dataset.file = customFile.path;
+            customItem.dataset.index = 'custom';
+            customItem.title = customName;
 
             if (self.currentConfigFile === customFile.path) {
-                card.classList.add('active');
+                customItem.classList.add('active');
             }
 
-            var titleRow = document.createElement('div');
-            titleRow.className = 'overwrite-title-row';
+            appendAvatar(customItem, customName);
+            appendMain(customItem, customName, '<%:Local Mod%>', '<%:Built-in%>', 'builtin');
 
-            var title = document.createElement('div');
-            title.textContent = name;
-            title.className = 'overwrite-title';
-            title.title = name;
-
-            titleRow.appendChild(title);
-            card.appendChild(titleRow);
-
-            var sub = self.overwriteSubInfo[name] || {};
-            var info = document.createElement('div');
-            info.className = 'overwrite-info';
-            info.textContent = sub.url ? '<%:Subscription%>' : '<%:Local File%>';
-            card.appendChild(info);
-
-            card.onclick = function(e) {
-                if (self.currentConfigFile !== customFile.path) {
-                    self.currentConfigFile = customFile.path;
-                    self.loadConfigContent();
-                    self.renderOverwriteCards();
-                    var configNameElement = document.getElementById('config-file-name');
-                    if (configNameElement) {
-                        configNameElement.textContent = self.formatDisplayName(customFile.path);
-                    }
-                }
+            customItem.onclick = function() {
+                selectFile(customFile.path);
             };
 
-            card.draggable = false;
+            customItem.draggable = false;
 
-            list.appendChild(card);
+            list.appendChild(customItem);
+            itemCount++;
         }
 
         var files = self.overwriteFiles.filter((f, i) => i !== customIdx);
-        self.overwriteFileCardCount = files.length;
         files.forEach(function(file, idx) {
-            var name = file.name || (file.path ? file.path.split('/').pop() : '');
-            var card = document.createElement('div');
-            card.className = 'sub-card overwrite-item';
-            card.dataset.file = file.path;
-            card.dataset.index = idx;
+            var name = self.getOverwriteFileName(file);
+            var sub = self.overwriteSubInfo[name] || {};
+            var registered = !!self.overwriteSubInfo[name];
+            var enable = typeof sub.enable !== 'undefined' ? sub.enable : 0;
+            var builtin = OC_BUILTIN_OVERWRITE.indexOf(name) !== -1;
+            var tagText = !registered ? '<%:Unset%>' : (builtin ? '<%:Built-in%>' : '');
+            var tagClass = (registered && builtin) ? 'builtin' : '';
+
+            var item = document.createElement('div');
+            item.className = 'overwrite-item';
+            item.dataset.file = file.path;
+            item.dataset.index = idx;
+            item.title = name;
 
             if (self.currentConfigFile === file.path) {
-                card.classList.add('active');
+                item.classList.add('active');
+            }
+            if (!registered) {
+                item.classList.add('unconfigured');
+            } else if (enable != 1) {
+                item.classList.add('off');
             }
 
-            var titleRow = document.createElement('div');
-            titleRow.className = 'overwrite-title-row';
+            appendAvatar(item, name);
+            var itemParts = appendMain(item, name, sub.url ? '<%:Sub Mod%>' : '<%:Local Mod%>', tagText, tagClass);
 
-            var title = document.createElement('div');
-            title.textContent = name;
-            title.className = 'overwrite-title';
-            card.appendChild(title);
-
-            var sub = self.overwriteSubInfo[name] || {};
-            var enable = typeof sub.enable !== 'undefined' ? sub.enable : 0;
             var switchLabel = document.createElement('label');
             switchLabel.className = 'oc-switch';
 
@@ -1018,6 +1142,8 @@ var ConfigEditor = {
             switchInput.checked = enable == 1 ? true : false;
             switchInput.onchange = function(e) {
                 e.stopPropagation();
+                if (switchInput.dataset.busy === '1') return;
+
                 var newEnable = switchInput.checked ? 1 : 0;
                 var formData = new FormData();
                 formData.append('filename', name);
@@ -1025,24 +1151,43 @@ var ConfigEditor = {
                 formData.append('url', sub.url || '');
                 formData.append('update_days', sub.update_days || '');
                 formData.append('update_hour', sub.update_hour || '');
-                formData.append('order', (typeof sub.order !== 'undefined' && sub.order !== null && sub.order !== '') ? sub.order : idx);
+                formData.append('order', self.getOverwriteOrder(name));
                 formData.append('param', sub.param || '');
                 formData.append('config', self.parseOverwriteConfigValue(sub.config).join('\n'));
                 formData.append('enable', newEnable);
+
+                switchInput.dataset.busy = '1';
+                switchInput.disabled = true;
+
+                var fail = function(message) {
+                    switchInput.dataset.busy = '0';
+                    switchInput.disabled = false;
+                    switchInput.checked = !switchInput.checked;
+                    statusText.textContent = '<%:Failed to update enable status%>' + (message ? ': ' + message : '');
+                    // the backend may have applied part of the change: resync instead of assuming
+                    self.loadOverwriteSubInfo();
+                    setTimeout(function() {
+                        if (statusText && statusText.textContent.indexOf('<%:Failed to update enable status%>') === 0) {
+                            statusText.textContent = '<%:Ready%>';
+                        }
+                    }, 3000);
+                };
+
                 fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
                     method: 'POST',
                     body: formData
-                }).then(r=>r.json()).then(function(data){
+                }).then(function(r) { return r.json(); }).then(function(data) {
                     if (data.status === 'success') {
+                        switchInput.dataset.busy = '0';
+                        switchInput.disabled = false;
                         self.overwriteSubInfo[name] = self.overwriteSubInfo[name] || {};
                         self.overwriteSubInfo[name].enable = newEnable;
+                        item.classList.toggle('off', newEnable != 1);
                     } else {
-                        statusText.textContent = '<%:Failed to update enable status%>';
-                        switchInput.checked = !switchInput.checked;
+                        fail(data.message);
                     }
-                }).catch(function(){
-                    statusText.textContent = '<%:Failed to update enable status%>';
-                    switchInput.checked = !switchInput.checked;
+                }).catch(function() {
+                    fail();
                 });
             };
             switchInput.onclick = function(e) { e.stopPropagation(); };
@@ -1058,21 +1203,21 @@ var ConfigEditor = {
             switchLabel.appendChild(switchInput);
             switchLabel.appendChild(switchSpan);
 
-            titleRow.appendChild(title);
-            titleRow.appendChild(switchLabel);
-            card.appendChild(titleRow);
+            var extra = document.createElement('div');
+            extra.className = 'overwrite-item-extra';
+            extra.appendChild(switchLabel);
+            itemParts.line.appendChild(extra);
 
-            var info = document.createElement('div');
-            info.className = 'overwrite-info';
-            info.textContent = sub.url ? '<%:Subscription%>' : '<%:Local File%>';
-            card.appendChild(info);
+            var actions = document.createElement('div');
+            actions.className = 'overwrite-item-actions';
+            itemParts.meta.appendChild(actions);
 
             if (sub.type === 'http') {
                 var refresh = document.createElement('button');
-                refresh.className = 'icon-btn overwrite-refresh-btn';
+                refresh.className = 'icon-btn';
                 refresh.type = 'button';
                 refresh.title = '<%:Refresh Subscription%>';
-                refresh.innerHTML = '<svg width="16" height="16"><use href="#oc-icon-update"/></svg>';
+                refresh.innerHTML = '<svg width="14" height="14"><use href="#oc-icon-update"/></svg>';
                 refresh.onclick = function(e) {
                     e.stopPropagation();
                     var statusText = document.getElementById('config-editor-status-text');
@@ -1090,6 +1235,7 @@ var ConfigEditor = {
                     formData.append('param', sub.param || '');
                     formData.append('config', self.parseOverwriteConfigValue(sub.config).join('\n'));
                     formData.append('enable', typeof sub.enable !== 'undefined' ? sub.enable : 1);
+                    formData.append('refresh', '1');
                     fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
                         method: 'POST',
                         body: formData
@@ -1120,28 +1266,28 @@ var ConfigEditor = {
                         self.loadConfigContent();
                     }, 1000);
                 };
-                card.appendChild(refresh);
+                actions.appendChild(refresh);
             }
 
             var gear = document.createElement('button');
-            gear.className = 'icon-btn overwrite-gear-btn';
+            gear.className = 'icon-btn';
             gear.type = 'button';
             gear.title = '<%:Edit Module Info%>';
-            gear.innerHTML = '<svg width="16" height="16"><use href="#oc-icon-gear"/></svg>';
+            gear.innerHTML = '<svg width="14" height="14"><use href="#oc-icon-gear"/></svg>';
             gear.onclick = function(e) {
                 e.stopPropagation();
                 ConfigEditor.showOverwriteSubmodel(name, sub, file.path);
             };
-            card.appendChild(gear);
+            actions.appendChild(gear);
 
             var del = document.createElement('button');
-            del.className = 'icon-btn overwrite-del-btn';
+            del.className = 'icon-btn';
             del.type = 'button';
             del.title = '<%:Delete%>';
-            del.innerHTML = '<svg width="16" height="16"><use href="#oc-icon-trash"/></svg>';
+            del.innerHTML = '<svg width="14" height="14"><use href="#oc-icon-trash"/></svg>';
             del.onclick = function(e) {
                 e.stopPropagation();
-                if (confirm('<%:Are you sure you want to delete this file and its subscription info?%>')) {
+                if (confirm('<%:Are you sure you want to delete this module and its subscription info?%>')) {
                     fetch('/cgi-bin/luci/admin/services/openclash/delete_overwrite_file', {
                         method: 'POST',
                         body: new URLSearchParams({ filename: name })
@@ -1151,483 +1297,376 @@ var ConfigEditor = {
                         if (data.status === 'success') {
                             self.loadOverwriteFiles();
                             setTimeout(function() {
-                                var files = self.overwriteFiles.filter(f => f.name !== name && f.name !== 'openclash_custom_overwrite.sh');
-                                if (files.length > 0) {
-                                    self.currentConfigFile = files[0].path;
-                                    self.loadConfigContent();
-                                    self.renderOverwriteCards();
-                                    var configNameElement = document.getElementById('config-file-name');
-                                    if (configNameElement) {
-                                        configNameElement.textContent = self.formatDisplayName(files[0].path);
-                                    }
-                                } else {
-                                    self.currentConfigFile = '/etc/openclash/custom/openclash_custom_overwrite.sh';
-                                    self.loadConfigContent();
-                                    self.renderOverwriteCards();
-                                    var configNameElement = document.getElementById('config-file-name');
-                                    if (configNameElement) {
-                                        configNameElement.textContent = self.formatDisplayName(self.currentConfigFile);
-                                    }
+                                var remaining = self.overwriteFiles.filter(function(f) {
+                                    return self.getOverwriteFileName(f) !== name;
+                                });
+                                var nextPath = remaining.length ? remaining[0].path : '/etc/openclash/custom/openclash_custom_overwrite.sh';
+                                self.currentConfigFile = nextPath;
+                                self.loadConfigContent();
+                                self.renderOverwriteCards();
+                                var configNameElement = document.getElementById('config-file-name');
+                                if (configNameElement) {
+                                    configNameElement.textContent = self.formatDisplayName(nextPath);
                                 }
                             }, 300);
-                        } else {
+                        } else if (statusText) {
                             statusText.textContent = '<%:Delete failed%>: ' + (data.message || '');
                         }
                     });
                 }
             };
-            card.appendChild(del);
+            actions.appendChild(del);
 
-            card.onclick = function(e) {
-                if (self.currentConfigFile !== file.path) {
-                    self.currentConfigFile = file.path;
-                    self.loadConfigContent();
-                    self.renderOverwriteCards();
-                    var configNameElement = document.getElementById('config-file-name');
-                    if (configNameElement) {
-                        configNameElement.textContent = self.formatDisplayName(file.path);
-                    }
-                }
+            item.onclick = function(e) {
+                selectFile(file.path);
             };
 
-            card.draggable = true;
-            card.addEventListener('dragstart', function(e) {
-                self.overwriteDrag.dragging = card;
+            item.draggable = registered;
+            item.addEventListener('dragstart', function(e) {
+                self.clearOverwriteDropIndicator();
+                self.overwriteDrag.dragging = item;
                 self.overwriteDrag.startIndex = idx;
-                card.classList.add('dragging');
+                item.classList.add('dragging');
                 e.dataTransfer.effectAllowed = 'move';
             });
-            card.addEventListener('dragend', function(e) {
-                card.classList.remove('dragging');
-                self.overwriteDrag.dragging = null;
-                self.overwriteDrag.startIndex = null;
-                list.querySelectorAll('.overwrite-drag-line').forEach(line => line.remove());
+            item.addEventListener('dragend', function(e) {
+                self.finishOverwriteDrag();
             });
-            card.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-
-                var rect = card.getBoundingClientRect();
-                var listRect = list.getBoundingClientRect();
-                var cardIndex = parseInt(card.dataset.index);
-
-                var mid = rect.left + rect.width * 0.5;
-
-                let insertPos = null;
-                if (e.clientX < mid) {
-                    insertPos = 'before';
-                } else if (e.clientX >= mid) {
-                    insertPos = 'after';
-                }
-
-                let currentLine = list.querySelector('.overwrite-drag-line');
-
-                if (!currentLine && insertPos) {
-                    var line = document.createElement('div');
-                    line.className = 'overwrite-drag-line';
-                    if (insertPos === 'before') {
-                        list.insertBefore(line, card);
-                    } else if (insertPos === 'after') {
-                        if (card.nextSibling) {
-                            list.insertBefore(line, card.nextSibling);
-                        } else {
-                            list.appendChild(line);
-                        }
-                    }
-                }
-
-                var scrollZone = 40;
-                if (e.clientX - listRect.left < scrollZone) {
-                    list.scrollLeft -= 5;
-                } else if (listRect.right - e.clientX < scrollZone) {
-                    list.scrollLeft += 5;
-                }
-            });
-
-            card.addEventListener('drop', function(e) {
-                e.preventDefault();
-                var dragging = self.overwriteDrag.dragging;
-                if (!dragging || dragging === card) return;
-                var from = parseInt(dragging.dataset.index);
-                var to = parseInt(card.dataset.index);
-                var rect = card.getBoundingClientRect();
-                var midX = rect.left + rect.width / 2;
-                if (e.clientX < midX) {
-                } else {
-                    to++;
-                }
-                if (from === to || from + 1 === to) {
-                    list.querySelectorAll('.overwrite-drag-line').forEach(line => line.remove());
-                    self.saveOverwriteSort();
-                    return;
-                }
-                var arr = files;
-                var moved = arr.splice(from, 1)[0];
-                arr.splice(to > from ? to - 1 : to, 0, moved);
-                var newArr = [];
-                if (customFile) newArr.push(customFile);
-                newArr = newArr.concat(arr);
-                self.overwriteFiles = newArr;
-                self.renderOverwriteCards();
-                self.saveOverwriteSort();
-                list.querySelectorAll('.overwrite-drag-line').forEach(line => line.remove());
-            });
-
-            card.addEventListener('touchstart', function(e) {
-                if (card.dataset.index === 'custom') return;
+            item.addEventListener('touchstart', function(e) {
+                if (!registered) return;
                 if (e.touches.length !== 1) return;
 
                 var target = e.target;
-                var isButton = target.closest('.overwrite-refresh-btn, .overwrite-gear-btn, .overwrite-del-btn, .oc-switch');
+                var isButton = target.closest('.overwrite-item-actions, .oc-switch');
                 if (isButton) return;
 
-                self.overwriteDrag.touchDraggingCard = card;
-                self.overwriteDrag.touchDraggingMoved = false;
-                self.overwriteDrag.isTouchDragging = false;
-
-                self.overwriteDrag.startTouch = {
-                    clientX: e.touches[0].clientX,
-                    clientY: e.touches[0].clientY
-                };
-
-                self.overwriteDrag.touchTimer = setTimeout(function() {
-                    if (!self.overwriteDrag.touchDraggingMoved && self.overwriteDrag.touchDraggingCard === card) {
-                        self.overwriteDrag.isTouchDragging = true;
-                        self.overwriteDrag.dragging = card;
-                        self.overwriteDrag.startIndex = parseInt(card.dataset.index);
-                        card.classList.add('dragging');
-
-                        if (navigator.vibrate) {
-                            navigator.vibrate(50);
-                        }
-                    }
-                }, 500);
+                self.beginOverwriteTouchDrag(item, e.touches[0]);
             });
 
-            card.addEventListener('touchmove', function(e) {
-                if (card.dataset.index === 'custom') return;
-                if (e.touches.length !== 1) return;
+            item.addEventListener('touchmove', function(e) {
+                if (e.touches.length !== 1 || !self.overwriteDrag.startTouch) return;
+                if (self.overwriteDrag.touchDraggingItem !== item) return;
 
-                var touch = e.touches[0];
-
-                if (!self.overwriteDrag.touchDraggingMoved && self.overwriteDrag.startTouch) {
-                    var dx = Math.abs(touch.clientX - self.overwriteDrag.startTouch.clientX);
-                    var dy = Math.abs(touch.clientY - self.overwriteDrag.startTouch.clientY);
-                    if (dx > 15 || dy > 15) {
+                if (!self.overwriteDrag.touchDraggingMoved) {
+                    var dx = Math.abs(e.touches[0].clientX - self.overwriteDrag.startTouch.clientX);
+                    var dy = Math.abs(e.touches[0].clientY - self.overwriteDrag.startTouch.clientY);
+                    if (dx > 12 || dy > 12) {
                         self.overwriteDrag.touchDraggingMoved = true;
-                    }
-                }
-
-                if (self.overwriteDrag.isTouchDragging) {
-                    list.querySelectorAll('.overwrite-drag-line').forEach(line => line.remove());
-
-                    var elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-                    var targetCard = null;
-
-                    if (elementBelow) {
-                        targetCard = elementBelow.closest('.sub-card.overwrite-item');
-                    }
-
-                    if (targetCard && targetCard !== card && targetCard.dataset.index !== 'custom') {
-                        var rect = targetCard.getBoundingClientRect();
-                        var midX = rect.left + rect.width / 2;
-
-                        var line = document.createElement('div');
-                        line.className = 'overwrite-drag-line';
-
-                        if (touch.clientX < midX) {
-                            list.insertBefore(line, targetCard);
-                        } else {
-                            if (targetCard.nextSibling) {
-                                list.insertBefore(line, targetCard.nextSibling);
-                            } else {
-                                list.appendChild(line);
-                            }
+                        if (self.overwriteDrag.touchTimer) {
+                            clearTimeout(self.overwriteDrag.touchTimer);
+                            self.overwriteDrag.touchTimer = null;
                         }
                     }
-
-                    var listRect = list.getBoundingClientRect();
-                    var scrollZone = 60;
-                    if (touch.clientX - listRect.left < scrollZone && list.scrollLeft > 0) {
-                        list.scrollLeft -= 10;
-                    } else if (listRect.right - touch.clientX < scrollZone) {
-                        list.scrollLeft += 10;
-                    }
-
-                    e.preventDefault();
                 }
             });
 
-            card.addEventListener('touchend', function(e) {
-                if (self.overwriteDrag.touchTimer) {
-                    clearTimeout(self.overwriteDrag.touchTimer);
-                    self.overwriteDrag.touchTimer = null;
-                }
-
-                var wasInDraggingMode = self.overwriteDrag.isTouchDragging;
-
-                if (wasInDraggingMode) {
-                    card.classList.remove('dragging');
-
-                    var line = list.querySelector('.overwrite-drag-line');
-                    if (line) {
-                        var from = parseInt(card.dataset.index);
-                        var allCards = Array.from(list.querySelectorAll('.sub-card.overwrite-item'));
-                        var fileCards = allCards.filter(c => c.dataset && typeof c.dataset.index !== 'undefined' && c.dataset.index !== 'custom');
-                        var lineRect = line.getBoundingClientRect();
-                        var lineCenterX = lineRect.left + lineRect.width / 2;
-
-                        var to = fileCards.length;
-                        for (var i = 0; i < fileCards.length; i++) {
-                            var rect = fileCards[i].getBoundingClientRect();
-                            var cardMid = rect.left + rect.width / 2;
-                            if (lineCenterX < cardMid) {
-                                to = i;
-                                break;
-                            }
-                        }
-
-                        if (!(from === to || from + 1 === to)) {
-                            var arr = self.overwriteFiles.filter(function(f){ return f.name !== 'openclash_custom_overwrite.sh'; });
-                            var customFile = self.overwriteFiles.find(function(f){ return f.name === 'openclash_custom_overwrite.sh'; });
-                            var moved = arr.splice(from, 1)[0];
-                            arr.splice(to > from ? to - 1 : to, 0, moved);
-                            var newArr = [];
-                            if (customFile) newArr.push(customFile);
-                            newArr = newArr.concat(arr);
-                            self.overwriteFiles = newArr;
-                            self.renderOverwriteCards();
-                            self.saveOverwriteSort();
-                        }
-                    }
-
-                    list.querySelectorAll('.overwrite-drag-line').forEach(function(l){ l.remove(); });
-
-                    self.overwriteDrag.dragging = null;
-                    self.overwriteDrag.startIndex = null;
-                    self.overwriteDrag.isTouchDragging = false;
-
-                    if (self.overwriteDrag.touchDraggingMoved) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                    }
-                }
-
-                self.overwriteDrag.touchDraggingMoved = false;
-                self.overwriteDrag.touchDraggingCard = null;
-                self.overwriteDrag.startTouch = null;
-            });
-
-            card.addEventListener('touchcancel', function() {
-                if (self.overwriteDrag.touchTimer) {
-                    clearTimeout(self.overwriteDrag.touchTimer);
-                    self.overwriteDrag.touchTimer = null;
-                }
-
-                if (self.overwriteDrag.isTouchDragging) {
-                    card.classList.remove('dragging');
-                    list.querySelectorAll('.overwrite-drag-line').forEach(line => line.remove());
-                    self.overwriteDrag.dragging = null;
-                    self.overwriteDrag.startIndex = null;
-                    self.saveOverwriteSort();
-                }
-
-                self.overwriteDrag.isTouchDragging = false;
-                self.overwriteDrag.touchDraggingMoved = false;
-                self.overwriteDrag.touchDraggingCard = null;
-                self.overwriteDrag.startTouch = null;
-            });
-
-            list.appendChild(card);
+            list.appendChild(item);
+            itemCount++;
         });
 
-        list.addEventListener('dragover', function(e) {
-            e.preventDefault();
+        if (self.isOverwrite) {
+            self.overwriteSidePanel.classList.remove('oc-hidden');
+        } else {
+            self.overwriteSidePanel.classList.add('oc-hidden');
+        }
 
-            const cards = Array.from(list.querySelectorAll('.sub-card.overwrite-item'));
-            if (cards.length === 0) return;
+        var count = document.getElementById('overwrite-side-count');
+        if (count) count.textContent = itemCount;
+    },
 
-            const realCards = cards.slice(2);
-            if (realCards.length === 0) return;
+    getOverwriteFileName: function(file) {
+        if (!file) return '';
+        return file.name || (file.path ? file.path.split('/').pop() : '');
+    },
 
-            const x = e.clientX;
+    getOverwriteOrder: function(name) {
+        var sub = this.overwriteSubInfo[name];
+        // files without a uci section are not executed by the core: keep them at the end
+        if (!sub) return 9999;
+        var order = parseInt(sub.order, 10);
+        return isNaN(order) ? 0 : order;
+    },
 
-            let insertBefore = null;
-            for (let i = 0; i < realCards.length; i++) {
-                const rect = realCards[i].getBoundingClientRect();
-                if (x < rect.left + rect.width / 2) {
-                    insertBefore = realCards[i];
-                    break;
-                }
-            }
+    getNextOverwriteOrder: function() {
+        var self = this;
+        var maxOrder = 0;
+        this.overwriteFiles.forEach(function(file) {
+            var name = self.getOverwriteFileName(file);
+            if (!name || name === OC_CUSTOM_OVERWRITE) return;
+            if (!self.overwriteSubInfo[name]) return;
+            var order = self.getOverwriteOrder(name);
+            if (order > maxOrder && order < 9999) maxOrder = order;
+        });
+        return maxOrder + 1;
+    },
 
-            const line = document.createElement('div');
+    getOverwriteList: function() {
+        return document.getElementById('overwrite-side-list');
+    },
+
+    getOverwriteModuleItems: function() {
+        var list = this.getOverwriteList();
+        if (!list) return [];
+        return Array.prototype.slice.call(list.querySelectorAll('.overwrite-item')).filter(function(item) {
+            return !!(item.dataset && typeof item.dataset.index !== 'undefined' && item.dataset.index !== 'custom');
+        });
+    },
+
+    computeOverwriteDropIndex: function(clientY) {
+        var items = this.getOverwriteModuleItems();
+        for (var i = 0; i < items.length; i++) {
+            var rect = items[i].getBoundingClientRect();
+            if (clientY < rect.top + rect.height / 2) return i;
+        }
+        return items.length;
+    },
+
+    clearOverwriteDropIndicator: function() {
+        var list = this.getOverwriteList();
+        this.overwriteDrag.insertIndex = null;
+        if (!list) return;
+        Array.prototype.slice.call(list.querySelectorAll('.overwrite-drag-line')).forEach(function(line) {
+            if (line.parentNode) line.parentNode.removeChild(line);
+        });
+    },
+
+    updateOverwriteDropIndicator: function(insertIndex, touch) {
+        var list = this.getOverwriteList();
+        if (!list || insertIndex === null || insertIndex === undefined) return;
+
+        var items = this.getOverwriteModuleItems();
+        if (insertIndex < 0) insertIndex = 0;
+        if (insertIndex > items.length) insertIndex = items.length;
+
+        var line = list.querySelector('.overwrite-drag-line');
+        if (!line) {
+            line = document.createElement('div');
             line.className = 'overwrite-drag-line';
-            if (insertBefore) {
-                list.insertBefore(line, insertBefore);
-            } else {
-                list.appendChild(line);
-            }
+            list.appendChild(line);
+        }
 
-            const lines = Array.from(list.querySelectorAll('.overwrite-drag-line'));
-            lines.forEach(l => {
-                if (l !== line) l.remove();
-            });
+        var listRect = list.getBoundingClientRect();
+        var listStyle = window.getComputedStyle(list);
+        var gapSize = parseFloat(listStyle.rowGap || listStyle.gap);
+        if (isNaN(gapSize) || gapSize <= 0) {
+            gapSize = 6;
+        }
+
+        var prevBottom = null;
+        var nextTop = null;
+        if (insertIndex > 0) {
+            prevBottom = items[insertIndex - 1].getBoundingClientRect().bottom;
+        }
+        if (insertIndex < items.length) {
+            nextTop = items[insertIndex].getBoundingClientRect().top;
+        }
+
+        var center;
+        if (prevBottom !== null && nextTop !== null) {
+            center = (prevBottom + nextTop) / 2;
+        } else if (prevBottom !== null) {
+            center = prevBottom + gapSize / 2;
+        } else if (nextTop !== null) {
+            center = nextTop - gapSize / 2;
+        } else {
+            center = listRect.top + parseFloat(listStyle.paddingTop || 6);
+        }
+
+        var top = center - listRect.top + list.scrollTop;
+        line.style.top = Math.round(top - 1) + 'px';
+        line.style.width = Math.max(0, list.clientWidth - 8) + 'px';
+
+        if (touch) {
+            var scrollZone = 60;
+            if (touch.clientY - listRect.top < scrollZone && list.scrollTop > 0) {
+                list.scrollTop -= 12;
+            } else if (listRect.bottom - touch.clientY < scrollZone) {
+                list.scrollTop += 12;
+            }
+        }
+
+        this.overwriteDrag.insertIndex = insertIndex;
+    },
+
+    bindOverwriteListEvents: function() {
+        var self = this;
+        var list = this.getOverwriteList();
+        if (!list || list.dataset.dragBound === '1') return;
+        list.dataset.dragBound = '1';
+
+        list.addEventListener('dragover', function(e) {
+            if (!self.overwriteDrag.dragging) return;
+            e.preventDefault();
+            if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+            self.updateOverwriteDropIndicator(self.computeOverwriteDropIndex(e.clientY), null);
+
+            var listRect = list.getBoundingClientRect();
+            var scrollZone = 40;
+            if (e.clientY - listRect.top < scrollZone && list.scrollTop > 0) {
+                list.scrollTop -= 8;
+            } else if (listRect.bottom - e.clientY < scrollZone) {
+                list.scrollTop += 8;
+            }
         });
 
         list.addEventListener('dragleave', function(e) {
             if (!list.contains(e.relatedTarget)) {
-                list.querySelectorAll('.overwrite-drag-line').forEach(line => line.remove());
+                self.clearOverwriteDropIndicator();
             }
         });
 
         list.addEventListener('drop', function(e) {
+            if (!self.overwriteDrag.dragging) return;
             e.preventDefault();
-            const dragging = ConfigEditor.overwriteDrag.dragging;
-            if (!dragging) return;
-            const from = parseInt(dragging.dataset.index);
-            const lines = Array.from(list.querySelectorAll('.overwrite-drag-line'));
-            if (lines.length === 0) return;
-            const line = lines[0];
-            const allCards = Array.from(list.querySelectorAll('.sub-card.overwrite-item'));
-            const fileCards = allCards.filter(c => typeof c.dataset.index !== 'undefined' && c.dataset.index !== 'custom');
-            let nextNode = line.nextSibling;
-            while (nextNode && !(nextNode.classList && nextNode.classList.contains('sub-card') && typeof nextNode.dataset.index !== 'undefined' && nextNode.dataset.index !== 'custom')) {
-                nextNode = nextNode.nextSibling;
-            }
-            let to = fileCards.indexOf(nextNode);
-            if (to === -1) to = fileCards.length;
-            if (from === to || from + 1 === to) {
-                list.querySelectorAll('.overwrite-drag-line').forEach(line => line.remove());
-                ConfigEditor.saveOverwriteSort();
-                return;
-            }
-            const arr = ConfigEditor.overwriteFiles.filter((f, i) => f.name !== 'openclash_custom_overwrite.sh');
-            const customFile = ConfigEditor.overwriteFiles.find(f => f.name === 'openclash_custom_overwrite.sh');
-            const moved = arr.splice(from, 1)[0];
-            arr.splice(to > from ? to - 1 : to, 0, moved);
-            let newArr = [];
-            if (customFile) newArr.push(customFile);
-            newArr = newArr.concat(arr);
-            ConfigEditor.overwriteFiles = newArr;
-            ConfigEditor.renderOverwriteCards();
-            ConfigEditor.saveOverwriteSort();
-            list.querySelectorAll('.overwrite-drag-line').forEach(line => line.remove());
+            var from = parseInt(self.overwriteDrag.dragging.dataset.index, 10);
+            var to = (self.overwriteDrag.insertIndex === null || self.overwriteDrag.insertIndex === undefined)
+                ? self.computeOverwriteDropIndex(e.clientY)
+                : self.overwriteDrag.insertIndex;
+            self.finishOverwriteDrag();
+            self.applyOverwriteReorder(from, to);
         });
 
         list.addEventListener('touchmove', function(e) {
-            if (!ConfigEditor.overwriteDrag.isTouchDragging) return;
-            const touch = e.touches[0];
-            const cards = Array.from(list.querySelectorAll('.sub-card.overwrite-item'));
-            if (cards.length === 0) return;
-            const realCards = cards.slice(2);
-            if (realCards.length === 0) return;
-
-            let insertBefore = null;
-            for (let i = 0; i < realCards.length; i++) {
-                const rect = realCards[i].getBoundingClientRect();
-                if (touch.clientX < rect.left + rect.width / 2) {
-                    insertBefore = realCards[i];
-                    break;
-                }
-            }
-
-            list.querySelectorAll('.overwrite-drag-line').forEach(line => line.remove());
-
-            if (insertBefore) {
-                const line = document.createElement('div');
-                line.className = 'overwrite-drag-line';
-                list.insertBefore(line, insertBefore);
-            } else {
-                const line = document.createElement('div');
-                line.className = 'overwrite-drag-line';
-                list.appendChild(line);
-            }
-        });
+            if (!self.overwriteDrag.isTouchDragging || e.touches.length !== 1) return;
+            var touch = e.touches[0];
+            self.updateOverwriteDropIndicator(self.computeOverwriteDropIndex(touch.clientY), touch);
+            e.preventDefault();
+        }, { passive: false });
 
         list.addEventListener('touchend', function(e) {
-            var dragging = ConfigEditor.overwriteDrag.dragging;
-            if (!dragging) {
-                list.querySelectorAll('.overwrite-drag-line').forEach(function(line){ line.remove(); });
-                return;
+            if (!self.overwriteDrag.isTouchDragging) return;
+            var from = parseInt(self.overwriteDrag.startIndex, 10);
+            var to = self.overwriteDrag.insertIndex;
+            var moved = self.overwriteDrag.touchDraggingMoved;
+            self.finishOverwriteDrag();
+            if (to !== null && to !== undefined) {
+                self.applyOverwriteReorder(from, to);
             }
-            var from = parseInt(dragging.dataset.index);
-
-            var line = list.querySelector('.overwrite-drag-line');
-            if (!line) {
-                ConfigEditor.overwriteDrag.dragging = null;
-                ConfigEditor.overwriteDrag.startIndex = null;
-                ConfigEditor.overwriteDrag.isTouchDragging = false;
-                return;
-            }
-
-            var allCards = Array.from(list.querySelectorAll('.sub-card.overwrite-item'));
-            var fileCards = allCards.filter(function(c){ return c.dataset && typeof c.dataset.index !== 'undefined' && c.dataset.index !== 'custom'; });
-
-            var lineRect = line.getBoundingClientRect();
-            var lineCenterX = lineRect.left + lineRect.width / 2;
-
-            var to = fileCards.length;
-            for (var i = 0; i < fileCards.length; i++) {
-                var rect = fileCards[i].getBoundingClientRect();
-                var cardMid = rect.left + rect.width / 2;
-                if (lineCenterX < cardMid) {
-                    to = i;
-                    break;
-                }
-            }
-
-            if (!(from === to || from + 1 === to)) {
-                var arr = ConfigEditor.overwriteFiles.filter(function(f){ return f.name !== 'openclash_custom_overwrite.sh'; });
-                var customFile = ConfigEditor.overwriteFiles.find(function(f){ return f.name === 'openclash_custom_overwrite.sh'; });
-                var moved = arr.splice(from, 1)[0];
-                arr.splice(to > from ? to - 1 : to, 0, moved);
-                var newArr = [];
-                if (customFile) newArr.push(customFile);
-                newArr = newArr.concat(arr);
-                ConfigEditor.overwriteFiles = newArr;
-                ConfigEditor.renderOverwriteCards();
-                ConfigEditor.saveOverwriteSort();
-            } else {
-                ConfigEditor.saveOverwriteSort();
-            }
-
-            list.querySelectorAll('.overwrite-drag-line').forEach(function(l){ l.remove(); });
-            ConfigEditor.overwriteDrag.dragging = null;
-            ConfigEditor.overwriteDrag.startIndex = null;
-            ConfigEditor.overwriteDrag.isTouchDragging = false;
+            if (moved) e.preventDefault();
         });
 
-        if (self.isOverwrite) {
-            bar.classList.remove('oc-hidden');
-        } else {
-            bar.classList.add('oc-hidden');
+        list.addEventListener('touchcancel', function() {
+            if (!self.overwriteDrag.isTouchDragging) return;
+            self.finishOverwriteDrag();
+        });
+    },
+
+    beginOverwriteTouchDrag: function(item, touch) {
+        var self = this;
+        this.finishOverwriteDrag();
+
+        this.overwriteDrag.touchDraggingItem = item;
+        this.overwriteDrag.startTouch = { clientX: touch.clientX, clientY: touch.clientY };
+
+        this.overwriteDrag.touchTimer = setTimeout(function() {
+            if (!self.overwriteDrag.touchDraggingMoved && self.overwriteDrag.touchDraggingItem === item) {
+                self.overwriteDrag.isTouchDragging = true;
+                self.overwriteDrag.dragging = item;
+                self.overwriteDrag.startIndex = parseInt(item.dataset.index, 10);
+                item.classList.add('dragging');
+                if (navigator.vibrate) navigator.vibrate(50);
+            }
+        }, 500);
+    },
+
+    finishOverwriteDrag: function() {
+        if (this.overwriteDrag.touchTimer) {
+            clearTimeout(this.overwriteDrag.touchTimer);
+            this.overwriteDrag.touchTimer = null;
         }
+        if (this.overwriteDrag.dragging && this.overwriteDrag.dragging.classList) {
+            this.overwriteDrag.dragging.classList.remove('dragging');
+        }
+        this.overwriteDrag.dragging = null;
+        this.overwriteDrag.startIndex = null;
+        this.overwriteDrag.isTouchDragging = false;
+        this.overwriteDrag.touchDraggingMoved = false;
+        this.overwriteDrag.touchDraggingItem = null;
+        this.overwriteDrag.startTouch = null;
+        this.clearOverwriteDropIndicator();
+    },
+
+    applyOverwriteReorder: function(from, to) {
+        if (isNaN(from) || to === null || to === undefined || to === from || to === from + 1) return;
+
+        var modules = this.overwriteFiles.filter(function(file) {
+            var name = file.name || (file.path ? file.path.split('/').pop() : '');
+            return name !== OC_CUSTOM_OVERWRITE;
+        });
+        if (from < 0 || from >= modules.length) return;
+
+        var moved = modules.splice(from, 1)[0];
+        modules.splice(to > from ? to - 1 : to, 0, moved);
+
+        var customEntries = this.overwriteFiles.filter(function(file) {
+            var name = file.name || (file.path ? file.path.split('/').pop() : '');
+            return name === OC_CUSTOM_OVERWRITE;
+        });
+        this.overwriteFiles = customEntries.concat(modules);
+        this.renderOverwriteCards();
+        this.saveOverwriteSort();
     },
 
     saveOverwriteSort: function() {
         var self = this;
-        var reqs = [];
-        this.overwriteFiles.forEach(function(file, idx) {
-            var name = file.name || (file.path ? file.path.split('/').pop() : '');
-            if (name === 'openclash_custom_overwrite.sh') return;
-            var sub = self.overwriteSubInfo[name] || {};
-            var formData = new FormData();
-            formData.append('filename', name);
-            formData.append('type', sub.type || 'file');
-            formData.append('url', sub.url || '');
-            formData.append('update_days', sub.update_days || '');
-            formData.append('update_hour', sub.update_hour || '');
-            formData.append('param', sub.param || '');
-            formData.append('config', self.parseOverwriteConfigValue(sub.config).join('\n'));
-            formData.append('order', idx);
-            reqs.push(fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
-                method: 'POST',
-                body: formData
-            }));
+        var statusText = document.getElementById('config-editor-status-text');
+        var pending = [];
+        var position = 0;
+
+        this.overwriteFiles.forEach(function(file) {
+            var name = self.getOverwriteFileName(file);
+            if (!name || name === OC_CUSTOM_OVERWRITE) return;
+            var sub = self.overwriteSubInfo[name];
+            if (!sub) return;
+            position++;
+            if (self.getOverwriteOrder(name) === position) return;
+            pending.push({ name: name, sub: sub, order: position });
         });
-        Promise.all(reqs).then(function() {
-            self.loadOverwriteSubInfo();
+
+        if (!pending.length) return;
+
+        if (statusText) statusText.textContent = '<%:Saving...%>';
+
+        var failed = false;
+        var chain = Promise.resolve();
+        pending.forEach(function(item) {
+            chain = chain.then(function() {
+                var formData = new FormData();
+                formData.append('filename', item.name);
+                formData.append('type', item.sub.type || 'file');
+                formData.append('url', item.sub.url || '');
+                formData.append('update_days', item.sub.update_days || '');
+                formData.append('update_hour', item.sub.update_hour || '');
+                formData.append('param', item.sub.param || '');
+                formData.append('config', self.parseOverwriteConfigValue(item.sub.config).join('\n'));
+                formData.append('order', item.order);
+                formData.append('enable', parseInt(item.sub.enable, 10) === 1 ? '1' : '0');
+                return fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
+                    method: 'POST',
+                    body: formData
+                }).then(function(r) { return r.json(); }).then(function(data) {
+                    if (!data || data.status !== 'success') failed = true;
+                }).catch(function() {
+                    failed = true;
+                });
+            });
+        });
+
+        chain.then(function() {
+            if (!failed) {
+                pending.forEach(function(item) {
+                    if (self.overwriteSubInfo[item.name]) {
+                        self.overwriteSubInfo[item.name].order = item.order;
+                    }
+                });
+            }
+            if (statusText) statusText.textContent = failed ? '<%:Save failed%>' : '<%:Saved successfully%>';
+            setTimeout(function() {
+                if (statusText && (statusText.textContent === '<%:Save failed%>' || statusText.textContent === '<%:Saved successfully%>')) {
+                    statusText.textContent = '<%:Ready%>';
+                }
+            }, 2000);
+            if (failed) self.loadOverwriteSubInfo();
         });
     },
 
@@ -1667,7 +1706,17 @@ var ConfigEditor = {
         });
     },
 
+    escapeOverwriteHtml: function(value) {
+        return String(value === undefined || value === null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    },
+
     renderOverwriteConfigDropdown: function(configValue, dropdownId) {
+        var self = this;
         var files = this.getOverwriteConfigFiles();
         var selected = this.parseOverwriteConfigValue(configValue);
         var selectedMap = {};
@@ -1681,6 +1730,16 @@ var ConfigEditor = {
 
         var allChecked = !!selectedMap['all'];
 
+        var known = {};
+        files.forEach(function(file) {
+            known[file.path] = true;
+            known[file.name] = true;
+        });
+        // saved values must survive even when the config file list is unavailable
+        var orphans = selected.filter(function(item) {
+            return item !== 'all' && !known[item];
+        });
+
         var allOptionHtml = `
             <label class="overwrite-config-option${allChecked ? ' selected' : ''}" data-path="all" data-all-option="1">
                 <span class="overwrite-config-option-left">
@@ -1691,24 +1750,37 @@ var ConfigEditor = {
             </label>
         `;
 
-        var fileOptionsHtml = files.length ? files.map(function(file) {
+        var fileOptionsHtml = files.map(function(file) {
             var checked = (!allChecked && (selectedMap[file.path] || selectedMap[file.name])) ? ' checked' : '';
-            var selectedClass = checked ? ' selected' : '';
-            var disabledClass = allChecked ? ' disabled-by-all' : '';
-            var stateText = checked ? '✓' : '';
             var disabled = allChecked;
             return `
-                <label class="overwrite-config-option${selectedClass}${disabledClass}" data-path="${file.path}">
+                <label class="overwrite-config-option${checked ? ' selected' : ''}${disabled ? ' disabled-by-all' : ''}" data-path="${self.escapeOverwriteHtml(file.path)}">
                     <span class="overwrite-config-option-left">
-                        <input type="checkbox" value="${file.path}"${checked}${disabled ? ' disabled' : ''}>
-                        <span class="overwrite-config-option-name" title="${file.name}">${file.name}</span>
+                        <input type="checkbox" value="${self.escapeOverwriteHtml(file.path)}"${checked}${disabled ? ' disabled' : ''}>
+                        <span class="overwrite-config-option-name" title="${self.escapeOverwriteHtml(file.name)}">${self.escapeOverwriteHtml(file.name)}</span>
                     </span>
-                    <span class="overwrite-config-option-state">${stateText}</span>
+                    <span class="overwrite-config-option-state">${checked ? '✓' : ''}</span>
                 </label>
             `;
-        }).join('') : '<div class="overwrite-config-option"><span class="overwrite-config-option-name"><%:No config files found%></span></div>';
+        }).join('');
 
-        var optionsHtml = allOptionHtml + fileOptionsHtml;
+        var orphanOptionsHtml = orphans.map(function(value) {
+            var checked = allChecked ? '' : ' checked';
+            var disabled = allChecked;
+            var label = String(value).split('/').pop() || String(value);
+            return `
+                <label class="overwrite-config-option${checked ? ' selected' : ''}${disabled ? ' disabled-by-all' : ''}" data-path="${self.escapeOverwriteHtml(value)}">
+                    <span class="overwrite-config-option-left">
+                        <input type="checkbox" value="${self.escapeOverwriteHtml(value)}"${checked}${disabled ? ' disabled' : ''}>
+                        <span class="overwrite-config-option-name" title="${self.escapeOverwriteHtml(value)}">${self.escapeOverwriteHtml(label)}</span>
+                    </span>
+                    <span class="overwrite-config-option-state">${checked ? '✓' : ''}</span>
+                </label>
+            `;
+        }).join('');
+
+        var emptyHtml = (!fileOptionsHtml && !orphanOptionsHtml) ? '<div class="overwrite-config-option"><span class="overwrite-config-option-name"><%:No config files found%></span></div>' : '';
+        var optionsHtml = allOptionHtml + fileOptionsHtml + orphanOptionsHtml + emptyHtml;
 
         return `
             <div class="overwrite-config-dropdown form-select-wrapper" id="${dropdownId}">
@@ -1923,7 +1995,7 @@ var ConfigEditor = {
                 <div class="mode-tabs">
                     <button type="button" class="mode-tab${activeTab==='file'?' active':''}" id="overwrite-upload-mode-file" data-mode="file">
                         <svg width="16" height="16"><use href="#oc-icon-upload"/></svg>
-                        <%:Upload File%>
+                        <%:Local Module%>
                     </button>
                     <button type="button" class="mode-tab${activeTab==='subscribe'?' active':''}" id="overwrite-upload-mode-subscribe" data-mode="subscribe">
                         <svg width="15" height="15"><use href="#oc-icon-link"/></svg>
@@ -1950,8 +2022,8 @@ var ConfigEditor = {
                     <input type="file" id="overwrite-upload-file-input" accept=".txt,.conf,*" class="oc-hidden">
                 </div>
                 <div class="filename-input-container oc-mt-5">
-                    <label for="overwrite-upload-filename-input"><%:File Name%>:</label>
-                    <input type="text" id="overwrite-upload-filename-input" placeholder="<%:Please enter a filename%>" class="form-input" value="${name}" ${readonly ? 'readonly' : ''}/>
+                    <label for="overwrite-upload-filename-input"><%:Module Name%>:</label>
+                    <input type="text" id="overwrite-upload-filename-input" placeholder="<%:Please enter a module name%>" class="form-input" value="${name}" ${readonly ? 'readonly' : ''}/>
                 </div>
             </form>
         `;
@@ -1959,8 +2031,8 @@ var ConfigEditor = {
         var subscribeContent = `
             <form id="overwrite-upload-form-subscribe" class="subscribe-form">
                 <div class="form-group">
-                    <label><%:File Name%>:</label>
-                    <input type="text" class="form-input" name="filename" id="overwrite-subscribe-filename" value="${name}" ${readonly ? 'readonly' : ''} placeholder="<%:Please enter a filename%>">
+                    <label><%:Module Name%>:</label>
+                    <input type="text" class="form-input" name="filename" id="overwrite-subscribe-filename" value="${name}" ${readonly ? 'readonly' : ''} placeholder="<%:Please enter a module name%>">
                 </div>
                 <div class="form-group">
                     <label for="overwrite-subscribe-config"><%:Config File%>:</label>
@@ -2063,7 +2135,7 @@ var ConfigEditor = {
             </div>
             <div class="config-upload-footer">
                 <div class="config-upload-status">
-                    <span id="overwrite-upload-status-text"><%:Ready to add file%></span>
+                    <span id="overwrite-upload-status-text"><%:Ready to add module%></span>
                 </div>
                 <div class="config-upload-buttons">
                     <button type="button" class="btn cancel-btn" id="overwrite-upload-cancel"><%:Cancel%></button>
@@ -2212,7 +2284,7 @@ var ConfigEditor = {
             if (tabFile.classList.contains('active')) {
                 var filename = filenameInput.value.trim();
                 if (!filename) {
-                    alert('<%:Please enter a filename%>');
+                    alert('<%:Please enter a module name%>');
                     return;
                 }
                 if (filename === 'openclash_custom_overwrite.sh') {
@@ -2222,12 +2294,16 @@ var ConfigEditor = {
                 if (selectedFile) {
                     var reader = new FileReader();
                     reader.onload = function(e) {
+                        submitBtn.disabled = true;
                         var fileContent = e.target.result;
                         var selectedConfigPaths = self.getOverwriteConfigSelection(model, 'overwrite-upload-config-dropdown');
+                        if (!selectedConfigPaths.length) {
+                            selectedConfigPaths = ['all'];
+                        }
                         var formData = new FormData();
                         formData.append('filename', filename);
                         formData.append('config_file', fileContent);
-                        formData.append('order', self.overwriteFileCardCount + 1);
+                        formData.append('order', self.getNextOverwriteOrder());
                         formData.append('enable', '0');
                         formData.append('config', selectedConfigPaths.join('\n'));
 
@@ -2246,11 +2322,13 @@ var ConfigEditor = {
                                 }, 300);
                             } else {
                                 statusText.textContent = '<%:Upload failed:%> ' + (data.message || '');
+                                validateAddOverwriteForm();
                             }
                         });
                     };
                     reader.onerror = function() {
                         statusText.textContent = '<%:Failed to read file%>';
+                        validateAddOverwriteForm();
                     };
                     reader.readAsText(selectedFile, 'UTF-8');
                 } else {
@@ -2266,8 +2344,11 @@ var ConfigEditor = {
                 var type = form.querySelector('#overwrite-subscribe-type').value;
                 var param = self.collectOverwriteParams(form.querySelector('#overwrite-subscribe-param-container'));
                 var selectedConfigPaths = self.getOverwriteConfigSelection(model, 'overwrite-subscribe-config-dropdown');
+                if (!selectedConfigPaths.length) {
+                    selectedConfigPaths = ['all'];
+                }
                 if (!filename) {
-                    alert('<%:Please enter a filename%>');
+                    alert('<%:Please enter a module name%>');
                     return;
                 }
                 if (filename === 'openclash_custom_overwrite.sh') {
@@ -2286,7 +2367,7 @@ var ConfigEditor = {
                 formData.append('filename', filename);
                 formData.append('type', type);
                 formData.append('param', param);
-                formData.append('order', self.overwriteFileCardCount + 1);
+                formData.append('order', self.getNextOverwriteOrder());
                 formData.append('enable', '0');
                 formData.append('config', selectedConfigPaths.join('\n'));
                 if (type === 'http') {
@@ -2297,6 +2378,7 @@ var ConfigEditor = {
                 var progressContainer = form.querySelector('#overwrite-upload-progress');
                 var progressFill = form.querySelector('#overwrite-progress-fill');
                 var progressText = form.querySelector('#overwrite-progress-text');
+                submitBtn.disabled = true;
                 if (type === 'http') {
                     statusText.textContent = '<%:Downloading subscription content...%>';
                     progressContainer.classList.remove('oc-hidden');
@@ -2325,6 +2407,7 @@ var ConfigEditor = {
                         statusText.textContent = '<%:Subscription added successfully%>';
                     } else {
                         statusText.textContent = '<%:Failed to save subscription info:%> ' + (data.message || '');
+                        validateAddOverwriteForm();
                     }
                     setTimeout(function() {
                         document.body.removeChild(ocDiv);
@@ -2455,15 +2538,23 @@ var ConfigEditor = {
         model.querySelector('#overwrite-subscribe-url').addEventListener('input', validateEditOverwriteForm);
 
         model.querySelector('#overwrite-edit-submit').onclick = function() {
+            if (submitBtn.disabled) return;
+            submitBtn.disabled = true;
             var form = model.querySelector('#overwrite-upload-form-subscribe');
             var newName = form.querySelector('#overwrite-subscribe-filename').value.trim();
             var type = form.querySelector('#overwrite-subscribe-type').value;
             var url = form.querySelector('#overwrite-subscribe-url').value.trim();
             var param = self.collectOverwriteParams(form.querySelector('#overwrite-subscribe-param-container'));
             var selectedConfigPaths = self.getOverwriteConfigSelection(model, 'overwrite-subscribe-config-dropdown');
+            if (!selectedConfigPaths.length) {
+                selectedConfigPaths = self.parseOverwriteConfigValue(sub.config);
+            }
+            if (!selectedConfigPaths.length) {
+                selectedConfigPaths = ['all'];
+            }
 
             if (!newName) {
-                alert('<%:Please enter a filename%>');
+                alert('<%:Please enter a module name%>');
                 return;
             }
             if (newName === 'openclash_custom_overwrite.sh') {
@@ -2486,6 +2577,8 @@ var ConfigEditor = {
                 formData.delete('url');
                 formData.delete('update_days');
                 formData.delete('update_hour');
+            } else if (url !== (sub.url || '')) {
+                formData.append('refresh', '1');
             }
             formData.delete('config');
             formData.append('config', selectedConfigPaths.join('\n'));
@@ -2498,7 +2591,8 @@ var ConfigEditor = {
             } else {
                 formData.append('enable', '0');
             }
-            formData.append('order', sub.order || 1);
+            var currentOrder = parseInt(sub.order, 10);
+            formData.append('order', isNaN(currentOrder) ? self.getNextOverwriteOrder() : currentOrder);
 
             var progressContainer = form.querySelector('#overwrite-upload-progress');
             var progressFill = form.querySelector('#overwrite-progress-fill');
@@ -2548,6 +2642,7 @@ var ConfigEditor = {
                     }, 800);
                 } else {
                     statusText.textContent = '<%:Failed to save subscription info:%> ' + (data.message || '');
+                    validateEditOverwriteForm();
                 }
             });
         };

@@ -4439,3 +4439,42 @@ msgstr "no está registrado, se eliminó la regla Fake-IP-Filter"
 
 msgid "to Avoid Core Start Failed..."
 msgstr "para evitar que el núcleo falle al iniciar..."
+
+msgid "Built-in"
+msgstr "Integrado"
+
+msgid "Unset"
+msgstr "Sin conf."
+
+msgid "Collapse"
+msgstr "Contraer"
+
+msgid "Expand"
+msgstr "Expandir"
+
+msgid "Modules"
+msgstr "Módulos"
+
+msgid "Local Mod"
+msgstr "Local"
+
+msgid "Sub Mod"
+msgstr "Sub"
+
+msgid "Local Module"
+msgstr "Módulo local"
+
+msgid "New Module"
+msgstr "Añadir módulo"
+
+msgid "Module Name"
+msgstr "Nombre del módulo"
+
+msgid "Please enter a module name"
+msgstr "Introduce un nombre de módulo"
+
+msgid "Ready to add module"
+msgstr "Listo para añadir módulo"
+
+msgid "Are you sure you want to delete this module and its subscription info?"
+msgstr "¿Seguro que quieres eliminar este módulo y su información de suscripción?"

@@ -5199,18 +5199,11 @@ function action_upload_overwrite()
 					end
 					uci:set("openclash", s[".name"], "enable", tostring(enable))
 				end
-				if s.order == nil or (s.order ~= nil and s.order ~= order and order ~= nil) then
-					if order == nil then
-						local max_order = -1
-						uci:foreach("openclash", "config_overwrite", function(s)
-							local o = tonumber(s.order)
-							if o and o > max_order then max_order = o end
-						end)
-						order = tostring(max_order + 1)
-					end
-					uci:set("openclash", s[".name"], "order", order)
-				else
-					uci:set("openclash", s[".name"], "order", tonumber(order))
+				-- an uploaded local file replaces the remote source of this module
+				uci:set("openclash", s[".name"], "type", "file")
+				uci:set("openclash", s[".name"], "url", "")
+				if order ~= nil then
+					uci:set("openclash", s[".name"], "order", tostring(tonumber(order) or 0))
 				end
 				return false
 			end
@@ -5282,8 +5275,9 @@ function action_overwrite_subscribe_info()
 			if s.name then
 				local config_value = ""
 				if s.config then
+					local config_items = type(s.config) == "table" and s.config or { s.config }
 					local config_list = {}
-					for _, item in ipairs(s.config) do
+					for _, item in ipairs(config_items) do
 						if item and item ~= "" then
 							table.insert(config_list, tostring(item))
 						end
@@ -5354,143 +5348,111 @@ function action_overwrite_subscribe_info()
 			end
 		end
 
-		local found = false
-		if old_section_name and old_section_name ~= "" and old_section_name ~= section_name then
-			uci:foreach("openclash", "config_overwrite", function(s)
-				if s.name == old_section_name then
-					uci:set("openclash", s[".name"], "name", section_name)
-					uci:set("openclash", s[".name"], "url", url)
-					uci:delete("openclash", s[".name"], "config")
-					if #config_values > 0 then
-						uci:set_list("openclash", s[".name"], "config", config_values)
-					end
-					uci:set("openclash", s[".name"], "update_days", update_days)
-					uci:set("openclash", s[".name"], "update_hour", update_hour)
-					uci:set("openclash", s[".name"], "type", typ)
-					uci:set("openclash", s[".name"], "param", param)
-					if s.order == nil or (s.order ~= nil and s.order ~= order and order ~= nil) then
-						if order == nil then
-							local max_order = -1
-							uci:foreach("openclash", "config_overwrite", function(s)
-								local o = tonumber(s.order)
-								if o and o > max_order then max_order = o end
-							end)
-							order = tostring(max_order + 1)
-						end
-						uci:set("openclash", s[".name"], "order", order)
-					else
-						uci:set("openclash", s[".name"], "order", tonumber(order) or 1)
-					end
-					if s.enable == nil or (s.enable ~= nil and enable ~= nil) then
-						if enable == nil then
-							enable = 0
-						end
-						uci:set("openclash", s[".name"], "enable", tostring(enable))
-					end
-					found = true
-					return false
-				end
-			end)
-			local overwrite_dir = "/etc/openclash/overwrite/"
-			local old_file = overwrite_dir .. old_section_name
-			local new_file = overwrite_dir .. section_name
-			if fs.access(old_file) and not fs.access(new_file) then
-				fs.rename(old_file, new_file)
+		-- locate the section to update (rename source or the section with the target name)
+		local target_section = nil
+		local rename_source = nil
+		uci:foreach("openclash", "config_overwrite", function(s)
+			if s.name == section_name then
+				target_section = s
 			end
-			uci:commit("openclash")
-			HTTP.prepare_content("application/json")
-			HTTP.write_json({status="success"})
-			return
-		end
-		if not found then
-			uci:foreach("openclash", "config_overwrite", function(s)
-				if s.name == section_name then
-					uci:set("openclash", s[".name"], "url", url)
-					uci:delete("openclash", s[".name"], "config")
-					if #config_values > 0 then
-						uci:set_list("openclash", s[".name"], "config", config_values)
-					end
-					uci:set("openclash", s[".name"], "update_days", update_days)
-					uci:set("openclash", s[".name"], "update_hour", update_hour)
-					uci:set("openclash", s[".name"], "type", typ)
-					uci:set("openclash", s[".name"], "param", param)
-					if s.order == nil or (s.order ~= nil and s.order ~= order and order ~= nil) then
-						if order == nil then
-							local max_order = -1
-							uci:foreach("openclash", "config_overwrite", function(s)
-								local o = tonumber(s.order)
-								if o and o > max_order then max_order = o end
-							end)
-							order = tostring(max_order + 1)
-						end
-						uci:set("openclash", s[".name"], "order", order)
-					else
-						uci:set("openclash", s[".name"], "order", tonumber(order))
-					end
-					if s.enable == nil or (s.enable ~= nil and enable ~= nil) then
-						if enable == nil then
-							enable = 0
-						end
-						uci:set("openclash", s[".name"], "enable", tostring(enable))
-					end
-					found = true
-					return false
-				end
-			end)
-		end
-		if not found then
-			local sid = uci:add("openclash", "config_overwrite")
-			uci:set("openclash", sid, "name", section_name)
-			uci:set("openclash", sid, "url", url)
-			uci:delete("openclash", sid, "config")
-			if #config_values > 0 then
-				uci:set_list("openclash", sid, "config", config_values)
+			if old_section_name and old_section_name ~= "" and old_section_name ~= section_name and s.name == old_section_name then
+				rename_source = s
 			end
-			uci:set("openclash", sid, "update_days", update_days)
-			uci:set("openclash", sid, "update_hour", update_hour)
-			uci:set("openclash", sid, "type", typ)
-			uci:set("openclash", sid, "param", param)
-			if order == nil then
-				local max_order = -1
-				uci:foreach("openclash", "config_overwrite", function(s)
-					local o = tonumber(s.order)
-					if o and o > max_order then max_order = o end
-				end)
-				order = tostring(max_order + 1)
-			else
-				order = tostring(order)
-			end
-			uci:set("openclash", sid, "order", order)
-			uci:set("openclash", sid, "enable", 0)
-		end
-		uci:commit("openclash")
+		end)
 
-		if typ == "file" then
-			local overwrite_dir = "/etc/openclash/overwrite/"
-			local file_path = overwrite_dir .. section_name
-			if not fs.access(file_path) then
-				fs.writefile(file_path, "")
+		local file_path = "/etc/openclash/overwrite/" .. section_name
+		-- only refresh the module body when it is really needed (new url / explicit refresh / missing file)
+		local need_download = false
+		if typ == "http" and url ~= "" then
+			local known_url = ""
+			if target_section and target_section.url then
+				known_url = target_section.url
+			elseif rename_source and rename_source.url then
+				known_url = rename_source.url
 			end
-		elseif typ == "http" then
-			local overwrite_dir = "/etc/openclash/overwrite/"
-			local file_path = overwrite_dir .. section_name
-			if url and url ~= "" then
-				local cmd = string.format('curl -sL --connect-timeout 5 -m 15 --retry 2 "%s" -o "%s"', url, file_path)
-				local ret = SYS.call(cmd)
-				if not fs.access(file_path) then
-					fs.writefile(file_path, "")
-				end
-				if ret ~= 0 or not fs.access(file_path) or fs.stat(file_path).size == 0 then
-					HTTP.prepare_content("application/json")
-					HTTP.write_json({status="error", message="Download failed"})
-					return
-				end
-			else
-				if not fs.access(file_path) then
-					fs.writefile(file_path, "")
+			if HTTP.formvalue("refresh") == "1" or known_url ~= url or not fs.access(file_path) then
+				need_download = true
+			end
+		end
+
+		if need_download then
+			local tmp_file = "/tmp/openclash_overwrite_download"
+			SYS.call("rm -f " .. tmp_file)
+			local ret = SYS.call(string.format('curl -fsSL --connect-timeout 5 -m 30 --retry 2 "%s" -o "%s"', url, tmp_file))
+			local stat = fs.stat(tmp_file)
+			if ret ~= 0 or not stat or stat.type ~= "regular" or stat.size == 0 then
+				SYS.call("rm -f " .. tmp_file)
+				HTTP.prepare_content("application/json")
+				HTTP.write_json({status="error", message="Download failed"})
+				return
+			end
+			SYS.call(string.format("mkdir -p /etc/openclash/overwrite && mv -f '%s' '%s' && chmod 644 '%s'", tmp_file, file_path, file_path))
+			if not fs.access(file_path) then
+				HTTP.prepare_content("application/json")
+				HTTP.write_json({status="error", message="Failed to save downloaded file"})
+				return
+			end
+		end
+
+		if old_section_name and old_section_name ~= "" and old_section_name ~= section_name then
+			local old_file = "/etc/openclash/overwrite/" .. old_section_name
+			if fs.access(old_file) then
+				if need_download or fs.access(file_path) then
+					fs.unlink(old_file)
+				else
+					fs.rename(old_file, file_path)
 				end
 			end
 		end
+
+		if not fs.access(file_path) then
+			fs.writefile(file_path, "")
+		end
+		local section = rename_source or target_section
+		local sid = nil
+		if section then
+			sid = section[".name"]
+			if section_name ~= old_section_name and rename_source and rename_source[".name"] == sid then
+				uci:set("openclash", sid, "name", section_name)
+			end
+		else
+			-- never register a module without a config match: it would stay inactive forever
+			if #config_values == 0 then
+				HTTP.prepare_content("application/json")
+				HTTP.write_json({status="error", message="Config file match cannot be empty"})
+				return
+			end
+			sid = uci:add("openclash", "config_overwrite")
+			uci:set("openclash", sid, "name", section_name)
+		end
+		uci:set("openclash", sid, "type", typ)
+		uci:set("openclash", sid, "url", url)
+		uci:set("openclash", sid, "update_days", update_days)
+		uci:set("openclash", sid, "update_hour", update_hour)
+		uci:set("openclash", sid, "param", param)
+		if #config_values > 0 then
+			uci:delete("openclash", sid, "config")
+			uci:set_list("openclash", sid, "config", config_values)
+		end
+		local order_num = tonumber(order)
+		if order_num == nil then
+			order_num = section and tonumber(section.order) or nil
+		end
+		if order_num == nil then
+			local max_order = -1
+			uci:foreach("openclash", "config_overwrite", function(s)
+				local o = tonumber(s.order)
+				if o and o > max_order then max_order = o end
+			end)
+			order_num = max_order + 1
+		end
+		uci:set("openclash", sid, "order", tostring(order_num))
+		local enable_num = tonumber(enable)
+		if enable_num == nil then
+			enable_num = section and tonumber(section.enable) or 0
+		end
+		uci:set("openclash", sid, "enable", tostring(enable_num == 1 and 1 or 0))
+		uci:commit("openclash")
 
 		HTTP.prepare_content("application/json")
 		HTTP.write_json({status="success"})
@@ -5523,7 +5485,7 @@ function action_overwrite_file_list()
 			for _, file in ipairs(files) do
 				local full_path = overwrite_dir .. file
 				local stat = fs.stat(full_path)
-				if stat and stat.type == "regular" then
+				if stat and stat.type == "regular" and file:sub(1, 1) ~= "." and not file:match("%.backup%.") and not file:match("%.tmp$") then
 					table.insert(overwrite_files, {
 						name = file,
 						path = full_path,
@@ -5553,6 +5515,11 @@ function delete_overwrite_file()
 		HTTP.write_json({status="error", message="Missing filename"})
 		return
 	end
+	if not is_safe_filename(filename) then
+		HTTP.prepare_content("application/json")
+		HTTP.write_json({status="error", message="Invalid filename"})
+		return
+	end
 	local overwrite_dir = "/etc/openclash/overwrite/"
 	local file_path = overwrite_dir .. filename
 
@@ -5574,7 +5541,7 @@ function delete_overwrite_file()
 	end)
 	table.sort(order_list, function(a, b) return a.order < b.order end)
 	for idx, item in ipairs(order_list) do
-		uci:set("openclash", item.section, "order", tostring(idx - 1))
+		uci:set("openclash", item.section, "order", tostring(idx))
 	end
 	uci:commit("openclash")
 

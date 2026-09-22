@@ -56,7 +56,7 @@
 | **配置文件选择器** | 下拉切换当前使用的 YAML 配置 | `action_switch_config` → 更新 `config_path` + 自动重启 |
 | **切换 (Switch)** | 切换到选中的配置 | 同上 |
 | **更新配置** | 重新下载订阅并更新 | `action_update_config` → 调用 `openclash.sh` |
-| **编辑 (Edit)** | 在线编辑 YAML 配置文件 | 弹出 `config_edit` 模态框 (基于 CodeMirror，支持原始/运行时视图切换、合并视图对比、覆写卡片栏) |
+| **编辑 (Edit)** | 在线编辑 YAML 配置文件 | 弹出 `config_edit` 模态框 (基于 CodeMirror，支持原始/运行时视图切换、合并视图对比、覆写模块列表栏) |
 | **编辑订阅** | 修改该配置的订阅参数 | 跳转到 `config-subscribe-edit` |
 | **上传** | 上传新的 YAML 配置文件 | 弹出 `config_upload` 模态框 (支持文件上传 + 订阅链接两个标签页) |
 | **刷新订阅按钮** | 手动刷新当前配置的订阅信息 | `/sub_info_get` 端点 |

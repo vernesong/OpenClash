@@ -2051,8 +2051,9 @@
 
         isModuleForCurrentConfig: function(moduleInfo, currentConfigPath) {
             var configList = this.parseModuleConfigList(moduleInfo ? moduleInfo.config : null);
+            // an empty match list never applies (init.d skips overwrite modules without config)
             if (!configList.length) {
-                return true;
+                return false;
             }
 
             if (configList.indexOf('all') !== -1) {

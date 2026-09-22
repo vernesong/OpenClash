@@ -10,7 +10,7 @@
 
 | 类型 | UCI `type` 值 | 说明 |
 |------|--------------|------|
-| **本地文件** | `file` | 读取 `/etc/openclash/overwrite/<名称>` |
+| **本地模块** | `file` | 读取 `/etc/openclash/overwrite/<名称>` |
 | **远程模块** | `http` | 从 URL 下载到 `/etc/openclash/overwrite/<名称>`，支持 cron 定时更新 |
 
 远程模块可设置 `update_days` 和 `update_hour` 实现定时自动拉取。
@@ -131,7 +131,7 @@ fi
 |---------|------|------|------|
 | `name` | string | *(必填)* | 唯一标识，对应 `/etc/openclash/overwrite/<name>` 覆写文件名 |
 | `enable` | bool | `0` | `1`=启用该覆写条目 |
-| `type` | string | `file` | `file`=本地文件；`http`=远程下载（需配置 `url`/`update_days`/`update_hour`） |
+| `type` | string | `file` | `file`=本地模块；`http`=远程下载（需配置 `url`/`update_days`/`update_hour`） |
 | `url` | string | *(空)* | `type=http` 时的下载地址 |
 | `config` | ListValue | *(空)* | 目标配置文件列表。`all`=应用到所有配置；或指定具体路径如 `/etc/openclash/config/xx.yaml`。**为空则永不匹配，覆写不生效** |
 | `param` | string | *(空)* | 传给覆写文件的额外键值对，格式 `KEY1=VALUE1;KEY2=VALUE2` |
