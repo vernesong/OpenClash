@@ -35,7 +35,8 @@ STACK_TYPE = mixed
 #### 17.3.2 通过 [Overwrite] 段添加自定义代理组
 ```ini
 [Overwrite]
-ruby_merge "$CONFIG_FILE" "proxy-groups" '{"name":"手动切换","type":"select","proxies":["DIRECT","Proxy"]}'
+# 第 2 参是键路径，第 3 参是插入下标，第 4 参是 Ruby 哈希字面量（注意用 => 而非 JSON 的 :）
+ruby_arr_insert_hash "$CONFIG_FILE" "['proxy-groups']" "0" "{'name'=>'手动切换', 'type'=>'select', 'proxies'=>['DIRECT', 'Proxy']}"
 ```
 
 #### 17.3.3 通过 [YAML] 段覆写完整 DNS 配置（默认合并 `key`）
@@ -86,13 +87,20 @@ rules+:
 #### 17.3.6 通过 [Overwrite] + ruby 函数动态修改（Shell 函数族，非 [YAML] 操作符）
 ```ini
 [Overwrite]
-# 追加规则文件
-ruby_arr_head_add_file "$CONFIG_FILE" "rules" "/etc/openclash/custom/openclash_custom_rules.list"
-# 删除 proxy-providers 中特定的条目
-ruby_delete "$CONFIG_FILE" "proxy-providers.低质量节点"
-# 修改 DNS nameserver
-ruby_cover "$CONFIG_FILE" "dns.nameserver" '[223.5.5.5, 119.29.29.29]'
+# 把规则文件的条目插到 rules 开头（第 2 参是键路径，第 4 参是列表文件内的取值路径）
+ruby_arr_head_add_file "$CONFIG_FILE" "['rules']" "/etc/openclash/custom/openclash_custom_rules.list" "['rules']"
+# 删除 proxy-providers 下的指定条目
+ruby_delete "$CONFIG_FILE" "['proxy-providers']" "provider1"
+# 用外部文件里的 nameserver 列表替换 dns.nameserver
+ruby_cover "$CONFIG_FILE" "['dns']['nameserver']" "/etc/openclash/custom/openclash_custom_dns.yaml" "nameserver"
 ```
+
+> **⚠️ 写法限制**：每行必须是**单个白名单 `ruby_*` 函数调用**且参数整体加引号，参数内不能有 `\`、`;`、反引号、`$( )`，也不能出现 `system`/`exec`/`eval`/`require`/`%x`/`#{…}`/`ENV`/`File.` 等 token（详见 `16-overwrite-module-format.md` §16.2.2）。因此**正则里的 `\.` 要写成 `[.]`**，**字面 `$` 用单引号参数**避免被当环境变量展开：
+```ini
+[Overwrite]
+ruby_map_edit "$CONFIG_FILE" "['proxy-providers']" "provider1" "['filter']" '^abc[.]com$x'
+```
+> 被拦下的行不会执行，日志里是 `skip invalid Overwrite command【Ruby Script => 模块名: 行】`。
 
 #### 17.3.7 使用 CONFIG_FILE 切换配置 + 设置 Age 密钥
 ```ini
@@ -112,6 +120,7 @@ DOWNLOAD_FILE = url=https://example.com/rules.yaml, path=/etc/openclash/rule_pro
 **文件**: `/etc/openclash/custom/openclash_custom_overwrite.sh`
 **执行时机**: 在 `yml_change.sh` 和 `yml_rules_change.sh` 之间执行
 **特点**: 可以使用项目提供的 `ruby_*` 函数族
+**值写法限制**：同 `[Overwrite]` 段（见 §17.3.6 与 `16-overwrite-module-format.md` §16.2.2）——值里不能含 `\`、`;`、反引号、`$( )`，也不能出现 `system`/`exec`/`ENV` 等 token，命中时跳过并记录 `skip unsafe Overwrite command`。
 
 ```bash
 #!/bin/bash
@@ -119,7 +128,7 @@ DOWNLOAD_FILE = url=https://example.com/rules.yaml, path=/etc/openclash/rule_pro
 
 CFG_FILE=$(uci_get_config "config_path")
 if [ -f "$CFG_FILE" ]; then
-    ruby_arr_head_add_file "$CFG_FILE" "rules" "/etc/openclash/custom/openclash_custom_rules.list"
+    ruby_arr_head_add_file "$CFG_FILE" "['rules']" "/etc/openclash/custom/openclash_custom_rules.list" "['rules']"
 fi
 ```
 
@@ -178,7 +187,7 @@ fi
 | `SOCKS_PORT` | int | `socks_port` | SOCKS5 端口 |
 | `MIXED_PORT` | int | `mixed_port` | 混合代理端口 |
 | `CN_PORT` | int | `cn_port` | API 端口 |
-| `DA_PASSWORD` | string | `dashboard_password` | Dashboard 密钥 |
+| `DASHBOARD_PASSWORD` | string | `dashboard_password` | Dashboard 密钥 |
 | `TOLERANCE` | int | `tolerance` | URL-Test 容差 |
 | `URLTEST_ADDRESS_MOD` | string | `urltest_address_mod` | 测速地址 |
 | `URLTEST_INTERVAL_MOD` | int | `urltest_interval_mod` | 测速间隔 |
@@ -226,7 +235,7 @@ fi
 | `APPEND_DEFAULT_DNS` | int_bool | — | 追加默认 DNS |
 | `AGE_SECRET_KEY` | string | — | Age 加密私钥 |
 | `AGE_PUBLIC_KEY` | string | — | Age 加密公钥 |
-| `CONFIG_FILE` | string | — | 覆写指定配置文件路径 |
+| `CONFIG_FILE` | string | — | 覆写指定配置文件路径（仅接受 `/etc/openclash/` 下的普通文件，含 `..`、以 `.` 开头或目录会被跳过） |
 | `SUB_INFO_URL` | string | — | 订阅信息查询 URL |
 | `DOWNLOAD_FILE` | string | — | 下载外部文件（格式见 `16-overwrite-module-format.md` §16.2.4） |
 | `RESTART` | bool | — | `true`=覆写后重启核心（仅 `type=http` cron 更新时） |

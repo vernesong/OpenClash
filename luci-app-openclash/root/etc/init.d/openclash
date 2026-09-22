@@ -59,6 +59,17 @@ proxy_throw_route_del()
    done
 }
 
+cron_quote()
+{
+   printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"
+}
+
+cron_append()
+{
+   [ -s "$CRON_FILE" ] && [ -n "$(tail -c 1 "$CRON_FILE" 2>/dev/null)" ] && echo >> "$CRON_FILE"
+   printf '%s\n' "$1" >> "$CRON_FILE"
+}
+
 add_cron()
 {
    [ "$(tail -n1 /etc/crontabs/root | wc -l)" -eq 0 ] && [ -n "$(cat /etc/crontabs/root 2>/dev/null)" ] && echo >> /etc/crontabs/root
@@ -3020,7 +3031,7 @@ revert_firewall()
 
 add_overwrite_cron()
 {
-   local section="$1" enable type day hour url name
+   local section="$1" enable type day hour url name safe_name cron_dest cron_cmd
    config_get_bool "enable" "$section" "enable" "1"
    config_get "type" "$section" "type" "file"
    config_get "url" "$section" "url" ""
@@ -3032,31 +3043,65 @@ add_overwrite_cron()
       return
    fi
 
-   eval "restart_flag=\${OVERWRITE_RESTART_FLAG_${name}}"
-   cron_cmd="$cron source /usr/share/openclash/openclash_curl.sh && DOWNLOAD_FILE_CURL \"$url\" \"/etc/openclash/overwrite/$name\" \"/etc/openclash/overwrite/$name\""
+   safe_name=$(printf '%s' "$name" | tr -c 'A-Za-z0-9' '_')
+   eval "restart_flag=\${OVERWRITE_RESTART_FLAG_${safe_name}}"
+   cron_dest="/etc/openclash/overwrite/$name"
+   cron_cmd="source /usr/share/openclash/openclash_curl.sh && DOWNLOAD_FILE_CURL $(cron_quote "$url") $(cron_quote "$cron_dest") $(cron_quote "$cron_dest")"
    if [ "$restart_flag" = "1" ]; then
       cron_cmd="$cron_cmd && [ \"\$?\" -eq 0 ] && /etc/init.d/openclash restart"
    fi
    cron_cmd="$cron_cmd #openclash-overwrite-download"
 
-   echo "0 $update_hour * * $update_days $cron_cmd" >> $CRON_FILE
+   cron_append "0 $update_hour * * $update_days $cron_cmd"
 }
 
-check_type() {
+strip_quotes()
+{
+   #Same result as sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//" but without forking
+   local v="$1" t
+   t="${v#"${v%%[![:space:]]*}"}"
+   case "$t" in [\"\']*) v="${t#?}";; esac
+   t="${v%"${v##*[![:space:]]}"}"
+   case "$t" in *[\"\']) v="${t%?}";; esac
+   OVERWRITE_STRIPPED="$v"
+}
+
+lookup_uci_name()
+{
+   #Map an allowed key to its uci option name, $1 must be an upper case allowed key
+   OVERWRITE_UCI_NAME=""
+   case " $allowed_names_map " in
+      *" $1:"*)
+         OVERWRITE_UCI_NAME="${allowed_names_map#*" $1:"}"
+         OVERWRITE_UCI_NAME="${OVERWRITE_UCI_NAME%% *}"
+         ;;
+   esac
+}
+
+check_type()
+{
    local key="$1"
    local value="$2"
-   local type=$(echo "$allowed_types_map" | grep "^${key}:" | cut -d: -f2)
+   local type=""
+   case " $allowed_types_map " in
+      *" ${key}:"*)
+         type="${allowed_types_map#*" ${key}:"}"
+         type="${type%% *}"
+         ;;
+   esac
    case "$type" in
       int)
-         echo "$value" | grep -Eq '^[0-9]+$'
-         return $?
+         case "$value" in
+            ""|*[!0-9]*) return 1;;
+            *) return 0;;
+         esac
          ;;
       int_bool)
-         [[ "$value" == "0" || "$value" == "1" ]]
+         [ "$value" = "0" ] || [ "$value" = "1" ]
          return $?
          ;;
       bool)
-         [[ "$value" == "true" || "$value" == "false" ]]
+         [ "$value" = "true" ] || [ "$value" = "false" ]
          return $?
          ;;
       string|*)
@@ -3087,7 +3132,7 @@ overwrite_config_match_item()
 
 expand_env_vars()
 {
-   #仅展开 ${VAR} / $VAR，其余字符（引号、括号、反引号、反斜杠、$1 等）原样保留
+   #Expand ${VAR} / $VAR only, keep all other characters as-is
    local rest="$1"
    local out="" head name val c
 
@@ -3113,6 +3158,11 @@ expand_env_vars()
                   ;;
                *) out="$out\$";;
             esac
+            continue
+            ;;
+         '$'*)
+            out="$out\$\$"
+            rest="${rest#?}"
             continue
             ;;
       esac
@@ -3171,7 +3221,7 @@ EOF
       CUSTOM_FAKEIP_FILTER_MODE:string \
       CUSTOM_HOST:int_bool \
       CUSTOM_NAME_POLICY:int_bool \
-      DA_PASSWORD:string \
+      DASHBOARD_PASSWORD:string \
       DELAY_START:int \
       DISABLE_QUIC_GO_GSO:int_bool \
       DISABLE_UDP_QUIC:int_bool \
@@ -3250,31 +3300,52 @@ EOF
       RESTART:bool \
    "
 
-   allowed_keys_list=$(echo "$allowed_keys_types" | tr ' ' '\n' | cut -d: -f1)
-   allowed_types_map=$(echo "$allowed_keys_types" | tr ' ' '\n')
+   allowed_types_map=$(printf '%s' "$allowed_keys_types" | tr ' ' '\n' | grep ':' | tr '\n' ' ')
+   allowed_names_map=$(printf '%s' "$allowed_keys_types" | tr ' ' '\n' | grep ':' | awk -F: '{ printf "%s:%s ", $1, tolower($1) }')
 
    uci -q add openclash overwrite >/dev/null 2>&1
 
-   overwrite_list=$(uci -q show openclash 2>/dev/null | grep "=config_overwrite" | awk -F'[.=]' '{print $2}' | while read -r sid; do
-      order=$(uci -q get openclash."$sid".order 2>/dev/null)
-      [ -z "$order" ] && order=0
-      name=$(uci -q get openclash."$sid".name 2>/dev/null)
-      enable_flag=$(uci -q get openclash."$sid".enable 2>/dev/null || echo 0)
-      printf "%s|%s|%s|%s\n" "$order" "$name" "$sid" "$enable_flag"
-   done | sort -nr -t'|' -k1,1)
+   overwrite_list=$(uci -q show openclash 2>/dev/null | awk -F"'" '
+      $1 ~ /^openclash\.[^.]+=config_overwrite$/ {
+         sid=$1
+         sub(/^openclash\./, "", sid)
+         sub(/=config_overwrite$/, "", sid)
+         order[sid]=0
+         enable[sid]=0
+         next
+      }
+      $1 ~ /^openclash\.[^.]+\./ {
+         rest=$1
+         sub(/^openclash\./, "", rest)
+         sub(/=$/, "", rest)
+         dot=index(rest, ".")
+         sid=substr(rest, 1, dot-1)
+         if (!(sid in order)) next
+         key=substr(rest, dot+1)
+         if (key == "order") order[sid]=$2
+         else if (key == "name") name[sid]=$2
+         else if (key == "enable") enable[sid]=$2
+      }
+      END { for (sid in order) printf "%s|%s|%s|%s\n", order[sid], name[sid], sid, enable[sid] }
+   ' | sort -nr -t'|' -k1,1)
+
+   config_load "openclash"
 
    while IFS= read -r entry; do
       [ -z "$entry" ] && continue
-      name=$(echo "$entry" | cut -d'|' -f2)
-      sid=$(echo "$entry" | cut -d'|' -f3)
-      enabled_flag=$(echo "$entry" | cut -d'|' -f4)
+      entry="${entry#*|}"
+      name="${entry%%|*}"
+      entry="${entry#*|}"
+      sid="${entry%%|*}"
+      enabled_flag="${entry#*|}"
+
+      [ -z "$name" ] && continue
+      [ "$enabled_flag" != "1" ] && continue
+
       OVERWRITE_CONFIG_MATCHED=0
-      config_load "openclash"
       config_foreach overwrite_config_match_check "config_overwrite" "$name"
 
       [ "$OVERWRITE_CONFIG_MATCHED" -eq 0 ] && continue
-      [ "$enabled_flag" != "1" ] && continue
-      [ -z "$name" ] && continue
 
       file="/etc/openclash/overwrite/${name}"
       [ ! -f "$file" ] && continue
@@ -3288,6 +3359,7 @@ EOF
       age_config_name="${cfg_name%.*}"
       age_secret_key=""
       age_public_key=""
+      module_flag_name=$(printf '%s' "$name" | tr -c 'A-Za-z0-9' '_')
 
       param=$(uci -q get openclash."$sid".param 2>/dev/null || echo '')
       if [ -n "$param" ]; then
@@ -3313,20 +3385,26 @@ EOF
       download_file_lines=""
 
       while IFS= read -r line || [ -n "$line" ]; do
-         trimmed=$(printf "%s" "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+         trimmed="${line#"${line%%[![:space:]]*}"}"
+         trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
          case "$trimmed" in
                "[General]"*) in_general=1; in_overwrite=0; in_yaml=0; continue;;
                "[Overwrite]"*) in_general=0; in_overwrite=1; in_yaml=0; continue;;
                "[YAML]"*) in_general=0; in_overwrite=0; in_yaml=1; continue;;
-               "["*"]"*) in_general=0; in_overwrite=0; in_yaml=0; continue;;
+               "["*"]"*)
+                  unknown_section="${trimmed#\[}"; unknown_section="${unknown_section%\]}"
+                  case "$unknown_section" in
+                     ""|*[!A-Za-z0-9_-]*) ;;
+                     *) in_general=0; in_overwrite=0; in_yaml=0; continue;;
+                  esac
+                  ;;
          esac
          [ -z "$trimmed" ] && continue
-         echo "$trimmed" | grep -qE '^[#;]' && continue
+         case "$trimmed" in '#'*|';'*) continue;; esac
 
          if [ "$in_general" -eq 1 ]; then
-            key=$(printf "%s" "$trimmed" | awk -F'=' '{gsub(/[[:space:]]+$/,"",$1); print $1}' | sed 's/[[:space:]]*$//;s/ //g')
-            key_u=$(printf "%s" "$key" | tr 'a-z' 'A-Z' | tr -d ' ')
-            if printf "%s" "$key_u" | grep -q "^DOWNLOAD_FILE$"; then
+            key_u=$(printf "%s" "${trimmed%%=*}" | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/; s/ //g')
+            if [ "$key_u" = "DOWNLOAD_FILE" ]; then
                download_file_lines="${download_file_lines}
   ${trimmed}"
             fi
@@ -3338,15 +3416,13 @@ EOF
       printf "%s\n" "$download_file_lines" | sed '/^$/d' > "$download_file_lines_tmp"
 
       while IFS= read -r trimmed; do
-         key=$(printf "%s" "$trimmed" | awk -F'=' '{gsub(/[[:space:]]+$/,"",$1); print $1}' | sed 's/[[:space:]]*$//;s/ //g')
-         val=$(echo "$trimmed" | sed 's/^[^=]*=[[:space:]]*//')
-         key_u=$(printf "%s" "$key" | tr 'a-z' 'A-Z' | tr -d ' ')
-         url=$(eval "echo \"$(echo "$val" | sed -nE 's/.*url[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')\"")
-         path=$(eval "echo \"$(echo "$val" | sed -nE 's/.*path[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')\"")
-         cron=$(eval "echo \"$(echo "$val" | sed -nE 's/.*cron[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')\"")
-         force=$(eval "echo \"$(echo "$val" | sed -nE 's/.*force[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')\"")
-         ua=$(eval "echo \"$(echo "$val" | sed -nE 's/.*ua[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')\"")
-         restart=$(eval "echo \"$(echo "$val" | sed -nE 's/.*restart[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')\"")
+         val="${trimmed#*=}"
+         url=$(expand_env_vars "$(echo "$val" | sed -nE 's/.*url[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')")
+         path=$(expand_env_vars "$(echo "$val" | sed -nE 's/.*path[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')")
+         cron=$(expand_env_vars "$(echo "$val" | sed -nE 's/.*cron[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')")
+         force=$(expand_env_vars "$(echo "$val" | sed -nE 's/.*force[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')")
+         ua=$(expand_env_vars "$(echo "$val" | sed -nE 's/.*ua[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')")
+         restart=$(expand_env_vars "$(echo "$val" | sed -nE 's/.*restart[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')")
          [ -z "$cron" ] && cron=0
          if [ -z "$path" ] || [ -z "$url" ]; then
             LOG_WARN "DOWNLOAD FILE no target in【Download Job => file: $file】"
@@ -3375,17 +3451,13 @@ EOF
          fi
          if [ "$cron" != "0" ]; then
             LOG_TIP "Add Cron for【Cron Job => time: $cron, url: $url, path: $path, restart: ${restart:-false}】"
-            if ! grep -q "$url" $CRON_FILE 2>/dev/null; then
-               if [ -n "$ua" ]; then
-                  cron_cmd="$cron source /usr/share/openclash/openclash_curl.sh && DOWNLOAD_FILE_CURL \"$url\" \"$path\" \"$path\" \"$ua\""
-               else
-                  cron_cmd="$cron source /usr/share/openclash/openclash_curl.sh && DOWNLOAD_FILE_CURL \"$url\" \"$path\" \"$path\""
-               fi
+            if ! grep -qF -- "$url" "$CRON_FILE" 2>/dev/null; then
+               cron_cmd="source /usr/share/openclash/openclash_curl.sh && DOWNLOAD_FILE_CURL $(cron_quote "$url") $(cron_quote "$path") $(cron_quote "$path")"
+               [ -n "$ua" ] && cron_cmd="$cron_cmd $(cron_quote "$ua")"
                if [ "$restart" = "1" ] || [ "$restart" = "true" ]; then
                   cron_cmd="$cron_cmd && [ \"\$?\" -eq 0 ] && /etc/init.d/openclash restart"
                fi
-               cron_cmd="$cron_cmd #openclash-overwrite-download"
-               echo "$cron_cmd" >> $CRON_FILE
+               cron_append "$cron $cron_cmd #openclash-overwrite-download"
             fi
          fi
       done < "$download_file_lines_tmp"
@@ -3397,38 +3469,66 @@ EOF
       in_general=0
       in_overwrite=0
       in_yaml=0
-      yaml_content=""
+      yaml_temp_file=""
       while IFS= read -r line || [ -n "$line" ]; do
-         trimmed=$(printf "%s" "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+         trimmed="${line#"${line%%[![:space:]]*}"}"
+         trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
          case "$trimmed" in
                "[General]"*) in_general=1; in_overwrite=0; in_yaml=0; continue;;
                "[Overwrite]"*) in_general=0; in_overwrite=1; in_yaml=0; continue;;
                "[YAML]"*) in_general=0; in_overwrite=0; in_yaml=1; continue;;
-               "["*"]"*) in_general=0; in_overwrite=0; in_yaml=0; continue;;
+               "["*"]"*)
+                  unknown_section="${trimmed#\[}"; unknown_section="${unknown_section%\]}"
+                  case "$unknown_section" in
+                     ""|*[!A-Za-z0-9_-]*) ;;
+                     *) in_general=0; in_overwrite=0; in_yaml=0; continue;;
+                  esac
+                  ;;
          esac
          [ -z "$trimmed" ] && continue
-         echo "$trimmed" | grep -qE '^[#;]' && continue
+         case "$trimmed" in '#'*|';'*) continue;; esac
 
          if [ "$in_general" -eq 1 ]; then
-            key=$(printf "%s" "$trimmed" | awk -F'=' '{gsub(/[[:space:]]+$/,"",$1); print $1}' | sed 's/[[:space:]]*$//;s/ //g')
-            key_u=$(printf "%s" "$key" | tr 'a-z' 'A-Z' | tr -d ' ')
-            if printf "%s" "$key_u" | grep -q "^DOWNLOAD_FILE$"; then
+            key_u=$(printf "%s" "${trimmed%%=*}" | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/; s/ //g')
+            case "$trimmed" in
+               *=*) val="${trimmed#*=}";;
+               *) val="$trimmed";;
+            esac
+            val="${val#"${val%%[![:space:]]*}"}"
+
+            if [ "$key_u" = "DOWNLOAD_FILE" ]; then
                continue
             fi
-            val=$(echo "$trimmed" | sed 's/^[^=]*=[[:space:]]*//')
-            if printf "%s" "$key_u" | grep -q "^CONFIG_FILE$"; then
-               val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
-               RAW_CONFIG_FILE=$(eval "echo \"$val_clean\"")
+            if [ "$key_u" = "CONFIG_FILE" ]; then
+               strip_quotes "$val"
+               RAW_CONFIG_FILE=$(expand_env_vars "$OVERWRITE_STRIPPED")
+               case "$RAW_CONFIG_FILE" in
+                  /etc/openclash/*) ;;
+                  *)
+                     LOG_WARN "skip config file outside /etc/openclash【General Key => $name: $RAW_CONFIG_FILE】"
+                     continue
+                     ;;
+               esac
+               case "$RAW_CONFIG_FILE" in
+                  *..*|*/)
+                     LOG_WARN "skip config file with unsafe path【General Key => $name: $RAW_CONFIG_FILE】"
+                     continue
+                     ;;
+               esac
+               cfg_name="${RAW_CONFIG_FILE##*/}"
+               case "$cfg_name" in
+                  .*)
+                     LOG_WARN "skip hidden config file【General Key => $name: $RAW_CONFIG_FILE】"
+                     continue
+                     ;;
+               esac
                uci -q set openclash.@overwrite[0].config_path="$RAW_CONFIG_FILE"
-               cfg_name=$(basename "$RAW_CONFIG_FILE" 2>/dev/null)
-               if [ -n "$cfg_name" ]; then
-                  age_config_name="${cfg_name%.*}"
-                  CONFIG_FILE="/etc/openclash/${cfg_name}"
-                  TMP_CONFIG_FILE="/tmp/${cfg_name}"
-               fi
-            elif printf "%s" "$key_u" | grep -q "^SUB_INFO_URL$"; then
-               val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
-               url_key=$(eval "echo \"$val_clean\"")
+               age_config_name="${cfg_name%.*}"
+               CONFIG_FILE="/etc/openclash/${cfg_name}"
+               TMP_CONFIG_FILE="/tmp/${cfg_name}"
+            elif [ "$key_u" = "SUB_INFO_URL" ]; then
+               strip_quotes "$val"
+               url_key=$(expand_env_vars "$OVERWRITE_STRIPPED")
                [ -z "$url_key" ] && continue
                config_load "openclash"
                config_foreach sub_info_set "subscribe_info" "${cfg_name%.*}" "$url_key"
@@ -3437,43 +3537,53 @@ EOF
                   uci -q set openclash.@subscribe_info[-1].name="${cfg_name%.*}"
                   uci -q add_list openclash.@subscribe_info[-1].url="$url_key"
                fi
-            elif printf "%s" "$key_u" | grep -q "^AGE_SECRET_KEY$"; then
-               val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
-               val_key=$(eval "echo \"$val_clean\"")
-               [ -z "$val_key" ] && continue
-               age_secret_key="$val_key"
-            elif printf "%s" "$key_u" | grep -q "^AGE_PUBLIC_KEY$"; then
-               val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
-               val_key=$(eval "echo \"$val_clean\"")
-               [ -z "$val_key" ] && continue
-               age_public_key="$val_key"
-            elif printf "%s" "$key_u" | grep -q "^RESTART$"; then
-               val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
-               val_key=$(eval "echo \"$val_clean\"")
-               if printf "%s" "$val_key" | grep -qE '^(1|true|yes)$'; then
-                  eval OVERWRITE_RESTART_FLAG_${name}=1
-               fi
+            elif [ "$key_u" = "AGE_SECRET_KEY" ]; then
+               strip_quotes "$val"
+               age_secret_key=$(expand_env_vars "$OVERWRITE_STRIPPED")
+               [ -z "$age_secret_key" ] && continue
+            elif [ "$key_u" = "AGE_PUBLIC_KEY" ]; then
+               strip_quotes "$val"
+               age_public_key=$(expand_env_vars "$OVERWRITE_STRIPPED")
+               [ -z "$age_public_key" ] && continue
+            elif [ "$key_u" = "RESTART" ]; then
+               strip_quotes "$val"
+               val_key=$(expand_env_vars "$OVERWRITE_STRIPPED")
+               case "$val_key" in
+                  1|true|yes) eval "OVERWRITE_RESTART_FLAG_${module_flag_name}=1";;
+               esac
             else
-               if echo "$allowed_keys_list" | grep -xq "$key_u"; then
-                  key_l=$(printf "%s" "$key_u" | tr 'A-Z' 'a-z' | tr -d ' ')
-                  val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
-                  val_key=$(eval "echo \"$val_clean\"")
-                  if check_type "$key_u" "$val_clean"; then
-                     uci -q set openclash.@overwrite[0]."$key_l"="$val_key"
-                  fi
-               else
-                  LOG_WARN "skip General key not allowed【General Key => $name: $key_u】"
-               fi
+               case " $allowed_types_map " in
+                  *" $key_u:"*)
+                     strip_quotes "$val"
+                     val_key=$(expand_env_vars "$OVERWRITE_STRIPPED")
+                     if check_type "$key_u" "$OVERWRITE_STRIPPED"; then
+                        lookup_uci_name "$key_u"
+                        uci -q set openclash.@overwrite[0]."$OVERWRITE_UCI_NAME"="$val_key"
+                     fi
+                     ;;
+                  *)
+                     LOG_WARN "skip General key not allowed【General Key => $name: $key_u】"
+                     ;;
+               esac
             fi
          elif [ "$in_overwrite" -eq 1 ]; then
-            if printf "%s" "$trimmed" | grep -qE '^ruby_[a-z_]+\b'; then
+            if overwrite_ruby_line_check "$trimmed"; then
                echo "$trimmed" >> "$overwrite_script"
                LOG_TIP "Load Overwrite Script【Ruby Script => $trimmed】"
             else
                LOG_WARN "skip invalid Overwrite command【Ruby Script => $name: $trimmed】"
             fi
          elif [ "$in_yaml" -eq 1 ]; then
-            yaml_content="${yaml_content}$(expand_env_vars "$line")"$'\n'
+            case "$line" in
+               *'$'*) yaml_line=$(expand_env_vars "$line");;
+               *) yaml_line="$line";;
+            esac
+            if [ -z "$yaml_temp_file" ]; then
+               mkdir -p "/tmp/yaml_openclash_override_parts"
+               yaml_temp_file="/tmp/yaml_openclash_override_parts/${sid}.tmp"
+               : > "$yaml_temp_file"
+            fi
+            printf '%s\n' "$yaml_line" >> "$yaml_temp_file"
          fi
       done < "$file"
 
@@ -3481,46 +3591,37 @@ EOF
          uci_set_age_keys_by_name "$age_config_name" "$age_secret_key" "$age_public_key"
       fi
 
-      if [ -n "$yaml_content" ]; then
+      if [ -n "$yaml_temp_file" ]; then
          LOG_TIP "Load YAML Override Block【YAML Block => $name】"
 
-         #YAML 原文单独落盘，不经过 shell 展开，避免正则里的 " $ ` ( ) \ 被吃掉
-         mkdir -p /tmp/yaml_openclash_override_parts
-         printf '%s' "$yaml_content" > "/tmp/yaml_openclash_override_parts/${sid}"
+         #Write the YAML to a file so the shell never expands its quotes, backslashes or regex
+         mv "$yaml_temp_file" "/tmp/yaml_openclash_override_parts/${sid}"
 
          cat >> "$overwrite_script" <<'EOF'
-if [ -f "/tmp/yaml_openclash_override_parts/$OPENCLASH_OVERWRITE_SID" ]; then
-   OPENCLASH_YAML_OVERRIDE_FILE="/tmp/yaml_openclash_override_parts/$OPENCLASH_OVERWRITE_SID"
-   export OPENCLASH_YAML_OVERRIDE_FILE
-   export CONFIG_FILE
-   ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e '
-      # YAML Override Block Processing
-      begin
-         yaml_override_content = File.read(ENV["OPENCLASH_YAML_OVERRIDE_FILE"])
+OPENCLASH_YAML_OVERRIDE_FILE="/tmp/yaml_openclash_override_parts/$OPENCLASH_OVERWRITE_SID"
+export OPENCLASH_YAML_OVERRIDE_FILE
+ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e '
+   # YAML Override Block Processing
+   begin
+      yaml_override_content = File.read(ENV["OPENCLASH_YAML_OVERRIDE_FILE"])
+      yaml_data = YAML.load(yaml_override_content)
 
-         begin
-            yaml_data = YAML.load(yaml_override_content)
-
-            if yaml_data.is_a?(Hash)
-               if File.exist?("/tmp/yaml_overwrite_marshal")
-                  Value = Marshal.load(File.open("/tmp/yaml_overwrite_marshal", "rb") { |f| f.read })
-               else
-                  Value = YAML.load_file(ENV["CONFIG_FILE"])
-               end
-               Overwrite_Value = YAML.overwrite(Value, yaml_data)
-               YAML.dump(Overwrite_Value, ENV["CONFIG_FILE"])
-               File.open("/tmp/yaml_overwrite_marshal", "wb") { |f| Marshal.dump(Overwrite_Value, f) }
-            else
-               YAML.LOG_WARN("Invalid YAML Override format, skipped...")
-            end
-         rescue => e
-            YAML.LOG_ERROR("Parse YAML Override failed:【%s】" % [e.message])
+      if yaml_data.is_a?(Hash)
+         if File.exist?("/tmp/yaml_overwrite_marshal")
+            Value = Marshal.load(File.open("/tmp/yaml_overwrite_marshal", "rb") { |f| f.read })
+         else
+            Value = YAML.load_file(ENV["CONFIG_FILE"])
          end
-      rescue => e
-         YAML.LOG_ERROR("Parse YAML Override failed:【%s】" % [e.message])
+         Overwrite_Value = YAML.overwrite(Value, yaml_data)
+         YAML.dump(Overwrite_Value, ENV["CONFIG_FILE"])
+         File.open("/tmp/yaml_overwrite_marshal", "wb") { |f| Marshal.dump(Overwrite_Value, f) }
+      else
+         YAML.LOG_WARN("Invalid YAML Override format, skipped...")
       end
-   ' >> $LOG_FILE 2>&1
-fi
+   rescue => e
+      YAML.LOG_ERROR("Parse YAML Override failed:【%s】" % [e.message])
+   end
+' >> $LOG_FILE 2>&1
 EOF
       fi
 
@@ -3551,12 +3652,15 @@ $overwrite_list
 EOF
 
    if [ -n "$(uci -q show openclash.@overwrite[0] | grep -v '=overwrite$')" ]; then
-      eval "$(uci -q show openclash.@overwrite[0] | grep -v '=overwrite$' | sed 's/^openclash\.@overwrite\[0\]\.//g' | sed 's/=/="/;s/$/"/')"
       while IFS='=' read -r key value; do
          [ -z "$key" ] && continue
          key_clean=$(echo "$key" | sed 's/^openclash\.[^.]*\.//')
          value_clean=$(echo "$value" | sed "s/^'//;s/'$//")
          [ -z "$key_clean" ] && continue
+         case "$key_clean" in
+            [!A-Za-z_]*|*[!A-Za-z0-9_]*) ;;
+            *) eval "$key_clean=\$value_clean";;
+         esac
          LOG_TIP "Load Overwrite Script【$key_clean => '$value_clean'】"
       done <<EOF
 $(uci -q show openclash.@overwrite[0] | grep -v '=overwrite$' | sed 's/^openclash\.@overwrite\[0\]\.//g')
@@ -3835,8 +3939,10 @@ stop_service()
             done
          fi
       done
-      # prevent respawn during stopping
-      procd_kill "openclash"
+      # prevent respawn during stopping, only the instances are removed so the procd
+      # service registration stays for the procd_kill appended by rc.common's stop()
+      procd_kill "openclash" "openclash"
+      procd_kill "openclash" "openclash-watchdog"
       for i in $(seq 1 10); do
          procd_running "openclash" >/dev/null && sleep 1 || break
       done
@@ -3864,6 +3970,12 @@ stop_service()
    } >/dev/null 2>&1
 
    echo "OpenClash Already Stop!"
+
+   # rc.common's stop() deletes the procd service right after this function and answers
+   # "Command failed: Not found" when nothing is registered, keep an empty definition
+   # so that delete always has a service to remove
+   procd_open_service "$(basename "${basescript:-$initscript}")" "$initscript"
+   procd_close_service "set"
 }
 
 restart()

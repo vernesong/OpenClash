@@ -47,7 +47,7 @@
 - **Mihomo 对应**: proxy-groups 中 url-test 类型的 `url` 字段
 - **实现细节**: `yml_rules_change.sh` 替换所有 url-test 策略组的测试 URL。Mihomo 内核周期性向此 URL 发送 HTTP HEAD/GET 请求测量延迟，作为节点选择的依据。
 
-#### 11.2.4 github_address_mod — Github 地址修改 (Github Address Proxy)
+#### 11.2.4 github_address_mod — Github 地址修改 (GitHub Address Proxy)
 - **UCI**: `openclash.@config_overwrite[0].github_address_mod`
 - **说明**: 通过代理/CDN 加速 GitHub 文件下载。**强烈推荐在 OpenClash 启动前就设置好此项**，因为插件和内核更新、GEO 数据库下载、Dashboard 下载均依赖 GitHub 连通性。推荐优先尝试 `https://testingcf.jsdelivr.net/`（jsDelivr 的 Cloudflare CDN），如不可用再切换其他 CDN
 - **预设**: 多个 jsdelivr CDN 地址（testingcf / fastly 等）
@@ -91,14 +91,14 @@
 - **最佳实践**: 在 Fake-IP 模式下推荐以下配置策略：① Nameserver 仅负责直连类域名的解析（使用运营商 DNS 或国内 DoH 如 AliDNS/DNSPod）；② **取消所有 Fallback 服务器**——Fake-IP 模式下若无 Fallback，非直连域名的解析请求将交由远端（代理节点侧）完成，解析结果与实际出站链路一致，可获得更一致的 CDN 命中并防止 DNS 泄露；③ 若出站侧解析不可用（罕见），可启用 Fallback 作为兜底并同时开启「遵循规则」功能。**不建议套娃其他 DNS 插件**（如 MosDNS/SmartDNS/AdGuardHome），多插件叠加会引入缓存一致性问题、增加内网解析延迟，且破坏 Mihomo 向客户端传递的 TTL 值
 - **实现细节**: 开启后 `yml_dns_custom()` 遍历所有 `dns_servers` 条目，按 group 分类（nameserver/fallback/default）构建 DNS 服务器列表，通过 Ruby YAML 合并写入 `dns.nameserver`、`dns.fallback`、`dns.default-nameserver`。
 
-#### 11.3.2 enable_respect_rules — 遵守路由规则 (Enable Respect Rules)
+#### 11.3.2 enable_respect_rules — 遵守路由规则 (Respect Rules)
 - **UCI**: `openclash.@config_overwrite[0].enable_respect_rules`
 - **默认**: 0
 - **Mihomo 对应**: `dns.respect-rules`
 - **说明**: DNS 连接是否遵守 YAML 中的路由规则
 - **实现细节**: 写入 YAML `dns.respect-rules: true`。Mihomo 内核的 DNS 解析器发出的连接将经过 `rules` 规则引擎匹配——意味着 DNS 查询本身也会被代理（通过匹配的代理节点发出），防止 DNS 泄露。需要配合 `proxy-server-nameserver` 防止鸡生蛋问题。
 
-#### 11.3.3 append_wan_dns — 附加上游 DNS (Append WAN DNS)
+#### 11.3.3 append_wan_dns — 附加上游 DNS (Append Upstream DNS)
 - **UCI**: `openclash.@config_overwrite[0].append_wan_dns`
 - **默认**: 1
 - **说明**: 将 WAN 口自动分配的运营商 DNS 和网关 IP 追加到 nameserver 列表。**主路由拨号环境推荐启用**：运营商 DNS 对直连类域名的解析延迟通常最低（1-2ms），CDN 命中更接近实际链路，省去手动配置的麻烦。若使用第三方加密 DNS（如 DoH/DoT），则需禁用此项并在 NameServer 中手动添加服务器
@@ -112,14 +112,14 @@
 - **仅**: Fake-IP 模式显示
 - **实现细节**: 写入 YAML `dns.fake-ip-range`。Mihomo 在 Fake-IP 模式下，将 DNS 查询的域名映射到此 CIDR 段中的虚拟 IP。应用连接到虚拟 IP 时内核通过路由表将流量导向 Mihomo，Mihomo 根据映射表还原真实域名后进行规则匹配。
 
-#### 11.3.5 store_fakeip — 持久化 Fake-IP (Store Fake-IP)
+#### 11.3.5 store_fakeip — 持久化 Fake-IP (Persistence Fake-IP)
 - **UCI**: `openclash.@config_overwrite[0].store_fakeip`
 - **默认**: 1
 - **Mihomo 对应**: `profile.store-fake-ip`
 - **说明**: 缓存 Fake-IP DNS 解析记录到文件，启动后加速响应
 - **实现细节**: 写入 YAML `profile.store-fake-ip: true`。Mihomo 将域名→Fake-IP 映射持久化到 `cache.db` 文件，重启后恢复映射，避免重启后所有域名需要重新解析。
 
-#### 11.3.6 custom_fallback_filter — 自定义 Fallback-Filter (Custom Fallback Filter)
+#### 11.3.6 custom_fallback_filter — 自定义 Fallback-Filter (Fallback-Filter)
 - **UCI**: `openclash.@config_overwrite[0].custom_fallback_filter`
 - **默认**: 0
 - **说明**: 配置 DNS 防污染回退过滤器
@@ -136,13 +136,13 @@
 >   - '+.google.com'
 > ```
 
-#### 11.3.7 custom_fakeip_filter — 自定义 Fake-IP-Filter (Custom Fake-IP Filter)
+#### 11.3.7 custom_fakeip_filter — 自定义 Fake-IP-Filter (Fake-IP-Filter)
 - **UCI**: `openclash.@config_overwrite[0].custom_fakeip_filter`
 - **默认**: 0
 - **仅**: Fake-IP 模式显示
 - **Mihomo 对应**: `dns.fake-ip-filter`
 
-#### 11.3.8 custom_fakeip_filter_mode — Fake-IP-Filter 模式 (Custom Fake-IP Filter Mode)
+#### 11.3.8 custom_fakeip_filter_mode — Fake-IP-Filter 模式 (Fake-IP-Filter-Mode)
 - **UCI**: `openclash.@config_overwrite[0].custom_fakeip_filter_mode`
 - **可选**: `blacklist` / `whitelist` / `rule`
 - **默认**: `blacklist`
@@ -156,19 +156,19 @@
 - **文件**: `/etc/openclash/custom/openclash_custom_fake_filter.list`
 - **格式**: 每行一个域名通配符，如 `*.lan`, `+.example.com`
 
-#### 11.3.10 custom_name_policy — 自定义 Nameserver-Policy (Custom Name Policy)
+#### 11.3.10 custom_name_policy — 自定义 Nameserver-Policy (Nameserver-Policy)
 - **UCI**: `openclash.@config_overwrite[0].custom_name_policy`
 - **文件**: `/etc/openclash/custom/openclash_custom_domain_dns_policy.list`
 - **Mihomo 对应**: `dns.nameserver-policy`
 - **格式**: 每行 `域名=DNS服务器组` 或使用 geosite/rule-set
 
-#### 11.3.11 custom_proxy_server_policy — 自定义 Proxy-Server-Nameserver-Policy (Custom Proxy Server Policy)
+#### 11.3.11 custom_proxy_server_policy — 自定义 Proxy-Server-Nameserver-Policy (Proxy-Server-Nameserver-Policy)
 - **UCI**: `openclash.@config_overwrite[0].custom_proxy_server_policy`
 - **文件**: `/etc/openclash/custom/openclash_custom_proxy_server_dns_policy.list`
 - **Mihomo 对应**: `dns.proxy-server-nameserver-policy`
 - **说明**: 仅用于解析代理节点域名的 DNS 策略
 
-#### 11.3.12 custom_host — 自定义 Hosts (Custom Hosts)
+#### 11.3.12 custom_host — 自定义 Hosts (Hosts)
 - **UCI**: `openclash.@config_overwrite[0].custom_host`
 - **文件**: `/etc/openclash/custom/openclash_custom_hosts.list`
 - **Mihomo 对应**: `dns.hosts`
@@ -243,7 +243,7 @@ dns:
 - **说明**: 消除连接握手等带来的不同类型节点延迟差异
 - **实现细节**: 写入 YAML `unified-delay: true`。Mihomo 在 URL-Test 延迟测量时计算 RTT（Round-Trip Time），而非简单的 TCP 握手时间 + HTTP 响应时间。这样 Shadowsocks、Trojan、VMess 等不同协议的节点延迟可公平比较。
 
-#### 11.4.3 find_process_mode — 启用进程规则 (Find Process Mode)
+#### 11.4.3 find_process_mode — 启用进程规则 (Enable Process Rule)
 - **UCI**: `openclash.@config_overwrite[0].find_process_mode`
 - **可选值**: `0`(禁用) / `off` / `always` / `strict`
 - **默认**: 0
@@ -281,7 +281,7 @@ dns:
 - **存储**: `/etc/openclash/custom/openclash_custom_sniffer.yaml`
 - **说明**: 多行 YAML 文本框，可自定义完整的 `sniffer:` 配置段。仅在 `enable_meta_sniffer_custom=1` 时生效
 
-#### 11.4.8 geodata_loader — Geodata 数据加载方式 (Geodata Loader)
+#### 11.4.8 geodata_loader — Geodata 数据加载方式 (Geodata Loader Mode)
 - **UCI**: `openclash.@config_overwrite[0].geodata_loader`
 - **可选值**: `0`(禁用) / `memconservative` / `standard`
 - **默认**: `memconservative`
@@ -294,7 +294,7 @@ dns:
 - **Mihomo 对应**: `geodata-mode: true`
 - **说明**: 使用 Dat 格式替换 MMDB 格式 GeoIP 文件。Dat 文件较大需单独下载，可通过「GEO 数据库订阅」页面获取
 
-#### 11.4.10 global_ua — 全局 User-Agent (Global UA)
+#### 11.4.10 global_ua — 全局 User-Agent (Global User-Agent)
 - **UCI**: `openclash.@config_overwrite[0].global_ua`
 - **默认**: 0 (禁用，使用系统默认 `clash.meta`)
 - **Mihomo 对应**: `global-ua`
@@ -367,7 +367,7 @@ dns:
 - **格式**: `策略名:系数;策略名:系数`，如 `Premium:0.9;SG:1.3`
 - **说明**: `<1` 降低优先级，`>1` 提高优先级，默认权重为 1。支持正则和字符串匹配策略组名称
 
-#### 11.5.3 smart_prefer_asn — 优先 ASN 查询 (Smart Prefer ASN)
+#### 11.5.3 smart_prefer_asn — 优先 ASN 查询 (Prefer-ASN)
 - **UCI**: `openclash.@config_overwrite[0].smart_prefer_asn`
 - **默认**: 0
 - **说明**: 强制查询并使用目标 ASN（自治系统号）信息，优先选择同一 ASN 的更稳定节点
@@ -386,20 +386,20 @@ dns:
 - **说明**: 当多个代理节点延迟在容差范围内时视为等效，按权重排序而非严格按延迟排序，防止因网络抖动导致频繁切换节点
 - **实现细节**: `yml_rules_change.sh` 在 smart auto switch 处理中，对每个 `type: smart` 的策略组设置 `group['tolerance']`
 
-#### 11.5.6 smart_collect — 收集训练数据 (Collectdata)
+#### 11.5.6 smart_collect — 收集训练数据 (Colletct Training Data)
 - **UCI**: `openclash.@config_overwrite[0].smart_collect`
 - **默认**: 0
 - **Mihomo YAML 映射**: `proxy-groups[].collectdata: true`, `proxy-groups[].sample-rate: <rate>`
 - **说明**: 在节点选择过程中收集延迟/抖动等数据供 LightGBM 模型训练。全局开关，会对所有 smart 类型策略组生效
 
-#### 11.5.7 smart_collect_size — 数据收集文件大小 (Smart Collect Size)
+#### 11.5.7 smart_collect_size — 数据收集文件大小 (Data Colletct File Size (MB))
 - **UCI**: `openclash.@config_overwrite[0].smart_collect_size`
 - **默认**: 100 (MB)
 - **Mihomo YAML 映射**: `profile.smart-collector-size: <size>` (全局配置)
 - **依赖**: `smart_collect=1`
 - **实现细节**: `yml_change.sh` 通过 `Value['profile']['smart-collector-size'] = <size>` 写入 YAML
 
-#### 11.5.8 smart_collect_rate — 数据采样率 (Smart Collect Rate)
+#### 11.5.8 smart_collect_rate — 数据采样率 (Data Colletct Rate)
 - **UCI**: `openclash.@config_overwrite[0].smart_collect_rate`
 - **默认**: 1 (范围 0-1)
 - **Mihomo YAML 映射**: `proxy-groups[].sample-rate: <rate>`

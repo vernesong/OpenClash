@@ -3903,8 +3903,20 @@ msgstr "跳过不支持的参数"
 msgid "skip General key type error"
 msgstr "跳过值类型错误的参数"
 
+msgid "skip config file outside /etc/openclash"
+msgstr "跳过 /etc/openclash 之外的配置文件"
+
+msgid "skip config file with unsafe path"
+msgstr "跳过路径不安全的配置文件"
+
+msgid "skip hidden config file"
+msgstr "跳过隐藏的配置文件"
+
 msgid "skip invalid Overwrite command"
 msgstr "跳过不支持的覆写命令"
+
+msgid "skip unsafe Overwrite command"
+msgstr "跳过不安全的覆写命令"
 
 msgid "Processing Overwrite Module"
 msgstr "执行覆写模块"

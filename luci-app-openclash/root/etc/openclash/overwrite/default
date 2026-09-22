@@ -12,7 +12,7 @@
 
 # --- 控制面板相关 ---
 # CN_PORT (控制面板端口)
-# DA_PASSWORD (控制面板访问密码)
+# DASHBOARD_PASSWORD (控制面板访问密码)
 
 # --- 端口相关 ---
 # PROXY_PORT (Redir代理端口)
@@ -163,6 +163,9 @@
 #[Overwrite]
 #EN_KEY 为对应模块需要用户指定的环境变量值, EN_KEY1=URL1;EN_KEY2=URL2;EN_KEY3=URL3
 #其他 Ruby 编辑函数请参考 openclash_custom_overwrite.sh
+#值里不能出现 \ 、; 、反引号 与 $( ) ，否则整行会被跳过并记录 skip invalid Overwrite command 日志
+#正则不使用反斜杠转义，改用字符类写法（\. 写作 [.]）；值里有字面 $ 时用单引号参数，避免被当作环境变量展开
+#ruby_map_edit "$CONFIG_FILE" "['proxy-providers']" "provider1" "['filter']" '^abc[.]com$x'
 #ruby_map_edit "$CONFIG_FILE" "['proxy-providers']" "优质服务商" "['url']" "$EN_KEY1"
 #ruby_map_edit "$CONFIG_FILE" "['proxy-providers']" "备用服务商" "['url']" "$EN_KEY2"
 #ruby_map_edit "$CONFIG_FILE" "['proxy-providers']" "落地服务商" "['url']" "$EN_KEY3"

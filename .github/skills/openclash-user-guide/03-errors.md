@@ -17,7 +17,7 @@
 |-----------|---------|------|----------|
 | `Ruby Works Abnormally, Please Check The Ruby Library Depends!` (Ruby 依赖异常) | 「运行状态」启动流程 | `ruby` 或 `ruby-yaml` 包未安装/损坏 | 「系统→软件包」安装 `ruby`、`ruby-yaml`、`ruby-psych` |
 | `Unable To Parse Config File` (配置文件校验失败) | 「运行状态」启动流程 | YAML 配置文件语法错误或 age 解密失败 | 「配置管理」页面点击 Edit 检查 YAML 语法 |
-| `Core Start Failed, Please Check The Log Infos!` (内核启动失败) | 「运行状态」启动流程 | 核心进程未能启动 | 「运行状态」查看核心版本是否正确；「运行日志」生成调试日志 |
+| `Core Start Failed, Please Check The Log Infos!` (内核启动失败) | 「运行状态」启动流程 | 核心进程未能启动 | 「运行状态」查看核心版本是否正确；「运行日志 → 调试日志」生成调试日志 |
 | `Core Initial Configuration Timeout` (内核初始化超时) | 「运行状态」启动流程 | 核心 API 在 300 秒内未就绪 | 检查 `/tmp/openclash.log` 中核心日志；确认「覆写设置→常规」的 cn_port 未被占用 |
 | `TUN Interface Start Failed` (TUN 接口启动失败) | 「运行状态」启动流程 | TUN 虚拟网卡创建失败 | 「系统→软件包」确认 `kmod-tun` 已安装 |
 | `【{module}】module not found` (内核模块未找到) | 「运行状态」启动流程 | 内核模块未安装/未加载（tun/tproxy 等） | 「系统→软件包」安装对应的 kmod 包 |
@@ -80,7 +80,9 @@
 | 错误关键字 | 问题位置 | 原因 | 排查方法 |
 |-----------|---------|------|----------|
 | `skip General key not allowed` (覆写 key 不允许) | 「覆写设置」覆写模块 | 覆写 [General] 中的 key 不在允许列表中 | 检查 key 拼写；参考覆写模块 `16-overwrite-module-format.md` §16.2.1 节的允许 key 列表 |
-| `skip invalid Overwrite command` (无效覆写命令) | 「覆写设置」覆写模块 | [Overwrite] 段命令不以 `ruby_` 开头 | 修正命令语法，使用 `ruby_method_name` 格式 |
+| `skip config file outside /etc/openclash`、`skip config file with unsafe path`、`skip hidden config file` (配置文件路径不合法) | 「覆写设置」覆写模块 | [General] 的 `CONFIG_FILE` 不在 `/etc/openclash/` 下、含 `..` 或以 `/` 结尾，或文件名以 `.` 开头 | 改用 `/etc/openclash/` 下的普通配置文件路径（如 `/etc/openclash/config/x.yaml`） |
+| `skip invalid Overwrite command` (无效覆写命令) | 「覆写设置」覆写模块 | [Overwrite] 段该行不是**白名单 `ruby_*` 单次调用且参数整体加引号**，或值里含 `\`、`;`、反引号、`$( )` 或 `system`/`exec`/`ENV` 等被禁 token | 按 `16-overwrite-module-format.md` §16.2.2 修正：正则用 `[.]` 代替 `\.`、字面 `$` 用单引号参数，示例见 `17-overwrite-module-examples.md` §17.3.6 |
+| `skip unsafe Overwrite command` (覆写片段不安全) | 「覆写设置」覆写模块 / 自定义覆写脚本 | 自定义覆写脚本 `openclash_custom_overwrite.sh`（或用环境变量拼出的值）经 `ruby_*` 组装成 ruby 片段后仍命中被禁 token | 检查自定义覆写脚本里的值写法，限制同 [Overwrite] 段 |
 | `Invalid YAML Override format` (无效 YAML 覆写格式) | 「覆写设置」覆写模块 | [YAML] 段不是有效的 Hash 结构 | 检查 YAML 缩进和格式 |
 | `Parse YAML Override failed` (YAML 覆写解析失败) | 「覆写设置」覆写模块 | [YAML] 段 Ruby 解析异常 | 逐行检查 YAML 语法 |
 | `Config File Overwrite Failed` (配置文件覆写失败) | 「覆写设置」覆写模块 | 覆写应用整体失败 | 检查所有覆写设置的语法 |
@@ -104,7 +106,7 @@
 | `Failed to generate age key` (生成 Age 密钥失败) | 「配置订阅」Age 密钥 | 核心不支持 age keygen | 「版本更新」检查核心版本；手动生成 age 密钥 |
 | `Failed to calculate public key` (计算公钥失败) | 「配置订阅」Age 密钥 | 密钥格式无效 | 验证 age 密钥格式（应以 `AGE-SECRET-KEY-` 开头） |
 | `Bad address specified!` (地址无效) | 「运行状态」连接诊断 | 输入地址为空或无效 | 输入有效的主机名或 IP 地址 |
-| `OpenClash Start Failed: {msg}` (OpenClash 启动失败) | 「运行状态」 | 核心日志中出现 fatal/error 级别日志 | 查看完整错误消息；「运行日志」生成调试日志 |
+| `OpenClash Start Failed: {msg}` (OpenClash 启动失败) | 「运行状态」 | 核心日志中出现 fatal/error 级别日志 | 查看完整错误消息；「运行日志 → 调试日志」生成调试日志 |
 | `Access Denied` (无法访问) / `Access Timed Out` (连接超时) | 「运行状态」IP 检测 | 网络连接问题 | 检查路由器网络连接 |
 
 ### 3.9 YAML 配置处理错误
@@ -184,7 +186,7 @@
 |-----------|---------|------|----------|------|
 | `/tmp/openclash_last_version` 下载失败 | 「运行日志」/ 启动流程 | ① curl SSL 证书验证失败（`BADCERT_CN_MISMATCH` / `self signed certificate`）；② GitHub Raw 域名被 DNS 污染或不可达；③ curl 超时（`Operation timed out`）；④ 缺少 `libmbedtls` 库 | ①「覆写设置→常规」设置 **Github 地址修改 (github_address_mod)** 为 CDN（推荐 `https://fastly.jsdelivr.net/` 或 `https://testingcf.jsdelivr.net/`）；②「系统→软件包」确认 `ca-bundle` 已安装；③ Fake-IP 模式在「覆写设置→DNS」的 fake-ip-filter 中排除 `raw.githubusercontent.com`；④ 修改 `/usr/share/openclash/openclash_core.sh` 中 curl 的超时参数 `-m 60` 改为 `-m 300`；⑤ 终端执行 `opkg install libmbedtls` 修复 curl 库依赖 | [#2791](https://github.com/vernesong/OpenClash/issues/2791) |
 | **更新内核 (Update Core)** 点击后重启失败 | 「运行状态」页面 | v0.47.052 重启流程中 stop→start 间隔不足，旧核心进程未完全退出即启动新核心，触发「内核启动失败」 | ① 更新到 v0.47.054+（已在 Developer 分支修复）；② 临时解决：编辑 `/etc/init.d/openclash`，在 restart 函数的 stop 和 start 之间加 `sleep 5`；③ 如更新后仍失败，检查内存是否不足（小型设备建议增加 swap） | [#4969](https://github.com/vernesong/OpenClash/issues/4969) |
-| 升级后依赖检查异常，无法启动 | 「运行日志」启动流程 | 更新后 `check_mod()` 或依赖检测逻辑误报 | ①「运行日志」生成调试日志检查依赖段；②「系统→软件包」确认 `kmod-nft-tproxy`/`kmod-ipt-tproxy` 已安装；③ 切换 Dev 分支获取最新修复；④ 重装 `luci-app-openclash` | [#4807](https://github.com/vernesong/OpenClash/issues/4807) |
+| 升级后依赖检查异常，无法启动 | 「运行日志」启动流程 | 更新后 `check_mod()` 或依赖检测逻辑误报 | ①「运行日志 → 调试日志」生成调试日志检查依赖段；②「系统→软件包」确认 `kmod-nft-tproxy`/`kmod-ipt-tproxy` 已安装；③ 切换 Dev 分支获取最新修复；④ 重装 `luci-app-openclash` | [#4807](https://github.com/vernesong/OpenClash/issues/4807) |
 | v0.47.052/055 无法开机自启 | 「运行状态」启动流程 | 启动时序竞争条件，procd respawn 在某些固件上触发过快 | ① 更新到最新 Dev 版本；②「插件设置→模式设置」设置 `delay_start` (启动延迟) 30-60 秒；③ 确保路由器有足够内存供启动时使用 | [#4973](https://github.com/vernesong/OpenClash/issues/4973) |
 
 ### 3.14 功能异常类
@@ -194,7 +196,7 @@
 | **向日葵/AnyDesk 等远程软件无法连接** | 局域网客户端 | 远程软件域名/QUIC 流量被代理或阻断 | ①「覆写设置→规则」添加直连规则：`DOMAIN-SUFFIX,oray.com,DIRECT`、`DOMAIN-SUFFIX,sunlogin.net,DIRECT` 等；② 确认 sniffer `skip-domain` 已包含 `oray.com` 和 `sunlogin.net`（默认已含）；③ 尝试关闭「插件设置→流量控制」的 `disable_udp_quic` (禁用 QUIC) | [#3229](https://github.com/vernesong/OpenClash/issues/3229) |
 | **小米摄像机/智能家居外网无法访问** | 局域网 IoT 设备 | IoT 设备流量被代理导致 NAT 穿透失败 | ①「插件设置→黑白名单」添加摄像机 IP 到「不走代理的局域网设备 IP (LAN Bypassed Host List)」列表；② 确认 sniffer `skip-domain` 包含 `Mijia Cloud`（默认已含）；③「覆写设置→规则」添加 IoT 域名直连规则：`DOMAIN-SUFFIX,xiaomi.com,DIRECT` | [#2431](https://github.com/vernesong/OpenClash/issues/2431) |
 | **绕过中国大陆IP (China IP Route) 功能突然失效** | 升级后 / 「运行状态」 | 版本升级后 `china_ip_route` 的 nftables/ipset 重建失败或 chnroute 列表未更新 | ①「插件设置→大陆白名单订阅」手动更新一次大陆 IP 列表；②「运行状态」页面 Area Bypass 先切到关闭再切回「绕过中国大陆 (Bypass Mainland China)」重新触发；③ 终端执行 `nft list set inet fw4 china_ip_route | head` 检查 nft set 是否存在且非空 | [#4031](https://github.com/vernesong/OpenClash/issues/4031) |
-| **自定义防火墙规则（开发者选项）不生效** | 「插件设置→开发者设置」 | 编辑后未重启或脚本语法错误 | ① 修改 `openclash_custom_firewall_rules.sh` 后需**重启 OpenClash**（不是重载防火墙）；② 用 `bash -n` 检查脚本语法；③「运行日志」生成调试日志检查是否成功执行（日志中含自定义脚本内容） | [#4005](https://github.com/vernesong/OpenClash/issues/4005) |
+| **自定义防火墙规则（开发者选项）不生效** | 「插件设置→开发者设置」 | 编辑后未重启或脚本语法错误 | ① 修改 `openclash_custom_firewall_rules.sh` 后需**重启 OpenClash**（不是重载防火墙）；② 用 `bash -n` 检查脚本语法；③「运行日志 → 调试日志」生成调试日志检查是否成功执行（日志中含自定义脚本内容） | [#4005](https://github.com/vernesong/OpenClash/issues/4005) |
 | **DDNS 服务（如 DDNS-GO）工作异常** | 路由器 DDNS 插件 | DDNS 服务商 API 域名被错误分配 Fake-IP，导致 IP 检测失败 | ① 将 DDNS 服务商的 API 域名加入「覆写设置→DNS」的 Fake-IP-Filter 中（填入域名使其返回真实 IP）；② 常见需排除的域名如 `ddns.oray.com`、`api.cloudflare.com` 等，具体根据所用服务商填写 | — |
 | **Cloudflare Tunnel (Cloudflared) 连接不稳定** | 路由器/内网设备 | Cloudflared 默认使用 QUIC 连接，而海外 QUIC 流量默认被 OpenClash 阻断 | ① 规则中已指定 Cloudflare Tunnel 相关域名直连；② 在 Cloudflared 启动参数中显式指定 `--protocol http2` 强制使用 HTTP/2（Docker 版：`command: [tunnel, --no-autoupdate, --protocol, http2, run, --token, ${CF_TOKEN}]`） | — |
 | **BT/PT 下载流量进入内核** | 下载设备 | 下载设备流量未正确分流 | ① 若下载设备为独立设备（如 NAS），在「覆写设置→规则→自定义规则」中添加 `SRC-IP-CIDR,192.168.1.x/32,DIRECT`；② 若同时启用了 IPv6，还需添加 IPv6 后缀规则 `SRC-IP-SUFFIX,::a1b2:c3d4,DIRECT`（后缀由 EUI-64 生成，可在设备上查看）；③ 非独立设备可设置「非标端口」策略组直连来规避 80/443 以外的下载流量 | — |

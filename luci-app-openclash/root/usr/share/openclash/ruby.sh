@@ -1,9 +1,103 @@
 #!/bin/sh
 
+#Helpers an overwrite module may call
+OVERWRITE_RUBY_HELPERS=" \
+   ruby_arr_add_file ruby_arr_edit ruby_arr_head_add_file ruby_arr_insert ruby_arr_insert_arr \
+   ruby_arr_insert_hash ruby_cover ruby_delete ruby_edit ruby_map_edit ruby_merge \
+   ruby_merge_hash ruby_uniq"
+
+#The helpers build ruby source out of their arguments, keep the tokens that can escape the yaml
+#document out of them
+OVERWRITE_RUBY_TOKENS='#{ system exec eval require spawn popen fork Kernel Process Open3 Marshal Fiddle syscall const_get __send__ instance_eval class_eval module_eval %x IO. File. Dir. ENV'
+
+#The accepted line is run as root by /tmp/yaml_overwrite.sh, only a single call to an allowed
+#helper with quoted literal arguments is allowed
+overwrite_ruby_line_check()
+{
+  local fn rest q c arg name
+
+  fn="${1%%[[:space:]]*}"
+  case " $OVERWRITE_RUBY_HELPERS " in
+    *" $fn "*) ;;
+    *) return 1;;
+  esac
+
+  rest="${1#"$fn"}"
+  [ -z "$rest" ] && return 1
+
+  while :; do
+    rest="${rest#"${rest%%[![:space:]]*}"}"
+    [ -z "$rest" ] && break
+
+    q="${rest%"${rest#?}"}"
+    case "$q" in
+      '"'|"'") ;;
+      *) return 1;;
+    esac
+    rest="${rest#?}"
+    arg=""
+
+    while :; do
+      [ -z "$rest" ] && return 1
+
+      c="${rest%"${rest#?}"}"
+      rest="${rest#?}"
+      case "$c" in
+        "$q") break;;
+        '`'|'\'|';') return 1;;
+        '$')
+          if [ "$q" = '"' ]; then
+            case "$rest" in
+              '('*) return 1;;
+              '{'*)
+                case "$rest" in *'}'*) ;; *) return 1;; esac
+                name="${rest#\{}"; name="${name%%\}*}"
+                case "$name" in ""|*[!A-Za-z0-9_]*|[0-9]*) return 1;; esac
+                rest="${rest#*\}}"
+                ;;
+              [A-Za-z_]*)
+                name="${rest%%[!A-Za-z0-9_]*}"
+                rest="${rest#"$name"}"
+                ;;
+            esac
+          fi
+          ;;
+      esac
+      arg="$arg$c"
+    done
+
+    for name in $OVERWRITE_RUBY_TOKENS; do
+      case "$arg" in
+        *"$name"*) return 1;;
+      esac
+    done
+  done
+
+  return 0
+}
+
+#The custom overwrite script is not read by the line check, check the assembled snippet as well
+overwrite_ruby_part_check()
+{
+  local token
+
+  for token in $OVERWRITE_RUBY_TOKENS; do
+    case "$1" in
+      *"$token"*) return 1;;
+    esac
+  done
+
+  return 0
+}
+
 write_ruby_part()
 {
   local part="$1" sid="${OPENCLASH_OVERWRITE_SID:-unknown}"
   if [ -z "$part" ]; then
+    return
+  fi
+  if ! overwrite_ruby_part_check "$part"; then
+    LOG_WARN "skip unsafe Overwrite command【Ruby Script => $part】"
     return
   fi
   if [ "$OVERWRITE_PARENT" = "yaml_overwrite" ]; then
@@ -20,7 +114,11 @@ run_ruby_part()
   if [ -z "$part" ]; then
     return
   fi
-  
+  if ! overwrite_ruby_part_check "$part"; then
+    LOG_WARN "skip unsafe Overwrite command【Ruby Script => $part】"
+    return
+  fi
+
   if [ "$show_error" = "false" ] || [ "$show_error" = "0" ]; then
     ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "begin $part; end" 2>/dev/null
   else

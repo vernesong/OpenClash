@@ -364,3 +364,14 @@ nft insert rule inet fw4 forward position 0 [oifname utun] udp dport 443 \
 100::/64, 2001::/32, 2001:20::/28, 2001:db8::/32, 2002::/16,
 fe80::/10, ff00::/8
 ```
+
+### 4.3 策略路由辅助规则（throw 路由 / fake-ip6 本机规则）
+
+核心启动后除 `ip rule add fwmark $PROXY_FWMARK table $PROXY_ROUTE_TABLE` 外，还会补两类辅助路由（`init.d` 的 `proxy_throw_route_add()` 与 `check_core_status()`）：
+
+| 场景 | 命令 | 作用 |
+|------|------|------|
+| 源地址校验（TUN 模式） | `ip route replace throw <cidr> table 0x162`，对 `PROXY_THROW_NETS`（`0.0.0.0/8`、`10/8`、`100.64/10`、`127/8`、`169.254/16`、`172.16/12`、`192.168/16`；与 fake-ip 前缀重叠的跳过） | 当 `net.ipv4.conf.all.src_valid_mark=1`（Tailscale 等策略路由会设置）时，`fib_validate_source()` 带 mark 查源地址，命中代理表中唯一路由 `local default dev lo` → 被判 martian 源并**静默丢包**（无日志、无计数）；throw 路由让该查找回落到 main 表 |
+| 路由器自身 fake-ip6（`ipv6_mode=2/3`，且 `router_self_proxy=1` 或 fake-ip 未走防火墙 DNS） | `ip -6 rule add iif lo to <fakeip_range6> lookup 0x162 pref 1887` | 本机发出的 fake-ip6 目标包在 output 打标前先命中该规则进代理表，转发流量仍走 main 表 |
+
+> 症状对照：TUN 模式「能连但部分目标不通、日志无异常」→ 先查 `sysctl net.ipv4.conf.all.src_valid_mark`；「路由器自身访问 fake-ip6 目标失败而内网客户端正常」。两者均在 `revert_firewall()` 中回滚。

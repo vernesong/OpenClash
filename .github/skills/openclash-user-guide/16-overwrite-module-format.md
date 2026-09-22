@@ -143,30 +143,32 @@
 | GEO | `GEO_AUTO_UPDATE`, `GEOIP_AUTO_UPDATE`, `GEOSITE_AUTO_UPDATE`, `GEOASN_AUTO_UPDATE` | int_bool | GEO 更新 |
 | 自定义 | `ENABLE_CUSTOM_CLASH_RULES`, `ENABLE_RULE_PROXY` | int_bool | 规则 |
 | Smart | `AUTO_SMART_SWITCH`, `SMART_ENABLE_LGBM`, `SMART_POLICY_PRIORITY` | int_bool/string | Smart 策略 |
-| 特殊 | `CONFIG_FILE` | string | 覆写 config_path（切换配置） |
+| 特殊 | `CONFIG_FILE` | string | 覆写 config_path（切换配置，仅接受 `/etc/openclash/` 下的普通文件，见下注） |
 | 特殊 | `AGE_SECRET_KEY`, `AGE_PUBLIC_KEY` | string | Age 加密密钥 |
 | 特殊 | `SUB_INFO_URL` | string | 订阅信息 URL |
 | 特殊 | `DOWNLOAD_FILE` | string | 下载外部文件（见单独说明） |
-| 特殊 | `DA_PASSWORD` | string | Dashboard 密码 |
+| 特殊 | `DASHBOARD_PASSWORD` | string | Dashboard 密码（写入 UCI `dashboard_password`） |
 | 特殊 | `GLOBAL_UA` | string | 全局 User-Agent |
 | 特殊 | `RESTART` | bool | 覆写变更后是否重启 |
 
 **类型说明**: `int`=整数, `int_bool`=0/1, `bool`=true/false, `string`=任意字符串
+
+> **⚠️ `CONFIG_FILE` 路径限制**：只接受 `/etc/openclash/` 下的普通文件——路径含 `..`、以 `/` 结尾、文件名以 `.` 开头，或落在 `/etc/openclash/` 之外，整条都会被跳过并记录 `skip config file outside /etc/openclash` / `skip config file with unsafe path` / `skip hidden config file`（日志末尾是 `【General Key => 模块名: 路径】`）。合法写法如 `/etc/openclash/config/Custom_Clash.yaml`。
 
 > 这些环境变量在 `yml_change.sh`、`yml_rules_change.sh` 及自定义覆写脚本中可通过 `$KEY_NAME` 直接引用。
 > 本表按类别分组概览；**完整 Key 列表与对应 UCI** 见 `17-overwrite-module-examples.md` §17.5.2 速查表。
 
 > **⚠️ [General] 段 = 插件设置的修改来源**：`[General]` 是覆写模块中**唯一能修改「插件设置」（UCI 层选项）的途径**——重启时 `overwrite_file()` 将键值对写入 UCI（`openclash.@overwrite[0]`），供 `yml_change.sh`/`yml_rules_change.sh` 读取生效；`[YAML]`/`[Overwrite]` 段只能修改运行 YAML。凡修复涉及插件设置（运行/代理模式、端口、DNS、Fake-IP、Meta、流量控制、IPv6、GEO、Smart 等本表所列类别，对应 LuCI「覆写设置」CBI 页选项，见 `11-overwrite-settings.md`）时，必须在 `[General]` 段以 `KEY = VALUE` 覆写，而非用 `[YAML]`。示例见 `17-overwrite-module-examples.md` §17.3（`EN_MODE = fake-ip-tun`）。
 
-#### 16.2.2 `[Overwrite]` 段 — Shell 脚本
+#### 16.2.2 `[Overwrite]` 段 — Ruby 函数调用
 
-此段内容直接作为 Shell 命令执行。可用的函数（定义于 `ruby.sh`，均以目标 YAML 文件作为首个参数）：
+此段每行是一次 `ruby.sh` 函数的调用（均以目标 YAML 文件作为首个参数），由生成的 `/tmp/yaml_overwrite.sh` 以 root 权限执行：
 - `ruby_read <file> <key_path>` — 读取 YAML 值
 - `ruby_read_hash <var> <key_path>` — 读取 Ruby 变量中的哈希值
 - `ruby_read_hash_arr <file> <key_path> <sub_path>` — 遍历哈希数组并读取每个元素的子值
 - `ruby_edit <file> <key_path> <value>` — 修改 YAML 键值
-- `ruby_cover <file> <key_path> <value>` — 覆盖 YAML 键值（第 3 参为已存在文件时改为从该文件取值）
-- `ruby_merge <file> <key_path> <src_file>` — 从文件合并 YAML 哈希
+- `ruby_cover <file> <key_path> <src_file> <sub_path>` — 覆盖 YAML 键值：来源文件存在时取其同名键的值赋给键路径，来源文件不存在则删除该键
+- `ruby_merge <file> <key_path> <src_file> [<sub_path>]` — 从文件合并 YAML 哈希
 - `ruby_merge_hash <file> <key_path> <hash>` — 合并指定哈希到键路径
 - `ruby_uniq <file> <key_path>` — 数组去重
 - `ruby_arr_add_file <file> <key_path> <idx> <list_file> <sub_path>` — 从文件将数组元素插入到指定下标
@@ -174,10 +176,13 @@
 - `ruby_arr_insert <file> <key_path> <idx> <value>` — 在数组指定下标插入单个元素
 - `ruby_arr_insert_hash <file> <key_path> <idx> <hash>` — 在数组指定下标插入哈希
 - `ruby_arr_insert_arr <file> <key_path> <idx> <array>` — 在数组指定下标插入一个数组
-- `ruby_arr_edit <file> <key_path> <match> <new_value>` — 按值/字段匹配编辑数组元素
+- `ruby_arr_edit <file> <key_path> <sub_key> <match_value> <new_sub_key> <new_value>` — 按字段匹配编辑数组元素；末两参留空时退化为按值替换：`ruby_arr_edit <file> <key_path> "" <old_value> "" <new_value>`
 - `ruby_map_edit <file> <key_path> <map_key> <sub_path> <value>` — 编辑哈希内嵌套哈希的字段
 - `ruby_delete <file> <key_path> [<key>]` — 删除键/数组元素（省略键时删除键路径本身）
 - `uci_get_config <key>` — 读取 UCI 配置（覆写优先）
+
+> **⚠️ 行级限制（`ruby.sh` → `overwrite_ruby_line_check()`）**：整行必须是**单个白名单 `ruby_*` 函数调用**，且**每个参数整体被引号包裹**。参数内不允许 `\`、`;`、反引号、`$( )`（`$NAME`/`${NAME}` 仍作环境变量展开），出现 `system`/`exec`/`eval`/`require`/`spawn`/`%x`/`#{…}`/`ENV`/`File.` 等 token 同样被拒。被拒行会被跳过并记录 `skip invalid Overwrite command【Ruby Script => 模块名: 行】`。结论：正则不写 `\.` 而写 `[.]`；值里有字面 `$` 用单引号参数（示例见 `17-overwrite-module-examples.md` §17.3.6）。
+> 自定义覆写脚本（§17.4）不经此行级检查，但其 `ruby_*` 函数拼好的片段会在 `write_ruby_part()`/`run_ruby_part()` 内被 `overwrite_ruby_part_check()` 复查，命中记录 `skip unsafe Overwrite command`。
 
 #### 16.2.3 `[YAML]` 段 — 原始 YAML 注入（含操作符）
 
@@ -187,7 +192,7 @@
 
 | 操作符 | 写法 | 行为 |
 |--------|------|------|
-| **默认合并** | `key` 或 `<key>` | Hash 递归合并，标量直接覆盖，键不存在则添加 |
+| **默认合并** | `key` 或 `<key>` | Hash 递归合并，标量直接覆盖，键不存在则添加；**数组整体替换**（追加/插入须用 `key+` / `+key`） |
 | **强制覆盖** | `key!` 或 `<key>!` | 强制替换整个值（不做递归合并） |
 | **数组后置追加** | `key+` 或 `<key>+` | 将新元素追加到数组末尾 |
 | **数组前置插入** | `+key` 或 `+<key>` | 将新元素插入到数组开头 |
@@ -196,7 +201,9 @@
 
 `<key>` 语法用于键名含特殊字符或与操作符冲突时。
 
-大白话：**默认合并**（`key`）= 只改你写的那几项，其余不动；**强制覆盖**（`key!`）= 把这一整块整个换成你写的。
+大白话：**默认合并**（`key`）= 只改你写的那几项，其余不动（**但数组是整体替换**：写 `proxy-groups:` 会丢掉全部已有策略组，追加请用 `proxy-groups+:`）；**强制覆盖**（`key!`）= 把这一整块整个换成你写的。
+
+> **环境变量展开**：`${NAME}` / `$NAME`（`NAME` 匹配 `[A-Za-z_][A-Za-z0-9_]*`）会展开为环境变量值（`[General]` 的 Key、订阅 `param` 等）；其余 `$` 写法（`$1`、`${weird-name}`、`$(cmd)`、反引号）原样保留且**不执行命令替换**，`$` 紧跟 `$` 时两个 `$` 都原样保留（所以密码里的 `P@$$w0rd` 不会被吃掉）。因此正则里的 `$` 行尾锚、`(?=…)`、引号、反斜杠都可安全书写；目前没有保留字面量 `$名字` 的转义写法。
 
 ##### 操作符详解与示例
 

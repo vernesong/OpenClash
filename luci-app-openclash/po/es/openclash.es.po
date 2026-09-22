@@ -3897,8 +3897,20 @@ msgstr "Parámetro General no permitido, ignorado"
 msgid "skip General key type error"
 msgstr "Error en tipo de parámetro General, ignorado"
 
+msgid "skip config file outside /etc/openclash"
+msgstr "Archivo de configuración fuera de /etc/openclash, ignorado"
+
+msgid "skip config file with unsafe path"
+msgstr "Ruta del archivo de configuración no segura, ignorado"
+
+msgid "skip hidden config file"
+msgstr "Archivo de configuración oculto, ignorado"
+
 msgid "skip invalid Overwrite command"
 msgstr "Comando de sobrescritura no válido, ignorado"
+
+msgid "skip unsafe Overwrite command"
+msgstr "Comando de sobrescritura no seguro, ignorado"
 
 msgid "Processing Overwrite Module"
 msgstr "Procesando módulo de sobrescritura"

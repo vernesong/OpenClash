@@ -100,7 +100,7 @@
 - **TUN 模式**: 创建虚拟网卡，以网络层接管所有流量。对应 Mihomo `tun.enable=true`。需要 `kmod-tun` 内核模块
 - **混合模式**: TCP 使用 system 栈 (redirect)，UDP 使用 gvisor 栈 (TUN)。对应 Mihomo `tun.stack=mixed`。适合非直连游戏等对 NAT 类型有要求的场景
 
-#### 8.2.2 stack_type — TUN 堆栈类型 (Stack Type)
+#### 8.2.2 stack_type — TUN 堆栈类型 (Select Stack Type)
 - **UCI 选项**: `openclash.@openclash[0].stack_type`
 - **可选值**: `system` / `gvisor` / `mixed` / `mips`
 - **Mihomo 对应配置**: `tun.stack`
