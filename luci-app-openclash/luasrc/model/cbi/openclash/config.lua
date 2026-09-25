@@ -180,7 +180,7 @@ sz=tb:option(DummyValue,"size",translate("Size"))
 st.template="openclash/cfg_check"
 sb.template="openclash/sub_info_show"
 
-btnis=tb:option(Button,"switch",translate("SwiTch"))
+btnis=tb:option(Button,"switch",translate("Switch"))
 btnis.render=function(o,t,a)
 	if not e[t] then return false end
 	if fs.IsYamlExt(e[t].name) then

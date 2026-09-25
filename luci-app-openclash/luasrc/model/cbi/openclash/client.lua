@@ -21,6 +21,7 @@ m:append(Template("openclash/developer"))
 m:append(Template("openclash/update"))
 m:append(Template("openclash/config_edit"))
 m:append(Template("openclash/config_upload"))
+m:append(Template("openclash/guide"))
 
 return m
 

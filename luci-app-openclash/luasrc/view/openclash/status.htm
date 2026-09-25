@@ -240,7 +240,7 @@
                                             <select id="config_file_select" class="config-select"><option value=""><%:Collecting data...%></option></select>
                                         </div>
                                         <div class="card-actions">
-                                            <button type="button" class="icon-btn action-btn" id="switch_config" title="<%:SwiTch%>" onclick="return switchConfig()"><svg width="14" height="14"><use href="#oc-icon-switch"/></svg></button>
+                                            <button type="button" class="icon-btn action-btn" id="switch_config" title="<%:Switch%>" onclick="return switchConfig()"><svg width="14" height="14"><use href="#oc-icon-switch"/></svg></button>
                                             <button type="button" class="icon-btn action-btn" id="update_config" title="<%:Update%>" onclick="return updateConfig()"><svg width="14" height="14"><use href="#oc-icon-update"/></svg></button>
                                             <button type="button" class="icon-btn action-btn" id="edit_config" title="<%:Edit%>" onclick="return editConfig()"><svg width="14" height="14"><use href="#oc-icon-edit"/></svg></button>
                                             <button type="button" class="icon-btn action-btn" id="edit_subscribe" title="<%:Edit Subscription%>" onclick="return editSubscribe()"><svg width="14" height="14"><use href="#oc-icon-settings"/></svg></button>
@@ -381,10 +381,16 @@
                 </div>
             </div>
 
-            <!-- Usage Help Button -->
-            <div class="oc-usage-help-float" id="usage-help-float" title="<%:Usage Help%>" onclick="UsageHelpManager.show()">
-                <svg width="24" height="24"><use href="#oc-icon-usage-help"/></svg>
-                <span class="oc-usage-help-bubble" id="usage-help-bubble"><%:Click to get usage help%></span>
+            <!-- Floating buttons: quick start guide + usage help -->
+            <div class="oc-float-stack" id="oc-float-stack">
+                <button type="button" class="oc-usage-help-float oc-guide-float" id="guide-float" title="<%:Quick Start%>" onclick="openGuide()">
+                    <svg width="24" height="24" aria-hidden="true"><use href="#oc-icon-guide-tour"/></svg>
+                    <span class="oc-usage-help-bubble" id="guide-bubble"><%:First time here? Open the quick start guide%></span>
+                </button>
+                <button type="button" class="oc-usage-help-float" id="usage-help-float" title="<%:Usage Help%>" onclick="UsageHelpManager.show()">
+                    <svg width="24" height="24"><use href="#oc-icon-usage-help"/></svg>
+                    <span class="oc-usage-help-bubble" id="usage-help-bubble"><%:Click to get usage help%></span>
+                </button>
             </div>
             </div>
         </td>
@@ -1236,8 +1242,6 @@
             if (!fileName) return '<%:Unknown%>';
 
             var name = fileName.split('/').pop().split('\\').pop();
-
-            //name = name.replace(/\.(yaml|yml)$/i, '');
 
             if (name.length > 30) {
                 name = name.substring(0, 27) + '...';
@@ -3793,6 +3797,11 @@
         SubscriptionManager.init();
         UsageHelpManager.init();
         loadAnnouncement();
+        var guideBubble = document.getElementById('guide-bubble');
+        if (guideBubble && localStorage.getItem('oc_guide_done') !== '1') {
+            guideBubble.classList.add('show');
+            setTimeout(function() { guideBubble.classList.remove('show'); }, 6000);
+        }
     }, 300);
 
     setTimeout(function() { check_core(); }, 1000);
@@ -4561,14 +4570,18 @@
     function check_core() {
         StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "check_core")%>', function(x, status) {
             if (x && x.status == 200) {
-                if (status.core_status != "1") {
-                    var r = confirm("<%:You have not installed the core yet, do you want to download and install it now?%>");
-                    if (r == true) {
-                        return update("core_download");
-                    }
+                if (status.core_status != "1" && localStorage.getItem('oc_guide_autostart') !== '0') {
+                    openGuide();
                 }
             }
         });
+    }
+
+    // The core is missing: open the quick start guide (a modal on this page) instead of the
+    // plain confirm() dialog. "oc_guide_autostart" keeps users that opted out from being pushed.
+    function openGuide() {
+        if (typeof Guide !== 'undefined') Guide.open();
+        return false;
     }
 
     function copyAddress() {

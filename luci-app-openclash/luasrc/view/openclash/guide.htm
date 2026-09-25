@@ -1,0 +1,2111 @@
+<%
+    local build_url = luci.dispatcher.build_url
+    local base = build_url("admin", "services", "openclash")
+%>
+<div class="oc guide-tour" id="guide-tour">
+    <div class="guide-tour-mask" id="guide-mask-top"></div>
+    <div class="guide-tour-mask" id="guide-mask-bottom"></div>
+    <div class="guide-tour-mask" id="guide-mask-left"></div>
+    <div class="guide-tour-mask" id="guide-mask-right"></div>
+    <div class="guide-spot" id="guide-spot"></div>
+    <div class="guide-pop" id="guide-pop" role="dialog" aria-modal="true"></div>
+</div>
+
+<script type="text/javascript">//<![CDATA[
+var Guide = {
+    urls: {
+        check_core: '<%=base%>/check_core',
+        update: '<%=base%>/update',
+        status: '<%=base%>/status',
+        config_file_list: '<%=base%>/config_file_list'
+    },
+    running: false,
+    step: 0,
+    // the tour walks the overview page by default, and switches to a dialog group while one is open
+    group: 'main',
+    dialogReturn: 0,
+    groupReturn: null,
+    rafPending: false,
+    sheetHeight: 0,
+    state: { core: null, configs: [], current: '', running: false, update: null },
+    timer: null,
+    layoutTimer: null,
+    autoTimer: null,
+    anchorTimer: null,
+    closingTimer: null,
+    // counts the glides in flight, the periodic re-anchor keeps its hands off while one runs
+    gliding: 0,
+    dialogGrace: 0,
+    autoOpened: null,
+    // the window an entrance step just opened, the tour continues as soon as it is on screen
+    pendingEntry: null,
+    lastPlaceFallback: false,
+    stepAlign: '',
+    // a dialog stays shut for the watcher once the user walked out of its sub tour by hand
+    leftGroup: '',
+    entryKey: '',
+    entryDone: {},
+    lastStepInAdd: false,
+    dialogWaits: 0,
+    targetWaits: 0,
+    pinnedStep: false,
+    lastStepKey: '',
+    lastStepGroup: '',
+    autoDone: {},
+
+    // target: css selector, function returning an element, or null for a centred callout
+    steps: [
+        {
+            key: 'nav',
+            title: '<%:Page navigation%>',
+            target: function () {
+                return document.querySelector('#tabmenu, ul.tabs, .tabmenu');
+            },
+            place: 'bottom',
+            wide: true,
+            body: function () {
+                return '<p><%:OpenClash is split over several pages:%></p>'
+                    + '<ul>'
+                    + '<li><b><%:Overviews%></b>: <%:start and stop, modes, config, dashboard.%></li>'
+                    + '<li><b><%:Plugin Settings%></b>: <%:run mode, DNS, traffic, access control, IPv6, auto restart.%></li>'
+                    + '<li><b><%:Overwrite Settings%></b>: <%:pin your own values over the generated config.%></li>'
+                    + '<li><b><%:Config Subscribe%></b>: <%:build a subscription and keep it up to date.%></li>'
+                    + '<li><b><%:Config Manage%></b>: <%:upload, rename, download or remove config files.%></li>'
+                    + '<li><b><%:Server Logs%></b>: <%:core log, plugin log and the one-click debug log.%></li>'
+                    + '</ul>';
+            }
+        },
+        {
+            key: 'version',
+            title: '<%:Version info%>',
+            target: '.version-display-container',
+            place: 'bottom',
+            body: function () {
+                return '<p><%:Two versions that update on their own:%></p>'
+                    + '<p><b><%:Plugin Version%></b>: <%:the LuCI plugin.%></p>'
+                    + '<p><b><%:Core Version%></b>: <%:the Mihomo core responsible for proxy traffic.%></p>'
+                    + '<p class="guide-careful"><%:A dash means no core is installed yet, Check Update below installs one.%></p>';
+            }
+        },
+        {
+            key: 'start',
+            title: '<%:Start OpenClash%>',
+            target: '.core-status-toggle',
+            // the restart button sits right next to the switch, so the hole covers both
+            holeTo: '#restart_core',
+            place: 'bottom',
+            priority: 4,
+            done: function (s) { return s.running; },
+            body: function () {
+                return '<p><b><%:Start%></b> <span class="guide-tag req"><%:Required%></span>: <%:the switch starts and stops the plugin, the button beside it restarts the core.%></p>'
+                    + '<p><%:On first start, OpenClash downloads files as needed and builds the firewall rules. Allow 5–30 seconds.%></p>'
+                    + '<p class="guide-tip"><%:Restart after changing a config or an overwrite module, the core only reads them on reload.%></p>'
+                    + '<p class="guide-note" id="guide-run-state"></p>';
+            }
+        },
+        {
+            key: 'overwrite',
+            title: '<%:Overwrite Module%>',
+            target: '#edit_overwrite',
+            place: 'bottom',
+            entry: 'overwrite',
+            body: function () {
+                return '<p><%:OpenClash rebuilds the running config on start or reload, so direct edits may be lost. Use an overwrite module to preserve custom settings.%></p>'
+                    + '<p><%:Use it for DNS, ports or TUN values you want to pin, or to inject a raw fragment.%></p>'
+                    + '<p><%:“Open and continue” opens this window and walks you through it.%></p>';
+            }
+        },
+        {
+            key: 'dnspill',
+            title: '<%:DNS Mode%>',
+            target: '#mode-pill',
+            place: 'bottom',
+            body: function () {
+                // the names of the two modes depend on the build, so they are read from the page
+                var m = Guide.dnsModes();
+                return '<p><%:DNS mode, active right now:%> <b>' + (m.active || '--') + '</b></p>'
+                    + '<p><b>' + m.fake + '</b> <span class="guide-tag rec"><%:Recommended%></span> (<%:cloud icon%>): <%:answers with a fake address and resolves the real one after the rules match, the default.%></p>'
+                    + '<p><b>' + m.redir + '</b> (<%:desktop icon%>): <%:uses real addresses, only for local or legacy services.%></p>'
+                    + '<p class="guide-info"><%:Switching restarts the core, the existing connections drop for a moment.%></p>';
+            }
+        },
+        {
+            key: 'runmode',
+            title: '<%:Running Mode%>',
+            target: '#radio-ru-mode',
+            place: 'bottom',
+            body: function () {
+                // the button texts come from the page, some builds rename the first one
+                var m = Guide.runModeLabels();
+                return '<p><%:How the traffic is taken over, active right now:%> <b>' + (m.active || '--') + '</b></p>'
+                    + '<p><b>' + m.normal + '</b>: <%:redirect mode, TCP only, works on every kernel.%></p>'
+                    + '<p><b>' + m.tun + '</b>: <%:virtual network card, TCP and UDP, so games work too.%></p>'
+                    + '<p><b>' + m.mix + '</b> <span class="guide-tag rec"><%:Recommended%></span>: <%:TUN plus redirect, the recommended default.%></p>'
+                    + '<p class="guide-info"><%:TUN and Mix need the TUN kernel module.%></p>';
+            }
+        },
+        {
+            key: 'proxymode',
+            title: '<%:Proxy Mode%>',
+            target: '#radio-mode',
+            place: 'bottom',
+            body: function () {
+                return '<p><%:Which traffic goes through a proxy, the highlighted group is the whole choice:%></p>'
+                    + '<p><b><%:Rule%></b> <span class="guide-tag rec"><%:Recommended%></span>: <%:follow the rules of the config, domestic traffic goes direct, the recommended one.%></p>'
+                    + '<p><b><%:Global%></b>: <%:send everything through the proxy, useful to test a node.%></p>'
+                    + '<p><b><%:Direct%></b>: <%:send nothing through the proxy, useful to compare.%></p>';
+            }
+        },
+        {
+            key: 'panel',
+            title: '<%:Control Panel%>',
+            target: '.dashboard-buttons',
+            place: 'bottom',
+            body: function () {
+                return '<p><%:The dashboard shows nodes, latency and live connections. One button appears here for each installed dashboard.%></p>'
+                    + '<p><%:Zashboard is the recommended one.%></p>'
+                    + '<p class="guide-tip"><%:Nothing to open yet? Download a dashboard in Plugin Settings - Dashboard Settings.%></p>';
+            }
+        },
+        {
+            key: 'quickactions',
+            title: '<%:Quick Action%>',
+            target: '.quick-actions-buttons',
+            place: 'top',
+            wide: true,
+            body: function () {
+                return '<p><%:Four one-click buttons for the daily cases:%></p>'
+                    + '<ul>'
+                    + '<li><b><%:Close Connect%></b>: <%:drop all current connections, for example after switching nodes.%></li>'
+                    + '<li><b><%:Reload Firewall%></b>: <%:rebuild the OpenClash firewall rules.%></li>'
+                    + '<li><b><%:Flush DNS Cache%></b>: <%:clear the DNS cache when a domain keeps resolving to a stale address.%></li>'
+                    + '<li><b><%:Check Update%></b>: <%:install or update the plugin, the core and the GEO data.%></li>'
+                    + '</ul>';
+            }
+        },
+        {
+            key: 'core',
+            title: '<%:Check Update%>',
+            target: '#_one_key_update_btn',
+            place: 'top',
+            wide: true,
+            priority: 1,
+            entry: 'update',
+            done: function (s) { return s.core === true; },
+            body: function () {
+                return '<p><%:One press updates the plugin, the core and the GEO data. A missing core is installed from here as well.%></p>'
+                    + '<p><%:“Open and continue” opens this window and walks you through it.%></p>'
+                    + '<p class="guide-info" id="guide-arch"></p>';
+            }
+        },
+        {
+            key: 'config',
+            title: '<%:Add a config file%>',
+            target: function () {
+                var big = document.getElementById('upload_config_large');
+                if (big && big.offsetParent) return big;
+                return document.getElementById('upload_config');
+            },
+            place: 'top',
+            priority: 2,
+            entry: 'upload',
+            done: function (s) { return s.configs.length > 0; },
+            body: function () {
+                return '<p><%:A config holds your proxies, groups and rules, this is the step that gets OpenClash working.%></p>'
+                    + '<p><%:The window offers two ways in: upload a YAML file, or add a subscription link. Both are walked through here.%></p>'
+                    + '<p><%:“Open and continue” opens this window and walks you through it.%></p>';
+            }
+        },
+        {
+            key: 'select',
+            title: '<%:Select and switch the config%>',
+            target: '#config_file_select',
+            holeTo: '#switch_config',
+            place: 'top',
+            priority: 3,
+            done: function (s) { return !!s.current; },
+            body: function () {
+                return '<p><%:Pick a config from the list, then press the button beside it to apply it.%></p>'
+                    + '<p class="guide-info"><%:Only one config runs at a time, switching restarts the core.%></p>'
+                    + '<p class="guide-note" id="guide-config-note"></p>';
+            }
+        },
+        {
+            key: 'fileactions',
+            title: '<%:Config actions%>',
+            target: '.config-file-bottom .card-actions',
+            place: 'top',
+            done: function (s) { return !!s.current; },
+            body: function () {
+                return '<p><%:Five buttons next to the list, from left to right:%></p>'
+                    + '<ul>'
+                    + '<li><b><%:Switch%></b>: <%:apply the selected config and restart the core.%></li>'
+                    + '<li><b><%:Update%></b>: <%:download a subscription config again.%></li>'
+                    + '<li><b><%:Edit%></b>: <%:open this config in the editor.%></li>'
+                    + '<li><b><%:Edit Subscription%></b>: <%:change the link, the User-Agent or the conversion.%></li>'
+                    + '<li><b><%:Add%></b>: <%:add another config file or subscription.%></li>'
+                    + '</ul>';
+            }
+        },
+        {
+            key: 'stats',
+            title: '<%:Statistics%>',
+            target: '.stats-section',
+            place: 'top',
+            wide: true,
+            body: function () {
+                return '<p><%:The live numbers of this device:%></p>'
+                    + '<ul>'
+                    + '<li><b><%:Up%></b> / <b><%:Down%></b>: <%:the current speed.%></li>'
+                    + '<li><b><%:Up Total%></b> / <b><%:Down Total%></b>: <%:counted since the core started.%></li>'
+                    + '<li><b><%:Connect%></b>: <%:how many connections the core handles right now.%></li>'
+                    + '<li><b><%:Ram%></b> / <b><%:CPU%></b>: <%:memory and CPU used by the core.%></li>'
+                    + '<li><b><%:Load Avg%></b>: <%:the router\'s overall system load, not just OpenClash.%></li>'
+                    + '</ul>';
+            }
+        },
+        {
+            key: 'statsview',
+            title: '<%:View Mode%>',
+            target: '.stats-view-toggle',
+            place: 'bottom',
+            body: function () {
+                return '<p><%:The two icons in the card header change how the same numbers are drawn:%></p>'
+                    + '<p><b><%:Cards%></b>: <%:one card per value, the easiest way to read a single number.%></p>'
+                    + '<p><b><%:Chart%></b>: <%:speed and load as curves, which shows a spike or a drop over time.%></p>';
+            }
+        },
+        {
+            key: 'myip',
+            title: '<%:IP Address%>',
+            target: '.myip-ip-section',
+            place: 'bottom',
+            body: function () {
+                return '<p><%:The same query goes to four public IP services, they should all answer with the same address.%></p>'
+                    + '<p class="guide-info"><%:A different answer means that service went direct or through another node. The country under each address shows where the exit is.%></p>';
+            }
+        },
+        {
+            key: 'myipcheck',
+            title: '<%:Access Check%>',
+            target: '.myip-check-section',
+            place: 'top',
+            wide: true,
+            body: function () {
+                return '<p><%:Latency to four well known sites, measured through the rules you are running:%></p>'
+                    + '<ul>'
+                    + '<li><b><%:Baidu Search%></b> / <b><%:NetEase Music%></b>: <%:domestic sites, they stay fast when they go direct.%></li>'
+                    + '<li><b>GitHub</b> / <b>YouTube</b>: <%:the ones that usually need the proxy, a timeout means the node or the rule set does not cover them.%></li>'
+                    + '</ul>';
+            }
+        },
+        {
+            key: 'mytoolbar',
+            title: '<%:Access Check%>',
+            target: '.myip-toolbar',
+            place: 'bottom',
+            body: function () {
+                var lbl = Guide.myipLabels();
+                return '<p><%:The three buttons in the header of this area:%></p>'
+                    + '<p><b>' + lbl.hide + '</b>: <%:blur the addresses, do it before taking a screenshot.%></p>'
+                    + '<p><b>' + lbl.mode + '</b>: <%:run the checks from the router itself or from this browser.%></p>'
+                    + '<p><b><%:Refresh%></b>: <%:query the addresses and the latency again.%></p>';
+            }
+        },
+        {
+            key: 'logs',
+            title: '<%:Something wrong?%>',
+            target: function () {
+                return document.querySelector('#tabmenu a[href*="/openclash/log"], .tabs a[href*="/openclash/log"], a[href*="/openclash/log"]');
+            },
+            place: 'bottom',
+            wide: true,
+            body: function () {
+                return '<p><%:A debug log holds dependency checks, firewall rules, DNS and connectivity in one file. It answers most questions.%></p>'
+                    + '<p><%:Open the highlighted page for the core log, the plugin log and the one-click debug log.%></p>'
+                    + '<p class="guide-tip"><%:Still stuck? Use the usage help button at the bottom right to copy an AI prompt.%></p>';
+            }
+        },
+        {
+            key: 'done',
+            title: '<%:Done%>',
+            target: null,
+            body: function () {
+                return '<p id="guide-summary"></p>'
+                    + '<p><%:Core level problems → search Mihomo issues; plugin/UI problems → search OpenClash issues.%></p>'
+                    + '<p class="guide-info"><%:Keyboard: the arrows step through the guide, Esc ends it.%></p>'
+                    + '<div class="guide-prefs">'
+                    + '<label class="guide-checkbox"><input type="checkbox" id="guide-autostart" onchange="Guide.setAutostart(this.checked)"> <%:Open this guide automatically when the core is missing%></label>'
+                    + '<span class="guide-note"><%:You can reopen this guide anytime with the “Quick Start” button at the bottom right.%></span>'
+                    + '</div>';
+            }
+        }
+    ],
+
+    // dialogs opened from the tour get their own short step groups. They are entered automatically
+    // once the dialog is on screen, and inside them the tour drops its own mask because the dialog
+    // already dims the page.
+    uploadSteps: [
+        {
+            key: 'source',
+            title: '<%:How to add a config%>',
+            target: function () { return Guide.inDialog('.mode-tabs'); },
+            place: 'bottom',
+            body: function () {
+                return '<p><%:Two ways to add a config, the two tabs switch between them:%></p>'
+                    + '<ul>'
+                    + '<li><b><%:Upload File%></b>: <%:you already have a YAML file, it is copied in as it is.%></li>'
+                    + '<li><b><%:Subscribe Link%></b>: <%:a subscription URL from your provider, it can refresh itself later.%></li>'
+                    + '</ul>'
+                    + '<p><%:Next switches to that tab, which has its own steps.%></p>';
+            }
+        },
+        {
+            key: 'zone',
+            title: '<%:Select the file%>',
+            target: function () { return Guide.inDialog('#upload-zone'); },
+            place: 'bottom',
+            tab: 'upload',
+            body: function () {
+                return '<p><%:Click this area to pick your YAML file, or drop one onto it. Files up to 10 MB are accepted.%></p>'
+                    + '<p class="guide-info"><%:Only the file itself is needed, everything else on this tab is optional.%></p>';
+            }
+        },
+        {
+            key: 'advfile',
+            title: '<%:Advanced Options%>',
+            target: function () { return Guide.boxOf('#advanced-options-enable-file'); },
+            place: 'bottom',
+            tab: 'upload',
+            body: function () {
+                return '<p><b><%:Advanced Options%></b> <span class="guide-tag opt"><%:Optional%></span>: <%:a switch for the special cases, a plain upload leaves it off.%></p>'
+                    + '<p><%:Turning it on unfolds the fields below: custom request headers and an Age key for encrypted values.%></p>';
+            }
+        },
+        {
+            key: 'name',
+            title: '<%:Config Name%>',
+            target: function () { return Guide.inDialog('#config-filename-input'); },
+            place: 'top',
+            body: function () {
+                return '<p><%:Keep the name or type your own, this is the name the config list shows later.%></p>'
+                    + '<p class="guide-careful"><%:A config with the same name is replaced.%></p>';
+            }
+        },
+        {
+            key: 'footer',
+            title: '<%:Save the config%>',
+            target: function () { return Guide.inDialog('.config-upload-footer'); },
+            place: 'top',
+            body: function () {
+                return '<p><%:The left side reports the state, Cancel discards everything and the blue button adds the config.%></p>'
+                    + '<p class="guide-info"><%:The first config is switched to automatically, the core then builds its rules and starts.%></p>';
+            }
+        },
+        {
+            key: 'subtab',
+            title: '<%:Subscribe Link%>',
+            target: function () { return Guide.inDialog('.mode-tab[data-mode="subscribe"]'); },
+            place: 'bottom',
+            switchTo: 'subscribe',
+            body: function () {
+                return '<p><%:The other way in: a subscription link from your provider.%></p>'
+                    + '<p><%:Next switches to that tab; the steps there cover the URL, the User-Agent, the conversion and the filters.%></p>';
+            }
+        }
+    ],
+
+    subscribeSteps: [
+        {
+            key: 'url',
+            title: '<%:Subscription URL%>',
+            target: function () { return Guide.inDialog('#subscribe-url-input'); },
+            place: 'bottom',
+            tab: 'subscribe',
+            body: function () {
+                return '<p><%:The subscription tab: paste the link from your provider, one per line.%></p>'
+                    + '<p class="guide-info"><%:This is the only field a subscription really needs.%></p>';
+            }
+        },
+        {
+            key: 'ua',
+            title: '<%:User-Agent%>',
+            target: function () { return Guide.inDialog('#subscribe-ua-input'); },
+            place: 'bottom',
+            tab: 'subscribe',
+            body: function () {
+                return '<p><b><%:User-Agent%></b> <span class="guide-tag opt"><%:Optional%></span>: <%:some providers only answer a specific client name, pick it here or choose Custom and type your own.%></p>'
+                    + '<p class="guide-info"><%:Leave it on the default when your provider does not ask for one.%></p>';
+            }
+        },
+        {
+            key: 'convert',
+            title: '<%:Subscribe Convert Online%>',
+            target: function () { return Guide.boxOf('#sub-convert-enable'); },
+            place: 'bottom',
+            tab: 'subscribe',
+            wide: true,
+            prepare: function () { Guide.ensureChecked('#sub-convert-enable'); },
+            body: function () {
+                return '<p><b><%:Subscribe Convert Online%></b>: <span class="guide-tag opt"><%:Optional%></span> <%:use this when a provider does not serve Clash format.%></p>'
+                    + '<p><b><%:Convert Address%></b>: <%:the conversion service, a public one or your own backend.%></p>'
+                    + '<p><b><%:Template Name%></b>: <%:the rule template applied to the result, it decides the group names.%></p>'
+                    + '<p class="guide-careful"><%:Online conversion sends your link to a third party, prefer your own backend for privacy.%></p>';
+            }
+        },
+        {
+            key: 'convswitches',
+            title: '<%:Conversion switches%>',
+            target: function () { return Guide.boxOf('#emoji-enable'); },
+            tab: 'subscribe',
+            holeTo: function () {
+                var out = [];
+                ['#emoji-enable', '#udp-enable', '#skip-cert-verify', '#sort-enable', '#node-type-enable', '#rule-provider-enable', '#custom-params-input'].forEach(function (sel) {
+                    var el = Guide.inDialog(sel);
+                    if (el) out.push(el.closest('.form-group') || el);
+                });
+                return out;
+            },
+            place: 'bottom',
+            wide: true,
+            prepare: function () { Guide.ensureChecked('#sub-convert-enable'); },
+            body: function () {
+                return '<p><span class="guide-tag opt"><%:Optional%></span>: <%:Set only the conversion options you need.%></p>'
+                    + '<ul>'
+                    + '<li><b><%:Emoji%></b> / <b><%:Sort%></b> / <b><%:Append Node Type%></b>: <%:make the node names readable.%></li>'
+                    + '<li><b><%:UDP Enable%></b>: <%:keep UDP support, leave it on for games and voice chat.%></li>'
+                    + '<li><b><%:skip-cert-verify%></b>: <%:accept certificates that do not match the domain, on by default.%></li>'
+                    + '<li><b><%:Use Rule Provider%></b>: <%:write rules as providers instead of inline rules, keeps the config shorter.%></li>'
+                    + '<li><b><%:Custom Params%></b>: <%:extra converter arguments, one per line.%></li>'
+                    + '</ul>';
+            }
+        },
+        {
+            key: 'filter',
+            title: '<%:Node Filtering%>',
+            target: function () { return Guide.boxOf('#keyword-options-enable'); },
+            tab: 'subscribe',
+            // the block below the switch is taller than the window, so its two halves are guided one
+            // after the other and each half stays fully on screen
+            holeTo: function () { return Guide.boxOf('#keyword-input'); },
+            place: 'bottom',
+            wide: true,
+            prepare: function () { Guide.ensureChecked('#keyword-options-enable'); },
+            body: function () {
+                return '<p><b><%:Keyword Match%></b> <span class="guide-tag opt"><%:Optional%></span>: <%:keep only the nodes whose name contains one of these words, one per line, for example hk or tw&bgp.%></p>'
+                    + '<p class="guide-info"><%:Left alone, every node of the subscription ends up in the config.%></p>';
+            }
+        },
+        {
+            key: 'filterex',
+            title: '<%:Exclude Keyword Match%>',
+            target: function () { return Guide.boxOf('#exclude-keyword-input'); },
+            tab: 'subscribe',
+            holeTo: function () { return Guide.boxOf('#exclude-expire'); },
+            place: 'bottom',
+            wide: true,
+            prepare: function () { Guide.ensureChecked('#keyword-options-enable'); },
+            body: function () {
+                return '<p><b><%:Exclude Keyword Match%></b> <span class="guide-tag opt"><%:Optional%></span>: <%:drop the nodes whose name contains these words, such as a trial or a backup server.%></p>'
+                    + '<p><b><%:Exclude Keyword Match Default%></b>: <%:drop the provider info nodes, the four switches remove the entries that only carry the expiry date, the traffic, the plan or the website.%></p>';
+            }
+        },
+        {
+            key: 'advanced',
+            title: '<%:Advanced Options%>',
+            target: function () { return Guide.boxOf('#advanced-options-enable'); },
+            tab: 'subscribe',
+            holeTo: function () {
+                var out = [];
+                ['#subscribe-headers-add', '#age-encryption-group'].forEach(function (sel) {
+                    var el = Guide.inDialog(sel);
+                    if (el) out.push(el.closest('.form-group') || el);
+                });
+                return out;
+            },
+            place: 'bottom',
+            wide: true,
+            body: function () {
+                return '<p><b><%:Advanced Options%></b> <span class="guide-tag opt"><%:Optional%></span></p>'
+                    + '<p><b><%:Custom Headers%></b>: <%:some providers only answer when the request carries a certain header, add one row per header.%></p>'
+                    + '<p><b><%:Age Key Type%></b>: <%:a key pair. The secret key stays on this router and decrypts the config, the public key goes to the provider.%></p>';
+            }
+        },
+        {
+            key: 'name',
+            title: '<%:Config Name%>',
+            target: function () { return Guide.inDialog('#config-filename-input'); },
+            place: 'top',
+            body: function () {
+                return '<p><b><%:Config Name%></b> <span class="guide-tag opt"><%:Optional%></span>: <%:the name the config list shows later, and the name the subscription is stored under.%></p>'
+                    + '<p class="guide-info"><%:How often it refreshes is set in Config Subscribe, not here.%></p>';
+            }
+        },
+        {
+            key: 'footer',
+            title: '<%:Save the subscription%>',
+            target: function () { return Guide.inDialog('.config-upload-footer'); },
+            place: 'top',
+            body: function () {
+                return '<p><%:The blue button downloads the subscription and writes the YAML for you.%></p>'
+                    + '<p class="guide-info"><%:Afterwards the config list holds it, the Update button there refreshes it on demand.%></p>';
+            }
+        }
+    ],
+
+    overwriteSteps: [
+        {
+            key: 'header',
+            title: '<%:Window buttons%>',
+            target: '#config-editor-overlay .config-editor-actions',
+            place: 'bottom',
+            wide: true,
+            body: function () {
+                return '<p><%:The action set of this window:%></p>'
+                    + '<p><b><%:Download%></b>: <%:save the current content to a file, handy as a backup.%></p>'
+                    + '<p><b><%:Save%></b>: <%:write the module back, the core picks it up on its next reload.%></p>'
+                    + '<p><b><%:Close%></b>: <%:leave the editor.%></p>'
+                    + '<p class="guide-info"><%:A Compare button also appears here when a plain config file is edited.%></p>';
+            }
+        },
+        {
+            key: 'warn',
+            title: '<%:Read first%>',
+            target: '#overwrite-banner',
+            place: 'bottom',
+            wide: true,
+            body: function () {
+                return '<p><%:What you write here is merged into the generated config, a wrong value can break the core.%></p>'
+                    + '<p class="guide-careful"><%:Change one module at a time, save, then reload the core and check the log.%></p>';
+            }
+        },
+        {
+            key: 'side',
+            title: '<%:Pick a module%>',
+            target: '#overwrite-side-panel',
+            place: 'right',
+            // a narrow window starts with the list collapsed, this step needs it open
+            prepare: function () { Guide.showOverwriteSide(); },
+            body: function () {
+                return '<p><%:Every entry is a small module applied on top of the generated config. The header shows how many there are.%></p>'
+                    + '<ul>'
+                    + '<li><%:Click an entry to open it in the editor.%></li>'
+                    + '<li><%:The tag tells where it comes from: local, subscribed, built in or not configured yet.%></li>'
+                    + '<li><%:The switch on the right enables or disables it without deleting it.%></li>'
+                    + '</ul>';
+            }
+        },
+        {
+            key: 'add',
+            title: '<%:New Module%>',
+            target: '#overwrite-new-file',
+            place: 'right',
+            entry: 'module',
+            body: function () {
+                return '<p><%:This button creates a module, a small file with the settings you want to pin.%></p>'
+                    + '<p><%:“Open and continue” opens this window and walks you through it.%></p>';
+            }
+        },
+        {
+            key: 'addform',
+            title: '<%:Add Overwrite Module%>',
+            target: function () { return Guide.inAddDialog('.mode-tabs'); },
+            place: 'bottom',
+            inAdd: true,
+            // walking back into these steps must not depend on the window still being open
+            prepare: function () { Guide.ensureAddDialog(); },
+            body: function () {
+                return '<p><%:A module can come from two places, the two tabs switch between them:%></p>'
+                    + '<ul>'
+                    + '<li><b><%:Local Module%></b>: <%:you write the content yourself, or upload a txt or conf file.%></li>'
+                    + '<li><b><%:Subscribe Link%></b>: <%:the module is downloaded from a URL and can refresh itself.%></li>'
+                    + '</ul>';
+            }
+        },
+        {
+            key: 'addfile',
+            title: '<%:Local Module%>',
+            target: function () { return Guide.inAddDialog('#overwrite-upload-form-file'); },
+            place: 'bottom',
+            tab: 'moduleFile',
+            inAdd: true,
+            wide: true,
+            prepare: function () { Guide.ensureAddDialog(); },
+            body: function () {
+                return '<ul>'
+                    + '<li><b><%:Config File%></b> <span class="guide-tag opt"><%:Optional%></span>: <%:which generated config this module is applied to.%></li>'
+                    + '<li><b><%:Upload File%></b>: <%:select or drag a txt or conf file, up to 10 MB.%></li>'
+                    + '<li><b><%:Module Name%></b> <span class="guide-tag req"><%:Required%></span>: <%:without an extension, this is the name the list shows.%></li>'
+                    + '</ul>';
+            }
+        },
+        {
+            key: 'addsub',
+            title: '<%:Subscribe Link%>',
+            target: function () { return Guide.inAddDialog('#overwrite-upload-mode-subscribe'); },
+            place: 'bottom',
+            inAdd: true,
+            switchTo: 'moduleSubscribe',
+            prepare: function () { Guide.ensureAddDialog(); },
+            body: function () {
+                return '<p><%:A module can also be pulled from a URL, which keeps several routers on the same settings.%></p>'
+                    + '<p><%:Next switches the window to that tab; the fields follow in the next steps.%></p>';
+            }
+        },
+        {
+            key: 'addfields',
+            title: '<%:Add Overwrite Module%>',
+            target: function () { return Guide.addBoxOf('#overwrite-subscribe-filename'); },
+            holeTo: function () {
+                var out = [];
+                ['#overwrite-subscribe-config-dropdown', '#overwrite-subscribe-type'].forEach(function (sel) {
+                    var el = Guide.inAddDialog(sel);
+                    if (el) out.push(el.closest('.form-group') || el);
+                });
+                return out;
+            },
+            place: 'bottom',
+            tab: 'moduleSubscribe',
+            inAdd: true,
+            wide: true,
+            prepare: function () { Guide.ensureAddDialog(); },
+            body: function () {
+                return '<p><b><%:Common subscription fields%></b></p>'
+                    + '<ul>'
+                    + '<li><b><%:Module Name%></b> <span class="guide-tag req"><%:Required%></span>: <%:without an extension, this is the name the list shows.%></li>'
+                    + '<li><b><%:Config File%></b> <span class="guide-tag opt"><%:Optional%></span>: <%:which generated config this module is applied to.%></li>'
+                    + '<li><b><%:Type%></b> <span class="guide-tag opt"><%:Optional%></span>: <%:file for something that is already on the router, http for a link.%></li>'
+                    + '</ul>';
+            }
+        },
+        {
+            key: 'addurl',
+            title: '<%:Subscription URL%>',
+            target: function () { return Guide.addBoxOf('#overwrite-subscribe-url'); },
+            holeTo: function () {
+                var out = [];
+                ['#overwrite-subscribe-update-days', '#overwrite-subscribe-param-add'].forEach(function (sel) {
+                    var el = Guide.inAddDialog(sel);
+                    if (el) out.push(el.closest('.form-group') || el);
+                });
+                return out;
+            },
+            place: 'bottom',
+            tab: 'moduleSubscribe',
+            inAdd: true,
+            wide: true,
+            prepare: function () {
+                Guide.ensureAddDialog();
+                Guide.ensureAddType('http');
+            },
+            body: function () {
+                return '<p><b><%:HTTP subscription fields%></b></p>'
+                    + '<ul>'
+                    + '<li><b><%:Subscription URL%></b> <span class="guide-tag req"><%:Required%></span>: <%:where the module is downloaded from.%></li>'
+                    + '<li><b><%:Update Time%></b> <span class="guide-tag opt"><%:Optional%></span>: <%:which day and hour it is fetched again, OFF means only on demand.%></li>'
+                    + '<li><b><%:Environment variable%></b> <span class="guide-tag opt"><%:Optional%></span>: <%:extra variables handed to the script, only for modules that read them.%></li>'
+                    + '</ul>';
+            }
+        },
+        {
+            key: 'addfoot',
+            title: '<%:Add%>',
+            target: function () { return Guide.inAddDialog('.config-upload-footer'); },
+            place: 'top',
+            inAdd: true,
+            body: function () {
+                return '<p><%:The blue button adds the module, Cancel discards the form.%></p>'
+                    + '<p class="guide-info"><%:A new module is enabled right away, write your values in the editor, save, then reload the core.%></p>';
+            }
+        },
+        {
+            key: 'content',
+            title: '<%:Write and save%>',
+            target: '.config-editor-content',
+            place: 'bottom',
+            wide: true,
+            body: function () {
+                return '<p><%:The module content: YAML fragments such as DNS settings, ports or TUN options. Only what you write here overrides the generated value.%></p>'
+                    + '<p class="guide-careful"><%:YAML indentation matters, an extra space can make the core refuse to start.%></p>';
+            }
+        },
+        {
+            key: 'footer',
+            title: '<%:Editor footer%>',
+            target: '.config-editor-footer',
+            place: 'top',
+            wide: true,
+            body: function () {
+                return '<p><%:The left side reports the state: ready, saving, saved or failed.%></p>'
+                    + '<p class="guide-tip"><%:F11 fullscreen, Escape leaves it, Ctrl with the mouse wheel zooms, the bottom right corner resizes.%></p>';
+            }
+        }
+    ],
+
+    updateSteps: [
+        {
+            key: 'header',
+            title: '<%:Window buttons%>',
+            target: '.select-popup-header .config-editor-actions',
+            place: 'bottom',
+            wide: true,
+            body: function () {
+                return '<p><%:The buttons in the top right corner refresh the version list and the mirror latency, and the ✕ closes the window.%></p>';
+            }
+        },
+        {
+            key: 'param',
+            title: '<%:What to install%>',
+            target: '.config-grid',
+            place: 'bottom',
+            wide: true,
+            body: function () {
+                return '<ul>'
+                    + '<li><b><%:CPU Arch%></b>: <%:detected automatically, leave it alone.%></li>'
+                    + '<li><b><%:Compiled Version%></b>: <%:the core package for your device.%></li>'
+                    + '<li><b><%:Release Branch%></b>: <%:which release line to follow, the default is fine.%></li>'
+                    + '<li><b><%:Smart Core%></b>: <%:the Smart build supports Smart policy groups that score nodes using latency, packet loss and connection history.%></li>'
+                    + '</ul>'
+                    + '<p class="guide-careful"><%:Keep the detected architecture unless you need a different CPU build; change the release branch only if you intend to follow another line.%></p>';
+            }
+        },
+        {
+            key: 'vercard',
+            title: '<%:Select Version%>',
+            target: '.version-card',
+            place: 'bottom',
+            wide: true,
+            body: function () {
+                return '<p><b><%:Installed and target versions%></b></p>'
+                    + '<ul>'
+                    + '<li><%:Latest always takes the newest release.%></li>'
+                    + '<li><%:An older version rolls back after a bad release.%></li>'
+                    + '<li><%:Changing a selector refreshes the mirror list below.%></li>'
+                    + '</ul>';
+            }
+        },
+        {
+            key: 'addr',
+            title: '<%:Update everything%>',
+            target: '#addr-list-body',
+            place: 'bottom',
+            wide: true,
+            body: function () {
+                return '<p><b><%:Mirror list%></b></p>'
+                    + '<ul>'
+                    + '<li><b><%:Address%></b>: <%:click the link to update everything from that mirror, the easy path.%></li>'
+                    + '<li><b><%:Latency%></b>: <%:a slow mirror means a slow download, not a slow proxy.%></li>'
+                    + '<li><b><%:Plugin%></b> / <b><%:Core%></b>: <%:click a version number to update only that piece, for example the core alone.%></li>'
+                    + '<li><b><%:Proxy%></b>: <%:RAW or CDN, use CDN when a download keeps failing.%></li>'
+                    + '</ul>';
+            }
+        },
+        {
+            key: 'foot',
+            title: '<%:Maintenance%>',
+            target: '#select-popup-footer',
+            place: 'top',
+            wide: true,
+            body: function () {
+                return '<ul>'
+                    + '<li><b><%:Backup File%></b>: <%:export the whole setup, the dropdown narrows it down to core, config, rules or proxy providers.%></li>'
+                    + '<li><b><%:Restore Default%></b>: <%:put the OpenClash settings back to the factory state.%></li>'
+                    + '<li><b><%:Remove Core%></b>: <%:delete the installed core, to free space or force a clean reinstall.%></li>'
+                    + '</ul>';
+            }
+        },
+        {
+            key: 'status',
+            title: '<%:Progress and hints%>',
+            target: '.select-popup-status-bar',
+            place: 'top',
+            body: function () {
+                return '<p><%:The left side shows what the download is doing. A link updates everything; a version updates one piece.%></p>'
+                    + '<p class="guide-info"><%:Keep the window open while it downloads, the overview page log reports the result.%></p>';
+            }
+        }
+    ],
+
+    get: function (url, params, cb, silent) {
+        XHR.get(url, params, function (x, data) {
+            if (!silent && (!x || x.status != 200)) {
+                console.warn('Guide request failed: ' + url);
+            }
+            if (cb) cb((x && x.status == 200) ? data : null);
+        });
+    },
+
+    refresh: function (force) {
+        var self = this;
+        this.get(this.urls.check_core, null, function (d) {
+            var first = (self.state.core === null);
+            self.state.core = d ? String(d.core_status) === '1' : null;
+            self.pickStart(first);
+            self.render();
+        }, true);
+        this.get(this.urls.update, null, function (d) {
+            self.state.update = d || null;
+            self.render();
+        }, true);
+        this.get(this.urls.status, null, function (d) {
+            self.state.running = !!(d && d.clash);
+            self.render();
+        }, true);
+        this.get(this.urls.config_file_list, force ? { fingerprint: '' } : null, function (d) {
+            self.state.configs = (d && d.config_files) || [];
+            self.state.current = (d && d.current_config) || '';
+            self.render();
+        }, true);
+    },
+
+    doneMap: function () {
+        var s = this.state;
+        return {
+            core: s.core === true,
+            config: s.configs.length > 0,
+            select: !!s.current,
+            start: s.running
+        };
+    },
+
+    start: function () {
+        this.running = true;
+        this.autoDone = {};
+        this.leftGroup = '';
+        this.entryKey = '';
+        this.entryDone = {};
+        this.lastStepInAdd = false;
+        this.pendingEntry = null;
+        this.pinnedStep = false;
+        this.group = 'main';
+        this.dialogReturn = 0;
+        this.groupReturn = null;
+        var tour = document.getElementById('guide-tour');
+        if (this.closingTimer) {
+            clearTimeout(this.closingTimer);
+            this.closingTimer = null;
+        }
+        tour.classList.remove('closing', 'busy', 'no-anim', 'dialog');
+        tour.classList.add('on');
+        // tells the stylesheet to keep dialogs opened from the tour above the mask
+        document.body.classList.add('oc-guide-open');
+        this.refresh(true);
+        var self = this;
+        if (!this.timer) {
+            this.timer = setInterval(function () { self.refresh(false); }, 15000);
+        }
+        // the overview page keeps re-rendering its cards, so keep the spot glued to the target
+        if (!this.layoutTimer) {
+            this.layoutTimer = setInterval(function () {
+                if (!self.running) return;
+                if (self.gliding) return;
+                self.targetWaits++;
+                self.watchDialogs();
+                self.layout();
+            }, 400);
+        }
+        this.show(0);
+        var floatBtn = document.getElementById('guide-float');
+        if (floatBtn) floatBtn.classList.remove('beacon');
+        return false;
+    },
+
+    // alias: the overview page calls Guide.open() for the auto start on a missing core
+    open: function () { return this.start(); },
+
+    close: function () {
+        this.running = false;
+        this.group = 'main';
+        this.dialogReturn = 0;
+        this.pendingEntry = null;
+        // Done and Skip fade the whole overlay out instead of dropping it in one frame
+        var tour = document.getElementById('guide-tour');
+        tour.classList.add('closing');
+        if (this.closingTimer) clearTimeout(this.closingTimer);
+        this.closingTimer = setTimeout(function () {
+            tour.classList.remove('on', 'closing', 'dialog');
+            Guide.closingTimer = null;
+        }, 180);
+        document.body.classList.remove('oc-guide-open');
+        if (this.timer) {
+            clearInterval(this.timer);
+            this.timer = null;
+        }
+        if (this.autoTimer) {
+            clearTimeout(this.autoTimer);
+            this.autoTimer = null;
+        }
+        if (this.anchorTimer) {
+            clearInterval(this.anchorTimer);
+            this.anchorTimer = null;
+        }
+        // a dialog that was opened by the guide goes away with the tour
+        if (this.autoOpened) {
+            this.closeDialog();
+            this.autoOpened = null;
+        }
+        if (this.layoutTimer) {
+            clearInterval(this.layoutTimer);
+            this.layoutTimer = null;
+        }
+        localStorage.setItem('oc_guide_done', '1');
+        var floatBtn = document.getElementById('guide-float');
+        if (floatBtn) {
+            // a beacon invites the user back while the core is still missing
+            if (this.state.core === false) floatBtn.classList.add('beacon');
+            try { floatBtn.focus({ preventScroll: true }); } catch (e) { floatBtn.focus(); }
+        }
+        return false;
+    },
+
+    finish: function () { return this.close(); },
+
+    // the steps are ordered like the page, but a missing core still outranks everything else when
+    // the tour opens on its own, so the pending task with the lowest priority wins
+    firstPending: function () {
+        var done = this.doneMap();
+        var best = -1;
+        var bestPriority = 99;
+        for (var i = 0; i < this.steps.length; i++) {
+            var step = this.steps[i];
+            if (!done.hasOwnProperty(step.key) || done[step.key]) continue;
+            var priority = step.priority || 50;
+            if (priority < bestPriority) {
+                bestPriority = priority;
+                best = i;
+            }
+        }
+        return best < 0 ? 0 : best;
+    },
+
+    // a core that is not installed yet outranks the page order, so the tour moves to that task as
+    // soon as the request that knows about it answers
+    pickStart: function (firstAnswer) {
+        if (!firstAnswer || this.pinnedStep || this.state.core !== false) return false;
+        var step = this.firstPending();
+        if (step === this.step) return false;
+        this.show(step);
+        return true;
+    },
+
+    // the upload dialog is present several times in the page, so its steps must always look
+    // inside the copy that is actually on screen
+    inDialog: function (selector) {
+        var overlay = (typeof ConfigUploader !== 'undefined') ? ConfigUploader.overlay : null;
+        return overlay ? overlay.querySelector(selector) : document.querySelector(selector);
+    },
+
+    boxOf: function (selector) {
+        var el = this.inDialog(selector);
+        return el ? (el.closest('.form-group') || el) : null;
+    },
+
+    // an option block only appears once its switch is on, a step can turn it on for the user
+    ensureChecked: function (selector) {
+        var box = this.inDialog(selector);
+        if (box && !box.checked) box.click();
+    },
+
+    // the element a step points at plus the region it highlights: a step can stretch its hole over a
+    // second control that belongs to the same action, or over the whole set of controls of an option
+    // block, and everything in that region has to be on screen before the callout may show up
+    stepRect: function (step, el) {
+        el = el || this.resolveTarget(step.target);
+        if (!el) return null;
+        var r = el.getBoundingClientRect();
+        if (!step.holeTo) return r;
+        var extras = (typeof step.holeTo === 'function') ? step.holeTo() : [step.holeTo];
+        if (!extras) extras = [];
+        if (!(extras instanceof Array)) extras = [extras];
+        for (var i = 0; i < extras.length; i++) {
+            var node = (typeof extras[i] === 'string') ? document.querySelector(extras[i]) : extras[i];
+            if (node && (node.offsetWidth || node.offsetHeight)) r = this.unionRect(r, node.getBoundingClientRect());
+        }
+        return r;
+    },
+
+    // the DNS mode names differ between builds, so they are read from the pill itself
+    dnsModes: function () {
+        var out = { fake: 'Fake-IP', redir: 'Redir-Host', active: '' };
+        var pill = document.getElementById('mode-pill');
+        if (!pill) return out;
+        var labels = pill.querySelectorAll('.mode-pill-opt');
+        if (labels[0] && labels[0].getAttribute('title')) out.fake = labels[0].getAttribute('title');
+        if (labels[1] && labels[1].getAttribute('title')) out.redir = labels[1].getAttribute('title');
+        var checked = pill.querySelector('input[type="radio"]:checked');
+        if (checked) {
+            var label = pill.querySelector('label[for="' + checked.id + '"]');
+            out.active = (label && label.getAttribute('title')) || checked.value;
+        }
+        return out;
+    },
+
+    unionRect: function (a, b) {
+        var left = Math.min(a.left, b.left);
+        var top = Math.min(a.top, b.top);
+        var right = Math.max(a.right, b.right);
+        var bottom = Math.max(a.bottom, b.bottom);
+        return { left: left, top: top, right: right, bottom: bottom, width: right - left, height: bottom - top };
+    },
+
+    // the run mode buttons can be renamed by a build, the bubble repeats what the page shows
+    runModeLabels: function () {
+        var out = { normal: 'Compat', tun: 'TUN', mix: 'Mix', active: '' };
+        var group = document.getElementById('radio-ru-mode');
+        if (!group) return out;
+        ['normal', 'tun', 'mix'].forEach(function (key) {
+            var label = group.querySelector('label[for="' + key + '"]');
+            if (label && label.textContent.trim()) out[key] = label.textContent.trim();
+        });
+        var checked = group.querySelector('input[type="radio"]:checked');
+        if (checked) out.active = out[checked.id] || checked.value;
+        return out;
+    },
+
+    myipLabels: function () {
+        var out = { hide: 'Hide IP', mode: 'Router Mode' };
+        var eye = document.querySelector('#eye-icon title');
+        var mode = document.querySelector('#mode-icon title');
+        if (eye && eye.textContent) out.hide = eye.textContent;
+        if (mode && mode.textContent) out.mode = mode.textContent;
+        return out;
+    },
+
+    groupSteps: function () {
+        if (this.group === 'upload') return this.uploadSteps;
+        if (this.group === 'subscribe') return this.subscribeSteps;
+        if (this.group === 'overwrite') return this.overwriteSteps;
+        if (this.group === 'update') return this.updateSteps;
+        return this.steps;
+    },
+
+    activeSteps: function () {
+        var steps = this.groupSteps();
+        var out = [];
+        for (var i = 0; i < steps.length; i++) {
+            if (!steps[i].when || steps[i].when()) out.push(steps[i]);
+        }
+        return out;
+    },
+
+    // the dialog the user is looking at right now, upload and update tell themselves apart by class
+    visibleDialog: function () {
+        var popup = document.getElementById('selectPopup');
+        if (popup && !popup.classList.contains('hidden')) return 'update';
+        var overlay = (typeof ConfigUploader !== 'undefined') ? ConfigUploader.overlay : null;
+        if (overlay && overlay.classList.contains('show')) {
+            var tab = overlay.querySelector('#upload-mode-subscribe');
+            return (tab && tab.classList.contains('active')) ? 'subscribe' : 'upload';
+        }
+        // the same editor serves the config files too, only the overwrite mode has the side panel
+        var editor = document.getElementById('config-editor-overlay');
+        var side = document.getElementById('overwrite-side-panel');
+        if (editor && editor.classList.contains('show') && side && !side.classList.contains('oc-hidden')) return 'overwrite';
+        return null;
+    },
+
+    watchDialogs: function () {
+        // a dialog that is closing still counts as open for a moment, the tour must not jump back
+        if (Date.now() < (this.dialogGrace || 0)) return;
+        var open = this.visibleDialog();
+        // the window the guide just opened must hand over to the steps that belong to it
+        if (this.pendingEntry) {
+            var entry = this.pendingEntry;
+            if (this.entryVisible(entry.kind)) {
+                this.pendingEntry = null;
+                // a window of its own group takes the tour over, a nested window only lets it continue
+                if (open && open !== this.group) {
+                    // where the overview tour stood, so walking back out of the window lands there
+                    // again instead of at the first step of the whole tour
+                    if (this.group === 'main') this.dialogReturn = this.step;
+                    return this.enterGroup(open);
+                }
+                if (!open || open === this.group) return this.show(this.step + 1, 1);
+            } else if (this.targetWaits > 16) {
+                // it never showed up, let the user press the button again
+                this.pendingEntry = null;
+            }
+        }
+        if (!open) {
+            this.autoOpened = null;
+            this.leftGroup = '';
+            if (this.group !== 'main') this.leaveGroup();
+            return;
+        }
+        // a window the user deliberately walked out of stays shut until it is closed
+        if (open === this.leftGroup) return;
+        if (open === this.group) return;
+        if (this.group === 'main') {
+            this.dialogReturn = this.step;
+            this.entryKey = (this.steps[this.step] || {}).key || '';
+            // the button that turns into "next" after this window is the entrance owning it
+            for (var e = 0; e < this.steps.length; e++) {
+                if (this.steps[e].entry === open) {
+                    this.entryKey = this.steps[e].key;
+                    break;
+                }
+            }
+        }
+        this.enterGroup(open);
+    },
+
+    enterGroup: function (name) {
+        this.group = name;
+        this.step = 0;
+        document.getElementById('guide-tour').classList.add('dialog');
+        this.show(0);
+    },
+
+    // walking out of a sub tour by hand also closes the window it belongs to, so the overview tour
+    // does not keep running behind a window the user left on purpose
+    leaveGroup: function (byUser, walked) {
+        this.pinnedStep = true;
+        this.pendingEntry = null;
+        this.groupReturn = null;
+        if (byUser) {
+            if (walked) this.entryDone[this.entryKey] = true;
+            this.leftGroup = this.group;
+            // skipping a sub tour hands the page back, so its window goes with it
+            this.closeAddDialog();
+            this.closeDialog(this.group);
+            this.autoOpened = null;
+        }
+        this.group = 'main';
+        this.step = this.dialogReturn;
+        document.getElementById('guide-tour').classList.remove('dialog');
+        this.show(this.step);
+    },
+
+    resolveTarget: function (target) {
+        if (!target) return null;
+        var el = (typeof target === 'function') ? target() : document.querySelector(target);
+        if (!el || !el.offsetWidth && !el.offsetHeight) return null;
+        return el;
+    },
+
+    show: function (i, dir) {
+        if (!this.running) return false;
+        var steps = this.groupSteps();
+        var wanted = Math.max(0, Math.min(i, steps.length - 1));
+        // a step can step aside when the page offers nothing to point at, the tour then moves on in
+        // the direction the user is travelling
+        if (steps[wanted].when && !steps[wanted].when()) {
+            var way = (dir === undefined) ? 1 : dir;
+            for (var k = wanted + way; k >= 0 && k < steps.length; k += way) {
+                if (!steps[k].when || steps[k].when()) { wanted = k; break; }
+            }
+        }
+        this.step = wanted;
+        var step = steps[this.step];
+        var self = this;
+        var tour = document.getElementById('guide-tour');
+        this.sheetHeight = 0;
+        if (this.autoTimer) {
+            clearTimeout(this.autoTimer);
+            this.autoTimer = null;
+        }
+        if (this.anchorTimer) {
+            clearInterval(this.anchorTimer);
+            this.anchorTimer = null;
+        }
+        // the guide only opens a window when the user asks for it, so moving between overview steps
+        // just hands back the dialog the guide itself opened
+        var sameGroup = (!!this.lastStepGroup && this.lastStepGroup === this.group);
+        var changed = (this.lastStepKey !== step.key || this.lastStepGroup !== this.group);
+        this.lastStepKey = step.key;
+        this.lastStepGroup = this.group;
+        this.targetWaits = 0;
+        this.stepAlign = '';
+        // a step the guide opened a window for is not waiting any more once the tour moved on
+        if (this.pendingEntry && this.pendingEntry.key !== step.key) this.pendingEntry = null;
+        // a step can bring its own target into a usable state first
+        if (step.prepare) step.prepare();
+        // a step that lives on the other tab brings it back, which is what walking backwards over
+        // a tab switch needs
+        if (step.tab && !this.tabActive(step.tab)) this.clickTab(step.tab);
+        // the add module window closes again once its own steps are done
+        var wasAdd = this.lastStepInAdd;
+        this.lastStepInAdd = !!step.inAdd;
+        document.getElementById('guide-tour').classList.toggle('inadd', !!step.inAdd);
+        if (wasAdd && !step.inAdd) this.closeAddDialog();
+        if (this.group === 'main' && changed && this.autoOpened && this.autoOpened !== step.key) {
+            this.closeDialog();
+            this.autoOpened = null;
+        }
+        // hide the whole overlay while the page travels, an invisible placement also keeps the
+        // callout measurable (unlike display:none)
+        tour.classList.add('busy', 'no-anim');
+        this.renderPop();
+        // a step of the same group that needs no travelling at all just moves the ring and the
+        // callout over, the eye can follow where the highlight went instead of a hard cut
+        var moves = sameGroup && !this.boxOffset(step) && this.freeScrollOffset(step, false, this.stepAlign) === null;
+        if (moves) tour.classList.remove('busy', 'no-anim');
+        // this first layout also tells whether the callout ends up as a bottom sheet, which the
+        // scroll below needs to know
+        this.layout();
+        // the callout slides in at the moment it is revealed: while the page still travels the
+        // animation would play behind the hidden overlay and arrive already finished
+        var finish = function () {
+            requestAnimationFrame(function () {
+                tour.classList.remove('no-anim');
+                var popEl = document.getElementById('guide-pop');
+                popEl.classList.remove('from-next', 'from-prev');
+                void popEl.offsetWidth;
+                popEl.classList.add((dir === -1) ? 'from-prev' : 'from-next');
+                requestAnimationFrame(function () { tour.classList.remove('busy'); });
+            });
+        };
+        var reveal = function () {
+            self.layout();
+            // a callout that finds no room around a region that is on screen by now means the page
+            // has to hand it one whole side, which is a second short glide
+            if (self.alignStep(step, finish)) return;
+            finish();
+        };
+        var scrollTo = function () {
+            // a region inside a dialog is brought into the dialog's own scrolling area first
+            var boxed = self.boxOffset(step);
+            if (boxed) {
+                return self.glideBox(boxed.box, boxed.delta, function () {
+                    var offset = self.freeScrollOffset(step, false, self.stepAlign);
+                    if (offset === null) reveal();
+                    else if (!self.glide(window.scrollY + offset, reveal)) reveal();
+                });
+            }
+            var offset = self.freeScrollOffset(step, false, self.stepAlign);
+            if (offset === null) return false;
+            return self.glide(window.scrollY + offset, reveal);
+        };
+        if (!moves && !scrollTo()) reveal();
+        // the overview page keeps re-rendering and dialogs need a moment to appear, so keep
+        // re-anchoring for a while instead of trusting two fixed timeouts
+        var ticks = 0;
+        this.anchorTimer = setInterval(function () {
+            ticks++;
+            if (!self.running || ticks > 16) {
+                clearInterval(self.anchorTimer);
+                self.anchorTimer = null;
+                return;
+            }
+            // nothing is touched while a glide is still running, otherwise the page and the callout
+            // would fight over the same position and the step would look like it is shaking
+            if (self.gliding) return;
+            self.anchorBox(step, true);
+            var offset = self.freeScrollOffset(step, true, self.stepAlign);
+            if (offset !== null) self.glide(window.scrollY + offset);
+            self.layout();
+        }, 150);
+        return false;
+    },
+
+    scrollBox: function (el) {
+        var node = el ? el.parentNode : null;
+        while (node && node.nodeType === 1 && node !== document.body) {
+            var style = window.getComputedStyle(node);
+            if (/(auto|scroll|overlay)/.test(style.overflowY) && node.scrollHeight > node.clientHeight + 4) return node;
+            node = node.parentNode;
+        }
+        return null;
+    },
+
+    boxOffset: function (step, tolerant) {
+        var el = this.resolveTarget(step.target);
+        var box = this.scrollBox(el);
+        if (!box) return null;
+        var r = this.stepRect(step, el);
+        var b = box.getBoundingClientRect();
+        var slack = tolerant ? 28 : 8;
+        if (r.top >= b.top + slack && r.bottom <= b.bottom - slack) return null;
+        var room = box.clientHeight - 24;
+        // the whole highlighted region ends up in the middle of the dialog area, a region taller than
+        // that area is aligned with its top edge so at least its first rows are on screen
+        var delta = (r.height <= room) ? (r.top - (b.top + 12) - (room - r.height) / 2) : (r.top - b.top - 12);
+        return { box: box, delta: delta };
+    },
+
+    // same hand made glide as the page, but for the scroll area of a dialog
+    anchorBox: function (step, tolerant) {
+        var boxed = this.boxOffset(step, tolerant);
+        if (!boxed) return false;
+        return this.glideBox(boxed.box, boxed.delta, null);
+    },
+
+    glideBox: function (box, delta, done) {
+        var start = box.scrollTop;
+        var limit = Math.max(0, box.scrollHeight - box.clientHeight);
+        var target = Math.max(0, Math.min(start + delta, limit));
+        var distance = target - start;
+        if (Math.abs(distance) < 2) {
+            if (done) done();
+            return false;
+        }
+        var duration = Math.min(360, 160 + Math.abs(distance) * 0.25);
+        var started = 0;
+        var stepFn = function (now) {
+            if (!started) {
+                started = now;
+                Guide.gliding++;
+            }
+            var progress = Math.min(1, (now - started) / duration);
+            box.scrollTop = start + distance * (1 - Math.pow(1 - progress, 3));
+            if (progress < 1) {
+                requestAnimationFrame(stepFn);
+                return;
+            }
+            Guide.gliding--;
+            if (done) done();
+        };
+        requestAnimationFrame(stepFn);
+        return true;
+    },
+
+    // how far the page has to move to put the whole highlighted region in the middle of the free
+    // area, or null while it is already there (the periodic re-anchor tolerates more)
+    freeScrollOffset: function (step, tolerant, align) {
+        var el = this.resolveTarget(step.target);
+        if (!el) return null;
+        var limit = document.documentElement.clientHeight - (this.sheetHeight || 0) - 12;
+        var r = this.stepRect(step, el);
+        var slack = tolerant ? 24 : 0;
+        // an explicit alignment gives the callout all the room on one side of the region
+        if (align === 'top') return (r.top <= 13) ? null : (r.top - 12);
+        if (align === 'bottom') return (r.bottom >= limit - 1) ? null : (r.bottom - limit);
+        if (r.top >= 12 - slack && r.bottom <= limit + slack) return null;
+        var room = limit - 12;
+        // centred in the free area when it fits, aligned with its top edge when it is taller
+        return (r.height <= room) ? (r.top - 12 - (room - r.height) / 2) : (r.top - 12);
+    },
+
+    // a callout with no clear side in the free area gets the whole side above or below the region
+    // from the page, but only once that region is on screen, otherwise it is simply out of view
+    alignStep: function (step, done) {
+        if (this.stepAlign || !this.lastPlaceFallback) return false;
+        var el = this.resolveTarget(step.target);
+        var r = el ? this.stepRect(step, el) : null;
+        if (!r) return false;
+        var vw = document.documentElement.clientWidth;
+        var vh = document.documentElement.clientHeight;
+        if (r.top < 12 || r.bottom > vh - 12) return false;
+        var side = this.roomiestSide(r, vw, vh, 14);
+        if (side !== 'top' && side !== 'bottom') return false;
+        this.stepAlign = (side === 'bottom') ? 'top' : 'bottom';
+        var offset = this.freeScrollOffset(step, false, this.stepAlign);
+        if (offset === null) return false;
+        return this.glide(window.scrollY + offset, done);
+    },
+
+    // the browsers in use here scroll instantly even when asked for smooth, so the glide is done by
+    // hand, which also keeps it in step with the callout fade
+    glide: function (targetY, done) {
+        var startY = window.scrollY;
+        var distance = targetY - startY;
+        if (Math.abs(distance) < 2) {
+            if (done) done();
+            return false;
+        }
+        var duration = Math.min(420, 180 + Math.abs(distance) * 0.25);
+        var started = 0;
+        var step = function (now) {
+            if (!started) {
+                started = now;
+                Guide.gliding++;
+            }
+            var progress = Math.min(1, (now - started) / duration);
+            window.scrollTo(0, startY + distance * (1 - Math.pow(1 - progress, 3)));
+            if (progress < 1) {
+                requestAnimationFrame(step);
+                return;
+            }
+            Guide.gliding--;
+            if (done) done();
+        };
+        requestAnimationFrame(step);
+        return true;
+    },
+
+    prev: function () {
+        this.pinnedStep = true;
+        if (this.step === 0 && this.group === 'subscribe') {
+            // walking back out of the subscribe tab lands on the step that switched tabs, whether the
+            // user arrived there through Next or through a tab click of their own
+            var back = this.groupReturn;
+            if (!back) {
+                var landing = this.uploadSteps.length - 1;
+                for (var i = 0; i < this.uploadSteps.length; i++) {
+                    if (this.uploadSteps[i].switchTo === 'subscribe') landing = i;
+                }
+                back = { group: 'upload', step: landing };
+            }
+            this.groupReturn = null;
+            this.clickTab(back.group);
+            this.group = back.group;
+            this.step = back.step;
+            return this.show(this.step, -1);
+        }
+        if (this.step === 0 && this.group !== 'main') return this.leaveGroup(true);
+        return this.show(this.step - 1, -1);
+    },
+
+    next: function (auto) {
+        this.pinnedStep = true;
+        var steps = this.groupSteps();
+        var step = steps[this.step];
+        // an entrance step opens the window it points at, but only when the user asked for it and
+        // only the first time: after that tour the button simply moves on
+        if (!auto && step && step.entry && !this.entryDone[step.key] && !this.entryVisible(step.entry)) {
+            // only an entrance of the overview tour owns the record, a nested one just opens
+            if (this.group === 'main') {
+                this.entryKey = step.key;
+                this.autoOpened = step.key;
+            }
+            this.targetWaits = 0;
+            // the window takes over as soon as it is on screen, no second press needed
+            this.pendingEntry = { key: step.key, kind: step.entry };
+            this.openStepDialog(step.entry);
+            return false;
+        }
+        // a step that points at the other tab switches to it on the same press
+        if (!auto && step && step.switchTo && !this.tabActive(step.switchTo)) {
+            this.clickTab(step.switchTo);
+            var open = this.visibleDialog();
+            // the other tab is a group of its own and the tour follows the window there; a tab that
+            // stays inside the same window just moves on
+            if (open && open !== this.group) {
+                this.groupReturn = { group: this.group, step: this.step };
+                return this.enterGroup(open);
+            }
+            return this.show(this.step + 1, 1);
+        }
+        if (this.step >= steps.length - 1) {
+            if (this.group !== 'main') return this.finishDialog();
+            return this.finish();
+        }
+        return this.show(this.step + 1, 1);
+    },
+
+    renderPop: function () {
+        var steps = this.groupSteps();
+        var inDialog = (this.group !== 'main');
+        var step = steps[this.step];
+        var pop = document.getElementById('guide-pop');
+        pop.style.width = '';
+        this.popBaseW = 0;
+        var dots = '';
+        var done = this.doneMap();
+        // a step that hides itself is left out of the counter as well
+        var active = this.activeSteps();
+        var pos = active.indexOf(step);
+        for (var i = 0; i < active.length; i++) {
+            var isDone = inDialog ? (i < pos) : !!done[active[i].key];
+            dots += '<i' + (i === pos ? ' class="on"' : (isDone ? ' class="done"' : '')) + '></i>';
+        }
+        // the marks keep their full size on the wide callout, only a very long tour tightens them
+        var density = (active.length > 32) ? ' tiny' : ((active.length > 24) ? ' dense' : '');
+        // a step that still has to open its window keeps the continue button even when it happens to
+        // be the last one of its group; a tab switch happens on the same press, so that one is "Next"
+        var openWin = !!(step.entry && !this.entryDone[step.key] && !this.entryVisible(step.entry));
+        var switchTab = !!(step.switchTo && !this.tabActive(step.switchTo));
+        var last = (pos === active.length - 1) && !openWin && !switchTab;
+        var segments = '';
+        for (var s = 0; s < active.length; s++) {
+            segments += '<i class="' + ((s < pos) ? 'done' : ((s === pos) ? 'on' : '')) + '"></i>';
+        }
+        var primary = openWin ? '<%:Open and continue%>'
+            : (last ? (inDialog ? '<%:Back to guide%>' : '<%:Done%>') : '<%:Next%>');
+        var action = last ? (inDialog ? 'Guide.finishDialog()' : 'Guide.finish()') : 'Guide.next()';
+        // every button says in its tooltip what that one press does right here, the labels alone
+        // cannot tell a step in a window from a step of the overview
+        var skipTip = inDialog ? '<%:Stop guiding this section%>' : '<%:End the guide, Esc does the same%>';
+        var prevTip = (pos === 0 && inDialog) ? '<%:Close this window and go back to the overview%>' : '<%:Back to the previous step%>';
+        var nextTip = openWin ? '<%:Open this window and carry on%>'
+            : (last ? (inDialog ? '<%:Close this window and go back to the guide%>' : '<%:End the guide, the settings all stay as they are%>') : '<%:Continue with the next step%>');
+        pop.className = 'guide-pop' + (step.wide ? ' wide' : '') + (step.log ? ' log' : '') + (inDialog ? ' dialog' : '')
+            // a long tour needs the room for its step marks, so the callout widens for it
+            + ((active.length > 10) ? ' wide-dots' : '');
+        var section = this.sectionInfo();
+        pop.innerHTML = '<div class="guide-arrow"></div>'
+            + '<div class="guide-progress">' + segments + '</div>'
+            + '<div class="guide-pop-head"><span class="guide-pop-title">' + step.title + '</span>'
+            + '<span class="guide-pop-step">' + (section.text ? '<span class="guide-pop-section ' + section.cls + '">' + section.text + '</span>' : '')
+            + '<span class="guide-pop-count">' + (pos + 1) + ' / ' + active.length + '</span></span></div>'
+            + '<div class="guide-pop-body">' + step.body() + '<p class="guide-wait oc-hidden" id="guide-wait"></p></div>'
+            + '<div class="guide-pop-foot">'
+            + '<div class="guide-dots' + density + '">' + dots + '</div>'
+            + '<div class="guide-actions">'
+            + '<button type="button" class="btn cancel-btn guide-skip" title="' + skipTip + '" onclick="Guide.' + (inDialog ? 'leaveGroup(true)' : 'close()') + '">'
+            + (inDialog ? '<%:Skip Section%>' : '<%:Skip Tour%>') + '</button>'
+            + '<button type="button" class="btn cancel-btn" title="' + prevTip + '" onclick="Guide.prev()"' + ((pos === 0 && !inDialog) ? ' disabled' : '') + '><%:Previous%></button>'
+            + '<button type="button" class="btn upload-btn" title="' + nextTip + '" onclick="' + action + '">' + primary + '</button>'
+            + '</div>'
+            + '</div>'
+            + '<div class="guide-live" aria-live="polite"></div>';
+        this.scrollDots();
+        pop.onclick = function () { Guide.cancelAuto(); };
+        this.renderDynamic();
+        this.focusCallout();
+        this.announce();
+    },
+
+    sectionInfo: function () {
+        if (this.group === 'upload' || this.group === 'subscribe') return { text: '<%:Add Config File%>', cls: 'cfg' };
+        if (this.group === 'overwrite') return { text: '<%:Overwrite Module%>', cls: 'ovr' };
+        if (this.group === 'update') return { text: '<%:Check Update%>', cls: 'upd' };
+        return { text: '', cls: '' };
+    },
+
+    // the callout is the only thing that changes, so read the step out for screen readers
+    announce: function () {
+        var live = document.querySelector('#guide-pop .guide-live');
+        if (!live) return;
+        var active = this.activeSteps();
+        var step = this.groupSteps()[this.step];
+        live.textContent = step.title + ' – ' + (active.indexOf(step) + 1) + ' / ' + active.length;
+    },
+
+    // Joyride and friends keep the keyboard inside the callout, otherwise Tab escapes to the page
+    // behind the spotlight
+    focusCallout: function () {
+        var pop = document.getElementById('guide-pop');
+        if (!pop) return;
+        pop.setAttribute('tabindex', '-1');
+        try { pop.focus({ preventScroll: true }); } catch (e) { pop.focus(); }
+    },
+
+    trapTab: function (e) {
+        var pop = document.getElementById('guide-pop');
+        var items = pop.querySelectorAll('button:not(:disabled)');
+        if (!items.length) return;
+        var first = items[0];
+        var last = items[items.length - 1];
+        if (e.shiftKey && (document.activeElement === first || document.activeElement === pop)) {
+            last.focus();
+            e.preventDefault();
+        } else if (!e.shiftKey && document.activeElement === last) {
+            first.focus();
+            e.preventDefault();
+        }
+    },
+
+    // the dialogs belong to the page, the guide only presses their own entry points
+    openStepDialog: function (kind) {
+        if (kind === 'overwrite') {
+            var btn = document.getElementById('edit_overwrite');
+            if (btn) btn.click();
+            return;
+        }
+        if (kind === 'module') {
+            var add = document.getElementById('overwrite-new-file');
+            if (add) add.click();
+            return;
+        }
+        if (kind === 'update') {
+            // the page turns this button into a real input, clicking the outer button would submit
+            // the form behind it
+            var host = document.getElementById('_one_key_update_btn');
+            var trigger = host ? host.querySelector('input[type="button"], button') : null;
+            if (trigger) trigger.click();
+            else if (host && typeof all_one_key_update === 'function') all_one_key_update(host);
+            return;
+        }
+        var big = document.getElementById('upload_config_large');
+        var upload = (big && big.offsetParent) ? big : document.getElementById('upload_config');
+        if (upload) upload.click();
+    },
+
+    entryVisible: function (kind) {
+        if (kind === 'module') {
+            var overlay = document.getElementById('overwrite-add-model');
+            return !!(overlay && overlay.classList.contains('show'));
+        }
+        return !!this.visibleDialog();
+    },
+
+    // the tab a step offers to switch to, and whether it is the active one already; the upload
+    // dialog exists twice in the page, so its tabs are always looked up inside the copy on screen
+    tabNode: function (kind) {
+        if (kind === 'moduleFile') return document.getElementById('overwrite-upload-mode-file');
+        if (kind === 'moduleSubscribe') return document.getElementById('overwrite-upload-mode-subscribe');
+        var overlay = (typeof ConfigUploader !== 'undefined') ? ConfigUploader.overlay : null;
+        if (!overlay) return null;
+        return overlay.querySelector(kind === 'subscribe' ? '#upload-mode-subscribe' : '#upload-mode-file');
+    },
+
+    tabActive: function (kind) {
+        var tab = this.tabNode(kind);
+        return !!(tab && tab.classList.contains('active'));
+    },
+
+    clickTab: function (kind) {
+        var tab = this.tabNode(kind);
+        if (tab) tab.click();
+    },
+
+    // the add module dialog is created on demand and is not the config uploader, so its steps have
+    // to be looked up inside that overlay
+    inAddDialog: function (selector) {
+        var overlay = document.getElementById('overwrite-add-model');
+        return (overlay && overlay.classList.contains('show')) ? overlay.querySelector(selector) : null;
+    },
+
+    addBoxOf: function (selector) {
+        var el = this.inAddDialog(selector);
+        return el ? (el.closest('.form-group') || el) : null;
+    },
+
+    closeAddDialog: function () {
+        var btn = document.getElementById('overwrite-add-close');
+        if (btn) {
+            btn.click();
+            return;
+        }
+        var overlay = document.getElementById('overwrite-add-model');
+        if (overlay) overlay.classList.remove('show');
+    },
+
+    ensureAddDialog: function () {
+        if (!this.entryVisible('module')) this.openStepDialog('module');
+    },
+
+    // the url and schedule fields of the add module form only show up for the http type
+    ensureAddType: function (type) {
+        var sel = this.inAddDialog('#overwrite-subscribe-type');
+        if (!sel || sel.value === type) return;
+        sel.value = type;
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+    },
+
+    // the module list starts collapsed on a narrow screen, its own tour needs it open
+    showOverwriteSide: function () {
+        var panel = document.getElementById('overwrite-side-panel');
+        var toggle = document.getElementById('overwrite-side-toggle');
+        if (panel && toggle && panel.classList.contains('rail')) toggle.click();
+    },
+
+    closeDialog: function (kind) {
+        var open = kind || this.visibleDialog();
+        this.dialogGrace = Date.now() + 1400;
+        if (open === 'update') {
+            if (typeof closeSelectPopup === 'function') closeSelectPopup();
+        } else if (open === 'overwrite') {
+            if (typeof ConfigEditor !== 'undefined' && ConfigEditor.hide) ConfigEditor.hide();
+        } else if (open) {
+            if (typeof ConfigUploader !== 'undefined' && ConfigUploader.hide) ConfigUploader.hide();
+        }
+    },
+
+    // the last step of a dialog group hands the user back to the overview tour
+    finishDialog: function () {
+        this.closeDialog(this.group);
+        this.autoOpened = null;
+        return this.leaveGroup(true, true);
+    },
+
+    // Joyride style waiting state: say that something is missing instead of pointing at nothing
+    reportWait: function (step, el) {
+        var wait = document.getElementById('guide-wait');
+        if (!wait) return;
+        var msg = '';
+        if (!el && this.targetWaits >= 7) {
+            if (this.group !== 'main') {
+                msg = '<%:This part has not appeared, open the matching tab or scroll inside the window.%>';
+            } else if (this.autoOpened && !this.visibleDialog()) {
+                msg = '<%:The window did not open. Open it from the page yourself, or skip this step.%>';
+            } else {
+                msg = '<%:This part did not appear, it may not be available on this device.%>';
+            }
+        }
+        if (wait.innerHTML !== msg) wait.innerHTML = msg;
+        wait.classList.toggle('oc-hidden', !msg);
+    },
+
+    layout: function () {
+        if (!this.running) return;
+        var step = this.groupSteps()[this.step];
+        var pop = document.getElementById('guide-pop');
+        var spot = document.getElementById('guide-spot');
+        var vw = document.documentElement.clientWidth;
+        var vh = document.documentElement.clientHeight;
+        var el = this.resolveTarget(step.target);
+        this.reportWait(step, el);
+        if (!el) {
+            this.setMasks(0, 0, vw, vh, true);
+            document.getElementById('guide-tour').classList.add('full-dim');
+            spot.classList.add('hidden');
+            pop.classList.remove('bottom-sheet');
+            pop.classList.add('center');
+            pop.style.top = '';
+            pop.style.left = '';
+            this.setWidth(pop, 0);
+            this.setBodyMax(pop.querySelector('.guide-pop-body'), 0);
+            var arrow = pop.querySelector('.guide-arrow');
+            if (arrow) arrow.style.display = 'none';
+            this.scrollDots();
+            return;
+        }
+        document.getElementById('guide-tour').classList.remove('full-dim');
+        var arrowEl = pop.querySelector('.guide-arrow');
+        if (arrowEl) arrowEl.style.display = '';
+        pop.classList.remove('center');
+
+        var r = this.stepRect(step, el);
+        var pad = 6;
+        var hole = {
+            top: Math.round(r.top - pad),
+            left: Math.round(r.left - pad),
+            width: Math.round(r.width + pad * 2),
+            height: Math.round(r.height + pad * 2)
+        };
+        spot.classList.remove('hidden');
+        this.setBox(spot, hole.top, hole.left, hole.width, hole.height);
+        this.setMasks(hole.left, hole.top, hole.width, hole.height, false);
+
+        var pw = pop.offsetWidth;
+        var ph = pop.offsetHeight;
+        var gap = 14;
+        // a bubble next to the target is preferred, the bottom sheet is only for a narrow screen or
+        // a target that leaves no room on any side
+        var sides = ['top', 'bottom', 'left', 'right'];
+        var room = false;
+        for (var k = 0; k < sides.length; k++) {
+            if (this.sideRoom(sides[k], r, vh, gap) >= 78) room = true;
+        }
+        var sheet = (vw < 560) || !room;
+        pop.classList.toggle('bottom-sheet', sheet);
+        this.sheetHeight = sheet ? (ph + 30) : 0;
+        if (sheet) {
+            this.setWidth(pop, 0);
+            pop.style.top = '';
+            pop.style.left = '';
+            if (arrowEl) arrowEl.style.display = 'none';
+            this.scrollDots();
+            return;
+        }
+        var place = step.place || 'bottom';
+        this.placePop(pop, place, r, pw, ph, vw, vh, gap);
+        this.scrollDots();
+    },
+
+    // the callout can end up narrower than the tour is long, so the row is scrolled to the mark of
+    // the step being shown: a tour never looks like it stopped at the first step
+    scrollDots: function () {
+        var pop = document.getElementById('guide-pop');
+        if (!pop) return;
+        var row = pop.querySelector('.guide-dots');
+        var mark = pop.querySelector('.guide-dots i.on');
+        if (!row || !mark || row.scrollWidth <= row.clientWidth) return;
+        var inside = mark.getBoundingClientRect().left - row.getBoundingClientRect().left + row.scrollLeft;
+        var want = Math.max(0, Math.round(inside - (row.clientWidth - mark.offsetWidth) / 2));
+        if (Math.abs(row.scrollLeft - want) > 1) row.scrollLeft = want;
+    },
+
+    placeOrder: function (want) {
+        if (want === 'top') return ['top', 'bottom', 'right', 'left'];
+        if (want === 'left') return ['left', 'right', 'bottom', 'top'];
+        if (want === 'right') return ['right', 'left', 'bottom', 'top'];
+        return ['bottom', 'top', 'right', 'left'];
+    },
+
+    sideRoom: function (side, r, vh, gap) {
+        if (side === 'top') return r.top - gap - 12;
+        if (side === 'bottom') return vh - 12 - r.bottom - gap;
+        return vh - 24;
+    },
+
+    roomiestSide: function (r, vw, vh, gap) {
+        var best = 'bottom';
+        var room = vh - r.bottom;
+        if (r.top > room) { best = 'top'; room = r.top; }
+        // a side placement needs both the vertical room and the gap beside the target
+        var side = Math.min(vh - 24, r.left - gap - 12);
+        if (side > room) { best = 'left'; room = side; }
+        side = Math.min(vh - 24, vw - 12 - r.right - gap);
+        if (side > room) { best = 'right'; room = side; }
+        return best;
+    },
+
+    placeAt: function (side, r, pw, ph, vw, vh, gap, clamp) {
+        var top, left;
+        if (side === 'top' || side === 'bottom') {
+            top = (side === 'top') ? (r.top - gap - ph) : (r.bottom + gap);
+            if (!clamp && (top < 11.5 || (top + ph) > vh - 11.5)) return null;
+            top = Math.max(12, Math.min(top, vh - ph - 12));
+            left = Math.max(12, Math.min(r.left + (r.width / 2) - (pw / 2), vw - pw - 12));
+        } else {
+            left = (side === 'left') ? (r.left - gap - pw) : (r.right + gap);
+            if (!clamp && (left < 11.5 || (left + pw) > vw - 11.5)) return null;
+            left = Math.max(12, Math.min(left, vw - pw - 12));
+            top = Math.max(12, Math.min(r.top + (r.height / 2) - (ph / 2), vh - ph - 12));
+        }
+        return { top: Math.round(top), left: Math.round(left) };
+    },
+
+    overlapsHole: function (pos, pw, ph, r, pad) {
+        return (pos.left < r.right + pad) && ((pos.left + pw) > r.left - pad)
+            && (pos.top < r.bottom + pad) && ((pos.top + ph) > r.top - pad);
+    },
+
+    overlapArea: function (pos, pw, ph, r) {
+        var w = Math.min(pos.left + pw, r.right) - Math.max(pos.left, r.left);
+        var h = Math.min(pos.top + ph, r.bottom) - Math.max(pos.top, r.top);
+        return (w > 0 && h > 0) ? w * h : 0;
+    },
+
+    // last resort for a region that leaves no clear side: the callout sits where it covers the
+    // least of it, and where two spots cover the same, the one with the roomier text area wins
+    overlapPlace: function (pop, want, r, vw, vh, gap, chrome, natural) {
+        var body = pop.querySelector('.guide-pop-body');
+        var order = this.placeOrder(want);
+        var best = null;
+        this.setWidth(pop, 0);
+        for (var i = 0; i < order.length; i++) {
+            var side = order[i];
+            var room = this.sideRoom(side, r, vh, gap);
+            this.setBodyMax(body, (chrome + natural > room) ? Math.max(28, room - chrome) : 0);
+            var w = pop.offsetWidth;
+            var h = pop.offsetHeight;
+            var pos = this.placeAt(side, r, w, h, vw, vh, gap, true);
+            var cand = { side: side, top: pos.top, left: pos.left, over: this.overlapArea(pos, w, h, r), room: room, max: body.style.maxHeight };
+            if (!best || cand.over < best.over || (cand.over === best.over && cand.room > best.room)) best = cand;
+        }
+        // the styles of the last side tried would stay behind otherwise
+        if (best) this.setBodyMax(body, best.max ? parseFloat(best.max) : 0);
+        return best;
+    },
+
+    // the callout is tried on every side and the first placement that keeps clear of the
+    // highlighted region wins, shrinking the text area when the room on that side is tight, so the
+    // bubble only ends up on top of what it talks about when there is no other spot left
+    placePop: function (pop, want, r, pw, ph, vw, vh, gap) {
+        var body = pop.querySelector('.guide-pop-body');
+        var arrow = pop.querySelector('.guide-arrow');
+        // chrome is everything around the text area, which does not change while placing, and the
+        // natural text height comes from scrollHeight so the callout is never unclipped just to
+        // measure it: doing that would drop the scroll position the user set inside the callout
+        var chrome = ph - body.offsetHeight;
+        if (!pop.style.width) this.popBaseW = pop.offsetWidth;
+        var base = this.popBaseW || pw;
+        var natural = body.scrollHeight;
+        // a side that only leaves a sliver of text area is not worth it: the page is asked for a
+        // whole side first, and the region may be overlapped by the callout as the last resort
+        var MIN = 60;
+        var chosen = this.tryPlace(pop, want, r, base, vw, vh, gap, chrome, natural, false, MIN);
+        if (!chosen) chosen = this.tryPlace(pop, want, r, base, vw, vh, gap, chrome, natural, true, MIN);
+        this.lastPlaceFallback = !chosen;
+        if (!chosen) chosen = this.tryPlace(pop, want, r, base, vw, vh, gap, chrome, natural, false, 0);
+        if (!chosen) chosen = this.tryPlace(pop, want, r, base, vw, vh, gap, chrome, natural, true, 0);
+        if (!chosen) chosen = this.overlapPlace(pop, want, r, vw, vh, gap, chrome, natural);
+        this.setBox(pop, chosen.top, chosen.left, null, null);
+        if (!arrow) return;
+        if (chosen.side === 'left' || chosen.side === 'right') {
+            arrow.style.display = 'none';
+            return;
+        }
+        arrow.style.display = '';
+        var centre = r.left + (r.width / 2);
+        var lastW = pop.offsetWidth;
+        var arrowLeft = Math.round(Math.max(16, Math.min(centre - chosen.left - 6, lastW - 30)));
+        if (arrow.style.left !== arrowLeft + 'px') arrow.style.left = arrowLeft + 'px';
+        var arrowTop = (chosen.side === 'top') ? 'auto' : '-6px';
+        var arrowBottom = (chosen.side === 'top') ? '-6px' : 'auto';
+        if (arrow.style.top !== arrowTop) arrow.style.top = arrowTop;
+        if (arrow.style.bottom !== arrowBottom) arrow.style.bottom = arrowBottom;
+    },
+
+    // writing the same value again would restart the css transitions and make the step look like it
+    // is shaking, so a box is only touched where something really changed
+    setBox: function (el, top, left, width, height) {
+        if (top !== null && el.style.top !== top + 'px') el.style.top = top + 'px';
+        if (left !== null && el.style.left !== left + 'px') el.style.left = left + 'px';
+        if (width !== null && el.style.width !== width + 'px') el.style.width = width + 'px';
+        if (height !== null && el.style.height !== height + 'px') el.style.height = height + 'px';
+    },
+
+    // writing the same value again would reflow the callout and throw away its scroll position, so
+    // both helpers only touch the style when the value really changes
+    setWidth: function (pop, width) {
+        var next = width ? width + 'px' : '';
+        if (pop.style.width !== next) pop.style.width = next;
+    },
+
+    setBodyMax: function (body, height) {
+        var next = height ? height + 'px' : '';
+        if (body.style.maxHeight !== next) body.style.maxHeight = next;
+    },
+
+    // one pass over the sides, giving the text area just the room that side has; the first placement
+    // that keeps the callout clear of the highlighted region and leaves the text area at least min
+    // pixels wins, so a cramped side is only used when nothing better is left
+    tryPlace: function (pop, want, r, base, vw, vh, gap, chrome, natural, compact, min) {
+        var body = pop.querySelector('.guide-pop-body');
+        var order = this.placeOrder(want);
+        var wasCompact = pop.classList.contains('compact');
+        pop.classList.toggle('compact', !!compact);
+        if (wasCompact !== !!compact) {
+            chrome = pop.offsetHeight - body.offsetHeight;
+            natural = body.scrollHeight;
+        }
+        for (var i = 0; i < order.length; i++) {
+            var side = order[i];
+            var room = this.sideRoom(side, r, vh, gap);
+            if (room < 78) continue;
+            if (side === 'left' || side === 'right') {
+                // beside the target the callout may have to narrow down before it fits in the gap
+                var inner = (side === 'right') ? (vw - 12 - (r.right + gap)) : ((r.left - gap) - 12);
+                if (inner < 160) continue;
+                this.setWidth(pop, (inner < base) ? Math.max(160, inner) : 0);
+            } else {
+                this.setWidth(pop, 0);
+            }
+            this.setBodyMax(body, (chrome + natural > room) ? Math.max(28, room - chrome) : 0);
+            if (min && room - chrome < Math.min(min, natural)) continue;
+            var w = pop.offsetWidth;
+            var h = pop.offsetHeight;
+            var pos = this.placeAt(side, r, w, h, vw, vh, gap, false);
+            if (pos && !this.overlapsHole(pos, w, h, r, 4)) return { side: side, top: pos.top, left: pos.left };
+        }
+        return null;
+    },
+
+    // the mask is split in four panels so the highlighted control itself stays clickable
+    setMasks: function (x, y, w, h, full) {
+        var vw = document.documentElement.clientWidth;
+        var vh = document.documentElement.clientHeight;
+        var top = document.getElementById('guide-mask-top');
+        var bottom = document.getElementById('guide-mask-bottom');
+        var left = document.getElementById('guide-mask-left');
+        var right = document.getElementById('guide-mask-right');
+        var set = function (el, box) {
+            Guide.setBox(el, box[1], box[0], box[2], box[3]);
+        };
+        if (full) {
+            set(top, [0, 0, vw, vh]);
+            set(bottom, [0, vh, 0, 0]);
+            set(left, [0, vh, 0, 0]);
+            set(right, [0, vh, 0, 0]);
+            return;
+        }
+        var y2 = y + h;
+        var x2 = x + w;
+        set(top, [0, 0, vw, Math.max(0, y)]);
+        set(bottom, [0, y2, vw, Math.max(0, vh - y2)]);
+        set(left, [0, y, Math.max(0, x), h]);
+        set(right, [x2, y, Math.max(0, vw - x2), h]);
+    },
+
+    // the refresh runs on every state answer and would rebuild these nodes over and over, so a
+    // node is only touched when its text really changes
+    setHtml: function (node, html) {
+        if (node && node.innerHTML !== html) node.innerHTML = html;
+    },
+
+    // step bodies hold live data, refresh just the bits that can change
+    renderDynamic: function () {
+        var s = this.state;
+        var arch = document.getElementById('guide-arch');
+        if (arch) {
+            var value = (s.update && s.update.corever && s.update.corever !== '0') ? s.update.corever : '<%:Not Set%>';
+            this.setHtml(arch, '<%:Detected architecture%>' + ': <code>' + value + '</code>');
+        }
+        var runState = document.getElementById('guide-run-state');
+        if (runState) {
+            this.setHtml(runState, '<%:Current state%>' + ': ' + (s.running
+                ? '<b style="color:var(--success-color)"><%:Running%></b>'
+                : '<b style="color:var(--error-color)"><%:Not Running%></b>'));
+        }
+        var note = document.getElementById('guide-config-note');
+        if (note) {
+            this.setHtml(note, s.current ? ('<%:Current config%>' + ': <code>' + s.current + '</code>') : '<%:No config selected yet%>');
+        }
+        var summary = document.getElementById('guide-summary');
+        if (summary) {
+            var done = this.doneMap();
+            var ok = 0;
+            for (var i = 0; i < this.steps.length; i++) {
+                if (done[this.steps[i].key]) ok++;
+            }
+            this.setHtml(summary, (ok === 4)
+                ? '<%:Setup finished: the core is installed, a config is selected and OpenClash is running.%>'
+                : '<%:Some steps are still pending, you can reopen this guide and continue from there.%>');
+        }
+        var auto = document.getElementById('guide-autostart');
+        if (auto) auto.checked = (localStorage.getItem('oc_guide_autostart') !== '0');
+    },
+
+    render: function () {
+        if (!this.running) return;
+        this.renderDynamic();
+        this.autoAdvance();
+    },
+
+    autoAdvance: function () {
+        if (this.group !== 'main') return;
+        var step = this.steps[this.step];
+        if (!step.done || this.autoDone[step.key]) return;
+        if (!step.done(this.state)) return;
+        this.autoDone[step.key] = true;
+        var self = this;
+        this.autoTimer = setTimeout(function () {
+            self.autoTimer = null;
+            if (self.running && self.group === 'main' && self.steps[self.step] === step) self.next(true);
+        }, 2000);
+    },
+
+    // touching the callout means the user is reading or working on this step, stop moving on
+    cancelAuto: function () {
+        if (this.autoTimer) {
+            clearTimeout(this.autoTimer);
+            this.autoTimer = null;
+        }
+        if (this.group === 'main' && this.steps[this.step]) {
+            this.autoDone[this.steps[this.step].key] = true;
+        }
+    },
+
+    setAutostart: function (on) {
+        localStorage.setItem('oc_guide_autostart', on ? '1' : '0');
+    },
+
+    init: function () {
+        // the overview page is a table inside themed containers, move the overlay to body so the
+        // fixed positioning and the mask are relative to the viewport
+        var tour = document.getElementById('guide-tour');
+        if (tour && tour.parentNode !== document.body) document.body.appendChild(tour);
+
+        var onMove = function () {
+            if (!Guide.running || Guide.gliding) return;
+            if (Guide.rafPending) return;
+            Guide.rafPending = true;
+            requestAnimationFrame(function () {
+                Guide.rafPending = false;
+                // the scroll may have started a glide in the meantime, the ring would chase the target
+                if (!Guide.gliding) Guide.layout();
+            });
+        };
+        window.addEventListener('scroll', onMove, true);
+        window.addEventListener('resize', onMove);
+
+        document.addEventListener('keydown', function (e) {
+            if (!Guide.running) return;
+            if (e.keyCode === 9) {
+                Guide.trapTab(e);
+                return;
+            }
+            // a dialog handles Escape itself, but the arrow keys still drive the tips in it
+            if (document.querySelector('.config-upload-model-overlay.show, .select-popup:not(.hidden), .config-editor-model-overlay.show')) {
+                if (Guide.group === 'main') return;
+                if (e.keyCode === 39) Guide.next();
+                else if (e.keyCode === 37) Guide.prev();
+                return;
+            }
+            if (e.keyCode === 27) Guide.close();
+            else if (e.keyCode === 39) Guide.next();
+            else if (e.keyCode === 13) {
+                var active = document.activeElement;
+                if (!active || active.tagName !== 'BUTTON') Guide.next();
+            } else if (e.keyCode === 37) Guide.prev();
+        });
+    }
+};
+
+Guide.init();
+//]]></script>

@@ -3908,20 +3908,7 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
     background: var(--primary-color);
     color: var(--text-on-primary);
 }
-@media (hover: none) {
-    .oc .overwrite-item-actions {
-        opacity: 1;
-    }
-    .oc .overwrite-item-actions .icon-btn {
-        width: 22px !important;
-        height: 22px !important;
-        min-width: 22px !important;
-    }
-    .oc .overwrite-item-actions .icon-btn svg {
-        width: 13px !important;
-        height: 13px !important;
-    }
-}
+
 .oc .oc-switch {
     position: relative;
     display: inline-block;
@@ -7612,7 +7599,847 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
 }
 
 /* ==========================================================================
- * SECTION 14: @media queries — 4-stage responsive: 1024 / 768 / 480 / 320
+ * SECTION 15: guide.htm (quick start page) + floating button stack
+ * ========================================================================== */
+.oc .oc-float-stack {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.oc .oc-float-stack .oc-usage-help-float {
+    position: relative;
+    right: auto;
+    bottom: auto;
+}
+
+/* bubbles point left inside the stack, otherwise each one would cover the button above it */
+.oc .oc-float-stack .oc-usage-help-bubble {
+    bottom: 10px;
+    right: calc(100% + 10px);
+}
+
+.oc .oc-float-stack .oc-usage-help-bubble::after {
+    top: 50%;
+    right: auto;
+    left: 100%;
+    margin-top: -6px;
+    border: 6px solid transparent;
+    border-left-color: var(--text-primary, #374151);
+}
+
+.oc .oc-usage-help-float.oc-guide-float {
+    background: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+/* the .oc class sits on the tour root itself (it carries the theme variables), so the root rules
+ * are compound selectors while everything inside is a normal descendant */
+.oc.guide-tour {
+    display: none;
+}
+
+.oc.guide-tour.on {
+    display: block;
+}
+
+/* the four panels only block clicks outside the hole, the dim itself is painted by the spotlight
+ * shadow below, so the rounded hole stays free of corner gaps */
+.oc .guide-tour-mask {
+    position: fixed;
+    z-index: 20000;
+    background: transparent;
+    transition: opacity 0.18s ease;
+}
+
+.oc.guide-tour.full-dim .guide-tour-mask {
+    background: var(--overlay-bg, rgba(15, 23, 42, 0.5));
+}
+
+.oc .guide-spot {
+    position: fixed;
+    z-index: 20001;
+    border-radius: 10px;
+    box-shadow: 0 0 0 3px var(--primary-color), 0 0 0 9999px var(--overlay-bg, rgba(15, 23, 42, 0.5));
+    pointer-events: none;
+    transition: top 0.22s ease, left 0.22s ease, width 0.22s ease, height 0.22s ease, opacity 0.18s ease;
+}
+
+.oc .guide-spot::after {
+    content: '';
+    position: absolute;
+    top: -7px;
+    right: -7px;
+    bottom: -7px;
+    left: -7px;
+    border: 3px solid rgba(59, 130, 246, 0.5);
+    border-radius: 14px;
+    animation: guide-spot-pulse 1.8s ease-out infinite;
+}
+
+@keyframes guide-spot-pulse {
+    0% { opacity: 0.9; transform: scale(0.995); }
+    70% { opacity: 0; transform: scale(1.02); }
+    100% { opacity: 0; transform: scale(1.02); }
+}
+
+/* the dialog already dims the page, and its content must stay above the spotlight shadow */
+.oc.guide-tour.dialog .guide-spot {
+    box-shadow: 0 0 0 3px var(--primary-color);
+}
+
+.oc .guide-spot.hidden {
+    display: none;
+}
+
+/* the first placement of a step must not animate, the callout would be seen flying to position */
+.oc.guide-tour.no-anim .guide-spot {
+    transition: none;
+}
+
+.oc.guide-tour.no-anim .guide-spot::after {
+    animation: none;
+}
+
+.oc.guide-tour.busy .guide-tour-mask,
+.oc.guide-tour.busy .guide-spot,
+.oc.guide-tour.busy .guide-pop {
+    opacity: 0;
+}
+
+.oc.guide-tour.busy .guide-pop {
+    visibility: hidden;
+    transition: none;
+}
+
+.oc.guide-tour.closing .guide-tour-mask,
+.oc.guide-tour.closing .guide-spot,
+.oc.guide-tour.closing .guide-pop {
+    opacity: 0;
+    transition: opacity 0.18s ease;
+}
+
+.oc .guide-pop {
+    position: fixed;
+    z-index: 20002;
+    width: 390px;
+    max-width: calc(100vw - 24px);
+    padding: 14px 16px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    background: var(--bg-white);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.34);
+    transition: opacity 0.18s ease;
+}
+.oc .guide-pop-body > :first-child:not(.guide-wait):not(.guide-tip):not(.guide-info):not(.guide-careful):not(.guide-note) {
+    margin-top: 0;
+    color: var(--text-secondary);
+    padding: 7px 10px;
+    border: 1px solid var(--primary-a20, rgba(59, 130, 246, 0.2));
+    border-left: 3px solid var(--primary-color);
+    border-radius: 6px;
+    background: var(--primary-a5, rgba(59, 130, 246, 0.06));
+    font-weight: 600;
+    line-height: 1.55;
+}
+
+.oc .guide-pop-body b {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.oc .guide-pop-body p {
+    margin: 0 0 6px;
+}
+
+.oc .guide-pop-body > p:not(:first-child):not(.guide-tip):not(.guide-info):not(.guide-careful):not(.guide-note):not(.guide-wait) {
+    margin-top: 6px;
+    padding: 6px 9px;
+    border: 1px solid var(--border-light);
+    border-radius: 5px;
+    background: var(--bg-gray);
+}
+
+.oc .guide-pop-body p:last-child {
+    margin-bottom: 0;
+}
+
+.oc .guide-pop-body li::marker {
+    color: var(--primary-color);
+}
+
+.oc .guide-pop-body code {
+    padding: 1px 5px;
+    border-radius: 5px;
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--primary-color);
+    font-size: 12px;
+}
+
+.oc .guide-pop-body .guide-tag {
+    display: inline-block;
+    margin-left: 3px;
+    padding: 0 6px;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 15px;
+    vertical-align: 1px;
+    white-space: nowrap;
+}
+
+.oc .guide-pop-body .guide-tag.req {
+    background: rgba(59, 130, 246, 0.14);
+    color: #2563eb;
+}
+
+.oc .guide-pop-body .guide-tag.opt {
+    background: rgba(100, 116, 139, 0.16);
+    color: #475569;
+}
+
+.oc .guide-pop-body .guide-tag.rec {
+    background: rgba(16, 185, 129, 0.16);
+    color: #047857;
+}
+
+.oc .guide-pop-body .guide-tag.care {
+    background: rgba(245, 158, 11, 0.2);
+    color: #b45309;
+}
+
+.oc .guide-pop-body .guide-tip,
+.oc .guide-pop-body .guide-info,
+.oc .guide-pop-body .guide-careful {
+    position: relative;
+    margin: 8px 0 0;
+    padding: 6px 10px 6px 27px;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.oc .guide-pop-body > .guide-note:not(.oc-hidden) {
+    margin: 8px 0 0;
+    padding: 6px 9px;
+    border: 1px solid var(--border-light);
+    border-left: 2px solid var(--border-light);
+    border-radius: 5px;
+    background: var(--bg-gray);
+    line-height: 1.55;
+}
+
+.oc .guide-pop-body .guide-tip::before,
+.oc .guide-pop-body .guide-info::before,
+.oc .guide-pop-body .guide-careful::before {
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 13px;
+    text-align: center;
+}
+
+.oc .guide-pop-body .guide-tip {
+    background: rgba(16, 185, 129, 0.09);
+    border-left: 3px solid #10b981;
+}
+
+.oc .guide-pop-body .guide-tip::before {
+    content: '✓';
+    background: #10b981;
+}
+
+.oc .guide-pop-body .guide-info {
+    background: rgba(59, 130, 246, 0.09);
+    border-left: 3px solid var(--primary-color);
+}
+
+.oc .guide-pop-body .guide-info::before {
+    content: 'i';
+    background: var(--primary-color);
+}
+
+.oc .guide-pop-body .guide-careful {
+    background: rgba(245, 158, 11, 0.11);
+    border-left: 3px solid #f59e0b;
+}
+
+.oc .guide-pop-body .guide-careful::before {
+    content: '!';
+    background: #f59e0b;
+}
+
+.oc .guide-pop-body ol,
+.oc .guide-pop-body ul {
+    margin: 6px 0 8px;
+    padding: 3px 10px 3px 29px;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    background: var(--bg-gray);
+}
+
+.oc .guide-pop-body ul {
+    list-style: disc;
+}
+
+.oc .guide-pop-body ol {
+    list-style: decimal;
+}
+
+.oc .guide-pop-body li {
+    margin: 0;
+    padding: 5px 0;
+}
+
+.oc .guide-pop-body li + li {
+    border-top: 1px solid var(--border-light);
+}
+
+.oc .guide-pop-body code {
+    padding: 1px 4px;
+    border-radius: 4px;
+    background: var(--bg-gray);
+}
+
+.oc .guide-pop-foot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-light);
+}
+
+.oc .guide-actions {
+    display: flex;
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    max-width: 100%;
+    margin-left: auto;
+}
+
+.oc .guide-pop.compact {
+    padding: 8px 10px;
+}
+
+.oc .guide-pop.compact .guide-dots {
+    gap: 2px;
+}
+
+.oc .guide-pop.compact .guide-dots i {
+    width: 4px;
+    height: 4px;
+}
+
+.oc .guide-pop.compact .guide-dots i.on {
+    width: 9px;
+    box-shadow: 0 0 0 1.5px rgba(59, 130, 246, 0.22);
+}
+
+.oc .guide-pop.compact .guide-pop-head {
+    margin-bottom: 3px;
+}
+
+.oc .guide-pop.compact .guide-pop-foot {
+    margin-top: 4px;
+    padding-top: 5px;
+    gap: 6px;
+}
+
+.oc .guide-pop.compact .guide-actions {
+    gap: 6px;
+}
+
+.oc .guide-pop.compact .guide-pop-body {
+    line-height: 1.55;
+}
+
+.oc .guide-pop.compact .guide-note,
+.oc .guide-pop.compact .guide-wait {
+    margin-top: 5px;
+}
+
+.oc .guide-pop.compact .guide-pop-section {
+    display: none;
+}
+
+/* the row shrinks before any button does and never falls below the mark it has to show, the rest
+ * of it scrolls into reach with the current step centred instead of being cut off */
+.oc .guide-dots {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+}
+
+/* between two steps of the same group the callout follows the ring over, while the first
+ * placement of a step stays instant (that is the no-anim state) */
+.oc.guide-tour:not(.no-anim) .guide-pop {
+    transition: top 0.22s ease, left 0.22s ease, opacity 0.18s ease;
+}
+
+.oc .guide-pop.wide {
+    width: 530px;
+}
+
+.oc .guide-pop.wide-dots {
+    width: 530px;
+}
+
+.oc .guide-pop.from-next {
+    animation: guide-pop-in-next 0.24s ease;
+}
+
+.oc .guide-pop.from-prev {
+    animation: guide-pop-in-prev 0.24s ease;
+}
+
+@keyframes guide-pop-in-next {
+    from { opacity: 0; translate: 0 7px; }
+    to { opacity: 1; translate: 0 0; }
+}
+
+@keyframes guide-pop-in-prev {
+    from { opacity: 0; translate: 0 -7px; }
+    to { opacity: 1; translate: 0 0; }
+}
+
+.oc .guide-pop.center {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.oc .guide-pop .guide-arrow {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: var(--bg-white);
+    transform: rotate(45deg);
+}
+
+.oc .guide-pop-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.oc .guide-pop-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: 0.1px;
+}
+
+.oc .guide-pop-step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+.oc .guide-pop-section {
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--bg-gray);
+    color: var(--text-secondary);
+    font-size: 11px;
+}
+
+.oc .guide-pop-section.cfg {
+    background: rgba(59, 130, 246, 0.12);
+    color: #2563eb;
+}
+
+.oc .guide-pop-section.ovr {
+    background: rgba(139, 92, 246, 0.14);
+    color: #6d28d9;
+}
+
+.oc .guide-pop-section.upd {
+    background: rgba(245, 158, 11, 0.16);
+    color: #b45309;
+}
+
+.oc .guide-pop-count {
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--primary-a10, #eff6ff);
+    color: var(--primary-color);
+    font-size: 11.5px;
+    font-variant-numeric: tabular-nums;
+}
+
+.oc .guide-pop-body {
+    max-height: 52vh;
+    overflow: auto;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    text-align: left;
+}
+
+.oc .guide-dots::-webkit-scrollbar {
+    display: none;
+}
+
+.oc .guide-dots i {
+    flex: 0 0 auto;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.18);
+    transition: width 0.24s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.oc .guide-dots i.done {
+    background: rgba(59, 130, 246, 0.45);
+}
+
+.oc .guide-dots i.on {
+    width: 16px;
+    background: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.22);
+}
+
+.oc .guide-dots.dense {
+    gap: 3px;
+}
+
+.oc .guide-dots.dense i {
+    width: 5px;
+    height: 5px;
+}
+
+.oc .guide-dots.dense i.on {
+    width: 13px;
+}
+
+.oc .guide-dots.tiny {
+    gap: 2px;
+}
+
+.oc .guide-dots.tiny i {
+    width: 4.5px;
+    height: 4.5px;
+}
+
+.oc .guide-dots.tiny i.on {
+    width: 11px;
+    box-shadow: 0 0 0 1.5px rgba(59, 130, 246, 0.22);
+}
+
+.oc .guide-pop-foot .btn {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    height: 30px;
+    padding: 0 10px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.oc .guide-pop-foot .cancel-btn,
+.oc .guide-pop-foot .guide-skip {
+    border: 1px solid var(--border-light);
+    background: var(--bg-white);
+    color: var(--text-secondary);
+}
+
+.oc .guide-pop-foot .cancel-btn:hover,
+.oc .guide-pop-foot .guide-skip:hover {
+    background: var(--bg-light);
+    color: var(--text-primary);
+}
+
+.oc .guide-pop-foot .upload-btn {
+    border: 1px solid var(--primary-color);
+    background: var(--primary-color);
+    color: var(--text-on-primary);
+}
+
+.oc .guide-pop-foot .upload-btn:hover:not(:disabled) {
+    border-color: var(--btn-primary-hover, #2563eb);
+    background: var(--btn-primary-hover, #2563eb);
+}
+
+.oc .guide-pop-foot .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.oc .guide-note code {
+    padding: 1px 4px;
+    border-radius: 4px;
+    background: var(--bg-gray);
+}
+
+.oc .guide-note {
+    margin: 10px 0 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.oc .guide-pop .guide-progress {
+    position: absolute;
+    top: 6px;
+    left: 16px;
+    right: 16px;
+    height: 3px;
+    display: flex;
+    gap: 3px;
+}
+
+.oc .guide-pop .guide-progress i {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--bg-gray);
+    transition: background-color 0.22s ease;
+}
+
+.oc .guide-pop .guide-progress i.done {
+    background: var(--primary-a20, #dbeafe);
+}
+
+.oc .guide-pop .guide-progress i.on {
+    background: var(--primary-color);
+}
+
+.oc .guide-pop .guide-wait {
+    margin: 10px 0 0;
+    padding: 6px 8px;
+    border-left: 3px solid var(--primary-color);
+    border-radius: var(--radius-sm);
+    background: var(--primary-a10, #eff6ff);
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+.oc .guide-pop .guide-live {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* the add module window is created on demand and carries its own inline z-index. It sits above the
+ * spotlight so the ring of the step before is hidden behind it, while the callout stays readable
+ * and the tips of its own steps go above the window again */
+body.oc-guide-open #overwrite-add-model {
+    z-index: 20080 !important;
+}
+
+body.oc-guide-open .guide-pop {
+    z-index: 20095 !important;
+}
+
+body.oc-guide-open .guide-tour.inadd .guide-spot {
+    z-index: 20090;
+}
+
+@keyframes guide-beacon {
+    0%, 100% { box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4), 0 0 0 0 rgba(59, 130, 246, 0.5); }
+    50% { box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4), 0 0 0 9px rgba(59, 130, 246, 0); }
+}
+
+.oc .oc-usage-help-float.oc-guide-float.beacon {
+    animation: guide-beacon 2s ease-out infinite;
+}
+
+.oc .guide-arch {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.oc .guide-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+.oc .guide-checkbox input[type="checkbox"] {
+    flex: 0 0 auto;
+    margin: 2px 0 0;
+}
+
+html[data-darkmode=true] .oc .guide-pop-count {
+    background: #16233d;
+    color: #93c5fd;
+}
+
+html[data-darkmode=true] .oc .guide-pop-section {
+    background: rgba(148, 163, 184, 0.18);
+    color: var(--text-secondary);
+}
+
+html[data-darkmode=true] .oc .guide-pop-section.cfg {
+    background: rgba(96, 165, 250, 0.18);
+    color: #93c5fd;
+}
+
+html[data-darkmode=true] .oc .guide-pop-section.ovr {
+    background: rgba(167, 139, 250, 0.2);
+    color: #c4b5fd;
+}
+
+html[data-darkmode=true] .oc .guide-pop-section.upd {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+}
+
+html[data-darkmode=true] .oc .guide-dots i {
+    background: rgba(147, 197, 253, 0.24);
+}
+
+html[data-darkmode=true] .oc .guide-dots i.done {
+    background: rgba(147, 197, 253, 0.5);
+}
+
+html[data-darkmode=true] .oc .guide-dots i.on {
+    background: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(147, 197, 253, 0.22);
+}
+
+html[data-darkmode=true] .oc .guide-pop-body code {
+    background: rgba(96, 165, 250, 0.16);
+    color: #93c5fd;
+}
+
+html[data-darkmode=true] .oc .guide-pop-body .guide-tag.req {
+    background: rgba(96, 165, 250, 0.2);
+    color: #93c5fd;
+}
+
+html[data-darkmode=true] .oc .guide-pop-body .guide-tag.opt {
+    background: rgba(148, 163, 184, 0.22);
+    color: #cbd5e1;
+}
+
+html[data-darkmode=true] .oc .guide-pop-body .guide-tag.rec {
+    background: rgba(52, 211, 153, 0.2);
+    color: #34d399;
+}
+
+html[data-darkmode=true] .oc .guide-pop-body .guide-tag.care {
+    background: rgba(251, 191, 36, 0.22);
+    color: #fbbf24;
+}
+
+html[data-darkmode=true] .oc .guide-pop-body .guide-tip {
+    background: rgba(16, 185, 129, 0.14);
+}
+
+html[data-darkmode=true] .oc .guide-pop-body .guide-info {
+    background: rgba(59, 130, 246, 0.14);
+}
+
+html[data-darkmode=true] .oc .guide-pop-body .guide-careful {
+    background: rgba(245, 158, 11, 0.16);
+}
+
+html[data-darkmode=true] .oc .guide-spot {
+    box-shadow: 0 0 0 3px var(--primary-color), 0 0 0 9999px rgba(2, 6, 23, 0.66);
+}
+
+html[data-darkmode=true] .oc.guide-tour.full-dim .guide-tour-mask {
+    background: rgba(2, 6, 23, 0.66);
+}
+
+/* dialogs opened from inside the tour have to sit above the mask and the callout */
+body.oc-guide-open .config-upload-model-overlay {
+    z-index: 20060;
+}
+
+body.oc-guide-open .select-popup {
+    z-index: 20055;
+}
+
+/* inside a dialog the tour drops its own mask (the dialog already dims the page) and lifts the
+ * spot plus the callout above that dialog */
+.oc.guide-tour.dialog .guide-tour-mask {
+    display: none;
+}
+
+.oc.guide-tour.dialog .guide-spot {
+    z-index: 20070;
+}
+
+.oc.guide-tour.dialog .guide-pop {
+    z-index: 20071;
+}
+
+.oc .guide-pop.bottom-sheet {
+    top: auto !important;
+    left: 12px !important;
+    right: 12px;
+    bottom: 12px;
+    width: auto;
+    max-width: none;
+}
+
+.oc .guide-pop.bottom-sheet .guide-arrow {
+    display: none;
+}
+
+.oc .guide-pop.bottom-sheet .guide-pop-body,
+.oc .guide-pop.bottom-sheet.log .guide-pop-body {
+    max-height: 38vh;
+}
+
+.oc .guide-pop.center .guide-pop-body {
+    max-height: 52vh;
+}
+
+.oc .guide-prefs {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+}
+
+/* ======================================================================
+ * Responsive rules: 1024 / 768 / 480 / 320
  * ========================================================================== */
 
 /* ---- Stage 1: ≤1024px (large tablet / small desktop) ---- */
@@ -7681,6 +8508,12 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
 
     /* myip.htm */
     .oc .myip-main-card { max-width: 100%; width: 100%; }
+
+    .oc .guide-pop,
+    .oc .guide-pop.wide,
+    .oc .guide-pop.wide-dots {
+        width: min(520px, calc(100vw - 24px));
+    }
 }
 
 /* ---- Stage 2: ≤768px (tablet portrait) ---- */
@@ -7853,6 +8686,13 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .sub_provider_item { width: 80px; min-height: 32px; }
     .sub_provider_name { font-size: 10px; }
     .sub_provider_percent { font-size: 10px; }
+
+    .oc .guide-pop,
+    .oc .guide-pop.wide,
+    .oc .guide-pop.wide-dots {
+        width: calc(100vw - 24px);
+    }
+    .oc .guide-pop-body { max-height: 42vh; }
 }
 
 /* ---- Stage 3: ≤480px (mobile phone) ---- */
@@ -8015,6 +8855,20 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .sub_provider_name { font-size: 9px; }
     .sub_provider_percent { font-size: 9px; }
 
+
+.oc .guide-pop.bottom-sheet .guide-pop-body { max-height: 30vh; }
+    .oc .guide-pop-head { flex-wrap: wrap; row-gap: 4px; }
+    .oc .guide-pop-title { font-size: 13.5px; }
+    .oc .guide-pop-section { display: none; }
+    .oc .guide-pop-foot { gap: 6px; justify-content: center; }
+    .oc .guide-pop-foot .guide-dots { flex: 1 0 100%; justify-content: center; }
+    .oc .guide-actions { flex: 1 0 100%; flex-wrap: nowrap; justify-content: center; gap: 6px; margin-left: 0; }
+    .oc .guide-pop-foot .guide-actions .btn { flex: 1 1 0; min-width: 0; padding: 0 5px; font-size: 11px; }
+    .oc .guide-pop-foot .btn { min-width: 0; height: 28px; padding: 0 9px; font-size: 11.5px; }
+    .oc .guide-dots { gap: 3px; }
+    .oc .guide-dots i { width: 5px; height: 5px; }
+    .oc .guide-dots i.on { width: 12px; }
+    .oc .oc-float-stack { right: 16px; bottom: 16px; }
 }
 
 /* ---- Stage 4: ≤320px (small mobile) ---- */
@@ -8048,6 +8902,10 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .sub_provider_item { width: 60px; min-height: 28px; }
     .sub_provider_name { font-size: 8px; }
     .sub_provider_percent { font-size: 8px; }
+
+    .oc .guide-pop { padding: 10px 12px; }
+    .oc .guide-pop-body { max-height: 34vh; font-size: 12px; }
+    .oc .guide-pop-foot .btn { padding: 0 7px; font-size: 11px; }
 }
 
 /* ---- developer.htm: desktop enhancement ---- */
@@ -8083,4 +8941,19 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
 @media (pointer: coarse) and (max-width: 320px) {
     #debug-rendered .pre-copy-btn { width: 28px; height: 28px; }
     #debug-rendered .pre-copy-btn svg { width: 14px; height: 14px; }
+}
+
+@media (hover: none) {
+    .oc .overwrite-item-actions {
+        opacity: 1;
+    }
+    .oc .overwrite-item-actions .icon-btn {
+        width: 22px !important;
+        height: 22px !important;
+        min-width: 22px !important;
+    }
+    .oc .overwrite-item-actions .icon-btn svg {
+        width: 13px !important;
+        height: 13px !important;
+    }
 }
