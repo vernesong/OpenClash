@@ -99,7 +99,7 @@ Dashboard: http://路由器LAN_IP:9090/ui/
 │   │   ├─ 设置 Sniffer (sniffer.* 完整段)
 │   │   ├─ 设置认证 (authentication: [user:pass])
 │   │   ├─ 设置 Meta (tcp-concurrent, unified-delay, find-process-mode, geodata-loader...)
-│   │   ├─ 设置 GEO (geox-url.*, geo-auto-update, geo-update-interval)
+│   │   ├─ 设置 GEO (geox-url.*；geo-auto-update/geo-update-interval 仅在 res/default.yaml 里，默认 false)
 │   │   ├─ 设置 Smart/LGBM (模型 URL, 更新间隔)
 │   │   ├─ 设置 Dashboard (external-controller, secret, external-ui)
 │   │   └─ 设置 NTP (ntp.*), CORS, IPv6, routing-mark

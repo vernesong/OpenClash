@@ -290,7 +290,7 @@
         if (defaultTipTimer) { clearTimeout(defaultTipTimer); defaultTipTimer = null; }
         var tips = [
             '<%:Note: manual upload works if the update fails%>',
-            '<%:Note: squashfs firmware may not free flash space%>'
+            '<%:Note: squashfs firmware may not free disk space%>'
         ];
         var tip = tips[Math.floor(Math.random() * tips.length)];
         hint.innerHTML = '<svg><use href="#oc-icon-alert-circle"/></svg><span>' + tip + '</span>';
@@ -412,6 +412,55 @@
             '<a href="' + escAttr(dlUrl) + '" target="_blank" rel="noopener" class="dl-btn" title="<%:Download%>"><svg width="11" height="11"><use href="#oc-icon-download"/></svg></a>';
     }
 
+    var verColsTimer = null;
+
+    // the plugin and core columns are as wide as the versions in them need: the widest cell is
+    // measured and written as a custom property, so the header and the rows stay on the same tracks
+    // and a version with a long suffix is not cut behind an ellipsis
+    function syncVersionColumns() {
+        var body = document.getElementById('addr-list-body');
+        if (!body) return;
+        var widest = { plugin: 0, core: 0 };
+        document.querySelectorAll('#addr-list-body .addr-row .ver-text').forEach(function (cell) {
+            var link = cell.querySelector('.ver-link');
+            if (!link) return;
+            var key = cell.classList.contains('ver-plugin') ? 'plugin' : (cell.classList.contains('ver-core') ? 'core' : null);
+            if (!key) return;
+            // the range reads the full text even while the cell clips it, the paddings and the download
+            // button are what the cell has to hold around that text
+            var range = document.createRange();
+            range.selectNodeContents(link);
+            var linkStyle = getComputedStyle(link);
+            var cellStyle = getComputedStyle(cell);
+            var btn = cell.querySelector('.dl-btn');
+            var width = range.getBoundingClientRect().width
+                + parseFloat(linkStyle.paddingLeft) + parseFloat(linkStyle.paddingRight)
+                + parseFloat(cellStyle.paddingLeft) + parseFloat(cellStyle.paddingRight)
+                + (btn ? btn.offsetWidth + parseFloat(cellStyle.columnGap || 0) : 0)
+                + 2;
+            if (width > widest[key]) widest[key] = width;
+        });
+        if (widest.plugin > 0) body.style.setProperty('--addr-ver-plugin', Math.ceil(widest.plugin) + 'px');
+        if (widest.core > 0) body.style.setProperty('--addr-ver-core', Math.ceil(widest.core) + 'px');
+    }
+
+    function queueVersionColumns() {
+        if (verColsTimer) return;
+        verColsTimer = setTimeout(function () {
+            verColsTimer = null;
+            syncVersionColumns();
+        }, 60);
+    }
+
+    // a breakpoint change also changes the font size of the cells, so the measurement is redone
+    function resetVersionColumns() {
+        var body = document.getElementById('addr-list-body');
+        if (!body) return;
+        body.style.removeProperty('--addr-ver-plugin');
+        body.style.removeProperty('--addr-ver-core');
+        queueVersionColumns();
+    }
+
     function updateAddrRow(row, addrUrl, info) {
         var smart = smart_enable.value || '0';
         var latencyEl = row.querySelector('.addr-status');
@@ -489,6 +538,7 @@
             latency: info.latency,
             core_error: info.core_error || null
         };
+        queueVersionColumns();
     }
 
     function buildAddrRows(st) {
@@ -1740,6 +1790,7 @@
     }
     window.addEventListener('beforeunload', stopLogStream);
     window.addEventListener('pagehide', stopLogStream);
+    window.addEventListener('resize', resetVersionColumns);
     initPopupResizeObserver();
 //]]>
 </script>

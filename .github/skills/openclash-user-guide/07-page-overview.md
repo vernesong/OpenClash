@@ -18,7 +18,7 @@
 | **主题切换** | Light(太阳)/Dark(月亮)/Auto(自动) 三档切换 | 前端 CSS 变量 + localStorage |
 | **公告横幅** | 滚动显示项目公告 (24h 缓存) | `/announcement` 端点 |
 | **社交链接** | Wiki / Tutorials / Star / Telegram / Sponsor / Mihomo 图标 | 外部链接 `window.open()` |
-| **开发者头像** | 13 位贡献者头像网格 (悬停显示名称) | 来自 GitHub 头像 URL |
+| **开发者头像** | 12 位贡献者头像 + 末尾「More」占位（共 13 格，悬停显示名称） | 来自 GitHub 头像 URL |
 
 ### 7.2 运行模式卡片 (Running Mode)
 
@@ -95,7 +95,7 @@
 | **关闭链接 (Close Connect)** | 断开所有代理连接 | `openclash_history_get.sh 'close_all_conection'` |
 | **重置防火墙 (Reload Firewall)** | 重新应用 iptables/nftables 规则 | `/etc/init.d/openclash reload 'manual'` |
 | **清空 DNS 缓存** | 刷新 Fake-IP 和 DNS 缓存 | POST `/cache/fakeip/flush` + `/cache/dns/flush` |
-| **检查更新 (Check Update)** | 同时更新插件 + 核心 + 订阅 + GEO | `openclash_update.sh 'one_key_update'` |
+| **检查更新 (Check Update)** | 检查并更新插件 + 内核（订阅靠「配置订阅」、GEO 靠 GEO 更新入口） | `openclash_update.sh 'one_key_update'` |
 
 ### 7.10 统计信息
 
@@ -127,7 +127,7 @@
 
 ### 7.12 oixCloud 面板 (oixCloud)
 
-仅在设置了 `oix_token` 时显示，展示 oixCloud 订阅服务信息：
+仅在设置了 `oix_token` 且 `oix_show_info_page` 为 `1` 时显示，展示 oixCloud 订阅服务信息：
 
 - **Logo + 标语**（随机变化）
 - **公告横幅**（60 秒后自动消失）

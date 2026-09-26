@@ -18,7 +18,7 @@
 | `Ruby Works Abnormally, Please Check The Ruby Library Depends!` (Ruby 依赖异常) | 「运行状态」启动流程 | `ruby` 或 `ruby-yaml` 包未安装/损坏 | 「系统→软件包」安装 `ruby`、`ruby-yaml`、`ruby-psych` |
 | `Unable To Parse Config File` (配置文件校验失败) | 「运行状态」启动流程 | YAML 配置文件语法错误或 age 解密失败 | 「配置管理」页面点击 Edit 检查 YAML 语法 |
 | `Core Start Failed, Please Check The Log Infos!` (内核启动失败) | 「运行状态」启动流程 | 核心进程未能启动 | 「运行状态」查看核心版本是否正确；「运行日志 → 调试日志」生成调试日志 |
-| `Core Initial Configuration Timeout` (内核初始化超时) | 「运行状态」启动流程 | 核心 API 在 300 秒内未就绪 | 检查 `/tmp/openclash.log` 中核心日志；确认「覆写设置→常规」的 cn_port 未被占用 |
+| `Core Initial Configuration Timeout` (内核初始化超时) | 「运行状态」启动流程 | 非 TUN：300 秒内 `http://<lan_ip>:<cn_port>/group` 未返回 200；TUN：utun 路由等 3 轮（每轮 300 秒）仍未就绪 | 检查 `/tmp/openclash.log` 中核心日志；确认「覆写设置→常规」的 cn_port 未被占用 |
 | `TUN Interface Start Failed` (TUN 接口启动失败) | 「运行状态」启动流程 | TUN 虚拟网卡创建失败 | 「系统→软件包」确认 `kmod-tun` 已安装 |
 | `【{module}】module not found` (内核模块未找到) | 「运行状态」启动流程 | 内核模块未安装/未加载（tun/tproxy 等） | 「系统→软件包」安装对应的 kmod 包 |
 | `LAN IP Address Get Error` (LAN IP 获取失败) | 「运行状态」启动流程 | LAN 接口 IP 无效或 `ip-full` 包缺失（旧内核 4.4.x 常见 br-lan 网桥无 IP） | 「插件设置→流量控制」选择正确的 LAN 接口名称（如 `br-lan`）；「系统→软件包」安装 `ip-full`；终端 `ip address show br-lan` 确认存在 IPv4 地址；尝试切换运行模式为混合模式 |
@@ -28,9 +28,9 @@
 
 | 错误关键字 | 问题位置 | 原因 | 排查方法 |
 |-----------|---------|------|----------|
-| `Config File Subscribed Failed` (订阅配置下载失败) | 「配置订阅」更新流程 | 订阅 URL 下载失败（curl 错误） | 「配置订阅」检查订阅 URL 是否正确；确认网络连通性 |
-| `Config File Tested Faild` (配置文件测试失败) | 「配置订阅」更新流程 | 下载的 YAML 未通过 `clash -t` 验证 | 「配置管理」页面 Edit 检查 YAML 语法；查看 `/tmp/openclash.log` |
-| `Updated Config Has No Proxy Field` (配置无节点字段) | 「配置订阅」更新流程 | 订阅配置中无 `proxies` 和 `proxy-providers` 字段 | 检查订阅源是否有效；可能订阅已过期 |
+| `Config File【<名>】Subscribed Failed, Trying to Download Without Agent...` (订阅配置下载失败) | 「配置订阅」更新流程 | 订阅 URL 下载失败（curl 错误） | 「配置订阅」检查订阅 URL 是否正确；确认网络连通性 |
+| `Config File Tested Failed, Please Check The Log Infos!` (配置文件测试失败) | 「配置订阅」更新流程 | 下载的 YAML 未通过 `clash -t` 验证 | 「配置管理」页面 Edit 检查 YAML 语法；查看 `/tmp/openclash.log` |
+| `Updated Config【<名>】Has No Proxy Field, Update Exit...` (配置无节点字段) | 「配置订阅」更新流程 | 订阅配置中无 `proxies` 和 `proxy-providers` 字段 | 检查订阅源是否有效；可能订阅已过期 |
 | `Filter Proxies Failed` (节点筛选失败) | 「配置订阅」更新流程 | 节点关键字过滤正则异常 | 「配置订阅」检查 keyword/ex_keyword 格式 |
 | `Ruby Works Abnormally` (Ruby 异常) | 「配置订阅」更新流程 | Ruby 环境异常导致订阅处理失败 | 「系统→软件包」重装 `ruby`、`ruby-yaml` |
 | 订阅转换后内核启动获取不到节点 (启动后节点列表为空) | 「配置订阅」+「运行状态」 | 在线订阅转换（`sub_convert`）时上游 HTTPS 证书校验失败，转换结果异常，内核启动后拿不到节点 | 「配置订阅」在启用「订阅转换」的选项中**启用 skip-cert-verify（跳过证书校验）**，重新更新订阅；若仍无效，检查转换后端地址与模板 URL 是否有效 |
@@ -43,7 +43,7 @@
 | `Download Failed: HTML Response Detected` (下载失败：检测到 HTML 响应) | 「插件设置→GEO 数据库订阅」 | CDN 返回的是 HTML 错误页而非 GEO 文件 | 「覆写设置→常规」检查 Github 地址修改 CDN 选项 |
 | `Download Failed: File Size Too Small` (下载失败：文件过小) | 「插件设置→GEO 数据库订阅」 | 下载文件 <1KB，内容不完整 | 「插件设置→GEO 数据库订阅」检查 GEO 自定义 URL 是否正确 |
 | `Update Error, Please Try Again Later` (更新失败，请稍后再试) | 「插件设置→GEO 数据库订阅」 | 网络下载失败 | 「运行状态」检查网络连通性；若使用代理下载，添加直连规则 |
-| `Control Panel Unzip Error!` (控制面板解压失败) | 「运行状态」仪表盘切换 | Dashboard 压缩包解压失败 | 「系统→软件包」确认 `unzip` 已安装 |
+| `Control Panel【<名 - <类型>】Unzip Error!` (控制面板解压失败) | 「运行状态」仪表盘切换 | Dashboard 压缩包解压失败 | 「系统→软件包」确认 `unzip` 已安装 |
 | `LightGBM Model Update Error` (LGBM 模型更新失败) | 「覆写设置→智能设置」 | LGBM 模型下载失败 | 「覆写设置→智能设置」检查模型 URL |
 
 ### 3.4 内核与插件版本更新错误
@@ -99,7 +99,7 @@
 
 | 错误提示 | 问题位置 | 原因 | 排查方法 |
 |----------|---------|------|----------|
-| `Switch Faild` (切换失败) | 「运行状态」快捷设置 | API 不可达或核心未运行 | 「运行状态」确认核心状态；刷新页面后重试 |
+| `Switch Failed` (页面提示，非日志) | 「运行状态」快捷设置 | 切换配置接口失败（API 不可达或内核未运行） | 「运行状态」确认核心状态；刷新页面后重试 |
 | `Config file does not exist` (配置文件不存在) | 「配置管理」 | 配置文件路径无效 | 「配置管理」检查文件名；确认文件存在于配置列表中 |
 | `File size exceeds 10MB limit` (文件超过 10MB 限制) | 「配置管理」上传 | 上传文件超过 10MB | 减小文件或拆分上传 |
 | `Cannot delete the last remaining dashboard` (无法删除最后一个仪表盘) | 「运行状态」仪表盘切换 | 只剩一个仪表盘时不允许删除 | 「运行状态」先下载新的仪表盘再删除旧的 |

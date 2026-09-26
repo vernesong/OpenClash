@@ -44,7 +44,7 @@
 | `profile.store-selected` | `true` | 始终保存策略组选择状态 |
 | `sniffer.sniff` | HTTP:80,8080-8880 / TLS:443,8443 / QUIC:443 | 嗅探端口不可修改 |
 | `sniffer.override-destination` | `true` | 始终用嗅探结果覆盖连接目标 |
-| `sniffer.force-domain` | `netflix, nflxvideo, amazonaws, media.dssott.com` | 强制嗅探的流媒体域名 |
+| `sniffer.force-domain` | `+.netflix.com, +.nflxvideo.net, +.amazonaws.com, +.media.dssott.com` | 强制嗅探的流媒体域名 |
 | `sniffer.skip-domain` | `Mijia Cloud, dlg.io.mi.com, +.oray.com, +.sunlogin.net, +.push.apple.com` | 跳过嗅探的智能家居/推送域名 |
 | `sniffer.force-dns-mapping` | `true` (Redir-Host 时) | Redir-Host 模式下强制 DNS 映射嗅探 |
 | `iptables` | **删除** | 强制移除 iptables 相关配置 |
@@ -71,7 +71,7 @@
 |------|-----|------|
 | `PROXY_FWMARK` | `0x162` | 所有被代理流量的防火墙标记，不可修改 |
 | `PROXY_ROUTE_TABLE` | `0x162` | 策略路由表 ID，不可修改 |
-| `SKIP_GROUP` | `65534` | 绕过代理的组 ID (skgid) |
+| *(内联字面量 skgid)* | `65534` | 绕过代理的组 ID；直接写在 nft 规则里（`init.d/openclash` 中**没有**同名变量） |
 
 **内核模块依赖**（缺少时会导致启动报错）：
 
@@ -122,7 +122,7 @@
 - **UCI 选项**: `openclash.@openclash[0].enable_udp_proxy`
 - **默认**: 1 (开启)
 - **说明**: 节点需支持 UDP 转发。Docker 环境可能导致 UDP 异常
-- **依赖**: 仅 Redir-Host 模式显示
+- **依赖**: 仅非 TUN 模式（`fake-ip` / `redir-host`）显示
 - **注意**: Fake-IP 模式即使关闭此选项，域名类 UDP 连接仍会经过核心
 
 #### 8.2.5 delay_start — 延迟启动（秒） (Delay Start)
@@ -142,9 +142,9 @@
 
 #### 8.2.8 disable_quic_go_gso — 禁用 quic-go GSO (Disable QUIC Go GSO)
 - **UCI 选项**: `openclash.@openclash[0].disable_quic_go_gso`
-- **默认**: 0 (关闭)
+- **默认**: 0 (关闭)；但 `uci-defaults/luci-openclash` 在 Linux 内核 > 6.6 的固件上初始化为 1
 - **说明**: Linux 内核 6.6 以上版本遇到 QUIC UDP 问题时尝试开启。**Hysteria / Hysteria2 / TUIC 等基于 QUIC 协议的节点出现连接超时、断流、握手失败时，优先尝试开启此选项**
-- **Mihomo 对应配置**: `disable-quic-go-gso` (全局 experimental 选项，写入 YAML 的 `experimental.disable-quic-go-gso: true`)
+- **Mihomo 对应配置**: `experimental.quic-go-disable-gso: true`（注意键名顺序是 `quic-go-disable-gso`）
 
 #### 8.2.9 small_flash_memory — 小闪存模式 (Small Flash Memory)
 - **UCI 选项**: `openclash.@openclash[0].small_flash_memory`
@@ -341,7 +341,7 @@
 - **默认**: 1 (开启)
 - **说明**: 开启后控制面板和连接代理端口仅能从内网访问，不暴露到公网
 - **Mihomo 对应**: `allow-lan: true` + `bind-address: "*"`
-- **实现细节**: 双重保护——1) YAML 层面：`yml_change.sh` 设置 `allow-lan: true` + `bind-address: "*"` 使内核监听所有接口（关闭时 `allow-lan: false`，仅监听 127.0.0.1）。2) 防火墙层面：创建 `openclash_wan_input` 链，REJECT 来自 WAN 口对全部服务端口的访问，关闭时删除该链。规则细节见 `06-firewall-options-dnsmasq.md` §6.2「各选项对防火墙规则的具体影响 → `intranet_allowed`」。
+- **实现细节**: 双重保护——1) YAML 层面：`yml_change.sh` **无条件**设置 `allow-lan: true` + `bind-address: "*"` 使内核监听所有接口（该选项本身不控制 YAML）。2) 防火墙层面：创建 `openclash_wan_input` 链，REJECT 来自 WAN 口对全部服务端口的访问，关闭时删除该链。规则细节见 `06-firewall-options-dnsmasq.md` §6.2「各选项对防火墙规则的具体影响 → `intranet_allowed`」。
 
 #### 8.3.7 intranet_allowed_wan_name — WAN 接口名称 (WAN Interface Name)
 - **UCI 选项**: `openclash.@openclash[0].intranet_allowed_wan_name`

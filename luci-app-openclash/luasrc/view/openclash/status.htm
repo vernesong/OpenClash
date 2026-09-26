@@ -4571,7 +4571,7 @@
         StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "check_core")%>', function(x, status) {
             if (x && x.status == 200) {
                 if (status.core_status != "1" && localStorage.getItem('oc_guide_autostart') !== '0') {
-                    openGuide();
+                    openGuide(true);
                 }
             }
         });
@@ -4579,8 +4579,8 @@
 
     // The core is missing: open the quick start guide (a modal on this page) instead of the
     // plain confirm() dialog. "oc_guide_autostart" keeps users that opted out from being pushed.
-    function openGuide() {
-        if (typeof Guide !== 'undefined') Guide.open();
+    function openGuide(coreMissing) {
+        if (typeof Guide !== 'undefined') Guide.open(coreMissing);
         return false;
     }
 

@@ -20,7 +20,7 @@
 >    ② 点击弹出覆写编辑器窗口（覆写警告横幅 + 左侧模块列表栏 + 右侧 CodeMirror 主编辑器）；
 >    ③ 列表栏底部「+ 添加新模块」新建覆写模块（本地模块 / 订阅链接 两种方式），另有内置固定 `openclash_custom_overwrite.sh`；
 >    ④ 选列表条目 → 主编辑器按 INI 三段格式编辑 → Save 落盘 `/etc/openclash/overwrite/<名称>`；
->    ⑤ 一句话讲清原理：`overwrite_file()` 在重启时解析，`[General]` 提前写 UCI，`[YAML]`/`[Overwrite]` 在 `yml_change.sh` 之后合并生效。
+>    ⑤ 一句话讲清原理：`overwrite_file()` 只在**插件启动/重启**时解析（`/etc/init.d/openclash start_service`，即运行状态页的重启按钮）；`[General]` 提前写 UCI，`[YAML]`/`[Overwrite]` 在 `yml_change.sh` 之后合并生效。**改内容 / 改启用开关 / 新建模块后都必须重启插件**（`/etc/init.d/openclash reload` 只重载防火墙，不会重跑）。
 >    **禁止**在用户尚未弄清入口时直接抛格式/操作符，或优先讲插件菜单「覆写设置」CBI 页与 `yml_change.sh` 内部逻辑。
 >
 > 1. **【铁律】输出必须包含段头**——覆写文件**必须包含至少一个段头**（`[General]`、`[Overwrite]`、`[YAML]` 之一），否则整个文件被跳过、覆写不生效（详见 §16.2 节「强制要求」及 `overwrite_file()` 函数按段头解析的逻辑）。
@@ -44,6 +44,7 @@
 >    `[General]` 段在 `yml_change.sh` **之前**写入 UCI（可影响其行为）；
 >    `[Overwrite]` 和 `[YAML]` 段在 `yml_change.sh` / `yml_rules_change.sh` **之后**执行，因此可覆盖这两个脚本的所有输出——包括硬编码项（如 `allow-lan`、`bind-address`、`sniffer.sniff` 等）。
 >    LuCI「覆写设置」CBI 页面的选项同样会被 `[Overwrite]`/`[YAML]` 段覆盖。
+>    **生效时机**：两个阶段都在**插件启动/重启**（`start_service`）时执行，编辑器 Save 只落盘 ⇒ 改内容、改启用开关、新建模块后都必须重启插件（`reload` 不会重跑）。
 >    **警告：覆盖硬编码项可能导致 OpenClash 工作异常**（如 `allow-lan: false` 会使局域网设备无法使用代理端口），提醒用户谨慎操作。
 
 #### 16.1.1 操作路径详解
@@ -70,18 +71,19 @@
 - **仓库内置模块共三个**：`default`、`Google_Play`、`openclash_custom_overwrite.sh`（前两个随包安装到 `/etc/openclash/overwrite/`，第三个存于 `/etc/openclash/custom/` 且文件名固定不可改名）。这三个条目的第二行会显示**内联蓝底标签「内建 / Built-in」**（位置在类型文字之前，如 `内建 本地模块`）；用户自己新增的模块不显示该标签。
 - 类型文字用简写（中文：本地模块 / 订阅模块；英文：`Local Mod` / `Sub Mod`；西文：`Local` / `Sub`），新建窗口页签为 `Local Module` / `Subscribe Link`，列表栏标题为 `Modules`、底部按钮为 `New Module`。
 - **模块口径文案**（只在覆写模块界面出现，配置文件相关页面仍用「文件」字样）：表单字段 `Module Name`（模块名称）、占位/校验 `Please enter a module name`（请输入模块名称）、新增窗口状态 `Ready to add module`（准备添加模块）、删除确认 `Are you sure you want to delete this module and its subscription info?`（确定要删除此模块及其订阅信息吗？）；上传区的「点击选择文件或拖放」「支持 txt,conf 文件」等仍用「文件」（描述真实上传的物理文件）。
-- 新建后条目支持：启用/停用开关（第一行最右侧）、刷新（Subscribe 远程拉取）、齿轮（编辑参数）、删除（`delete_overwrite_file`）、拖拽排序（调整 order）。
+- 新建后条目支持：启用/停用开关（第一行最右侧）、刷新（Subscribe 远程拉取）、齿轮（编辑参数）、删除（`delete_overwrite_file`）、拖拽排序（调整 order）。**新建的模块默认是「关」**（注册时 `enable=0`，与内建 `default`/`Google_Play` 一致）⇒ 需要手动打开开关，并**重启插件**才生效。
 - **开关与拖拽排序只改 UCI，不会重新下载正文**；只有「刷新」按钮、修改订阅 URL、新建订阅模块时才会拉取远程内容（避免手工编辑的正文被覆盖）。下载失败时不会写入 UCI、也不会清空原文件；新建订阅模块下载失败则不会注册（不会留下一个空壳模块）。
 - **`openclash_custom_overwrite.sh` 恒为第一个条目且不可拖动**；没有 UCI 段的“游离文件”排在列表最后，第二行带「**未配置 / Unset**」内联标签且虚线头像、无开关、不可拖动（需先用齿轮配置匹配并保存，才会注册成模块）。
 
 **④ 编辑（语法格式与保存）**
 - 点选条目（或齿轮）→ 在主编辑器打开该覆写文件，按 **INI 三段格式**编辑：`[General]`（键值对/环境变量）、`[Overwrite]`（Shell 命令，可用 `ruby_*` 函数族）、`[YAML]`（原始 YAML + 操作符）。**必须包含至少一个段头**，否则不生效。详细格式/操作符见 §16.2。
-- 点 Save → POST `/config_file_save`（`config_file` + `content`），后端仅允许写入 `/etc/openclash/overwrite/<名称>` 或 `/etc/openclash/custom/openclash_custom_overwrite.sh`（其它路径拒绝）。
+- 点 Save → POST `/config_file_save`（`config_file` + `content`），后端仅允许写入 `/etc/openclash/overwrite/<名称>`、`/etc/openclash/custom/openclash_custom_overwrite.sh` 与 `/etc/openclash/config/*.ya?ml`（其它路径拒绝）。
+- **改完必须重启插件才生效**：Save 只把内容落盘；`overwrite_file()` 只在 `start_service`（`/etc/init.d/openclash start/restart`）里执行，`/etc/init.d/openclash reload`（重置防火墙）不会重跑 ⇒ 改内容、切换启用开关、新建模块后都点运行状态页的**重启按钮**。
 
 **⑤ 原理（生效机制）**
 - 覆写文件落盘 `/etc/openclash/overwrite/<名称>`，并注册到 UCI `openclash.config_overwrite`（按 order 排序、config 匹配当前配置）。
 - **顺序语义**：列表栏按 order **升序**自上而下显示，内核按 order **降序**执行 ⇒ **列表越靠上的模块越晚合并、优先级越高**（可覆盖其下方模块的输出）。
-- 重启 OpenClash 时 `overwrite_file()`（`init.d/openclash`）按段头解析：`[General]` 提前写入 UCI（影响 `yml_change.sh` 行为）；`[Overwrite]`/`[YAML]` 生成 `/tmp/yaml_overwrite.sh`，在 `yml_change.sh`/`yml_rules_change.sh` **之后**执行 → 深度合并/覆盖订阅与 LuCI 输出（含硬编码项，覆盖需谨慎）。
+- **插件启动/重启**时 `overwrite_file()`（`init.d/openclash` 的 `start_service`，紧随 `check_run_quick` 之后）按段头解析：`[General]` 提前写入 UCI（影响 `yml_change.sh` 行为）；`[Overwrite]`/`[YAML]` 生成 `/tmp/yaml_overwrite.sh`，在 `yml_change.sh`/`yml_rules_change.sh` **之后**执行 → 深度合并/覆盖订阅与 LuCI 输出（含硬编码项，覆盖需谨慎）。**`reload`（重置防火墙）不重跑这一步**，所以模块改动一律靠重启插件生效。
 
 > **注意**：以上是「覆写模块」（文件式自定义）的操作方式。菜单「覆写设置」CBI 页（`11-overwrite-settings.md`）配置的是内置覆写选项（DNS/规则/Smart 等 UCI 选项）；`yml_change.sh` 的覆写逻辑是实现细节——两者仅在用户追问时补充，不作为「怎么用」的主线。
 
@@ -129,7 +131,7 @@
 
 每行格式: `KEY = VALUE`（大小写不敏感，会自动转大写）
 
-**允许的所有 Key** (共 ~85 个，由 `overwrite_file()` 函数中的 `allowed_keys_types` 定义):
+**允许的所有 Key** (共 102 个，由 `overwrite_file()` 函数中的 `allowed_keys_types` 定义):
 
 | 类别 | Key 示例 | 类型 | 说明 |
 |------|----------|------|------|

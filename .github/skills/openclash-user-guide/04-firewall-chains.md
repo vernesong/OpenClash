@@ -29,7 +29,7 @@
 | `redir-host-mix` | `2` | TCP REDIRECT + UDP TUN | `dns.enhanced-mode: redir-host` |
 | `fake-ip-mix` | `2` | TCP REDIRECT + UDP TUN | `dns.enhanced-mode: fake-ip` |
 
-**全局常量**: 与「`08-settings-mode-traffic.md` §8.1.1 插件强制覆盖/禁用的设置 → 防火墙固定值」表一致——`PROXY_FWMARK=0x162`（被代理流量防火墙标记）、`PROXY_ROUTE_TABLE=0x162`（策略路由表 ID）、`SKIP_GROUP=65534`（绕过代理组 ID，skgid）。
+**全局常量**: 与「`08-settings-mode-traffic.md` §8.1.1 插件强制覆盖/禁用的设置 → 防火墙固定值」表一致——`PROXY_FWMARK=0x162`（被代理流量防火墙标记）、`PROXY_ROUTE_TABLE=0x162`（策略路由表 ID）、`skgid=65534`（绕过代理组 ID，**内联字面量，无同名变量**）。
 
 ---
 

@@ -41,7 +41,7 @@
 - **功能**: 停止 OpenClash 后 DNS 异常时使用。恢复 Dnsmasq 默认配置:
   1. 设置 `noresolv=0`, `localuse=1`
   2. 恢复 `resolvfile` 为有效的 DNS 配置文件
-  3. 若无有效配置则创建 `/tmp/resolv.conf.d/resolv.conf.auto` (114.114.114.114, 8.8.8.8)
+  3. 若无有效配置则创建 `/tmp/resolv.conf.d/resolv.conf.auto` (119.29.29.29, 8.8.8.8)
   4. 重启 dnsmasq
 
 #### 9.1.4 enable_custom_domain_dns_server — 启用第二 DNS 服务器 (Enable Specify DNS Server)
@@ -130,7 +130,7 @@
 | 服务 | 启用 UCI | 默认 | 说明 |
 |------|----------|------|------|
 | Netflix | `stream_auto_select_netflix` | 0 | 启用后自动选择支持 Netflix 的节点 |
-| Disney Plus | `stream_auto_select_disney_plus` | 0 | |
+| Disney Plus | `stream_auto_select_disney` | 0 | |
 | HBO Max | `stream_auto_select_hbo_max` | 0 | |
 | YouTube Premium | `stream_auto_select_ytb` | 0 | |
 | TVB Anywhere+ | `stream_auto_select_tvb_anywhere` | 0 | |
@@ -138,7 +138,7 @@
 | Prime Video | `stream_auto_select_prime_video` | 0 | |
 | Paramount Plus | `stream_auto_select_paramount_plus` | 0 | |
 | Discovery Plus | `stream_auto_select_discovery_plus` | 0 | |
-| Bilibili | `stream_auto_select_bilibili` | 0 | 解锁地区选项：CN(仅大陆)/HK/MO/TW/TW(仅台湾) |
+| Bilibili | `stream_auto_select_bilibili` | 0 | 解锁地区选项：CN（仅大陆）/ HK/MO/TW（港澳台）/ TW（仅台湾） |
 | Google Not CN | `stream_auto_select_google_not_cn` | 0 | 自动选择非中国 Google 节点 |
 | OpenAI | `stream_auto_select_openai` | 0 | |
 | Claude | `stream_auto_select_claude` | 0 | |

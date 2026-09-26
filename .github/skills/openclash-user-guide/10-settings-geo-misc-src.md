@@ -17,10 +17,10 @@
 
 **Mihomo 对应**: `geox-url` 中的各字段 + `geo-auto-update` + `geo-update-interval`
 - **实现细节**: 
-  - **Cron 触发**: `add_cron()` 在 `openclash_geo.sh` 中为每种 GEO 类型注册 cron 任务
+  - **Cron 触发**: `add_cron()`（定义在 `/etc/init.d/openclash`）由 GEO 更新脚本调用，为每种 GEO 类型注册 cron 任务
   - **下载流程**: `openclash_geo.sh` 使用自定义 URL（`*_custom_url`）或默认地址下载，保存到 `/etc/openclash/` 目录
   - **Mihomo 使用**: MMDB 用于 `GEOIP` 规则匹配（IP→国家），Dat 用于 `GEOSITE` 规则匹配（域名→类别），ASN 用于 Smart 策略
-  - **运行时热加载**: GEO 文件更新后 Mihomo 自动重新加载（`geo-auto-update: true` + `geo-update-interval`），无需重启
+  - **更新后重启**: GEO 文件更新成功后 `openclash_geo.sh` 置 `restart=1` 并由 `dec_job_counter_and_restart` 触发 `/etc/init.d/openclash restart`（`yml_change.sh` 不写 `geo-auto-update`；默认 YAML 里该值为 `false`）
 
 #### 10.1.2 大陆白名单订阅 (Chnroute Update / chnr_update)
 
@@ -59,7 +59,7 @@
 | 选项 | UCI Key | 类型 | 默认 | 说明 |
 |------|---------|------|------|------|
 | **处理器架构 (CPU Arch)** | —（只读展示） | 文本 | — | 当前设备 CPU 架构，来自后端 `coremodel`（优先读 `/etc/openwrt_release` 的 DISTRIB_ARCH，opkg/apk 包数据库 libc 架构兜底），仅展示不可选 |
-| **编译版本 (Compiled Version)** | `core_version` | Select | `0`(未设置) | 选择与 CPU 匹配的编译版本：`linux-amd64-v1/v2/v3`(x86-64)、`linux-arm64`(armv8)、`linux-armv7`、`linux-mips64` 等 ~18 种架构。**未选择（0/空）时内核无法下载**，点击会提示 "No Compiled Version Selected" |
+| **编译版本 (Compiled Version)** | `core_version` | Select | 安装时由 `uci-defaults/luci-openclash` 按 `DISTRIB_ARCH` 自动填入（如 x86_64 → `linux-amd64-v1`） | 选择与 CPU 匹配的编译版本：`linux-amd64-v1/v2/v3`(x86-64)、`linux-arm64`(armv8)、`linux-armv7`、`linux-mips64` 等 ~18 种架构。**探测失败或为空时内核无法下载**，点击会提示 "No Compiled Version Selected" |
 | **更新分支 (Release Branch)** | `release_branch` | Select | `master` | `master`(稳定版) / `dev`(开发版)，决定插件/内核的下载分支 |
 | **Smart 内核 (Smart Core)** | `smart_enable` | Select | `0` | `0`=禁用(使用 Meta 内核) / `1`=启用(使用 Smart 内核)，决定内核下载的 meta/smart 子路径 |
 

@@ -6931,6 +6931,13 @@ html[data-darkmode=true] .oc .oix-msg-bar svg { color: inherit; }
     --addr-head-bg: var(--bg-gray);
     --addr-row-bg: var(--bg-white);
     --addr-row-alt: var(--bg-light);
+    /* the plugin and core columns are as wide as the versions shown in them: the script measures the
+     * widest cell and overwrites these, so a long version is never shortened behind an ellipsis. The
+     * table is kept at least as wide as its columns too, otherwise the part of a column that hangs
+     * out of a row box is painted without the row background */
+    --addr-ver-plugin: 84px;
+    --addr-ver-core: 110px;
+    --addr-cols: calc(44px + 110px + 88px + var(--addr-ver-plugin) + var(--addr-ver-core) + 5 * 8px + 2 * 16px);
     position: relative;
     overflow: hidden;
     border: 1px solid var(--border-light);
@@ -7193,8 +7200,13 @@ html[data-darkmode="true"] .oc .ver-hint {
     display: block;
 }
 .oc .ver-hint span {
-    flex: unset;
-    text-align: center;
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: var(--hint-line-max);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
     display: inline-block;
     line-height: 1.5;
     vertical-align: middle;
@@ -7217,15 +7229,6 @@ html[data-darkmode=true] .oc .ver-hint.note {
 }
 html[data-darkmode=true] .oc .ver-hint.note svg {
     stroke: var(--info-color);
-}
-.oc .ver-hint.note span {
-    flex: 0 1 auto;
-    min-width: 0;
-    max-width: var(--hint-line-max);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    text-align: left;
 }
 .oc .ver-hint.logging {
     box-sizing: border-box;
@@ -7327,17 +7330,17 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
 .oc .addr-row,
 .oc .addr-header {
     display: grid;
-    min-width: 398px;
-    grid-template-columns: 44px minmax(0, 1fr) 110px minmax(84px, 0.5fr) minmax(110px, 0.85fr) 88px;
+    min-width: var(--addr-cols, 508px);
+    grid-template-columns: 44px minmax(0, 1fr) 110px minmax(var(--addr-ver-plugin), 0.5fr) minmax(var(--addr-ver-core), 0.85fr) 88px;
     gap: 8px;
     align-items: center;
 }
 .oc #custom-addr-option {
-    min-width: 398px;
+    min-width: var(--addr-cols, 508px);
 }
 .oc .custom-option-input,
 .oc #addCustomOption {
-    min-width: 398px;
+    min-width: var(--addr-cols, 508px);
 }
 .oc .addr-header-index {
     font-size: 12px;
@@ -7388,7 +7391,7 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
     text-align: center;
     font-size: 12px;
     line-height: 1.3;
-    padding: 2px 9px 2px 4px;
+    padding: 2px 6px;
     border-radius: 999px;
     box-sizing: border-box;
     border: 1px solid transparent;
@@ -7409,7 +7412,7 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
     text-align: center;
     font-size: 12px;
     line-height: 1.3;
-    padding: 2px 9px 2px 4px;
+    padding: 2px 6px;
     border-radius: 999px;
     box-sizing: border-box;
     font-variant-numeric: tabular-nums;
@@ -7453,6 +7456,15 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
     padding: 0 4px;
     border-radius: var(--radius-sm);
     transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+/* a version cell never shrinks below the widest version of its column (the script measures that and
+ * writes the two custom properties), so the version is not cut behind an ellipsis on a narrow screen */
+.oc .addr-row .ver-text.ver-plugin {
+    min-width: var(--addr-ver-plugin, 84px);
+}
+.oc .addr-row .ver-text.ver-core {
+    min-width: var(--addr-ver-core, 110px);
 }
 .oc .addr-row .ver-text.ver-plugin.has-data .ver-link {
     background: var(--primary-a20);
@@ -8067,7 +8079,7 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
 
 .oc .guide-pop-body .guide-tag {
     display: inline-block;
-    margin-left: 3px;
+    margin-left: 5px;
     padding: 0 6px;
     border: 1px solid currentColor;
     border-radius: 999px;
@@ -8125,7 +8137,9 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
 .oc .guide-pop-body .guide-careful::before {
     position: absolute;
     left: 8px;
-    top: 8px;
+    /* the mark is centred on the first line of the note: 6px of padding plus the optical centre of
+     * a 12px line at 1.6, less half of the mark, so it does not sit high over a line of chinese */
+    top: 10px;
     width: 13px;
     height: 13px;
     border-radius: 50%;
@@ -8223,6 +8237,32 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
 
 .oc .guide-pop.compact {
     padding: 8px 10px;
+}
+
+/* a callout that is narrow on its own (a side placement on a wide screen, or any phone) stacks its
+ * footer: the step marks take a row of their own, both rows centred */
+.oc .guide-pop.narrow .guide-pop-foot {
+    gap: 6px;
+    justify-content: center;
+}
+
+.oc .guide-pop.narrow .guide-pop-foot .guide-dots {
+    flex: 1 0 100%;
+    justify-content: safe center;
+}
+
+.oc .guide-pop.narrow .guide-actions {
+    flex: 1 0 100%;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 6px;
+    margin-left: 0;
+}
+
+.oc .guide-pop.narrow .guide-pop-foot .guide-actions .btn {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0 8px;
 }
 
 /* compact only trades vertical room for the callout, the progress marks keep their size: the row
@@ -8374,11 +8414,36 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
 
 .oc .guide-pop-body {
     max-height: 52vh;
-    overflow: auto;
+    /* a long step scrolls its own text area, so the space for that bar is reserved up front: the copy
+     * keeps the width it was measured with and never ends up under the scrollbar. The bar itself is
+     * thin, and long words wrap instead of asking for a sideways scroll */
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+    overflow-wrap: break-word;
     font-size: 12.5px;
     line-height: 1.7;
     color: var(--text-secondary);
     text-align: left;
+}
+
+.oc .guide-pop-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.oc .guide-pop-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.oc .guide-pop-body::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: var(--scrollbar-thumb);
+}
+
+.oc .guide-pop-body::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
 }
 
 .oc .guide-dots::-webkit-scrollbar {
@@ -8696,6 +8761,11 @@ body.oc-guide-open .select-popup {
     max-width: none;
 }
 
+.oc .guide-pop.bottom-sheet.sheet-top {
+    top: 12px !important;
+    bottom: auto;
+}
+
 .oc .guide-pop.bottom-sheet .guide-arrow {
     display: none;
 }
@@ -8717,10 +8787,10 @@ body.oc-guide-open .select-popup {
     margin-top: 14px;
 }
 
-/* the hint shares the row with the checkbox, its own top margin would push it out of line */
-.oc .guide-prefs .guide-note {
+/* the hint takes a row of its own under the checkbox, its own top margin would push it out of line */
+.oc .guide-prefs .guide-tip {
+    flex: 1 0 100%;
     margin: 0;
-    line-height: 1.6;
 }
 
 /* ======================================================================
@@ -8769,7 +8839,12 @@ body.oc-guide-open .select-popup {
     .oc .config-item { width: 100%; max-width: 100%; }
     .oc .select-class { max-width: 100%; font-size: 13px; }
     .oc .select-popup { min-width: 80%; width: 80%; }
-    .oc .addr-row, .oc .addr-header { grid-template-columns: 24px minmax(96px, 1fr) 64px minmax(96px, 0.5fr) minmax(166px, 0.85fr) 78px; gap: 6px; }
+    .oc .addr-row, .oc .addr-header { grid-template-columns: 24px minmax(96px, 1fr) 64px minmax(var(--addr-ver-plugin), 0.5fr) minmax(var(--addr-ver-core), 0.85fr) 78px; gap: 6px; }
+    .oc .select-popup-body {
+        --addr-ver-plugin: 96px;
+        --addr-ver-core: 166px;
+        --addr-cols: calc(24px + 96px + 64px + 78px + var(--addr-ver-plugin) + var(--addr-ver-core) + 5 * 6px + 2 * 16px);
+    }
     .oc .addr-row-url { font-size: 11px; }
     .oc .addr-status { font-size: 10px; }
     .oc .addr-status { font-size: 11px; }
@@ -8933,8 +9008,13 @@ body.oc-guide-open .select-popup {
     .oc .version-card { margin-bottom: 6px; }
     .oc #addr-list-body { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .oc .addr-row, .oc .addr-header {
-        grid-template-columns: 20px minmax(96px, 1fr) 66px minmax(92px, 0.5fr) minmax(157px, 0.85fr) 70px;
+        grid-template-columns: 20px minmax(96px, 1fr) 66px minmax(var(--addr-ver-plugin), 0.5fr) minmax(var(--addr-ver-core), 0.85fr) 70px;
         gap: 4px;
+    }
+    .oc .select-popup-body {
+        --addr-ver-plugin: 92px;
+        --addr-ver-core: 157px;
+        --addr-cols: calc(20px + 96px + 66px + 70px + var(--addr-ver-plugin) + var(--addr-ver-core) + 5 * 4px + 2 * 12px);
     }
     .oc .addr-row {
         min-height: 52px;
@@ -8942,7 +9022,7 @@ body.oc-guide-open .select-popup {
     }
     .oc .addr-row-url { font-size: 10px; }
     .oc .addr-status { font-size: 10px; }
-    .oc .addr-proxy, .oc .addr-proxy-static { font-size: 10px; padding: 2px 7px 2px 3px; }
+    .oc .addr-proxy, .oc .addr-proxy-static { font-size: 10px; padding: 2px 5px; }
     .oc .addr-row-index, .oc .addr-header-index { font-size: 10px; }
     .oc .addr-row .ver-text { font-size: 10px; padding: 2px 3px; gap: 3px; }
     .oc .addr-header-label { font-size: 10px; }
@@ -9102,8 +9182,13 @@ body.oc-guide-open .select-popup {
     .oc .version-card { margin-bottom: 4px; }
     .oc .config-item { gap: 6px; }
     .oc .addr-row, .oc .addr-header {
-        grid-template-columns: 20px minmax(72px, 1fr) 60px minmax(80px, 0.5fr) minmax(110px, 0.85fr) 62px;
+        grid-template-columns: 20px minmax(72px, 1fr) 60px minmax(var(--addr-ver-plugin), 0.5fr) minmax(var(--addr-ver-core), 0.85fr) 62px;
         gap: 3px;
+    }
+    .oc .select-popup-body {
+        --addr-ver-plugin: 80px;
+        --addr-ver-core: 110px;
+        --addr-cols: calc(20px + 72px + 60px + 62px + var(--addr-ver-plugin) + var(--addr-ver-core) + 5 * 3px + 2 * 10px);
     }
     .oc .addr-row {
         min-height: 48px;
@@ -9111,7 +9196,7 @@ body.oc-guide-open .select-popup {
     }
     .oc .addr-row-url { font-size: 10px; }
     .oc .addr-status { font-size: 9px; }
-    .oc .addr-proxy, .oc .addr-proxy-static { font-size: 9px; padding: 2px 6px 2px 3px; }
+    .oc .addr-proxy, .oc .addr-proxy-static { font-size: 9px; padding: 2px 4px; }
     .oc .addr-row-index, .oc .addr-header-index { font-size: 9px; }
     .oc .addr-row .ver-text { font-size: 9px; padding: 1px 2px; }
     .oc .addr-header-label { font-size: 9px; }
