@@ -6928,11 +6928,15 @@ html[data-darkmode=true] .oc .oix-msg-bar svg { color: inherit; }
 }
 
 .oc .select-popup-body {
+    --addr-head-bg: var(--bg-gray);
+    --addr-row-bg: var(--bg-white);
+    --addr-row-alt: var(--bg-light);
     position: relative;
     overflow: hidden;
     border: 1px solid var(--border-light);
     border-radius: var(--radius-md);
-    background: var(--bg-gray);
+    background: var(--addr-row-bg);
+    box-shadow: var(--shadow-sm);
 }
 .oc .addr-list-scroll {
     max-height: 300px;
@@ -6940,6 +6944,26 @@ html[data-darkmode=true] .oc .oix-msg-bar svg { color: inherit; }
     overflow-x: auto;
     scrollbar-gutter: stable;
     counter-reset: addr-row;
+    background: var(--addr-row-bg, var(--bg-white));
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+}
+.oc .addr-list-scroll::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+.oc .addr-list-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+.oc .addr-list-scroll::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: var(--border-color);
+    background-clip: content-box;
+}
+.oc .addr-list-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+    background-clip: content-box;
 }
 
 .oc .addr-list-loading {
@@ -7141,6 +7165,7 @@ html[data-darkmode=true] .oc .oix-msg-bar svg { color: inherit; }
     box-sizing: border-box;
 }
 .oc .ver-hint {
+    --hint-line-max: 80%;
     display: none;
     justify-content: center;
     align-items: center;
@@ -7194,9 +7219,9 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
     stroke: var(--info-color);
 }
 .oc .ver-hint.note span {
-    flex: unset;
+    flex: 0 1 auto;
     min-width: 0;
-    max-width: 80%;
+    max-width: var(--hint-line-max);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -7218,7 +7243,7 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
     white-space: nowrap;
     line-height: calc(1.5em + 16px);
     flex-shrink: 0;
-    max-width: 80%;
+    max-width: var(--hint-line-max);
     text-align: left;
 }
 .oc .ver-hint.logging div > b {
@@ -7345,8 +7370,8 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
     text-align: center;
     font-size: 12px;
     line-height: 1.3;
-    padding: 2px 4px;
-    border-radius: var(--radius-sm);
+    padding: 2px 7px 2px 5px;
+    border-radius: 999px;
     font-variant-numeric: tabular-nums;
     box-sizing: border-box;
     border: 1px solid transparent;
@@ -7363,8 +7388,8 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
     text-align: center;
     font-size: 12px;
     line-height: 1.3;
-    padding: 2px 6px;
-    border-radius: var(--radius-sm);
+    padding: 2px 9px 2px 4px;
+    border-radius: 999px;
     box-sizing: border-box;
     border: 1px solid transparent;
     font-variant-numeric: tabular-nums;
@@ -7384,8 +7409,8 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
     text-align: center;
     font-size: 12px;
     line-height: 1.3;
-    padding: 2px 6px;
-    border-radius: var(--radius-sm);
+    padding: 2px 9px 2px 4px;
+    border-radius: 999px;
     box-sizing: border-box;
     font-variant-numeric: tabular-nums;
     justify-self: center;
@@ -7395,6 +7420,15 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
     border: 1px dashed var(--primary-color);
     user-select: none;
     cursor: pointer;
+}
+/* same horizontal footprint as the toggle circle (1.02em + .42em of .68em font),
+   so both pills keep exactly the same width; the chain icon reads as "direct link" */
+.oc .addr-proxy-static svg {
+    width: 1.15em;
+    height: 1.15em;
+    margin: 0 .156em 0 0;
+    flex-shrink: 0;
+    display: block;
 }
 .oc .addr-row .ver-text {
     font-size: 12px;
@@ -7440,8 +7474,10 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
     display: inline-block;
     min-width: 0;
     max-width: 100%;
-    white-space: normal;
-    word-break: break-all;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
     color: inherit;
     text-decoration: none;
     cursor: pointer;
@@ -7499,7 +7535,7 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
     padding: 6px 16px;
     border-bottom: 2px solid var(--border-light);
     cursor: default;
-    background: var(--bg-gray);
+    background: var(--addr-head-bg, var(--bg-gray));
     position: sticky;
     top: 0;
     z-index: 6;
@@ -7534,6 +7570,146 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
     width: 12px;
     height: 12px;
     display: block;
+}
+
+/* Address list: zebra rows, hover accent, and the mirror currently in use */
+.oc .select-option.addr-row:nth-of-type(even) {
+    background: var(--addr-row-alt, var(--bg-light));
+}
+.oc .select-option.addr-row:has(.addr-proxy.on) {
+    background: var(--primary-a5);
+    box-shadow: inset 3px 0 0 var(--primary-color);
+}
+.oc .select-option.addr-row:hover {
+    background: var(--primary-a5);
+    box-shadow: inset 3px 0 0 var(--primary-color);
+}
+.oc .select-option.addr-header:hover {
+    background: var(--addr-head-bg, var(--bg-gray));
+    color: var(--text-secondary);
+}
+
+/* Latency badge: status dot in front of the value */
+.oc .addr-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.oc .addr-status.fast::before,
+.oc .addr-status.medium::before,
+.oc .addr-status.slow::before,
+.oc .addr-status.err::before {
+    content: '';
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    margin-right: 3px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: .8;
+}
+
+/* Proxy toggle: circular glyph in front of the state word */
+.oc .addr-proxy::before {
+    content: '';
+    flex-shrink: 0;
+    width: 1.5em;
+    height: 1.5em;
+    margin-right: .42em;
+    border-radius: 50%;
+    color: #fff;
+    font-size: .68em;
+    font-weight: 700;
+    line-height: 1.5em;
+    text-align: center;
+}
+.oc .addr-proxy.on::before {
+    content: '✓';
+    background: var(--success-color);
+}
+.oc .addr-proxy.off::before {
+    content: '✕';
+    background: var(--error-color);
+}
+
+/* Unreachable mirror: one message instead of three, version cells stay blank */
+.oc .addr-row.unreachable .ver-text {
+    visibility: hidden;
+}
+.oc .addr-row.unreachable .addr-row-index { grid-column: 1; grid-row: 1; }
+.oc .addr-row.unreachable .addr-row-url { grid-column: 2; grid-row: 1; }
+.oc .addr-row.unreachable .addr-status { grid-column: 3 / span 3; grid-row: 1; }
+.oc .addr-row.unreachable .ver-plugin { grid-column: 4; grid-row: 1; }
+.oc .addr-row.unreachable .ver-core { grid-column: 5; grid-row: 1; }
+.oc .addr-row.unreachable .addr-proxy,
+.oc .addr-row.unreachable .addr-proxy-static { grid-column: 6; grid-row: 1; }
+
+/* Empty / error state of the mirror list */
+.oc .addr-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 22px 16px;
+    text-align: center;
+}
+.oc .addr-empty.err {
+    background: var(--error-a10);
+}
+.oc .addr-empty-icon {
+    display: block;
+    color: var(--text-secondary);
+    opacity: .75;
+}
+.oc .addr-empty.err .addr-empty-icon {
+    color: var(--error-color);
+    opacity: 1;
+}
+.oc .addr-empty-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.oc .addr-empty-text {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    max-width: 420px;
+}
+.oc .addr-empty-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 30px;
+    margin-top: 4px;
+    padding: 0 14px;
+    border: 1px solid var(--primary-color);
+    border-radius: 999px;
+    background: var(--primary-color);
+    color: var(--text-on-primary, #fff);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+.oc .addr-empty-btn:hover {
+    filter: brightness(1.08);
+}
+.oc .addr-empty-btn svg {
+    width: 13px;
+    height: 13px;
+    display: block;
+}
+/* every mirror failed: the notice above carries the message, keep the rows readable
+   but dim the report columns only so the proxy toggle stays clearly usable */
+.oc .addr-list-scroll.all-failed .addr-row .addr-row-index,
+.oc .addr-list-scroll.all-failed .addr-row .addr-row-url,
+.oc .addr-list-scroll.all-failed .addr-row .addr-status {
+    opacity: .5;
+}
+.oc .addr-list-scroll.all-failed .addr-row:hover .addr-row-index,
+.oc .addr-list-scroll.all-failed .addr-row:hover .addr-row-url,
+.oc .addr-list-scroll.all-failed .addr-row:hover .addr-status {
+    opacity: 1;
 }
 
 [data-darkmode=true] .oc .addr-row .ver-text.ver-plugin.has-data .ver-link {
@@ -7576,6 +7752,13 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
 [data-darkmode=true] .oc .addr-status.err {
     color: var(--error-color);
     background: var(--error-a10);
+}
+html[data-darkmode=true] .oc .select-popup-body {
+    --addr-head-bg: var(--bg-light);
+}
+html[data-darkmode=true] .oc .addr-proxy.on::before,
+html[data-darkmode=true] .oc .addr-proxy.off::before {
+    color: var(--bg-white);
 }
 
 html[data-darkmode=true] .oc .select-class {
@@ -7736,14 +7919,18 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     box-shadow: 0 18px 40px rgba(15, 23, 42, 0.34);
     transition: opacity 0.18s ease;
 }
-.oc .guide-pop-body > :first-child:not(.guide-wait):not(.guide-tip):not(.guide-info):not(.guide-careful):not(.guide-note) {
+/* the lead of a step is its first paragraph: a cover image, a heading or a list that opens a step
+ * keeps its own style, and the frame is mirrored on both sides. It is indigo on purpose, so the
+ * opening line does not read as one of the blue tags, info notes or tips below it */
+.oc .guide-pop-body > p:first-of-type:not(.guide-sub):not(.guide-wait):not(.guide-tip):not(.guide-info):not(.guide-careful):not(.guide-note) {
     margin-top: 0;
     color: var(--text-secondary);
     padding: 7px 10px;
-    border: 1px solid var(--primary-a20, rgba(59, 130, 246, 0.2));
-    border-left: 3px solid var(--primary-color);
+    border: 1px solid rgba(99, 102, 241, 0.24);
+    border-left: 3px solid #4f46e5;
+    border-right: 3px solid #4f46e5;
     border-radius: 6px;
-    background: var(--primary-a5, rgba(59, 130, 246, 0.06));
+    background: rgba(99, 102, 241, 0.07);
     font-weight: 600;
     line-height: 1.55;
 }
@@ -7757,12 +7944,109 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     margin: 0 0 6px;
 }
 
-.oc .guide-pop-body > p:not(:first-child):not(.guide-tip):not(.guide-info):not(.guide-careful):not(.guide-note):not(.guide-wait) {
+/* a term row is one "name: explanation" pair; a heading over a list is not a term row */
+.oc .guide-pop-body > p:not(:first-of-type):not(.guide-sub):not(.guide-tip):not(.guide-info):not(.guide-careful):not(.guide-note):not(.guide-wait) {
     margin-top: 6px;
     padding: 6px 9px;
     border: 1px solid var(--border-light);
     border-radius: 5px;
     background: var(--bg-gray);
+}
+
+.oc .guide-pop-body .guide-sub {
+    margin: 11px 0 0;
+    padding: 0 2px;
+    border: 0;
+    background: none;
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.oc .guide-pop-body > .guide-sub:first-child {
+    margin-top: 0;
+}
+
+/* the colon behind a label is drawn here, so each language gets its own punctuation */
+.oc .guide-pop-body .guide-sep::after {
+    content: ': ';
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+
+html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
+    content: '：';
+}
+
+/* the illustration that opens the first step and closes the last one */
+.oc .guide-pop-body .guide-cover {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 0 11px;
+    color: var(--primary-color);
+}
+
+.oc .guide-pop-body .guide-cover .cv-bg {
+    fill: currentColor;
+    fill-opacity: 0.05;
+    stroke: currentColor;
+    stroke-opacity: 0.16;
+}
+
+.oc .guide-pop-body .guide-cover .cv-beam {
+    fill: currentColor;
+    fill-opacity: 0.07;
+}
+
+.oc .guide-pop-body .guide-cover .cv-card,
+.oc .guide-pop-body .guide-cover .cv-ring {
+    fill: none;
+    stroke: currentColor;
+    stroke-opacity: 0.32;
+}
+
+.oc .guide-pop-body .guide-cover .cv-line,
+.oc .guide-pop-body .guide-cover .cv-dot {
+    fill: currentColor;
+    fill-opacity: 0.45;
+}
+
+.oc .guide-pop-body .guide-cover .cv-faint {
+    fill-opacity: 0.16;
+}
+
+.oc .guide-pop-body .guide-cover .cv-switch,
+.oc .guide-pop-body .guide-cover .cv-cursor {
+    fill: currentColor;
+}
+
+.oc .guide-pop-body .guide-cover .cv-knob {
+    fill: var(--bg-white);
+}
+
+.oc .guide-pop-body .guide-cover .cv-cursor {
+    stroke: var(--bg-white);
+    stroke-width: 1.4;
+}
+
+.oc .guide-pop-body .guide-cover .cv-check,
+.oc .guide-pop-body .guide-cover .cv-spark {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.oc .guide-pop-body .guide-cover .cv-wave {
+    fill: none;
+    stroke: currentColor;
+    stroke-opacity: 0.45;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 .oc .guide-pop-body p:last-child {
@@ -7855,6 +8139,7 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
 .oc .guide-pop-body .guide-tip {
     background: rgba(16, 185, 129, 0.09);
     border-left: 3px solid #10b981;
+    border-right: 3px solid #10b981;
 }
 
 .oc .guide-pop-body .guide-tip::before {
@@ -7865,6 +8150,7 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
 .oc .guide-pop-body .guide-info {
     background: rgba(59, 130, 246, 0.09);
     border-left: 3px solid var(--primary-color);
+    border-right: 3px solid var(--primary-color);
 }
 
 .oc .guide-pop-body .guide-info::before {
@@ -7875,6 +8161,7 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
 .oc .guide-pop-body .guide-careful {
     background: rgba(245, 158, 11, 0.11);
     border-left: 3px solid #f59e0b;
+    border-right: 3px solid #f59e0b;
 }
 
 .oc .guide-pop-body .guide-careful::before {
@@ -7938,19 +8225,8 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     padding: 8px 10px;
 }
 
-.oc .guide-pop.compact .guide-dots {
-    gap: 2px;
-}
-
-.oc .guide-pop.compact .guide-dots i {
-    width: 4px;
-    height: 4px;
-}
-
-.oc .guide-pop.compact .guide-dots i.on {
-    width: 9px;
-    box-shadow: 0 0 0 1.5px rgba(59, 130, 246, 0.22);
-}
+/* compact only trades vertical room for the callout, the progress marks keep their size: the row
+ * scrolls instead, and a shrunken mark reads as a different step count */
 
 .oc .guide-pop.compact .guide-pop-head {
     margin-bottom: 3px;
@@ -7980,13 +8256,15 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
 }
 
 /* the row shrinks before any button does and never falls below the mark it has to show, the rest
- * of it scrolls into reach with the current step centred instead of being cut off */
+ * of it scrolls into reach with the current step centred instead of being cut off. The padding
+ * keeps the ring of the current mark inside the box that clips the row, at either end of the row */
 .oc .guide-dots {
     display: flex;
     align-items: center;
     gap: 4px;
     flex: 0 1 auto;
     min-width: 0;
+    padding: 3px;
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;
@@ -8240,6 +8518,7 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     margin: 10px 0 0;
     padding: 6px 8px;
     border-left: 3px solid var(--primary-color);
+    border-right: 3px solid var(--primary-color);
     border-radius: var(--radius-sm);
     background: var(--primary-a10, #eff6ff);
     font-size: 12px;
@@ -8432,10 +8711,16 @@ body.oc-guide-open .select-popup {
 
 .oc .guide-prefs {
     display: flex;
-    align-items: center;
-    gap: 14px;
+    align-items: flex-start;
+    gap: 6px 14px;
     flex-wrap: wrap;
     margin-top: 14px;
+}
+
+/* the hint shares the row with the checkbox, its own top margin would push it out of line */
+.oc .guide-prefs .guide-note {
+    margin: 0;
+    line-height: 1.6;
 }
 
 /* ======================================================================
@@ -8483,8 +8768,10 @@ body.oc-guide-open .select-popup {
     .oc .config-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
     .oc .config-item { width: 100%; max-width: 100%; }
     .oc .select-class { max-width: 100%; font-size: 13px; }
-    .oc .addr-row, .oc .addr-header { grid-template-columns: 40px minmax(0, 1fr) 92px minmax(72px, 0.5fr) minmax(96px, 0.85fr) 76px; gap: 6px; }
-    .oc .addr-row-url { font-size: 12px; }
+    .oc .select-popup { min-width: 80%; width: 80%; }
+    .oc .addr-row, .oc .addr-header { grid-template-columns: 24px minmax(96px, 1fr) 64px minmax(96px, 0.5fr) minmax(166px, 0.85fr) 78px; gap: 6px; }
+    .oc .addr-row-url { font-size: 11px; }
+    .oc .addr-status { font-size: 10px; }
     .oc .addr-status { font-size: 11px; }
     .oc .addr-proxy, .oc .addr-proxy-static { font-size: 11px; }
     .oc .addr-row .ver-text { font-size: 11px; }
@@ -8646,16 +8933,16 @@ body.oc-guide-open .select-popup {
     .oc .version-card { margin-bottom: 6px; }
     .oc #addr-list-body { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .oc .addr-row, .oc .addr-header {
-        grid-template-columns: 36px minmax(44px, 1fr) 80px minmax(66px, 0.5fr) minmax(86px, 0.85fr) 68px;
+        grid-template-columns: 20px minmax(96px, 1fr) 66px minmax(92px, 0.5fr) minmax(157px, 0.85fr) 70px;
         gap: 4px;
     }
     .oc .addr-row {
         min-height: 52px;
         align-items: center;
     }
-    .oc .addr-row-url { font-size: 11px; }
+    .oc .addr-row-url { font-size: 10px; }
     .oc .addr-status { font-size: 10px; }
-    .oc .addr-proxy, .oc .addr-proxy-static { font-size: 10px; }
+    .oc .addr-proxy, .oc .addr-proxy-static { font-size: 10px; padding: 2px 7px 2px 3px; }
     .oc .addr-row-index, .oc .addr-header-index { font-size: 10px; }
     .oc .addr-row .ver-text { font-size: 10px; padding: 2px 3px; gap: 3px; }
     .oc .addr-header-label { font-size: 10px; }
@@ -8668,7 +8955,6 @@ body.oc-guide-open .select-popup {
         line-height: 20px;
     }
     .oc .footer-btn { font-size: 12px; padding: 6px 10px; height: 32px; }
-    .oc .ver-hint.note span { white-space: normal; }
 
     /* developer.htm */
     .oc .developer-grid { gap: 6px 25px; }
@@ -8816,7 +9102,7 @@ body.oc-guide-open .select-popup {
     .oc .version-card { margin-bottom: 4px; }
     .oc .config-item { gap: 6px; }
     .oc .addr-row, .oc .addr-header {
-        grid-template-columns: 32px minmax(28px, 0.5fr) 66px minmax(64px, 1.1fr) minmax(74px, 1.15fr) 68px;
+        grid-template-columns: 20px minmax(72px, 1fr) 60px minmax(80px, 0.5fr) minmax(110px, 0.85fr) 62px;
         gap: 3px;
     }
     .oc .addr-row {
@@ -8825,7 +9111,7 @@ body.oc-guide-open .select-popup {
     }
     .oc .addr-row-url { font-size: 10px; }
     .oc .addr-status { font-size: 9px; }
-    .oc .addr-proxy, .oc .addr-proxy-static { font-size: 9px; }
+    .oc .addr-proxy, .oc .addr-proxy-static { font-size: 9px; padding: 2px 6px 2px 3px; }
     .oc .addr-row-index, .oc .addr-header-index { font-size: 9px; }
     .oc .addr-row .ver-text { font-size: 9px; padding: 1px 2px; }
     .oc .addr-header-label { font-size: 9px; }
@@ -8861,13 +9147,12 @@ body.oc-guide-open .select-popup {
     .oc .guide-pop-title { font-size: 13.5px; }
     .oc .guide-pop-section { display: none; }
     .oc .guide-pop-foot { gap: 6px; justify-content: center; }
-    .oc .guide-pop-foot .guide-dots { flex: 1 0 100%; justify-content: center; }
+    /* the row keeps the marks at full size here: even at 320px the whole tour fits on its own line,
+     * and "safe center" leaves the first marks reachable if a very long tour ever overflows */
+    .oc .guide-pop-foot .guide-dots { flex: 1 0 100%; justify-content: safe center; }
     .oc .guide-actions { flex: 1 0 100%; flex-wrap: nowrap; justify-content: center; gap: 6px; margin-left: 0; }
     .oc .guide-pop-foot .guide-actions .btn { flex: 1 1 0; min-width: 0; padding: 0 5px; font-size: 11px; }
     .oc .guide-pop-foot .btn { min-width: 0; height: 28px; padding: 0 9px; font-size: 11.5px; }
-    .oc .guide-dots { gap: 3px; }
-    .oc .guide-dots i { width: 5px; height: 5px; }
-    .oc .guide-dots i.on { width: 12px; }
     .oc .oc-float-stack { right: 16px; bottom: 16px; }
 }
 

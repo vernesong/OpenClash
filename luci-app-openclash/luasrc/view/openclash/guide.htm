@@ -43,8 +43,6 @@ var Guide = {
     stepAlign: '',
     // a dialog stays shut for the watcher once the user walked out of its sub tour by hand
     leftGroup: '',
-    entryKey: '',
-    entryDone: {},
     lastStepInAdd: false,
     dialogWaits: 0,
     targetWaits: 0,
@@ -64,15 +62,17 @@ var Guide = {
             place: 'bottom',
             wide: true,
             body: function () {
-                return '<p><%:OpenClash is split over several pages:%></p>'
+                return '<svg class="guide-cover" viewBox="0 0 320 84" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><rect class="cv-bg" x="0.5" y="0.5" width="319" height="83" rx="12"/><path class="cv-beam" d="M140 6 L196 6 L248 78 L88 78 Z"/><rect class="cv-card" x="118" y="18" width="150" height="48" rx="10"/><rect class="cv-line" x="132" y="32" width="52" height="7" rx="3.5"/><rect class="cv-line cv-faint" x="132" y="45" width="34" height="7" rx="3.5"/><rect class="cv-switch" x="214" y="32" width="28" height="16" rx="8"/><circle class="cv-knob" cx="234" cy="40" r="5.5"/><path class="cv-cursor" d="M234 45 l0 15 l4.4 -4.4 l2.9 6.3 l3.3 -1.6 l-2.9 -6.2 l6 0 z"/><circle class="cv-dot" cx="112" cy="76" r="3"/><circle class="cv-dot cv-faint" cx="128" cy="76" r="3"/><circle class="cv-dot cv-faint" cx="144" cy="76" r="3"/></svg>'
+                    + '<p><%:OpenClash is split over several pages:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Overviews%></b>: <%:start and stop, modes, config, dashboard.%></li>'
-                    + '<li><b><%:Plugin Settings%></b>: <%:run mode, DNS, traffic, access control, IPv6, auto restart.%></li>'
-                    + '<li><b><%:Overwrite Settings%></b>: <%:pin your own values over the generated config.%></li>'
-                    + '<li><b><%:Config Subscribe%></b>: <%:build a subscription and keep it up to date.%></li>'
-                    + '<li><b><%:Config Manage%></b>: <%:upload, rename, download or remove config files.%></li>'
-                    + '<li><b><%:Server Logs%></b>: <%:core log, plugin log and the one-click debug log.%></li>'
-                    + '</ul>';
+                    + '<li><b><%:Overviews%></b><span class="guide-sep"></span><%:start and stop, modes, config, dashboard.%></li>'
+                    + '<li><b><%:Plugin Settings%></b><span class="guide-sep"></span><%:run mode, DNS, traffic, access control, IPv6, auto restart.%></li>'
+                    + '<li><b><%:Overwrite Settings%></b><span class="guide-sep"></span><%:pin your own values over the generated config.%></li>'
+                    + '<li><b><%:Config Subscribe%></b><span class="guide-sep"></span><%:build a subscription and keep it up to date.%></li>'
+                    + '<li><b><%:Config Manage%></b><span class="guide-sep"></span><%:upload, rename, download or remove config files.%></li>'
+                    + '<li><b><%:Server Logs%></b><span class="guide-sep"></span><%:core log, plugin log and the one-click debug log.%></li>'
+                    + '</ul>'
+                    + '<p class="guide-info"><%:Keyboard: the arrows step through the guide, Esc ends it.%></p>';
             }
         },
         {
@@ -82,25 +82,11 @@ var Guide = {
             place: 'bottom',
             body: function () {
                 return '<p><%:Two versions that update on their own:%></p>'
-                    + '<p><b><%:Plugin Version%></b>: <%:the LuCI plugin.%></p>'
-                    + '<p><b><%:Core Version%></b>: <%:the Mihomo core responsible for proxy traffic.%></p>'
+                    + '<ul>'
+                    + '<li><b><%:Plugin Version%></b><span class="guide-sep"></span><%:the LuCI plugin.%></li>'
+                    + '<li><b><%:Core Version%></b><span class="guide-sep"></span><%:the Mihomo core responsible for proxy traffic.%></li>'
+                    + '</ul>'
                     + '<p class="guide-careful"><%:A dash means no core is installed yet, Check Update below installs one.%></p>';
-            }
-        },
-        {
-            key: 'start',
-            title: '<%:Start OpenClash%>',
-            target: '.core-status-toggle',
-            // the restart button sits right next to the switch, so the hole covers both
-            holeTo: '#restart_core',
-            place: 'bottom',
-            priority: 4,
-            done: function (s) { return s.running; },
-            body: function () {
-                return '<p><b><%:Start%></b> <span class="guide-tag req"><%:Required%></span>: <%:the switch starts and stops the plugin, the button beside it restarts the core.%></p>'
-                    + '<p><%:On first start, OpenClash downloads files as needed and builds the firewall rules. Allow 5–30 seconds.%></p>'
-                    + '<p class="guide-tip"><%:Restart after changing a config or an overwrite module, the core only reads them on reload.%></p>'
-                    + '<p class="guide-note" id="guide-run-state"></p>';
             }
         },
         {
@@ -111,8 +97,8 @@ var Guide = {
             entry: 'overwrite',
             body: function () {
                 return '<p><%:OpenClash rebuilds the running config on start or reload, so direct edits may be lost. Use an overwrite module to preserve custom settings.%></p>'
-                    + '<p><%:Use it for DNS, ports or TUN values you want to pin, or to inject a raw fragment.%></p>'
-                    + '<p><%:“Open and continue” opens this window and walks you through it.%></p>';
+                    + '<p class="guide-info"><%:Use it for DNS, ports or TUN values you want to pin, or to inject a raw fragment.%></p>'
+                    + '<p class="guide-tip"><%:“Open and continue” opens this window and walks you through it.%></p>';
             }
         },
         {
@@ -124,8 +110,10 @@ var Guide = {
                 // the names of the two modes depend on the build, so they are read from the page
                 var m = Guide.dnsModes();
                 return '<p><%:DNS mode, active right now:%> <b>' + (m.active || '--') + '</b></p>'
-                    + '<p><b>' + m.fake + '</b> <span class="guide-tag rec"><%:Recommended%></span> (<%:cloud icon%>): <%:answers with a fake address and resolves the real one after the rules match, the default.%></p>'
-                    + '<p><b>' + m.redir + '</b> (<%:desktop icon%>): <%:uses real addresses, only for local or legacy services.%></p>'
+                    + '<ul>'
+                    + '<li><b>' + m.fake + '</b><span class="guide-sep"></span><span class="guide-tag rec"><%:Recommended%></span> (<%:cloud icon%>) <%:answers with a fake address and resolves the real one after the rules match, the default.%></li>'
+                    + '<li><b>' + m.redir + '</b><span class="guide-sep"></span>(<%:desktop icon%>) <%:uses real addresses, only for local or legacy services.%></li>'
+                    + '</ul>'
                     + '<p class="guide-info"><%:Switching restarts the core, the existing connections drop for a moment.%></p>';
             }
         },
@@ -138,9 +126,11 @@ var Guide = {
                 // the button texts come from the page, some builds rename the first one
                 var m = Guide.runModeLabels();
                 return '<p><%:How the traffic is taken over, active right now:%> <b>' + (m.active || '--') + '</b></p>'
-                    + '<p><b>' + m.normal + '</b>: <%:redirect mode, TCP only, works on every kernel.%></p>'
-                    + '<p><b>' + m.tun + '</b>: <%:virtual network card, TCP and UDP, so games work too.%></p>'
-                    + '<p><b>' + m.mix + '</b> <span class="guide-tag rec"><%:Recommended%></span>: <%:TUN plus redirect, the recommended default.%></p>'
+                    + '<ul>'
+                    + '<li><b>' + m.normal + '</b><span class="guide-sep"></span><%:redirect mode, TCP only, works on every kernel.%></li>'
+                    + '<li><b>' + m.tun + '</b><span class="guide-sep"></span><%:virtual network card, TCP and UDP, so games work too.%></li>'
+                    + '<li><b>' + m.mix + '</b><span class="guide-sep"></span><span class="guide-tag rec"><%:Recommended%></span> <%:TUN plus redirect, the recommended default.%></li>'
+                    + '</ul>'
                     + '<p class="guide-info"><%:TUN and Mix need the TUN kernel module.%></p>';
             }
         },
@@ -151,9 +141,11 @@ var Guide = {
             place: 'bottom',
             body: function () {
                 return '<p><%:Which traffic goes through a proxy, the highlighted group is the whole choice:%></p>'
-                    + '<p><b><%:Rule%></b> <span class="guide-tag rec"><%:Recommended%></span>: <%:follow the rules of the config, domestic traffic goes direct, the recommended one.%></p>'
-                    + '<p><b><%:Global%></b>: <%:send everything through the proxy, useful to test a node.%></p>'
-                    + '<p><b><%:Direct%></b>: <%:send nothing through the proxy, useful to compare.%></p>';
+                    + '<ul>'
+                    + '<li><b><%:Rule%></b><span class="guide-sep"></span><span class="guide-tag rec"><%:Recommended%></span> <%:follow the rules of the config, domestic traffic goes direct, the recommended one.%></li>'
+                    + '<li><b><%:Global%></b><span class="guide-sep"></span><%:send everything through the proxy, useful to test a node.%></li>'
+                    + '<li><b><%:Direct%></b><span class="guide-sep"></span><%:send nothing through the proxy, useful to compare.%></li>'
+                    + '</ul>';
             }
         },
         {
@@ -163,7 +155,7 @@ var Guide = {
             place: 'bottom',
             body: function () {
                 return '<p><%:The dashboard shows nodes, latency and live connections. One button appears here for each installed dashboard.%></p>'
-                    + '<p><%:Zashboard is the recommended one.%></p>'
+                    + '<p class="guide-tip"><%:Zashboard is the recommended one.%></p>'
                     + '<p class="guide-tip"><%:Nothing to open yet? Download a dashboard in Plugin Settings - Dashboard Settings.%></p>';
             }
         },
@@ -176,10 +168,10 @@ var Guide = {
             body: function () {
                 return '<p><%:Four one-click buttons for the daily cases:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Close Connect%></b>: <%:drop all current connections, for example after switching nodes.%></li>'
-                    + '<li><b><%:Reload Firewall%></b>: <%:rebuild the OpenClash firewall rules.%></li>'
-                    + '<li><b><%:Flush DNS Cache%></b>: <%:clear the DNS cache when a domain keeps resolving to a stale address.%></li>'
-                    + '<li><b><%:Check Update%></b>: <%:install or update the plugin, the core and the GEO data.%></li>'
+                    + '<li><b><%:Close Connect%></b><span class="guide-sep"></span><%:drop all current connections, for example after switching nodes.%></li>'
+                    + '<li><b><%:Reload Firewall%></b><span class="guide-sep"></span><%:rebuild the OpenClash firewall rules.%></li>'
+                    + '<li><b><%:Flush DNS Cache%></b><span class="guide-sep"></span><%:clear the DNS cache when a domain keeps resolving to a stale address.%></li>'
+                    + '<li><b><%:Check Update%></b><span class="guide-sep"></span><%:install or update the plugin, the core and the GEO data.%></li>'
                     + '</ul>';
             }
         },
@@ -194,7 +186,7 @@ var Guide = {
             done: function (s) { return s.core === true; },
             body: function () {
                 return '<p><%:One press updates the plugin, the core and the GEO data. A missing core is installed from here as well.%></p>'
-                    + '<p><%:“Open and continue” opens this window and walks you through it.%></p>'
+                    + '<p class="guide-tip"><%:“Open and continue” opens this window and walks you through it.%></p>'
                     + '<p class="guide-info" id="guide-arch"></p>';
             }
         },
@@ -212,8 +204,8 @@ var Guide = {
             done: function (s) { return s.configs.length > 0; },
             body: function () {
                 return '<p><%:A config holds your proxies, groups and rules, this is the step that gets OpenClash working.%></p>'
-                    + '<p><%:The window offers two ways in: upload a YAML file, or add a subscription link. Both are walked through here.%></p>'
-                    + '<p><%:“Open and continue” opens this window and walks you through it.%></p>';
+                    + '<p class="guide-info"><%:The window offers two ways in: upload a YAML file, or add a subscription link. Both are walked through here.%></p>'
+                    + '<p class="guide-tip"><%:“Open and continue” opens this window and walks you through it.%></p>';
             }
         },
         {
@@ -239,11 +231,11 @@ var Guide = {
             body: function () {
                 return '<p><%:Five buttons next to the list, from left to right:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Switch%></b>: <%:apply the selected config and restart the core.%></li>'
-                    + '<li><b><%:Update%></b>: <%:download a subscription config again.%></li>'
-                    + '<li><b><%:Edit%></b>: <%:open this config in the editor.%></li>'
-                    + '<li><b><%:Edit Subscription%></b>: <%:change the link, the User-Agent or the conversion.%></li>'
-                    + '<li><b><%:Add%></b>: <%:add another config file or subscription.%></li>'
+                    + '<li><b><%:Switch%></b><span class="guide-sep"></span><%:apply the selected config and restart the core.%></li>'
+                    + '<li><b><%:Update%></b><span class="guide-sep"></span><%:download a subscription config again.%></li>'
+                    + '<li><b><%:Edit%></b><span class="guide-sep"></span><%:open this config in the editor.%></li>'
+                    + '<li><b><%:Edit Subscription%></b><span class="guide-sep"></span><%:change the link, the User-Agent or the conversion.%></li>'
+                    + '<li><b><%:Add%></b><span class="guide-sep"></span><%:add another config file or subscription.%></li>'
                     + '</ul>';
             }
         },
@@ -256,11 +248,11 @@ var Guide = {
             body: function () {
                 return '<p><%:The live numbers of this device:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Up%></b> / <b><%:Down%></b>: <%:the current speed.%></li>'
-                    + '<li><b><%:Up Total%></b> / <b><%:Down Total%></b>: <%:counted since the core started.%></li>'
-                    + '<li><b><%:Connect%></b>: <%:how many connections the core handles right now.%></li>'
-                    + '<li><b><%:Ram%></b> / <b><%:CPU%></b>: <%:memory and CPU used by the core.%></li>'
-                    + '<li><b><%:Load Avg%></b>: <%:the router\'s overall system load, not just OpenClash.%></li>'
+                    + '<li><b><%:Up%></b> / <b><%:Down%></b><span class="guide-sep"></span><%:the current speed.%></li>'
+                    + '<li><b><%:Up Total%></b> / <b><%:Down Total%></b><span class="guide-sep"></span><%:counted since the core started.%></li>'
+                    + '<li><b><%:Connect%></b><span class="guide-sep"></span><%:how many connections the core handles right now.%></li>'
+                    + '<li><b><%:Ram%></b> / <b><%:CPU%></b><span class="guide-sep"></span><%:memory and CPU used by the core.%></li>'
+                    + "<li><b><%:Load Avg%></b><span class='guide-sep'></span><%:the router's overall system load, not just OpenClash.%></li>"
                     + '</ul>';
             }
         },
@@ -271,8 +263,10 @@ var Guide = {
             place: 'bottom',
             body: function () {
                 return '<p><%:The two icons in the card header change how the same numbers are drawn:%></p>'
-                    + '<p><b><%:Cards%></b>: <%:one card per value, the easiest way to read a single number.%></p>'
-                    + '<p><b><%:Chart%></b>: <%:speed and load as curves, which shows a spike or a drop over time.%></p>';
+                    + '<ul>'
+                    + '<li><b><%:Cards%></b><span class="guide-sep"></span><%:one card per value, the easiest way to read a single number.%></li>'
+                    + '<li><b><%:Chart%></b><span class="guide-sep"></span><%:speed and load as curves, which shows a spike or a drop over time.%></li>'
+                    + '</ul>';
             }
         },
         {
@@ -294,8 +288,8 @@ var Guide = {
             body: function () {
                 return '<p><%:Latency to four well known sites, measured through the rules you are running:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Baidu Search%></b> / <b><%:NetEase Music%></b>: <%:domestic sites, they stay fast when they go direct.%></li>'
-                    + '<li><b>GitHub</b> / <b>YouTube</b>: <%:the ones that usually need the proxy, a timeout means the node or the rule set does not cover them.%></li>'
+                    + '<li><b><%:Baidu Search%></b> / <b><%:NetEase Music%></b><span class="guide-sep"></span><%:domestic sites, they stay fast when they go direct.%></li>'
+                    + '<li><b>GitHub</b> / <b>YouTube</b><span class="guide-sep"></span><%:the ones that usually need the proxy, a timeout means the node or the rule set does not cover them.%></li>'
                     + '</ul>';
             }
         },
@@ -307,9 +301,28 @@ var Guide = {
             body: function () {
                 var lbl = Guide.myipLabels();
                 return '<p><%:The three buttons in the header of this area:%></p>'
-                    + '<p><b>' + lbl.hide + '</b>: <%:blur the addresses, do it before taking a screenshot.%></p>'
-                    + '<p><b>' + lbl.mode + '</b>: <%:run the checks from the router itself or from this browser.%></p>'
-                    + '<p><b><%:Refresh%></b>: <%:query the addresses and the latency again.%></p>';
+                    + '<ul>'
+                    + '<li><b>' + lbl.hide + '</b><span class="guide-sep"></span><%:blur the addresses, do it before taking a screenshot.%></li>'
+                    + '<li><b>' + lbl.mode + '</b><span class="guide-sep"></span><%:run the checks from the router itself or from this browser.%></li>'
+                    + '<li><b><%:Refresh%></b><span class="guide-sep"></span><%:query the addresses and the latency again.%></li>'
+                    + '</ul>';
+            }
+        },
+        {
+            key: 'start',
+            title: '<%:Start OpenClash%>',
+            target: '.core-status-toggle',
+            // the restart button sits right next to the switch, so the hole covers both
+            holeTo: '#restart_core',
+            place: 'bottom',
+            priority: 4,
+            done: function (s) { return s.running; },
+            body: function () {
+                return '<p><%:Turn this switch on and OpenClash starts working.%></p>'
+                    + '<p><b><%:Start%></b><span class="guide-sep"></span><span class="guide-tag req"><%:Required%></span> <%:the switch starts and stops the plugin, the button beside it restarts the core.%></p>'
+                    + '<p class="guide-info"><%:On first start, OpenClash downloads files as needed and builds the firewall rules. Allow 5–30 seconds.%></p>'
+                    + '<p class="guide-tip"><%:Restart after changing a config or an overwrite module, the core only reads them on reload.%></p>'
+                    + '<p class="guide-note" id="guide-run-state"></p>';
             }
         },
         {
@@ -322,7 +335,7 @@ var Guide = {
             wide: true,
             body: function () {
                 return '<p><%:A debug log holds dependency checks, firewall rules, DNS and connectivity in one file. It answers most questions.%></p>'
-                    + '<p><%:Open the highlighted page for the core log, the plugin log and the one-click debug log.%></p>'
+                    + '<p class="guide-info"><%:The highlighted page holds the core log, the plugin log and the one-click debug log.%></p>'
                     + '<p class="guide-tip"><%:Still stuck? Use the usage help button at the bottom right to copy an AI prompt.%></p>';
             }
         },
@@ -331,9 +344,8 @@ var Guide = {
             title: '<%:Done%>',
             target: null,
             body: function () {
-                return '<p id="guide-summary"></p>'
-                    + '<p><%:Core level problems → search Mihomo issues; plugin/UI problems → search OpenClash issues.%></p>'
-                    + '<p class="guide-info"><%:Keyboard: the arrows step through the guide, Esc ends it.%></p>'
+                return '<svg class="guide-cover" viewBox="0 0 320 84" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><rect class="cv-bg" x="0.5" y="0.5" width="319" height="83" rx="12"/><circle class="cv-ring" cx="96" cy="42" r="24"/><path class="cv-check" d="M85 42.5 l8 8 l16 -18"/><path class="cv-wave" d="M150 60 l10 -14 l9 9 l12 -20 l9 11 l8 -6"/><path class="cv-spark" d="M240 26 l0 10 M235 31 l10 0"/><path class="cv-spark" d="M268 46 l0 8 M264 50 l8 0"/><circle class="cv-dot" cx="230" cy="54" r="3"/><circle class="cv-dot cv-faint" cx="248" cy="62" r="3"/></svg>'
+                    + '<p id="guide-summary"></p>'
                     + '<div class="guide-prefs">'
                     + '<label class="guide-checkbox"><input type="checkbox" id="guide-autostart" onchange="Guide.setAutostart(this.checked)"> <%:Open this guide automatically when the core is missing%></label>'
                     + '<span class="guide-note"><%:You can reopen this guide anytime with the “Quick Start” button at the bottom right.%></span>'
@@ -354,10 +366,10 @@ var Guide = {
             body: function () {
                 return '<p><%:Two ways to add a config, the two tabs switch between them:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Upload File%></b>: <%:you already have a YAML file, it is copied in as it is.%></li>'
-                    + '<li><b><%:Subscribe Link%></b>: <%:a subscription URL from your provider, it can refresh itself later.%></li>'
+                    + '<li><b><%:Upload File%></b><span class="guide-sep"></span><%:you already have a YAML file, it is copied in as it is.%></li>'
+                    + '<li><b><%:Subscribe Link%></b><span class="guide-sep"></span><%:a subscription URL from your provider, it can refresh itself later.%></li>'
                     + '</ul>'
-                    + '<p><%:Next switches to that tab, which has its own steps.%></p>';
+                    + '<p class="guide-tip"><%:Next switches to that tab, which has its own steps.%></p>';
             }
         },
         {
@@ -378,8 +390,9 @@ var Guide = {
             place: 'bottom',
             tab: 'upload',
             body: function () {
-                return '<p><b><%:Advanced Options%></b> <span class="guide-tag opt"><%:Optional%></span>: <%:a switch for the special cases, a plain upload leaves it off.%></p>'
-                    + '<p><%:Turning it on unfolds the fields below: custom request headers and an Age key for encrypted values.%></p>';
+                return '<p><%:Only needed in special cases.%></p>'
+                    + '<p><b><%:Advanced Options%></b><span class="guide-sep"></span><span class="guide-tag opt"><%:Optional%></span> <%:a switch for the special cases, a plain upload leaves it off.%></p>'
+                    + '<p class="guide-info"><%:Turning it on unfolds the fields below: custom request headers and an Age key for encrypted values.%></p>';
             }
         },
         {
@@ -410,7 +423,7 @@ var Guide = {
             switchTo: 'subscribe',
             body: function () {
                 return '<p><%:The other way in: a subscription link from your provider.%></p>'
-                    + '<p><%:Next switches to that tab; the steps there cover the URL, the User-Agent, the conversion and the filters.%></p>';
+                    + '<p class="guide-tip"><%:Next switches to that tab; the steps there cover the URL, the User-Agent, the conversion and the filters.%></p>';
             }
         }
     ],
@@ -434,7 +447,8 @@ var Guide = {
             place: 'bottom',
             tab: 'subscribe',
             body: function () {
-                return '<p><b><%:User-Agent%></b> <span class="guide-tag opt"><%:Optional%></span>: <%:some providers only answer a specific client name, pick it here or choose Custom and type your own.%></p>'
+                return '<p><%:Some providers only answer a specific client.%></p>'
+                    + '<p><b><%:User-Agent%></b><span class="guide-sep"></span><span class="guide-tag opt"><%:Optional%></span> <%:some providers only answer a specific client name, pick it here or choose Custom and type your own.%></p>'
                     + '<p class="guide-info"><%:Leave it on the default when your provider does not ask for one.%></p>';
             }
         },
@@ -447,9 +461,12 @@ var Guide = {
             wide: true,
             prepare: function () { Guide.ensureChecked('#sub-convert-enable'); },
             body: function () {
-                return '<p><b><%:Subscribe Convert Online%></b>: <span class="guide-tag opt"><%:Optional%></span> <%:use this when a provider does not serve Clash format.%></p>'
-                    + '<p><b><%:Convert Address%></b>: <%:the conversion service, a public one or your own backend.%></p>'
-                    + '<p><b><%:Template Name%></b>: <%:the rule template applied to the result, it decides the group names.%></p>'
+                return '<p><%:For providers that do not serve Clash format.%></p>'
+                    + '<ul>'
+                    + '<li><b><%:Subscribe Convert Online%></b><span class="guide-sep"></span><span class="guide-tag opt"><%:Optional%></span> <%:use this when a provider does not serve Clash format.%></li>'
+                    + '<li><b><%:Convert Address%></b><span class="guide-sep"></span><%:the conversion service, a public one or your own backend.%></li>'
+                    + '<li><b><%:Template Name%></b><span class="guide-sep"></span><%:the rule template applied to the result, it decides the group names.%></li>'
+                    + '</ul>'
                     + '<p class="guide-careful"><%:Online conversion sends your link to a third party, prefer your own backend for privacy.%></p>';
             }
         },
@@ -470,13 +487,13 @@ var Guide = {
             wide: true,
             prepare: function () { Guide.ensureChecked('#sub-convert-enable'); },
             body: function () {
-                return '<p><span class="guide-tag opt"><%:Optional%></span>: <%:Set only the conversion options you need.%></p>'
+                return '<p><%:Every switch below is optional, turn on what you need:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Emoji%></b> / <b><%:Sort%></b> / <b><%:Append Node Type%></b>: <%:make the node names readable.%></li>'
-                    + '<li><b><%:UDP Enable%></b>: <%:keep UDP support, leave it on for games and voice chat.%></li>'
-                    + '<li><b><%:skip-cert-verify%></b>: <%:accept certificates that do not match the domain, on by default.%></li>'
-                    + '<li><b><%:Use Rule Provider%></b>: <%:write rules as providers instead of inline rules, keeps the config shorter.%></li>'
-                    + '<li><b><%:Custom Params%></b>: <%:extra converter arguments, one per line.%></li>'
+                    + '<li><b><%:Emoji%></b> / <b><%:Sort%></b> / <b><%:Append Node Type%></b><span class="guide-sep"></span><%:make the node names readable.%></li>'
+                    + '<li><b><%:UDP Enable%></b><span class="guide-sep"></span><%:keep UDP support, leave it on for games and voice chat.%></li>'
+                    + '<li><b><%:skip-cert-verify%></b><span class="guide-sep"></span><%:accept certificates that do not match the domain, on by default.%></li>'
+                    + '<li><b><%:Use Rule Provider%></b><span class="guide-sep"></span><%:write rules as providers instead of inline rules, keeps the config shorter.%></li>'
+                    + '<li><b><%:Custom Params%></b><span class="guide-sep"></span><%:extra converter arguments, one per line.%></li>'
                     + '</ul>';
             }
         },
@@ -492,7 +509,8 @@ var Guide = {
             wide: true,
             prepare: function () { Guide.ensureChecked('#keyword-options-enable'); },
             body: function () {
-                return '<p><b><%:Keyword Match%></b> <span class="guide-tag opt"><%:Optional%></span>: <%:keep only the nodes whose name contains one of these words, one per line, for example hk or tw&bgp.%></p>'
+                return '<p><%:Filter by node name: one box keeps what you want.%></p>'
+                    + '<p><b><%:Keyword Match%></b><span class="guide-sep"></span><span class="guide-tag opt"><%:Optional%></span> <%:keep only the nodes whose name contains one of these words, one per line, for example hk or tw&bgp.%></p>'
                     + '<p class="guide-info"><%:Left alone, every node of the subscription ends up in the config.%></p>';
             }
         },
@@ -506,8 +524,11 @@ var Guide = {
             wide: true,
             prepare: function () { Guide.ensureChecked('#keyword-options-enable'); },
             body: function () {
-                return '<p><b><%:Exclude Keyword Match%></b> <span class="guide-tag opt"><%:Optional%></span>: <%:drop the nodes whose name contains these words, such as a trial or a backup server.%></p>'
-                    + '<p><b><%:Exclude Keyword Match Default%></b>: <%:drop the provider info nodes, the four switches remove the entries that only carry the expiry date, the traffic, the plan or the website.%></p>';
+                return '<p><%:The second box drops the nodes you do not want.%></p>'
+                    + '<ul>'
+                    + '<li><b><%:Exclude Keyword Match%></b><span class="guide-sep"></span><span class="guide-tag opt"><%:Optional%></span> <%:drop the nodes whose name contains these words, such as a trial or a backup server.%></li>'
+                    + '<li><b><%:Exclude Keyword Match Default%></b><span class="guide-sep"></span><%:drop the provider info nodes, the four switches remove the entries that only carry the expiry date, the traffic, the plan or the website.%></li>'
+                    + '</ul>';
             }
         },
         {
@@ -526,9 +547,11 @@ var Guide = {
             place: 'bottom',
             wide: true,
             body: function () {
-                return '<p><b><%:Advanced Options%></b> <span class="guide-tag opt"><%:Optional%></span></p>'
-                    + '<p><b><%:Custom Headers%></b>: <%:some providers only answer when the request carries a certain header, add one row per header.%></p>'
-                    + '<p><b><%:Age Key Type%></b>: <%:a key pair. The secret key stays on this router and decrypts the config, the public key goes to the provider.%></p>';
+                return '<p><%:These two are optional, only some providers need them.%></p>'
+                    + '<ul>'
+                    + '<li><b><%:Custom Headers%></b><span class="guide-sep"></span><%:some providers only answer when the request carries a certain header, add one row per header.%></li>'
+                    + '<li><b><%:Age Key Type%></b><span class="guide-sep"></span><%:a key pair. The secret key stays on this router and decrypts the config, the public key goes to the provider.%></li>'
+                    + '</ul>';
             }
         },
         {
@@ -537,7 +560,8 @@ var Guide = {
             target: function () { return Guide.inDialog('#config-filename-input'); },
             place: 'top',
             body: function () {
-                return '<p><b><%:Config Name%></b> <span class="guide-tag opt"><%:Optional%></span>: <%:the name the config list shows later, and the name the subscription is stored under.%></p>'
+                return '<p><%:Give the subscription a name before saving.%></p>'
+                    + '<p><b><%:Config Name%></b><span class="guide-sep"></span><span class="guide-tag opt"><%:Optional%></span> <%:the name the config list shows later, and the name the subscription is stored under.%></p>'
                     + '<p class="guide-info"><%:How often it refreshes is set in Config Subscribe, not here.%></p>';
             }
         },
@@ -562,9 +586,11 @@ var Guide = {
             wide: true,
             body: function () {
                 return '<p><%:The action set of this window:%></p>'
-                    + '<p><b><%:Download%></b>: <%:save the current content to a file, handy as a backup.%></p>'
-                    + '<p><b><%:Save%></b>: <%:write the module back, the core picks it up on its next reload.%></p>'
-                    + '<p><b><%:Close%></b>: <%:leave the editor.%></p>'
+                    + '<ul>'
+                    + '<li><b><%:Download%></b><span class="guide-sep"></span><%:save the current content to a file, handy as a backup.%></li>'
+                    + '<li><b><%:Save%></b><span class="guide-sep"></span><%:write the module back, the core picks it up on its next reload.%></li>'
+                    + '<li><b><%:Close%></b><span class="guide-sep"></span><%:leave the editor.%></li>'
+                    + '</ul>'
                     + '<p class="guide-info"><%:A Compare button also appears here when a plain config file is edited.%></p>';
             }
         },
@@ -588,6 +614,7 @@ var Guide = {
             prepare: function () { Guide.showOverwriteSide(); },
             body: function () {
                 return '<p><%:Every entry is a small module applied on top of the generated config. The header shows how many there are.%></p>'
+                    + '<p class="guide-sub"><b><%:Module list%></b><span class="guide-sep"></span></p>'
                     + '<ul>'
                     + '<li><%:Click an entry to open it in the editor.%></li>'
                     + '<li><%:The tag tells where it comes from: local, subscribed, built in or not configured yet.%></li>'
@@ -603,7 +630,7 @@ var Guide = {
             entry: 'module',
             body: function () {
                 return '<p><%:This button creates a module, a small file with the settings you want to pin.%></p>'
-                    + '<p><%:“Open and continue” opens this window and walks you through it.%></p>';
+                    + '<p class="guide-tip"><%:“Open and continue” opens this window and walks you through it.%></p>';
             }
         },
         {
@@ -617,8 +644,8 @@ var Guide = {
             body: function () {
                 return '<p><%:A module can come from two places, the two tabs switch between them:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Local Module%></b>: <%:you write the content yourself, or upload a txt or conf file.%></li>'
-                    + '<li><b><%:Subscribe Link%></b>: <%:the module is downloaded from a URL and can refresh itself.%></li>'
+                    + '<li><b><%:Local Module%></b><span class="guide-sep"></span><%:you write the content yourself, or upload a txt or conf file.%></li>'
+                    + '<li><b><%:Subscribe Link%></b><span class="guide-sep"></span><%:the module is downloaded from a URL and can refresh itself.%></li>'
                     + '</ul>';
             }
         },
@@ -632,10 +659,11 @@ var Guide = {
             wide: true,
             prepare: function () { Guide.ensureAddDialog(); },
             body: function () {
-                return '<ul>'
-                    + '<li><b><%:Config File%></b> <span class="guide-tag opt"><%:Optional%></span>: <%:which generated config this module is applied to.%></li>'
-                    + '<li><b><%:Upload File%></b>: <%:select or drag a txt or conf file, up to 10 MB.%></li>'
-                    + '<li><b><%:Module Name%></b> <span class="guide-tag req"><%:Required%></span>: <%:without an extension, this is the name the list shows.%></li>'
+                return '<p><%:A local module needs three things:%></p>'
+                    + '<ul>'
+                    + '<li><b><%:Config File%></b><span class="guide-sep"></span><span class="guide-tag opt"><%:Optional%></span> <%:which generated config this module is applied to.%></li>'
+                    + '<li><b><%:Upload File%></b><span class="guide-sep"></span><%:select or drag a txt or conf file, up to 10 MB.%></li>'
+                    + '<li><b><%:Module Name%></b><span class="guide-sep"></span><span class="guide-tag req"><%:Required%></span> <%:without an extension, this is the name the list shows.%></li>'
                     + '</ul>';
             }
         },
@@ -649,7 +677,7 @@ var Guide = {
             prepare: function () { Guide.ensureAddDialog(); },
             body: function () {
                 return '<p><%:A module can also be pulled from a URL, which keeps several routers on the same settings.%></p>'
-                    + '<p><%:Next switches the window to that tab; the fields follow in the next steps.%></p>';
+                    + '<p class="guide-tip"><%:Next switches the window to that tab; the fields follow in the next steps.%></p>';
             }
         },
         {
@@ -670,11 +698,11 @@ var Guide = {
             wide: true,
             prepare: function () { Guide.ensureAddDialog(); },
             body: function () {
-                return '<p><b><%:Common subscription fields%></b></p>'
+                return '<p><%:Fields every module shares:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Module Name%></b> <span class="guide-tag req"><%:Required%></span>: <%:without an extension, this is the name the list shows.%></li>'
-                    + '<li><b><%:Config File%></b> <span class="guide-tag opt"><%:Optional%></span>: <%:which generated config this module is applied to.%></li>'
-                    + '<li><b><%:Type%></b> <span class="guide-tag opt"><%:Optional%></span>: <%:file for something that is already on the router, http for a link.%></li>'
+                    + '<li><b><%:Module Name%></b><span class="guide-sep"></span><span class="guide-tag req"><%:Required%></span> <%:without an extension, this is the name the list shows.%></li>'
+                    + '<li><b><%:Config File%></b><span class="guide-sep"></span><span class="guide-tag opt"><%:Optional%></span> <%:which generated config this module is applied to.%></li>'
+                    + '<li><b><%:Type%></b><span class="guide-sep"></span><span class="guide-tag opt"><%:Optional%></span> <%:file for something that is already on the router, http for a link.%></li>'
                     + '</ul>';
             }
         },
@@ -699,11 +727,11 @@ var Guide = {
                 Guide.ensureAddType('http');
             },
             body: function () {
-                return '<p><b><%:HTTP subscription fields%></b></p>'
+                return '<p><%:Extra fields for a module that comes from a link:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Subscription URL%></b> <span class="guide-tag req"><%:Required%></span>: <%:where the module is downloaded from.%></li>'
-                    + '<li><b><%:Update Time%></b> <span class="guide-tag opt"><%:Optional%></span>: <%:which day and hour it is fetched again, OFF means only on demand.%></li>'
-                    + '<li><b><%:Environment variable%></b> <span class="guide-tag opt"><%:Optional%></span>: <%:extra variables handed to the script, only for modules that read them.%></li>'
+                    + '<li><b><%:Subscription URL%></b><span class="guide-sep"></span><span class="guide-tag req"><%:Required%></span> <%:where the module is downloaded from.%></li>'
+                    + '<li><b><%:Update Time%></b><span class="guide-sep"></span><span class="guide-tag opt"><%:Optional%></span> <%:which day and hour it is fetched again, OFF means only on demand.%></li>'
+                    + '<li><b><%:Environment variable%></b><span class="guide-sep"></span><span class="guide-tag opt"><%:Optional%></span> <%:extra variables handed to the script, only for modules that read them.%></li>'
                     + '</ul>';
             }
         },
@@ -760,11 +788,12 @@ var Guide = {
             place: 'bottom',
             wide: true,
             body: function () {
-                return '<ul>'
-                    + '<li><b><%:CPU Arch%></b>: <%:detected automatically, leave it alone.%></li>'
-                    + '<li><b><%:Compiled Version%></b>: <%:the core package for your device.%></li>'
-                    + '<li><b><%:Release Branch%></b>: <%:which release line to follow, the default is fine.%></li>'
-                    + '<li><b><%:Smart Core%></b>: <%:the Smart build supports Smart policy groups that score nodes using latency, packet loss and connection history.%></li>'
+                return '<p><%:Four options decide what gets installed:%></p>'
+                    + '<ul>'
+                    + '<li><b><%:CPU Arch%></b><span class="guide-sep"></span><%:detected automatically, leave it alone.%></li>'
+                    + '<li><b><%:Compiled Version%></b><span class="guide-sep"></span><%:the core package for your device.%></li>'
+                    + '<li><b><%:Release Branch%></b><span class="guide-sep"></span><%:which release line to follow, the default is fine.%></li>'
+                    + '<li><b><%:Smart Core%></b><span class="guide-sep"></span><%:the Smart build supports Smart policy groups that score nodes using latency, packet loss and connection history.%></li>'
                     + '</ul>'
                     + '<p class="guide-careful"><%:Keep the detected architecture unless you need a different CPU build; change the release branch only if you intend to follow another line.%></p>';
             }
@@ -776,7 +805,7 @@ var Guide = {
             place: 'bottom',
             wide: true,
             body: function () {
-                return '<p><b><%:Installed and target versions%></b></p>'
+                return '<p><b><%:Installed and target versions%></b><span class="guide-sep"></span></p>'
                     + '<ul>'
                     + '<li><%:Latest always takes the newest release.%></li>'
                     + '<li><%:An older version rolls back after a bad release.%></li>'
@@ -791,12 +820,12 @@ var Guide = {
             place: 'bottom',
             wide: true,
             body: function () {
-                return '<p><b><%:Mirror list%></b></p>'
+                return '<p><b><%:Mirror list%></b><span class="guide-sep"></span></p>'
                     + '<ul>'
-                    + '<li><b><%:Address%></b>: <%:click the link to update everything from that mirror, the easy path.%></li>'
-                    + '<li><b><%:Latency%></b>: <%:a slow mirror means a slow download, not a slow proxy.%></li>'
-                    + '<li><b><%:Plugin%></b> / <b><%:Core%></b>: <%:click a version number to update only that piece, for example the core alone.%></li>'
-                    + '<li><b><%:Proxy%></b>: <%:RAW or CDN, use CDN when a download keeps failing.%></li>'
+                    + '<li><b><%:Address%></b><span class="guide-sep"></span><%:click the link to update everything from that mirror, the easy path.%></li>'
+                    + '<li><b><%:Latency%></b><span class="guide-sep"></span><%:a slow mirror means a slow download, not a slow proxy.%></li>'
+                    + '<li><b><%:Plugin%></b> / <b><%:Core%></b><span class="guide-sep"></span><%:click a version number to update only that piece, for example the core alone.%></li>'
+                    + '<li><b><%:Proxy%></b><span class="guide-sep"></span><%:RAW or CDN, use CDN when a download keeps failing.%></li>'
                     + '</ul>';
             }
         },
@@ -807,10 +836,11 @@ var Guide = {
             place: 'top',
             wide: true,
             body: function () {
-                return '<ul>'
-                    + '<li><b><%:Backup File%></b>: <%:export the whole setup, the dropdown narrows it down to core, config, rules or proxy providers.%></li>'
-                    + '<li><b><%:Restore Default%></b>: <%:put the OpenClash settings back to the factory state.%></li>'
-                    + '<li><b><%:Remove Core%></b>: <%:delete the installed core, to free space or force a clean reinstall.%></li>'
+                return '<p><%:Three maintenance buttons:%></p>'
+                    + '<ul>'
+                    + '<li><b><%:Backup File%></b><span class="guide-sep"></span><%:export the whole setup, the dropdown narrows it down to core, config, rules or proxy providers.%></li>'
+                    + '<li><b><%:Restore Default%></b><span class="guide-sep"></span><%:put the OpenClash settings back to the factory state.%></li>'
+                    + '<li><b><%:Remove Core%></b><span class="guide-sep"></span><%:delete the installed core, to free space or force a clean reinstall.%></li>'
                     + '</ul>';
             }
         },
@@ -872,8 +902,6 @@ var Guide = {
         this.running = true;
         this.autoDone = {};
         this.leftGroup = '';
-        this.entryKey = '';
-        this.entryDone = {};
         this.lastStepInAdd = false;
         this.pendingEntry = null;
         this.pinnedStep = false;
@@ -960,8 +988,8 @@ var Guide = {
 
     finish: function () { return this.close(); },
 
-    // the steps are ordered like the page, but a missing core still outranks everything else when
-    // the tour opens on its own, so the pending task with the lowest priority wins
+    // a missing core outranks the order the steps are listed in when the tour opens on its own, so
+    // the pending task with the lowest priority wins
     firstPending: function () {
         var done = this.doneMap();
         var best = -1;
@@ -1135,17 +1163,7 @@ var Guide = {
         // a window the user deliberately walked out of stays shut until it is closed
         if (open === this.leftGroup) return;
         if (open === this.group) return;
-        if (this.group === 'main') {
-            this.dialogReturn = this.step;
-            this.entryKey = (this.steps[this.step] || {}).key || '';
-            // the button that turns into "next" after this window is the entrance owning it
-            for (var e = 0; e < this.steps.length; e++) {
-                if (this.steps[e].entry === open) {
-                    this.entryKey = this.steps[e].key;
-                    break;
-                }
-            }
-        }
+        if (this.group === 'main') this.dialogReturn = this.step;
         this.enterGroup(open);
     },
 
@@ -1157,21 +1175,23 @@ var Guide = {
     },
 
     // walking out of a sub tour by hand also closes the window it belongs to, so the overview tour
-    // does not keep running behind a window the user left on purpose
-    leaveGroup: function (byUser, walked) {
+    // does not keep running behind a window the user left on purpose. A sub tour the user finished
+    // or skipped carries the overview one step on, a window closed from the page does not: its step
+    // stays put so the button can open it again
+    leaveGroup: function (byUser, advance) {
         this.pinnedStep = true;
         this.pendingEntry = null;
         this.groupReturn = null;
         if (byUser) {
-            if (walked) this.entryDone[this.entryKey] = true;
             this.leftGroup = this.group;
-            // skipping a sub tour hands the page back, so its window goes with it
+            // leaving a sub tour hands the page back, so its window goes with it
             this.closeAddDialog();
             this.closeDialog(this.group);
             this.autoOpened = null;
         }
-        this.group = 'main';
         this.step = this.dialogReturn;
+        if (advance) this.step = Math.min(this.step + 1, this.steps.length - 1);
+        this.group = 'main';
         document.getElementById('guide-tour').classList.remove('dialog');
         this.show(this.step);
     },
@@ -1450,12 +1470,11 @@ var Guide = {
         this.pinnedStep = true;
         var steps = this.groupSteps();
         var step = steps[this.step];
-        // an entrance step opens the window it points at, but only when the user asked for it and
-        // only the first time: after that tour the button simply moves on
-        if (!auto && step && step.entry && !this.entryDone[step.key] && !this.entryVisible(step.entry)) {
-            // only an entrance of the overview tour owns the record, a nested one just opens
+        // an entrance step opens the window it points at whenever that window is not on screen
+        // yet, so a window the user closed can be opened again from the same step
+        if (!auto && step && step.entry && !this.entryVisible(step.entry)) {
+            // only a window the overview tour opened is closed again when the tour moves on
             if (this.group === 'main') {
-                this.entryKey = step.key;
                 this.autoOpened = step.key;
             }
             this.targetWaits = 0;
@@ -1503,7 +1522,7 @@ var Guide = {
         var density = (active.length > 32) ? ' tiny' : ((active.length > 24) ? ' dense' : '');
         // a step that still has to open its window keeps the continue button even when it happens to
         // be the last one of its group; a tab switch happens on the same press, so that one is "Next"
-        var openWin = !!(step.entry && !this.entryDone[step.key] && !this.entryVisible(step.entry));
+        var openWin = !!(step.entry && !this.entryVisible(step.entry));
         var switchTab = !!(step.switchTo && !this.tabActive(step.switchTo));
         var last = (pos === active.length - 1) && !openWin && !switchTab;
         var segments = '';
@@ -1532,7 +1551,7 @@ var Guide = {
             + '<div class="guide-pop-foot">'
             + '<div class="guide-dots' + density + '">' + dots + '</div>'
             + '<div class="guide-actions">'
-            + '<button type="button" class="btn cancel-btn guide-skip" title="' + skipTip + '" onclick="Guide.' + (inDialog ? 'leaveGroup(true)' : 'close()') + '">'
+            + '<button type="button" class="btn cancel-btn guide-skip" title="' + skipTip + '" onclick="Guide.' + (inDialog ? 'leaveGroup(true, true)' : 'close()') + '">'
             + (inDialog ? '<%:Skip Section%>' : '<%:Skip Tour%>') + '</button>'
             + '<button type="button" class="btn cancel-btn" title="' + prevTip + '" onclick="Guide.prev()"' + ((pos === 0 && !inDialog) ? ' disabled' : '') + '><%:Previous%></button>'
             + '<button type="button" class="btn upload-btn" title="' + nextTip + '" onclick="' + action + '">' + primary + '</button>'
@@ -1693,7 +1712,7 @@ var Guide = {
         }
     },
 
-    // the last step of a dialog group hands the user back to the overview tour
+    // the last step of a dialog group hands the user back to the overview tour, one step further
     finishDialog: function () {
         this.closeDialog(this.group);
         this.autoOpened = null;
@@ -1710,8 +1729,6 @@ var Guide = {
                 msg = '<%:This part has not appeared, open the matching tab or scroll inside the window.%>';
             } else if (this.autoOpened && !this.visibleDialog()) {
                 msg = '<%:The window did not open. Open it from the page yourself, or skip this step.%>';
-            } else {
-                msg = '<%:This part did not appear, it may not be available on this device.%>';
             }
         }
         if (wait.innerHTML !== msg) wait.innerHTML = msg;

@@ -1196,6 +1196,9 @@ msgstr "Sin copia guardada"
 msgid "Backup"
 msgstr "Copia de seguridad"
 
+msgid "Backup failed!"
+msgstr "Error al hacer la copia de seguridad."
+
 msgid "Enhance"
 msgstr "Mejorado"
 
@@ -1304,11 +1307,11 @@ msgstr "Si no usas IPv6, desactiva su DHCP."
 msgid "you can update the version in the settings page"
 msgstr "Puedes actualizar el plugin desde la página de ajustes."
 
-msgid "Note: if the update fails, you can manually download and upload"
-msgstr "Nota: si la actualización falla, puedes descargar y subir el archivo manualmente."
+msgid "Note: manual upload works if the update fails"
+msgstr "Nota: si falla, suba el paquete manualmente."
 
-msgid "Note: the client may not support update, because the firmware with squashfs format will not release flash space after updating"
-msgstr "Nota: en squashfs la actualización puede no liberar espacio flash."
+msgid "Note: squashfs firmware may not free flash space"
+msgstr "Nota: squashfs puede no liberar espacio flash."
 
 msgid "Compiled Version"
 msgstr "Versión compilada"
@@ -3428,11 +3431,17 @@ msgstr "Cancelar"
 msgid "Add Config"
 msgstr "Añadir configuración"
 
+msgid "Edit Config"
+msgstr "Editar configuración"
+
 msgid "Ready to upload file"
 msgstr "Listo para subir archivo"
 
 msgid "Ready to add subscription"
 msgstr "Listo para añadir suscripción"
+
+msgid "Ready to edit subscription"
+msgstr "Listo para editar suscripción"
 
 msgid "File selected:"
 msgstr "Archivo seleccionado:"
@@ -3458,11 +3467,17 @@ msgstr "El nombre del archivo contiene caracteres no válidos"
 msgid "Uploading..."
 msgstr "Subiendo..."
 
+msgid "Submit"
+msgstr "Enviar"
+
 msgid "Upload completed"
 msgstr "Subida completada"
 
 msgid "Upload successful"
 msgstr "Subida exitosa"
+
+msgid "Upload failed"
+msgstr "Error en la subida"
 
 msgid "Upload failed:"
 msgstr "Error en la subida:"
@@ -3472,6 +3487,9 @@ msgstr "Error al leer el archivo"
 
 msgid "Please enter subscription URL and config name"
 msgstr "Introduce la URL de la suscripción y el nombre de la configuración"
+
+msgid "Please enter subscription config name"
+msgstr "Introduce el nombre de la configuración de suscripción"
 
 msgid "Invalid subscription URL format"
 msgstr "Formato de URL de suscripción no válido"
@@ -3487,6 +3505,9 @@ msgstr "Actualizando suscripción..."
 
 msgid "Failed to download subscription config"
 msgstr "Error al descargar la configuración de la suscripción"
+
+msgid "Failed to update subscription config"
+msgstr "Error al actualizar la configuración de la suscripción"
 
 msgid "Failed to add subscription"
 msgstr "Error al añadir la suscripción"
@@ -3974,7 +3995,7 @@ msgstr "Tema Automático"
 msgid "Set Subscription Info URL"
 msgstr "Establecer URL de información de suscripción"
 
-msgid "Enter URLs, one per line, use #name=example end for specifing display name'"
+msgid "Enter URLs, one per line, use #name=example end for specifing display name"
 msgstr "Introduce URLs, una por línea, usa #name=ejemplo al final para nombre de visualización específico"
 
 msgid "Set to Default"
@@ -4646,9 +4667,6 @@ msgstr "Abre «Registros del servidor → Registros de depuración → Generar r
 msgid "Paste it to any AI, or use “Copy AI prompt” above and attach the log."
 msgstr "Pégalo en cualquier IA o usa «Copiar prompt para IA» de arriba y adjunta el registro."
 
-msgid "Core level problems → search Mihomo issues; plugin/UI problems → search OpenClash issues."
-msgstr "Problemas del núcleo → busca en los issues de Mihomo; problemas del plugin/interfaz → busca en los issues de OpenClash."
-
 msgid "Three tabs: plugin logs, core logs and the generated debug log."
 msgstr "Tres pestañas: registros del plugin, registros del núcleo y el registro de depuración generado."
 
@@ -5081,9 +5099,6 @@ msgstr "reconstruir las reglas de firewall de OpenClash."
 msgid "clear the DNS cache when a domain keeps resolving to a stale address."
 msgstr "vaciar la caché DNS cuando un dominio sigue resolviendo a una dirección antigua."
 
-msgid "Open the highlighted page for the core log, the plugin log and the one-click debug log."
-msgstr "Abre la página resaltada para ver el registro del núcleo, el del plugin y el registro de depuración de un clic."
-
 msgid "Still stuck? Use the usage help button at the bottom right to copy an AI prompt."
 msgstr "¿Sigues atascado? Usa el botón de ayuda de la esquina inferior derecha para copiar un prompt de IA."
 
@@ -5398,9 +5413,6 @@ msgstr "Este es el contenido del módulo, normalmente fragmentos YAML como DNS, 
 
 msgid "This is the only field a subscription really needs."
 msgstr "Este es el único campo que una suscripción necesita de verdad."
-
-msgid "This part did not appear, it may not be available on this device."
-msgstr "Esta parte no apareció; puede que no esté disponible en este dispositivo."
 
 msgid "This part has not appeared, open the matching tab or scroll inside the window."
 msgstr "Esta parte aún no ha aparecido; cambia a la pestaña correspondiente o desplázate dentro de la ventana."
@@ -5894,12 +5906,6 @@ msgstr "Todo el bloque de filtrado reduce una suscripción grande a los nodos qu
 msgid "Two rarely needed extras live behind this switch:"
 msgstr "Tras este interruptor hay dos extras que rara vez se necesitan:"
 
-msgid "Common subscription fields"
-msgstr "Campos comunes de la suscripción"
-
-msgid "HTTP subscription fields"
-msgstr "Campos de suscripción HTTP"
-
 msgid "keep UDP support, leave it on for games and voice chat."
 msgstr "mantén el soporte UDP; déjalo activo para juegos y voz."
 
@@ -5995,6 +6001,9 @@ msgstr "Latest toma siempre la release más reciente."
 
 msgid "One press updates the plugin, the core and the GEO data. A missing core is installed from here as well."
 msgstr "Un clic actualiza el plugin, el núcleo y los datos GEO. Si falta el núcleo, también se instala desde aquí."
+
+msgid "Module list"
+msgstr "Lista de módulos"
 
 msgid "Mirror list"
 msgstr "Lista de espejos"
@@ -6296,9 +6305,6 @@ msgstr "Al iniciar por primera vez, OpenClash descarga los archivos necesarios s
 msgid "use this when a provider does not serve Clash format."
 msgstr "úsalo si el proveedor no ofrece formato Clash."
 
-msgid "Set only the conversion options you need."
-msgstr "Activa solo las opciones de conversión que necesites."
-
 msgid "select or drag a txt or conf file, up to 10 MB."
 msgstr "selecciona o arrastra archivos txt o conf de hasta 10 MB."
 
@@ -6323,7 +6329,6 @@ msgstr "el nombre que mostrará la lista de configuraciones y con el que se guar
 msgid "the switch starts and stops the plugin, the button beside it restarts the core."
 msgstr "el interruptor inicia y detiene el plugin; el botón de al lado reinicia el núcleo."
 
-
 msgid "Close this window and go back to the guide"
 msgstr "Cerrar esta ventana y volver a la guía"
 
@@ -6341,3 +6346,63 @@ msgstr "Abrir esta ventana y continuar"
 
 msgid "Stop guiding this section"
 msgstr "Dejar de guiar esta sección"
+
+msgid "No mirror address"
+msgstr "No hay dirección espejo"
+
+msgid "All mirrors are unreachable"
+msgstr "Todas las direcciones espejo son inaccesibles"
+
+msgid "Add a custom CDN address below, then retry."
+msgstr "Añada una dirección CDN personalizada abajo y vuelva a intentarlo."
+
+msgid "Check the network or proxy settings, then retry."
+msgstr "Compruebe la red o el proxy y vuelva a intentarlo."
+
+msgid "Retry"
+msgstr "Reintentar"
+
+msgid "Only needed in special cases."
+msgstr "Solo hace falta en casos especiales."
+
+msgid "Some providers only answer a specific client."
+msgstr "Algunos proveedores solo responden a un cliente concreto."
+
+msgid "For providers that do not serve Clash format."
+msgstr "Para proveedores que no ofrecen formato Clash."
+
+msgid "Every switch below is optional, turn on what you need:"
+msgstr "Todos los interruptores son opcionales, activa los que necesites:"
+
+msgid "Filter by node name: one box keeps what you want."
+msgstr "Filtra por nombre de nodo: una caja conserva los que quieras."
+
+msgid "The second box drops the nodes you do not want."
+msgstr "La segunda caja descarta los nodos que no quieras."
+
+msgid "Give the subscription a name before saving."
+msgstr "Ponle un nombre a la suscripción antes de guardar."
+
+msgid "These two are optional, only some providers need them."
+msgstr "Son opcionales, solo algunos proveedores los necesitan."
+
+msgid "Fields every module shares:"
+msgstr "Campos comunes a todos los módulos:"
+
+msgid "Extra fields for a module that comes from a link:"
+msgstr "Campos extra si el módulo viene de un enlace:"
+
+msgid "A local module needs three things:"
+msgstr "Un módulo local necesita tres cosas:"
+
+msgid "Four options decide what gets installed:"
+msgstr "Cuatro opciones deciden qué se instala:"
+
+msgid "Three maintenance buttons:"
+msgstr "Tres botones de mantenimiento:"
+
+msgid "Turn this switch on and OpenClash starts working."
+msgstr "Activa este interruptor y OpenClash empieza a funcionar."
+
+msgid "The highlighted page holds the core log, the plugin log and the one-click debug log."
+msgstr "La página resaltada contiene el log del núcleo, el del plugin y el de depuración de un clic."

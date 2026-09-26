@@ -1197,6 +1197,9 @@ msgstr "暂未备份"
 msgid "Backup"
 msgstr "备份"
 
+msgid "Backup failed!"
+msgstr "备份失败！"
+
 msgid "Enhance"
 msgstr "增强"
 
@@ -1273,13 +1276,13 @@ msgid "Firewall Rules Reset Failed"
 msgstr "防火墙规则重置失败"
 
 msgid "Close All Connections Railed"
-msgstr "重置所有链接失败"
+msgstr "关闭所有连接失败"
 
 msgid "Restore Nodes Selection Railed"
-msgstr "还原失败"
+msgstr "还原节点选择失败"
 
 msgid "Save Nodes Selection Failed"
-msgstr "备份失败"
+msgstr "保存节点选择失败"
 
 msgid "after started, please wait patiently until the connection is normal"
 msgstr "OpenClash 成功启动后请耐心等待下方网站访问检查连接正常后再使用"
@@ -1305,11 +1308,11 @@ msgstr "如果不使用 IPv6，请关闭 IPv6 的 DHCP 服务，否则会造成�
 msgid "you can update the version in the settings page"
 msgstr "您可以在插件设置页面进行版本更新操作"
 
-msgid "Note: if the update fails, you can manually download and upload"
-msgstr "注意：如更新失败可手动下载并上传"
+msgid "Note: manual upload works if the update fails"
+msgstr "提示：更新失败可手动上传安装包"
 
-msgid "Note: the client may not support update, because the firmware with squashfs format will not release flash space after updating"
-msgstr "注意：客户端可能无法更新，因为 squashfs 格式的固件更新后不会释放闪存空间"
+msgid "Note: squashfs firmware may not free flash space"
+msgstr "提示：squashfs 固件更新后可能不释放闪存"
 
 msgid "Compiled Version"
 msgstr "编译版本"
@@ -3471,11 +3474,17 @@ msgstr "文件名包含无效字符"
 msgid "Uploading..."
 msgstr "上传中..."
 
+msgid "Submit"
+msgstr "提交"
+
 msgid "Upload completed"
 msgstr "上传完成"
 
 msgid "Upload successful"
 msgstr "上传成功"
+
+msgid "Upload failed"
+msgstr "上传失败"
 
 msgid "Upload failed:"
 msgstr "上传失败："
@@ -3485,6 +3494,9 @@ msgstr "文件读取失败"
 
 msgid "Please enter subscription URL and config name"
 msgstr "请输入订阅地址和配置名称"
+
+msgid "Please enter subscription config name"
+msgstr "请输入订阅配置名称"
 
 msgid "Invalid subscription URL format"
 msgstr "订阅地址格式无效"
@@ -3500,6 +3512,9 @@ msgstr "修改订阅中..."
 
 msgid "Failed to download subscription config"
 msgstr "订阅配置下载失败"
+
+msgid "Failed to update subscription config"
+msgstr "订阅配置修改失败"
 
 msgid "Failed to add subscription"
 msgstr "添加订阅失败"
@@ -4525,7 +4540,7 @@ msgid "Common options"
 msgstr "常用选项"
 
 msgid "Something wrong?"
-msgstr "出现问题？"
+msgstr "出问题了？"
 
 msgid "Required"
 msgstr "必须"
@@ -4650,9 +4665,6 @@ msgstr "打开“运行日志 → 调试日志 → 生成日志”，然后复�
 msgid "Paste it to any AI, or use “Copy AI prompt” above and attach the log."
 msgstr "将其粘贴给任意 AI，或使用上面的“复制 AI 提示词”并附上日志。"
 
-msgid "Core level problems → search Mihomo issues; plugin/UI problems → search OpenClash issues."
-msgstr "内核问题 → 搜索 Mihomo 的 issues；插件/界面问题 → 搜索 OpenClash 的 issues。"
-
 msgid "Three tabs: plugin logs, core logs and the generated debug log."
 msgstr "三个页签：插件日志、内核日志和生成的调试日志。"
 
@@ -4660,10 +4672,10 @@ msgid "Done"
 msgstr "完成"
 
 msgid "Open this guide automatically when the core is missing"
-msgstr "未安装内核时自动打开本引导"
+msgstr "没装内核时自动打开引导"
 
 msgid "You can reopen this guide anytime with the “Quick Start” button at the bottom right."
-msgstr "随时可以点击右下角的“快速开始”按钮重新打开本引导。"
+msgstr "随时点右下角的「快速开始」都能重新打开。"
 
 msgid "To do"
 msgstr "待完成"
@@ -5071,13 +5083,10 @@ msgid "rebuild the OpenClash firewall rules."
 msgstr "重新生成 OpenClash 的防火墙规则。"
 
 msgid "clear the DNS cache when a domain keeps resolving to a stale address."
-msgstr "域名一直解析到旧地址时，清空 DNS 缓存。"
-
-msgid "Open the highlighted page for the core log, the plugin log and the one-click debug log."
-msgstr "打开高亮处的页面即可查看内核日志、插件日志和一键调试日志。"
+msgstr "域名老是解析到旧地址时清一下缓存。"
 
 msgid "Still stuck? Use the usage help button at the bottom right to copy an AI prompt."
-msgstr "还是解决不了？用右下角的「使用帮助」按钮复制 AI 提示词。"
+msgstr "还是搞不定？点右下角「使用帮助」，复制一段 AI 提示词。"
 
 msgid "Open the highlighted button to pin values such as DNS, ports or TUN options, or to inject a raw config fragment. This guide continues inside the editor."
 msgstr "点击高亮处的按钮可固定 DNS、端口、TUN 等参数，或注入自定义配置片段；引导会在编辑器里继续。"
@@ -5140,7 +5149,7 @@ msgid "you have a subscription URL, OpenClash can refresh it later."
 msgstr "有订阅链接，OpenClash 之后可以自动更新。"
 
 msgid "Click this area to pick your YAML file, or drop one onto it. Files up to 10 MB are accepted."
-msgstr "点击此处选择 YAML 文件，也可以直接拖入；文件最大 10 MB。"
+msgstr "点这块选 YAML 文件，也可以直接拖进来；最大 10 MB。"
 
 msgid "Not sure about the advanced options? A plain file upload needs none of them."
 msgstr "不确定高级选项怎么填？单纯上传文件则全都不需要。"
@@ -5254,19 +5263,19 @@ msgid "Advanced Options below is for special cases only, a plain file upload nee
 msgstr "下面的「高级选项」只在特殊场景才需要，单纯上传文件不用管。"
 
 msgid "Afterwards the config list holds it, the Update button there refreshes it on demand."
-msgstr "添加后它会出现在配置列表里，用那里的「更新」按钮可随时手动刷新。"
+msgstr "添加后会出现在配置列表里，用那里的「更新」按钮能随时手动刷新。"
 
 msgid "Both are installed and updated from one place: the Check Update button in the Quick Action card further down, this guide opens that window for you later."
 msgstr "两者的安装和更新都在同一个入口：下面「快捷操作」卡里的「检查更新」按钮，稍后引导会帮你打开这个窗口。"
 
 msgid "Change one module at a time, save, then reload the core and check the log."
-msgstr "一次只改一个模块，保存后重载内核并查看日志。"
+msgstr "一次只改一个模块，保存后重载内核、看日志。"
 
 msgid "Changing a selector refreshes the mirror list below to that version."
 msgstr "切换下拉框后，下面的镜像列表会刷新为该版本。"
 
 msgid "Click an entry to open it in the editor."
-msgstr "点击条目即可在编辑器中打开。"
+msgstr "点一下条目就能在编辑器里打开。"
 
 msgid "Every entry is a small module that is applied on top of the generated config, the header shows how many there are."
 msgstr "每一项都是一个小模块，会叠加到生成的配置之上，顶部会显示模块数量。"
@@ -5278,10 +5287,10 @@ msgid "Four fields in one row: the installed plugin version, the plugin version 
 msgstr "一行四个字段：已安装的插件版本、要安装的插件版本、已安装的内核版本、要安装的内核版本。"
 
 msgid "How often it refreshes is set in Config Subscribe, not here."
-msgstr "刷新频率在「配置订阅」页面设置，这里不设。"
+msgstr "刷新频率在「配置订阅」页面设，这里不管。"
 
 msgid "Keep the name or type your own, this is the name the config list shows later."
-msgstr "可以沿用默认名称或自己填写，这就是之后配置列表里显示的名字。"
+msgstr "用默认名字或自己起一个，之后配置列表里就显示它。"
 
 msgid "Keep the window open while it downloads, the log at the bottom of the overview page reports the result."
 msgstr "下载过程中请保持窗口打开，结果会在概览页底部的日志里显示。"
@@ -5290,7 +5299,7 @@ msgid "Leave both on Latest to always get the newest release."
 msgstr "两个都保持「最新」即可总是装到最新版本。"
 
 msgid "Leave it on the default when your provider does not ask for one."
-msgstr "服务商没有要求时保持默认即可。"
+msgstr "服务商没要求就保持默认。"
 
 msgid "Name it here. This name is what the config list shows and what the subscription is stored under."
 msgstr "在这里命名，这个名字既显示在配置列表里，也是订阅保存时使用的名字。"
@@ -5338,7 +5347,7 @@ msgid "The buttons on the right refresh the version list and the mirror latency,
 msgstr "右上角的按钮可以刷新版本列表和镜像延迟，✕ 关闭窗口。"
 
 msgid "The first config is switched to automatically, the core then builds its rules and starts."
-msgstr "第一份配置会自动切换生效，内核随后生成规则并启动。"
+msgstr "第一份配置会自动切换生效，内核接着生成规则并启动。"
 
 msgid "The generator rebuilds the Mihomo config on every change, so hand written edits are lost. The overwrite module keeps your own values on top of the generated file."
 msgstr "生成器每次改动都会重建 Mihomo 配置，手写的修改会被覆盖；覆写模块把你的设置固定在生成的配置之上。"
@@ -5347,7 +5356,7 @@ msgid "The last three act straight away, the update one opens a window first. Pr
 msgstr "后三个按钮是立即生效的，只有「检查更新」会先打开窗口；点击下面「打开并继续」，引导会讲解这个窗口。"
 
 msgid "The left side reports the state, Cancel discards everything and the blue button adds the config."
-msgstr "左侧显示当前状态，取消会放弃全部内容，蓝色按钮执行添加。"
+msgstr "左边显示当前状态，取消就全丢掉，蓝色按钮加进去。"
 
 msgid "The left side reports the state: ready, saving, saved or failed."
 msgstr "左侧显示状态：就绪、保存中、已保存或失败。"
@@ -5391,9 +5400,6 @@ msgstr "这里是模块内容，多为 YAML 片段（如 DNS、端口、TUN 参�
 msgid "This is the only field a subscription really needs."
 msgstr "订阅真正必填的只有这一项。"
 
-msgid "This part did not appear, it may not be available on this device."
-msgstr "这一区域没有出现，可能当前设备/环境不支持该功能。"
-
 msgid "This part has not appeared, open the matching tab or scroll inside the window."
 msgstr "这一区域还没出现，请切换到对应标签页或在窗口内滚动。"
 
@@ -5410,10 +5416,10 @@ msgid "Two rarely needed extras:"
 msgstr "两个很少用到的附加项："
 
 msgid "What you write here is merged into the generated config, a wrong value can break the core."
-msgstr "这里写的内容会合并进生成的配置，写错可能导致内核无法启动。"
+msgstr "这里写的会并进生成的配置，写错可能让内核起不来。"
 
 msgid "YAML indentation matters, an extra space can make the core refuse to start."
-msgstr "YAML 缩进很关键，多一个空格都可能让内核启动失败。"
+msgstr "YAML 缩进很要紧，多一个空格都可能让内核起不来。"
 
 msgid "You are on the subscription tab now, OpenClash builds the config from a URL and can refresh it for you later."
 msgstr "现在在订阅标签页：OpenClash 会用链接生成配置，之后还能自动更新。"
@@ -5422,13 +5428,13 @@ msgid "add HTTP headers to the subscription request, some providers need them."
 msgstr "给订阅请求添加 HTTP 请求头，部分服务商需要。"
 
 msgid "apply the selected config and restart the core."
-msgstr "应用所选配置并重启内核。"
+msgstr "应用选中的配置并重启内核。"
 
 msgid "change the link, the User-Agent or the conversion options of a subscription."
 msgstr "修改订阅链接、User-Agent 或转换选项。"
 
 msgid "click a version number to update only that piece, for example the core alone."
-msgstr "点版本号只更新这一项，例如只更新内核。"
+msgstr "点版本号只更新这一项，比如只更新内核。"
 
 msgid "click the link to update everything from that mirror, this is the easy path."
 msgstr "点链接会用该镜像全部更新，这是最省事的方式。"
@@ -5467,7 +5473,7 @@ msgid "open this config in the editor, the same window the overwrite module uses
 msgstr "用编辑器打开这份配置，和覆写模块用的是同一个窗口。"
 
 msgid "put the OpenClash settings back to the factory state."
-msgstr "把 OpenClash 设置恢复为出厂状态。"
+msgstr "把 OpenClash 设置恢复成初始状态。"
 
 msgid "refresh a subscription config, useful when the provider adds nodes."
 msgstr "重新拉取订阅配置，服务商新增节点时使用。"
@@ -5482,7 +5488,7 @@ msgid "switch between RAW and CDN, use CDN when a download keeps failing."
 msgstr "在 RAW（直连）和 CDN（走代理）之间切换，下载经常失败时用 CDN。"
 
 msgid "the conversion service, a public one or your own backend."
-msgstr "转换服务地址，可以用公共服务或自己的后端。"
+msgstr "转换服务地址，用公共服务或自己的后端都行。"
 
 msgid "the entrance to add another config file or subscription."
 msgstr "添加另一份配置文件或订阅的入口。"
@@ -5530,7 +5536,7 @@ msgid "The buttons in the top right corner are the whole action set of this wind
 msgstr "右上角这几个按钮就是这个窗口的全部操作："
 
 msgid "The buttons in the top right corner refresh the version list and the mirror latency, and the ✕ closes the window."
-msgstr "右上角的按钮用于刷新版本列表和镜像延迟，✕ 关闭窗口。"
+msgstr "右上角的按钮刷新版本列表和镜像延迟，✕ 关窗口。"
 
 msgid "The generator rebuilds the Mihomo config on every change, so hand written edits are lost. The overwrite module keeps your own settings on top of the generated file."
 msgstr "生成器每次改动都会重建 Mihomo 配置，手写的修改会被覆盖；覆写模块把你的设置固定在生成的配置之上。"
@@ -5611,7 +5617,7 @@ msgid "The ✕ in the top right corner closes the window without adding anything
 msgstr "右上角的 ✕ 关闭窗口，不会添加任何内容。"
 
 msgid "The blue button adds the module, Cancel discards the form."
-msgstr "蓝色按钮执行添加，取消会放弃表单内容。"
+msgstr "蓝色按钮添加，取消就清空表单。"
 
 msgid "A new module is enabled right away. Write your values in the editor, save, then reload the core so it takes effect."
 msgstr "新建的模块会直接启用；在编辑器里写好内容、保存，然后重载内核才会生效。"
@@ -5668,7 +5674,7 @@ msgid "Press “Switch and continue” below and the window changes to that tab 
 msgstr "点下面的「切换并继续」，窗口会自动切到那个标签页，引导接着讲解里面的内容："
 
 msgid "A module can also be pulled from a URL, which keeps several routers on the same settings."
-msgstr "模块也可以从链接拉取，适合多台路由器共用同一套设置。"
+msgstr "模块也能从链接拉取，多台路由器共用一套设置很方便。"
 
 msgid "Press “Switch and continue” and the window changes to that tab by itself. The fields there are:"
 msgstr "点「切换并继续」，窗口会自动切到那个标签页，里面的字段是："
@@ -5734,7 +5740,7 @@ msgid "Trim a big subscription down to the nodes you want, the fields appear bel
 msgstr "把庞大的订阅精简成你想要的节点；开启后下面的字段才会出现。"
 
 msgid "Left alone, every node of the subscription ends up in the config."
-msgstr "不做筛选时，订阅里的所有节点都会进入配置。"
+msgstr "不筛的话，订阅里所有节点都会加进配置。"
 
 msgid "keep only nodes whose name contains one of these words, eg hk or tw&bgp, one per line."
 msgstr "只保留名称包含这些词的节点，例如 hk 或 tw&bgp，每行一条。"
@@ -5779,7 +5785,7 @@ msgid "run the checks from the router itself or from this browser, the active on
 msgstr "选择从路由器本身还是从当前浏览器发起检测，右侧显示的就是当前模式。"
 
 msgid "query the addresses and the latency again."
-msgstr "重新查询地址与延迟。"
+msgstr "重新查一遍地址和延迟。"
 
 msgid "The two icons in the top right corner of this card change how the same numbers are drawn:"
 msgstr "这张卡右上角的两个图标改变同一组数据的展现方式："
@@ -5788,7 +5794,7 @@ msgid "one card per value, the easiest way to read a single number."
 msgstr "每个数值一张卡片，看单个数字最直观。"
 
 msgid "speed and load as curves, which shows a spike or a drop over time."
-msgstr "把速率和负载画成曲线，便于看出某个时间点的突增或骤降。"
+msgstr "把速率和负载画成曲线，能看出什么时候涨了、什么时候掉了。"
 
 msgid "A switch for the special cases, a plain upload leaves it off."
 msgstr "特殊场景才需要打开的开关，普通上传保持关闭。"
@@ -5797,7 +5803,7 @@ msgid "Turning it on unfolds the extra fields below, custom request headers and 
 msgstr "打开后会在下面展开额外字段：自定义请求头，以及让文件携带加密内容的 Age 密钥。"
 
 msgid "Only the file itself is needed, everything else on this tab is optional."
-msgstr "其实只需要文件本身，这个标签页上的其它内容都是可选项。"
+msgstr "其实只要文件本身，这个页签上其他都是可选项。"
 
 msgid "The rule template decides the group names of the converted config. Custom Template takes a URL of your own."
 msgstr "规则模板决定转换后配置的分组名称；「自定义模板」可以填自己的模板地址。"
@@ -5886,12 +5892,6 @@ msgstr "整个筛选区块，用来把庞大的订阅精简成你要的节点：
 msgid "Two rarely needed extras live behind this switch:"
 msgstr "这个开关后面是两个很少用到的附加项："
 
-msgid "Common subscription fields"
-msgstr "订阅共有字段"
-
-msgid "HTTP subscription fields"
-msgstr "HTTP 订阅字段"
-
 msgid "keep UDP support, leave it on for games and voice chat."
 msgstr "保留 UDP 支持，玩游戏和语音时保持开启。"
 
@@ -5908,13 +5908,13 @@ msgid "extra converter arguments, one per line, for example a rename rule."
 msgstr "额外的转换参数，每行一条，例如重命名规则。"
 
 msgid "keep only the nodes whose name contains one of these words, one per line, for example hk or tw&bgp."
-msgstr "只保留名称包含这些词的节点，每行一条，例如 hk 或 tw&bgp。"
+msgstr "只留下名称包含这些词的节点，一行一个，例如 hk 或 tw&bgp。"
 
 msgid "drop the nodes whose name contains these words, such as a trial or a backup server."
 msgstr "排除名称包含这些词的节点，例如试用或备用服务器。"
 
 msgid "drop the provider info nodes, the four switches remove the entries that only carry the expiry date, the traffic, the plan or the website."
-msgstr "排除服务商信息节点：四个开关分别移除只带到期时间、流量、套餐、官网的条目。"
+msgstr "去掉服务商信息节点：四个开关分别移除只带到期时间、流量、套餐、官网的条目。"
 
 msgid "some providers only answer when the request carries a certain header, such as their own domain as Referer. Add one row per header."
 msgstr "有些服务商要求请求带上特定请求头才会响应，例如把它们的域名作为 Referer；一个请求头一行。"
@@ -5932,31 +5932,31 @@ msgid "which day and which hour OpenClash fetches it again, OFF means only when 
 msgstr "选择星期几、几点重新拉取；OFF 表示只在你手动操作时才拉取。"
 
 msgid "extra variables handed to the script, only for modules that read them."
-msgstr "传给脚本的额外变量，仅对会读取它的模块有效。"
+msgstr "传给脚本的额外变量，只有会读它的模块才用得上。"
 
 msgid "A Compare button also appears here when a plain config file is edited."
-msgstr "编辑普通配置文件时这里还会出现「比较」按钮。"
+msgstr "编辑普通配置文件时这里还会多一个「比较」按钮。"
 
 msgid "A config holds your proxies, groups and rules, this is the step that gets OpenClash working."
-msgstr "配置文件包含节点、策略组和规则，这一步能让 OpenClash 真正跑起来。"
+msgstr "配置文件里有节点、策略组和规则，这一步做完 OpenClash 才真正能用。"
 
 msgid "A dash means no core is installed yet, Check Update below installs one."
-msgstr "显示横杠表示还没安装内核，用下面的「检查更新」即可安装。"
+msgstr "显示横杠就是还没装内核，点下面的「检查更新」就能装上。"
 
 msgid "A debug log holds dependency checks, firewall rules, DNS and connectivity in one file. It answers most questions."
-msgstr "调试日志把依赖检查、防火墙规则、DNS 与连通性汇总到一个文件。多数问题看它就能定位。"
+msgstr "调试日志把依赖检查、防火墙规则、DNS、连通性都写在一个文件里，多数问题看它就能定位。"
 
 msgid "A different answer means that service went direct or through another node. The country under each address shows where the exit is."
-msgstr "结果不同说明该服务走了直连或别的节点；每个地址下方的国家就是出口位置。"
+msgstr "结果不一样，说明这个服务走了直连或别的节点；每个地址下面的国家就是出口位置。"
 
 msgid "A new module is enabled right away, write your values in the editor, save, then reload the core."
-msgstr "新模块会立即启用：在编辑器里写好内容并保存，然后重启内核生效。"
+msgstr "新模块会立刻启用：在编辑器里写好、保存，再重启内核生效。"
 
 msgid "An older version rolls back after a bad release."
-msgstr "选择旧版本可在新版本出问题时回退。"
+msgstr "新版出问题时可以选回旧版。"
 
 msgid "Changing a selector refreshes the mirror list below."
-msgstr "改动选择器会刷新下方的镜像列表。"
+msgstr "改选项会刷新下面的镜像列表。"
 
 msgid "Conversion switches, none of them is required:"
 msgstr "转换开关，都不是必选项："
@@ -5965,7 +5965,7 @@ msgid "DNS mode, active right now:"
 msgstr "DNS 模式，当前生效："
 
 msgid "Every entry is a small module applied on top of the generated config. The header shows how many there are."
-msgstr "每一项都是叠加在生成配置之上的小模块。标题处显示数量。"
+msgstr "每一项都是压在生成配置上的小模块，标题上显示数量。"
 
 msgid "F11 fullscreen, Escape leaves it, Ctrl with the mouse wheel zooms, the bottom right corner resizes."
 msgstr "F11 全屏、Esc 退出全屏、Ctrl+滚轮缩放，右下角可拖动改变窗口大小。"
@@ -5980,19 +5980,22 @@ msgid "How the traffic is taken over, active right now:"
 msgstr "流量接管方式，当前生效："
 
 msgid "Keep the window open while it downloads, the overview page log reports the result."
-msgstr "下载过程中请保持窗口打开，运行状态页的日志会显示结果。"
+msgstr "下载时别关窗口，结果会写在运行状态页的日志里。"
 
 msgid "Latest always takes the newest release."
-msgstr "保持 Latest 即始终使用最新版本。"
+msgstr "选 Latest 就一直用最新版。"
 
 msgid "One press updates the plugin, the core and the GEO data. A missing core is installed from here as well."
-msgstr "一键更新插件、内核与 GEO 数据；内核缺失时也从这里安装。"
+msgstr "一键更新插件、内核、GEO 数据；没装内核也从这里装。"
+
+msgid "Module list"
+msgstr "模块列表"
 
 msgid "Mirror list"
 msgstr "镜像列表"
 
 msgid "Online conversion sends your link to a third party, prefer your own backend for privacy."
-msgstr "在线转换会把订阅链接发给第三方，介意隐私请用自己的后端。"
+msgstr "在线转换会把订阅链接发给第三方，在意隐私就用自己的后端。"
 
 msgid "Only one config runs at a time, switching restarts the core."
 msgstr "同时只有一个配置生效，切换会重启内核。"
@@ -6004,118 +6007,118 @@ msgid "Pick a config from the list, then press the button beside it to apply it.
 msgstr "在列表里选中配置，再点旁边的按钮启用它。"
 
 msgid "Next switches the window to that tab; the fields follow in the next steps."
-msgstr "点「下一步」窗口会切到该页签，接着逐个讲那里的字段。"
+msgstr "点「下一步」窗口会切到这个页签，接着一个个讲字段。"
 
 msgid "Next switches to that tab; the steps there cover the URL, the User-Agent, the conversion and the filters."
-msgstr "点「下一步」会切到该页签，后续步骤依次讲解地址、UA、在线转换与筛选。"
+msgstr "点「下一步」切到该页签，后面依次讲地址、UA、在线转换和筛选。"
 
 msgid "Next switches to that tab, which has its own steps."
-msgstr "点「下一步」会切到该页签，那里有单独的步骤。"
+msgstr "点「下一步」会切到这个页签，那里有单独的步骤。"
 
 msgid "“Open and continue” opens this window and walks you through it."
-msgstr "点「打开并继续」会打开该窗口，并逐步带你走一遍。"
+msgstr "点「打开并继续」就能打开它，我带你走一遍。"
 
 msgid "RAW or CDN, use CDN when a download keeps failing."
 msgstr "RAW 或 CDN 切换，下载总是失败时改用 CDN。"
 
 msgid "Restart after changing a config or an overwrite module, the core only reads them on reload."
-msgstr "改过配置或覆写模块后需重启内核，内核只在重载时读取。"
+msgstr "改过配置或覆写模块后要重启内核，它只在重载时读取。"
 
 msgid "Switching restarts the core, the existing connections drop for a moment."
 msgstr "切换会重启内核，已有连接会短暂中断。"
 
 msgid "TUN and Mix need the TUN kernel module."
-msgstr "TUN 与混合模式需要内核带 TUN 模块。"
+msgstr "TUN 和混合模式需要内核带 TUN 模块。"
 
 msgid "TUN plus redirect, the recommended default."
-msgstr "TUN + 转发，推荐的默认选择。"
+msgstr "TUN + 转发，推荐用这个。"
 
 msgid "The action set of this window:"
 msgstr "这个窗口的全部操作："
 
 msgid "The blue button downloads the subscription and writes the YAML for you."
-msgstr "点蓝色按钮即可下载订阅并生成 YAML。"
+msgstr "点蓝色按钮就下载订阅并生成 YAML。"
 
 msgid "OpenClash rebuilds the running config on start or reload, so direct edits may be lost. Use an overwrite module to preserve custom settings."
-msgstr "OpenClash 会在启动或重载时重新生成运行配置，直接修改可能被覆盖。用覆写模块保留自定义设置。"
+msgstr "OpenClash 每次启动或重载都会重新生成配置，直接改可能被覆盖。想留下的设置，写进覆写模块。"
 
 msgid "The conversion block, for providers that do not serve Clash format:"
 msgstr "在线转换区块，用于不提供 Clash 格式的服务商："
 
 msgid "The dashboard shows nodes, latency and live connections. One button appears here for each installed dashboard."
-msgstr "控制面板可查看节点、延迟与实时连接；已安装几个面板就显示几个按钮。"
+msgstr "控制面板能看节点、延迟和实时连接；装了几个面板就显示几个按钮。"
 
 msgid "The first start downloads GEO data and builds the firewall rules, give it 5–30 seconds."
 msgstr "首次启动会下载 GEO 数据并生成防火墙规则，请等 5–30 秒。"
 
 msgid "The left side shows what the download is doing. A link updates everything; a version updates one piece."
-msgstr "左侧显示当前下载进度；点链接是整体更新，点版本号只更新该部分。"
+msgstr "左边显示下载进度；点链接是整体更新，点版本号只更新那一项。"
 
 msgid "The live numbers of this device:"
-msgstr "本机的实时数据："
+msgstr "这台路由器的实时数据："
 
 msgid "The module content: YAML fragments such as DNS settings, ports or TUN options. Only what you write here overrides the generated value."
-msgstr "模块内容：DNS、端口、TUN 等 YAML 片段，只有写在这里的值会覆盖生成结果。"
+msgstr "模块内容就是 YAML 片段，比如 DNS、端口、TUN；只有写在这里的值会覆盖生成结果。"
 
 msgid "The name the config list shows later, and the name the subscription is stored under."
 msgstr "配置列表里显示的名称，也是订阅的存储名。"
 
 msgid "The other way in: a subscription link from your provider."
-msgstr "另一种方式：填服务商提供的订阅链接。"
+msgstr "另一种加法：填服务商给的订阅链接。"
 
 msgid "The same query goes to four public IP services, they should all answer with the same address."
-msgstr "同一个查询会发给四个公网 IP 服务，正常应返回相同地址。"
+msgstr "同一台机器分别问四个公网 IP 服务，正常应该都返回同一个地址。"
 
 msgid "The subscription tab: paste the link from your provider, one per line."
 msgstr "订阅页签：粘贴服务商的订阅链接，一行一条。"
 
 msgid "The switch on the right enables or disables it without deleting it."
-msgstr "右侧开关可启用/停用该模块，不会删除它。"
+msgstr "右边的开关能开、能关，不会删除它。"
 
 msgid "The switch starts and stops the plugin, the button beside it restarts the core."
 msgstr "开关用于启动/停止插件，旁边的按钮重启内核。"
 
 msgid "The tag tells where it comes from: local, subscribed, built in or not configured yet."
-msgstr "标签说明来源：本地、订阅、内置或尚未配置。"
+msgstr "标签表示来源：本地、订阅、内置或还没配。"
 
 msgid "The three buttons in the header of this area:"
 msgstr "这个区域标题栏上的三个按钮："
 
 msgid "The two icons in the card header change how the same numbers are drawn:"
-msgstr "卡片标题栏的两个图标切换同一组数据的呈现方式："
+msgstr "卡片标题栏有两个图标，切换同一组数据的看法："
 
 msgid "The window offers two ways in: upload a YAML file, or add a subscription link. Both are walked through here."
-msgstr "窗口提供两种方式：上传 YAML 文件或添加订阅链接，这里都会讲到。"
+msgstr "两种加法：上传 YAML 文件，或者填订阅链接，两种都会带你走一遍。"
 
 msgid "This button creates a module, a small file with the settings you want to pin."
-msgstr "这个按钮用来新建模块，一个只放你要固定设置的小文件。"
+msgstr "点它新建模块，一个小文件，只放你想固定的设置。"
 
 msgid "Three fields, only the module name is required:"
 msgstr "三个字段，只有模块名是必填："
 
 msgid "Turning it on unfolds the fields below: custom request headers and an Age key for encrypted values."
-msgstr "开启后会展开下面的字段：自定义请求头与用于加密取值的 Age 密钥。"
+msgstr "打开后会展开下面的字段：自定义请求头，以及加密取值用的 Age 密钥。"
 
 msgid "Two versions that update on their own:"
-msgstr "两个各自独立更新的版本："
+msgstr "两个版本各管各的更新："
 
 msgid "Two ways to add a config, the two tabs switch between them:"
 msgstr "两种添加配置的方式，用两个页签切换："
 
 msgid "Use it for DNS, ports or TUN values you want to pin, or to inject a raw fragment."
-msgstr "可用来固定 DNS、端口、TUN 等取值，或注入原始片段。"
+msgstr "比如固定 DNS、端口、TUN 的取值，或者塞进一段原始片段。"
 
 msgid "Zashboard is the recommended one."
-msgstr "推荐使用 Zashboard。"
+msgstr "推荐用 Zashboard。"
 
 msgid "a key pair. The secret key stays on this router and decrypts the config, the public key goes to the provider."
-msgstr "一对密钥：私钥留在路由器用于解密配置，公钥填给服务商。"
+msgstr "一对密钥：私钥留在路由器解密配置，公钥填给服务商。"
 
 msgid "a slow mirror means a slow download, not a slow proxy."
 msgstr "镜像慢只影响下载速度，不代表代理慢。"
 
 msgid "a subscription URL from your provider, it can refresh itself later."
-msgstr "服务商提供的订阅链接，之后可自动刷新。"
+msgstr "服务商给的订阅链接，之后能自动刷新。"
 
 msgid "accept certificates that do not match the domain, on by default."
 msgstr "接受与域名不匹配的证书，默认开启。"
@@ -6124,64 +6127,64 @@ msgid "add another config file or subscription."
 msgstr "再添加一个配置文件或订阅。"
 
 msgid "the Smart build supports Smart policy groups that score nodes using latency, packet loss and connection history."
-msgstr "Smart 内核支持 Smart 策略组，会根据延迟、丢包率和连接历史表现为节点评分。"
+msgstr "Smart 内核支持 Smart 策略组，按延迟、丢包和连接历史给节点打分。"
 
 msgid "answers with a fake address and resolves the real one after the rules match, the default."
 msgstr "先用假地址应答，规则匹配后再解析真实地址，默认选择。"
 
 msgid "blur the addresses, do it before taking a screenshot."
-msgstr "模糊显示地址，截图前可以先点它。"
+msgstr "把地址打码，截图前先点它。"
 
 msgid "build a subscription and keep it up to date."
-msgstr "生成订阅并保持更新。"
+msgstr "做好订阅并让它保持更新。"
 
 msgid "change the link, the User-Agent or the conversion."
-msgstr "修改链接、User-Agent 或转换设置。"
+msgstr "改链接、User-Agent 或转换设置。"
 
 msgid "click the link to update everything from that mirror, the easy path."
-msgstr "点链接即从该镜像整体更新，最省事。"
+msgstr "点链接就从这台镜像整体更新，最省事。"
 
 msgid "core log, plugin log and the one-click debug log."
-msgstr "内核日志、插件日志与一键调试日志。"
+msgstr "内核日志、插件日志、一键调试日志。"
 
 msgid "counted since the core started."
-msgstr "自内核启动起累计。"
+msgstr "从内核启动算起。"
 
 msgid "delete the installed core, to free space or force a clean reinstall."
-msgstr "删除已安装内核，用于腾出空间或强制重装。"
+msgstr "删掉已装内核，腾空间或强制重装时用。"
 
 msgid "detected automatically, leave it alone."
-msgstr "自动探测，保持默认即可。"
+msgstr "自动识别，别动它。"
 
 msgid "download a subscription config again."
 msgstr "重新下载订阅配置。"
 
 msgid "drop all current connections, for example after switching nodes."
-msgstr "断开所有连接，例如切换节点后使用。"
+msgstr "断开所有连接，比如换节点之后用。"
 
 msgid "export the whole setup, the dropdown narrows it down to core, config, rules or proxy providers."
-msgstr "导出整套设置，下拉可缩小到内核、配置、规则或代理集合。"
+msgstr "导出整套设置，下拉里能只导内核、配置、规则或代理集合。"
 
 msgid "extra converter arguments, one per line."
 msgstr "额外的转换参数，每行一条。"
 
 msgid "follow the rules of the config, domestic traffic goes direct, the recommended one."
-msgstr "按配置里的规则分流，国内流量直连，推荐使用。"
+msgstr "按配置里的规则分流，国内流量直连，推荐。"
 
 msgid "install or update the plugin, the core and the GEO data."
-msgstr "安装或更新插件、内核与 GEO 数据。"
+msgstr "安装或更新插件、内核、GEO 数据。"
 
 msgid "make the node names readable."
 msgstr "让节点名称更易读。"
 
 msgid "open this config in the editor."
-msgstr "在编辑器里打开该配置。"
+msgstr "在编辑器里打开。"
 
 msgid "pin your own values over the generated config."
-msgstr "把你的设置固定到生成配置之上。"
+msgstr "把自己的设置压到生成的配置上。"
 
 msgid "redirect mode, TCP only, works on every kernel."
-msgstr "转发模式，仅 TCP，兼容所有内核。"
+msgstr "转发模式，只走 TCP，所有内核都能用。"
 
 msgid "run mode, DNS, traffic, access control, IPv6, auto restart."
 msgstr "运行模式、DNS、流量控制、访问控制、IPv6、自动重启。"
@@ -6190,28 +6193,28 @@ msgid "run the checks from the router itself or from this browser."
 msgstr "选择从路由器还是从当前浏览器发起检测。"
 
 msgid "save the current content to a file, handy as a backup."
-msgstr "把当前内容保存成文件，方便备份。"
+msgstr "把当前内容存成文件，方便备份。"
 
 msgid "send everything through the proxy, useful to test a node."
-msgstr "全部走代理，便于测试节点。"
+msgstr "全部走代理，用来试节点。"
 
 msgid "send nothing through the proxy, useful to compare."
-msgstr "全部不走代理，便于对比。"
+msgstr "全部不走代理，用来做对比。"
 
 msgid "some providers only answer when the request carries a certain header, add one row per header."
-msgstr "有些服务商要求请求带特定请求头才响应，一个请求头一行。"
+msgstr "有些服务商要求带特定请求头才响应，一行写一个。"
 
 msgid "start and stop, modes, config, dashboard."
 msgstr "启停、模式、配置、控制面板。"
 
 msgid "the LuCI plugin."
-msgstr "LuCI 插件本体。"
+msgstr "LuCI 插件本身。"
 
 msgid "the Mihomo core responsible for proxy traffic."
-msgstr "负责代理流量的 Mihomo 内核。"
+msgstr "真正跑代理流量的 Mihomo 内核。"
 
 msgid "the core package for your device."
-msgstr "适合设备的内核包。"
+msgstr "适合这台设备的内核包。"
 
 msgid "Installed and target versions"
 msgstr "已安装版本与目标版本"
@@ -6220,7 +6223,7 @@ msgid "the current speed."
 msgstr "当前速率。"
 
 msgid "the module is downloaded from a URL and can refresh itself."
-msgstr "模块从链接下载，并可自行刷新。"
+msgstr "模块从链接下载，还能自己定期刷新。"
 
 msgid "the ones that usually need the proxy, a timeout means the node or the rule set does not cover them."
 msgstr "通常需要走代理的站点；超时说明节点或规则集没覆盖到。"
@@ -6232,34 +6235,34 @@ msgid "upload, rename, download or remove config files."
 msgstr "上传、重命名、下载、删除配置文件。"
 
 msgid "uses real addresses, only for local or legacy services."
-msgstr "使用真实地址，仅适用于本地或老旧服务。"
+msgstr "用真实地址，只适合本地或老旧服务。"
 
 msgid "virtual network card, TCP and UDP, so games work too."
-msgstr "虚拟网卡接管 TCP 与 UDP，游戏等也能走代理。"
+msgstr "虚拟网卡接管 TCP 和 UDP，游戏也能走代理。"
 
 msgid "memory and CPU used by the core."
-msgstr "内核占用的内存与 CPU。"
+msgstr "内核占用的内存和 CPU。"
 
 msgid "the router's overall system load, not just OpenClash."
-msgstr "路由器的整体系统负载，并非 OpenClash 单个进程的负载。"
+msgstr "整台路由器的负载，不是 OpenClash 一个进程的。"
 
 msgid "where the module is downloaded from."
 msgstr "模块的下载地址。"
 
 msgid "which day and hour it is fetched again, OFF means only on demand."
-msgstr "重新拉取的星期与时刻，OFF 表示只手动拉取。"
+msgstr "重新拉取的时间，OFF 表示只手动拉。"
 
 msgid "which release line to follow, the default is fine."
-msgstr "跟随哪条发布分支，默认即可。"
+msgstr "跟哪条发布分支，默认就行。"
 
 msgid "write rules as providers instead of inline rules, keeps the config shorter."
-msgstr "生成规则集而非内联规则，配置更短。"
+msgstr "规则写成规则集而不是内联，配置更短。"
 
 msgid "write the module back, the core picks it up on its next reload."
 msgstr "写回模块，内核下次重载时生效。"
 
 msgid "you already have a YAML file, it is copied in as it is."
-msgstr "已经有 YAML 文件，原样复制进来即可。"
+msgstr "已经有 YAML 文件，原样传进来就行。"
 
 msgid "you write the content yourself, or upload a txt or conf file."
 msgstr "内容自己写，或上传 txt/conf 文件。"
@@ -6283,19 +6286,16 @@ msgid "Conversion switches"
 msgstr "转换开关"
 
 msgid "On first start, OpenClash downloads files as needed and builds the firewall rules. Allow 5–30 seconds."
-msgstr "首次启动时，OpenClash 会按需下载文件并生成防火墙规则，整个过程可能需要 5–30 秒。"
+msgstr "第一次启动时，OpenClash 会按需下载文件、生成防火墙规则，大概要 5–30 秒。"
 
 msgid "use this when a provider does not serve Clash format."
-msgstr "服务商不提供 Clash 格式时使用此转换。"
-
-msgid "Set only the conversion options you need."
-msgstr "仅启用需要的转换选项。"
+msgstr "服务商不给 Clash 格式时才用它。"
 
 msgid "select or drag a txt or conf file, up to 10 MB."
 msgstr "选择或拖入 txt/conf 文件，最大 10 MB。"
 
 msgid "Keep the detected architecture unless you need a different CPU build; change the release branch only if you intend to follow another line."
-msgstr "除非需要其他 CPU 构建，否则保留自动检测的架构；仅在需要跟随其他发布分支时更改分支。"
+msgstr "不是要换别的 CPU 版本就别动架构；发布分支也用默认的。"
 
 msgid "Recommended"
 msgstr "推荐"
@@ -6307,20 +6307,19 @@ msgid "a switch for the special cases, a plain upload leaves it off."
 msgstr "特殊场景才需要开启，普通上传保持关闭。"
 
 msgid "some providers only answer a specific client name, pick it here or choose Custom and type your own."
-msgstr "有些服务商只认特定客户端名，在这里选择，或选自定义后自行填写。"
+msgstr "有些服务商只认特定客户端名，在这里选，或选「自定义」自己填。"
 
 msgid "the name the config list shows later, and the name the subscription is stored under."
-msgstr "配置列表里显示的名称，也是订阅的存储名。"
+msgstr "配置列表里显示的名字，也是订阅的存储名。"
 
 msgid "the switch starts and stops the plugin, the button beside it restarts the core."
-msgstr "开关用于启动与停止插件，旁边的按钮重启内核。"
-
+msgstr "开关启动和停止插件，旁边的按钮重启内核。"
 
 msgid "Close this window and go back to the guide"
 msgstr "关闭此窗口并回到引导"
 
 msgid "Close this window and go back to the overview"
-msgstr "关闭此窗口并回到概览"
+msgstr "关掉这个窗口，回到概览"
 
 msgid "End the guide, the settings all stay as they are"
 msgstr "结束引导，已修改的设置全部保留"
@@ -6332,4 +6331,64 @@ msgid "Open this window and carry on"
 msgstr "打开这个窗口并继续"
 
 msgid "Stop guiding this section"
-msgstr "停止引导这一段"
+msgstr "不再引导这一段"
+
+msgid "No mirror address"
+msgstr "暂无镜像地址"
+
+msgid "All mirrors are unreachable"
+msgstr "所有镜像均不可达"
+
+msgid "Add a custom CDN address below, then retry."
+msgstr "请在下方添加自定义 CDN 地址后重试"
+
+msgid "Check the network or proxy settings, then retry."
+msgstr "请检查网络或代理设置后重试"
+
+msgid "Retry"
+msgstr "重试"
+
+msgid "Only needed in special cases."
+msgstr "只有特殊场景才用得上。"
+
+msgid "Some providers only answer a specific client."
+msgstr "有些服务商只认特定的客户端。"
+
+msgid "For providers that do not serve Clash format."
+msgstr "服务商不给 Clash 格式时才用它。"
+
+msgid "Every switch below is optional, turn on what you need:"
+msgstr "下面的开关都可选，按需要开就行："
+
+msgid "Filter by node name: one box keeps what you want."
+msgstr "按节点名称筛选：一个框留下你要的节点。"
+
+msgid "The second box drops the nodes you do not want."
+msgstr "第二个框用来剔除你不想要的节点。"
+
+msgid "Give the subscription a name before saving."
+msgstr "保存前给订阅起个名字。"
+
+msgid "These two are optional, only some providers need them."
+msgstr "这两项都是可选，只有部分服务商需要。"
+
+msgid "Fields every module shares:"
+msgstr "所有模块共有的字段："
+
+msgid "Extra fields for a module that comes from a link:"
+msgstr "从链接获取模块时多出的字段："
+
+msgid "A local module needs three things:"
+msgstr "本地模块需要这三样："
+
+msgid "Four options decide what gets installed:"
+msgstr "四个选项决定装什么："
+
+msgid "Three maintenance buttons:"
+msgstr "三个维护按钮："
+
+msgid "Turn this switch on and OpenClash starts working."
+msgstr "打开这个开关，OpenClash 才会开始工作。"
+
+msgid "The highlighted page holds the core log, the plugin log and the one-click debug log."
+msgstr "高亮这个页面里有内核日志、插件日志和一键调试日志。"
