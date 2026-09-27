@@ -5,6 +5,7 @@
 %>
     <script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
     <script src="/luci-static/resources/openclash/js/subconverter-version.js?v=<%=plugin_version%>"></script>
+    <script src="/luci-static/resources/openclash/js/subconverter-source.js?v=<%=plugin_version%>"></script>
     <div class="config-upload-model-overlay" id="config-upload-overlay">
         <div class="config-upload-model" id="config-upload-model">
             <div class="config-upload-header">
@@ -568,6 +569,7 @@ var ConfigUploader = {
     currentMode: 'file',
     onSuccess: '',
     subconverterVersionChecker: null,
+    subconverterSourceEditor: null,
     linkRe: null,
 
     init: function() {
@@ -646,6 +648,45 @@ var ConfigUploader = {
         var keywordOptionsEnable = document.getElementById('keyword-options-enable');
         var keywordOptionsContainer = document.getElementById('keyword-options-container');
 
+        if (window.OpenClashSubconverterSource) {
+            this.subconverterSourceEditor = window.OpenClashSubconverterSource.init({
+                textarea: subscribeUrlInput,
+                onChange: function() {
+                    self.updateSubmitButton();
+                },
+                labels: {
+                    source: '<%:Subscription%>',
+                    url: '<%:Subscription URL or Node URI%>',
+                    tag: '<%:Tag (Optional)%>',
+                    tagPlaceholder: '<%:Leave blank by default%>',
+                    provider: '<%:Proxy Provider Name%>',
+                    providerPlaceholder: '<%:Automatic if blank%>',
+                    providerHint: '<%:When blank, the proxy provider name is generated as Provider_ plus the first 6 characters of the URL MD5.%>',
+                    interval: '<%:Update Interval (Seconds)%>',
+                    intervalPlaceholder: '<%:Default: 3600%>',
+                    proxyDirect: '<%:Proxy Provider Download Method%>',
+                    backendDefault: '<%:Follow Backend Settings%>',
+                    direct: '<%:Direct%>',
+                    notDirect: '<%:Follow Rules%>',
+                    add: '<%:Add Subscription%>',
+                    remove: '<%:Remove%>',
+                    parameters: '<%:Parameters%>',
+                    batch: '<%:Batch Import%>',
+                    batchPlaceholder: '<%:One subscription per line; vertical bars are also supported%>',
+                    import: '<%:Import Subscriptions%>',
+                    cancel: '<%:Cancel%>',
+                    raw: '<%:Raw Text%>',
+                    structured: '<%:Form View%>',
+                    fallback: '<%:This address contains syntax that cannot be edited safely. Continue with the original text.%>',
+                    empty: '<%:Please enter at least one subscription URL or node URI.%>',
+                    invalidUrl: '<%:Subscription {index} is not a valid subscription URL or node URI.%>',
+                    invalidText: '<%:Subscription {index} contains an invalid prefix value.%>',
+                    invalidInterval: '<%:Subscription {index} has an invalid update interval.%>',
+                    invalidImport: '<%:The imported text contains an unsupported or invalid subscription.%>'
+                }
+            });
+        }
+
         if (window.OpenClashSubconverterVersion && subVersionStatus) {
             this.subconverterVersionChecker = window.OpenClashSubconverterVersion.init({
                 select: convertAddressSelect,
@@ -660,6 +701,22 @@ var ConfigUploader = {
                     invalid: '<%:Invalid backend URL%>',
                     unrecognized: '<%:Backend version information not detected%>',
                     failed: '<%:Unable to detect backend version%>'
+                },
+                onSelectionChange: function() {
+                    if (self.subconverterSourceEditor) self.subconverterSourceEditor.prepareLegacy();
+                },
+                onResult: function(result) {
+                    var editor = self.subconverterSourceEditor;
+                    if (!editor) return;
+                    if (result.state === 'success' && result.family === 'subconverter-extended') {
+                        editor.setExtended(true);
+                    } else if (result.state === 'success' && result.family === 'subconverter') {
+                        editor.prepareLegacy();
+                    } else if (result.state === 'disabled') {
+                        editor.preparePlain();
+                    } else if (result.state !== 'checking') {
+                        editor.setExtended(false);
+                    }
                 }
             });
         }
@@ -966,6 +1023,7 @@ var ConfigUploader = {
         this.switchMode('file');
         document.getElementById('config-filename-input').value = '';
         document.getElementById('subscribe-url-input').value = '';
+        if (this.subconverterSourceEditor) this.subconverterSourceEditor.reset();
         document.getElementById('subscribe-ua-input').value = 'clash-verge/v2.4.5';
         document.getElementById('subscribe-ua-custom').classList.add('oc-hidden');
         var hdrContainer = document.getElementById('subscribe-headers-container');
@@ -1395,12 +1453,15 @@ var ConfigUploader = {
     },
 
     processSubscription: function() {
-        var url = document.getElementById('subscribe-url-input').value.trim();
         var filename = document.getElementById('config-filename-input').value.trim();
         var userAgent = document.getElementById('subscribe-ua-input').value;
         var subscribeUaCustom = document.getElementById('subscribe-ua-custom');
 
         var subConvert = document.getElementById('sub-convert-enable').checked;
+        if (subConvert && this.subconverterSourceEditor && this.subconverterSourceEditor.isActive() && !this.subconverterSourceEditor.validate()) {
+            return;
+        }
+        var url = document.getElementById('subscribe-url-input').value.trim();
 
         var convertAddress = '';
         var template = '';
