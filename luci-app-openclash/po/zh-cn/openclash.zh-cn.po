@@ -4155,38 +4155,11 @@ msgstr "账号密码"
 msgid "Checkin Multiple"
 msgstr "签到倍数"
 
-msgid "Optional Parameters"
-msgstr "可选项参数"
+msgid "Node Filter"
+msgstr "节点筛选"
 
-msgid "Optional parameters saved"
-msgstr "可选项参数已保存"
-
-msgid "Failed to save optional parameters, please try again"
-msgstr "可选项参数保存失败，请重试"
-
-msgid "For more information, please visit the"
-msgstr "如需查看更多信息，请前往"
-
-msgid "official documentation"
-msgstr "官方文档"
-
-msgid "Must start with &"
-msgstr "必须以 & 开头"
-
-msgid "Params must not contain spaces"
-msgstr "参数不能包含空格"
-
-msgid "Params too long, max 8192 characters"
-msgstr "参数过长，最多 8192 个字符"
-
-msgid "Invalid params format"
-msgstr "参数格式无效"
-
-msgid "Invalid params format, must start with & and use key=value pairs"
-msgstr "参数格式无效，必须以 & 开头并使用 key=value 键值对"
-
-msgid "Params too long"
-msgstr "参数过长"
+msgid "Open the oixCloud website to choose the nodes delivered to OpenClash"
+msgstr "前往 oixCloud 网站选择下发给 OpenClash 的节点"
 
 msgid "Usage Help"
 msgstr "使用帮助"

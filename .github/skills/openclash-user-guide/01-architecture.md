@@ -118,7 +118,7 @@ Dashboard: http://路由器LAN_IP:9090/ui/
 │
 ├─ Step 4: 启动核心 (Start Running The Clash Core)
 │   └─ start_run_core()    → mv 运行配置 + procd 启动 clash -d /etc/openclash -f <config.yaml>
-│       ├─ procd env      → SAFE_PATHS / CLASH_AGE_SECRET_KEY / OIX_TOKEN / OIX_PARAMS
+│       ├─ procd env      → SAFE_PATHS / CLASH_AGE_SECRET_KEY / OIX_TOKEN
 │       ├─ respawn 配置   → procd respawn 300 5 3 (threshold 300s / timeout 5s / retry 3 次)
 │       └─ rlimit         → nofile=1000000 / nproc / as / memlock=unlimited
 │

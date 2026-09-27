@@ -234,7 +234,6 @@ fi
 | `INTRANET_ALLOWED_WAN_NAME` | string | `intranet_allowed_wan_name` | WAN 接口名称 |
 | `CORE_TYPE` | string | `core_type` | 核心类型 |
 | `OIX_TOKEN` | string | `oix_token` | oixCloud Token |
-| `OIX_PARAMS` | string | `oix_params` | oixCloud 参数 |
 | **GEO 订阅类** | | | |
 | `GEO_AUTO_UPDATE` | int_bool | `geo_auto_update` | 自动更新 GeoIP MMDB |
 | `GEO_CUSTOM_URL` | string | `geo_custom_url` | MMDB 自定义 URL |

@@ -5,8 +5,6 @@ local logged_in = fs.uci_get_config("config", "oix_token") and true or false
 local checkin_enabled = fs.uci_get_config("config", "oix_checkin") == "1"
 local checkin_interval = fs.uci_get_config("config", "oix_checkin_interval") or "1"
 local checkin_multiple = fs.uci_get_config("config", "oix_checkin_multiple") or "1"
-local oix_params = fs.uci_get_config("config", "oix_params") or ""
-local oix_default_params = fs.uci_get_config("config", "oix_default_params") or ""
 local oix_logo_src = "/luci-static/resources/openclash/img/oixcloud.png"
 local function oix_logo_img(cls)
   return '<img class="'..cls..'" src="'..oix_logo_src..'" loading="lazy" alt="oixCloud" title="oixCloud">'
@@ -107,6 +105,10 @@ end
 					<button type="button" class="oix-btn oix-btn-primary oix-btn-sm" onclick="OixCloud.doCheckin();return false;">
 						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-gift"/></svg>
 						<span><%:Checkin%></span>
+					</button>
+					<button type="button" id="oix-node-filter" class="oix-btn oix-btn-ghost-subtle oix-btn-sm oc-hidden" onclick="OixCloud.openNodeFilter();return false;" title="<%:Open the oixCloud website to choose the nodes delivered to OpenClash%>">
+						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-filter"/></svg>
+						<span><%:Node Filter%></span>
 					</button>
 					<button type="button" class="oix-btn oix-btn-ghost-subtle oix-btn-sm" onclick="OixCloud.openWebsite();return false;">
 						<img class="oix-img-inline" src="<%= oix_logo_src %>" width="14" height="14" alt="oixCloud">
@@ -213,18 +215,6 @@ end
 					</div>
 				</div>
 			</div>
-			<div class="oix-settings-grid">
-				<div class="oix-setting-card oix-card-span-2">
-					<div class="oix-params-item">
-						<span><%:Optional Parameters%>:</span>
-						<input type="text" id="oix-params" class="oix-input-num oix-input-ok oix-input-wide" value="<%= oix_params %>" onblur="OixCloud.saveParams()" oninput="OixCloud.validateParams(this)" placeholder="&type=love&tfo=true">
-					</div>
-					<div class="oix-card-help">
-						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-help"/></svg>
-						<span><%:For more information, please visit the%> <a href="https://docs.dler.io/black-hole/advanced/ding-yue-di-zhi-tuo-guan-di-zhi/untitled" target="_blank"><%:official documentation%></a></span>
-					</div>
-				</div>
-			</div>
 			<div class="oix-footer">
 				<span>Powered by <a href="javascript:void(0);" onclick="OixCloud.openWebsite();return false;">oixcloud.com</a></span>
 			</div>
@@ -239,64 +229,19 @@ var OIX_URLS = {
 	logout: '<%=luci.dispatcher.build_url("admin", "services", "openclash", "oix_logout")%>',
 	save: '<%=luci.dispatcher.build_url("admin", "services", "openclash", "oix_login_info_save")%>',
 	checkin: '<%=luci.dispatcher.build_url("admin", "services", "openclash", "oix_checkin")%>',
-	params: '<%=luci.dispatcher.build_url("admin", "services", "openclash", "oix_params_sync")%>',
-	paramsGet: '<%=luci.dispatcher.build_url("admin", "services", "openclash", "oix_params_get")%>'
+	// client=OpenClash opens the filter bound to the login token every OpenClash on the account shares
+	nodeFilter: 'https://oixcloud.com/user/node_filter?client=OpenClash'
 };
 
 var OixCloud = {
 	loggedIn: <%= logged_in and 'true' or 'false' %>,
 	activeTab: 'account',
 	pollTimer: null,
-	paramsRetry: 0,
-	paramsMaxRetry: 30,
-	paramsRetryTimer: null,
 	origCheckinInterval: '<%= checkin_interval %>',
 	origCheckinMultiple: '<%= checkin_multiple %>',
-	origParams: '<%= oix_params %>',
 
 	init: function() {
-		if (this.loggedIn) { this.loadAccountInfo(); this.startPolling(); this.fetchParams(); }
-	},
-
-	fetchParams: function() {
-		var input = document.getElementById('oix-params');
-		if (!input || input.value !== '') return;
-		var self = this;
-		var uciDefault = '<%= oix_default_params %>';
-		XHR.get(OIX_URLS.paramsGet, null, function(x, status) {
-			if (x && x.status == 200 && status) {
-				if (status.params) {
-					input.value = status.params;
-					self.paramsRetry = 0;
-					if (status.default_params) {
-						XHR.get(OIX_URLS.save, {default_params: status.default_params}, function() {});
-					}
-				} else if (status.default_params) {
-					input.value = status.default_params;
-					input.placeholder = status.default_params;
-					self.paramsRetry = 0;
-				} else if (uciDefault) {
-					input.value = uciDefault;
-					input.placeholder = uciDefault;
-					self.paramsRetry = 0;
-				} else {
-					if (self.paramsRetry < self.paramsMaxRetry) {
-						self.paramsRetry++;
-						self.paramsRetryTimer = setTimeout(function() { self.fetchParams(); }, 5000);
-					} else {
-						self.paramsRetry = 0;
-					}
-				}
-			} else {
-				if (self.paramsRetry < self.paramsMaxRetry) {
-					self.paramsRetry++;
-					self.paramsRetryTimer = setTimeout(function() { self.fetchParams(); }, 5000);
-				} else if (uciDefault) {
-					input.value = uciDefault;
-					input.placeholder = uciDefault;
-				}
-			}
-		});
+		if (this.loggedIn) { this.loadAccountInfo(); this.startPolling(); }
 	},
 
 	switchTab: function(tab) {
@@ -353,7 +298,7 @@ var OixCloud = {
 			btns.forEach(function(b){ setBtnBusy(b, false); });
 			var info = '<%:oixCloud Login Successful%>' + ', <%:Note: oixCloud need a specific core installed, OpenClash will auto download, After the core start, an oixCloud nodes provider will be added, which you can customize as needed%>';
 			OixMsg.show(info, 'success', 20000);
-			self.loggedIn = true; self.showLoggedIn(); self.loadAccountInfo(); self.startPolling(); self.fetchParams();
+			self.loggedIn = true; self.showLoggedIn(); self.loadAccountInfo(); self.startPolling();
 		};
 
 		var onLoginError = function(msg) {
@@ -449,7 +394,7 @@ var OixCloud = {
 	showLoggedOut: function() {
 		document.getElementById('oix-login-section').classList.remove('oc-hidden');
 		document.getElementById('oix-logged-section').classList.add('oc-hidden');
-		this.stopParamsRetry();
+		this.showNodeFilter(null);
 		this.clearForm();
 		this.switchTab('account');
 		this.rebuildCredentials();
@@ -478,7 +423,6 @@ var OixCloud = {
 		document.getElementById('oix-checkin-enable').checked = false;
 		document.getElementById('oix-checkin-interval').value = '1';
 		document.getElementById('oix-checkin-multiple').value = '1';
-		document.getElementById('oix-params').value = '';
 	},
 
 	loadAccountInfo: function() {
@@ -488,6 +432,7 @@ var OixCloud = {
 				self.renderAccountInfo(status.result);
 				self.renderAnnouncement(status.result);
 			} else {
+				self.showNodeFilter(null);
 				var cards = document.getElementById('oix-cards');
 			if (cards) cards.classList.add('oc-hidden');
 			var ann = document.getElementById('oix-announce');
@@ -558,6 +503,17 @@ var OixCloud = {
 		document.getElementById('oix-used').textContent = d.used || '--';
 		document.getElementById('oix-unused').textContent = d.unused || '--';
 		document.getElementById('oix-today-used').textContent = d.today_used || '--';
+		this.showNodeFilter(d.plan_rank);
+	},
+
+	// Node Filter needs plan rank 20 or above; a missing rank keeps it hidden
+	showNodeFilter: function(rank) {
+		var btn = document.getElementById('oix-node-filter');
+		if (btn) btn.classList.toggle('oc-hidden', !(this.loggedIn && Number(rank) >= 20));
+	},
+
+	openNodeFilter: function() {
+		window.open(OIX_URLS.nodeFilter, '_blank', 'noopener');
 	},
 
 	toggleInfoPage: function() {
@@ -567,9 +523,8 @@ var OixCloud = {
 		});
 	},
 
-	startPolling: function() { this.stopPolling(); var s=this; s.fetchParams(); this.pollTimer=setInterval(function(){s.loadAccountInfo();s.fetchParams();},600000); },
+	startPolling: function() { this.stopPolling(); var s=this; this.pollTimer=setInterval(function(){s.loadAccountInfo();},600000); },
 	stopPolling: function() { if(this.pollTimer){clearInterval(this.pollTimer);this.pollTimer=null;} },
-	stopParamsRetry: function() { if(this.paramsRetryTimer){clearTimeout(this.paramsRetryTimer);this.paramsRetryTimer=null;} this.paramsRetry = 0; },
 
 	doCheckin: function() {
 		var self = this;
@@ -617,53 +572,6 @@ var OixCloud = {
 			}
 			else { OixMsg.show('<%:Failed to save checkin settings, please try again%>', 'error'); }
 		});
-	},
-
-	saveParams: function() {
-		OixMsg.clearAll();
-		var params = document.getElementById('oix-params').value.trim();
-		if (params !== '' && !params.match(/^&[a-zA-Z][a-zA-Z0-9-]*(=[^&\s]*)?(&[a-zA-Z][a-zA-Z0-9-]*(=[^&\s]*)?)*$/)) {
-			OixMsg.field('oix-params', '<%:Invalid params format, must start with & and use key=value pairs%>');
-			OixMsg.show('<%:Invalid params format%>', 'error');
-			return;
-		}
-		if (params.length > 8192) {
-			OixMsg.field('oix-params', '<%:Params too long, max 8192 characters%>');
-			OixMsg.show('<%:Params too long%>', 'error');
-			return;
-		}
-		if (params === this.origParams) return;
-		var self = this;
-		XHR.get(OIX_URLS.params, {params: params}, function(x, status) {
-			if (x && x.status == 200) {
-				self.origParams = params;
-				OixMsg.show('<%:Optional parameters saved%>', 'success', 4000);
-			}
-			else { OixMsg.show('<%:Failed to save optional parameters, please try again%>', 'error'); }
-		});
-	},
-
-	validateParams: function(inp) {
-		if (!inp) return;
-		var v = inp.value.trim();
-		if (v === '') { OixMsg.field('oix-params', ''); return; }
-		if (!v.startsWith('&')) {
-			OixMsg.field('oix-params', '<%:Must start with &%>');
-			return;
-		}
-		if (/\s/.test(v)) {
-			OixMsg.field('oix-params', '<%:Params must not contain spaces%>');
-			return;
-		}
-		if (v.length > 8192) {
-			OixMsg.field('oix-params', '<%:Params too long, max 8192 characters%>');
-			return;
-		}
-		if (!v.match(/^&[a-zA-Z][a-zA-Z0-9-]*(=[^&\s]*)?(&[a-zA-Z][a-zA-Z0-9-]*(=[^&\s]*)?)*$/)) {
-			OixMsg.field('oix-params', '<%:Invalid params format, must start with & and use key=value pairs%>');
-			return;
-		}
-		OixMsg.field('oix-params', '');
 	},
 
 	validateMultiple: function(inp) {
@@ -734,7 +642,7 @@ var OixMsg = {
 		var hint = document.getElementById(id + '-hint'), inp = document.getElementById(id);
 		if (hint) { hint.textContent = msg || ''; hint.className = msg ? 'oix-field-hint oix-field-error' : 'oix-field-hint oix-field-help'; }
 		if (inp) {
-			var isNum = id === 'oix-checkin-interval' || id === 'oix-checkin-multiple' || id === 'oix-params';
+			var isNum = id === 'oix-checkin-interval' || id === 'oix-checkin-multiple';
 			var base = isNum ? 'oix-input-num' : 'oix-input';
 			inp.className = msg ? (base + ' oix-input-err') : (base + ' oix-input-ok');
 		}

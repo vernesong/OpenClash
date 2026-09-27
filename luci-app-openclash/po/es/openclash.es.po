@@ -4149,38 +4149,11 @@ msgstr "Contraseña de la cuenta"
 msgid "Checkin Multiple"
 msgstr "Multiplicador de registro"
 
-msgid "Optional Parameters"
-msgstr "Parámetros opcionales"
+msgid "Node Filter"
+msgstr "Filtro de nodos"
 
-msgid "Optional parameters saved"
-msgstr "Parámetros opcionales guardados"
-
-msgid "Failed to save optional parameters, please try again"
-msgstr "Error al guardar parámetros opcionales, inténtelo de nuevo"
-
-msgid "For more information, please visit the"
-msgstr "Para más información, visite la"
-
-msgid "official documentation"
-msgstr "documentación oficial"
-
-msgid "Must start with &"
-msgstr "Debe comenzar con &"
-
-msgid "Params must not contain spaces"
-msgstr "Los parámetros no deben contener espacios"
-
-msgid "Params too long, max 8192 characters"
-msgstr "Parámetros demasiado largos, máximo 8192 caracteres"
-
-msgid "Invalid params format"
-msgstr "Formato de parámetros no válido"
-
-msgid "Invalid params format, must start with & and use key=value pairs"
-msgstr "Formato de parámetros no válido, debe comenzar con & y usar pares clave=valor"
-
-msgid "Params too long"
-msgstr "Parámetros demasiado largos"
+msgid "Open the oixCloud website to choose the nodes delivered to OpenClash"
+msgstr "Abrir el sitio web de oixCloud para elegir los nodos que recibe OpenClash"
 
 msgid "Usage Help"
 msgstr "Ayuda de uso"

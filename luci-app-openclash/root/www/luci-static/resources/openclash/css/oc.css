@@ -6461,8 +6461,6 @@ html[data-darkmode=true] .oc .oix-panel::after {
 .oix-btn-row { text-align: center; margin-top: 12px; }
 .oix-img-inline { border-radius: 50%; vertical-align: middle; }
 .oix-icon-accent { color: var(--primary-color); }
-.oix-card-span-2 { grid-column: span 2; }
-.oix-input-wide { min-width: 140px; }
 
 .oix-input:-webkit-autofill,
 .oix-input:-webkit-autofill:hover,
@@ -6556,7 +6554,7 @@ html[data-darkmode=true] .oc .oix-panel::after {
     transform: translateY(-2px); box-shadow: var(--shadow-sm);
 }
 .oix-header-left  { display: flex; align-items: center; gap: var(--card-grid-gap); }
-.oix-header-right { display: flex; align-items: center; gap: var(--tight-gap); }
+.oix-header-right { display: flex; align-items: center; flex-wrap: wrap; gap: var(--tight-gap); }
 .oix-status-badge {
     display: inline-flex; align-items: center; gap: var(--tight-gap);
     padding: 4px 12px; border-radius: var(--radius-md);
@@ -7959,8 +7957,6 @@ html[data-darkmode=true] .oc #addCustomOption:hover {
     .oc .oix-announcement { width: 90%; max-width: 100%; }
     .oix-header { align-items: center; justify-content: center; }
     .oix-settings-grid { grid-template-columns: 1fr; }
-    .oix-card-span-2 { grid-column: auto; }
-    .oix-input-wide { min-width: auto; }
 
     /* update.htm */
     .oc .select-popup { min-width: 80%; width: 80%; padding: 10px; }
