@@ -467,21 +467,40 @@
         var verSpans = row.querySelectorAll('.ver-text');
         var pluginEl = verSpans[0];
         var coreEl = verSpans[1];
-        var unreachable = (info.latency === -1 || info.latency === -2);
-        row.classList.toggle('unreachable', unreachable);
+        var coreVer = (smart === '1' && info.core_smart_ver) ? info.core_smart_ver : info.core_meta_ver;
+        var errText = '';
+        if (info.latency === -1) {
+            errText = '<%:Access Timed Out%>';
+        } else if (info.latency === -2) {
+            errText = '<%:Access Denied%>';
+        } else if (info.latency > 0 && (!info.plugin_ver || !coreVer)) {
+            errText = info.core_error === 'timeout' ? '<%:Access Timed Out%>' : '<%:Access Denied%>';
+        }
+        row.classList.toggle('row-error', !!errText);
+
+        infoCache[addrUrl] = {
+            plugin_ver: info.plugin_ver || null,
+            core_meta_ver: info.core_meta_ver || null,
+            core_smart_ver: info.core_smart_ver || null,
+            latency: info.latency,
+            core_error: info.core_error || null,
+            error: errText || null
+        };
+
+        if (errText) {
+            latencyEl.textContent = errText;
+            latencyEl.className = 'addr-status err';
+            latencyEl.title = '';
+            if (pluginEl) { pluginEl.textContent = '--'; pluginEl.classList.remove('has-data', 'err'); }
+            if (coreEl) { coreEl.textContent = '--'; coreEl.classList.remove('has-data', 'err'); }
+            queueVersionColumns();
+            return;
+        }
 
         if (info.latency != null && info.latency > 0) {
             var ms = parseInt(info.latency);
             latencyEl.textContent = ms + ' ms';
             latencyEl.className = 'addr-status ' + (ms <= 500 ? 'fast' : ms <= 1000 ? 'medium' : 'slow');
-            latencyEl.title = '';
-        } else if (info.latency === -1) {
-            latencyEl.textContent = '<%:Access Timed Out%>';
-            latencyEl.className = 'addr-status err';
-            latencyEl.title = '';
-        } else if (info.latency === -2) {
-            latencyEl.textContent = '<%:Access Denied%>';
-            latencyEl.className = 'addr-status err';
             latencyEl.title = '';
         } else {
             latencyEl.textContent = '--';
@@ -495,49 +514,21 @@
                 pluginEl.classList.add('has-data');
                 pluginEl.classList.remove('err');
             } else {
-                var selLink = makeVerCell(addrUrl, 'plugin');
-                if (selLink) {
-                    pluginEl.innerHTML = selLink;
-                    pluginEl.classList.add('has-data');
-                    pluginEl.classList.remove('err');
-                } else {
-                    pluginEl.textContent = '--';
-                    pluginEl.classList.remove('has-data', 'err');
-                }
+                pluginEl.textContent = '--';
+                pluginEl.classList.remove('has-data', 'err');
             }
         }
         if (coreEl) {
-            var coreVer = (smart === '1' && info.core_smart_ver) ? info.core_smart_ver : info.core_meta_ver;
             if (coreVer) {
                 coreEl.innerHTML = makeVerCell(addrUrl, 'core', coreVer);
                 coreEl.classList.add('has-data');
                 coreEl.classList.remove('err');
-            } else if (info.latency === -1 || info.latency === -2 || info.latency === -3 || info.latency == null) {
+            } else {
                 coreEl.textContent = '--';
                 coreEl.classList.remove('has-data', 'err');
-            } else {
-                var selLink = makeVerCell(addrUrl, 'core');
-                if (selLink) {
-                    coreEl.innerHTML = selLink;
-                    coreEl.classList.add('has-data');
-                    coreEl.classList.remove('err');
-                } else if (info.core_error) {
-                    coreEl.textContent = info.core_error === 'timeout' ? '<%:Access Timed Out%>' : '<%:Access Denied%>';
-                    coreEl.classList.add('has-data', 'err');
-                } else {
-                    coreEl.textContent = '<%:Access Timed Out%>';
-                    coreEl.classList.add('has-data', 'err');
-                }
             }
         }
 
-        infoCache[addrUrl] = {
-            plugin_ver: info.plugin_ver || null,
-            core_meta_ver: info.core_meta_ver || null,
-            core_smart_ver: info.core_smart_ver || null,
-            latency: info.latency,
-            core_error: info.core_error || null
-        };
         queueVersionColumns();
     }
 
@@ -859,7 +850,7 @@
                 el.textContent = '--';
                 el.classList.remove('has-data', 'err');
             });
-            row.classList.remove('unreachable');
+            row.classList.remove('row-error');
         });
         addrSortDirty = true;
         updateAddrListState();
@@ -867,7 +858,7 @@
 
     function addrLatencyRank(addrUrl) {
         var info = infoCache[addrUrl];
-        if (!info || info.latency == null || info.latency <= 0) return Infinity;
+        if (!info || info.error || info.latency == null || info.latency <= 0) return Infinity;
         return info.latency;
     }
 

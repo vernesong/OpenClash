@@ -4304,9 +4304,9 @@ html[data-darkmode="true"] .oc .myip-card-icon.ic-youtube { color: #FF4444; }
 
 .oc .myip-ip-addr {
     flex-shrink: 0;
-    height: var(--myip-mid-h);
+    min-height: var(--myip-mid-h);
     font-size: 13px; color: var(--text-primary);
-    overflow: hidden; text-align: center;
+    text-align: center;
     font-weight: 500; width: 100%;
     display: flex;
     align-items: center;
@@ -4319,13 +4319,13 @@ html[data-darkmode="true"] .oc .myip-card-icon.ic-youtube { color: #FF4444; }
 .oc .myip-ip-geo {
     font-size: 12px; line-height: 1.3;
     color: var(--text-secondary);
-    overflow: hidden; text-align: center;
+    text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
     white-space: normal; width: 100%;
     flex-shrink: 0;
-    height: var(--myip-bottom-h);
+    min-height: var(--myip-bottom-h);
 }
 
 .oc .myip-check-row {
@@ -7644,17 +7644,22 @@ html[data-darkmode=true] .oc .ver-hint.note svg {
     background: var(--error-color);
 }
 
-/* Unreachable mirror: one message instead of three, version cells stay blank */
-.oc .addr-row.unreachable .ver-text {
+.oc .addr-row.row-error .ver-text {
     visibility: hidden;
 }
-.oc .addr-row.unreachable .addr-row-index { grid-column: 1; grid-row: 1; }
-.oc .addr-row.unreachable .addr-row-url { grid-column: 2; grid-row: 1; }
-.oc .addr-row.unreachable .addr-status { grid-column: 3 / span 3; grid-row: 1; }
-.oc .addr-row.unreachable .ver-plugin { grid-column: 4; grid-row: 1; }
-.oc .addr-row.unreachable .ver-core { grid-column: 5; grid-row: 1; }
-.oc .addr-row.unreachable .addr-proxy,
-.oc .addr-row.unreachable .addr-proxy-static { grid-column: 6; grid-row: 1; }
+.oc .addr-row.row-error .addr-row-index { grid-column: 1; grid-row: 1; }
+.oc .addr-row.row-error .addr-row-url { grid-column: 2; grid-row: 1; }
+.oc .addr-row.row-error .addr-status {
+    grid-column: 3 / span 3;
+    grid-row: 1;
+    justify-self: center;
+    margin-left: 0;
+    padding: 2px 12px;
+}
+.oc .addr-row.row-error .ver-plugin { grid-column: 4; grid-row: 1; }
+.oc .addr-row.row-error .ver-core { grid-column: 5; grid-row: 1; }
+.oc .addr-row.row-error .addr-proxy,
+.oc .addr-row.row-error .addr-proxy-static { grid-column: 6; grid-row: 1; }
 
 /* Empty / error state of the mirror list */
 .oc .addr-empty {

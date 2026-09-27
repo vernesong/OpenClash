@@ -3469,18 +3469,22 @@ if [ $C_EXIT -eq 0 ] && [ -n "$CORE_RAW" ]; then
 	if [ "$C_CODE" -ge 200 ] 2>/dev/null && [ "$C_CODE" -lt 400 ] 2>/dev/null && [ "$C_TIME" -gt 0 ] 2>/dev/null; then
 		CORE_META_VER=$(echo "$CORE_RAW" | sed '$d' | sed -n '1p' | tr -d '\n\r')
 		CORE_SMART_VER=$(echo "$CORE_RAW" | sed '$d' | sed -n '2p' | tr -d '\n\r')
+		CORE_ERR=""
 		if [ "$LATENCY" = "null" ] || [ "$C_TIME" -lt "$LATENCY" ] 2>/dev/null; then
 			LATENCY=$C_TIME
 		fi
 	elif [ "$LATENCY" != "null" ] && [ "$LATENCY" != "-3" ]; then
-		:
+		CORE_ERR="denied"
 	else
 		[ "$C_CODE" = "404" ] && LATENCY=-3 || LATENCY=-2
+		CORE_ERR="denied"
 	fi
 elif [ $C_EXIT -ne 0 ]; then
 	[ "$LATENCY" = "null" ] && LATENCY=-1
+	CORE_ERR="timeout"
 else
 	[ "$LATENCY" = "null" ] && LATENCY=-2
+	CORE_ERR="denied"
 fi
 
 printf '{"plugin_ver":"%%s","core_meta_ver":"%%s","core_smart_ver":"%%s","latency":%%s,"core_error":"%%s"}\n' \

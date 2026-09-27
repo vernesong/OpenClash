@@ -149,6 +149,30 @@
     }
     var overflowTitleFrame = null;
     var overflowTitleElements = null;
+    var cardHeightFrame = null;
+    function syncCardHeights() {
+        if (cardHeightFrame) return;
+        var schedule = window.requestAnimationFrame || function(callback) { return setTimeout(callback, 0); };
+        cardHeightFrame = schedule(function() {
+            cardHeightFrame = null;
+            var items = document.querySelectorAll('.myip-card-item');
+            if (!items.length) return;
+            items.forEach(function(item) {
+                item.style.transition = 'none';
+                item.style.minHeight = '';
+            });
+            var max = 0;
+            items.forEach(function(item) {
+                var h = item.getBoundingClientRect().height;
+                if (h > max) max = h;
+            });
+            max = max ? Math.ceil(max) + 'px' : '';
+            items.forEach(function(item) {
+                item.style.minHeight = max;
+                item.style.transition = '';
+            });
+        });
+    }
     function addTitleOnOverflow() {
         if (overflowTitleFrame) return;
         var schedule = window.requestAnimationFrame || function(callback) { return setTimeout(callback, 0); };
@@ -165,6 +189,7 @@
                     span.removeAttribute('title');
                 }
             });
+            syncCardHeights();
         });
     }
     function ip_skk()
@@ -971,10 +996,16 @@
         } else {
             update_eye_icon(true);
         }
+
+        syncCardHeights();
     }
 
     window.addEventListener('load', function() {
         init_page();
+    });
+
+    window.addEventListener('resize', function() {
+        syncCardHeights();
     });
 
     window.addEventListener('beforeunload', function() {

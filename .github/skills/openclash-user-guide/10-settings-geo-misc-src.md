@@ -77,7 +77,7 @@
 **CDN 地址列表**（Address / Latency / Plugin / Core 四列）:
 
 - 预设 CDN：`raw.githubusercontent.com`（RAW 直连）、`fastly.jsdelivr.net`、`testingcf.jsdelivr.net`、`cdn.jsdelivr.net`；也可在底部「Custom Your CDN URL」添加自定义 CDN（如 `https://ghfast.top/`，添加后只拉取新增 CDN）
-- 每行 Latency 列显示测速延迟（`xxx ms`，按快/中/慢着色）或「Access Timed Out / Access Denied」；Plugin/Core 列显示该 CDN 获取到的插件/内核版本号
+- 每行 Latency 列显示测速延迟（`xxx ms`，按快/中/慢着色）；插件、内核、延迟三处只要有一处失败（延迟超时/无法访问，或该 CDN 没返回所选插件/内核版本），整行只显示**一条**错误信息（`Access Timed Out` / `Access Denied`，横跨 Latency/Plugin/Core 三列，版本列留空）；三处都正常时 Plugin/Core 列显示该 CDN 获取到的插件/内核版本号
 - **点击版本号链接** = 只安装该组件（插件→`one_key_update?update_type=plugin`，内核→`core_download`）；**点击右侧下载图标按钮** = 直接下载对应 .ipk/.apk 或 .tar.gz
 - **点击行其他区域** = 一键更新插件 + 内核，根据两个 Select Version 下拉决定更新到历史版本还是 Latest
 - 更新后面板保持打开，日志在 hint 区流式显示
