@@ -119,7 +119,7 @@
 - `oix_email` / `oix_passwd` → `oix_login` 获取 token
 - `oix_checkin` — 自动签到 (需 token)
 - 登录后自动获取 Oix 专属核心和订阅
-- **节点筛选 (Node Filter)** 按钮：登录且套餐等级 ≥ 20 时显示（等级取自 `oix_info` 返回的 `plan_rank`），在新标签页打开 oixCloud 网站 `https://oixcloud.com/user/node_filter?client=OpenClash`，按线路、地区、名称包含 / 排除选择下发的节点。筛选保存在面板上，账号下所有 OpenClash 共用；未设置时按套餐默认线路下发。保存后 Oix 内核在下次订阅更新时生效，可重启 OpenClash 立即拉取
+- **节点筛选 (Node Filter)** 按钮：登录且套餐等级 ≥ 20 时显示（等级取自 `oix_info` 返回的 `plan_rank`），在新标签页打开 oixCloud 网站 `https://oixcloud.com/user/node_filter?client=OpenClash`，按线路、地区、名称包含 / 排除选择下发的节点。筛选保存在面板上，账号下所有 OpenClash 共用；未设置时为智能优选。保存后 Oix 内核在下次订阅更新时生效，可重启 OpenClash 立即拉取
 - 节点由面板决定：Oix 内核请求托管订阅时只带 `nodes=auto`，插件不再提供「可选项参数」（`mode`、`type` 等）。旧版留下的 `oix_params` / `oix_default_params` 在升级或登出时清除，内核也会忽略残留的 `OIX_PARAMS` 与 `.oix_params` 文件
 
 ---
