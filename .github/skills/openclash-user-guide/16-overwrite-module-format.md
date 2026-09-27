@@ -70,7 +70,7 @@
   - **订阅链接**（`Subscribe Link`）：订阅型覆写——`type=http` 时填订阅 URL（可加 `param` 参数行），插件拉取远程覆写内容（此时会下载一次）。
 - **仓库内置模块共三个**：`default`、`Google_Play`、`openclash_custom_overwrite.sh`（前两个随包安装到 `/etc/openclash/overwrite/`，第三个存于 `/etc/openclash/custom/` 且文件名固定不可改名）。这三个条目的第二行会显示**内联蓝底标签「内建 / Built-in」**（位置在类型文字之前，如 `内建 本地模块`）；用户自己新增的模块不显示该标签。
 - 类型文字用简写（中文：本地模块 / 订阅模块；英文：`Local Mod` / `Sub Mod`；西文：`Local` / `Sub`），新建窗口页签为 `Local Module` / `Subscribe Link`，列表栏标题为 `Modules`、底部按钮为 `New Module`。
-- **模块口径文案**（只在覆写模块界面出现，配置文件相关页面仍用「文件」字样）：表单字段 `Module Name`（模块名称）、占位/校验 `Please enter a module name`（请输入模块名称）、新增窗口状态 `Ready to add module`（准备添加模块）、删除确认 `Are you sure you want to delete this module and its subscription info?`（确定要删除此模块及其订阅信息吗？）；上传区的「点击选择文件或拖放」「支持 txt,conf 文件」等仍用「文件」（描述真实上传的物理文件）。
+- **模块相关文案**（只在覆写模块界面出现，配置文件相关页面仍用「文件」字样）：表单字段 `Module Name`（模块名称）、占位/校验 `Please enter a module name`（请输入模块名称）、新增窗口状态 `Ready to add module`（准备添加模块）、删除确认 `Are you sure you want to delete this module and its subscription info?`（确定要删除此模块及其订阅信息吗？）；上传区的「点击选择文件或拖放」「支持 txt,conf 文件」等仍用「文件」（描述真实上传的物理文件）。
 - 新建后条目支持：启用/停用开关（第一行最右侧）、刷新（Subscribe 远程拉取）、齿轮（编辑参数）、删除（`delete_overwrite_file`）、拖拽排序（调整 order）。**新建的模块默认是「关」**（注册时 `enable=0`，与内建 `default`/`Google_Play` 一致）⇒ 需要手动打开开关，并**重启插件**才生效。
 - **开关与拖拽排序只改 UCI，不会重新下载正文**；只有「刷新」按钮、修改订阅 URL、新建订阅模块时才会拉取远程内容（避免手工编辑的正文被覆盖）。下载失败时不会写入 UCI、也不会清空原文件；新建订阅模块下载失败则不会注册（不会留下一个空壳模块）。
 - **`openclash_custom_overwrite.sh` 恒为第一个条目且不可拖动**；没有 UCI 段的“游离文件”排在列表最后，第二行带「**未配置 / Unset**」内联标签且虚线头像、无开关、不可拖动（需先用齿轮配置匹配并保存，才会注册成模块）。
@@ -183,7 +183,7 @@
 - `ruby_delete <file> <key_path> [<key>]` — 删除键/数组元素（省略键时删除键路径本身）
 - `uci_get_config <key>` — 读取 UCI 配置（覆写优先）
 
-> **⚠️ 行级限制（`ruby.sh` → `overwrite_ruby_line_check()`）**：整行必须是**单个白名单 `ruby_*` 函数调用**，且**每个参数整体被引号包裹**。参数内不允许 `\`、`;`、反引号、`$( )`（`$NAME`/`${NAME}` 仍作环境变量展开），出现 `system`/`exec`/`eval`/`require`/`spawn`/`%x`/`#{…}`/`ENV`/`File.` 等 token 同样被拒。被拒行会被跳过并记录 `skip invalid Overwrite command【Ruby Script => 模块名: 行】`。结论：正则不写 `\.` 而写 `[.]`；值里有字面 `$` 用单引号参数（示例见 `17-overwrite-module-examples.md` §17.3.6）。
+> **⚠️ 行级限制（`ruby.sh` → `overwrite_ruby_line_check()`）**：整行必须是**单个白名单 `ruby_*` 函数调用**，且**每个参数整体被引号包裹**。参数内不允许 `\`、`;`、反引号、`$( )`（`$NAME`/`${NAME}` 仍作环境变量展开），出现 `system`/`exec`/`eval`/`require`/`spawn`/`%x`/`#{…}`/`ENV`/`File.` 等 token 同样被拒。被拒行会被跳过并记录 `skip invalid Overwrite command【Ruby Script => 模块名: 行】`。⇒ 正则不写 `\.` 而写 `[.]`；值里有字面 `$` 用单引号参数（示例见 `17-overwrite-module-examples.md` §17.3.6）。
 > 自定义覆写脚本（§17.4）不经此行级检查，但其 `ruby_*` 函数拼好的片段会在 `write_ruby_part()`/`run_ruby_part()` 内被 `overwrite_ruby_part_check()` 复查，命中记录 `skip unsafe Overwrite command`。
 
 #### 16.2.3 `[YAML]` 段 — 原始 YAML 注入（含操作符）

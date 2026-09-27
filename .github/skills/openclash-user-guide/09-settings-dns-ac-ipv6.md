@@ -182,7 +182,7 @@
 
 ### 9.5 IPv6 设置标签页 (ipv6)
 
-> **注意：** 不建议为路由器开启 IPv6 及相关服务。IPv6 方案仅适用于**主路由拨号环境**（需运营商支持 IPv6-PD 前缀下发），旁路由环境不适用
+> **注意：** 不建议为路由器开启 IPv6 及相关服务。IPv6 方案主要用于**主路由拨号环境**（需运营商支持 IPv6-PD 前缀下发）；旁路由环境需要按 §9.5.1 配置客户端地址来源与网关，否则容易出现「国内 IPv6 不通」或「IPv6 绕过代理」。
 > **生效路径**: IPv6 选项通过 `yml_change.sh` 写入 YAML（`ipv6`、`dns.ipv6`、`dns.fake-ip-range6`），
 > 同时 `set_firewall()` 生成独立的 IPv6 防火墙规则链（`openclash_v6`、`openclash_mangle_v6` 等）。
 > IPv6 使用单独的 TProxy/Redirect/TUN 规则链，与 IPv4 互不影响。
@@ -196,9 +196,27 @@
 | IPv6 堆栈类型 (Select Stack Type) | `stack_type_v6` | system | system/gvisor/mixed/mips。仅 TUN/Mix 模式，取值含义与选型建议同 `stack_type`（见 [08 号文档 §8.2.12](08-settings-mode-traffic.md)） |
 | IPv6 UDP 代理 (Proxy UDP Traffics) | `enable_v6_udp_proxy` | 1 | 仅 TProxy/Redirect 模式 |
 | 允许 IPv6 类型 DNS 解析 (IPv6 DNS Resolve) | `ipv6_dns` | 0 | 对应 Mihomo `dns.ipv6` — 控制 Mihomo DNS 是否返回 AAAA 记录 |
-| IPv6 Fake-IP 范围 (Fake-IP Range) | `fakeip_range6` | 禁用 | 仅 Fake-IP 模式。对应 `dns.fake-ip-range6` |
+| IPv6 Fake-IP 范围 (Fake-IP Range) | `fakeip_range6` | 0（禁用） | 仅 Fake-IP 模式。对应 `dns.fake-ip-range6`。fake-ip 对**未被 `fake-ip-filter` 放行的域名**只返回「虚拟地址或空应答」——禁用时外网域名无 AAAA（回落 IPv4），启用后解析到虚拟 IPv6 并由代理接管。用法见 §9.5.1 |
 | 实验性：绕过指定区域 IPv6 (China IPv6 Route) | `china_ip6_route` | 0 | 0=关闭, 1=绕过大陆, 2=绕过海外 |
 | 本地 IPv6 绕过地址 (Local IPv6 Network Bypassed List) | `local_network6_pass` | — | 文件: `/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list` |
 | 绕过指定区域 IPv6 黑名单 (Chnroute6 Bypassed List) | `chnroute6_pass` | — | 文件: `/etc/openclash/custom/openclash_custom_chnroute6_pass.list`。将列表中域名/IP 加入 `china_ip6_route_pass` nft set，不受 IPv6 绕行选项影响。依赖: `ipv6_enable=1` + `enable_redirect_dns=1` |
+
+#### 9.5.1 旁路由 + IPv6 使用指引（客户端侧）
+
+**机制**：旁路由转发的 IPv6 默认**不做 SNAT**；`china_ip6_route` 命中的流量按原生转发（要求客户端地址上游可回程），其余 TCP 由 `openclash` 链 `REDIRECT` 到代理端口（UDP 是 mark `0x162` → tun）。**被代理流量由内核以自身身份出站，与 NAT66 开关无关**。
+
+| 做法 | 客户端 IPv6 网关 | 客户端地址 | 效果 | 代价 |
+|------|-----------------|-----------|--------------------------------------|------|
+| ① 经旁路由（推荐） | 旁路由 | 主路由下发的 ISP 前缀 GUA | 国内 v6 ✓ 直连、国外 v6 ✓ 走代理 | 需指定 v6 网关（或旁路由中继主路由 RA） |
+| ② 直连（省事） | 主路由 | 同上 | 国内 v6 ✓、国外 v6 ✗（**完全绕过代理**） | IPv6 泄漏，分流策略对 v6 失效 |
+| ③ 关闭 IPv6 | — | 不配置 | 全部走 IPv4 | 双栈站点会先等 v6 超时再回落 |
+
+- 客户端若只拿到旁路由自己下发的私有前缀（ULA）却把网关指向主路由，v6 **全部不通**（源地址上游不可回程）——「旁路由 IPv6 国内打不开」的典型形态，也由同网段多个 RA 源造成。
+- 客户端设置（地址仍由主路由 RA/SLAAC 下发，只改默认网关）：
+  - OpenWrt / Linux：`ip -6 route replace default via <旁路由 IPv6 地址> dev <iface>`
+  - Windows（管理员）：`New-NetRoute -DestinationPrefix "::/0" -InterfaceAlias "<网卡名>" -NextHop "<旁路由 IPv6 地址>" -RouteMetric 1`；撤销用同参数 `Remove-NetRoute`
+  - Windows 启用/禁用网卡 IPv6（管理员）：`Enable-NetAdapterBinding -Name "<网卡名>" -ComponentID ms_tcpip6` / `Disable-NetAdapterBinding …`
+- 旁路由侧要求（`ipv6_enable=1`）：① **关闭自身 RA/DHCPv6**（`dhcp.lan.ra='disabled'`、`dhcp.lan.dhcpv6='disabled'`，或改用 relay），避免与主路由争夺客户端配置（同网段多 RA 源 = IPv6 时通时断）；② 直连回程不可靠时开 NAT66（客户端只有 ULA，或持有 GUA 但国内 v6 不通）：`masq6` 只覆盖 IPv6，插件 `bypass_gateway_compatible` 是双栈开关、只 SNAT 被绕过的转发流量（代理/内网/路由器自身不受影响）；③ 国内 IPv6 列表要用 `chnr6_custom_url` 保持更新，否则国内 v6 也会被代理；④ 要让**外网域名**走 IPv6，启用 `fakeip_range6`（如 `fdfe:dcba:9876::1/64`）——禁用（默认）时外网域名无 AAAA、只能走 IPv4（内核 `github.com/metacubex/mihomo/dns/middleware.go` `withFakeIP()`）；国内域名在 `fake-ip-filter` 内始终解析真实地址。
+- 判定与排错：客户端 `ip -6 route get <国内 IPv6 目标>` 看 `src`（ULA/私有前缀 ⇒ 回程不保）；「国内 v6 不通、国外正常」⇒ 依次查 地址来源 → RA 多源 → 上游回程（不可靠时按 ② 开 NAT66）；「v6 全通但不走代理」⇒ 客户端网关指向了主路由（做法 ②）。
 
 ---

@@ -208,14 +208,14 @@ dns:
 
 | 后缀 | 含义 | 示例 |
 |------|------|------|
-| `#RULES` | 按内核 `rules` 决定出站，无需指定策略组名（`tunnel/dns_dialer.go` 的 `DnsRespectRules`）；匹配对象为该 DNS 服务器的域名或解析出的 IP，命中策略组走代理、命中 `DIRECT` 直连，结果见内核连接日志 | `'https://dns.google/dns-query#RULES'` |
+| `#RULES` | 按内核 `rules` 决定出站，无需指定策略组名（`github.com/metacubex/mihomo/tunnel/dns_dialer.go` 的 `DnsRespectRules`）；匹配对象为该 DNS 服务器的域名或解析出的 IP，命中策略组走代理、命中 `DIRECT` 直连，结果见内核连接日志 | `'https://dns.google/dns-query#RULES'` |
 | `#<策略组名/节点名>` | 强制经该策略组/节点查询。**名字必须精确存在**，否则会被当成出站网卡名（`dialer.WithInterface`）而静默失败 | `'https://dns.google/dns-query#🚀 节点选择'` |
 | `#<网卡名>` | 从指定网卡发出 | `'8.8.8.8#eth0'` |
-| `#k=v` | 传给该协议的参数，可与上面的出站后缀用 `&` 组合。常见参数：`h3=true`（DoH 强制 HTTP/3，`dns/doh.go`）、`skip-cert-verify=true`、`name-cert-verify=`（DoH/DoT/DoQ）、`disable-reuse=true`（DoT）、`ecs=`（EDNS Client Subnet）、`disable-ipv4=true`/`disable-ipv6=true` | `'https://dns.google/dns-query#Proxy&h3=true'` |
+| `#k=v` | 传给该协议的参数，可与上面的出站后缀用 `&` 组合。常见参数：`h3=true`（DoH 强制 HTTP/3，`github.com/metacubex/mihomo/dns/doh.go`）、`skip-cert-verify=true`、`name-cert-verify=`（DoH/DoT/DoQ）、`disable-reuse=true`（DoT）、`ecs=`（EDNS Client Subnet）、`disable-ipv4=true`/`disable-ipv6=true` | `'https://dns.google/dns-query#Proxy&h3=true'` |
 
 - **`#RULES` 与全局「遵守路由规则 (`respect-rules`)」的区别**：全局开关开启时还**必须**配置 `proxy-server-nameserver`，否则内核启动即报错（`if “respect-rules” is turned on, “proxy-server-nameserver” cannot be empty`）；写成 `#RULES` 只影响这一条服务器，不触发该强校验，也不用预先配置 `proxy-server-nameserver`
-- 实现：`config/config.go` 的 `parseNameServer()` 把 `#` 后不含 `=` 的片段当作 `proxyName`；`tunnel/dns_dialer.go` 中 `proxyName == "RULES"`（常量 `DnsRespectRules`）时调用 `resolveMetadata()` 走规则引擎
-- 插件内置用例：覆写模块 `Google_Play` 的 `'https://8.8.8.8/dns-query#RULES'` 与 `'https://dns.google/dns-query#RULES'` 两条并发查询
+- 实现：`github.com/metacubex/mihomo/config/config.go` 的 `parseNameServer()` 把 `#` 后不含 `=` 的片段当作 `proxyName`；`github.com/metacubex/mihomo/tunnel/dns_dialer.go` 中 `proxyName == "RULES"`（常量 `DnsRespectRules`）时调用 `resolveMetadata()` 走规则引擎
+- 插件内置示例：覆写模块 `Google_Play` 的 `'https://8.8.8.8/dns-query#RULES'` 与 `'https://dns.google/dns-query#RULES'` 两条并发查询
 
 ### 11.4 Meta 设置标签页 (Meta Settings / meta)
 
@@ -333,10 +333,10 @@ dns:
 > 1. 首先查阅下方「智能设置标签页」中对应 UCI 选项的说明，给出 LuCI 操作路径（覆写设置 → Smart 设置）
 > 2. Smart 策略组是 **Smart 核心源码独有的功能**（上游 Mihomo 核心无此特性），所有实现细节均应查阅
 >    [Smart 核心源码](https://github.com/vernesong/mihomo/tree/Alpha)：
->    - 策略组节点选择逻辑 → `adapter/outboundgroup/smart.go`（`selectProxies()`、`Unwrap()`、`InitSmart()`）
->    - LightGBM 模型加载/推理/数据收集 → `component/smart/lightgbm/`（`lightgbm.go`、`collector.go`、`transform.go`）
->    - Smart 持久化存储与权重计算 → `component/smart/cachefile.go`、`component/smart/weight.go`
-> 3. **Smart 节点选择逻辑简述**（`adapter/outboundgroup/smart.go` → `selectProxies()`）：
+>    - 策略组节点选择逻辑 → `github.com/vernesong/mihomo/adapter/outboundgroup/smart.go`（`selectProxies()`、`Unwrap()`、`InitSmart()`）
+>    - LightGBM 模型加载/推理/数据收集 → `github.com/vernesong/mihomo/component/smart/lightgbm/`（`lightgbm.go`、`collector.go`、`transform.go`）
+>    - Smart 持久化存储与权重计算 → `github.com/vernesong/mihomo/component/smart/cachefile.go`、`github.com/vernesong/mihomo/component/smart/weight.go`
+> 3. **Smart 节点选择逻辑简述**（`github.com/vernesong/mihomo/adapter/outboundgroup/smart.go` → `selectProxies()`）：
 >    ① 获取目标 IP/域名的 ASN 信息 → ② 优先检查用户手动选择的节点 → ③ 查持久化缓存
 >    （boltDB 存储的历史最优结果）→ ④ 查预取缓存（周期性后台预计算）→ ⑤ 实时调用
 >    `store.GetBestProxyForTarget()` 综合历史延迟、抖动、丢包率及 LightGBM 模型预测权重
@@ -346,7 +346,7 @@ dns:
 > 4. **关于"如何训练 Smart 模型"**：用户如需自行训练模型（而非使用预训练模型），AI 应主动读取
 >    [Smart 核心源码](https://github.com/vernesong/mihomo/tree/Alpha) 中 `component/smart/lightgbm/` 目录，
 >    了解并告知用户以下信息：
->    - **数据来源**：`component/smart/lightgbm/collector.go` — 开启 `smart_collect` 后核心会在 `/etc/openclash/` 下生成 CSV 训练数据文件（含延迟、抖动、丢包率等特征；特征工程见 `transform.go`）
+>    - **数据来源**：`github.com/vernesong/mihomo/component/smart/lightgbm/collector.go` — 开启 `smart_collect` 后核心会在 `/etc/openclash/` 下生成 CSV 训练数据文件（含延迟、抖动、丢包率等特征；特征工程见 `github.com/vernesong/mihomo/component/smart/lightgbm/transform.go`）
 >    - **LightGBM 版本**：查阅 `go.mod` 中 `vernesong/leaves` 依赖确认支持的 LightGBM 版本
 >    - **环境搭建**：在 PC/服务器上安装对应版本的 LightGBM Python 包，准备训练环境
 >    - **训练脚本**：参考 `component/smart/lightgbm/` 中的特征处理与模型结构，为用户创建可运行的示例训练脚本（读取 CSV → 特征变换 → 训练 LightGBM → 导出 Model.bin）

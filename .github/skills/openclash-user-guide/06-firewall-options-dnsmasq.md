@@ -65,7 +65,7 @@ iptables -t mangle -A PREROUTING -p udp -j openclash
 | **`router_self_proxy`** (路由本机代理 / Router-Self Proxy) | `1` | 创建 OUTPUT 链 (`openclash_output` + `openclash_mangle_output`)，路由器自身流量被重定向/标记。非 TUN 模式额外对 Fake-IP 模式始终创建 OUTPUT 链（即使用户关闭 router_self_proxy） |
 | | `0` | 删除 OUTPUT 链，路由器自身流量走原始路由 |
 | **`intranet_allowed`** (仅允许内网 / Only Intranet Allowed) | `1` | IPv4: 创建 `openclash_wan_input` 链，REJECT 来自 WAN 口对全部服务端口的访问。IPv6: 创建 `openclash_wan6_input` 链。服务端口: `$proxy_port`(7892)、`$tproxy_port`(7895)、`$cn_port`(9090)、`$http_port`(7890)、`$socks_port`(7891)、`$mixed_port`(7893)、`$dns_port`(7874) |
-| **`bypass_gateway_compatible`** (旁路网关（旁路由）兼容 / Bypass Gateway Compatible) | `1` | IPv4: 创建 `openclash_post` 链 (srcnat jump)，对已标记流量执行 MASQUERADE SNAT。规则: skgid return → mark accept → localnetwork return → ct reply return → fib saddr 非 local masquerade。IPv6: 对应创建 `openclash_post_v6` 链 |
+| **`bypass_gateway_compatible`** (旁路网关（旁路由）兼容 / Bypass Gateway Compatible) | `1` | IPv4: 创建 `openclash_post` 链（从 `srcnat`/`POSTROUTING` jump）。规则顺序: `skgid == 65534 return`（跳过内核自身）→ `mark 0x162 accept`（**已标记的代理流量不做 SNAT**）→ `ip daddr @localnetwork return`（内网目标不 NAT）→ `ct direction reply return`（回程方向不 NAT）→ **`fib saddr type != local masquerade`（只对“源地址非本机”的转发流量做 SNAT）**。IPv6: 对应创建 `openclash_post_v6` 链 |
 | **`skip_proxy_address`** (绕过服务器地址 / Skip Proxy Address) | `1` | 看门狗定时调用 `skip_proxies_address()` 通过内核 API 解析代理节点 `server` 地址并加入 `localnetwork` nft set，复用链首 RETURN 规则跳过代理，防止代理嵌套 |
 | **`enable_redirect_dns`** (本地 DNS 劫持 / Redirect Local DNS Setting) | `1` | IPv4+IPv6 在 `dstnat` 插入 DNS 53 端口 REDIRECT 规则到 dnsmasq 端口。AC 黑白名单设备过滤。`router_self_proxy=1` 时添加 OUTPUT DNS 劫持 |
 | | `2` | 创建 `openclash_dns_redirect` 链，IPv4+IPv6 DNS 流量直接 DNAT 到 `dns_port`(7874)。同样支持 AC 过滤和 OUTPUT 劫持 |
@@ -77,6 +77,19 @@ iptables -t mangle -A PREROUTING -p udp -j openclash
 | **ICMP/Ping 处理**（无 UCI 选项，由运行模式决定） | Redir-Host / Fake-IP（非 TUN） | ICMP echo-request 仅标记 fwmark `0x162` 后 accept，**不被代理**（只有 TCP/UDP 被重定向到内核）；Fake-IP 非 TUN 模式下对 `198.18.0.0/16` 的 ping 被防火墙 REJECT（INPUT/FORWARD/OUTPUT 三链阻断，OUTPUT 排除 skgid≠65534）。详见 `05-firewall-special.md` §5.1 |
 | | TUN 模式 / Mix 模式 | ICMP 标记 fwmark 后经策略路由进入 TUN 虚拟网卡，由 TUN 内核处理（真实 IP → DIRECT 直连延迟，Fake-IP → 伪造回复 ~0ms）；可通过 Mihomo 的 `disable-icmp-forwarding` 禁用 |
 | **`firewall_lan_ac_traffic`** (高级流量控制 / Advanced Traffic Control) | 已配置 (UCI section) | 通过 `lan_ac_traffic` UCI sections 按设备/协议/端口/DSCP 精确控制，每条规则插入到对应链的最前面 (position 0)，优先级高于所有其他规则。支持 `return`(跳过代理)/`accept`(放行)/`drop`。详见 `05-firewall-special.md` §5.2 |
+
+> **旁路由模式下的回程与「IP 动态伪装」（`bypass_gateway_compatible` 默认 0）**
+> - 被代理的流量由旁路由**本机**发起连接（源 = 旁路由在上游子网内的地址），上游天然能回程，因此与 SNAT 无关。
+> - 绕过代理的流量（「绕过大陆」`china_ip_route`、黑白名单、`common_ports`、非代理端口等）在 `openclash`/`openclash_mangle` 链中 **RETURN 后按普通路由转发，源 IP 仍是客户端地址**；只有上游能把回包送达该客户端网段时才能通。客户端网段不被上游所知（客户端挂在旁路由自己的 LAN/WLAN）或上游有 ARP 绑定、客户端隔离、防二级路由时，回包被丢弃 → 症状是**走代理的站点正常、国内直连站点一直转圈**。
+> - 两种修法：① 插件设置 → 模式设置 →「旁路网关兼容 (`bypass_gateway_compatible`)」= **IPv4+IPv6 双栈**开关，只 SNAT 源地址非本机的转发流量（不影响代理流量、内网目标与回程方向；IPv6 部分随 `ipv6_enable=1` 创建）；② 防火墙对应区域的「IP 动态伪装」——`masq` 只覆盖 IPv4、`masq6` 只覆盖 IPv6（只想修一侧时用②对应当前族别）。
+> - **性能**：SNAT 只在每条流的首包生效（建立 conntrack + 改写源地址），转发 + NAT ≈ 线路速率，**不是性能瓶颈**（同链路下的转发/代理数据面开销对比见 [08 号文档 §8.2.13](08-settings-mode-traffic.md)）。要省开销应改代理模式或开 `gso`，而不是关掉伪装。
+> - 想彻底不做 NAT：上游设备加静态路由（客户端网段 → 旁路由），或让客户端与出口处于同一子网（扁平组网，回程由上游 ARP 直达）。
+>
+> **IPv6 的同一问题（旁路由）**
+> - IPv6 没有默认 NAT：区域的「IP 动态伪装」只覆盖 IPv4，IPv6 要 `firewall.@zone[].masq6='1'`；插件侧的 `bypass_gateway_compatible=1` 会创建 `openclash_post_v6`（规则逻辑同 IPv4：已标记流量跳过 → 内网目标跳过 → 回程跳过 → `fib saddr type != local` masquerade），**默认 0（关闭）**，两种方式任选其一。
+> - 是否需要 SNAT 取决于**客户端用的前缀**：地址来自上游可路由前缀（与主路由同 on-link，通常是 ISP 下发的 /64）时，回程由主路由直接二层送达客户端 ⇒ 不需要 NAT66；地址来自旁路由自己宣告/下发的私有前缀（ULA `fd**::/8`、旁路由 DHCPv6 分配的地址）时上游无法回程 ⇒ 必须 NAT66。判定一条命令即可：客户端上 `ip -6 route get <国内 IPv6 目标>` 看 `src` 是否为上游前缀。
+> - **RA 卫生（IPv6 独有）**：同一二层网段里只应有一个 RA 源。旁路由、以及其它自建路由器如果都发 RA，客户端会随机选默认网关与前缀，表现为「IPv6 时通时断 / 有时绕过代理」。旁路由正确姿势：不抢主路由的前缀 —— 用 `dhcp.lan.ra='relay'`、`dhcp.lan.dhcpv6='relay'`（或直接关闭自身 RA/DHCPv6）；只保留主路由宣告 ISP 前缀。
+> - 症状辨识：IPv4 正常、部分 IPv6 站点（国内大站多为双栈）打不开或加载极慢，优先怀疑本节；反过来若让旁路由当 IPv6 网关且要代理 IPv6，则需要 `ipv6_enable=1` + `china_ip6_route` 旁路（`chnr6_custom_url`）。客户端侧的具体做法（三种方式对比与 Windows/Linux 命令）见 [09 号文档](09-settings-dns-ac-ipv6.md) §9.5.1。
 
 ---
 

@@ -2,7 +2,7 @@
 
 > **用途**: 插件设置页的模式与流量控制标签页各选项（UCI 与实现，§8.1–8.3）。
 
-> **小节索引**: §8.1 实现总览（§8.1.1 强制覆盖/禁用）· §8.2 模式设置（en_mode / stack_type / proxy_mode / …，§8.2.12 四栈性能与选型、§8.2.13 转发模式、§8.2.14 默认值与 MIPS 来源）· §8.3 流量控制（router_self_proxy / disable_udp_quic / china_ip_route / …）
+> **小节索引**: §8.1 实现总览（§8.1.1 强制覆盖/禁用）· §8.2 模式设置（en_mode / stack_type / proxy_mode / …，§8.2.12 四栈选型、§8.2.13 转发模式、§8.2.14 默认值与 MIPS 来源、§8.2.15 TUN 数据面参数结论与选型）· §8.3 流量控制（router_self_proxy / disable_udp_quic / china_ip_route / …）· §8.4 性能实测数据（§8.4.1 测量条件、§8.4.2 四栈 × gso 主表、§8.4.3 转发路径、§8.4.4 TUN 参数、§8.4.5 持续负载与延迟、§8.4.6 内核 sysctl）
 
 > UCI Section: `openclash` (anonymous section)
 > 所有选项通过 `uci set openclash.@openclash[0].<option>=<value>` 设置
@@ -104,12 +104,12 @@
 - **UCI 选项**: `openclash.@openclash[0].stack_type`
 - **可选值**: `system` / `gvisor` / `mixed` / `mips`
 - **Mihomo 对应配置**: `tun.stack`
-- **system** (默认): 使用 Linux 系统协议栈，CPU 开销最低——TUN 转发首选（转发吞吐与 `mips`/`mixed` 同档，每 256MB 的 core CPU 最低）
-- **gvisor**: 用户空间网络协议栈，隔离性更好；实测单流 TCP 只有 `system` 的 1/4、每 256MB 的 CPU 高 3–6 倍、UDP 200B 丢包约 57%
-- **mixed**: TCP 用 system、UDP 用 gvisor——TCP 与 `system` 同档，UDP 实测丢包 5.1%（远好于 `gvisor` 单栈）
-- **mips**: 轻量用户空间协议栈（基于 mipstack，纯 Go、无 cgo），转发吞吐与 `system` 同档、CPU 略高
+- **system** (默认): 使用 Linux 系统协议栈，每 256 MB 的 core CPU 最低；吞吐约为 `mips` 的 2/3（见 §8.4.2）
+- **gvisor**: 用户空间网络协议栈，隔离性更好；实测单流 TCP 只有 `system` 的 1/4、每 256 MB 的 CPU 高约 5 倍、UDP 200B 丢包约 55%（仅纯大流量上传最快，见 §8.4.2）
+- **mixed**: TCP 用 system、UDP 用 gvisor——TCP 与 `system` 同档，UDP 走 gvisor 转发器、丢包与 `system` 同档（远好于 `gvisor` 单栈）
+- **mips**: 轻量用户空间协议栈（基于 mipstack，纯 Go、无 cgo），两形态吞吐最高（约为 `system` 的 1.5 倍），CPU 略高
 - **依赖**: 仅在 TUN/混合模式下显示
-- **四栈性能数据与选型**: 见 §8.2.12；转发模式见 §8.2.13；默认值与 MIPS 来源见 §8.2.14
+- **四栈性能数据与选型**: 选型见 §8.2.12、完整数据见 §8.4.2；转发模式见 §8.2.13；默认值与 MIPS 来源见 §8.2.14；TUN 数据面参数（`gso` 等）结论见 §8.2.15
 
 #### 8.2.3 proxy_mode — 代理模式 (Proxy Mode)
 - **UCI 选项**: `openclash.@openclash[0].proxy_mode`
@@ -180,7 +180,7 @@
   - `system`: 性能最好，走 Linux 内核 TUN 驱动
   - `gvisor`: 隔离性好，UDP NAT 支持更完善
   - `mixed`: TCP 用 system 栈 (REDIRECT)，UDP 用 gvisor 栈 (TUN)
-  - `mips`: 基于 mipstack 的轻量用户态栈，CPU 占用约 gvisor 的 1/5、吞吐约为其 9 倍（实测 aarch64），但内核需支持该栈
+  - `mips`: 基于 mipstack 的轻量用户态栈，CPU 占用约 gvisor 的 1/5、吞吐约为其 9 倍，但内核需支持该栈
 
 **防火墙层面的影响** (`set_firewall()`):
 - **Redir-Host (非 TUN)**: TCP 通过 REDIRECT 到 `proxy_port`(7892)，UDP 通过 TPROXY 到 `tproxy_port`(7895)，标记 fwmark 0x162
@@ -188,52 +188,22 @@
 - **TUN 模式**: 所有流量标记 0x162，路由到 `utun` 设备（策略路由），TUN 内部处理分流
 - **混合模式 (Mix)**: TUN 设备处理 UDP（走 gvisor），TCP 走 REDIRECT（system 栈）
 
-#### 8.2.12 TUN 堆栈性能与选型（实测）
+#### 8.2.12 TUN 堆栈选型
 
 **各栈定义**
 - `system`：走系统协议栈（内核），CPU 占用最低
-- `gvisor`：用户态 gVisor 栈，隔离性最好，性能最差
-- `mixed`：TCP 走 `system`、UDP 走 `gVisor`（源码：`Mixed` 内嵌 `*System`，仅给 UDP 注册 gVisor handler）；实测其 UDP 丢包远好于 `gvisor` 单栈
-- `mips`：mihomo 自研纯 Go 用户态栈（mipstack），吞吐与 `system` 同档
+- `gvisor`：用户态 gVisor 栈，隔离性最好，但吞吐与稳健性最差（单流 TCP 约 `system` 的 1/4、UDP 小包丢包过半）
+- `mixed`：TCP 走 `system`、UDP 走 `gVisor`（源码：`Mixed` 内嵌 `*System`，仅给 UDP 注册 gVisor handler/forwarder）；UDP 丢包远好于 `gvisor` 单栈
+- `mips`：mihomo 自研纯 Go 用户态栈（mipstack），吞吐最高、CPU 略高
 
-**转发流量经 TUN：批量 TCP**
+**选型结论**（完整实测数据见 §8.4.2）
+1. **默认保持 `system`（插件默认）**；追求吞吐选 `mips` + `gso`（全形态第一梯队）；`mixed` ≈ `system`。
+2. **`gso` 保持开启（插件默认）**：全栈全形态正收益，是唯一有量级影响的数据面参数。
+3. **纯大流量上传是唯一例外**：`gvisor` + `gso` 上传最快，但其下载单流、短连接、UDP 小包均不可靠，不建议作为默认。
+4. **必须整机接管时才用 TUN**：REDIRECT / TPROXY 的内核短路比 TUN 数据面便宜一个数量级（见 §8.2.13）。
+5. **高并发会明显降速**：数十并发连接时两栈同档回落到约 40–60 MB/s（合批失效，见 §8.4.5）；连接数多的场景宜用 REDIRECT/TPROXY。
 
-| 栈 | TCP 单流 256MB | core CPU / 256MB | TCP 4 流 | core CPU / 256MB（4 流） |
-|----|--------------|-----------------|---------|----------------------|
-| `system` | 26–43 MB/s | **6.3–7.1 s** | 39–41 MB/s | **6.3–6.4 s** |
-| `mixed` | 16–34 MB/s | 6.8–9.0 s | 31–37 MB/s | 6.8–7.5 s |
-| `mips` | 30–37 MB/s | 8.0–9.9 s | 28–43 MB/s | 8.4–9.9 s |
-| `gvisor` | **8–9 MB/s** | 37.5–41.4 s | 24–36 MB/s | 17.2–20.8 s |
-
-> **看 core CPU 更可靠**（吞吐会被客户端链路限制）：`system`/`mixed`/`mips` 同档、CPU 低（`system` 最低），`gvisor` 单流吞吐只有 1/4、每 256MB 的 CPU 高 3–6 倍。
-
-**转发流量经 TUN：短连接与 UDP 多场景**（CPU = core 的 utime+stime）
-
-| 场景 | `system` | `mixed` | `mips` | `gvisor` |
-|------|---------|--------|-------|---------|
-| 短连接：3000 次 HTTP × 32 KB（20 并发，每次新建 TCP） | 402–406 rps / CPU 10.8–11.1 s | 458 rps / 10.6 s | 453 rps / 11.8 s | 390 rps / **19.8 s** |
-| UDP 200 B 单流 20 kpps | 丢包 19.3% / 交付 1.13 MB/s / CPU 11.7 s | 丢包 **5.9%** / 1.40 MB/s / 14.5 s | 丢包 13.8% / 1.24 MB/s / 13.0 s | 丢包 **69.6%** / 0.45 MB/s / 21.7 s |
-| UDP 200 B 单流 40 kpps | 30.3% / 1.64 MB/s / 12.8 s | 48.9% / 1.24 MB/s / 14.3 s | 35.1% / 1.74 MB/s / 16.3 s | **82.4%** / 0.43 MB/s / 20.8 s |
-| UDP 1400 B 单流 7.5 kpps（约 10 MB/s） | **1.3%** / 3.79 MB/s / 11.4 s | 1.4% / 3.90 MB/s / 14.4 s | 7.9% / 3.64 MB/s / 10.5 s | **24.8%** / 2.98 MB/s / 21.4 s |
-| QUIC 形态：40 流 × 200 B × 500 pps | 3.9% / 1.32 MB/s / 12.3 s | 3.1% / 1.47 MB/s / 18.4 s | 3.5% / 1.44 MB/s / 15.4 s | **75.7%** / 0.36 MB/s / 17.4 s |
-| UDP flood：1400 B @ 100 kpps | 48.8% / 7.94 MB/s / 11.1 s | 59.8% / 7.72 MB/s / 16.2 s | 50.6% / 9.15 MB/s / 14.4 s | **85.8%** / 2.66 MB/s / 19.8 s |
-| 连接密集 + UDP 混杂（600 次短连接 + 200 B @ 10 kpps 并发） | 短连接 289 rps、UDP 丢包 2.7% / 15.1 s | 192 rps、2.5% / 18.2 s | 344 rps、3.4% / 16.0 s | 短连接 **22.7 rps**、UDP 丢包 **45.9%** / 27.5 s |
-
-> `system`/`mixed`/`mips` 在小包与短连接下差距不大（UDP 200 B 丢包互有高低），**`gvisor` 在所有小包场景都差一个量级**：UDP 200 B 丢包 70%+、40 流 QUIC 形态丢包 76%、混杂场景短连接掉到 23 rps。大包（1400 B）下 `mixed`/`system` 丢包仍在 1–2%，`gvisor` 仍有 25%。
-
-**路由器自身流量（TUN 模式）**
-
-| 栈 | 自身 TCP | 自身 UDP |
-|----|---------|---------|
-| `system` / `mixed` | ✅（实测自身 HTTPS 经代理返回 204） | ✅ |
-| `mips` / `gvisor` | ✅ | ✅ |
-
-> **四种栈都能代理路由器自身流量**，无需 REDIRECT 短路。
-
-**结论**
-1. TUN 数据面下 `system`/`mixed`/`mips` 同档（`system` CPU 最低、小包丢包波动相当），**`gvisor` 最差**：单流 TCP 只有 8–9 MB/s、每 256MB 的 CPU 高 3–6 倍、UDP 200 B 丢包 70–82%、40 流 QUIC 形态丢包 76%、连接密集场景短连接速率掉到 23 rps。
-2. **REDIRECT / TPROXY 比 TUN 便宜一个数量级**：每 256MB 的 core CPU 仅 0.36–0.60 s，而 TUN 是 6.3–41 s。短连接上同样是 TUN 更贵：REDIRECT/TPROXY 约 1170–1190 rps，TUN 四栈 390–458 rps。
-3. 选型：**优先非 TUN 的 REDIRECT/TPROXY**（见 §8.2.13）；必须用 TUN 时选 **`system`**（转发首选，CPU 最低），`mixed`/`mips` 可作备选，**避免 `gvisor`**。
+> 四种栈均可代理路由器自身流量：经插件默认的「标记 + 策略路由进 TUN」即可（见 §8.2.11），无需其它开关。
 
 #### 8.2.13 转发模式（tun / redirect / tproxy）与建议
 
@@ -241,38 +211,51 @@
 - 非 TUN 模式：**TCP 用 REDIRECT**（`redirect to $proxy_port`），**UDP 用 TPROXY**（`mark set 0x162` + `tproxy ip to 127.0.0.1:$tproxy_port`），LAN 与「路由器自身」各一套链（`openclash_mangle*` / `openclash_output`）
 - TUN 模式：流量进 `utun`，由所选栈处理
 
-**实测要点**（同一台 aarch64 六核物理机、同一条客户端链路）
-
-| 路径 | 批量 TCP | 短连接（3000 次 × 32 KB，20 并发） |
-|------|---------|-----------------------------------|
-| 直连（不经代理，基线） | 受客户端链路限制 | 823 rps |
-| LAN 客户端 → REDIRECT（TCP） | 30–33 MB/s 单流、43–72 MB/s 四流；CPU 0.40–0.47 s/256MB | **1188 rps**；CPU 4.5 s |
-| LAN 客户端 → TPROXY（TCP） | 33–35 MB/s 单流、33 MB/s 四流；CPU 0.36–0.60 s/256MB | **1169 rps**；CPU 4.6 s |
-| LAN 客户端 → TUN（四种栈） | 见 §8.2.12（8–43 MB/s）；CPU 6.3–41 s/256MB（高 15–100 倍） | 390–458 rps；CPU 10.6–19.8 s（高 2–4 倍） |
-
-**TPROXY 的 UDP 场景**（同一客户端；对比 TUN 见 §8.2.12）
-
-| 场景 | 丢包 | 交付 | core CPU |
-|------|------|------|---------|
-| UDP 200 B 单流 20 kpps | 10.7% | 1.34 MB/s | 17.5 s |
-| UDP 200 B 单流 40 kpps | 30.6% | 1.87 MB/s | 17.4 s |
-| UDP 1400 B 单流 7.5 kpps | **0.7%** | 3.93 MB/s | 12.1 s |
-| QUIC 形态 40 流 × 200 B × 500 pps | 6.5% | 1.32 MB/s | 18.0 s |
-| UDP flood 1400 B @ 100 kpps | 34.6% | **11.65 MB/s** | 18.8 s |
-| 连接密集 + UDP 混杂（600 短连接 + 200 B @ 10 kpps） | 短连接 903 rps、UDP 丢包 1.6% | — | 13.2 s |
-
-> 小包路径的丢包基本由「每秒包数」而非转发方式决定（TPROXY 与 TUN 同档），差别在实际交付带宽与 CPU：flood 场景 TPROXY 交付 11.65 MB/s，TUN 四栈只有 2.7–9.2 MB/s。
-
-**建议**
-1. **优先 REDIRECT/TPROXY**：内核短路，CPU 只有 TUN 数据面的 1/15 以下（短连接场景 1/2–1/4，速率反而更高：约 1170 rps vs 390–458 rps）；吞吐在客户端链路允许范围内相同。TUN 仅用于必须整机接管（如 Docker、无法下发透明代理规则的场景）。
-2. **保持现状（TCP=REDIRECT、UDP=TPROXY）**：两者 TCP 批量吞吐与 CPU 同级（0.40 vs 0.60 s/256MB），而 REDIRECT 不需要额外的 `ip rule`/local 路由表，且对路由器自身流量同样生效。
-3. TPROXY-TCP 的意义在于**透明代理链路更干净**，属功能取舍而非性能优化：REDIRECT 在 PREROUTING 把目标 DNAT 成本地地址，代理只能靠 `getsockopt(SO_ORIGINAL_DST)` 从 conntrack 反查客户端原本要去的目标（查不到就静默断连）；TPROXY 不改写报文，目标直接来自报文本身（`listener/tproxy/tproxy.go` 读 `conn.LocalAddr()`）。**源 IP 两种方式都会保留**
+**建议**（对比数据见 §8.4.3）
+1. **优先 REDIRECT/TPROXY**：内核短路，CPU 只有 TUN 数据面的 1/15 以下；短连接速率同类；吞吐在链路允许范围内相同。TUN 仅用于必须整机接管（如 Docker、无法下发透明代理规则的场景）。
+2. **保持现状（TCP=REDIRECT、UDP=TPROXY）**：两者 TCP 批量吞吐与 CPU 同级，而 REDIRECT 不需要额外的 `ip rule`/local 路由表，且对路由器自身流量同样生效。
+3. TPROXY-TCP 的意义在于**透明代理链路更干净**，属功能取舍而非性能优化：REDIRECT 在 PREROUTING 把目标 DNAT 成本地地址，代理只能靠 `getsockopt(SO_ORIGINAL_DST)` 从 conntrack 反查客户端原本要去的目标（查不到就静默断连）；TPROXY 不改写报文，目标直接来自报文本身（`github.com/metacubex/mihomo/listener/tproxy/tproxy.go` 读 `conn.LocalAddr()`）。**源 IP 两种方式都会保留**。
+4. **旁路由纯转发（不经代理）不是瓶颈**：转发 + NAT 可达线路速率，CPU 开销可忽略（`FLOWOFFLOAD` 把已建立连接交给 flowtable，开关无差异，且不影响被代理流量——命中 mark/TPROXY 的报文本就不走 offload）。旁路由的 masquerade 可关（主路由能回程即可）但收益≈零。
+5. **UDP 小包路径**：丢包基本由「每秒包数」而非转发方式决定（TPROXY 与 TUN 同档）；高 pps flood 场景 TPROXY 交付带宽更高（见 §8.4.3）。
 
 #### 8.2.14 默认值与 MIPS 来源
 
-- mihomo 内核默认 = **`gvisor`**（`constant/tun.go` 的 `TUNStack` 零值为 `TunGvisor`，`listener/parse.go`、`config/config.go` 的默认 tun 也写 `Stack: C.TunGvisor`）；OpenClash 插件默认 = **`system`**。
+- mihomo 内核默认 = **`gvisor`**（`github.com/metacubex/mihomo/constant/tun.go` 的 `TUNStack` 零值为 `TunGvisor`，`github.com/metacubex/mihomo/listener/parse.go`、`github.com/metacubex/mihomo/config/config.go` 的默认 tun 也写 `Stack: C.TunGvisor`）；OpenClash 插件默认 = **`system`**。
 - 官方 wiki（TUN → stack）：「如无使用问题，建议使用 `mixed` 栈，默认 `gvisor`」，并写明 `system` 占用相对更低；对 `mips` 仅描述为「mihomo 自研的 IP 协议栈」，**未作推荐**。
 - `mips` 基于 `github.com/metacubex/mipstack`（README 自述：pure-Go、无需 cgo）；在 mihomo 中先用于 ZeroTier 与 WireGuard 出站的 `ip-stack`，TUN 集成较晚（随 sing-tun v0.4.24 引入）。
+
+#### 8.2.15 TUN 数据面参数（gso / mtu / congestion-controller / stack）
+
+**参数分类**（字段定义：`github.com/metacubex/mihomo/listener/config/tun.go`）
+
+| 类别 | 参数 | 说明 |
+|------|------|------|
+| **影响数据面吞吐/CPU** | `stack`、`gso`、`gso-max-size`、`mtu`、`congestion-controller`、`endpoint-independent-nat` | `congestion-controller` **仅 `mips` 生效**；`endpoint-independent-nat` 只改 UDP NAT 行为 |
+| 只影响路由/抓取范围（控制面） | `auto-route`、`auto-redirect`、`strict-route`、`route-address(-set)`、`route-exclude-address(-set)`、`include/exclude-interface`、`include/exclude-uid(-range)`、`include/exclude-mac-address`、`include/exclude-src|dst-port(-range)`、`iproute2-table-index`、`iproute2-rule-index`、`loopback-address` | 改的是**哪些流量进 TUN**，不改变单流处理开销 |
+| 协议辅助 / 运维 | `dns-hijack`（DNS）、`disable-icmp-forwarding`（ICMP）、`udp-timeout`/`icmp-timeout`（会话存活时长）、`file-descriptor`（fd 上限）、`processors-per-channel`（gvisor 专用）、`recvmsgx`/`sendmsgx`（darwin 专用） | 拿去测“吞吐”没有意义 |
+
+**参数结论与建议**（适用于路由器自身流量、LAN 转发两种形态）
+
+1. **`gso` 是唯一有量级影响的参数，插件默认开启**（`yml_change.sh` 重建 `tun` 段时写入 `gso: true`）。
+   - 全栈全形态正收益：下载/短连接 `system`/`mixed`/`mips` 明显提升、每 256 MB CPU 降 30～45%；上传 `gvisor` +637%、`mips` +45%。完整量化见 §8.4.2。
+   - 代价：仅 Linux 支持；GSO 超包在出口网卡按 MTU 分段（对端 MTU 较小时多一层分片）。遇到兼容性问题时可按文末方法关闭。
+   - 实现位置：`github.com/metacubex/sing-tun/tun_linux.go`（`enableGSO()`；UDP offload 失败会被忽略，TCP offload 失败则建 tun 失败）——GSO 属设备层，与所选栈无关。
+2. **`mtu`、`gso-max-size`、`congestion-controller`、`processors-per-channel`、`endpoint-independent-nat` 无可测收益，保持默认**（对比数据见 §8.4.4）。
+   - `mtu: 9000` 不是提速手段（GSO 超包在出口网卡仍需按 MTU 分段；改小 `mtu` 反而约 -6%）；`gso-max-size` 默认 65536 已足够。
+   - `congestion-controller` 仅 `mips` 消费（唯一使用点 `github.com/metacubex/sing-tun/stack_mipstack.go`，`gvisor`/`system`/`mixed` 忽略该字段）：`cubic`/`reno`/`bbr`/`bbr3` 差异在 ±5% 波动范围内，保持 `cubic`；填非法值会使核心启动失败（`invalid TCP congestion control`）。
+   - `endpoint-independent-nat` 只改 UDP NAT 行为；`processors-per-channel` 对 `gvisor` 无改善。
+3. **栈选择见 §8.2.12（数据见 §8.4.2）**：吞吐全面最快选 `mips` + `gso`；看重每字节 CPU 选 `system`；纯大流量上传可试 `gvisor` + `gso`（但其它场景不可用）；`system` / `mixed` 代理路由器自身流量经插件默认的标记 + 策略路由即可（无需 `auto-redirect`）。
+4. **延迟**：满载时小请求延迟较空载升高约 320–360%（满载 ~8–12 ms/req，`mips`+`gso` / 32 KB；见 §8.4.5）；低延迟优先选内核短路路径（REDIRECT/TPROXY，见 §8.2.13）。
+5. **内核 sysctl 无需调优**：`rmem_max`/`wmem_max`/`tcp_rmem`/`tcp_wmem`（调至 16 MB）、`tcp_congestion_control=bbr`、`default_qdisc=fq`、`netdev_max_backlog`/`netdev_budget`、`tcp_fastopen`/`tcp_max_syn_backlog`/`somaxconn` 等即使全部一起修改，差异仍 ≤5%（`bbr` 反而略差；见 §8.4.6）。
+6. `tun.gso` 与 `experimental.quic-go-disable-gso`（插件「禁用 quic-go GSO」开关）互不影响：前者作用于 tun 设备层；后者在核心启动前设置环境变量 `QUIC_GO_DISABLE_GSO`（`github.com/metacubex/mihomo/hub/executor/executor.go`），作用于 QUIC 的 UDP socket。内核并未默认禁用 GSO：`setsockopt(UDP_SEGMENT)`/`UDP_GRO` 均可用。QUIC 报文同样经过 tun，故 `tun.gso` 对 UDP/QUIC 吞吐同样有正收益。
+7. **持续满载无衰减**：连续满载 10 分钟（单流 2 GB 循环 + 4 流循环，共 84 GB）吞吐、每 256 MB CPU、RSS/fd 均平稳，无热降频——可长期满速（见 §8.4.5）。
+
+**如何覆盖默认值**：`tun` 段由 `yml_change.sh` 按模板重建（写入 `enable`/`stack`/`device`/`dns-hijack`/`endpoint-independent-nat`/`auto-route`/`auto-detect-interface`/`auto-redirect`/`strict-route`/`disable-icmp-forwarding`/`gso`）；需要不同取值时用**覆写模块的 `[YAML]` 块**（在 `yml_change.sh` 之后执行，可覆盖最终配置），保存后**重启 OpenClash**（覆写模块仅在 start/restart 生效）：
+
+```yaml
+tun:
+  gso: false      # 遇到 GSO 兼容性问题时关闭；插件默认开启
+```
 
 ### 8.3 流量控制标签页 (traffic_control)
 
@@ -334,7 +317,7 @@
 - **选择保留**: 关闭区域 IP 绕行后保存设置，会保留已保存的数据源选择；重新开启时继续使用该选择。
 - **依赖**: 仅 Fake-IP 系列模式，并在 `china_ip_route` 或 `china_ip6_route` 启用时显示
 - **说明**: `mrs` 使用 `MetaCubeX/meta-rules-dat` 提供的独立 `cn.mrs` 规则集，blacklist 模式追加 `rule-set:oc-cn-domain`，rule 模式追加 `RULE-SET,oc-cn-domain,real-ip`；`geosite` 使用当前 `/etc/openclash/GeoSite.dat` 中的 `cn` 分类，分别追加 `geosite:cn` 或 `GEOSITE,cn,real-ip`。whitelist 模式下两种来源都不自动追加 CN 过滤器。选择 `geosite` 时不会自动注册 `rule-providers.oc-cn-domain`，并会跟随用户配置的 GeoSite 数据源与更新周期。
-- **资源与故障差异**: MRS 是默认值，使用独立 CN 规则集；GeoSite 从当前数据库读取 `cn` 分类。在 x86/64 实测中，使用 `geosite:cn` 比 MRS 多占用约 20 MiB 内存，具体差值因内核和规则库而异。MRS 本地文件缺失或损坏且下载失败时，Mihomo 仍可启动，但依赖该规则集的域名可能返回 Fake-IP，影响区域绕行；所需的 GeoSite 数据无法加载或缺少 `cn` 分类时，Mihomo 配置校验和启动会失败。
+- **资源与故障差异**: MRS 是默认值，使用独立 CN 规则集；GeoSite 从当前数据库读取 `cn` 分类。实测 `geosite:cn` 比 MRS 约多占用 20 MiB 内存（差值因内核和规则库而异）。MRS 本地文件缺失或损坏且下载失败时，Mihomo 仍可启动，但依赖该规则集的域名可能返回 Fake-IP，影响区域绕行；所需的 GeoSite 数据无法加载或缺少 `cn` 分类时，Mihomo 配置校验和启动会失败。
 
 #### 8.3.6 intranet_allowed — 仅允许内网 (Only Intranet Allowed)
 - **UCI 选项**: `openclash.@openclash[0].intranet_allowed`
@@ -371,5 +354,124 @@
 - **触发条件**: 系统已安装并运行 `upnpd`（`/etc/config/upnpd` 存在且 `upnp_lease_file` 指向有效租约文件）
 - **说明**: 自动读取 upnpd 租约文件，为 UPnP 端口映射创建防火墙绕过规则，防止 BT/PT 下载、游戏主机等 UDP UPnP 流量被 TPROXY 错误代理
 - **实现细节**: 防火墙初始化阶段 `set_firewall()` 创建 `openclash_upnp` 链并在 `openclash_mangle` 链中通过 `jump openclash_upnp`（规则位置在最终 TPROXY 之前）。`upnp_exclude()` 函数读取 upnpd 租约文件（格式 `UDP:<ext_port>:<int_ip>:<int_port>`），为每条租约在 `openclash_upnp` 链中添加 `ip saddr <int_ip> <proto> sport <int_port> counter return` 规则。看门狗 `openclash_watchdog.sh` 每 30 个周期（首周期立即执行，之后每 `UPNP_INTERVAL=30` 即约 30 分钟）执行 UPNP 规则同步：① **清理过期规则**——遍历 `openclash_upnp` 链现有规则，删除租约文件中已不存在的条目；② **添加新规则**——读取租约文件，为新增的 UPnP 映射补充 RETURN 规则。规则细节见 `06-firewall-options-dnsmasq.md` §6.2「各选项对防火墙规则的具体影响 → UPNP 流量排除」。
+
+---
+
+### 8.4 性能实测数据
+
+> 本章所有性能数字的完整明细。
+
+#### 8.4.1 测量条件
+
+- **两种形态**：**路由器自身**（本机客户端 ↔ 本机源站；域名经核心 fake-ip 解析 → 输出标记 → 策略路由进 TUN 闭环）与 **LAN 转发**（veth 命名空间客户端 ↔ 源站，同路径进 TUN）；并发档位另以 LAN 侧真实客户端（PC）交叉验证（见 §8.4.5）。
+- **场景**：批量 TCP 256 MB（下载＝服务端→客户端，单流 ×2、4 流 ×1；上传＝`iperf3 -P4 -t 6` 4 流）；短连接 3000 次 × 32 KB（20 并发）；UDP 200 B @20 kpps、1400 B @7.5 kpps 各 5 s。
+- **CPU**：核心进程 utime+stime（s/256MB）；`tun` 段与插件生成的标准配置一致。
+- 数值单位：吞吐 MB/s、短连接 rps、丢包 %；单流为两次测量（区间/并列）；`gso` 对比见 §8.4.2（单元格为 `关 → 开` 数值与开启后的变化幅度）。
+
+#### 8.4.2 TUN 四栈 × `gso` 对比（主表）
+
+> 单元格：`gso 关 → 开` 的数值；括号内为开启后的变化幅度（按两组数据均值计算；单流为两次测量的区间）。
+
+**路由器自身流量**
+
+| 场景 | `system` | `mixed` | `mips` | `gvisor` |
+|------|----------|---------|--------|----------|
+| 下载·单流（MB/s） | 69 → 109（+58%） | 68 → 111（+63%） | 98–104 → 164–168（+64%） | 28 → 28（持平） |
+| 下载·单流 CPU（s/256MB） | 4.3 → 2.6（-40%） | 4.4 → 2.6（-41%） | 5.2 → 3.0（-42%） | 12.6 → 12.9（+2%） |
+| 下载·4 流（MB/s） | 63 → 99（+57%） | 62 → 90（+45%） | 77 → 115（+49%） | 54 → 53（-2%） |
+| 上传·4 流（MB/s） | 78 → 108（+38%） | 64 → 112（+75%） | 128 → 185（+45%） | 35 → 258（+637%） |
+| 短连接（rps） | 729 → 716（-2%） | 715 → 758（+6%） | 1051 → 1277（+22%） | 647 → 62（-90%）\* |
+| UDP 200B 丢包（%） | 0.4 → 0.5（+0.1 个百分点） | 0.1 → 0.0（-0.1 个百分点） | 0.6 → 0.4（-0.2 个百分点） | 54 → 54（持平） |
+
+**LAN 转发流量**
+
+| 场景 | `system` | `mixed` | `mips` | `gvisor` |
+|------|----------|---------|--------|----------|
+| 下载·单流（MB/s） | 44–47 → 66–68（+47%） | 46–47 → 67–69（+46%） | 66–72 → 147–148（+112%） | 22 → 22（持平） |
+| 下载·单流 CPU（s/256MB） | 5.1 → 3.5（-31%） | 5.1 → 3.6（-29%） | 6.2 → 3.5（-44%） | 15.3 → 14.5（-5%） |
+| 下载·4 流（MB/s） | 43 → 60（+40%） | 45 → 61（+36%） | 57 → 98（+72%） | 50 → 49（-2%） |
+| 上传·4 流（MB/s） | 71 → 102（+44%） | 64 → 98（+53%） | 106 → 185（+75%） | 34 → 253（+644%） |
+| 短连接（rps） | 656 → 635（-3%） | 647 → 597（-8%） | 872 → 1162（+33%） | 93 → 401（+331%）\* |
+| UDP 200B 丢包（%） | 0.3 → 0.1（-0.2 个百分点） | 0.3 → 0.3（持平） | 1.6 → 1.5（-0.1 个百分点） | 55 → 52（-3 个百分点） |
+
+> - \*：`gvisor` 短连接波动极大且常伴请求失败（`gso` 两种取值下均有失败）；其余数据波动在 ±10% 内；CPU 为中位值。
+> - UDP 1400 B @7.5 kpps 丢包：各栈均 ≤0.9%（`gvisor` 0.8%）。
+
+#### 8.4.3 转发路径对比
+
+| 路径 | 批量 TCP | 短连接（3000 次 × 32 KB，20 并发） |
+|------|---------|-----------------------------------|
+| 直连（不经代理，基线） | 受客户端链路限制 | 823 rps |
+| LAN 客户端 → REDIRECT（TCP） | 30–33 MB/s 单流、43–72 MB/s 四流；CPU 0.40–0.47 s/256MB | **1188 rps**；CPU 4.5 s |
+| LAN 客户端 → TPROXY（TCP） | 33–35 MB/s 单流、33 MB/s 四流；CPU 0.36–0.60 s/256MB | **1169 rps**；CPU 4.6 s |
+| LAN 客户端 → TUN（四种栈） | 见 §8.4.2（`gso` 开单流 22–148 MB/s）；core CPU 3.5–14.5 s/256MB | 635–1162 rps（`gvisor` 波动） |
+
+**TPROXY 的 UDP 场景**（对比 TUN 见 §8.4.2）
+
+| 场景 | 丢包 | 交付 | core CPU |
+|------|------|------|---------|
+| UDP 200 B 单流 20 kpps | 10.7% | 1.34 MB/s | 17.5 s |
+| UDP 200 B 单流 40 kpps | 30.6% | 1.87 MB/s | 17.4 s |
+| UDP 1400 B 单流 7.5 kpps | **0.7%** | 3.93 MB/s | 12.1 s |
+| QUIC 形态 40 流 × 200 B × 500 pps | 6.5% | 1.32 MB/s | 18.0 s |
+| UDP flood 1400 B @ 100 kpps | 34.6% | **11.65 MB/s** | 18.8 s |
+| 连接密集 + UDP 混杂（600 短连接 + 200 B @ 10 kpps） | 短连接 903 rps、UDP 丢包 1.6% | — | 13.2 s |
+
+> - 小包路径的丢包基本由「每秒包数」而非转发方式决定（TPROXY 与 TUN 同档），差别在实际交付带宽与 CPU：flood 场景 TPROXY 交付 11.65 MB/s，高于 TUN 四栈。
+> - **旁路由纯转发（不经代理）**：转发 + NAT 达 97–106 MB/s（≈线路速率），CPU 开销可忽略；`FLOWOFFLOAD` 开关无差异。
+
+#### 8.4.4 TUN 数据面参数（单流对照）
+
+`mips` + `gso`，单流 256 MB 批量，其余参数保持默认：
+
+| 参数 | 自身·下载单流 | LAN·下载单流 |
+|------|------------|-----------|
+| 默认（`mtu` 1500 / `gso-max-size` 默认 / `cubic`） | 165 / 166 | 161 |
+| `mtu: 9000` | 161 / 165 | 159 |
+| `mtu: 1280` | 155 / 157 | 151 |
+| `gso-max-size: 16384` | 161 / 170 | 155 |
+| `congestion-controller: bbr` | 156 / 165 | 159 |
+| `endpoint-independent-nat: false` | 162 / 166 | 156 |
+
+> 除 `mtu: 1280` 低约 6%（分段数随 MTU 变小而增多）外，其余差异均在 ±5% 的波动范围内：`mtu: 9000`、`gso-max-size` 放大、`bbr` 均无收益；`endpoint-independent-nat` 只影响 UDP NAT 行为，对 TCP 单流无副作用 ⇒ **全部保持默认**（见 §8.2.15）。
+
+#### 8.4.5 持续满载、高并发与延迟
+
+`mips` + `gso`（并发项同时给出 `system` 数据）：
+
+| 场景 | 结果 |
+|------|------|
+| 持续满载 10 min：单流 2 GB 循环 | ~165–167 MB/s（全程无衰减） |
+| 持续满载 10 min：4 流 2 GB 循环 | ~116–120 MB/s |
+| 并发 40 流 512 MB：`mips` / `system` | ~38–41 / ~46–49 MB/s |
+| 并发 100 流 512 MB：`mips` / `system` | ~32 / ~35–42 MB/s |
+| 混合：短连接 20 并发 32 KB + 后台 2 流批量 | 526–714 rps / 83–109 MB/s |
+| 延迟（32 KB 请求 ×200） | 满载 ~8–12 ms/req，较空载（~2 ms）升高约 320–360% |
+
+> 持续满载吞吐无衰减；并发 ≥40 流时两栈同档大幅回落（约 40–60 MB/s，客户端不同略有差异；原因见下）；满载小请求延迟较空载升高约 320–360%。
+
+**吞吐随并发数下降的原因**（`mips` + `gso`，512 MB 批量；含无代理直连参照）
+
+| 并发流数 | 2 | 4 | 8 | 16 | 40 | 100 |
+|----------|---|---|---|----|----|-----|
+| 吞吐（MB/s） | 143 | 119 | 102 | 81 | 50 | 40 |
+| 核心写 tun 的平均合批 | 24.3 KB | 13.1 KB | 7.8 KB | 4.2 KB | 2.1 KB | 1.7 KB |
+| 每 256 MB CPU（s） | 3.9 | 4.7 | 5.4 | 7.1 | 11.6 | 14.1 |
+
+- 吞吐随流数**平滑**下降；40 流连续传输 2 GB 期间全程稳定，无随时间衰减。核心向 tun 写出的包速率封顶约 **2.5 万包/秒**，吞吐 ≈ 包速率上限 × 合批尺寸——**直接原因是单次写入的合批尺寸随并发数变小**（近似 ∝ 1/流数）。
+- 两种栈的每个包/每批都要经用户态处理（`system`：用户态地址改写 + 内核 TCP；`mips`：全用户态 TCP），读/写循环各只有一条运行在单线程上 ⇒ 并发升高后合批失效，逐批处理能力成为瓶颈；每字节 CPU 升至约 3 倍，并伴随重传（最多 1.4 万段）；`system` 趋势相同（107 降至 42 MB/s，-61%）。合批为何失效：sing-tun 单次写调用最多向栈取 64 个包、且 GRO 只在该批内合并（`github.com/metacubex/sing-tun/stack_mipstack.go`、`github.com/metacubex/sing-tun/tun_offload_linux.go`），而栈输出为全局单队列（256 槽，`github.com/metacubex/mipstack/stack.go`）⇒ 批内同连接连续包 ≈ 64/并发数。
+- 交叉验证（LAN 侧真实客户端）：以 PC 作为客户端验证同一路径——40/100 流 = 59 / 52 MB/s（`mips`）、`system` 40 流 53 MB/s，合批 2.2–2.5 KB、包速率 ~2.5 万/秒，与表中规律一致；不经代理直连时同路径 40/100 流达 106 / 94 MB/s ⇒ 该下降属 TUN 数据面特有（逐包用户态 + 合批失效），与客户端、链路无关。
+
+#### 8.4.6 内核 sysctl 调优
+
+`net.core.rmem_max`/`wmem_max` 调至 16 MB、`tcp_rmem`/`tcp_wmem` 调至 16 MB、`tcp_congestion_control=bbr`、`default_qdisc=fq`、`netdev_max_backlog=5000`、`netdev_budget=600`、`tcp_fastopen=3`、`tcp_max_syn_backlog=8192`、`somaxconn=8192`（`mips` + `gso`）：
+
+| 阶段 | 自身·下载单流 | 短连接 rps | LAN·下载单流 |
+|------|------------|-----------|-----------|
+| 默认 | 159 / 159 | 1288 | 141 |
+| 全部调优 | 154 / 154 | 1286 | 143 |
+| 调优后还原 | 159 / 158 | 1245 | 147 |
+
+> 调整上述全部参数对吞吐的影响都在 ±5% 波动范围内（短连接相差 0.1%），`bbr` 反而略差 ⇒ **无需调优，保持系统默认**（`bbr` 模块本身可用：`reno cubic bbr`）。
 
 ---

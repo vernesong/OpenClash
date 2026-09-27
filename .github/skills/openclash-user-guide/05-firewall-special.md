@@ -75,7 +75,7 @@ nft add rule inet fw4 openclash_mangle_v6 ip6 nexthdr icmpv6 \
 
 IPv6 非 TUN 模式下 ICMPv6 **不被标记也不被代理**。IPv6 Fake-IP 地址范围的 ping 在**非 TUN 的 IPv6 模式下**被 REJECT（返回 `icmpv6 admin-prohibited`），条件为 `$ipv6_mode -ne 2 -a $ipv6_mode -ne 3`。TUN/Mix 模式下的 IPv6 Fake-IP ping 同样由内核的 `skipPingForwardingByAddr()` 处理（伪造回复）。
 
-**总结**（一句话结论：普通模式下 ping 不会进隧道、不被代理；TUN/混合模式下 ping 会进隧道，但 Fake-IP ping 到的是本地虚假延迟，不代表真能访问）:
+**一句话说明**：普通模式下 ping 不会进隧道、不被代理；TUN/混合模式下 ping 会进隧道，但 Fake-IP ping 到的是本地虚假延迟，不代表真能访问：
 
 | 运行模式 | ICMP 进入 TUN | ICMP fwmark | 实际处理 |
 |----------|-------------|-------------|----------|
@@ -88,7 +88,7 @@ IPv6 非 TUN 模式下 ICMPv6 **不被标记也不被代理**。IPv6 Fake-IP 地
 
 > **实用提示**：如果用户发现 ping 不通但网页正常，首先确认不是 Fake-IP **非 TUN** 模式下在 ping 被代理的域名（Fake-IP 返回 `198.18.x.x`，防火墙直接 REJECT）。Fake-IP TUN/Mix 模式下 ping Fake-IP 地址会返回虚假 ~0ms 延迟。非 Fake-IP 的真实 IP ping 在 TUN/Mix 模式下走 DIRECT 直连，延迟反映的是本地网络质量。
 
-**内核侧 ICMP 处理机制**（`listener/sing_tun/prepare.go` — Mihomo TUN 监听器）:
+**内核侧 ICMP 处理机制**（`github.com/metacubex/mihomo/listener/sing_tun/prepare.go` — Mihomo TUN 监听器）:
 
 当 ICMP echo-request 经策略路由进入 TUN 虚拟网卡后，Mihomo 内核按以下优先级处理：
 
