@@ -15,7 +15,7 @@ local function oix_checkin()
 	local multiple = fs.uci_get_config("config", "oix_checkin_multiple") or 1
 	path = "/tmp/oix_checkin"
 	if token and enable == "1" then
-		checkin = string.format("curl -sL -H 'Content-Type: application/json' -H 'Authorization: Bearer %s' -d '{\"multiple\":\"%s\"}' -X POST https://oix-api.dler.io/api/v1/checkin -o %s", token, multiple, path)
+		checkin = string.format("curl -sL -H 'Content-Type: application/json' -H 'User-Agent: OpenClash for oixCloud' -H 'X-oixCloud-Client: openclash' -H 'Authorization: Bearer %s' -d '{\"multiple\":\"%s\"}' -X POST https://oix-api.dler.io/api/v1/checkin -o %s", token, multiple, path)
 		if fs.readfile(path) == "" or not fs.readfile(path) then
 			luci.sys.exec(checkin)
 		else

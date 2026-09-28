@@ -5781,7 +5781,7 @@ end
 
 local function fetch_oix_sub(token)
 	write_padded('{"stage":"fetching_sub","text":"' .. luci.i18n.translate("Fetching subscription...") .. '"}')
-	local get_sub = string.format("curl -sL -H 'Content-Type: application/json' -H 'Authorization: Bearer %s' -X POST https://oix-api.dler.io/api/v1/managed/clash", token)
+	local get_sub = string.format("curl -sL -H 'Content-Type: application/json' -H 'User-Agent: OpenClash for oixCloud' -H 'X-oixCloud-Client: openclash' -H 'Authorization: Bearer %s' -X POST https://oix-api.dler.io/api/v1/managed/clash", token)
 	local sub_info = SYS.exec(get_sub)
 	if sub_info then sub_info = json.parse(sub_info) end
 	if sub_info and sub_info.ret == 200 then
@@ -5848,7 +5848,7 @@ function oix_login()
 		token = fs.uci_get_config("config", "oix_token")
 		if email and passwd then
 			write_padded('{"stage":"logging_in","text":"' .. luci.i18n.translate("Logging in...") .. '"}')
-			info = SYS.exec(string.format("curl -sL -H 'Content-Type: application/json' -H 'User-Agent: OpenClash for oixCloud' -d '{\"email\":\"%s\", \"passwd\":\"%s\", \"token_expire\":\"365\" }' -X POST https://oix-api.dler.io/api/v1/login", email, passwd))
+			info = SYS.exec(string.format("curl -sL -H 'Content-Type: application/json' -H 'User-Agent: OpenClash for oixCloud' -H 'X-oixCloud-Client: openclash' -d '{\"email\":\"%s\", \"passwd\":\"%s\", \"token_expire\":\"365\" }' -X POST https://oix-api.dler.io/api/v1/login", email, passwd))
 			if info then
 				info = json.parse(info)
 			end
@@ -5913,21 +5913,54 @@ function oix_logout()
 	HTTP.write_json({result = 200})
 end
 
+-- Routers that signed in before the panel read X-oixCloud-Client were given the
+-- oixCloud app's token, since "oixCloud" also appears in our User-Agent. When
+-- /information reports the token belongs to another client, exchange it for
+-- OpenClash's own. The old token is never revoked: it still belongs to the app.
+-- Any failure keeps the current token. The running core keeps the token it was
+-- started with (OIX_TOKEN) and switches on the next OpenClash start
+local function oix_rebind_token(token, token_client)
+	if type(token_client) ~= "string" or token_client == "openclash" then
+		return
+	end
+	local info = SYS.exec(string.format("curl -sL -m 10 -H 'Content-Type: application/json' -H 'User-Agent: OpenClash for oixCloud' -H 'X-oixCloud-Client: openclash' -H 'Authorization: Bearer %s' -X POST https://oix-api.dler.io/api/v1/token/rebind", token))
+	if info then
+		info = json.parse(info)
+	end
+	if type(info) ~= "table" or info.ret ~= 200 or type(info.data) ~= "table" or info.data.token_client ~= "openclash" then
+		return
+	end
+	-- The token ends up in shell commands; the panel only issues lowercase hex
+	local new_token = info.data.token
+	if type(new_token) ~= "string" or #new_token < 32 or #new_token > 128 or new_token:find("[^0-9a-f]") then
+		return
+	end
+	-- Leave it if the user signed out or changed the token while this ran
+	if new_token == token or fs.uci_get_config("config", "oix_token") ~= token then
+		return
+	end
+	uci:set("openclash", "config", "oix_token", new_token)
+	uci:commit("openclash")
+end
+
 function oix_info()
-	local info, path, get_info
+	local info, path, get_info, fetched
 	local result = "error"
 	local token = fs.uci_get_config("config", "oix_token")
 	path = "/tmp/oix_info"
 	if token then
-		get_info = string.format("curl -sL -H 'Content-Type: application/json' -H 'Authorization: Bearer %s' -X POST https://oix-api.dler.io/api/v1/information -o %s", token, path)
+		get_info = string.format("curl -sL -H 'Content-Type: application/json' -H 'User-Agent: OpenClash for oixCloud' -H 'X-oixCloud-Client: openclash' -H 'Authorization: Bearer %s' -X POST https://oix-api.dler.io/api/v1/information -o %s", token, path)
 		if not fs.access(path) then
 			SYS.exec(get_info)
+			fetched = true
 		else
 			if fs.readfile(path) == "" or not fs.readfile(path) then
 				SYS.exec(get_info)
+				fetched = true
 			else
 				if (os.time() - fs.mtime(path) > 900) then
 					SYS.exec(get_info)
+					fetched = true
 				end
 			end
 		end
@@ -5937,6 +5970,11 @@ function oix_info()
 		end
 		if info and info.ret == 200 and info.data then
 			result = info.data
+			-- Only after a fresh fetch, so a failed exchange waits for the next one
+			-- instead of repeating on every poll of the cached file
+			if fetched and type(info.data) == "table" then
+				oix_rebind_token(token, info.data.token_client)
+			end
 		elseif info and info.msg then
 			fs.writefile(path, json.stringify(info))
 		else
@@ -5953,7 +5991,7 @@ function oix_checkin()
 	local token = fs.uci_get_config("config", "oix_token")
 	local multiple = fs.uci_get_config("config", "oix_checkin_multiple") or 1
 	if token then
-		info = SYS.exec(string.format("curl -sL -H 'Content-Type: application/json' -H 'Authorization: Bearer %s' -d '{\"multiple\":\"%s\"}' -X POST https://oix-api.dler.io/api/v1/checkin", token, multiple))
+		info = SYS.exec(string.format("curl -sL -H 'Content-Type: application/json' -H 'User-Agent: OpenClash for oixCloud' -H 'X-oixCloud-Client: openclash' -H 'Authorization: Bearer %s' -d '{\"multiple\":\"%s\"}' -X POST https://oix-api.dler.io/api/v1/checkin", token, multiple))
 		if info then
 			info = json.parse(info)
 		end
