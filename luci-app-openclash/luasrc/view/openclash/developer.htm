@@ -54,9 +54,10 @@
     }
 
     function createMoreAvatarHTML(title, clickHandler) {
-        var size = getAvatarSize();
         return '<div class="developer-avatar-container">' +
-               '<div class="developer-avatar" title="' + title + '" style="display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: rgba(255, 255, 255, 0.8);" onclick="return ' + clickHandler + '()">...</div>' +
+               '<div class="developer-avatar developer-more" title="' + title + '" onclick="return ' + clickHandler + '()">' +
+               '<span class="developer-more-dots">...</span>' +
+               '</div>' +
                '<div class="developer-label">' + title + '</div>' +
                '</div>';
     }

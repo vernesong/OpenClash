@@ -4725,8 +4725,8 @@ msgstr "查看模式"
 msgid "Quick Start"
 msgstr "快速开始"
 
-msgid "First time here? Open the quick start guide"
-msgstr "第一次使用？打开快速开始引导"
+msgid "First time here? Let me give you a quick tour of the page features"
+msgstr "第一次使用？带你快速了解页面功能"
 
 msgid "Stream Unlock setting failed"
 msgstr "流媒体解锁设置失败"

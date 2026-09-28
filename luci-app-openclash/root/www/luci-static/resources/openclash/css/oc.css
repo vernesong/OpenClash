@@ -3971,9 +3971,15 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
 
 .oc #oc-merge-toggle-btn.oc-usage-help-float {
     position: absolute;
-    bottom: 16px;
-    right: 40px;
+    bottom: 24px;
+    right: 24px;
     z-index: 10;
+}
+
+/* keeps the compare button identical to the overview float buttons */
+.oc #oc-merge-toggle-btn.oc-usage-help-float svg {
+    width: 24px;
+    height: 24px;
 }
 
 /* ---- CBI section description ---- */
@@ -4637,6 +4643,27 @@ html[data-darkmode="true"] .oc .developer-label {
         0 3px 10px rgba(102, 126, 234, 0.25),
         inset 0 1px 0 rgba(255, 255, 255, 0.6);
     border-color: rgba(255, 255, 255, 1);
+}
+
+.oc .developer-avatar.developer-more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.92);
+    user-select: none;
+}
+
+/* the ellipsis glyph sits on the baseline ~1/3em below the line box center, lift it to the optical center */
+.oc .developer-more-dots {
+    display: block;
+    line-height: 1;
+    transform: translateY(-0.333em);
+}
+
+.oc .developer-avatar.developer-more:hover {
+    transform: scale(1.08);
 }
 
 @keyframes rotate {
@@ -8897,6 +8924,10 @@ body.oc-guide-open .select-popup {
     #debug-rendered .pre-copy-btn svg { width: 12px; height: 12px; }
     /* log.htm - tab menu responsive font */
     #tab-header ul.oc-tabmenu li { font-size: 12px; }
+    /* floating action buttons - status/merge/log pages */
+    .oc .oc-usage-help-float { width: 44px; height: 44px; }
+    .oc .oc-float-stack .oc-usage-help-float svg,
+    .oc #oc-merge-toggle-btn.oc-usage-help-float svg { width: 22px; height: 22px; }
     /* status.htm - main cards */
     .oc .main-cards-container { max-width: 100%; width: 100%; gap: 10px; }
     .oc .main-card { grid-template-rows: auto auto auto auto; }
@@ -8907,7 +8938,8 @@ body.oc-guide-open .select-popup {
     .oc .stats-legend { flex: 1 1 100%; flex-wrap: wrap; justify-content: safe center; gap: 4px 10px; max-width: 100%; white-space: normal; overflow: hidden; }
     .oc .stats-legend-item { font-size: 11px; }
     .oc .stats-section .card-row.stats-grid { min-height: 240px; }
-    .oc .announcement-banner { width: 85%; max-width: 98%; }
+    .oc .announcement-banner { width: 85%; max-width: 98%; height: 36px; }
+    .oc .announcement-content { font-size: 13px; }
     .oc .dashboard-btn { font-size: 10px !important; height: 40px !important; }
     .oc .card-value { font-size: 13px; }
     .oc .value-indicator { font-size: 11px; padding: 5px 5px; }
@@ -8996,7 +9028,8 @@ body.oc-guide-open .select-popup {
     .oc .card .general .oix-result, .oc .card .general .oix-result2 { font-size: 14px; width: 50%; }
     .oc .card .general .more { bottom: 4px; padding-right: 10px; }
     .oc .card .general .more p { font-size: 13px; }
-    .oc .oix-announcement { width: 85%; max-width: 98%; }
+    .oc .oix-announcement { width: 85%; max-width: 98%; height: 36px; }
+    .oc .oix-announcement-content { font-size: 13px; }
 
     /* update.htm */
     .oc .select-popup { min-width: 80%; width: 80%; padding: var(--card-outer-padding); max-height: 90vh; overflow-y: auto; }
@@ -9046,6 +9079,7 @@ body.oc-guide-open .select-popup {
     .oc .developer-avatar { width: 45px; height: 45px; border-width: 2px; }
     .oc .developer-avatar-container { min-width: 45px; width: 45px; }
     .oc .developer-label { font-size: 9px; padding: 2px 4px; margin-top: 6px; }
+    .oc .developer-avatar.developer-more { font-size: 21px; }
 
     /* sub_info_show.htm tabs */
     .sub_tab, .sub_tab_show { font-size: 10px; }
@@ -9080,11 +9114,17 @@ body.oc-guide-open .select-popup {
     #debug-rendered .pre-copy-btn svg { width: 11px; height: 11px; }
     /* log.htm - tab menu responsive font */
     #tab-header ul.oc-tabmenu li { font-size: 11px; }
+    /* floating action buttons - status/merge/log pages */
+    .oc .oc-usage-help-float { width: 40px; height: 40px; }
+    .oc .oc-float-stack .oc-usage-help-float svg,
+    .oc #oc-merge-toggle-btn.oc-usage-help-float svg { width: 20px; height: 20px; }
+    .oc #oc-merge-toggle-btn.oc-usage-help-float { right: 16px; bottom: 16px; }
     /* status.htm - main cards */
     .oc .main-cards-container { gap: 8px; max-width: 100%; width: 100%; }
     .oc .card-row.dual-cards { grid-template-columns: minmax(0, 1fr); }
     .oc .card-row.stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .oc .announcement-banner { width: 90%; max-width: 100%; }
+    .oc .announcement-banner { width: 90%; max-width: 100%; height: 34px; }
+    .oc .announcement-content { font-size: 12px; }
     .oc .icon-btn { width: 24px; height: 24px; min-width: 24px; }
     .oc .subscription-overwrite-tag { height: 24px; width: fit-content; font-size: 10px; padding: 0 6px; }
     .oc .icon-btn svg { width: 12px !important; height: 12px !important; }
@@ -9167,7 +9207,8 @@ body.oc-guide-open .select-popup {
     .oc .card .general .more { bottom: 2px; padding-right: 8px; }
     .oc .card .general .btn { width: 60px !important; height: 60px !important; font-size: 10px; padding: 0 !important; }
     .oc .card .general .more p { font-size: 11px; }
-    .oc .oix-announcement { width: 90%; max-width: 100%; }
+    .oc .oix-announcement { width: 90%; max-width: 100%; height: 34px; }
+    .oc .oix-announcement-content { font-size: 12px; }
     .oix-header { align-items: center; justify-content: center; }
     .oix-settings-grid { grid-template-columns: 1fr; }
     .oix-card-span-2 { grid-column: auto; }
@@ -9220,6 +9261,7 @@ body.oc-guide-open .select-popup {
     .oc .developer-avatar { width: 35px; height: 35px; }
     .oc .developer-avatar-container { min-width: 35px; width: 35px; }
     .oc .developer-label { font-size: 7px; padding: 1px 3px; margin-top: 3px; }
+    .oc .developer-avatar.developer-more { font-size: 17px; }
 
     /* sub_info_show.htm tabs */
     .sub_tab, .sub_tab_show { font-size: 9px; }
@@ -9260,6 +9302,10 @@ body.oc-guide-open .select-popup {
     #debug-rendered .pre-copy-btn svg { width: 10px; height: 10px; }
     /* log.htm - tab menu responsive font */
     #tab-header ul.oc-tabmenu li { font-size: 10px; }
+    /* floating action buttons - status/merge/log pages */
+    .oc .oc-usage-help-float { width: 36px; height: 36px; }
+    .oc .oc-float-stack .oc-usage-help-float svg,
+    .oc #oc-merge-toggle-btn.oc-usage-help-float svg { width: 18px; height: 18px; }
     /* status.htm - Running Mode mode-pill */
     .oc .mode-pill .mode-pill-opt { padding: 2px 5px; font-size: 8px; }
     /* developer.htm */
@@ -9267,6 +9313,9 @@ body.oc-guide-open .select-popup {
     .oc .developer-avatar { width: 30px; height: 30px; }
     .oc .developer-avatar-container { min-width: 30px; width: 30px; }
     .oc .developer-label { font-size: 6px; padding: 1px 2px; margin-top: 3px; }
+    .oc .developer-avatar.developer-more { font-size: 14px; }
+    .oc .announcement-banner, .oc .oix-announcement { height: 32px; }
+    .oc .announcement-content, .oc .oix-announcement-content { font-size: 12px; }
 
     /* sub_info_show.htm tabs */
     .sub_tab, .sub_tab_show { font-size: 8px; }
@@ -9289,6 +9338,7 @@ body.oc-guide-open .select-popup {
     .oc .developer-avatar { width: 60px; height: 60px; border-width: 3px; }
     .oc .developer-avatar-container { min-width: 60px; width: 60px; }
     .oc .developer-label { font-size: 11px; padding: 3px 8px; margin-top: 6px; }
+    .oc .developer-avatar.developer-more { font-size: 28px; }
 }
 
 /* ---- log.htm: device capability detection ---- */

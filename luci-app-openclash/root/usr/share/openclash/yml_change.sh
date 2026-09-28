@@ -38,7 +38,7 @@ esac
 
 en_mode_tun=${11:-0}
 if [ -z "${12}" ]; then
-   stack_type=${30:-"system"}
+   stack_type=${30:-"mips"}
 else
    stack_type=${12}
 fi

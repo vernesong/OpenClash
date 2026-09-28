@@ -385,7 +385,7 @@
             <div class="oc-float-stack" id="oc-float-stack">
                 <button type="button" class="oc-usage-help-float oc-guide-float" id="guide-float" title="<%:Quick Start%>" onclick="openGuide()">
                     <svg width="24" height="24" aria-hidden="true"><use href="#oc-icon-bulb"/></svg>
-                    <span class="oc-usage-help-bubble" id="guide-bubble"><%:First time here? Open the quick start guide%></span>
+                    <span class="oc-usage-help-bubble" id="guide-bubble"><%:First time here? Let me give you a quick tour of the page features%></span>
                 </button>
                 <button type="button" class="oc-usage-help-float" id="usage-help-float" title="<%:Usage Help%>" onclick="UsageHelpManager.show()">
                     <svg width="24" height="24"><use href="#oc-icon-usage-help"/></svg>
@@ -906,6 +906,7 @@
         currentConfigIndex: -1,
         selectElement: null,
         rawCurrentConfig: '',
+        configListLoaded: false,
 
         init: function() {
             this.selectElement = document.getElementById('config_file_select');
@@ -1045,6 +1046,9 @@
                     this.retryGetConfigList = null;
                 }
 
+                this.configListLoaded = true;
+                autoOpenGuide();
+
             } catch (e) {
                 this.handleConfigListError();
             }
@@ -1057,6 +1061,8 @@
 
             this.toggleEmptyState(true);
             this.hideSubscriptionDisplay();
+            this.configListLoaded = true;
+            autoOpenGuide();
 
             if (!this.retryGetConfigList) {
                 var self = this;
@@ -3635,6 +3641,8 @@
     StatsChart.init();
 
     var pluginToggleUserAction = false;
+    var coreMissing = null;
+    var autoGuideChecked = false;
 
     get_op_mode();
 
@@ -4570,17 +4578,26 @@
     function check_core() {
         StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "check_core")%>', function(x, status) {
             if (x && x.status == 200) {
-                if (status.core_status != "1" && localStorage.getItem('oc_guide_autostart') !== '0') {
-                    openGuide(true);
-                }
+                coreMissing = (status.core_status != "1");
+                autoOpenGuide();
             }
         });
     }
 
+    // the guide start depends on the config list as well, so wait until both answers are in
+    function autoOpenGuide() {
+        if (autoGuideChecked || coreMissing !== true || !ConfigFileManager.configListLoaded) return;
+        autoGuideChecked = true;
+        if (localStorage.getItem('oc_guide_autostart') === '0') return;
+        openGuide(ConfigFileManager.configList.length > 0);
+    }
+
     // The core is missing: open the quick start guide (a modal on this page) instead of the
-    // plain confirm() dialog. "oc_guide_autostart" keeps users that opted out from being pushed.
-    function openGuide(coreMissing) {
-        if (typeof Guide !== 'undefined') Guide.open(coreMissing);
+    // plain confirm() dialog. A fresh device starts on the guide's first page, a missing core
+    // alone jumps straight to the core task. "oc_guide_autostart" keeps users that opted out
+    // from being pushed.
+    function openGuide(atPending) {
+        if (typeof Guide !== 'undefined') Guide.open(atPending);
         return false;
     }
 

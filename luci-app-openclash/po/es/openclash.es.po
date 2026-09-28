@@ -4724,8 +4724,8 @@ msgstr "Modo de vista"
 msgid "Quick Start"
 msgstr "Inicio rápido"
 
-msgid "First time here? Open the quick start guide"
-msgstr "¿Primera vez? Abre la guía de inicio rápido"
+msgid "First time here? Let me give you a quick tour of the page features"
+msgstr "¿Primera vez? Déjame mostrarte rápidamente las funciones de la página"
 
 msgid "Stream Unlock setting failed"
 msgstr "Error al configurar el desbloqueo de streaming"

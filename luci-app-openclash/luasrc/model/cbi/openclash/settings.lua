@@ -125,7 +125,7 @@ o:value("system", translate("System　"))
 o:value("gvisor", translate("gVisor"))
 o:value("mixed", translate("Mixed"))
 o:value("mips", translate("Mips"))
-o.default = "system"
+o.default = "mips"
 
 o = s:taboption("op_mode", ListValue, "proxy_mode", translate("Proxy Mode"))
 o.description = translate("Select Proxy Mode")
@@ -1408,7 +1408,7 @@ o:value("system", translate("System　"))
 o:value("gvisor", translate("gVisor"))
 o:value("mixed", translate("Mixed"))
 o:value("mips", translate("Mips"))
-o.default = "system"
+o.default = "mips"
 
 o = s:taboption("ipv6", Flag, "enable_v6_udp_proxy", translate("Proxy UDP Traffics"))
 o.description = translate("The Servers Must Support UDP forwarding").."<br>"..font_red..bold_on..translate("If Docker is Installed, UDP May Not Forward Normally")..bold_off..font_off

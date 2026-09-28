@@ -62,6 +62,7 @@ var Guide = {
     lastStepInAdd: false,
     targetWaits: 0,
     pinnedStep: false,
+    pageStart: false,
     lastStepKey: '',
     lastStepGroup: '',
     autoDone: {},
@@ -891,6 +892,8 @@ var Guide = {
         this.lastStepInAdd = false;
         this.pendingEntry = null;
         this.pinnedStep = false;
+        // the status page passes false for a fresh device: the tour opens on its first page instead of the pending task
+        this.pageStart = (atPending === false);
         this.group = 'main';
         this.dialogReturn = 0;
         this.groupReturn = null;
@@ -919,13 +922,13 @@ var Guide = {
             }, 400);
         }
         // a tour opened for a task the device still needs starts on that task right away, no other step flashes by
-        this.show((atPending || this.state.core === false) ? this.firstPending() : 0);
+        this.show((atPending === true || (!this.pageStart && this.state.core === false)) ? this.firstPending() : 0);
         var floatBtn = document.getElementById('guide-float');
         if (floatBtn) floatBtn.classList.remove('beacon');
         return false;
     },
 
-    // alias: the overview page calls Guide.open(true) for the auto start on a missing core
+    // alias: the overview page passes true to land on the missing core task, false to open on the first page
     open: function (atPending) { return this.start(atPending); },
 
     close: function () {
@@ -994,7 +997,7 @@ var Guide = {
 
     // a core that is not installed yet outranks the page order, the tour moves to that task as soon as the answer is in
     pickStart: function (firstAnswer) {
-        if (!firstAnswer || this.pinnedStep || this.state.core !== false) return false;
+        if (!firstAnswer || this.pinnedStep || this.pageStart || this.state.core !== false) return false;
         var step = this.firstPending();
         if (step === this.step) return false;
         this.show(step);

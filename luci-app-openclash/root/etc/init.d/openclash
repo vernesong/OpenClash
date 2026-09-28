@@ -3736,7 +3736,7 @@ get_config()
    lan_ac_mode=$(uci_get_config "lan_ac_mode")
    enable_rule_proxy=$(uci_get_config "enable_rule_proxy")
    stack_type=$(uci_get_config "stack_type")
-   stack_type_v6=$(uci_get_config "stack_type_v6" || echo "system")
+   stack_type_v6=$(uci_get_config "stack_type_v6" || echo "mips")
    china_ip_route=$(uci_get_config "china_ip_route"); [[ "$china_ip_route" != "0" && "$china_ip_route" != "1" && "$china_ip_route" != "2" ]] && china_ip_route=0
    china_ip6_route=$(uci_get_config "china_ip6_route"); [[ "$china_ip6_route" != "0" && "$china_ip6_route" != "1" && "$china_ip6_route" != "2" ]] && china_ip6_route=0
    small_flash_memory=$(uci_get_config "small_flash_memory")
