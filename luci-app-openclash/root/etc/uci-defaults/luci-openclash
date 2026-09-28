@@ -225,8 +225,8 @@ if [ -f "/tmp/openclash.bak" ]; then
 	rm -rf "/etc/openclash/backup" >/dev/null 2>&1
 fi
 
-#oixCloud optional parameters were removed; the panel's Node Filter chooses the nodes.
-#Cleared after the restore above, which would otherwise bring the old keys back
+#oixCloud optional parameters were removed; the panel's Node Filter chooses the nodes
+#Cleared after the restore above, which would otherwise bring the old keys and files back
 uci -q delete openclash.config.oix_params
 uci -q delete openclash.config.oix_default_params
 uci -q commit openclash
