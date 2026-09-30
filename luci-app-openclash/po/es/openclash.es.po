@@ -5951,8 +5951,8 @@ msgstr "cambiar el enlace, el User-Agent o la conversión"
 msgid "counted since the core started"
 msgstr "contados desde que arrancó el núcleo"
 
-msgid "detected automatically, leave it alone"
-msgstr "se detecta automáticamente; no lo toques"
+msgid "detected automatically, cannot be changed"
+msgstr "se detecta automáticamente; no se puede cambiar"
 
 msgid "extra converter arguments, one per line"
 msgstr "argumentos extra del convertidor, uno por línea"
@@ -6110,8 +6110,8 @@ msgstr "Cuatro botones de un clic:"
 msgid "Four public IP lookup services, they show the exit address in use and verify the rules"
 msgstr "cuatro servicios de consulta de IP pública: muestran la IP de salida en uso y verifican las reglas"
 
-msgid "Keep the detected architecture and the default branch"
-msgstr "Mantén la arquitectura detectada y la rama por defecto"
+msgid "Pick the Compiled Version that matches this device, keep the default branch"
+msgstr "Elige la versión compilada que corresponda a este dispositivo y deja la rama por defecto"
 
 msgid "Latency to four sites, measured through the rules you are running:"
 msgstr "Latencia a cuatro sitios, medida con las reglas que usas:"
@@ -6448,3 +6448,45 @@ msgstr "activado, usa la dirección para acelerar las descargas de GitHub"
 
 msgid "Query Mode"
 msgstr "Modo de consulta"
+
+msgid "The bar above the config list shows what the selected subscription holds:"
+msgstr "La barra sobre la lista de configuraciones muestra el estado de la suscripción seleccionada:"
+
+msgid "the file being viewed, a dot marks the one in use"
+msgstr "el archivo que estás viendo; un punto marca el que está en uso"
+
+msgid "when the file was written the last time"
+msgstr "cuándo se escribió el archivo por última vez"
+
+msgid "used and total of the plan, with its expiry date"
+msgstr "usado y total del plan, con su fecha de caducidad"
+
+msgid "reads the numbers from the provider again"
+msgstr "vuelve a leer los datos del proveedor"
+
+msgid "points this config at another subscription link"
+msgstr "apunta esta configuración a otro enlace de suscripción"
+
+msgid "walks through the config files and previews each one"
+msgstr "recorre las configuraciones y previsualiza cada una"
+
+msgid "A plain YAML file only shows its name and the last modified time"
+msgstr "un YAML simple solo muestra su nombre y la última hora de modificación"
+
+msgid "Prev / Next"
+msgstr "Anterior / Siguiente"
+
+msgid "This tour sets OpenClash up first, then walks through the rest of the page"
+msgstr "Esta guía primero prepara OpenClash y después recorre el resto de la página"
+
+msgid "install or update the core"
+msgstr "instala o actualiza el núcleo"
+
+msgid "upload your own file or a subscription"
+msgstr "sube tu propio archivo o una suscripción"
+
+msgid "flip the switch and the plugin starts working"
+msgstr "activa el interruptor y el plugin empieza a funcionar"
+
+msgid "Use the buttons below or the arrow keys to step through, Esc ends the guide"
+msgstr "usa los botones o las teclas de flecha para avanzar; Esc termina la guía"

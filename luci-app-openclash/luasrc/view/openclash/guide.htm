@@ -40,10 +40,9 @@ var Guide = {
     // last region the callout was placed for, so the periodic layout can tell a real move from the
     // small shifts of a page that keeps updating its numbers
     lastHole: null,
-    state: { core: null, configs: [], current: '', running: false, update: null },
+    state: { core: null, configs: [], current: '', running: false, update: null, configLoaded: false },
     timer: null,
     layoutTimer: null,
-    autoTimer: null,
     anchorTimer: null,
     // last moment the caller scrolled something themselves: the periodic anchor keeps its hands off
     // for a moment after that instead of pulling the position back
@@ -65,10 +64,128 @@ var Guide = {
     pageStart: false,
     lastStepKey: '',
     lastStepGroup: '',
-    autoDone: {},
 
     // target: css selector, function returning an element, or null for a centred callout
     steps: [
+        {
+            key: 'intro',
+            title: '<%:Quick Start%>',
+            target: null,
+            wide: true,
+            body: function () {
+                return '<svg class="guide-cover" viewBox="0 0 320 84" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><rect class="cv-bg" x="0.5" y="0.5" width="319" height="83" rx="12"/><circle class="cv-ring" cx="64" cy="42" r="25"/><path class="cv-check" d="M50 42.5 l9 9 l18 -21"/><rect class="cv-line" x="112" y="20" width="132" height="8" rx="4"/><rect class="cv-line cv-faint" x="112" y="38" width="106" height="8" rx="4"/><rect class="cv-line cv-faint" x="112" y="56" width="78" height="8" rx="4"/><path class="cv-spark" d="M262 22 l0 10 M257 27 l10 0"/><path class="cv-spark" d="M290 50 l0 8 M286 54 l8 0"/><circle class="cv-dot" cx="252" cy="56" r="3"/><circle class="cv-dot cv-faint" cx="270" cy="66" r="3"/></svg>'
+                    + '<p><%:This tour sets OpenClash up first, then walks through the rest of the page%></p>'
+                    + '<ul>'
+                    + '<li><b><%:Check Update%></b><span class="guide-sep"></span><%:install or update the core%></li>'
+                    + '<li><b><%:Add a config file%></b><span class="guide-sep"></span><%:upload your own file or a subscription%></li>'
+                    + '<li><b><%:Start OpenClash%></b><span class="guide-sep"></span><%:flip the switch and the plugin starts working%></li>'
+                    + '</ul>'
+                    + '<p class="guide-info"><%:Use the buttons below or the arrow keys to step through, Esc ends the guide%></p>';
+            }
+        },
+        {
+            key: 'core',
+            title: '<%:Check Update%>',
+            target: '#_one_key_update_btn',
+            place: 'top',
+            wide: true,
+            priority: 1,
+            entry: 'update',
+            done: function (s) { return s.core === true; },
+            body: function () {
+                return '<p><%:One press checks for updates and opens this window%></p>'
+                    + '<p class="guide-tip"><%:“Open and continue” opens this window and walks you through it%></p>'
+                    + '<p class="guide-info" id="guide-arch"></p>';
+            }
+        },
+        {
+            key: 'fileactions',
+            title: '<%:Config actions%>',
+            target: '.config-file-bottom .card-actions',
+            place: 'top',
+            done: function (s) { return !!s.current; },
+            body: function () {
+                return '<p><%:Five buttons next to the list:%></p>'
+                    + '<ul>'
+                    + '<li><b><%:Switch%></b><span class="guide-sep"></span><%:apply the selected config and restart OpenClash%></li>'
+                    + '<li><b><%:Update%></b><span class="guide-sep"></span><%:download the subscription again%></li>'
+                    + '<li><b><%:Edit%></b><span class="guide-sep"></span><%:open this config in the editor%></li>'
+                    + '<li><b><%:Edit Subscription%></b><span class="guide-sep"></span><%:change the link, the User-Agent or the conversion%></li>'
+                    + '<li><b><%:Add%></b><span class="guide-sep"></span><%:add a config file or a subscription%></li>'
+                    + '</ul>';
+            }
+        },
+        {
+            key: 'config',
+            title: '<%:Add a config file%>',
+            target: function () {
+                var big = document.getElementById('upload_config_large');
+                if (big && big.offsetParent) return big;
+                return document.getElementById('upload_config');
+            },
+            place: 'top',
+            priority: 2,
+            entry: 'upload',
+            done: function (s) { return s.configs.length > 0; },
+            body: function () {
+                return '<p><%:A config holds your proxies, groups and rules, this is the step that gets OpenClash working%><span class="guide-tag req"><%:Required%></span></p>'
+                    + '<p class="guide-tip"><%:“Open and continue” opens this window and walks you through it%></p>';
+            }
+        },
+        {
+            key: 'select',
+            title: '<%:Select and switch the config%>',
+            target: '#config_file_select',
+            holeTo: '#switch_config',
+            place: 'top',
+            priority: 3,
+            done: function (s) { return !!s.current; },
+            body: function () {
+                return '<p><%:Pick a config from the list, then press the button beside it to apply it%><span class="guide-tag req"><%:Required%></span></p>'
+                    + '<p class="guide-info"><%:Only one config runs at a time, switching restarts OpenClash%></p>'
+                    + '<p class="guide-note" id="guide-config-note"></p>';
+            }
+        },
+        {
+            key: 'subscription',
+            title: '<%:Subscription Info%>',
+            target: '#subscription-info-display',
+            place: 'bottom',
+            wide: true,
+            when: function () {
+                var el = document.getElementById('subscription-info-display');
+                return !!(el && !el.classList.contains('oc-hidden') && (el.offsetWidth || el.offsetHeight));
+            },
+            body: function () {
+                return '<p><%:The bar above the config list shows what the selected subscription holds:%></p>'
+                    + '<ul>'
+                    + '<li><b><%:Config Name%></b><span class="guide-sep"></span><%:the file being viewed, a dot marks the one in use%></li>'
+                    + '<li><b><%:Modified%></b><span class="guide-sep"></span><%:when the file was written the last time%></li>'
+                    + '<li><b><%:Traffic%></b><span class="guide-sep"></span><%:used and total of the plan, with its expiry date%></li>'
+                    + '<li><b><%:Refresh%></b><span class="guide-sep"></span><%:reads the numbers from the provider again%></li>'
+                    + '<li><b><%:Specify URL%></b><span class="guide-sep"></span><%:points this config at another subscription link%></li>'
+                    + '<li><b><%:Prev / Next%></b><span class="guide-sep"></span><%:walks through the config files and previews each one%></li>'
+                    + '</ul>'
+                    + '<p class="guide-info"><%:A plain YAML file only shows its name and the last modified time%></p>';
+            }
+        },
+        {
+            key: 'start',
+            title: '<%:Start OpenClash%>',
+            target: '.core-status-toggle',
+            // the restart button sits right next to the switch, so the hole covers both
+            holeTo: '#restart_core',
+            place: 'bottom',
+            priority: 4,
+            done: function (s) { return s.running; },
+            body: function () {
+                return '<p><%:Turn this switch on and OpenClash starts working%></p>'
+                    + '<p><b><%:Start%></b><span class="guide-sep"></span><%:the switch starts and stops the plugin, the button beside it restarts OpenClash%><span class="guide-tag req"><%:Required%></span></p>'
+                    + '<p class="guide-info"><%:The first start may download missing GEO data and external rule sets, make sure the network is reachable%></p>'
+                    + '<p class="guide-tip"><%:Restart OpenClash after changing a config or a module%></p>'
+                    + '<p class="guide-note" id="guide-run-state"></p>';
+            }
+        },
         {
             key: 'nav',
             title: '<%:Page navigation%>',
@@ -192,69 +309,6 @@ var Guide = {
             }
         },
         {
-            key: 'core',
-            title: '<%:Check Update%>',
-            target: '#_one_key_update_btn',
-            place: 'top',
-            wide: true,
-            priority: 1,
-            entry: 'update',
-            done: function (s) { return s.core === true; },
-            body: function () {
-                return '<p><%:One press checks for updates and opens this window%></p>'
-                    + '<p class="guide-tip"><%:“Open and continue” opens this window and walks you through it%></p>'
-                    + '<p class="guide-info" id="guide-arch"></p>';
-            }
-        },
-        {
-            key: 'config',
-            title: '<%:Add a config file%>',
-            target: function () {
-                var big = document.getElementById('upload_config_large');
-                if (big && big.offsetParent) return big;
-                return document.getElementById('upload_config');
-            },
-            place: 'top',
-            priority: 2,
-            entry: 'upload',
-            done: function (s) { return s.configs.length > 0; },
-            body: function () {
-                return '<p><%:A config holds your proxies, groups and rules, this is the step that gets OpenClash working%><span class="guide-tag req"><%:Required%></span></p>'
-                    + '<p class="guide-tip"><%:“Open and continue” opens this window and walks you through it%></p>';
-            }
-        },
-        {
-            key: 'select',
-            title: '<%:Select and switch the config%>',
-            target: '#config_file_select',
-            holeTo: '#switch_config',
-            place: 'top',
-            priority: 3,
-            done: function (s) { return !!s.current; },
-            body: function () {
-                return '<p><%:Pick a config from the list, then press the button beside it to apply it%><span class="guide-tag req"><%:Required%></span></p>'
-                    + '<p class="guide-info"><%:Only one config runs at a time, switching restarts OpenClash%></p>'
-                    + '<p class="guide-note" id="guide-config-note"></p>';
-            }
-        },
-        {
-            key: 'fileactions',
-            title: '<%:Config actions%>',
-            target: '.config-file-bottom .card-actions',
-            place: 'top',
-            done: function (s) { return !!s.current; },
-            body: function () {
-                return '<p><%:Five buttons next to the list:%></p>'
-                    + '<ul>'
-                    + '<li><b><%:Switch%></b><span class="guide-sep"></span><%:apply the selected config and restart OpenClash%></li>'
-                    + '<li><b><%:Update%></b><span class="guide-sep"></span><%:download the subscription again%></li>'
-                    + '<li><b><%:Edit%></b><span class="guide-sep"></span><%:open this config in the editor%></li>'
-                    + '<li><b><%:Edit Subscription%></b><span class="guide-sep"></span><%:change the link, the User-Agent or the conversion%></li>'
-                    + '<li><b><%:Add%></b><span class="guide-sep"></span><%:add a config file or a subscription%></li>'
-                    + '</ul>';
-            }
-        },
-        {
             key: 'stats',
             title: '<%:Statistics%>',
             target: '.stats-section',
@@ -321,23 +375,6 @@ var Guide = {
                     + '<li><b><%:Query Mode%></b><span class="guide-sep"></span><%:starts the check from the router or from the current browser%></li>'
                     + '<li><b><%:Refresh%></b><span class="guide-sep"></span><%:query addresses and latency again%></li>'
                     + '</ul>';
-            }
-        },
-        {
-            key: 'start',
-            title: '<%:Start OpenClash%>',
-            target: '.core-status-toggle',
-            // the restart button sits right next to the switch, so the hole covers both
-            holeTo: '#restart_core',
-            place: 'bottom',
-            priority: 4,
-            done: function (s) { return s.running; },
-            body: function () {
-                return '<p><%:Turn this switch on and OpenClash starts working%></p>'
-                    + '<p><b><%:Start%></b><span class="guide-sep"></span><%:the switch starts and stops the plugin, the button beside it restarts OpenClash%><span class="guide-tag req"><%:Required%></span></p>'
-                    + '<p class="guide-info"><%:The first start may download missing GEO data and external rule sets, make sure the network is reachable%></p>'
-                    + '<p class="guide-tip"><%:Restart OpenClash after changing a config or a module%></p>'
-                    + '<p class="guide-note" id="guide-run-state"></p>';
             }
         },
         {
@@ -777,12 +814,12 @@ var Guide = {
             body: function () {
                 return '<p><%:Four options decide what gets installed:%></p>'
                     + '<ul>'
-                    + '<li><b><%:CPU Arch%></b><span class="guide-sep"></span><%:detected automatically, leave it alone%><span class="guide-tag req"><%:Required%></span></li>'
-                    + '<li><b><%:Compiled Version%></b><span class="guide-sep"></span><%:the core package for your device%></li>'
+                    + '<li><b><%:CPU Arch%></b><span class="guide-sep"></span><%:detected automatically, cannot be changed%></li>'
+                    + '<li><b><%:Compiled Version%></b><span class="guide-sep"></span><%:the core package for your device%><span class="guide-tag req"><%:Required%></span></li>'
                     + '<li><b><%:Release Branch%></b><span class="guide-sep"></span><%:which release line to follow, the default is fine%><span class="guide-tag opt"><%:Optional%></span></li>'
                     + '<li><b><%:Smart Core%></b><span class="guide-sep"></span><%:Smart groups score nodes by latency and loss%><span class="guide-tag opt"><%:Optional%></span></li>'
                     + '</ul>'
-                    + '<p class="guide-careful"><%:Keep the detected architecture and the default branch%></p>';
+                    + '<p class="guide-careful"><%:Pick the Compiled Version that matches this device, keep the default branch%></p>';
             }
         },
         {
@@ -855,9 +892,8 @@ var Guide = {
     refresh: function (force) {
         var self = this;
         this.get(this.urls.check_core, null, function (d) {
-            var first = (self.state.core === null);
             self.state.core = d ? String(d.core_status) === '1' : null;
-            self.pickStart(first);
+            self.pickStart();
             self.render();
         }, true);
         this.get(this.urls.update, null, function (d) {
@@ -871,6 +907,8 @@ var Guide = {
         this.get(this.urls.config_file_list, force ? { fingerprint: '' } : null, function (d) {
             self.state.configs = (d && d.config_files) || [];
             self.state.current = (d && d.current_config) || '';
+            if (d) self.state.configLoaded = true;
+            self.pickStart();
             self.render();
         }, true);
     },
@@ -881,13 +919,13 @@ var Guide = {
             core: s.core === true,
             config: s.configs.length > 0,
             select: !!s.current,
+            fileactions: !!s.current,
             start: s.running
         };
     },
 
     start: function (atPending) {
         this.running = true;
-        this.autoDone = {};
         this.leftGroup = '';
         this.lastStepInAdd = false;
         this.pendingEntry = null;
@@ -921,8 +959,10 @@ var Guide = {
                 self.layout();
             }, 400);
         }
-        // a tour opened for a task the device still needs starts on that task right away, no other step flashes by
-        this.show((atPending === true || (!this.pageStart && this.state.core === false)) ? this.firstPending() : 0);
+        // a device with a known missing task lands on it instead of flashing the first page
+        var missing = this.state.core === false
+            || (this.state.core === true && this.state.configLoaded && this.state.configs.length === 0);
+        this.show((atPending === true || (!this.pageStart && missing)) ? this.firstPending() : 0);
         var floatBtn = document.getElementById('guide-float');
         if (floatBtn) floatBtn.classList.remove('beacon');
         return false;
@@ -949,10 +989,6 @@ var Guide = {
             clearInterval(this.timer);
             this.timer = null;
         }
-        if (this.autoTimer) {
-            clearTimeout(this.autoTimer);
-            this.autoTimer = null;
-        }
         if (this.anchorTimer) {
             clearInterval(this.anchorTimer);
             this.anchorTimer = null;
@@ -978,7 +1014,7 @@ var Guide = {
 
     finish: function () { return this.close(); },
 
-    // a missing core outranks the order the steps are listed in, the pending task with the lowest priority wins
+    // the task a device still needs with the lowest priority wins: the core first, then the config
     firstPending: function () {
         var done = this.doneMap();
         var best = -1;
@@ -995,9 +1031,13 @@ var Guide = {
         return best < 0 ? 0 : best;
     },
 
-    // a core that is not installed yet outranks the page order, the tour moves to that task as soon as the answer is in
-    pickStart: function (firstAnswer) {
-        if (!firstAnswer || this.pinnedStep || this.pageStart || this.state.core !== false) return false;
+    // lands on the task this device still needs (core, then config) unless the reader moved first
+    pickStart: function () {
+        if (this.pinnedStep || this.pageStart) return false;
+        var s = this.state;
+        var missing = (s.core === false)
+            || (s.core === true && s.configLoaded && s.configs.length === 0);
+        if (!missing) return false;
         var step = this.firstPending();
         if (step === this.step) return false;
         this.show(step);
@@ -1213,10 +1253,6 @@ var Guide = {
         this.sheetHeight = 0;
         this.sheetSide = null;
         this.sheetMoves = 0;
-        if (this.autoTimer) {
-            clearTimeout(this.autoTimer);
-            this.autoTimer = null;
-        }
         if (this.anchorTimer) {
             clearInterval(this.anchorTimer);
             this.anchorTimer = null;
@@ -1284,10 +1320,18 @@ var Guide = {
         };
         if (!moves && !scrollTo()) reveal();
         // the page keeps re-rendering and dialogs need a moment to appear, so keep re-anchoring for a while
+        this.startAnchor(step);
+        return false;
+    },
+
+    // keeps the callout glued to its region and pulls a target the reader scrolled away back into view
+    startAnchor: function (step) {
+        if (this.anchorTimer) return;
+        var self = this;
         var ticks = 0;
         this.anchorTimer = setInterval(function () {
             ticks++;
-            if (!self.running || ticks > 16) {
+            if (!self.running) {
                 clearInterval(self.anchorTimer);
                 self.anchorTimer = null;
                 return;
@@ -1295,12 +1339,32 @@ var Guide = {
             // nothing is touched while a glide runs, or the page and the callout would fight over the position
             if (self.gliding) return;
             if (Date.now() - (self.userScroll || 0) < 900) return;
+            if (self.targetVisible(step) === false) {
+                // the region is off screen: keep pulling it back so the arrow has something to point at
+                ticks = 0;
+                var back = self.freeScrollOffset(step, false, self.stepAlign);
+                if (back !== null) self.glide(window.scrollY + back);
+                self.layout();
+                return;
+            }
+            if (ticks > 16) {
+                clearInterval(self.anchorTimer);
+                self.anchorTimer = null;
+                return;
+            }
             self.anchorBox(step, true);
             var offset = self.freeScrollOffset(step, true, self.stepAlign);
             if (offset !== null) self.glide(window.scrollY + offset);
             self.layout();
         }, 150);
-        return false;
+    },
+
+    targetVisible: function (step) {
+        var el = this.resolveTarget(step.target);
+        if (!el) return null;
+        var r = this.stepRect(step, el);
+        var vh = document.documentElement.clientHeight;
+        return r.bottom > 12 && r.top < vh - 12;
     },
 
     scrollBox: function (el) {
@@ -1472,12 +1536,12 @@ var Guide = {
         return this.show(this.step - 1, -1);
     },
 
-    next: function (auto) {
+    next: function () {
         this.pinnedStep = true;
         var steps = this.groupSteps();
         var step = steps[this.step];
         // an entrance step opens its window whenever it is not on screen, so a closed one can be reopened
-        if (!auto && step && step.entry && !this.entryVisible(step.entry)) {
+        if (step && step.entry && !this.entryVisible(step.entry)) {
             // only a window the overview tour opened is closed again when the tour moves on
             if (this.group === 'main') {
                 this.autoOpened = step.key;
@@ -1489,7 +1553,7 @@ var Guide = {
             return false;
         }
         // a step that points at the other tab switches to it on the same press
-        if (!auto && step && step.switchTo && !this.tabActive(step.switchTo)) {
+        if (step && step.switchTo && !this.tabActive(step.switchTo)) {
             this.clickTab(step.switchTo);
             var open = this.visibleDialog();
             // the other tab is a group of its own and the tour follows the window there; a tab inside
@@ -1573,11 +1637,12 @@ var Guide = {
         pop.style.width = '';
         this.popBaseW = 0;
         pop.innerHTML = html;
+        // a rebuilt callout has unplaced parts, so the next layout must place this step afresh
+        this.lastHole = null;
         var newBody = pop.querySelector('.guide-pop-body');
         if (keepScroll && newBody) newBody.scrollTop = keepScroll;
         this.fitFooter(pop);
         this.scrollDots();
-        pop.onclick = function () { Guide.cancelAuto(); };
         this.renderDynamic();
         this.focusCallout();
         this.announce();
@@ -1777,8 +1842,8 @@ var Guide = {
             return;
         }
         document.getElementById('guide-tour').classList.remove('full-dim');
+        // the arrow belongs to the placement paths, a plain layout pass leaves it exactly as it is
         var arrowEl = pop.querySelector('.guide-arrow');
-        if (arrowEl) arrowEl.style.display = '';
         pop.classList.remove('center');
 
         var r = this.stepRect(step, el);
@@ -2004,7 +2069,8 @@ var Guide = {
         this.setBox(pop, chosen.top, chosen.left, null, null);
         this.fitFooter(pop);
         if (!arrow) return;
-        if (chosen.side === 'left' || chosen.side === 'right') {
+        // an arrow only makes sense while the region it would point at is on screen
+        if (chosen.side === 'left' || chosen.side === 'right' || !(r.bottom > 12 && r.top < vh - 12)) {
             arrow.style.display = 'none';
             return;
         }
@@ -2159,7 +2225,7 @@ var Guide = {
             for (var i = 0; i < this.steps.length; i++) {
                 if (done[this.steps[i].key]) ok++;
             }
-            this.setHtml(summary, (ok === 4)
+            this.setHtml(summary, (ok === 5)
                 ? '<%:Setup finished: the core is installed, a config is selected and OpenClash is running%>'
                 : '<%:Some steps are still pending, you can reopen this guide and continue from there%>');
         }
@@ -2170,31 +2236,6 @@ var Guide = {
     render: function () {
         if (!this.running) return;
         this.renderDynamic();
-        this.autoAdvance();
-    },
-
-    autoAdvance: function () {
-        if (this.group !== 'main') return;
-        var step = this.steps[this.step];
-        if (!step.done || this.autoDone[step.key]) return;
-        if (!step.done(this.state)) return;
-        this.autoDone[step.key] = true;
-        var self = this;
-        this.autoTimer = setTimeout(function () {
-            self.autoTimer = null;
-            if (self.running && self.group === 'main' && self.steps[self.step] === step) self.next(true);
-        }, 2000);
-    },
-
-    // touching the callout means the user is reading or working on this step, stop moving on
-    cancelAuto: function () {
-        if (this.autoTimer) {
-            clearTimeout(this.autoTimer);
-            this.autoTimer = null;
-        }
-        if (this.group === 'main' && this.steps[this.step]) {
-            this.autoDone[this.steps[this.step].key] = true;
-        }
     },
 
     setAutostart: function (on) {
@@ -2219,8 +2260,11 @@ var Guide = {
         };
         window.addEventListener('scroll', onMove, true);
         window.addEventListener('resize', onMove);
-        // a wheel, a touch drag or a grab on a scrollbar is the caller scrolling: the anchor steps aside briefly
-        var onUserScroll = function () { Guide.userScroll = Date.now(); };
+        // user scrolling: the anchor steps aside briefly, then wakes to follow the target again
+        var onUserScroll = function () {
+            Guide.userScroll = Date.now();
+            if (Guide.running) Guide.startAnchor(Guide.groupSteps()[Guide.step]);
+        };
         window.addEventListener('wheel', onUserScroll, true);
         window.addEventListener('touchmove', onUserScroll, true);
         window.addEventListener('mousedown', onUserScroll, true);

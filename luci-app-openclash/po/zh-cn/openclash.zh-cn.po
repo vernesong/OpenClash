@@ -5916,8 +5916,8 @@ msgstr "改链接、User-Agent 或转换设置"
 msgid "counted since the core started"
 msgstr "从内核启动算起"
 
-msgid "detected automatically, leave it alone"
-msgstr "自动识别，别动它"
+msgid "detected automatically, cannot be changed"
+msgstr "自动识别，不可修改"
 
 msgid "extra converter arguments, one per line"
 msgstr "额外的转换参数，每行一条"
@@ -6075,8 +6075,8 @@ msgstr "四个一键按钮："
 msgid "Four public IP lookup services, they show the exit address in use and verify the rules"
 msgstr "四个公网 IP 查询服务，反映当前环境下各个出口 IP 地址，验证分流效果"
 
-msgid "Keep the detected architecture and the default branch"
-msgstr "保持探测到的架构和默认分支就行"
+msgid "Pick the Compiled Version that matches this device, keep the default branch"
+msgstr "选择与本机匹配的编译版本，分支保持默认即可"
 
 msgid "Latency to four sites, measured through the rules you are running:"
 msgstr "四个网站的延迟，走的是当前规则："
@@ -6410,3 +6410,45 @@ msgstr "使用该地址加速 GitHub 资源的下载"
 
 msgid "Query Mode"
 msgstr "查询模式"
+
+msgid "The bar above the config list shows what the selected subscription holds:"
+msgstr "列表上方这条信息栏展示当前订阅的状态："
+
+msgid "the file being viewed, a dot marks the one in use"
+msgstr "正在查看的文件，圆点表示它是当前运行的配置"
+
+msgid "when the file was written the last time"
+msgstr "文件最后一次写入的时间"
+
+msgid "used and total of the plan, with its expiry date"
+msgstr "套餐的已用与总量，以及到期时间"
+
+msgid "reads the numbers from the provider again"
+msgstr "重新从服务商读取订阅数据"
+
+msgid "points this config at another subscription link"
+msgstr "为这个配置更换订阅链接"
+
+msgid "walks through the config files and previews each one"
+msgstr "逐个切换配置文件并预览各自的信息"
+
+msgid "A plain YAML file only shows its name and the last modified time"
+msgstr "普通 YAML 文件只显示名称和最后修改时间"
+
+msgid "Prev / Next"
+msgstr "上一个 / 下一个"
+
+msgid "This tour sets OpenClash up first, then walks through the rest of the page"
+msgstr "引导会先带你完成 OpenClash 的必要设置，再介绍页面其他功能"
+
+msgid "install or update the core"
+msgstr "安装或更新内核"
+
+msgid "upload your own file or a subscription"
+msgstr "上传自己的配置文件或订阅"
+
+msgid "flip the switch and the plugin starts working"
+msgstr "打开开关让插件开始工作"
+
+msgid "Use the buttons below or the arrow keys to step through, Esc ends the guide"
+msgstr "用下方按钮或键盘方向键翻页，Esc 结束引导"

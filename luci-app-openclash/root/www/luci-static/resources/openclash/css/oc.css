@@ -8232,6 +8232,15 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
     list-style: decimal;
 }
 
+/* the log.htm section resets list markers on every item (this beats the ul), restore them here */
+.oc .guide-pop-body ul li {
+    list-style: disc;
+}
+
+.oc .guide-pop-body ol li {
+    list-style: decimal;
+}
+
 .oc .guide-pop-body li {
     margin: 0;
     padding: 5px 0;
@@ -8382,6 +8391,9 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
 
 .oc .guide-pop .guide-arrow {
     position: absolute;
+    /* keeps a freshly rebuilt arrow off the title until the script places it */
+    top: -6px;
+    left: 32px;
     width: 12px;
     height: 12px;
     background: var(--bg-white);
@@ -8714,6 +8726,11 @@ html[data-darkmode=true] .oc .guide-dots i.done {
 html[data-darkmode=true] .oc .guide-dots i.on {
     background: var(--primary-color);
     box-shadow: 0 0 0 2px rgba(147, 197, 253, 0.22);
+}
+
+/* dims the callout's grey blocks on the dark panel so the text on them stays readable */
+html[data-darkmode=true] .oc .guide-pop-body {
+    --bg-gray: rgba(148, 163, 184, 0.12);
 }
 
 html[data-darkmode=true] .oc .guide-pop-body code {
