@@ -2889,6 +2889,158 @@ html[data-darkmode="true"] .oc svg {
     color: var(--error-color);
 }
 
+.subconverter-source-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    margin: 4px 0 0;
+    overflow: visible;
+    border-radius: 0;
+}
+
+.subconverter-source-editor.is-raw {
+    margin-bottom: 12px;
+}
+
+.subconverter-source-raw[hidden],
+.subconverter-source-editor[hidden],
+.subconverter-source-editor [hidden] {
+    display: none !important;
+}
+
+.subconverter-source-raw[hidden] + br {
+    display: none !important;
+}
+
+.subconverter-source-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.subconverter-source-field > span {
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.subconverter-source-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.subconverter-source-item {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    padding: 8px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-medium, 6px);
+    background: var(--bg-light);
+}
+
+.subconverter-source-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.subconverter-source-index {
+    flex: none;
+    min-width: 1.5em;
+    text-align: center;
+    font-weight: 600;
+}
+
+.subconverter-source-editor input.subconverter-source-url {
+    flex: 1 1 12rem;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    color: inherit !important;
+}
+
+.subconverter-source-editor input.subconverter-source-url::placeholder {
+    color: inherit;
+    opacity: 1;
+}
+
+.subconverter-source-row-actions {
+    display: flex;
+    align-items: center;
+    flex: none;
+    gap: 6px;
+    margin-left: auto;
+}
+
+.subconverter-source-details {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-light);
+}
+
+.subconverter-source-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+}
+
+.subconverter-source-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.subconverter-source-field input,
+.subconverter-source-field select,
+.subconverter-source-import textarea {
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.subconverter-source-editor .subconverter-source-field input,
+.subconverter-source-editor .subconverter-source-field select {
+    min-width: 0;
+    max-width: 100%;
+    color: inherit !important;
+}
+
+.subconverter-source-editor .subconverter-source-field input::placeholder {
+    color: inherit;
+    opacity: 1;
+}
+
+.subconverter-source-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
+.subconverter-source-import {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.subconverter-source-message {
+    color: var(--error-color);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.subconverter-source-message.is-fallback {
+    color: var(--tip-color);
+}
+
+@media (max-width: 600px) {
+    .subconverter-source-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 [data-page^="admin-services-openclash-config-subscribe-edit"] #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node[id^="cbi-openclash-"] {
     padding-top: 14px;
 }

@@ -136,6 +136,17 @@ ocGuard: { if (window.ocSubconverterLoaded) break ocGuard; window.ocSubconverter
 		return text;
 	}
 
+	function classifyVersionText(text) {
+		text = String(text || '').trim();
+		if (/^SubConverter-Extended\s+\S+\s+backend$/i.test(text)) {
+			return 'subconverter-extended';
+		}
+		if (/^subconverter\s+\S+(?:\s+.*)?\s+backend$/i.test(text)) {
+			return 'subconverter';
+		}
+		return 'unknown';
+	}
+
 	function fetchDirectVersion(versionURL, timeoutMs, signal) {
 		var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
 		var timeoutId;
@@ -171,8 +182,8 @@ ocGuard: { if (window.ocSubconverterLoaded) break ocGuard; window.ocSubconverter
 		}).then(function(text) {
 			if (timeoutId) window.clearTimeout(timeoutId);
 			var version = sanitizeVersionText(text);
-			if (!version) return { state: 'unrecognized', text: '' };
-			return { state: 'success', text: version };
+			if (!version) return { state: 'unrecognized', text: '', family: 'unknown' };
+			return { state: 'success', text: version, family: classifyVersionText(version) };
 		}).catch(function(error) {
 			if (timeoutId) window.clearTimeout(timeoutId);
 			if (signal && signal.aborted) return { state: 'aborted', text: '' };
@@ -215,9 +226,9 @@ ocGuard: { if (window.ocSubconverterLoaded) break ocGuard; window.ocSubconverter
 			if (timeoutId) window.clearTimeout(timeoutId);
 			if (data && data.status === 'success') {
 				var version = sanitizeVersionText(data.version || '');
-				if (version) return { state: 'success', text: version };
+				if (version) return { state: 'success', text: version, family: classifyVersionText(version) };
 			}
-			if (data && data.status === 'unrecognized') return { state: 'unrecognized', text: '' };
+			if (data && data.status === 'unrecognized') return { state: 'unrecognized', text: '', family: 'unknown' };
 			throw new Error((data && data.message) || 'Proxy request failed');
 		}).catch(function(error) {
 			if (timeoutId) window.clearTimeout(timeoutId);
@@ -271,9 +282,12 @@ ocGuard: { if (window.ocSubconverterLoaded) break ocGuard; window.ocSubconverter
 		var timeoutMs = typeof options.timeoutMs === 'number' ? options.timeoutMs : 6000;
 		var cacheMs = typeof options.cacheMs === 'number' ? options.cacheMs : 60000;
 		var proxyURL = options.proxyURL || '';
+		var onResult = typeof options.onResult === 'function' ? options.onResult : function() {};
+		var onSelectionChange = typeof options.onSelectionChange === 'function' ? options.onSelectionChange : function() {};
 		var debounceTimer = null;
 		var activeController = null;
 		var requestId = 0;
+		var lastSelected = null;
 
 		if (!selectEl || !statusEl) {
 			return {
@@ -293,25 +307,46 @@ ocGuard: { if (window.ocSubconverterLoaded) break ocGuard; window.ocSubconverter
 			return !enableEl || !!enableEl.checked;
 		}
 
+		function notify(state, text, family) {
+			onResult({
+				state: state,
+				text: text || '',
+				family: family || 'unknown'
+			});
+		}
+
 		function run() {
 			window.clearTimeout(debounceTimer);
 			refreshTargets();
+			if (activeController) activeController.abort();
+			activeController = null;
+			var currentRequestId = ++requestId;
 
 			if (!enabled()) {
 				hideStatus(statusEl);
+				notify('disabled', '', 'unknown');
 				return;
 			}
 
 			var selected = getSelectedBackend(selectEl, customInputEl);
+			if (lastSelected === null) {
+				lastSelected = selected;
+			} else if (selected !== lastSelected) {
+				var previousSelected = lastSelected;
+				lastSelected = selected;
+				onSelectionChange(selected, previousSelected);
+			}
 			var normalized = normalizeBackendURL(selected);
 
 			if (normalized.error === 'empty') {
 				renderStatus(statusEl, 'empty', labels.empty, labels);
+				notify('empty', '', 'unknown');
 				return;
 			}
 
 			if (normalized.error === 'invalid') {
 				renderStatus(statusEl, 'error', labels.invalid, labels);
+				notify('error', '', 'unknown');
 				return;
 			}
 
@@ -320,14 +355,14 @@ ocGuard: { if (window.ocSubconverterLoaded) break ocGuard; window.ocSubconverter
 			var cached = cache[cacheKey];
 			if (cached && now - cached.time < cacheMs) {
 				renderStatus(statusEl, cached.state, cached.message, labels);
+				notify(cached.state, cached.message, cached.family);
 				return;
 			}
 
-			if (activeController) activeController.abort();
 			activeController = typeof AbortController !== 'undefined' ? new AbortController() : null;
-			var currentRequestId = ++requestId;
 
 			renderStatus(statusEl, 'checking', labels.checking, labels);
+			notify('checking', '', 'unknown');
 
 			fetchVersionCandidates(normalized.versionURLs, timeoutMs, activeController ? activeController.signal : null, proxyURL).then(function(result) {
 				if (currentRequestId !== requestId || result.state === 'aborted') return;
@@ -338,12 +373,15 @@ ocGuard: { if (window.ocSubconverterLoaded) break ocGuard; window.ocSubconverter
 				cache[cacheKey] = {
 					time: Date.now(),
 					state: state,
-					message: message
+					message: message,
+					family: result.family || 'unknown'
 				};
 				renderStatus(statusEl, state, message, labels);
+				notify(state, message, result.family);
 			}).catch(function() {
 				if (currentRequestId !== requestId) return;
 				renderStatus(statusEl, 'error', labels.failed, labels);
+				notify('error', '', 'unknown');
 			});
 		}
 
@@ -377,7 +415,9 @@ ocGuard: { if (window.ocSubconverterLoaded) break ocGuard; window.ocSubconverter
 			update: run,
 			schedule: schedule,
 			hide: function() {
+				++requestId;
 				if (activeController) activeController.abort();
+				activeController = null;
 				hideStatus(statusEl);
 			}
 		};
@@ -385,6 +425,7 @@ ocGuard: { if (window.ocSubconverterLoaded) break ocGuard; window.ocSubconverter
 
 	window.OpenClashSubconverterVersion = {
 		init: init,
-		normalizeBackendURL: normalizeBackendURL
+		normalizeBackendURL: normalizeBackendURL,
+		classifyVersionText: classifyVersionText
 	};
 })(window, document);
