@@ -318,7 +318,7 @@ cat >> "$DEBUG_LOG" <<-EOF
 | 绕过中国大陆IP | $(ts_cf "$china_ip_route") |
 | 中国大陆域名数据源 | $china_ip_route_domain_source |
 | 路由本机代理 | $(ts_cf "$router_self_proxy") |
-| TUN堆栈类型 | ${stack_type:-system} |
+| TUN堆栈类型 | ${stack_type:-mips} |
 | 启动延迟 | ${delay_start:-0}秒 |
 | 日志大小 | ${log_size:-1024}KB |
 | 旁路由兼容 | $(ts_cf "$bypass_gateway_compatible") |

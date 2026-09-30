@@ -3923,6 +3923,12 @@ msgstr "Archivo de configuración fuera de /etc/openclash, ignorado"
 msgid "skip config file with unsafe path"
 msgstr "Ruta del archivo de configuración no segura, ignorado"
 
+msgid "skip download file outside /etc/openclash or /tmp"
+msgstr "Archivo de descarga fuera de /etc/openclash o /tmp, ignorado"
+
+msgid "skip download file with unsafe path"
+msgstr "Ruta del archivo de descarga no segura, ignorado"
+
 msgid "skip hidden config file"
 msgstr "Archivo de configuración oculto, ignorado"
 

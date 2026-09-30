@@ -38,7 +38,7 @@
 > 3. **信息获取路径**：本章节未覆盖的细节按以下优先级查阅——
 >    - 覆写文件格式/操作符/示例 → 本章节（§16.2 格式说明、§16.2.3 操作符、`17-overwrite-module-examples.md` §17.3 实战示例）
 >    - Mihomo YAML 字段含义/用法 → [Mihomo 配置文档](https://wiki.metacubex.one/config/)
->    - 覆写执行机制/排序/脚本逻辑 → [OpenClash 源码](https://github.com/vernesong/OpenClash/tree/dev) 中 `init.d/openclash` 的 `overwrite_file()` 函数和 `/tmp/yaml_overwrite.sh` 生成逻辑
+>    - 覆写执行机制/排序/脚本逻辑 → [OpenClash 源码](https://github.com/vernesong/OpenClash/tree/dev) 中 `init.d/openclash` 的 `overwrite_file()`（清单生成）与 `YAML.rb` 的 `overwrite_run()`/`overwrite_run_custom()`（解析执行）
 >
 > 4. **覆写执行模型（理解即可，回答时按需引用）**：覆写分两阶段执行——
 >    `[General]` 段在 `yml_change.sh` **之前**写入 UCI（可影响其行为）；
@@ -83,7 +83,7 @@
 **⑤ 原理（生效机制）**
 - 覆写文件落盘 `/etc/openclash/overwrite/<名称>`，并注册到 UCI `openclash.config_overwrite`（按 order 排序、config 匹配当前配置）。
 - **顺序语义**：列表栏按 order **升序**自上而下显示，内核按 order **降序**执行 ⇒ **列表越靠上的模块越晚合并、优先级越高**（可覆盖其下方模块的输出）。
-- **插件启动/重启**时 `overwrite_file()`（`init.d/openclash` 的 `start_service`，紧随 `check_run_quick` 之后）按段头解析：`[General]` 提前写入 UCI（影响 `yml_change.sh` 行为）；`[Overwrite]`/`[YAML]` 生成 `/tmp/yaml_overwrite.sh`，在 `yml_change.sh`/`yml_rules_change.sh` **之后**执行 → 深度合并/覆盖订阅与 LuCI 输出（含硬编码项，覆盖需谨慎）。**`reload`（重置防火墙）不重跑这一步**，所以模块改动一律靠重启插件生效。
+- **插件启动/重启**时 `overwrite_file()`（`init.d/openclash` 的 `start_service`，紧随 `check_run_quick` 之后）按段头解析：`[General]` 提前写入 UCI（影响 `yml_change.sh` 行为）；`[Overwrite]`/`[YAML]` 生成覆写清单 `/tmp/yaml_openclash_overwrite_lines`，随后由 `YAML.overwrite_run()`（单 Ruby 进程）在 `yml_change.sh`/`yml_rules_change.sh` **之后**统一执行 → 深度合并/覆盖订阅与 LuCI 输出（含硬编码项，覆盖需谨慎）。**`reload`（重置防火墙）不重跑这一步**，所以模块改动一律靠重启插件生效。
 
 > **注意**：以上是「覆写模块」（文件式自定义）的操作方式。菜单「覆写设置」CBI 页（`11-overwrite-settings.md`）配置的是内置覆写选项（DNS/规则/Smart 等 UCI 选项）；`yml_change.sh` 的覆写逻辑是实现细节——两者仅在用户追问时补充，不作为「怎么用」的主线。
 
@@ -95,11 +95,11 @@
 3. 读取 `/etc/openclash/overwrite/<名称>` 文件内容
 4. 解析 `[General]` 段 → 将键值对写入 UCI `openclash.@overwrite[0]`（如 `EN_MODE`、`DNS_PORT` 等），供后续 `yml_change.sh` 读取
 5. 处理 `DOWNLOAD_FILE` 指令 → 下载外部文件
-6. 生成 `/tmp/yaml_overwrite.sh` 脚本（包含 `[Overwrite]` 和 `[YAML]` 段的内容，暂不执行）
+6. 生成覆写清单 `/tmp/yaml_openclash_overwrite_lines`（`M`/`Y`/`L` 记录 = 模块块 / 其 `[YAML]` 块路径 / `[Overwrite]` 行，暂不执行）
 
-**第二阶段 — YAML 覆写**（`/tmp/yaml_overwrite.sh`，在 `yml_change.sh` 和 `yml_rules_change.sh` 之后执行）：
-7. 执行 `[Overwrite]` 段的 Shell 命令（可使用 `ruby_*` 函数族修改 YAML）
-8. 将 `[YAML]` 段的 YAML 内容深度合并到运行配置
+**第二阶段 — YAML 覆写**（`YAML.overwrite_run()` 单进程执行，在 `yml_change.sh` 和 `yml_rules_change.sh` 之后）：
+7. 按模块顺序处理：先合并该模块 `[YAML]` 块，再执行其 `[Overwrite]` 段的 `ruby_*` 调用（等效旧行为）
+8. 全部模块完成后统一 dump 一次运行配置
 
 > **执行顺序含义**：`[General]` 段在 `yml_change.sh` 之前生效（因为写入 UCI），因此可以影响 `yml_change.sh` 的行为；`[Overwrite]` 和 `[YAML]` 段在 `yml_change.sh` 和 `yml_rules_change.sh` 之后执行，因此**可以覆盖这两个脚本的所有输出**——包括「插件强制覆盖/禁用的设置」表格中的硬编码项（如 `allow-lan`、`bind-address`、`sniffer.sniff` 等）。⚠️ **覆盖这些硬编码项可能导致功能异常**，请谨慎使用。
 
@@ -164,7 +164,7 @@
 
 #### 16.2.2 `[Overwrite]` 段 — Ruby 函数调用
 
-此段每行是一次 `ruby.sh` 函数的调用（均以目标 YAML 文件作为首个参数），由生成的 `/tmp/yaml_overwrite.sh` 以 root 权限执行：
+此段每行是一次 `ruby_*` 函数的调用（均以目标 YAML 文件路径作为首个参数；编辑目标始终是当前运行配置），由 `YAML.rb` 的 `YAML.overwrite_run()` 以 root 权限统一解析执行（解析与安全规则见下方 ⚠️）：
 - `ruby_read <file> <key_path>` — 读取 YAML 值
 - `ruby_read_hash <var> <key_path>` — 读取 Ruby 变量中的哈希值
 - `ruby_read_hash_arr <file> <key_path> <sub_path>` — 遍历哈希数组并读取每个元素的子值
@@ -183,8 +183,8 @@
 - `ruby_delete <file> <key_path> [<key>]` — 删除键/数组元素（省略键时删除键路径本身）
 - `uci_get_config <key>` — 读取 UCI 配置（覆写优先）
 
-> **⚠️ 行级限制（`ruby.sh` → `overwrite_ruby_line_check()`）**：整行必须是**单个白名单 `ruby_*` 函数调用**，且**每个参数整体被引号包裹**。参数内不允许 `\`、`;`、反引号、`$( )`（`$NAME`/`${NAME}` 仍作环境变量展开），出现 `system`/`exec`/`eval`/`require`/`spawn`/`%x`/`#{…}`/`ENV`/`File.` 等 token 同样被拒。被拒行会被跳过并记录 `skip invalid Overwrite command【Ruby Script => 模块名: 行】`。⇒ 正则不写 `\.` 而写 `[.]`；值里有字面 `$` 用单引号参数（示例见 `17-overwrite-module-examples.md` §17.3.6）。
-> 自定义覆写脚本（§17.4）不经此行级检查，但其 `ruby_*` 函数拼好的片段会在 `write_ruby_part()`/`run_ruby_part()` 内被 `overwrite_ruby_part_check()` 复查，命中记录 `skip unsafe Overwrite command`。
+> **⚠️ 行级解析与安全（`YAML.rb` → `overwrite_parse_line()` + AST 白名单）**：整行必须是**单个白名单 `ruby_*` 函数调用**，且**每个参数整体被引号包裹**。① **双引号参数**：`$NAME`/`${NAME}`（`NAME` 匹配 `[A-Za-z_][A-Za-z0-9_]*`）展开为环境变量（含 `$CONFIG_FILE`，执行器自动把它指向当前运行配置），**其余一切字符一律按字面量处理**——`\`、`;`、反引号、`$( )` 都不会触发任何 shell 展开或命令替换（**不再需要转义**；`$1`、`$$`、`$(` 非变量名形式原样保留）。② **单引号参数**：完全不展开，原样传给后续 Ruby 求值。③ **代码参数过 AST 白名单**（fail-closed）：只放行 `Value` 读写与常见 String/Array/Hash 方法、`lambda`、条件/循环/插值等 YAML 编辑语法（名单见 `YAML.rb` 的 `OVERWRITE_NODES`/`OVERWRITE_METHODS`/`OVERWRITE_OPERATORS`/`OVERWRITE_CONSTANTS`），未列入的调用（`system`/`send`/`File.`/`ENV`/反引号/`%x` 等）一律拒绝；纯值参数与引号内的选项字不受影响。④ 语法违反（未加引号、引号不配对、行尾多余内容、非白名单函数）或未通过白名单 → 跳过并记录 `skip invalid Overwrite command【Ruby Script => 模块名: 行】`。⇒ 正则可直接写 `\.`（旧写法 `[.]` 仍有效）；值里有字面 `$` 仍建议用单引号参数（示例见 `17-overwrite-module-examples.md` §17.3.6）。
+> 自定义覆写脚本（§17.4）的 `ruby_*` 调用由 `ruby_record()`（`ruby.sh`）以 NUL 分隔的定长记录写入 `/tmp/yaml_openclash_custom_calls`，脚本运行完后由 `YAML.overwrite_run_custom()` 统一执行；代码参数未通过白名单时记录 `skip unsafe Overwrite command`。
 
 #### 16.2.3 `[YAML]` 段 — 原始 YAML 注入（含操作符）
 
@@ -219,7 +219,7 @@ dns:
 mixed-port: 10802        # 直接覆盖标量
 tun:
   enable: true           # 合并 Hash（仅改指定字段，其余保留）
-  stack: gvisor
+  stack: mips
 ```
 
 **2. 强制覆盖 (`key!` / `<key>!`)**
@@ -399,3 +399,5 @@ dns:
 - `force` — `true` 强制重新下载
 - `ua` — 自定义 User-Agent
 - `restart` — `true` 下载后重启核心
+
+> **⚠️ 路径限制**：`path` 必须位于 `/etc/openclash/` 或 `/tmp/` 下且不含 `..`，否则跳过该下载任务并记录 `skip download file outside /etc/openclash or /tmp` 或 `skip download file with unsafe path`。

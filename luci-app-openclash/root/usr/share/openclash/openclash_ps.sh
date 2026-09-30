@@ -63,16 +63,7 @@ dec_job_counter_and_restart() {
    echo "$cnt $restart" > "$JOB_COUNTER_FILE"
 
    if [ $cnt -eq 0 ] && [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
-      # Dispatch via procd so the restart script runs detached from the
-      # caller's service cgroup: procd destroys that cgroup during the
-      # restart's own stop phase (procd_kill), which would kill a directly
-      # forked background restart mid-way (cron / watchdog callers alike).
-      # service add returns immediately (dispatch does not depend on the
-      # caller surviving) and the spawned shell removes the service entry
-      # on completion; fall back to the direct invocation if ubus fails.
-      if ! ubus call service add '{"name":"openclash_restart","instances":{"restart":{"command":["/bin/sh","-c","/etc/init.d/openclash restart >/dev/null 2>&1; ubus call service delete \u0027{\"name\":\"openclash_restart\"}\u0027 >/dev/null 2>&1"]}}}' >/dev/null 2>&1; then
-         /etc/init.d/openclash restart >/dev/null 2>&1 &
-      fi
+      /etc/init.d/openclash restart >/dev/null 2>&1 &
       rm -rf "$JOB_COUNTER_FILE" >/dev/null 2>&1
    fi
 

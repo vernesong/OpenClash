@@ -85,7 +85,7 @@ add_cron()
    [ -z "$(grep "openclash_chnroute.sh" "$CRON_FILE" 2>/dev/null)" ] && {
       [ "$(uci_get_config "chnr_auto_update")" -eq 1 ] && echo "0 $(uci_get_config "chnr_update_day_time" || 1) * * $(uci_get_config "chnr_update_week_time" || 0) /usr/share/openclash/openclash_chnroute.sh #openclash-cron-task" >> $CRON_FILE
    }
-   [ -z "$(grep "/etc/init.d/openclash" "$CRON_FILE" 2>/dev/null)" ] && {
+   [ -z "$(grep -E "dispatch_restart #openclash-cron-task|/etc/init.d/openclash restart #openclash-cron-task" "$CRON_FILE" 2>/dev/null)" ] && {
       [ "$(uci_get_config "auto_restart")" -eq 1 ] && echo "0 $(uci_get_config "auto_restart_day_time" || 1) * * $(uci_get_config "auto_restart_week_time" || 0) /etc/init.d/openclash restart #openclash-cron-task" >> $CRON_FILE
    }
 
@@ -93,14 +93,15 @@ add_cron()
    config_foreach add_overwrite_cron "config_overwrite"
 
    crontab $CRON_FILE
-   start_watchdog
 }
 
 del_cron()
 {
    sed -i '/#openclash-cron-task/d' $CRON_FILE
    sed -i '/#openclash-overwrite-download/d' $CRON_FILE
-   /etc/init.d/cron restart
+   # restarting crond would cgroup-kill every running cron job, including the
+   # caller of a cron triggered stop, crontab only makes crond reload the file
+   crontab $CRON_FILE
 } >/dev/null 2>&1
 
 save_dnsmasq_server() {
@@ -3186,14 +3187,8 @@ overwrite_file()
 {
    clear_overwrite_set
 
-   overwrite_script="/tmp/yaml_overwrite.sh"
-   cat > "$overwrite_script" <<'EOF'
-#!/bin/sh
-. /usr/share/openclash/ruby.sh
-. /usr/share/openclash/log.sh
-. /lib/functions.sh
-
-EOF
+   overwrite_lines="/tmp/yaml_openclash_overwrite_lines"
+   : > "$overwrite_lines"
 
    allowed_keys_types="\
       AGE_SECRET_KEY:string \
@@ -3352,8 +3347,7 @@ EOF
 
       LOG_TIP "Processing Overwrite Module【$name】"
 
-      echo "# --- overwrite source: ${name} (sid=${sid}) ---" >> "$overwrite_script"
-      echo "export OPENCLASH_OVERWRITE_SID='${sid}'" >> "$overwrite_script"
+      printf 'M %s\n' "$name" >> "$overwrite_lines"
 
       cfg_name=$(basename "$(uci_get_config "config_path")" 2>/dev/null)
       age_config_name="${cfg_name%.*}"
@@ -3429,6 +3423,21 @@ EOF
             download_failed=1
             break
          fi
+         case "$path" in
+            /etc/openclash/*|/tmp/*) ;;
+            *)
+               LOG_WARN "skip download file outside /etc/openclash or /tmp【Download Job => file: $file, path: $path】"
+               download_failed=1
+               break
+               ;;
+         esac
+         case "$path" in
+            *..*)
+               LOG_WARN "skip download file with unsafe path【Download Job => file: $file, path: $path】"
+               download_failed=1
+               break
+               ;;
+         esac
          need_download=0
          if [ ! -f "$path" ] || [ "$force" = "true" ]; then
             need_download=1
@@ -3567,12 +3576,7 @@ EOF
                esac
             fi
          elif [ "$in_overwrite" -eq 1 ]; then
-            if overwrite_ruby_line_check "$trimmed"; then
-               echo "$trimmed" >> "$overwrite_script"
-               LOG_TIP "Load Overwrite Script【Ruby Script => $trimmed】"
-            else
-               LOG_WARN "skip invalid Overwrite command【Ruby Script => $name: $trimmed】"
-            fi
+            printf 'L %s\n' "$trimmed" >> "$overwrite_lines"
          elif [ "$in_yaml" -eq 1 ]; then
             case "$line" in
                *'$'*) yaml_line=$(expand_env_vars "$line");;
@@ -3596,57 +3600,8 @@ EOF
 
          #Write the YAML to a file so the shell never expands its quotes, backslashes or regex
          mv "$yaml_temp_file" "/tmp/yaml_openclash_override_parts/${sid}"
-
-         cat >> "$overwrite_script" <<'EOF'
-OPENCLASH_YAML_OVERRIDE_FILE="/tmp/yaml_openclash_override_parts/$OPENCLASH_OVERWRITE_SID"
-export OPENCLASH_YAML_OVERRIDE_FILE
-ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e '
-   # YAML Override Block Processing
-   begin
-      yaml_override_content = File.read(ENV["OPENCLASH_YAML_OVERRIDE_FILE"])
-      yaml_data = YAML.load(yaml_override_content)
-
-      if yaml_data.is_a?(Hash)
-         if File.exist?("/tmp/yaml_overwrite_marshal")
-            Value = Marshal.load(File.open("/tmp/yaml_overwrite_marshal", "rb") { |f| f.read })
-         else
-            Value = YAML.load_file(ENV["CONFIG_FILE"])
-         end
-         Overwrite_Value = YAML.overwrite(Value, yaml_data)
-         YAML.dump(Overwrite_Value, ENV["CONFIG_FILE"])
-         File.open("/tmp/yaml_overwrite_marshal", "wb") { |f| Marshal.dump(Overwrite_Value, f) }
-      else
-         YAML.LOG_WARN("Invalid YAML Override format, skipped...")
-      end
-   rescue => e
-      YAML.LOG_ERROR("Parse YAML Override failed:【%s】" % [e.message])
-   end
-' >> $LOG_FILE 2>&1
-EOF
+         printf 'Y %s\n' "/tmp/yaml_openclash_override_parts/${sid}" >> "$overwrite_lines"
       fi
-
-      cat >> "$overwrite_script" <<'EOF'
-if [ -f "/tmp/yaml_openclash_ruby_parts/$OPENCLASH_OVERWRITE_SID" ]; then
-   ruby_code=$(cat "/tmp/yaml_openclash_ruby_parts/$OPENCLASH_OVERWRITE_SID")
-   ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-      begin
-         if File.exist?('/tmp/yaml_overwrite_marshal')
-            Value = Marshal.load(File.open('/tmp/yaml_overwrite_marshal', 'rb') { |f| f.read })
-         else
-            Value = YAML.load_file('$CONFIG_FILE')
-         end
-         threads = []
-         $ruby_code
-         threads.each(&:join)
-         YAML.dump(Value, '$CONFIG_FILE')
-      rescue Exception => e
-         YAML.LOG_ERROR('Set Custom Overwrite Script Failed,【%s】' % [e.message])
-      end
-   " >> $LOG_FILE 2>&1
-fi
-EOF
-
-      echo "" >> "$overwrite_script"
    done <<EOF
 $overwrite_list
 EOF
@@ -3830,37 +3785,17 @@ start_service()
          "$auto_smart_switch" "$smart_collect" "$smart_collect_rate" "$smart_policy_priority" "$smart_enable_lgbm" "$smart_prefer_asn" "$smart_tolerance"
 
          #Custom overwrite
-         if [ -f "/tmp/yaml_overwrite.sh" ]; then
-            chmod +x /tmp/yaml_overwrite.sh
-            CONFIG_FILE="${TMP_CONFIG_FILE}" /tmp/yaml_overwrite.sh
-            rm -rf /tmp/yaml_openclash_ruby_parts
+         if [ -f "/tmp/yaml_openclash_overwrite_lines" ]; then
+            ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e 'YAML.overwrite_run(ARGV[0], ARGV[1])' "$TMP_CONFIG_FILE" "/tmp/yaml_openclash_overwrite_lines" >> $LOG_FILE 2>&1
             rm -rf /tmp/yaml_openclash_override_parts
          fi
 
          if [ -f "/etc/openclash/custom/openclash_custom_overwrite.sh" ]; then
             chmod +x /etc/openclash/custom/openclash_custom_overwrite.sh
             /etc/openclash/custom/openclash_custom_overwrite.sh "$TMP_CONFIG_FILE"
-            if [ -f "/tmp/yaml_openclash_ruby_parse" ]; then
-               sed -n "s/.*yaml_file_path=['\"]\([^'\"]*\)['\"].*/\1/p" /tmp/yaml_openclash_ruby_parse | sort | uniq | while read -r yaml_file; do
-                  [ -z "$yaml_file" ] && continue
-                  ruby_code=$(grep "yaml_file_path=['\"]$yaml_file['\"]" /tmp/yaml_openclash_ruby_parse | sed "s/^threads << YAML::Inline.new do //;s/ end$//")
-                  [ -z "$ruby_code" ] && continue
-                  if [ -f "$yaml_file" ]; then
-                     (
-                        ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-                        begin
-                           Value = YAML.load_file('$yaml_file');
-                           threads = []
-                           $ruby_code
-                           threads.each(&:join)
-                           YAML.dump(Value, '$yaml_file')
-                        rescue Exception => e
-                           YAML.LOG_ERROR('Set Custom Overwrite Script Failed,【%s】' % [e.message])
-                        end
-                        " >> $LOG_FILE 2>&1
-                     )
-                  fi
-               done
+            if [ -f "/tmp/yaml_openclash_custom_calls" ]; then
+               ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e 'YAML.overwrite_run_custom(ARGV[0])' "/tmp/yaml_openclash_custom_calls" >> $LOG_FILE 2>&1
+               rm -f /tmp/yaml_openclash_custom_calls
             fi
          fi
 
@@ -3939,10 +3874,11 @@ stop_service()
             done
          fi
       done
-      # prevent respawn during stopping, only the instances are removed so the procd
-      # service registration stays for the procd_kill appended by rc.common's stop()
+      # signal instead of procd_kill: deleting the watchdog instance would destroy its
+      # cgroup, which is the context a watchdog driven restart runs in
+      procd_send_signal "openclash-watchdog" "" TERM
+      # remove only the core instance, rc.common's stop() deletes the service itself
       procd_kill "openclash" "openclash"
-      procd_kill "openclash" "openclash-watchdog"
       for i in $(seq 1 10); do
          procd_running "openclash" >/dev/null && sleep 1 || break
       done
@@ -3987,11 +3923,16 @@ restart()
    start
 }
 
-start_watchdog()
+# rc.common calls this hook after the "openclash" service definition was sent, the
+# watchdog gets its own service and cgroup so that stop never removes the cgroup of
+# a restart started from the watchdog
+service_started()
 {
+   procd_open_service "openclash-watchdog" "$initscript"
    procd_open_instance "openclash-watchdog"
    procd_set_param command "/usr/share/openclash/openclash_watchdog.sh"
    procd_close_instance
+   procd_close_service "set"
 }
 
 reload_service()

@@ -224,7 +224,7 @@ change_dns()
 {
    if pidof clash >/dev/null; then
       /etc/init.d/openclash reload "restore" >/dev/null 2>&1
-      procd_send_signal "openclash" "openclash-watchdog" CONT
+      procd_send_signal "openclash-watchdog" "" CONT
    fi
 }
 
@@ -232,7 +232,7 @@ config_download_direct()
 {
    if pidof clash >/dev/null && [ "$router_self_proxy" = 1 ]; then
       kill_streaming_unlock
-      procd_send_signal "openclash" "openclash-watchdog" STOP
+      procd_send_signal "openclash-watchdog" "" STOP
       /etc/init.d/openclash reload "revert" >/dev/null 2>&1
       sleep 3
 

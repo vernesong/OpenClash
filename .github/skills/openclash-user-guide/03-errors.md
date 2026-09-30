@@ -81,12 +81,13 @@
 |-----------|---------|------|----------|
 | `skip General key not allowed` (覆写 key 不允许) | 「覆写设置」覆写模块 | 覆写 [General] 中的 key 不在允许列表中 | 检查 key 拼写；参考覆写模块 `16-overwrite-module-format.md` §16.2.1 节的允许 key 列表 |
 | `skip config file outside /etc/openclash`、`skip config file with unsafe path`、`skip hidden config file` (配置文件路径不合法) | 「覆写设置」覆写模块 | [General] 的 `CONFIG_FILE` 不在 `/etc/openclash/` 下、含 `..` 或以 `/` 结尾，或文件名以 `.` 开头 | 改用 `/etc/openclash/` 下的普通配置文件路径（如 `/etc/openclash/config/x.yaml`） |
-| `skip invalid Overwrite command` (无效覆写命令) | 「覆写设置」覆写模块 | [Overwrite] 段该行不是**白名单 `ruby_*` 单次调用且参数整体加引号**，或值里含 `\`、`;`、反引号、`$( )` 或 `system`/`exec`/`ENV` 等被禁 token | 按 `16-overwrite-module-format.md` §16.2.2 修正：正则用 `[.]` 代替 `\.`、字面 `$` 用单引号参数，示例见 `17-overwrite-module-examples.md` §17.3.6 |
-| `skip unsafe Overwrite command` (覆写片段不安全) | 「覆写设置」覆写模块 / 自定义覆写脚本 | 自定义覆写脚本 `openclash_custom_overwrite.sh`（或用环境变量拼出的值）经 `ruby_*` 组装成 ruby 片段后仍命中被禁 token | 检查自定义覆写脚本里的值写法，限制同 [Overwrite] 段 |
+| `skip invalid Overwrite command` (无效覆写命令) | 「覆写设置」覆写模块 | [Overwrite] 段该行不是**白名单 `ruby_*` 单次调用且参数整体加引号**，或**代码参数未通过 AST 白名单**（未列入的 `system`/`send`/`File.`/`ENV`、反引号与 `%x` 等一律拒绝；`\`、`;`、`$( )` 仍按字面量处理） | 按 `16-overwrite-module-format.md` §16.2.2 修正：改用白名单内的方法/常量；正则可直接写 `\.`、字面 `$` 用单引号参数，示例见 `17-overwrite-module-examples.md` §17.3.6 |
+| `skip unsafe Overwrite command` (覆写片段不安全) | 「覆写设置」覆写模块 / 自定义覆写脚本 | 自定义覆写脚本的 `ruby_*` 调用（NUL 记录）在 `YAML.overwrite_run_custom()` 执行时未通过白名单 | 检查自定义覆写脚本里的代码写法，限制同 [Overwrite] 段 |
 | `Invalid YAML Override format` (无效 YAML 覆写格式) | 「覆写设置」覆写模块 | [YAML] 段不是有效的 Hash 结构 | 检查 YAML 缩进和格式 |
 | `Parse YAML Override failed` (YAML 覆写解析失败) | 「覆写设置」覆写模块 | [YAML] 段 Ruby 解析异常 | 逐行检查 YAML 语法 |
 | `Config File Overwrite Failed` (配置文件覆写失败) | 「覆写设置」覆写模块 | 覆写应用整体失败 | 检查所有覆写设置的语法 |
 | `DOWNLOAD FILE failed` (文件下载失败) | 「覆写设置」覆写模块 | 覆写模块 DOWNLOAD_FILE 下载失败 | 检查下载 URL 和网络连通性 |
+| `skip download file outside /etc/openclash or /tmp`、`skip download file with unsafe path` (下载路径不合法) | 「覆写设置」覆写模块 | [General] 的 `DOWNLOAD_FILE` 目标 `path` 不在 `/etc/openclash/` 或 `/tmp/` 下，或含 `..` | 把 `path` 改到 `/etc/openclash/`（如 `/etc/openclash/config/x.yaml`）或 `/tmp/` 下，去掉 `..` |
 
 ### 3.7 流媒体解锁错误
 

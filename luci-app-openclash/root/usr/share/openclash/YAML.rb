@@ -1051,4 +1051,405 @@ module YAML
 			raise "[batch update] update_spec: [#{update_spec}], error: [#{e.message}]"
 		end
 	end
+
+	# The [Overwrite] modules and the custom overwrite script are both executed by this section,
+	# they record their helper calls and let one process own one Value and one dump; the argument
+	# counts below must stay in sync with ruby_record() in ruby.sh
+
+	OVERWRITE_HELPERS = {
+		'ruby_arr_add_file' => 5,
+		'ruby_arr_edit' => 6,
+		'ruby_arr_head_add_file' => 4,
+		'ruby_arr_insert' => 4,
+		'ruby_arr_insert_arr' => 4,
+		'ruby_arr_insert_hash' => 4,
+		'ruby_cover' => 4,
+		'ruby_delete' => 3,
+		'ruby_edit' => 3,
+		'ruby_map_edit' => 5,
+		'ruby_merge' => 4,
+		'ruby_merge_hash' => 3,
+		'ruby_uniq' => 2
+	}.freeze
+
+	OVERWRITE_REQUIRED = {
+		'ruby_arr_add_file' => [1, 2, 3, 4, 5],
+		'ruby_arr_edit' => [1, 2],
+		'ruby_arr_head_add_file' => [1, 2, 3, 4],
+		'ruby_arr_insert' => [1, 2, 3, 4],
+		'ruby_arr_insert_arr' => [1, 2, 3, 4],
+		'ruby_arr_insert_hash' => [1, 2, 3, 4],
+		'ruby_cover' => [1, 2],
+		'ruby_delete' => [1, 3],
+		'ruby_edit' => [1, 2],
+		'ruby_map_edit' => [1, 2, 3, 4],
+		'ruby_merge' => [1, 2, 3],
+		'ruby_merge_hash' => [1, 2, 3],
+		'ruby_uniq' => [1, 2]
+	}.freeze
+
+	# The code arguments are checked against these lists before eval: node types give the allowed
+	# syntax, the method, operator and constant lists the allowed callable surface, everything
+	# not listed is rejected; the inspected arguments never take part in the check
+	OVERWRITE_NODES = %i[
+		AND ARGS ATTRASGN BEGIN BLOCK BLOCK_PASS BREAK CALL CASE CASE3 CONST DASGN DOT2 DOT3
+		DREGX DSTR DVAR EVSTR FALSE FCALL HASH IF IN ITER LAMBDA LASGN LIST LIT LVAR MASGN
+		NEXT NIL NOT OP_ASGN1 OP_ASGN2 OP_ASGN_AND OP_ASGN_OR OPCALL OR RESBODY RESCUE SCOPE
+		STR SYM TRUE UNLESS WHEN ZLIST
+	].freeze
+
+	OVERWRITE_METHODS = %w(
+		[] []= LOG LOG_ERROR LOG_TIP LOG_WARN abs all? any? call capitalize ceil chars chomp
+		chomp! chop clone compact compact! concat count delete delete_at delete_if detect dig
+		downcase drop drop_while dup each each_char each_key each_line each_pair each_slice
+		each_value each_with_index empty? end_with? fetch filter filter! find find_index first
+		flat_map flatten flatten! floor frozen? group_by gsub gsub! has_key? has_value?
+		include? index insert inspect instance_of? is_a? itself join keep_if key? keys kind_of?
+		lambda last length lstrip map map! match match? max max_by member? merge merge! min
+		min_by nil? none? partition pop proc push reject reject! replace reverse reverse!
+		rindex round rstrip select select! shift size slice slice! sort sort! sort_by sort_by!
+		split start_with? store strip sub sub! sum swapcase take take_while tally tap then to_a
+		to_f to_h to_i to_s to_sym transform_keys transform_keys! transform_values
+		transform_values! uniq uniq! unshift upcase update values values_at yield_self
+	).freeze
+
+	OVERWRITE_OPERATORS = %w[! != !~ % & * ** + - / < << <= <=> == =~ > >= >> ^ | ~].freeze
+
+	OVERWRITE_CONSTANTS = %w[Array FalseClass Float Hash Integer NilClass Numeric String Symbol TrueClass Value YAML].freeze
+
+	# Derived lookups keep the node walk cheap, the tables above stay readable
+	OVERWRITE_NODE_LOOKUP = OVERWRITE_NODES.to_h { |type| [type, true] }.freeze
+	OVERWRITE_CALL_LOOKUP = (OVERWRITE_METHODS + OVERWRITE_OPERATORS).to_h { |name| [name.to_sym, true] }.freeze
+	OVERWRITE_CONST_LOOKUP = OVERWRITE_CONSTANTS.to_h { |name| [name.to_sym, true] }.freeze
+
+	# Argument numbers follow the helper call order of ruby.sh, 1 is the config file; the check
+	# only covers the arguments interpolated as ruby source
+	OVERWRITE_CODE = {
+		'ruby_arr_add_file' => [2, 3, 5],
+		'ruby_arr_edit' => [2, 3, 5],
+		'ruby_arr_head_add_file' => [2, 4],
+		'ruby_arr_insert' => [2, 3],
+		'ruby_arr_insert_arr' => [2, 3, 4],
+		'ruby_arr_insert_hash' => [2, 3, 4],
+		'ruby_cover' => [2],
+		'ruby_delete' => [2],
+		'ruby_edit' => [2, 3],
+		'ruby_map_edit' => [2, 4],
+		'ruby_merge' => [2, 4],
+		'ruby_merge_hash' => [2, 3],
+		'ruby_uniq' => [2]
+	}.freeze
+
+	# Manifest records: 'M <module>' opens a module block, 'Y <file>' is its [YAML] override block
+	# and every 'L <line>' is one [Overwrite] line of it
+	def self.overwrite_run(config_file, manifest_file)
+		return if config_file.nil? || config_file.empty? || !File.exist?(manifest_file)
+
+		# module lines expand $CONFIG_FILE from the environment, keep the legacy contract
+		ENV['CONFIG_FILE'] = config_file
+
+		value = load_file(config_file)
+		blocks = []
+		File.foreach(manifest_file) do |raw|
+			line = raw.chomp
+			if line.start_with?('M ')
+				blocks << [line[2..-1], nil, []]
+			elsif blocks.any?
+				if line.start_with?('Y ')
+					blocks.last[1] = line[2..-1]
+				elsif line.start_with?('L ')
+					blocks.last[2] << line[2..-1]
+				end
+			end
+		end
+
+		blocks.each do |name, yaml_file, lines|
+			value = overwrite_apply_yaml(value, yaml_file) if yaml_file
+			lines.each { |line| overwrite_apply_line(value, name, line) }
+		end
+
+		dump(value, config_file)
+	rescue ::Exception => e
+		LOG_ERROR("Set Custom Overwrite Script Failed,【#{e.message}】")
+	end
+
+	# Calls recorded by ruby_record() in ruby.sh: NUL separated fields and a fixed argument count
+	# per helper, the records may target several config files
+	def self.overwrite_run_custom(calls_file)
+		return if calls_file.nil? || calls_file.empty? || !File.exist?(calls_file)
+
+		fields = File.read(calls_file).split("\0", -1)
+		values = {}
+		position = 0
+		while position < fields.length
+			fn = fields[position]
+			arity = OVERWRITE_HELPERS[fn]
+			if fn.nil? || fn.empty?
+				position += 1
+				next
+			elsif arity.nil?
+				LOG_WARN("skip unsafe Overwrite command【Ruby Script => #{fn}】")
+				position += 1
+				next
+			end
+
+			args = fields[position + 1, arity] || []
+			args += [''] * (arity - args.length)
+			position += arity + 1
+
+			if overwrite_unsafe?(fn, args)
+				LOG_WARN("skip unsafe Overwrite command【Ruby Script => #{fn}(#{args.map(&:inspect).join(', ')})】")
+				next
+			end
+
+			file = args[0]
+			next if file.nil? || file.empty? || !File.exist?(file)
+
+			values[file] = load_file(file) unless values.key?(file)
+			begin
+				overwrite_apply(values[file], fn, args)
+			rescue ::Exception => e
+				LOG_ERROR("Set Custom Overwrite Script Failed,【#{e.message}】")
+			end
+		end
+
+		values.each { |file, value| dump(value, file) }
+	rescue ::Exception => e
+		LOG_ERROR("Set Custom Overwrite Script Failed,【#{e.message}】")
+	end
+
+	def self.overwrite_apply_yaml(value, yaml_file)
+		return value if yaml_file.nil? || yaml_file.empty? || !File.exist?(yaml_file)
+
+		begin
+			yaml_data = load(File.read(yaml_file))
+			if yaml_data.is_a?(Hash)
+				value = overwrite(value, yaml_data)
+			else
+				LOG_WARN('Invalid YAML Override format, skipped...')
+			end
+		rescue ::Exception => e
+			LOG_ERROR("Parse YAML Override failed:【#{e.message}】")
+		end
+		value
+	end
+
+	def self.overwrite_apply_line(value, name, line)
+		parsed = overwrite_parse_line(line)
+		if parsed.nil?
+			LOG_WARN("skip invalid Overwrite command【Ruby Script => #{name}: #{line}】")
+			return
+		end
+
+		fn, args = parsed
+		if overwrite_unsafe?(fn, args)
+			LOG_WARN("skip invalid Overwrite command【Ruby Script => #{name}: #{line}】")
+			return
+		end
+
+		LOG_TIP("Load Overwrite Script【Ruby Script => #{line}】")
+		overwrite_apply(value, fn, args)
+	rescue ::Exception => e
+		LOG_ERROR("Set Custom Overwrite Script Failed,【#{e.message}】")
+	end
+
+	def self.overwrite_unsafe?(fn, args)
+		OVERWRITE_CODE[fn].any? do |index|
+			text = args[index - 1]
+			!text.nil? && !text.empty? && overwrite_code_unsafe?(text)
+		end
+	end
+
+	# The hash body of ruby_merge_hash is only valid inside braces, so a => fragment needs the
+	# braced source checked too, an unparsable argument is unsafe
+	def self.overwrite_code_unsafe?(text)
+		tree = overwrite_parse_source(text)
+		if tree.nil?
+			tree = overwrite_parse_source("{#{text}}")
+			return true if tree.nil?
+		elsif text.include?('=>')
+			braced = overwrite_parse_source("{#{text}}")
+			return true if braced && overwrite_ast_unsafe?(braced)
+		end
+		overwrite_ast_unsafe?(tree)
+	end
+
+	def self.overwrite_parse_source(source)
+		RubyVM::AbstractSyntaxTree.parse(source)
+	rescue ::Exception
+		nil
+	end
+
+	# An explicit stack keeps the walk free of per-node recursion and block calls
+	def self.overwrite_ast_unsafe?(node)
+		stack = [node]
+		until stack.empty?
+			current = stack.pop
+			next unless current.is_a?(RubyVM::AbstractSyntaxTree::Node)
+			return true unless OVERWRITE_NODE_LOOKUP.key?(current.type)
+
+			case current.type
+			when :CALL, :FCALL, :VCALL, :ATTRASGN
+				return true unless overwrite_method_allowed?(overwrite_call_name(current))
+			when :OPCALL
+				return true unless overwrite_method_allowed?(current.children[1])
+			when :CONST
+				names = overwrite_leaf_names(current)
+				return true unless names.length == 1 && OVERWRITE_CONST_LOOKUP.key?(names[0].to_sym)
+			when :BLOCK_PASS
+				names = overwrite_leaf_names(current)
+				return true if names.empty? || names.any? { |name| !overwrite_method_allowed?(name) }
+			end
+
+			stack.concat(current.children)
+		end
+		false
+	end
+
+	def self.overwrite_method_allowed?(name)
+		return OVERWRITE_CALL_LOOKUP.key?(name) if name.is_a?(Symbol)
+
+		OVERWRITE_CALL_LOOKUP.key?(name.to_s.to_sym)
+	end
+
+	def self.overwrite_call_name(node)
+		(node.type == :CALL || node.type == :ATTRASGN) ? node.children[1] : node.children[0]
+	end
+
+	# Symbols and strings of a node subtree, the called name of &:<name> block passes and the
+	# name of constants are carried this way
+	def self.overwrite_leaf_names(node, names = [])
+		node.children.each do |child|
+			if child.is_a?(Symbol) || child.is_a?(String)
+				names << child
+			elsif child.is_a?(RubyVM::AbstractSyntaxTree::Node)
+				overwrite_leaf_names(child, names)
+			end
+		end
+		names
+	end
+
+	# Only a single call to an allowed helper with quoted arguments is accepted; in double quoted
+	# arguments $NAME and ${NAME} expand from the environment and every other character stays
+	# literal, in single quoted arguments nothing is expanded
+	def self.overwrite_parse_line(line)
+		length = line.length
+		position = 0
+		position += 1 while position < length && (line[position] == ' ' || line[position] == "\t")
+
+		head = position
+		position += 1 while position < length && line[position] != ' ' && line[position] != "\t"
+		fn = line[head...position]
+		return nil unless OVERWRITE_HELPERS.key?(fn)
+
+		args = []
+		while position < length
+			position += 1 while position < length && (line[position] == ' ' || line[position] == "\t")
+			break if position >= length
+
+			quote = line[position]
+			return nil unless quote == '"' || quote == "'"
+
+			position += 1
+			closing = line.index(quote, position)
+			return nil if closing.nil?
+
+			arg = line[position...closing]
+			args << (quote == '"' && arg.include?('$') ? overwrite_expand_env(arg) : arg)
+			position = closing + 1
+		end
+		return nil if args.empty?
+
+		[fn, args]
+	end
+
+	def self.overwrite_expand_env(text)
+		text.gsub(/\$\{([A-Za-z_][A-Za-z0-9_]*)\}|\$([A-Za-z_][A-Za-z0-9_]*)/) do
+			ENV[Regexp.last_match(1) || Regexp.last_match(2)].to_s
+		end
+	end
+
+	def self.overwrite_apply(value, fn, args)
+		arity = OVERWRITE_HELPERS[fn]
+		args = args[0, arity] || []
+		args += [''] * (arity - args.length)
+		return if OVERWRITE_REQUIRED[fn].any? { |index| args[index - 1].empty? }
+
+		statement = overwrite_statement(fn, args)
+		return if statement.nil?
+
+		overwrite_eval(value, statement)
+	end
+
+	def self.overwrite_statement(fn, args)
+		path = args[1]
+		a3 = args[2]
+		a4 = args[3]
+		a5 = args[4]
+		a6 = args[5]
+		case fn
+		when 'ruby_edit'
+			"Value#{path} = #{a3}"
+		when 'ruby_cover'
+			"if File.exist?(#{a3.inspect}) then value_1 = YAML.load_file(#{a3.inspect}); if not #{a4.inspect}.empty? then Value#{path} = value_1[#{a4.inspect}] else Value#{path} = value_1 end else if not #{a4.inspect}.empty? then Value.delete(#{a4.inspect}); end; end"
+		when 'ruby_merge'
+			"if File.exist?(#{a3.inspect}) then value_1 = YAML.load_file(#{a3.inspect}); if not Value#{path} then Value#{path} = {}; end; if value_1#{a4} && value_1#{a4}.is_a?(Hash) then Value#{path}.merge!(value_1#{a4}) end end"
+		when 'ruby_uniq'
+			"if Value#{path} then Value#{path} = Value#{path}.uniq; end"
+		when 'ruby_merge_hash'
+			"if not Value#{path} then Value#{path} = {}; end; Value#{path}.merge!({#{a3}})"
+		when 'ruby_arr_add_file'
+			"if File.exist?(#{a4.inspect}) then value_1 = YAML.load_file(#{a4.inspect}); if not Value#{path} or Value#{path}.nil? then Value#{path} = []; end; if value_1#{a5} && value_1#{a5}.is_a?(Array) then idx = [#{a3}.to_i, 0].max; idx = [idx, Value#{path}.length].min; value_1#{a5}.reverse.each{|x| Value#{path}.insert(idx,x); idx += 1}; Value#{path} = Value#{path}.uniq end end"
+		when 'ruby_arr_head_add_file'
+			"if File.exist?(#{a3.inspect}) then value_1 = YAML.load_file(#{a3.inspect}); if not Value#{path} or Value#{path}.nil? then Value#{path} = []; end; if value_1#{a4} && value_1#{a4}.is_a?(Array) then Value#{path} = (value_1#{a4} + Value#{path}).uniq else Value#{path} = Value#{path}.uniq end end"
+		when 'ruby_arr_insert'
+			"if not Value#{path} or Value#{path}.nil? then Value#{path} = []; end; idx = [#{a3}.to_i, 0].max; idx = [idx, Value#{path}.length].min; Value#{path} = Value#{path}.insert(idx, #{a4.inspect}).uniq"
+		when 'ruby_arr_insert_hash'
+			"if not Value#{path} or Value#{path}.nil? then Value#{path} = []; end; idx = [#{a3}.to_i, 0].max; idx = [idx, Value#{path}.length].min; Value#{path} = Value#{path}.insert(idx, #{a4}).uniq"
+		when 'ruby_arr_insert_arr'
+			"if not Value#{path} or Value#{path}.nil? then Value#{path} = []; end; if (#{a4}).is_a?(Array) then idx = [#{a3}.to_i, 0].max; idx = [idx, Value#{path}.length].min; (#{a4}).reverse.each{|x| Value#{path} = Value#{path}.insert(idx,x); idx += 1}; Value#{path} = Value#{path}.uniq end"
+		when 'ruby_delete'
+			if path.empty?
+				"Value.delete(#{a3.inspect})"
+			else
+				"if Value#{path} then if Value#{path}.is_a?(Hash) then Value#{path}.delete(#{a3.inspect}) elsif Value#{path}.is_a?(Array) then Value#{path}.delete(#{a3.inspect}) end end"
+			end
+		when 'ruby_map_edit'
+			"if Value#{path} && Value#{path}.is_a?(Hash) then if Value#{path}[#{a3.inspect}] && Value#{path}[#{a3.inspect}].is_a?(Hash) then Value#{path}[#{a3.inspect}]#{a4} = #{a5.inspect} end end"
+		when 'ruby_arr_edit'
+			if !a3.empty? && !a4.empty? && !a5.empty? && !a6.empty?
+				"if Value#{path} && Value#{path}.is_a?(Array) then Value#{path}.map!{|x| if x.is_a?(Hash) && x#{a3} == #{a4.inspect} then x#{a5} = #{a6.inspect} end; x}; Value#{path}.uniq! end"
+			elsif a3.empty? && !a4.empty? && a5.empty? && !a6.empty?
+				"if Value#{path} && Value#{path}.is_a?(Array) then Value#{path}.map!{|x| if x == #{a4.inspect} then #{a6.inspect} else x end}; Value#{path}.uniq! end"
+			end
+		end
+	end
+
+	def self.overwrite_eval(value, statement)
+		remove_const(:Value) if const_defined?(:Value, false)
+		const_set(:Value, value)
+		eval(statement, binding, '(overwrite)', 1)
+	end
+
+	# Value readers for scripts, the path keeps the ruby source form the old helpers accepted,
+	# e.g. "['dns']['fake-ip-range']" or ".select { |k, _| k != 'proxies' }.to_yaml"
+	def self.overwrite_read(file, path)
+		value = load_file(file)
+		result = overwrite_eval(value, "Value#{path}")
+		puts result if result
+	rescue
+		nil
+	end
+
+	def self.overwrite_read_hash(code, path)
+		overwrite_eval(nil, "v = #{code}; if v#{path} then puts v#{path} end")
+	rescue
+		nil
+	end
+
+	def self.overwrite_read_hash_arr(file, path, item_path)
+		overwrite_eval(nil, "v = YAML.load_file(#{file.inspect}); if v#{path} then v#{path}.each do |i| if i#{item_path} then puts i#{item_path} end; end; end")
+	rescue
+		nil
+	end
 end

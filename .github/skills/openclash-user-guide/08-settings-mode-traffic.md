@@ -104,10 +104,10 @@
 - **UCI 选项**: `openclash.@openclash[0].stack_type`
 - **可选值**: `system` / `gvisor` / `mixed` / `mips`
 - **Mihomo 对应配置**: `tun.stack`
-- **system** (默认): 使用 Linux 系统协议栈，每 256 MB 的 core CPU 最低；吞吐约为 `mips` 的 2/3（见 §8.4.2）
-- **gvisor**: 用户空间网络协议栈，隔离性更好；实测单连接 TCP 只有 `system` 的 1/4、每 256 MB 的 CPU 高约 5 倍、UDP 200 B 丢包约 55%（仅纯大流量上传最快，见 §8.4.2）
-- **mixed**: TCP 用 system、UDP 用 gvisor——TCP 与 `system` 同档，UDP 走 gvisor 转发器、丢包与 `system` 同档（远好于 `gvisor` 单栈）
-- **mips**: 轻量用户空间协议栈（基于 mipstack，纯 Go、无 cgo），两形态吞吐最高（约为 `system` 的 1.5 倍），CPU 略高
+- **system**: 内核协议栈，每字节 CPU 最低；吞吐约为 `mips` 的一半
+- **gvisor**: 隔离性最好，但除纯大流量上传外均不可靠（单连接吞吐低、短连接不稳、UDP 200 B 丢包约 55%）
+- **mixed**: TCP 走 system、UDP 走 gvisor；UDP 丢包与 `system` 同档
+- **mips**（插件默认）: 轻量用户态协议栈（mipstack，纯 Go、无 cgo），两种形态吞吐最高、短连接最快
 - **依赖**: 仅在 TUN/混合模式下显示
 - **四栈性能数据与选型**: 选型见 §8.2.12、完整数据见 §8.4.2；转发模式见 §8.2.13；默认值与 MIPS 来源见 §8.2.14；TUN 数据面参数（`gso` 等）结论见 §8.2.15
 
@@ -176,11 +176,7 @@
   - `fake-ip`: 所有 DNS 查询返回 198.18.x.x 假 IP，规则基于域名匹配，性能最优
   - `redir-host`: DNS 在客户端完成，规则基于真实 IP 匹配，适合 BT/PT
 - **tun.enable**: `en_mode_tun != 0` 时设为 `true` → Mihomo 创建 `utun` 虚拟网卡接管流量
-- **tun.stack**: `system`(系统协议栈)/`gvisor`(用户态协议栈)/`mixed`(TCP system + UDP gvisor)/`mips`(轻量用户态协议栈)
-  - `system`: 性能最好，走 Linux 内核 TUN 驱动
-  - `gvisor`: 隔离性好，UDP NAT 支持更完善
-  - `mixed`: TCP 用 system 栈 (REDIRECT)，UDP 用 gvisor 栈 (TUN)
-  - `mips`: 基于 mipstack 的轻量用户态栈，CPU 占用约 gvisor 的 1/5、吞吐约为其 9 倍，但内核需支持该栈
+- **tun.stack**: 由 `stack_type` 写入（`system` / `gvisor` / `mixed` / `mips`，插件默认 `mips`）；各栈含义与选型见 §8.2.2、§8.2.12
 
 **防火墙层面的影响** (`set_firewall()`):
 - **Redir-Host (非 TUN)**: TCP 通过 REDIRECT 到 `proxy_port`(7892)，UDP 通过 TPROXY 到 `tproxy_port`(7895)，标记 fwmark 0x162
@@ -191,17 +187,17 @@
 #### 8.2.12 TUN 堆栈选型
 
 **各栈定义**
-- `system`：走系统协议栈（内核），CPU 占用最低
-- `gvisor`：用户态 gVisor 栈，隔离性最好，但吞吐与稳健性最差（单连接 TCP 约 `system` 的 1/4、UDP 小包丢包过半）
-- `mixed`：TCP 走 `system`、UDP 走 `gVisor`（源码：`Mixed` 内嵌 `*System`，仅给 UDP 注册 gVisor handler/forwarder）；UDP 丢包远好于 `gvisor` 单栈
-- `mips`：mihomo 自研纯 Go 用户态栈（mipstack），吞吐最高、CPU 略高
+- `system`：系统协议栈（内核）
+- `gvisor`：用户态 gVisor 栈，隔离性最好
+- `mixed`：TCP 走 `system`、UDP 走 `gVisor`（源码：`Mixed` 内嵌 `*System`，仅给 UDP 注册 gVisor handler/forwarder）
+- `mips`（插件默认）：mihomo 自研纯 Go 用户态栈（mipstack）
 
-**选型结论**（完整实测数据见 §8.4.2）
-1. **默认保持 `system`（插件默认）**；追求吞吐选 `mips` + `gso`（全形态第一梯队）；`mixed` ≈ `system`。
+**选型结论**（性能数据见 §8.4.2）
+1. **默认 `mips`**（插件默认，见 §8.2.14）：两种形态吞吐最高、短连接最快。
 2. **`gso` 保持开启（插件默认）**：全栈全形态正收益，是唯一有量级影响的数据面参数。
-3. **纯大流量上传是唯一例外**：`gvisor` + `gso` 上传最快，但其下载单连接、短连接、UDP 小包均不可靠，不建议作为默认。
+3. **看重每字节 CPU 选 `system`**（吞吐约为 `mips` 的一半）；`mixed` ≈ `system`；`gvisor` 不建议使用（除纯大流量上传外均不可靠）。
 4. **必须整机接管时才用 TUN**：REDIRECT / TPROXY 的内核短路比 TUN 数据面便宜 1–2 个数量级（见 §8.2.13）。
-5. **高并发会明显降速**：40/100 连接时四栈同档回落到 32–57 MB/s（合批失效；`gvisor` 靠极低的单连接吞吐叠加而来，且延迟与失败率最差，见 §8.4.5）；连接数多的场景宜用 REDIRECT/TPROXY（见 §8.4.3）。
+5. **高并发会明显降速**：40/100 连接时四栈同档回落到 32–57 MB/s（合批失效，见 §8.4.5）；连接数多的场景宜用 REDIRECT/TPROXY（见 §8.4.3）。
 
 > 四种栈均可代理路由器自身流量：经插件默认的「标记 + 策略路由进 TUN」即可（见 §8.2.11），无需其它开关。
 
@@ -220,9 +216,9 @@
 
 #### 8.2.14 默认值与 MIPS 来源
 
-- **mihomo 内核（2026-09-27 起）：主配置 `tun:` 段未写 `stack` 时默认 = `mips`**（`config/config.go` 的 `DefaultRawConfig` 写 `Stack: C.TunMips`，上游提交「change default IP stack mode to mips」；此前版本的默认是 `gvisor`）。仅 `listeners:` 内联的 tun 项仍默认 `gvisor`（`listener/parse.go`）；`TUNStack` 类型零值仍是 `gvisor`（`constant/tun.go`，内部实现细节）。
-- **OpenClash 插件默认 = `system`**（`settings.lua` 的 `stack_type` 默认值），且 `yml_change.sh` 每次都会把 `stack` 与 `gso: true` 显式写入配置 ⇒ **插件用户不受内核默认值调整影响**。
-- 官方 wiki（TUN → stack，尚未随代码更新）仍写：「如无使用问题，建议使用 `mixed` 栈，默认 `gvisor`」，并写明 `system` 占用相对更低；对 `mips` 仅描述为「mihomo 自研的 IP 协议栈」，**未作推荐**。
+- **mihomo 内核**：主配置 `tun:` 段未写 `stack` 时默认 = `mips`（`config/config.go` 的 `DefaultRawConfig` 写 `Stack: C.TunMips`，上游提交「change default IP stack mode to mips」）。仅 `listeners:` 内联的 tun 项默认 `gvisor`（`listener/parse.go`）；`TUNStack` 类型零值仍是 `gvisor`（`constant/tun.go`，内部实现细节）。
+- **OpenClash 插件默认 = `mips`**（`settings.lua` 的 `stack_type` / `stack_type_v6` 默认值，`yml_change.sh` 取不到参数时同样回退为 `mips`），且 `yml_change.sh` 每次都会把 `stack` 与 `gso: true` 显式写入配置 ⇒ **插件与内核默认值一致**。
+- 官方 wiki（TUN → stack）写「如无使用问题，建议使用 `mixed` 栈，默认 `gvisor`」，与内核、插件默认 `mips` 不一致，以本文档数据为准。
 - `mips` 基于 `github.com/metacubex/mipstack`（README 自述：pure-Go、无需 cgo）；在 mihomo 中先用于 ZeroTier 与 WireGuard 出站的 `ip-stack`，TUN 集成较晚（随 sing-tun v0.4.24 引入）。
 
 #### 8.2.15 TUN 数据面参数（gso / mtu / congestion-controller / stack）
@@ -245,7 +241,7 @@
    - `mtu: 9000` 不是提速手段（GSO 超包在出口网卡仍需按 MTU 分段；改小 `mtu` 反而约 -6%）；`gso-max-size` 默认 65536 已足够。
    - `congestion-controller` 仅 `mips` 消费（唯一使用点 `github.com/metacubex/sing-tun/stack_mipstack.go`，`gvisor`/`system`/`mixed` 忽略该字段）：`cubic`/`reno`/`bbr`/`bbr3` 差异在 ±5% 波动范围内，保持 `cubic`；填非法值会使核心启动失败（`invalid TCP congestion control`）。
    - `endpoint-independent-nat` 只改 UDP NAT 行为；`processors-per-channel` 对 `gvisor` 无改善。
-3. **栈选择见 §8.2.12（数据见 §8.4.2）**：吞吐全面最快选 `mips` + `gso`；看重每字节 CPU 选 `system`；纯大流量上传可试 `gvisor` + `gso`（但其它场景不可用）；`system` / `mixed` 代理路由器自身流量经插件默认的标记 + 策略路由即可（无需 `auto-redirect`）。
+3. **栈选择见 §8.2.12（数据见 §8.4.2）**：默认 `mips` + `gso`（两种形态吞吐最高、短连接最快）；看重每字节 CPU 选 `system`；`gvisor` 仅在纯大流量上传时有优势；四种栈代理路由器自身流量经插件默认的标记 + 策略路由即可（无需 `auto-redirect`）。
 4. **延迟**：满载时小请求延迟 `mips` 升高约 320–360%（~2 ms → ~8–12 ms/req）、`mixed` 约 43 ms、`gvisor` 约 105 ms 且伴随失败（32 KB ×200；见 §8.4.5）；低延迟优先选内核短路路径（REDIRECT/TPROXY，见 §8.2.13）。
 5. **内核 sysctl 无需调优**：`rmem_max`/`wmem_max`/`tcp_rmem`/`tcp_wmem`（调至 16 MB）、`tcp_congestion_control=bbr`、`default_qdisc=fq`、`netdev_max_backlog`/`netdev_budget`、`tcp_fastopen`/`tcp_max_syn_backlog`/`somaxconn` 等即使全部一起修改，差异仍 ≤5%（`bbr` 反而略差）——TUN、REDIRECT、TPROXY 三种路径均已验证（见 §8.4.6）。
 6. `tun.gso` 与 `experimental.quic-go-disable-gso`（插件「禁用 quic-go GSO」开关）互不影响：前者作用于 tun 设备层；后者在核心启动前设置环境变量 `QUIC_GO_DISABLE_GSO`（`github.com/metacubex/mihomo/hub/executor/executor.go`），作用于 QUIC 的 UDP socket。内核并未默认禁用 GSO：`setsockopt(UDP_SEGMENT)`/`UDP_GRO` 均可用。QUIC 报文同样经过 tun，故 `tun.gso` 对 UDP/QUIC 吞吐同样有正收益。
@@ -395,7 +391,7 @@ tun:
 | 短连接（rps） | 656 → 635（-3%） | 647 → 597（-8%） | 872 → 1162（+33%） | 93 → 401（+331%）\* |
 | UDP 200 B 丢包（%） | 0.3 → 0.1（-0.2 个百分点） | 0.3 → 0.3（持平） | 1.6 → 1.5（-0.1 个百分点） | 55 → 52（-3 个百分点） |
 
-> - \*：`gvisor` 短连接呈**双峰**波动——间歇进入劣化态（约 30–90 rps 且大量请求失败）或正常态（150–650 rps，仍常伴零散失败），与 `gso`、客户端形态、平台均无关；9 次重复实测样本为 30–642 rps，表中 62/93/401 都是该分布中的真实样本。其余数据波动在 ±10% 内；CPU 为中位值。
+> - \*：`gvisor` 短连接呈**双峰**波动——间歇处于劣化档（约 30–90 rps、大量请求失败）或正常档（150–650 rps、仍偶有失败），与 `gso`、客户端形态、平台均无关（表中 62/93/401 均为该区间的真实取值）。其余数据波动在 ±10% 内。
 > - UDP 1400 B @7.5 kpps 丢包：各栈均 ≤0.9%（`gvisor` 0.8%）。
 
 #### 8.4.3 转发路径对比

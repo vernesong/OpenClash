@@ -226,7 +226,7 @@ AI 会将以下格式的命令发给用户：
 |------|--------|------|
 | `yml_change.sh` | init.d | Ruby 修改 YAML（端口/模式/DNS/TUN/Sniffer/Meta） |
 | `yml_rules_change.sh` | init.d | Ruby 修改 YAML（规则/Provider/URL-Test/Smart） |
-| `openclash_watchdog.sh` | init.d | 核心存活+防火墙完整性检查 |
+| `openclash_watchdog.sh` | init.d（独立 procd 服务 `openclash-watchdog`） | 核心存活+防火墙完整性检查 |
 | `openclash_custom_domain_dns.sh` | init.d | 自定义域名 DNS |
 | `openclash_debug_dns.lua` | Web UI | DNS 解析测试 |
 | `openclash_debug_getcon.lua` | Web UI | 活动连接获取 |

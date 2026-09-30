@@ -4,7 +4,7 @@
 . /lib/functions.sh
 
 # This script is called by /etc/init.d/openclash
-# Add your custom overwrite scripts here, they will be take effict after the OpenClash own srcipts
+# Add your custom overwrite scripts here, they will take effect after the OpenClash own scripts
 
 LOG_TIP "Start Running Custom Overwrite Scripts..."
 LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
@@ -12,15 +12,16 @@ LOG_FILE="/tmp/openclash.log"
 #Config Path
 CONFIG_FILE="$1"
 
-    #A value must not contain \ ; ` or $( ), write a regex dot as [.] and use a single quoted
-    #argument for a literal dollar sign
+    #Arguments are parsed literally, \ ; and $( ) need no escaping; code arguments must pass the
+    #AST whitelist (system/send/File./ENV, backticks and %x are rejected), quoted data and
+    #plain values are not affected; use a single quoted argument for a literal dollar sign
     #Simple Demo:
     #Key Overwrite Demo
     #1--config path
     #2--key name
     #3--value
     #ruby_edit "$CONFIG_FILE" "['redir-port']" "7892"
-    #ruby_edit "$CONFIG_FILE" "['secret']" "123456"
+    #ruby_edit "$CONFIG_FILE" "['secret']" "'123456'"
     #ruby_edit "$CONFIG_FILE" "['dns']['enable']" "true"
     #ruby_edit "$CONFIG_FILE" "['dns']['proxy-server-nameserver']" "['https://doh.pub/dns-query','https://223.5.5.5:443/dns-query']"
 
@@ -93,9 +94,39 @@ CONFIG_FILE="$1"
     #3--value
     #ruby_delete "$CONFIG_FILE" "['dns']['nameserver']" "114.114.114.114"
 
-    #Delete Key Demo:
+    #Array Head Insert From Yaml File Demo:
     #1--config path
     #2--key name
+    #3--value file path
+    #4--value path in #3 file
+    #ruby_arr_head_add_file "$CONFIG_FILE" "['rules']" "/etc/openclash/custom/openclash_custom_rules.list" "['rules']"
+
+    #Cover Value From Yaml File Demo(the key is removed when #3 file is missing):
+    #1--config path
+    #2--key name
+    #3--value file path
+    #4--value key name in #3 file
+    #ruby_cover "$CONFIG_FILE" "['dns']['nameserver']" "/etc/openclash/custom/openclash_custom_dns.yaml" "nameserver"
+
+    #Hash Merge From Yaml File Demo:
+    #1--config path
+    #2--key name
+    #3--value file path
+    #4--hash path in #3 file
+    #ruby_merge "$CONFIG_FILE" "['dns']" "/etc/openclash/custom/openclash_custom_dns.yaml" "['dns']"
+
+    #Array Unique Demo:
+    #1--config path
+    #2--key name
+    #ruby_uniq "$CONFIG_FILE" "['dns']['nameserver']"
+
+    #Unicode Demo(Chinese and emoji are supported in key names and values):
+    #ruby_edit "$CONFIG_FILE" "['secret']" "'中文😀密钥'"
+    #ruby_edit "$CONFIG_FILE" "['hosts']['例子.local']" "'1.2.3.4'"
+
+    #Delete Key Demo:
+    #1--config path
+    #2--key name(empty means the top level)
     #3--key name
     #ruby_delete "$CONFIG_FILE" "['dns']" "nameserver"
     #ruby_delete "$CONFIG_FILE" "" "dns"

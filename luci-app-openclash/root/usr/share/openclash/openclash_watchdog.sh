@@ -227,11 +227,21 @@ do
 done >/dev/null 2>&1
 
 #check the clash service status
-if ! ubus call service list '{"name":"openclash"}' 2>/dev/null | jsonfilter -e '@.openclash.instances.*.running' | grep -q 'true'; then
-   uci -q set openclash.config.enable=0
-   uci -q commit openclash
-   /etc/init.d/openclash stop >/dev/null 2>&1
-   exit 0
+CORE_JSON=$(ubus call service list '{"name":"openclash"}' 2>/dev/null)
+if [ -n "$CORE_JSON" ]; then
+   # stop signals the watchdog itself, this exits it when the core vanished otherwise
+   if [ -z "$(echo "$CORE_JSON" | jsonfilter -e '@.openclash.instances.openclash')" ]; then
+      LOG_WATCHDOG "OpenClash Service Not Running, Exit..."
+      exit 0
+   fi
+   # procd drops the respawn table once it gave up on the core (crash loop)
+   if [ "$(echo "$CORE_JSON" | jsonfilter -e '@.openclash.instances.openclash.running')" != "true" ] \
+      && [ -z "$(echo "$CORE_JSON" | jsonfilter -e '@.openclash.instances.openclash.respawn.retry')" ]; then
+      uci -q set openclash.config.enable=0
+      uci -q commit openclash
+      /etc/init.d/openclash stop >/dev/null 2>&1
+      exit 0
+   fi
 fi
 
 ## Porxy history

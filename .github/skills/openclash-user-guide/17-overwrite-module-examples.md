@@ -29,7 +29,7 @@
 ```ini
 [General]
 EN_MODE = fake-ip-tun
-STACK_TYPE = mixed
+STACK_TYPE = mips
 ```
 
 #### 17.3.2 通过 [Overwrite] 段添加自定义代理组
@@ -93,12 +93,13 @@ ruby_arr_head_add_file "$CONFIG_FILE" "['rules']" "/etc/openclash/custom/opencla
 ruby_delete "$CONFIG_FILE" "['proxy-providers']" "provider1"
 # 用外部文件里的 nameserver 列表替换 dns.nameserver
 ruby_cover "$CONFIG_FILE" "['dns']['nameserver']" "/etc/openclash/custom/openclash_custom_dns.yaml" "nameserver"
+ruby_merge_hash "$CONFIG_FILE" "['tun']" "'stack' => 'mips'"
 ```
 
-> **⚠️ 写法限制**：每行必须是**单个白名单 `ruby_*` 函数调用**且参数整体加引号，参数内不能有 `\`、`;`、反引号、`$( )`，也不能出现 `system`/`exec`/`eval`/`require`/`%x`/`#{…}`/`ENV`/`File.` 等 token（详见 `16-overwrite-module-format.md` §16.2.2）。因此**正则里的 `\.` 要写成 `[.]`**，**字面 `$` 用单引号参数**避免被当环境变量展开：
+> **⚠️ 写法限制**：每行必须是**单个白名单 `ruby_*` 函数调用**且参数整体加引号；参数内可含 `\`、`;`、`$( )`、引号内的反引号（**一律按字面量处理**，不会触发 shell 展开或命令替换，无需转义）；**代码参数过 AST 白名单**（`Value` 读写 + 常用 String/Array/Hash 方法 + `lambda`/条件/循环/插值等），未列入的调用（`system`/`send`/`File.`/`ENV`/反引号等）会被拒并记录 `skip invalid Overwrite command`（详见 `16-overwrite-module-format.md` §16.2.2）。**正则里的 `\.` 可直接书写**（旧写法 `[.]` 仍有效）；**字面 `$` 用单引号参数**避免被当环境变量展开：
 ```ini
 [Overwrite]
-ruby_map_edit "$CONFIG_FILE" "['proxy-providers']" "provider1" "['filter']" '^abc[.]com$x'
+ruby_map_edit "$CONFIG_FILE" "['proxy-providers']" "provider1" "['filter']" '^abc\.com$x'
 ```
 > 被拦下的行不会执行，日志里是 `skip invalid Overwrite command【Ruby Script => 模块名: 行】`。
 
@@ -120,7 +121,7 @@ DOWNLOAD_FILE = url=https://example.com/rules.yaml, path=/etc/openclash/rule_pro
 **文件**: `/etc/openclash/custom/openclash_custom_overwrite.sh`
 **执行时机**: 在 `yml_change.sh` 和 `yml_rules_change.sh` 之间执行
 **特点**: 可以使用项目提供的 `ruby_*` 函数族
-**值写法限制**：同 `[Overwrite]` 段（见 §17.3.6 与 `16-overwrite-module-format.md` §16.2.2）——值里不能含 `\`、`;`、反引号、`$( )`，也不能出现 `system`/`exec`/`ENV` 等 token，命中时跳过并记录 `skip unsafe Overwrite command`。
+**值写法限制**：同 `[Overwrite]` 段（见 §17.3.6 与 `16-overwrite-module-format.md` §16.2.2）——`\`、`;`、反引号、`$( )` 一律按字面量处理，不能出现 `eval`/`exec`/`Kernel` 等进程/反射 token；`ruby_*` 调用先由 `ruby_record()` 记录、脚本结束后由 `YAML.overwrite_run_custom()` 统一执行，命中 token 时跳过并记录 `skip unsafe Overwrite command`。
 
 ```bash
 #!/bin/bash
@@ -155,6 +156,7 @@ fi
   - `config` 列表包含 `all` → 匹配所有配置
   - `config` 列表包含当前 `config_path` UCI 值 → 匹配
   - `config` 为空 → **永不匹配，覆写不生效**（常见配置错误）
+  - ⚠️ `config` 必须是 **UCI 列表**（LuCI 界面自动用 `set_list` 写入）
 - 支持同时匹配多个配置文件。
 
 **`type` + `url` + `update_*` (远程覆写)**:
@@ -165,7 +167,7 @@ fi
 
 **`param` (额外参数)**:
 - 格式 `KEY1=VALUE1;KEY2=VALUE2`，分号分隔
-- 值通过环境变量 `$KEY1`、`$KEY2` 传入 `/tmp/yaml_overwrite.sh`，可在 `[Overwrite]` 段的 Shell 脚本中直接引用
+- 值以环境变量 `$KEY1`、`$KEY2` 导出，可在 `[Overwrite]` 行的双引号参数内直接引用（`$KEY1`/`${KEY1}` 会展开；单引号参数内原样保留）
 
 **`order` (执行顺序)**:
 - 多条覆写按 `sort -nr`（数值降序）排列执行

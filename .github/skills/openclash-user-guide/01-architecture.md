@@ -76,7 +76,7 @@ Dashboard: http://路由器LAN_IP:9090/ui/
 │
 ├─ Step 1: 读取配置 (Get The Configuration)
 │   ├─ check_run_quick()   → 判断是否快速启动模式 (QUICK_START，跳过 YAML 修改)
-│   ├─ overwrite_file()    → 遍历 config_overwrite 条目，生成 /tmp/yaml_overwrite.sh
+│   ├─ overwrite_file()    → 遍历 config_overwrite 条目，生成覆写清单 /tmp/yaml_openclash_overwrite_lines
 │   ├─ get_config()        → 读取所有 UCI 选项为 Shell 变量
 │   ├─ config_choose()     → 选择活动的 YAML 配置文件 (RAW/TMP/CONFIG)
 │   └─ do_run_mode()       → 解析 en_mode → 拆分 en_mode_tun/en_mode_fakeip/en_mode_mix
@@ -111,7 +111,7 @@ Dashboard: http://路由器LAN_IP:9090/ui/
 │   │   ├─ auto_smart_switch → 将 url-test/load-balance 组改为 smart 类型
 │   │   └─ smart_collect/smart_policy_priority/smart_enable_lgbm/smart_prefer_asn/smart_tolerance → Smart 策略组
 │   │
-│   ├─ ③ /tmp/yaml_overwrite.sh → 覆写模块 [Overwrite]/[YAML] 段（overwrite_file() 生成）
+│   ├─ ③ YAML.overwrite_run() → 覆写模块 [Overwrite]/[YAML] 段（overwrite_file() 生成清单；单进程，先 [YAML] 后 [Overwrite]）
 │   ├─ ④ /etc/openclash/custom/openclash_custom_overwrite.sh → 固定自定义覆写脚本
 │   └─ ⑤ Provider 路径修复 (ruby) → proxy-providers/rule-providers 的 path 统一为 ./proxy_provider/<name>
 │   （QUICK_START 时跳过整个 Step 3）
@@ -143,13 +143,13 @@ Dashboard: http://路由器LAN_IP:9090/ui/
     │   ├─ openclash_chnroute.sh → 定时更新大陆路由
     │   ├─ /etc/init.d/openclash restart → 定时自动重启
     │   └─ add_overwrite_cron → 覆写模块下载任务
-    ├─ start_watchdog()   → procd 启动 openclash_watchdog.sh (核心存活监控 + 流媒体解锁)
+    ├─ service_started()  → 注册独立 procd 服务 openclash-watchdog 运行 openclash_watchdog.sh (核心存活监控 + 流媒体解锁)
     ├─ IPv6 DHCP 警告检查 → 非 TUN 且 dhcpv6 未禁用时告警
     └─ 清理              → rm -rf /tmp/yaml_*
 ```
 
 **停止流程** (`stop_service()`):
-1. 备份策略组状态历史 → 2. `revert_firewall()` 清除防火墙规则 → 3. kill clash + streaming unlock 进程 → 4. `revert_dnsmasq()` 恢复 DNS → 5. `del_cron()` 清除定时任务
+1. 备份策略组状态历史 → 2. `revert_firewall()` 清除防火墙规则 → 3. kill clash + streaming unlock 进程、发 TERM 结束看门狗 → 4. `revert_dnsmasq()` 恢复 DNS → 5. `del_cron()` 清除定时任务
 
 **热生效 vs 需重启**:
 | 操作 | 方式 | 延迟 |
