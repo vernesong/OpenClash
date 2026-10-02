@@ -42,6 +42,7 @@ local dynamic_uci = require "luci.model.uci".cursor()
 local SYS  = require "luci.sys"
 local HTTP = require "luci.http"
 local json = require "luci.jsonc"
+local i18n = require "luci.i18n"
 
 local type  = type
 local string  = string
@@ -298,8 +299,8 @@ function filesize(e)
 	local t=0
 	local a={' KB',' MB',' GB',' TB',' PB'}
 	if e < 0 then
-        e = -e
-    end
+		e = -e
+	end
 	repeat
 		e=e/1024
 		t=t+1
@@ -328,60 +329,60 @@ function lanip(loopback)
 end
 
 function find_case_insensitive_path(path)
-    local dir = dirname(path)
-    local base = basename(path)
-    local files = dir and fs.dir(dir)
-    if not files then
-        return nil
-    end
+	local dir = dirname(path)
+	local base = basename(path)
+	local files = dir and fs.dir(dir)
+	if not files then
+		return nil
+	end
 
-    for f in files do
-        if f:lower() == base:lower() then
-            return dir .. "/" .. f
-        end
-    end
-    return nil
+	for f in files do
+		if f:lower() == base:lower() then
+			return dir .. "/" .. f
+		end
+	end
+	return nil
 end
 
 function get_resourse_mtime(path)
-    local real_path = path
-    if not fs.access(path) then
-        local found = find_case_insensitive_path(path)
-        if found then
-            real_path = found
-        elseif uci_get_config("config", "small_flash_memory") == "1" then
-            local fallback_path = path:gsub("^/etc/openclash/", "/tmp/etc/openclash/")
-            local fallback_found = find_case_insensitive_path(fallback_path)
-            if fallback_found then
-                real_path = fallback_found
-            else
-                return "File Not Exist"
-            end
-        else
-            return "File Not Exist"
-        end
-    end
-    local file = fs.readlink(real_path) or real_path
+	local real_path = path
+	if not fs.access(path) then
+		local found = find_case_insensitive_path(path)
+		if found then
+			real_path = found
+		elseif uci_get_config("config", "small_flash_memory") == "1" then
+			local fallback_path = path:gsub("^/etc/openclash/", "/tmp/etc/openclash/")
+			local fallback_found = find_case_insensitive_path(fallback_path)
+			if fallback_found then
+				real_path = fallback_found
+			else
+				return "File Not Exist"
+			end
+		else
+			return "File Not Exist"
+		end
+	end
+	local file = fs.readlink(real_path) or real_path
 	local resourse_etag_version = SYS.exec(string.format("source /usr/share/openclash/openclash_etag.sh && GET_ETAG_TIMESTAMP_BY_PATH '%s'", file))
-    if resourse_etag_version and resourse_etag_version ~= "" then
+	if resourse_etag_version and resourse_etag_version ~= "" then
 		return resourse_etag_version
 	end
 	local resourse_version = os.date("%Y-%m-%d %H:%M:%S", mtime(file))
 	if resourse_version and resourse_version ~= "" then
-        return resourse_version
+		return resourse_version
 	end
-    return "Unknown"
+	return "Unknown"
 end
 
 function uci_get_config(section, key)
 	local val
 	if section == "config" then
-    	val = uci:get("openclash", "@overwrite[0]", key)
+		val = uci:get("openclash", "@overwrite[0]", key)
 	end
-    if val == nil then
-    	val = uci:get("openclash", section, key)
-    end
-    return val
+	if val == nil then
+		val = uci:get("openclash", section, key)
+	end
+	return val
 end
 
 function get_file_path_from_request()
@@ -420,61 +421,61 @@ function get_age_keys(file)
 end
 
 function age_encrypt(public, content)
-    if not public or public == "" or not content then return nil end
+	if not public or public == "" or not content then return nil end
 
-    local tmp_in = os.tmpname()
-    local tmp_out = os.tmpname()
-    local f = io.open(tmp_in, "w")
-    if not f then return nil end
-    f:write(content)
-    f:close()
+	local tmp_in = os.tmpname()
+	local tmp_out = os.tmpname()
+	local f = io.open(tmp_in, "w")
+	if not f then return nil end
+	f:write(content)
+	f:close()
 
-    local cmd = string.format(
-        "/etc/openclash/core/clash_meta age encrypt %s %s %s 2>/dev/null",
-        public, tmp_in, tmp_out
-    )
-    os.execute(cmd)
+	local cmd = string.format(
+		"/etc/openclash/core/clash_meta age encrypt %s %s %s 2>/dev/null",
+		public, tmp_in, tmp_out
+	)
+	os.execute(cmd)
 
-    local out = nil
-    local f_out = io.open(tmp_out, "r")
-    if f_out then
-        out = f_out:read("*a") or ""
-        f_out:close()
-    end
+	local out = nil
+	local f_out = io.open(tmp_out, "r")
+	if f_out then
+		out = f_out:read("*a") or ""
+		f_out:close()
+	end
 
-    os.remove(tmp_in)
-    os.remove(tmp_out)
+	os.remove(tmp_in)
+	os.remove(tmp_out)
 
-    return out
+	return out
 end
 
 function age_decrypt(secret, content)
-    if not secret or secret == "" or not content then return nil end
+	if not secret or secret == "" or not content then return nil end
 
-    local tmp_in = os.tmpname()
-    local tmp_out = os.tmpname()
-    local f = io.open(tmp_in, "w")
-    if not f then return nil end
-    f:write(content)
-    f:close()
+	local tmp_in = os.tmpname()
+	local tmp_out = os.tmpname()
+	local f = io.open(tmp_in, "w")
+	if not f then return nil end
+	f:write(content)
+	f:close()
 
-    local cmd = string.format(
-        "/etc/openclash/core/clash_meta age decrypt %s %s %s 2>/dev/null",
-        secret, tmp_in, tmp_out
-    )
-    os.execute(cmd)
+	local cmd = string.format(
+		"/etc/openclash/core/clash_meta age decrypt %s %s %s 2>/dev/null",
+		secret, tmp_in, tmp_out
+	)
+	os.execute(cmd)
 
-    local out = nil
-    local f_out = io.open(tmp_out, "r")
-    if f_out then
-        out = f_out:read("*a") or ""
-        f_out:close()
-    end
+	local out = nil
+	local f_out = io.open(tmp_out, "r")
+	if f_out then
+		out = f_out:read("*a") or ""
+		f_out:close()
+	end
 
-    os.remove(tmp_in)
-    os.remove(tmp_out)
+	os.remove(tmp_in)
+	os.remove(tmp_out)
 
-    return out
+	return out
 end
 
 function decode64(data)
@@ -623,9 +624,11 @@ function pkg_type()
 	end
 end
 
---- Reads the CDN proxy address list from /usr/share/openclash/res/cdn.list.
+--- Reads the CDN proxy address list from /usr/share/openclash/res/cdn.list,
+-- followed by the user-defined addresses stored in uci
+-- (openclash.config.github_addr_custom, list or space-separated string).
 -- Lines starting with "#" are treated as comments and skipped.
--- @return Table of CDN address strings (deduplicated, in file order)
+-- @return Table of CDN address strings (deduplicated, file order first)
 function cdn_list()
 	local list = {}
 	local seen = {}
@@ -637,6 +640,16 @@ function cdn_list()
 				seen[line] = true
 				list[#list + 1] = line
 			end
+		end
+	end
+	local custom = uci:get("openclash", "config", "github_addr_custom")
+	if type(custom) == "table" then
+		custom = table.concat(custom, " ")
+	end
+	for addr in (custom or ""):gmatch("%S+") do
+		if not seen[addr] then
+			seen[addr] = true
+			list[#list + 1] = addr
 		end
 	end
 	return list
@@ -735,8 +748,45 @@ function oc_version()
 	return v or "0"
 end
 
+--- Build/Prepare replaces the token with PKG_VERSION (files deployed without make keep it).
+OC_VERSION = "@OPENCLASH_VERSION@"
+
+--- Loads common.js + oc-common.css for pages whose templates carry no head include of their own.
+function render_page_head()
+	local lang = i18n.context and i18n.context.lang or ""
+	HTTP.write(string.format([[
+<script src="/cgi-bin/luci/admin/services/openclash/translate_js?f=common&v=%s&l=%s"></script>
+<link rel="stylesheet" href="/luci-static/resources/openclash/css/oc-common.css?v=%s">
+]], OC_VERSION, lang, OC_VERSION))
+end
+
 function IsYamlExt(e)
 	e = e or ""
 	local lower = string.lower(e)
 	return lower:sub(-5) == ".yaml" or lower:sub(-4) == ".yml"
+end
+
+-- Rename the up/down buttons and drop stray <br> nodes before descriptions on newer LuCI.
+-- The i18n module is pinned at the top of this file: this function also runs inside
+-- the CBI template context, where looking up globals like require is not possible.
+function optimize_cbi_ui()
+	HTTP.write([[
+		<script type="text/javascript">
+			document.querySelectorAll("input.btn.cbi-button.cbi-button-up").forEach(function(btn) {
+				btn.value = "]] .. i18n.translate("Move up") .. [[";
+			});
+			document.querySelectorAll("input.btn.cbi-button.cbi-button-down").forEach(function(btn) {
+				btn.value = "]] .. i18n.translate("Move down") .. [[";
+			});
+			document.querySelectorAll("div.cbi-value-description").forEach(function(descDiv) {
+				var prev = descDiv.previousSibling;
+				while (prev && prev.nodeType === Node.TEXT_NODE && prev.textContent.trim() === "") {
+					prev = prev.previousSibling;
+				}
+				if (prev && prev.nodeType === Node.ELEMENT_NODE && prev.tagName === "BR") {
+					prev.remove();
+				}
+			});
+		</script>
+	]])
 end

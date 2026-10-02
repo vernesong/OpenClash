@@ -1,0 +1,1364 @@
+// Extracted from luasrc/view/openclash/config_upload.htm - edit this file, not the template.
+// <%:Message%> markers and <%=...%> islands are compiled server-side by the "openclash/translate_js" controller action.
+
+var UrlValidator = {
+    httpRe: /^https?:\/\/\S+$/i,
+    anyProtocolRe: /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\/\S+$/i,
+
+    // Extract individual URLs from input. Supports:
+    //   - Newline-separated: url1\nurl2
+    //   - | -separated:     url1|url2  (| only when followed by protocol)
+    //   - Comma-separated:  node1,https://sub.com
+    //   - URL-encoded comma: node1%2Chttps%3A%2F%2Fsub.com
+    // Correctly preserves | inside query parameters (e.g., ?lv=2|3|5|6.js).
+    extractUrls: function(input, allowNonHttp) {
+        if (!input) return [];
+        var protocolPat = allowNonHttp ? '[a-zA-Z][a-zA-Z0-9+.-]*://' : 'https?://';
+        var protocolRe = new RegExp(protocolPat, 'gi');
+        var urls = [];
+
+        function extractFrom(text) {
+            var positions = [];
+            var m;
+            protocolRe.lastIndex = 0;
+            while ((m = protocolRe.exec(text)) !== null) {
+                positions.push(m.index);
+            }
+            if (positions.length === 0) return false;
+
+            for (var i = 0; i < positions.length; i++) {
+                var start = positions[i];
+                var end = (i + 1 < positions.length) ? positions[i + 1] : text.length;
+                var raw = text.substring(start, end);
+                raw = raw.replace(/[\s|,]+$/, '').trim();
+                if (raw) urls.push(raw);
+            }
+            return true;
+        }
+
+        if (!extractFrom(input)) {
+            if (/%[23][aA]/i.test(input)) {
+                try {
+                    var decoded = decodeURIComponent(input);
+                    if (decoded !== input) extractFrom(decoded);
+                } catch(e) {}
+            }
+        }
+
+        return urls;
+    },
+
+    validateUrl: function(url, allowNonHttp) {
+        var urlPart = url.replace(/#name=.*$/, '');
+        if (!urlPart) return { valid: false, reason: '<%:Empty URL%>' };
+
+        var re = allowNonHttp ? this.anyProtocolRe : this.httpRe;
+        if (!re.test(urlPart)) {
+            if (!allowNonHttp && /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\/\S/.test(urlPart)) {
+                return { valid: false, reason: '<%:Only HTTP/HTTPS URLs are supported%>' };
+            }
+            return { valid: false, reason: '<%:Invalid URL format%>' };
+        }
+
+        if (/^https?:\/\//i.test(urlPart)) {
+            var hostMatch = urlPart.match(/^https?:\/\/([^\/\s?#]+)/i);
+            if (!hostMatch || hostMatch[1].length === 0) {
+                return { valid: false, reason: '<%:URL missing hostname%>' };
+            }
+        }
+        return { valid: true };
+    },
+
+    anyValid: function(urlList, allowNonHttp) {
+        for (var i = 0; i < urlList.length; i++) {
+            if (this.validateUrl(urlList[i], allowNonHttp).valid) return true;
+        }
+        return false;
+    }
+};
+
+var SubscriptionUrlSetter = {
+    filename: '',
+    onSuccess: '',
+
+    show: function(filename, onSuccess) {
+        this.filename = filename;
+        this.onSuccess = onSuccess || '';
+        var overlay = document.getElementById('subscription-url-overlay');
+        var textarea = document.getElementById('subscription-url-textarea');
+        if (overlay && textarea) {
+            textarea.value = '';
+            overlay.classList.add('show');
+            textarea.focus();
+            this.bindEvents();
+            this.loadUrls();
+        }
+    },
+
+    hide: function() {
+        var overlay = document.getElementById('subscription-url-overlay');
+        if (overlay) {
+            overlay.classList.remove('show');
+        }
+        this.unbindEvents();
+    },
+
+    bindEvents: function() {
+        var textarea = document.getElementById('subscription-url-textarea');
+        if (textarea) {
+            textarea.addEventListener('keydown', this.handleKeyDown.bind(this));
+        }
+    },
+
+    unbindEvents: function() {
+        var textarea = document.getElementById('subscription-url-textarea');
+        if (textarea) {
+            textarea.removeEventListener('keydown', this.handleKeyDown.bind(this));
+        }
+    },
+
+    handleKeyDown: function(event) {
+        if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+            this.submit();
+        } else if (event.key === 'Escape') {
+            this.hide();
+        }
+    },
+
+    submit: function() {
+        var textarea = document.getElementById('subscription-url-textarea');
+        if (!textarea) return;
+
+        var urls = textarea.value.trim();
+        var urlList = urls.split('\n').map(function(url) {
+            return url.trim();
+        }).filter(function(url) {
+            return url !== '';
+        });
+        var newUrl = urlList.join('\n');
+
+        for (var i = 0; i < urlList.length; i++) {
+            var result = UrlValidator.validateUrl(urlList[i], false);
+            if (!result.valid) {
+                alert('<%:Invalid URL on line %> ' + (i + 1) + ':\n' + urlList[i] + '\n\n' + result.reason);
+                return;
+            }
+        }
+
+        this.hide();
+
+        XHR.get('<%=url("admin", "services", "openclash", "set_subinfo_url")%>', {
+            filename: this.filename,
+            url: newUrl
+        }, function(x, status) {
+            if (x && x.status == 200 && (status.info === "Success" || status.info === "Delete success")) {
+                if (SubscriptionUrlSetter.onSuccess) setTimeout(SubscriptionUrlSetter.onSuccess, 0);
+            } else {
+                alert('<%:Specify subscribe infos sources url failed:%>\n' + ((status && status.info) || (x && ('HTTP ' + x.status)) || '<%:Unknown error%>'));
+            }
+        });
+    },
+
+    handleSubURL: function(urlresult) {
+        var textarea = document.getElementById('subscription-url-textarea');
+        if (!textarea) return;
+
+        var urls = '';
+        if (urlresult.type && urlresult.type === "multiple") {
+            for (var data in urlresult.providers) {
+                urls += urlresult.providers[data].url + '#name=' + urlresult.providers[data].name + '\n';
+            }
+        }
+        if (urlresult.type && urlresult.type === "single") {
+            urls = urlresult.url;
+        }
+        textarea.value = urls;
+    },
+
+    loadUrls: function() {
+        var self = this;
+        var existingData = localStorage.getItem('sub_info_' + this.filename);
+        if (existingData) {
+            existingData = JSON.parse(existingData);
+            if (existingData.url_result) {
+                this.handleSubURL(existingData.url_result);
+                return;
+            }
+        }
+
+        XHR.get('<%=url("admin", "services", "openclash", "get_subscribe_info_data")%>', {
+            filename: this.filename
+        }, function(x, status) {
+            if (x && x.status == 200 && status) {
+                self.handleSubURL(status);
+            }
+        });
+    }
+};
+
+var ConfigUploader = {
+    overlay: null,
+    model: null,
+    selectedFile: null,
+    isProcessing: false,
+    currentMode: 'file',
+    onSuccess: '',
+    subconverterVersionChecker: null,
+    linkRe: null,
+
+    init: function() {
+        this.overlay = document.getElementById('config-upload-overlay');
+        this.model = document.getElementById('config-upload-model');
+
+        if (!this.overlay || !this.model) {
+            return;
+        }
+
+        this.bindEvents();
+    },
+
+    bindEvents: function() {
+        var self = this;
+        var uploadZone = document.getElementById('upload-zone');
+        var fileInput = document.getElementById('config-file-input');
+
+        document.getElementById('upload-mode-file').addEventListener('click', function() {
+            self.switchMode('file');
+        });
+
+        document.getElementById('upload-mode-subscribe').addEventListener('click', function() {
+            self.switchMode('subscribe');
+        });
+
+        uploadZone.addEventListener('click', function() {
+            if (!self.isProcessing && self.currentMode === 'file') {
+                fileInput.click();
+            }
+        });
+
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                self.handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        uploadZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            if (!self.isProcessing && self.currentMode === 'file') {
+                uploadZone.classList.add('dragover');
+            }
+        });
+
+        uploadZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+
+            if (!self.isProcessing && self.currentMode === 'file' && e.dataTransfer.files.length > 0) {
+                self.handleFileSelect(e.dataTransfer.files[0]);
+            }
+        });
+
+        var subscribeUrlInput = document.getElementById('subscribe-url-input');
+        var filenameInput = document.getElementById('config-filename-input');
+        var subscribeUaSelect = document.getElementById('subscribe-ua-input');
+        var subscribeUaCustom = document.getElementById('subscribe-ua-custom');
+        var subConvertEnable = document.getElementById('sub-convert-enable');
+        var subConvertOptions = document.getElementById('sub-convert-options');
+        var convertAddressSelect = document.getElementById('convert-address-input');
+        var convertAddressCustom = document.getElementById('convert-address-custom');
+        var templateSelect = document.getElementById('template-select');
+        var customTemplateGroup = document.getElementById('custom-template-group');
+        var advancedOptionsEnable = document.getElementById('advanced-options-enable');
+        var advancedOptionsContainer = document.getElementById('advanced-options-container');
+        var advancedOptionsEnableFile = document.getElementById('advanced-options-enable-file');
+        var advancedOptionsContainerFile = document.getElementById('advanced-options-container-file');
+        var ageFormNode = document.getElementById('age-encryption-group');
+        var subVersionStatus = document.getElementById('subconverter-version-status-upload');
+        var keywordOptionsEnable = document.getElementById('keyword-options-enable');
+        var keywordOptionsContainer = document.getElementById('keyword-options-container');
+
+        ocRequireScript('/luci-static/resources/openclash/js/subconverter-version.js?v=' + (window.ocPluginVer || ''), function() {
+        if (window.OpenClashSubconverterVersion && subVersionStatus) {
+            self.subconverterVersionChecker = window.OpenClashSubconverterVersion.init({
+                select: convertAddressSelect,
+                customInput: convertAddressCustom,
+                enable: subConvertEnable,
+                status: subVersionStatus,
+                proxyURL: '<%=url("admin", "services", "openclash", "subconverter_version")%>',
+                labels: {
+                    checking: '<%:Checking backend version...%>',
+                    versionPrefix: '<%:Backend Version%>',
+                    empty: '<%:Please enter backend URL%>',
+                    invalid: '<%:Invalid backend URL%>',
+                    unrecognized: '<%:Backend version information not detected%>',
+                    failed: '<%:Unable to detect backend version%>'
+                }
+            });
+        }
+        });
+
+        subscribeUrlInput.addEventListener('input', function() {
+            self.autoFillConfigName();
+            self.updateSubmitButton();
+
+            var convertEnable = document.getElementById('sub-convert-enable');
+            if (convertEnable && !convertEnable.checked && /(?:^|[\s|,;"'<(])(?!https?:\/\/)[a-z][a-z0-9+.-]*:\/\//i.test(subscribeUrlInput.value)) {
+                convertEnable.checked = true;
+                convertEnable.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+
+        filenameInput.addEventListener('input', this.updateSubmitButton.bind(this));
+
+        subscribeUaSelect.addEventListener('change', function() {
+            subscribeUaCustom.classList.toggle('oc-hidden', this.value !== 'custom');
+        });
+
+        advancedOptionsEnable.addEventListener('change', function() {
+            if (this.checked) {
+                advancedOptionsContainer.classList.remove('oc-hidden');
+            } else {
+                advancedOptionsContainer.classList.add('oc-hidden');
+                self.updateSubmitButton();
+            }
+            if (ageFormNode && advancedOptionsContainer && ageFormNode.parentNode !== advancedOptionsContainer) {
+                advancedOptionsContainer.appendChild(ageFormNode);
+            }
+        });
+
+        if (advancedOptionsEnableFile) {
+            advancedOptionsEnableFile.addEventListener('change', function() {
+                if (this.checked) {
+                    advancedOptionsContainerFile.classList.remove('oc-hidden');
+                    if (ageFormNode && advancedOptionsContainerFile && ageFormNode.parentNode !== advancedOptionsContainerFile) {
+                        advancedOptionsContainerFile.appendChild(ageFormNode);
+                    }
+                } else {
+                    advancedOptionsContainerFile.classList.add('oc-hidden');
+                    self.updateSubmitButton();
+                    if (ageFormNode && advancedOptionsContainer && ageFormNode.parentNode === advancedOptionsContainerFile) {
+                        advancedOptionsContainer.appendChild(ageFormNode);
+                    }
+                }
+            });
+        }
+
+        subConvertEnable.addEventListener('change', function() {
+            subConvertOptions.classList.toggle('oc-hidden', !this.checked);
+            self.updateSubconverterVersionStatus();
+            self.updateSubmitButton();
+        });
+
+        keywordOptionsEnable.addEventListener('change', function() {
+            keywordOptionsContainer.classList.toggle('oc-hidden', !this.checked);
+        });
+
+        convertAddressSelect.addEventListener('change', function() {
+            convertAddressCustom.classList.toggle('oc-hidden', this.value !== 'custom');
+            self.updateSubconverterVersionStatus();
+        });
+
+        templateSelect.addEventListener('change', function() {
+            customTemplateGroup.classList.toggle('oc-hidden', this.value !== '0');
+        });
+
+        var ageGenerateBtn = document.getElementById('age-generate-btn');
+        var ageCopyPublic = document.getElementById('age-copy-public');
+        var ageCopySecret = document.getElementById('age-copy-secret');
+        var agePublicInput = document.getElementById('age-public-input');
+        var ageSecretInput = document.getElementById('age-secret-input');
+        var ageCalPublic = document.getElementById('age-calculate-public');
+
+        if (ageGenerateBtn) {
+            ageGenerateBtn.addEventListener('click', function() {
+                var algo = document.getElementById('age-algo-select') ? document.getElementById('age-algo-select').value : 'keygen';
+                ageGenerateBtn.disabled = true;
+                XHR.get('<%=url("admin", "services", "openclash", "generate_age_key")%>', {
+                    algo: algo
+                }, function(x, data) {
+                    ageGenerateBtn.disabled = false;
+                    if (x && x.status == 200 && data.status === 'success') {
+                        if (ageSecretInput) {
+                            ageSecretInput.value = data.secret || '';
+                        }
+                        if (agePublicInput) {
+                            agePublicInput.value = data.public || '';
+                        }
+                        self.updateSubmitButton();
+                    } else {
+                        alert('<%:Failed to generate age key%>');
+                    }
+                });
+            });
+        }
+
+        if (ageCopyPublic) {
+            ageCopyPublic.addEventListener('click', function() {
+                var v = agePublicInput.value || '';
+                if (v === '') { alert('<%:No public key%>'); return; }
+                ocCopyToClipboard(v, ageCopyPublic);
+            });
+        }
+
+        if (ageCopySecret) {
+            ageCopySecret.addEventListener('click', function() {
+                var v = ageSecretInput.value || '';
+                if (v === '') { alert('<%:No secret key%>'); return; }
+                ocCopyToClipboard(v, ageCopySecret);
+            });
+        }
+
+        if (ageCalPublic) {
+            ageCalPublic.addEventListener('click', function() {
+                var secret = ageSecretInput.value || '';
+                if (secret === '') { alert('<%:Please enter the Age Secret Key to calculate the public key!%>'); return; }
+                ageCalPublic.disabled = true;
+                XHR.get('<%=url("admin", "services", "openclash", "cal_age_public_key")%>', {
+                    secret: secret
+                }, function(x, data) {
+                    ageCalPublic.disabled = false;
+                    if (x && x.status == 200 && data.status === 'success') {
+                        if (agePublicInput) {
+                            agePublicInput.value = data.public || '';
+                        }
+                        self.updateSubmitButton();
+                    } else {
+                        alert('<%:Failed to calculate public key%>');
+                    }
+                });
+            });
+        }
+
+        if (agePublicInput) agePublicInput.addEventListener('input', self.updateSubmitButton.bind(self));
+        if (ageSecretInput) ageSecretInput.addEventListener('input', self.updateSubmitButton.bind(self));
+
+        document.getElementById('subscribe-headers-add').addEventListener('click', function() {
+            self.addHeaderRow('', '');
+        });
+
+        document.getElementById('config-upload-submit').addEventListener('click', function() {
+            if (self.currentMode === 'file') {
+                self.uploadFile();
+            } else {
+                self.processSubscription();
+            }
+        });
+
+        document.getElementById('config-upload-cancel').addEventListener('click', function() {
+            if (!self.isProcessing) {
+                self.hide();
+            }
+        });
+
+        document.getElementById('config-upload-close').addEventListener('click', function() {
+            if (!self.isProcessing) {
+                self.hide();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !self.isProcessing && self.overlay.classList.contains('show')) {
+                self.hide();
+            }
+        });
+    },
+
+    show: function(onSuccess) {
+        this.onSuccess = onSuccess || '';
+        this.overlay.classList.add('show');
+        document.getElementById('config-upload-title').textContent = '<%:Add Config%>';
+        this.reset();
+    },
+
+    showEditSubscribe: function(subscribeData, filename, onSuccess) {
+        this.onSuccess = onSuccess || '';
+        this.overlay.classList.add('show');
+        this.reset();
+        this.editFilename = filename;
+
+        var isSubscribe = subscribeData && subscribeData.address;
+        var advFileEnable = document.getElementById('advanced-options-enable-file');
+        var advFileContainer = document.getElementById('advanced-options-container-file');
+        var ageNode = document.getElementById('age-encryption-group');
+        var secretEl = document.getElementById('age-secret-input');
+        var publicEl = document.getElementById('age-public-input');
+        var algoSelect = document.getElementById('age-algo-select');
+        this.isEditMode = true;
+
+        if (isSubscribe) {
+            this.switchMode('subscribe');
+            document.getElementById('config-upload-title').textContent = '<%:Edit Subscription%>';
+            document.getElementById('config-upload-submit').textContent = '<%:Edit Config%>';
+            this.fillSubscribeForm(subscribeData);
+        } else {
+            this.switchMode('file');
+            document.getElementById('config-upload-title').textContent = '<%:Edit Config%>';
+            document.getElementById('config-upload-submit').textContent = '<%:Edit Config%>';
+            document.getElementById('config-filename-input').value = this.editFilename || '';
+
+            try {
+                if (subscribeData) {
+                    var hasAge = false;
+                    if (subscribeData.config_age_secret) {
+                        if (secretEl) secretEl.value = subscribeData.config_age_secret;
+                        hasAge = true;
+                    }
+                    if (subscribeData.config_age_public) {
+                        if (publicEl) publicEl.value = subscribeData.config_age_public;
+                        hasAge = true;
+                    }
+                    if (subscribeData.config_age_algo) {
+                        if (algoSelect) try { algoSelect.value = subscribeData.config_age_algo; } catch (e) {}
+                        hasAge = true;
+                    }
+
+                    if (hasAge && advFileEnable && advFileContainer) {
+                        advFileEnable.checked = true;
+                        advFileContainer.classList.remove('oc-hidden');
+
+                        if (ageNode && ageNode.parentNode !== advFileContainer) advFileContainer.appendChild(ageNode);
+                    }
+                    if (hasAge) {
+                        var advEnable = document.getElementById('advanced-options-enable');
+                        var advContainer = document.getElementById('advanced-options-container');
+                        if (advEnable) advEnable.checked = true;
+                        if (advContainer) advContainer.classList.remove('oc-hidden');
+                    }
+                    if (ageNode) ageNode.style.display = '';
+                }
+            } catch (e) {}
+        }
+
+        if (subscribeData) {
+            if (subscribeData.config_age_hidden) {
+                advFileEnable.parentNode.parentNode.style.display = 'none';
+                ageNode.style.display = 'none';
+            }
+        }
+
+        this.updateSubmitButton();
+    },
+
+    hide: function() {
+        this.overlay.classList.remove('show');
+        this.reset();
+    },
+
+    updateSubconverterVersionStatus: function() {
+        if (this.subconverterVersionChecker) {
+            this.subconverterVersionChecker.update();
+        }
+    },
+
+    resetAdvancedOptions: function() {
+        document.getElementById('sub-convert-enable').checked = false;
+        document.getElementById('sub-convert-options').classList.add('oc-hidden');
+        document.getElementById('convert-address-input').selectedIndex = 0;
+        document.getElementById('convert-address-custom').classList.add('oc-hidden');
+        document.getElementById('convert-address-custom').value = '';
+
+        var templateSelect = document.getElementById('template-select');
+        if (templateSelect && templateSelect.options.length > 1) {
+            templateSelect.selectedIndex = 0;
+        }
+
+        document.getElementById('custom-template-group').classList.add('oc-hidden');
+        document.getElementById('custom-template-input').value = '';
+
+        document.getElementById('emoji-enable').checked = false;
+        document.getElementById('udp-enable').checked = false;
+        document.getElementById('skip-cert-verify').checked = true;
+        document.getElementById('sort-enable').checked = false;
+        document.getElementById('node-type-enable').checked = false;
+        document.getElementById('rule-provider-enable').checked = false;
+        document.getElementById('custom-params-input').value = '';
+
+        document.getElementById('keyword-input').value = '';
+        document.getElementById('exclude-keyword-input').value = '';
+        document.getElementById('exclude-expire').checked = false;
+        document.getElementById('exclude-traffic').checked = false;
+        document.getElementById('exclude-plan').checked = false;
+        document.getElementById('exclude-website').checked = false;
+        var keyOptEnable = document.getElementById('keyword-options-enable');
+        if (keyOptEnable) keyOptEnable.checked = false;
+        var keyOptContainer = document.getElementById('keyword-options-container');
+        if (keyOptContainer) keyOptContainer.classList.add('oc-hidden');
+        document.getElementById('age-secret-input').value = '';
+        document.getElementById('age-public-input').value = '';
+        var advFileEnable = document.getElementById('advanced-options-enable-file');
+        if (advFileEnable) advFileEnable.checked = false;
+        var advFileContainer = document.getElementById('advanced-options-container-file');
+        if (advFileContainer) advFileContainer.classList.add('oc-hidden');
+        if (this.subconverterVersionChecker) this.subconverterVersionChecker.hide();
+    },
+
+    reset: function() {
+        this.selectedFile = null;
+        this.isProcessing = false;
+        this.currentMode = 'file';
+        this.isEditMode = false;
+        this.editFilename = null;
+
+        this.switchMode('file');
+        document.getElementById('config-filename-input').value = '';
+        document.getElementById('subscribe-url-input').value = '';
+        document.getElementById('subscribe-ua-input').value = 'clash-verge/v2.4.5';
+        document.getElementById('subscribe-ua-custom').classList.add('oc-hidden');
+        var hdrContainer = document.getElementById('subscribe-headers-container');
+        hdrContainer.innerHTML = '';
+        hdrContainer.classList.add('oc-hidden');
+
+        document.getElementById('advanced-options-enable').checked = false;
+        document.getElementById('advanced-options-container').classList.add('oc-hidden');
+        var ageNodeEl = document.getElementById('age-encryption-group');
+        if (ageNodeEl) ageNodeEl.style.display = '';
+        var advFileEnableEl = document.getElementById('advanced-options-enable-file');
+        if (advFileEnableEl && advFileEnableEl.parentNode && advFileEnableEl.parentNode.parentNode) {
+            advFileEnableEl.parentNode.parentNode.style.display = '';
+        }
+        document.getElementById('config-upload-cancel').disabled = false;
+        this.resetAdvancedOptions();
+
+        var templateSelect = document.getElementById('template-select');
+        if (templateSelect && templateSelect.options.length > 1) {
+            templateSelect.selectedIndex = 0;
+        }
+
+        document.getElementById('upload-progress').classList.add('oc-hidden');
+        document.getElementById('config-upload-status-text').textContent = '<%:Ready to add config%>';
+        document.getElementById('config-upload-submit').textContent = '<%:Add Config%>';
+        this.updateSubmitButton();
+    },
+
+    fillSubscribeForm: function(data) {
+        if (!data) return;
+
+        if (this.editFilename) {
+            document.getElementById('config-filename-input').value = this.editFilename;
+        }
+
+        if (data.address) {
+            document.getElementById('subscribe-url-input').value = data.address;
+        }
+        if (data.sub_ua) {
+            if (data.sub_ua === 'clash.meta/1.19.20' || data.sub_ua === 'clash-verge/v2.4.5' || data.sub_ua === 'Clash' || data.sub_ua === 'custom') {
+                document.getElementById('subscribe-ua-input').value = data.sub_ua;
+                if (data.sub_ua === 'custom') {
+                    document.getElementById('subscribe-ua-custom').classList.remove('oc-hidden');
+                    document.getElementById('subscribe-ua-custom').value = data.sub_ua_custom || '';
+                }
+            } else {
+                document.getElementById('subscribe-ua-input').value = 'custom';
+                document.getElementById('subscribe-ua-custom').classList.remove('oc-hidden');
+                document.getElementById('subscribe-ua-custom').value = data.sub_ua;
+            }
+        }
+
+        if (data.sub_headers) {
+            var container = document.getElementById('subscribe-headers-container');
+            container.innerHTML = '';
+            var lines = data.sub_headers.split('\n');
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
+                if (line) {
+                    var colonIdx = line.indexOf(':');
+                    var name = colonIdx > 0 ? line.substring(0, colonIdx).trim() : line;
+                    var value = colonIdx > 0 ? line.substring(colonIdx + 1).trim() : '';
+                    ConfigUploader.addHeaderRow(name, value);
+                }
+            }
+        }
+
+        var hasAge = data.config_age_secret || data.config_age_public || data.config_age_algo;
+        if (data.sub_headers || hasAge) {
+            var advContainer = document.getElementById('advanced-options-container');
+            var ageNode = document.getElementById('age-encryption-group');
+            document.getElementById('advanced-options-enable').checked = true;
+            if (advContainer) advContainer.classList.remove('oc-hidden');
+            if (ageNode && advContainer && ageNode.parentNode !== advContainer) advContainer.appendChild(ageNode);
+            if (ageNode) ageNode.style.display = '';
+        }
+        if (hasAge) {
+            var advFileEnable = document.getElementById('advanced-options-enable-file');
+            var advFileContainer = document.getElementById('advanced-options-container-file');
+            if (advFileEnable) advFileEnable.checked = true;
+            if (advFileContainer) advFileContainer.classList.remove('oc-hidden');
+        }
+
+        if (data.sub_convert === '1') {
+            document.getElementById('sub-convert-enable').checked = true;
+            document.getElementById('sub-convert-options').classList.remove('oc-hidden');
+
+            if (data.convert_address) {
+                if (data.convert_address === 'https://api.wcc.best/sub' || data.convert_address === 'https://api.asailor.org/sub') {
+                    document.getElementById('convert-address-input').value = data.convert_address;
+                    if (data.convert_address === 'custom') {
+                        document.getElementById('convert-address-custom').classList.remove('oc-hidden');
+                        document.getElementById('convert-address-custom').value = data.convert_address_custom || '';
+                    }
+                } else {
+                    document.getElementById('convert-address-input').value = 'custom';
+                    document.getElementById('convert-address-custom').classList.remove('oc-hidden');
+                    document.getElementById('convert-address-custom').value = data.convert_address;
+                }
+            }
+
+            if (data.template) {
+                var templateSelect = document.getElementById('template-select');
+                var found = false;
+                for (var i = 0; i < templateSelect.options.length; i++) {
+                    if (templateSelect.options[i].value === data.template) {
+                        templateSelect.selectedIndex = i;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found && data.template !== '0') {
+                    templateSelect.value = '0';
+                    document.getElementById('custom-template-group').classList.remove('oc-hidden');
+                    document.getElementById('custom-template-input').value = data.template;
+                } else if (data.template === '0') {
+                    templateSelect.value = '0';
+                    document.getElementById('custom-template-group').classList.remove('oc-hidden');
+                    document.getElementById('custom-template-input').value = data.custom_template_url || data.custom_template || '';
+                }
+            }
+
+            document.getElementById('emoji-enable').checked = data.emoji === 'true';
+            document.getElementById('udp-enable').checked = data.udp === 'true';
+            document.getElementById('skip-cert-verify').checked = data.skip_cert_verify === 'true';
+            document.getElementById('sort-enable').checked = data.sort === 'true';
+            document.getElementById('node-type-enable').checked = data.node_type === 'true';
+            document.getElementById('rule-provider-enable').checked = data.rule_provider === 'true';
+
+            if (data.custom_params) {
+                document.getElementById('custom-params-input').value = data.custom_params;
+            }
+        }
+
+        if (data.keyword_option === '1' || data.keyword || data.ex_keyword || data.de_ex_keyword) {
+            var keyOptEnable = document.getElementById('keyword-options-enable');
+            if (keyOptEnable) keyOptEnable.checked = true;
+            var keyOptContainer = document.getElementById('keyword-options-container');
+            if (keyOptContainer) keyOptContainer.classList.remove('oc-hidden');
+        }
+
+        if (data.keyword) {
+            document.getElementById('keyword-input').value = data.keyword;
+        }
+        if (data.ex_keyword) {
+            document.getElementById('exclude-keyword-input').value = data.ex_keyword;
+        }
+        if (data.de_ex_keyword) {
+            var defaults = data.de_ex_keyword.split(' ');
+            document.getElementById('exclude-expire').checked = defaults.indexOf(document.getElementById('exclude-expire').value) !== -1;
+            document.getElementById('exclude-traffic').checked = defaults.indexOf(document.getElementById('exclude-traffic').value) !== -1;
+            document.getElementById('exclude-plan').checked = defaults.indexOf(document.getElementById('exclude-plan').value) !== -1;
+            document.getElementById('exclude-website').checked = defaults.indexOf(document.getElementById('exclude-website').value) !== -1;
+        }
+
+        var secretEl = document.getElementById('age-secret-input');
+        var publicEl = document.getElementById('age-public-input');
+        if (secretEl) secretEl.value = data.config_age_secret || '';
+        if (publicEl) publicEl.value = data.config_age_public || '';
+        if (data.config_age_algo) {
+            var algoSelect = document.getElementById('age-algo-select');
+            if (algoSelect) {
+                try { algoSelect.value = data.config_age_algo; } catch (e) {}
+            }
+        }
+
+        this.updateSubconverterVersionStatus();
+    },
+
+    switchMode: function(mode) {
+        this.currentMode = mode;
+
+        var modeFileTab = document.getElementById('upload-mode-file');
+        var modeSubscribeTab = document.getElementById('upload-mode-subscribe');
+        var modeFileContent = document.getElementById('mode-file-content');
+        var modeSubscribeContent = document.getElementById('mode-subscribe-content');
+        var statusText = document.getElementById('config-upload-status-text');
+        var uploadZone = document.getElementById('upload-zone');
+
+        modeFileTab.classList.remove('oc-hidden');
+        modeSubscribeTab.classList.remove('oc-hidden');
+
+        modeFileTab.classList.remove('active');
+        modeSubscribeTab.classList.remove('active');
+        modeFileContent.classList.add('oc-hidden');
+        modeSubscribeContent.classList.add('oc-hidden');
+
+        if (mode === 'file') {
+            modeFileTab.classList.add('active');
+            modeFileContent.classList.remove('oc-hidden');
+            statusText.textContent = '<%:Ready to upload file%>';
+        } else if (mode === 'subscribe') {
+            modeSubscribeTab.classList.add('active');
+            modeSubscribeContent.classList.remove('oc-hidden');
+            statusText.textContent = this.isEditMode ? '<%:Ready to edit subscription%>' : '<%:Ready to add subscription%>';
+        }
+
+        var ageNode = document.getElementById('age-encryption-group');
+        var advancedOptionsEnableEl = document.getElementById('advanced-options-enable');
+        var advancedOptionsContainerEl = document.getElementById('advanced-options-container');
+        var advancedOptionsEnableFileEl = document.getElementById('advanced-options-enable-file');
+        var advancedOptionsContainerFileEl = document.getElementById('advanced-options-container-file');
+
+        if (ageNode) {
+            if (mode === 'file') {
+                if (advancedOptionsEnableFileEl && advancedOptionsEnableFileEl.checked && advancedOptionsContainerFileEl) {
+                    if (ageNode.parentNode !== advancedOptionsContainerFileEl) advancedOptionsContainerFileEl.appendChild(ageNode);
+                } else if (advancedOptionsContainerEl) {
+                    if (ageNode.parentNode !== advancedOptionsContainerEl) advancedOptionsContainerEl.appendChild(ageNode);
+                }
+            } else if (mode === 'subscribe') {
+                if (advancedOptionsContainerEl) {
+                    if (ageNode.parentNode !== advancedOptionsContainerEl) advancedOptionsContainerEl.appendChild(ageNode);
+                }
+            }
+        }
+
+        this.selectedFile = null;
+        uploadZone.classList.remove('has-file');
+        uploadZone.querySelector('.upload-primary').textContent = '<%:Click to select file or drag and drop%>';
+        uploadZone.querySelector('.upload-secondary').textContent = '<%:Support YAML file, max size 10MB%>';
+
+        this.updateSubmitButton();
+    },
+
+    handleFileSelect: function(file) {
+        this.selectedFile = file;
+        var uploadZone = document.getElementById('upload-zone');
+        var filenameInput = document.getElementById('config-filename-input');
+        var statusText = document.getElementById('config-upload-status-text');
+
+        if (!file) {
+            uploadZone.classList.remove('has-file');
+            this.updateSubmitButton();
+            statusText.textContent = '<%:Ready to upload file%>';
+            return;
+        }
+
+        if (!file.name.match(/\.(yaml|yml)$/i)) {
+            alert('<%:Please select a YAML file%>');
+            return;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+            alert('<%:File size exceeds 10MB limit%>');
+            return;
+        }
+
+        uploadZone.classList.add('has-file');
+        uploadZone.querySelector('.upload-primary').textContent = '<%:File selected:%> ' + file.name;
+        uploadZone.querySelector('.upload-secondary').textContent = '<%:Size:%> ' + this.formatFileSize(file.size);
+
+        var defaultName = file.name.replace(/\.(yaml|yml)$/i, '');
+        filenameInput.value = defaultName;
+
+        this.updateSubmitButton();
+        statusText.textContent = '<%:File ready to upload%>';
+    },
+
+    formatFileSize: function(bytes) {
+        if (bytes === 0) return '0 B';
+        var k = 1024;
+        var sizes = ['B', 'KB', 'MB', 'GB'];
+        var i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    },
+
+    updateSubmitButton: function() {
+        var filename = document.getElementById('config-filename-input').value.trim();
+        var submitBtn = document.getElementById('config-upload-submit');
+        var isValidFormat = false;
+
+        if (this.currentMode === 'file') {
+            isValidFormat = !!filename;
+        } else if (this.currentMode === 'subscribe') {
+            var url = document.getElementById('subscribe-url-input').value.trim();
+            var subConvert = document.getElementById('sub-convert-enable').checked;
+            var agePublic = document.getElementById('age-public-input') ? document.getElementById('age-public-input').value.trim() : '';
+            var ageSecret = document.getElementById('age-secret-input') ? document.getElementById('age-secret-input').value.trim() : '';
+
+            if (url && filename) {
+                if (subConvert) {
+                    var links = UrlValidator.extractUrls(url, true);
+                    isValidFormat = UrlValidator.anyValid(links, true);
+                } else {
+                    if (/^https?:\/\//.test(url) && url.indexOf('\n') === -1) {
+                        var singleUrls = UrlValidator.extractUrls(url, false);
+                        isValidFormat = singleUrls.length === 1 && UrlValidator.validateUrl(singleUrls[0], false).valid;
+                    }
+                }
+            } else if (filename && (agePublic || ageSecret)) {
+                if (this.isEditMode) {
+                    isValidFormat = true;
+                } else {
+                    isValidFormat = false;
+                }
+            }
+        }
+        else if (this.currentMode === 'age') {
+            isValidFormat = !!filename;
+        }
+
+        submitBtn.disabled = !isValidFormat || this.isProcessing;
+    },
+
+    uploadFile: function() {
+        if (this.isProcessing) return;
+
+        var filename = document.getElementById('config-filename-input').value.trim();
+        if (!filename) {
+            alert('<%:Please enter a filename%>');
+            return;
+        }
+
+        if (!/^[a-zA-Z0-9_\-\s\u4e00-\u9fa5\.]+$/.test(filename)) {
+            alert('<%:Filename contains invalid characters%>');
+            return;
+        }
+
+        if (this.editFilename || this.selectedFile) {
+            var advFileEnableEl = document.getElementById('advanced-options-enable-file');
+            var advFileChecked = advFileEnableEl ? advFileEnableEl.checked : false;
+            var ageSecret = advFileChecked ? (document.getElementById('age-secret-input').value || '') : '';
+            var agePublic = advFileChecked ? (document.getElementById('age-public-input').value || '') : '';
+            var ageAlgoEl = document.getElementById('age-algo-select'), ageAlgo = advFileChecked ? (ageAlgoEl ? ageAlgoEl.value : '') : '';
+
+            XHR.get('<%=url("admin", "services", "openclash", "add_age_config")%>', {
+                name: filename,
+                age_secret: ageSecret,
+                age_public: agePublic,
+                age_algo: ageAlgo
+            }, function(x3, data3) {
+
+            });
+        }
+
+        var self = this;
+        this.isProcessing = true;
+
+        var submitBtn = document.getElementById('config-upload-submit');
+        var cancelBtn = document.getElementById('config-upload-cancel');
+        var statusText = document.getElementById('config-upload-status-text');
+        var progressContainer = document.getElementById('upload-progress');
+        var progressFill = document.getElementById('upload-progress-fill');
+        var progressText = document.getElementById('upload-progress-text');
+
+        submitBtn.disabled = true;
+        cancelBtn.disabled = true;
+        statusText.textContent = '<%:Uploading...%>';
+
+        if (!this.selectedFile) {
+            if (this.editFilename) {
+                statusText.textContent = '<%:Upload successful%>';
+                setTimeout(function() {
+                    self.hide();
+                    if (self.onSuccess) setTimeout(self.onSuccess, 0);
+                }, 2000);
+                return;
+            }
+            var targetName = /\.ya?ml$/i.test(filename) ? filename : filename + '.yaml';
+            XHR.get('<%=url("admin", "services", "openclash", "create_file")%>', {
+                filename: targetName,
+                filepath: '/etc/openclash/config/'
+            }, function(x, status) {
+                if (x && x.status == 200) {
+                    statusText.textContent = '<%:Upload successful%>';
+                    setTimeout(function() {
+                        self.hide();
+                        if (self.onSuccess) setTimeout(self.onSuccess, 0);
+                    }, 2000);
+                } else {
+                    self.handleError('<%:Upload failed%>');
+                }
+            });
+            return;
+        }
+
+        progressContainer.classList.remove('oc-hidden');
+
+        var progress = 0;
+        var progressInterval = setInterval(function() {
+            if (progress < 90) {
+                progress += Math.random() * 15;
+                progressFill.style.width = Math.min(progress, 90) + '%';
+                progressText.textContent = '<%:Uploading...%> ' + Math.floor(Math.min(progress, 90)) + '%';
+            }
+        }, 100);
+
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var fileContent = e.target.result;
+
+            var formData = new FormData();
+            formData.append('config_file', fileContent);
+            formData.append('filename', filename);
+
+            fetch('<%=url("admin", "services", "openclash", "upload_config")%>', {
+                method: 'POST',
+                body: formData
+            })
+            .then(function(response) {
+                clearInterval(progressInterval);
+
+                if (!response.ok) {
+                    throw new Error('HTTP error! status: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                progressFill.style.width = '100%';
+                progressText.textContent = '<%:Upload completed%> 100%';
+
+                if (data.status === 'success') {
+                    statusText.textContent = '<%:Upload successful%>';
+
+                    setTimeout(function() {
+                        self.hide();
+                        if (self.onSuccess) setTimeout(self.onSuccess, 0);
+                    }, 2000);
+                } else {
+                    throw new Error(data.message || '<%:Upload failed%>');
+                }
+            })
+            .catch(function(error) {
+                self.handleError('<%:Upload failed:%> ' + error.message);
+            });
+        };
+
+        reader.onerror = function() {
+            clearInterval(progressInterval);
+            self.handleError('<%:Failed to read file%>');
+        };
+
+        reader.readAsText(this.selectedFile, 'UTF-8');
+    },
+
+    processSubscription: function() {
+        var url = document.getElementById('subscribe-url-input').value.trim();
+        var filename = document.getElementById('config-filename-input').value.trim();
+        var userAgent = document.getElementById('subscribe-ua-input').value;
+        var subscribeUaCustom = document.getElementById('subscribe-ua-custom');
+
+        var subConvert = document.getElementById('sub-convert-enable').checked;
+
+        var convertAddress = '';
+        var template = '';
+        var emoji = false;
+        var udp = false;
+        var skipCert = false;
+        var sort = false;
+        var nodeType = false;
+        var ruleProvider = false;
+        var customTemplateUrl = '';
+        var customParams = '';
+        var keywords = '';
+        var excludeKeywords = '';
+        var excludeDefaults = [];
+        var customHeaders = ConfigUploader.collectHeaders();
+
+        if (subConvert) {
+            convertAddress = document.getElementById('convert-address-input').value;
+            var convertAddressCustom = document.getElementById('convert-address-custom').value;
+            template = document.getElementById('template-select').value;
+            var customTemplate = document.getElementById('custom-template-input').value;
+            emoji = document.getElementById('emoji-enable').checked;
+            udp = document.getElementById('udp-enable').checked;
+            skipCert = document.getElementById('skip-cert-verify').checked;
+            sort = document.getElementById('sort-enable').checked;
+            nodeType = document.getElementById('node-type-enable').checked;
+            ruleProvider = document.getElementById('rule-provider-enable').checked;
+            customParams = document.getElementById('custom-params-input').value;
+
+            if (convertAddress === 'custom') {
+                convertAddress = convertAddressCustom.trim();
+            }
+
+            if (template === '0') {
+                customTemplateUrl = customTemplate.trim();
+            }
+        }
+
+        var keywordOption = document.getElementById('keyword-options-enable').checked;
+
+        if (keywordOption) {
+            keywords = document.getElementById('keyword-input').value;
+            excludeKeywords = document.getElementById('exclude-keyword-input').value;
+
+            if (document.getElementById('exclude-expire').checked) excludeDefaults.push(document.getElementById('exclude-expire').value);
+            if (document.getElementById('exclude-traffic').checked) excludeDefaults.push(document.getElementById('exclude-traffic').value);
+            if (document.getElementById('exclude-plan').checked) excludeDefaults.push(document.getElementById('exclude-plan').value);
+            if (document.getElementById('exclude-website').checked) excludeDefaults.push(document.getElementById('exclude-website').value);
+        }
+
+        if (userAgent === 'custom') {
+            userAgent = subscribeUaCustom.value.trim();
+        }
+
+        var advancedEnable = document.getElementById('advanced-options-enable') ? document.getElementById('advanced-options-enable').checked : false;
+        var ageSecretVal = '';
+        var agePublicVal = '';
+        if (advancedEnable) {
+            ageSecretVal = document.getElementById('age-secret-input') ? document.getElementById('age-secret-input').value.trim() : '';
+            agePublicVal = document.getElementById('age-public-input') ? document.getElementById('age-public-input').value.trim() : '';
+        }
+
+        if (!filename) {
+            alert('<%:Please enter subscription config name%>');
+            return;
+        }
+
+        if ((!url || url === '') && !ageSecretVal) {
+            alert('<%:Please enter subscription URL and config name%>');
+            return;
+        }
+
+        var isValidFormat = false;
+
+        if (!url || url === '') {
+            isValidFormat = this.isEditMode && !!ageSecretVal;
+        } else if (subConvert) {
+            var links = UrlValidator.extractUrls(url, true);
+            isValidFormat = UrlValidator.anyValid(links, true);
+        } else {
+            if (/^https?:\/\//.test(url) && url.indexOf('\n') === -1) {
+                var singleUrls = UrlValidator.extractUrls(url, false);
+                isValidFormat = singleUrls.length === 1 && UrlValidator.validateUrl(singleUrls[0], false).valid;
+            }
+        }
+
+        if (!isValidFormat) {
+            var errorMsg = subConvert ?
+                '<%:Invalid subscription URL format. Support HTTP/HTTPS subscription URLs or protocol links, can be separated by newlines or |%>' :
+                '<%:Invalid subscription URL format. Only single HTTP/HTTPS subscription URL is supported when subscription conversion is disabled%>';
+            alert(errorMsg);
+            return;
+        }
+
+        var self = this;
+        this.isProcessing = true;
+
+        var submitBtn = document.getElementById('config-upload-submit');
+        var cancelBtn = document.getElementById('config-upload-cancel');
+        var statusText = document.getElementById('config-upload-status-text');
+        var progressContainer = document.getElementById('upload-progress');
+        var progressFill = document.getElementById('upload-progress-fill');
+        var progressText = document.getElementById('upload-progress-text');
+
+        submitBtn.disabled = true;
+        cancelBtn.disabled = true;
+        statusText.textContent = this.isEditMode ? '<%:Updating subscription...%>' : '<%:Adding subscription...%>';
+        progressContainer.classList.remove('oc-hidden');
+
+        var progress = 0;
+        var progressInterval = setInterval(function() {
+            if (progress < 90) {
+                progress += Math.random() * 15;
+                progressFill.style.width = Math.min(progress, 90) + '%';
+                progressText.textContent = '<%:Processing...%> ' + Math.floor(Math.min(progress, 90)) + '%';
+            }
+        }, 100);
+
+        var ageSecret = advancedEnable ? (document.getElementById('age-secret-input').value || '') : '';
+        var agePublic = advancedEnable ? (document.getElementById('age-public-input').value || '') : '';
+        var ageAlgoEl = document.getElementById('age-algo-select'), ageAlgo = advancedEnable ? (ageAlgoEl ? ageAlgoEl.value : '') : '';
+
+        var finishSave = function() {
+            clearInterval(progressInterval);
+            progressFill.style.width = '100%';
+            progressText.textContent = (self.isEditMode ? '<%:Subscription updated successfully%>' : '<%:Subscription added successfully%>') + ' 100%';
+            statusText.textContent = self.isEditMode ? '<%:Subscription updated successfully%>' : '<%:Subscription added successfully%>';
+
+            setTimeout(function() {
+                self.hide();
+                if (self.onSuccess) setTimeout(self.onSuccess, 0);
+            }, 2000);
+        };
+
+        var doAddSubscription = function() {
+            XHR.get('<%=url("admin", "services", "openclash", "add_subscription")%>', {
+                name: filename,
+                address: url,
+                sub_ua: userAgent,
+                sub_convert: subConvert ? '1' : '0',
+                convert_address: convertAddress,
+                template: template,
+                custom_template_url: customTemplateUrl,
+                emoji: emoji ? 'true' : 'false',
+                udp: udp ? 'true' : 'false',
+                skip_cert_verify: skipCert ? 'true' : 'false',
+                sort: sort ? 'true' : 'false',
+                node_type: nodeType ? 'true' : 'false',
+                rule_provider: ruleProvider ? 'true' : 'false',
+                custom_params: customParams,
+                keyword_option: keywordOption ? '1' : '0',
+                keyword: keywords,
+                ex_keyword: excludeKeywords,
+                de_ex_keyword: excludeDefaults.join(' '),
+                sub_headers: customHeaders
+            }, function(x, data) {
+                if (x && x.status == 200 && data.status === 'success') {
+                    XHR.get('<%=url("admin", "services", "openclash", "update_config")%>', {
+                        filename: filename
+                    }, function(x2, data2) {
+                        if (x2 && x2.status == 200 && data2.status === 'success') {
+                            finishSave();
+                            return;
+                        }
+                        clearInterval(progressInterval);
+                        self.handleError(self.isEditMode ? '<%:Failed to update subscription config%>' : '<%:Failed to download subscription config%>');
+                    });
+                } else {
+                    clearInterval(progressInterval);
+                    self.handleError(self.isEditMode ? '<%:Failed to update subscription%>' : '<%:Failed to add subscription%>');
+                }
+            });
+        };
+
+        XHR.get('<%=url("admin", "services", "openclash", "add_age_config")%>', {
+            name: filename,
+            age_secret: ageSecret,
+            age_public: agePublic,
+            age_algo: ageAlgo
+        }, function(x3, data3) {
+            if (!url) {
+                finishSave();
+                return;
+            }
+            doAddSubscription();
+        });
+    },
+
+    autoFillConfigName: function() {
+        var url = document.getElementById('subscribe-url-input').value.trim();
+        var filenameInput = document.getElementById('config-filename-input');
+
+        if (!filenameInput.value.trim() && url) {
+            try {
+                var match = url.match(/https?:\/\/[^,\s|]+/i);
+                if (!match) {
+                    try {
+                        var decoded = decodeURIComponent(url);
+                        match = decoded.match(/https?:\/\/[^,\s|]+/i);
+                    } catch (e) {
+                        match = null;
+                    }
+                }
+
+                var urlToParse = match ? match[0] : url;
+                var urlObj = new URL(urlToParse);
+                var hostname = urlObj.hostname;
+
+                var configName = hostname
+                    .replace(/^(www\.|api\.|sub\.|subscribe\.)/, '')
+                    .replace(/\.(com|net|org|cn|io|me|cc|xyz|top)$/, '')
+                    .replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '_')
+                    .replace(/_{2,}/g, '_')
+                    .replace(/^_|_$/g, '');
+
+                if (!configName || configName.length < 2) {
+                    configName = 'subscription_' + Date.now().toString().slice(-6);
+                }
+
+                if (configName.length > 30) {
+                    configName = configName.substring(0, 30);
+                }
+
+                filenameInput.value = configName;
+            } catch (e) {
+            }
+        }
+    },
+
+    addHeaderRow: function(name, value) {
+        var container = document.getElementById('subscribe-headers-container');
+        var row = document.createElement('div');
+        row.className = 'form-row header-row';
+        row.style.cssText = 'align-items: center; gap: 6px; margin-bottom: 6px;';
+
+        var nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.className = 'form-input';
+        nameInput.placeholder = 'Header-Name';
+        nameInput.value = name || '';
+        nameInput.style.cssText = 'flex: 1; height: 32px;';
+
+        var valueInput = document.createElement('input');
+        valueInput.type = 'text';
+        valueInput.className = 'form-input';
+        valueInput.placeholder = 'value';
+        valueInput.value = value || '';
+        valueInput.style.cssText = 'flex: 1.5; height: 32px;';
+
+        var removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'icon-btn';
+        removeBtn.title = '<%:Remove%>';
+        removeBtn.style.cssText = 'flex-shrink: 0;';
+        removeBtn.innerHTML = '<svg width="14" height="14"><use href="#oc-icon-close"/></svg>';
+        removeBtn.addEventListener('click', function() {
+            row.parentNode.removeChild(row);
+            if (container.children.length === 0) {
+                container.classList.add('oc-hidden');
+            }
+        });
+
+        row.appendChild(nameInput);
+        row.appendChild(valueInput);
+        row.appendChild(removeBtn);
+        container.appendChild(row);
+        container.classList.remove('oc-hidden');
+    },
+
+    collectHeaders: function() {
+        var rows = document.querySelectorAll('#subscribe-headers-container .header-row');
+        var headers = [];
+        for (var i = 0; i < rows.length; i++) {
+            var inputs = rows[i].querySelectorAll('input');
+            var name = inputs[0].value.trim();
+            var value = inputs[1].value.trim();
+            if (name) {
+                headers.push(name + ': ' + (value || ''));
+            }
+        }
+        return headers.join('\n');
+    },
+
+    handleError: function(message) {
+        var statusText = document.getElementById('config-upload-status-text');
+        var progressText = document.getElementById('upload-progress-text');
+        var progressFill = document.getElementById('upload-progress-fill');
+        var submitBtn = document.getElementById('config-upload-submit');
+        var cancelBtn = document.getElementById('config-upload-cancel');
+        var progressContainer = document.getElementById('upload-progress');
+
+        statusText.textContent = '<%:Process failed%>';
+        progressText.textContent = '<%:Process failed%>';
+        progressFill.style.width = '0%';
+
+        alert(message);
+
+        this.isProcessing = false;
+        submitBtn.disabled = false;
+        cancelBtn.disabled = false;
+        progressContainer.classList.add('oc-hidden');
+    }
+};
+
+// Call init directly when the script is lazy-loaded after DOMContentLoaded.
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        ConfigUploader.init();
+    });
+} else {
+    ConfigUploader.init();
+}

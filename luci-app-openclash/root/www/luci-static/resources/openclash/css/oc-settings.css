@@ -1,0 +1,597 @@
+/* ==========================================================================
+ * OpenClash stylesheet - oc-settings.css
+ * Loaded by: settings page (oix_login.htm / debug.htm).
+ * ========================================================================== */
+
+html[data-darkmode="true"] .oc .diag-style {
+    color: var(--text-on-primary, #ffffff);
+    background-color: var(--debug-bg);
+}
+
+html[data-darkmode="true"] .oc .diag-style select, .diag-style input {
+    color: var(--text-on-primary, #ffffff);
+    background-color: var(--debug-bg);
+}
+
+html[data-darkmode="true"] .oc #diag-rc-output > pre {
+    background-color: var(--debug-bg);
+    color: var(--text-on-primary, #ffffff);
+}
+
+html[data-darkmode="true"] .oc #dns-rc-output > pre {
+    background-color: var(--debug-bg);
+    color: var(--text-on-primary, #ffffff);
+}
+
+html[data-darkmode="true"] .oc .diag-legend {
+    border-bottom-color: var(--scrollbar-thumb-hover);
+}
+
+.oc .diag-style {
+    color: var(--text-primary);
+    background-color: var(--editor-bg);
+    margin-top: 10px;
+}
+
+.oc .diag-style select, .oc .diag-style input {
+    color: var(--text-primary);
+    background-color: var(--editor-bg);
+}
+
+.oc #diag-rc-output > pre {
+    background-color: var(--bg-white);
+    display: block;
+    padding: 8.5px;
+    margin: 0 0 18px;
+    line-height: 1.5rem;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 1.4rem;
+    color: var(--debug-bg);
+}
+
+.oc #dns-rc-output > pre {
+    background-color: var(--bg-white);
+    display: block;
+    padding: 8.5px;
+    margin: 0 0 18px;
+    line-height: 1.5rem;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 1.4rem;
+    color: var(--debug-bg);
+}
+
+.oc .diag-legend {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin: 0 0 10px 0;
+    font-size: 1.4rem;
+    font-weight: bold;
+    line-height: 1.8rem;
+    color: inherit;
+    border-bottom: 1px solid var(--divider);
+}
+
+.oix-panel {
+    position: relative; padding: 16px;
+    background: var(--bg-white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+/* ---- Animated ribbon background (horizontal flow) ---- */
+.oix-panel::before {
+    content: '';
+    position: absolute;
+    inset: -30px;
+    z-index: 0;
+    pointer-events: none;
+    mix-blend-mode: multiply;
+    opacity: 0.85;
+    background:
+        /* Ribbon 1 — blue, near-horizontal → */
+        linear-gradient(
+            175deg,
+            transparent 18%,
+            rgba(59,130,246,0.06) 28%,
+            rgba(59,130,246,0.15) 36%,
+            rgba(59,130,246,0.30) 42%,
+            rgba(59,130,246,0.50) 50%,
+            rgba(59,130,246,0.30) 58%,
+            rgba(59,130,246,0.15) 64%,
+            rgba(59,130,246,0.06) 72%,
+            transparent 82%
+        ),
+        /* Ribbon 2 — purple, near-horizontal ← */
+        linear-gradient(
+            185deg,
+            transparent 20%,
+            rgba(179,0,255,0.05) 30%,
+            rgba(179,0,255,0.12) 38%,
+            rgba(179,0,255,0.25) 44%,
+            rgba(179,0,255,0.38) 50%,
+            rgba(179,0,255,0.25) 56%,
+            rgba(179,0,255,0.12) 62%,
+            rgba(179,0,255,0.05) 70%,
+            transparent 80%
+        ),
+        /* Ribbon 3 — green, gentle ↘ */
+        linear-gradient(
+            170deg,
+            transparent 22%,
+            rgba(5,150,105,0.04) 32%,
+            rgba(5,150,105,0.10) 40%,
+            rgba(5,150,105,0.20) 46%,
+            rgba(5,150,105,0.30) 50%,
+            rgba(5,150,105,0.20) 54%,
+            rgba(5,150,105,0.10) 60%,
+            rgba(5,150,105,0.04) 68%,
+            transparent 78%
+        );
+    background-size: 350% 200%;
+    background-position: 100% 0%;
+    animation: oix-ribbon-flow 36s ease-in-out infinite;
+}
+
+.oix-panel::after {
+    content: '';
+    position: absolute;
+    inset: -30px;
+    z-index: 0;
+    pointer-events: none;
+    mix-blend-mode: multiply;
+    opacity: 0.75;
+    background:
+        /* Ribbon 4 — amber, near-horizontal ↗ */
+        linear-gradient(
+            8deg,
+            transparent 20%,
+            rgba(245,158,11,0.04) 30%,
+            rgba(245,158,11,0.10) 38%,
+            rgba(245,158,11,0.20) 44%,
+            rgba(245,158,11,0.28) 50%,
+            rgba(245,158,11,0.20) 56%,
+            rgba(245,158,11,0.10) 62%,
+            rgba(245,158,11,0.04) 70%,
+            transparent 80%
+        ),
+        /* Ribbon 5 — soft blue, near-horizontal ↙ */
+        linear-gradient(
+            192deg,
+            transparent 18%,
+            rgba(59,130,246,0.06) 28%,
+            rgba(59,130,246,0.15) 36%,
+            rgba(59,130,246,0.30) 43%,
+            rgba(59,130,246,0.48) 50%,
+            rgba(59,130,246,0.30) 57%,
+            rgba(59,130,246,0.15) 64%,
+            rgba(59,130,246,0.06) 72%,
+            transparent 82%
+        );
+    background-size: 320% 180%;
+    background-position: 0% 100%;
+    animation: oix-ribbon-flow 44s ease-in-out infinite reverse;
+}
+
+@keyframes oix-ribbon-flow {
+    0%   { background-position: 100% 0%; }
+    25%  { background-position: 30% 60%; }
+    50%  { background-position: 0% 30%; }
+    75%  { background-position: 60% 80%; }
+    100% { background-position: 100% 0%; }
+}
+
+/* Ensure panel children sit above the ribbons */
+.oix-panel > * {
+    position: relative;
+    z-index: 1;
+}
+
+.oc-icon { flex-shrink: 0; vertical-align: middle; }
+
+.oix-login-box {
+    position: relative;
+    z-index: 1;
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 20px 20px;
+    background: var(--bg-gray);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Dark mode — only switch blend mode, keep same ribbon colors */
+html[data-darkmode=true] .oc .oix-panel::before {
+    mix-blend-mode: screen;
+}
+
+html[data-darkmode=true] .oc .oix-panel::after {
+    mix-blend-mode: screen;
+}
+
+.oix-login-box .mode-tabs {
+    background: var(--bg-white);
+    border: 1px solid var(--border-light);
+    margin-bottom: 14px;
+}
+
+/* ---- oixCloud utility classes ---- */
+.oix-field-group { margin-bottom: 14px; }
+
+.oix-field-group-sm { margin-bottom: 10px; }
+
+.oix-input-wrap { position: relative; }
+
+.oix-input-has-icon { padding-right: 36px !important; }
+
+.oix-btn-row { text-align: center; margin-top: 12px; }
+
+.oix-img-inline { border-radius: 50%; vertical-align: middle; }
+
+.oix-icon-accent { color: var(--primary-color); }
+
+.oix-card-span-2 { grid-column: span 2; }
+
+.oix-input-wide { min-width: 140px; }
+
+.oix-input:-webkit-autofill,
+.oix-input:-webkit-autofill:hover,
+.oix-input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 30px var(--bg-white) inset !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+.oix-input {
+    width: 100% !important;
+    height: 40px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    background: var(--bg-white) !important;
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: all var(--transition-fast);
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.oix-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-a10);
+}
+
+.oix-input::placeholder { color: var(--text-secondary); }
+
+.oix-input.oix-input-ok { border-color: var(--border-light); }
+
+.oix-input.oix-input-err { border-color: var(--error-color) !important; }
+
+.oix-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: var(--tight-gap); padding: 8px 18px; border: none; border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: all 0.15s ease; line-height: 1.4;
+}
+
+.oix-btn-primary { background: var(--primary-color); color: var(--text-on-primary); }
+
+.oix-btn-primary:hover { background: var(--btn-primary-hover); }
+
+.oix-btn-primary:disabled { cursor: not-allowed; }
+
+.oix-btn-danger { background: var(--error-color); color: var(--text-on-primary); }
+
+.oix-btn-danger:hover { opacity: 0.85; }
+
+.oix-btn-ghost { background: var(--primary-color); color: var(--text-on-primary); }
+
+.oix-btn-ghost:hover { background: var(--btn-primary-hover); }
+
+.oix-btn-ghost:disabled { cursor: not-allowed; }
+
+.oix-btn-ghost-subtle { background: var(--watchdog-color); color: var(--text-on-primary); }
+
+.oix-btn-ghost-subtle:hover { opacity: 0.85; }
+
+.oix-btn-block { width: 100%; }
+
+.oix-btn-sm { padding: 5px 10px; font-size: 12px; }
+
+.oix-btn .loading-spinner.oc-btn-spinner {
+    width: 14px;
+    height: 14px;
+    border-width: 2px;
+    margin: 0;
+    border-color: rgba(255, 255, 255, 0.35);
+    border-top-color: var(--text-on-primary);
+}
+
+.oix-btn:disabled svg,
+.oix-btn:disabled span:not(.loading-spinner) {
+    opacity: 0.55;
+}
+
+.oix-btn:disabled .loading-spinner.oc-btn-spinner {
+    opacity: 1;
+}
+
+.oix-msg-bar {
+    display: flex; align-items: center; gap: var(--card-grid-gap);
+    padding: 8px 12px; margin: 0 0 12px 0;
+    border-radius: var(--radius-sm); font-size: 13px;
+    line-height: 1.5; border: 1px solid transparent; font-weight: 500;
+}
+
+.oix-msg-bar svg { flex-shrink: 0; }
+
+.oix-msg-success { background: var(--green-50); color: var(--green-800); border-color: var(--green-200); }
+
+.oix-msg-error { background: var(--red-50); color: var(--red-800); border-color: var(--red-200); }
+
+.oix-msg-info { background: var(--blue-50); color: var(--blue-800); border-color: var(--blue-200); }
+
+.oix-field-hint { font-size: 11px; display: block; margin-top: 2px; line-height: 1.3; }
+
+.oix-field-error { color: var(--error-color); }
+
+.oix-field-help { color: var(--text-secondary); }
+
+.oix-header {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: var(--content-gap); margin-bottom: 12px;
+    background: var(--bg-gray); border: 1px solid var(--border-light);
+    border-radius: var(--radius-md); padding: 8px 14px;
+    transition: all var(--transition-fast);
+}
+
+.oix-header:hover {
+    background: var(--bg-light); border-color: var(--primary-color);
+    transform: translateY(-2px); box-shadow: var(--shadow-sm);
+}
+
+.oix-header-left { display: flex; align-items: center; gap: var(--card-grid-gap); }
+
+.oix-header-right { display: flex; align-items: center; gap: var(--tight-gap); }
+
+.oix-status-badge {
+    display: inline-flex; align-items: center; gap: var(--tight-gap);
+    padding: 4px 12px; border-radius: var(--radius-md);
+    font-weight: 600; font-size: 13px;
+    background: var(--primary-a20); color: var(--primary-color);
+    border: 1px solid var(--primary-a20);
+}
+
+.oix-announce {
+    padding: 10px; margin-bottom: 10px;
+    border-radius: var(--radius-md); font-size: 12px; line-height: 1.6;
+    background: var(--bg-white); color: var(--text-primary);
+    border: 1px solid var(--border-light);
+    transition: all var(--transition-fast);
+}
+
+.oix-announce:hover {
+    background: var(--bg-light);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.oix-announce-header { display: flex; align-items: center; gap: var(--tight-gap); margin-bottom: 6px; font-weight: 600; font-size: 13px; color: var(--warning-color); }
+
+.oix-announce-header svg { flex-shrink: 0; }
+
+.oix-announce-body { word-break: break-word; }
+
+.oix-announce-body.oix-collapsed {
+    max-height: 5.6em;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom, var(--mask-opaque) 4em, transparent 5.6em);
+    mask-image: linear-gradient(to bottom, var(--mask-opaque) 4em, transparent 5.6em);
+}
+
+.oix-announce-arrow {
+    display: flex; justify-content: center; align-items: center;
+    padding: 2px 0 0 0; cursor: pointer;
+}
+
+.oix-announce-arrow svg {
+    transition: transform 0.25s ease;
+    animation: oix-bounce 1.6s ease-in-out infinite;
+}
+
+@keyframes oix-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(3px); }
+}
+
+.oix-announce-body a { color: var(--primary-color); text-decoration: underline; }
+
+.oix-announce-body strong { color: var(--primary-color); font-weight: 600; }
+
+.oix-announce-body hr { border: none; border-top: 1px solid var(--border-light); margin: 8px 0; }
+
+.oix-announce-body code { background: var(--primary-a5); color: var(--primary-color); padding: 1px 5px; border-radius: 3px; font-size: 11px; border: 1px solid var(--primary-a20); }
+
+.oix-logo { display: block; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 16px; }
+
+.oix-logo-sm { display: inline-block; width: 28px; height: 28px; border-radius: 50%; vertical-align: middle; margin-right: 6px; }
+
+.oix-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--card-grid-gap);
+    margin-bottom: 10px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: 10px;
+    background: var(--bg-white);
+}
+
+.oix-card {
+    background: var(--bg-gray); border: 1px solid var(--border-light);
+    border-radius: var(--radius-md); padding: var(--card-padding);
+    text-align: center; transition: all var(--transition-fast);
+    box-shadow: var(--shadow-sm);
+}
+
+.oix-card:hover {
+    background: var(--bg-light); border-color: var(--primary-color);
+    transform: translateY(-2px); box-shadow: var(--shadow-sm);
+}
+
+.oix-card-label {
+    color: var(--text-secondary); font-size: 12px; margin-bottom: 4px;
+    line-height: 1.2; text-transform: uppercase; letter-spacing: 0.3px;
+}
+
+.oix-card-value { font-weight: 500; font-size: 15px; color: var(--text-primary); }
+
+.oix-settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--content-gap);
+    margin: 8px 0;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: 10px;
+    background: var(--bg-white);
+}
+
+.oix-settings-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.oix-setting-card {
+    display: flex; flex-direction: column;
+    background: var(--bg-gray);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: var(--card-padding);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-fast);
+}
+
+.oix-setting-card:hover {
+    background: var(--bg-light);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.oix-toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--card-grid-gap); font-size: 12px; color: var(--text-primary);
+    min-height: 32px;
+}
+
+.oix-params-item { display: flex; align-items: center; gap: 4px; white-space: nowrap; min-height: 32px; }
+
+.oix-params-item .oix-input-num { flex: 1; min-width: 40px; width: auto; overflow: hidden; text-overflow: ellipsis; }
+
+.oix-card-help {
+    margin-top: 8px; font-size: 11px; color: var(--text-secondary);
+    line-height: 1.4; display: flex; align-items: flex-start; gap: 4px;
+}
+
+.oix-card-help svg { flex-shrink: 0; margin-top: 2px; opacity: 0.7; }
+
+.oix-card-help a { color: var(--primary-color); text-decoration: underline; opacity: 0.8; font-weight: 500; }
+
+.oix-card-help a:hover { opacity: 1; }
+
+.oix-footer {
+    margin-top: 12px; text-align: right; font-size: 14px; color: var(--text-secondary);
+}
+
+.oix-footer a { color: var(--primary-color); text-decoration: none; opacity: 0.8; font-weight: 500; }
+
+.oix-footer a:hover { opacity: 1; text-decoration: underline; }
+
+.oix-toggle {
+    position: relative; display: inline-block; width: 36px; height: 20px; flex-shrink: 0;
+    font-size: 0; line-height: 0;
+}
+
+.oix-toggle input {
+    position: absolute;
+    opacity: 0;
+    width: 100%; height: 100%;
+    margin: 0; padding: 0; border: 0;
+    top: 0; left: 0;
+    cursor: pointer; z-index: 1;
+}
+
+.oix-toggle-slider {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--switch-off-bg); border-radius: 20px;
+    border: 1px solid var(--border-light);
+    transition: all 0.2s ease;
+}
+
+.oix-toggle-slider::before {
+    content: ''; position: absolute; height: 14px; width: 14px;
+    left: 2px; top: 2px; background: var(--switch-knob-bg); border-radius: 50%;
+    transition: all 0.2s ease; box-shadow: var(--switch-knob-shadow);
+}
+
+.oix-toggle input:checked + .oix-toggle-slider { background: var(--primary-color); border-color: var(--primary-color); }
+
+.oix-toggle input:checked + .oix-toggle-slider::before { transform: translateX(16px); }
+
+.oix-pwd-toggle {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none !important;
+    cursor: pointer;
+    padding: 3px;
+    line-height: 0;
+    color: var(--text-secondary);
+}
+
+.oix-input-num {
+    width: 44px; text-align: center; padding: 2px 4px; font-size: 12px;
+    border: 1px solid var(--border-light); border-radius: var(--radius-sm);
+    background: var(--bg-white); color: var(--text-primary); box-sizing: border-box;
+}
+
+.oix-input-num:focus { outline: none; border-color: var(--primary-color); }
+
+.oix-input-num.oix-input-ok { border-color: var(--border-light); }
+
+.oix-input-num.oix-input-err { border-color: var(--error-color) !important; }
+
+html[data-darkmode=true] .oc .oix-announce { background: var(--bg-gray); border-color: var(--border-light); }
+
+html[data-darkmode=true] .oc .oix-msg-bar svg { color: inherit; }
+
+/* ==========================================================================
+ * Responsive rules (split from the original combined media blocks)
+ * ========================================================================== */
+@media (max-width: 768px) {
+    .oix-cards { grid-template-columns: repeat(2, 1fr); }
+    .oix-settings-grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .oix-params-item { flex-wrap: wrap; white-space: normal; }
+    .oix-params-item .oix-input-num { min-width: 36px; }
+}
+
+@media (max-width: 480px) {
+    .oix-header { align-items: center; justify-content: center; }
+    .oix-settings-grid { grid-template-columns: 1fr; }
+    .oix-card-span-2 { grid-column: auto; }
+    .oix-input-wide { min-width: auto; }
+}

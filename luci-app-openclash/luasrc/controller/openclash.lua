@@ -13,6 +13,7 @@ function index()
 	entry({"admin", "services", "openclash", "client"},form("openclash/client"),_("Overviews"), 20).leaf = true
 	entry({"admin", "services", "openclash", "conn_status"},call("action_conn_status")).leaf=true
 	entry({"admin", "services", "openclash", "status"},call("action_status")).leaf=true
+	entry({"admin", "services", "openclash", "translate_js"},call("action_translate_js")).leaf=true
 	entry({"admin", "services", "openclash", "startlog"},call("action_start")).leaf=true
 	entry({"admin", "services", "openclash", "refresh_log"},call("action_refresh_log"))
 	entry({"admin", "services", "openclash", "del_log"},call("action_del_log"))
@@ -87,6 +88,7 @@ function index()
 	entry({"admin", "services", "openclash", "version_history"}, call("action_version_history"))
 	entry({"admin", "services", "openclash", "addr_info"}, call("action_cdn_info"))
 	entry({"admin", "services", "openclash", "save_github_address_mod"}, call("action_save_github_address_mod"))
+	entry({"admin", "services", "openclash", "save_custom_addr"}, call("action_save_custom_addr"))
 	entry({"admin", "services", "openclash", "proxy_info"}, call("action_proxy_info"))
 	entry({"admin", "services", "openclash", "oc_settings"}, call("action_oc_settings"))
 	entry({"admin", "services", "openclash", "switch_oc_setting"}, call("action_switch_oc_setting"))
@@ -1632,6 +1634,23 @@ function action_conn_status(internal)
 	HTTP.write_json(data)
 end
 
+-- Serve page js files with translations compiled server-side: the <%:Message%> markers and
+-- <%=...%> islands inside them are only valid after this rendering step.
+function action_translate_js()
+	local name = HTTP.formvalue("f") or ""
+	local src = name:match("^[%w_]+$") and fs.readfile("/www/luci-static/resources/openclash/js/" .. name .. ".js")
+	if not src then
+		HTTP.status(404, "Not Found")
+		return
+	end
+	-- loadc is absent on the ucode-based LuCI, where the catalogs load with the language
+	local i18n = require("luci.i18n")
+	if i18n.loadc then i18n.loadc("openclash") end
+	HTTP.prepare_content("application/javascript; charset=UTF-8")
+	HTTP.header("Cache-Control", "private, max-age=31536000, immutable")
+	require("luci.template").render_string(src)
+end
+
 function action_status()
 	local status_data = action_conn_status(true)
 	local rule_data = action_rule_mode(true)
@@ -1948,6 +1967,42 @@ function action_save_github_address_mod()
 	HTTP.prepare_content("application/json")
 	HTTP.write_json({
 		success = true;
+	})
+end
+
+function action_save_custom_addr()
+	local addr = HTTP.formvalue("addr") or ""
+	addr = addr:gsub("^%s+", ""):gsub("%s+$", "")
+	local success = false
+	if addr ~= "" and #addr <= 256 and addr:match("^https?://%S+$") then
+		local list = {}
+		local seen = {}
+		local custom = uci:get("openclash", "config", "github_addr_custom")
+		if type(custom) == "table" then
+			for _, v in ipairs(custom) do
+				if v ~= "" and not seen[v] then
+					seen[v] = true
+					list[#list + 1] = v
+				end
+			end
+		elseif type(custom) == "string" then
+			for v in custom:gmatch("%S+") do
+				if not seen[v] then
+					seen[v] = true
+					list[#list + 1] = v
+				end
+			end
+		end
+		if not seen[addr] then
+			list[#list + 1] = addr
+			uci:set_list("openclash", "config", "github_addr_custom", list)
+			uci:commit("openclash")
+		end
+		success = true
+	end
+	HTTP.prepare_content("application/json")
+	HTTP.write_json({
+		success = success;
 	})
 end
 
@@ -2391,11 +2446,11 @@ function rename_file()
 			if fs.uci_get_config("config", "config_path") == old_file_path then
 				uci:set("openclash", "config", "config_path", new_file_path)
 			end
-			
+
 			if fs.isfile(old_run_file_path) then
 				fs.rename(old_run_file_path, new_run_file_path)
 			end
-			
+
 			fs.config_refs(old_file_name, new_file_name)
 		end
 		HTTP.status(200, "Rename File Successful")
@@ -3803,8 +3858,8 @@ function action_switch_oc_setting()
 		local daip = daip()
 		local dase = dase() or ""
 		local cn_port = cn_port()
-		if not daip or not cn_port then 
-			HTTP.status(500, "Switch Failed") 
+		if not daip or not cn_port then
+			HTTP.status(500, "Switch Failed")
 			return false
 		end
 
@@ -3832,7 +3887,7 @@ function action_switch_oc_setting()
 						config = File.exist?(config_path) ? YAML.load_file(config_path) : {}
 						config ||= {}
 
-						if config['sniffer']&.dig('enable') == true && 
+						if config['sniffer']&.dig('enable') == true &&
 						   config['sniffer']&.dig('parse-pure-ip') == true &&
 						   config['sniffer']&.dig('sniff')
 							exit 0
@@ -3859,7 +3914,7 @@ function action_switch_oc_setting()
 							config['sniffer']['sniff'] = {
 								'QUIC' => { 'ports' => [443] },
 								'TLS' => { 'ports' => [443, '8443'] },
-								'HTTP' => { 'ports' => [80, '8080-8880'], 'override-destination' => true }
+								'HTTP' => { 'ports' => [80, '8080-8880'], 'override-destination' => false }
 							}
 						end
 
@@ -4027,7 +4082,7 @@ function action_generate_pac()
 	local auth_pass = ""
 
 	uci:foreach("openclash", "authentication", function(section)
-		if section.enabled == "1" and section.username and section.username ~= "" 
+		if section.enabled == "1" and section.username and section.username ~= ""
 			and section.password and section.password ~= "" then
 			auth_user = section.username
 			auth_pass = section.password
@@ -4112,7 +4167,7 @@ function action_generate_pac()
 							end
 						end
 					elseif existing_proxy and string.find(existing_proxy, "^PROXY%s+[%d%.]+:[%d]+") then
-						local updated_content = string.gsub(file_content, 
+						local updated_content = string.gsub(file_content,
 							'return%s*"PROXY%s+[^"]*"',
 							'return "' .. new_proxy_string .. '"')
 
@@ -4191,7 +4246,7 @@ function generate_pac_url_with_client_info(pac_filename, random_suffix)
 	if client_protocol and (client_protocol == "http" or client_protocol == "https") then
 		request_scheme = client_protocol
 	else
-		if HTTP.getenv("HTTPS") == "on" or 
+		if HTTP.getenv("HTTPS") == "on" or
 		   HTTP.getenv("HTTP_X_FORWARDED_PROTO") == "https" or
 		   HTTP.getenv("REQUEST_SCHEME") == "https" then
 			request_scheme = "https"
@@ -4382,9 +4437,9 @@ function checkNetworkConnectivity() {
 }
 
 function FindProxyForURL(url, host) {
-	if (isPlainHostName(host) || 
-		host === "127.0.0.1" || 
-		host === "::1" || 
+	if (isPlainHostName(host) ||
+		host === "127.0.0.1" ||
+		host === "::1" ||
 		host === "localhost") {
 		return "DIRECT";
 	}
@@ -4428,7 +4483,7 @@ end
 function action_oc_action()
 	local action = HTTP.formvalue("action")
 	local config_file = HTTP.formvalue("config_file")
-	
+
 	if not action then
 		HTTP.status(500, "Missing action parameter")
 		return
@@ -4475,7 +4530,7 @@ function action_oc_action()
 		HTTP.status(500, "Invalid action parameter")
 		return
 	end
-	
+
 	HTTP.prepare_content("application/json")
 	HTTP.write_json({status = "success", action = action})
 end
@@ -4633,7 +4688,7 @@ function action_upload_config()
 	local yaml_valid = false
 	local content_start = string.sub(upload, 1, 5000)
 
-	if string.find(content_start, "proxy%-providers:") or 
+	if string.find(content_start, "proxy%-providers:") or
 	   string.find(content_start, "proxies:") or
 	   string.find(content_start, "rules:") or
 	   string.find(content_start, "port:") or
@@ -4930,8 +4985,8 @@ function action_add_subscription()
 	local is_valid_url = false
 
 	if address and address ~= "" and sub_convert == "1" then
-		local prefixed_http_pattern = "^[^,%s]+,https?://.+"
-		local encoded_prefixed_http_pattern = "^[^%%%s]+%%2[Cc]https?%%3[Aa]%%2[Ff]%%2[Ff].+"
+		local prefixed_pattern = "^[^,%s]+,%a[%w+.-]*://.+"
+		local encoded_prefixed_pattern = "^[^%%%s]+%%2[Cc]%a[%%%w+.-]*%%3[Aa]%%2[Ff]%%2[Ff].+"
 
 		if string.find(address, "\n") or string.find(address, "|") then
 			local links = {}
@@ -4949,8 +5004,8 @@ function action_add_subscription()
 				if link and link ~= "" then
 					if string.find(link, "^https?://")
 						or string.find(link, "^[a-zA-Z]+://")
-						or string.find(link, prefixed_http_pattern)
-						or string.find(link, encoded_prefixed_http_pattern) then
+						or string.find(link, prefixed_pattern)
+						or string.find(link, encoded_prefixed_pattern) then
 						is_valid_url = true
 						break
 					end
@@ -4959,8 +5014,8 @@ function action_add_subscription()
 		else
 			if string.find(address, "^https?://")
 				or string.find(address, "^[a-zA-Z]+://")
-				or string.find(address, prefixed_http_pattern)
-				or string.find(address, encoded_prefixed_http_pattern) then
+				or string.find(address, prefixed_pattern)
+				or string.find(address, encoded_prefixed_pattern) then
 				is_valid_url = true
 			end
 		end
@@ -5615,12 +5670,12 @@ function action_subconverter_version()
 
 	local cmd = table.concat({
 		"curl -fsS --connect-timeout 3 -m 6 --retry 0",
-		"-H " .. util.shellquote("Accept: text/plain, */*"),
-		"-H " .. util.shellquote("Origin: https://openclash.local"),
-		"-H " .. util.shellquote("Sec-Fetch-Mode: cors"),
-		"-H " .. util.shellquote("Sec-Fetch-Dest: empty"),
-		"-H " .. util.shellquote("User-Agent: OpenClash Subconverter Version Check"),
-		util.shellquote(version_url),
+		"-H " .. UTIL.shellquote("Accept: text/plain, */*"),
+		"-H " .. UTIL.shellquote("Origin: https://openclash.local"),
+		"-H " .. UTIL.shellquote("Sec-Fetch-Mode: cors"),
+		"-H " .. UTIL.shellquote("Sec-Fetch-Dest: empty"),
+		"-H " .. UTIL.shellquote("User-Agent: OpenClash Subconverter Version Check"),
+		UTIL.shellquote(version_url),
 		"2>/dev/null | head -c 4096"
 	}, " ")
 	local version = sanitize_subconverter_version_text(SYS.exec(cmd))

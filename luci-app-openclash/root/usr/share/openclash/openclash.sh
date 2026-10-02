@@ -106,16 +106,16 @@ DOWNLOAD_RESULT=$?
 
 config_cus_up()
 {
-	if [ -z "$subscribe_url_param" ]; then
-	   if [ -n "$key_match_param" ] || [ -n "$key_ex_match_param" ]; then
-	      LOG_OUT "Config File【$name】Start Picking Nodes..."	      
-	      ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-	      begin
+   if [ -z "$subscribe_url_param" ]; then
+      if [ -n "$key_match_param" ] || [ -n "$key_ex_match_param" ]; then
+         LOG_OUT "Config File【$name】Start Picking Nodes..."
+         ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+         begin
             threads = [];
-	         Value = YAML.load_file('$CFG_FILE');
-	         if Value.has_key?('proxies') and not Value['proxies'].to_a.empty? then
-	            Value['proxies'].reverse.each{
-	            |x|
+            Value = YAML.load_file('$CFG_FILE');
+            if Value.has_key?('proxies') and not Value['proxies'].to_a.empty? then
+               Value['proxies'].reverse.each{
+               |x|
                   if not '$key_match_param'.empty? then
                      threads << YAML::Inline.new {
                         if not /$key_match_param/i =~ x['name'] then
@@ -150,8 +150,8 @@ config_cus_up()
                         end;
                      };
                   end;
-	            };
-	         end;
+               };
+            end;
             if Value.key?('proxy-providers') and not Value['proxy-providers'].nil? then
                Value['proxy-providers'].values.each do
                   |i|
@@ -166,16 +166,16 @@ config_cus_up()
                end;
             end;
             threads.each(&:join);
-	      rescue Exception => e
-	         YAML.LOG_ERROR('Filter Proxies Failed,【' + e.message + '】');
-	      ensure
-	         begin
-	            YAML.dump(Value, '$CFG_FILE');
-	         rescue Exception => e
-	            YAML.LOG_ERROR('Write file failed:【%s】' % [e.message])
-	         end
-	      end" 2>/dev/null >> $LOG_FILE
-	   fi
+         rescue Exception => e
+            YAML.LOG_ERROR('Filter Proxies Failed,【' + e.message + '】');
+         ensure
+            begin
+               YAML.dump(Value, '$CFG_FILE');
+            rescue Exception => e
+               YAML.LOG_ERROR('Write file failed:【%s】' % [e.message])
+            end
+         end" 2>/dev/null >> $LOG_FILE
+      fi
    fi
 }
 
@@ -208,7 +208,7 @@ config_su_check()
    if [ -z "$CONFIG_PATH" ]; then
       uci -q set openclash.config.config_path="$CONFIG_FILE"
       uci commit openclash
-	fi
+   fi
    if [ "$CONFIG_FILE" == "$CONFIG_PATH" ]; then
       restart=1
    fi
@@ -279,12 +279,12 @@ config_download_direct()
 
 server_key_match()
 {
-	local key_match key_word
-	 
+   local key_match key_word
+
    if [ -n "$(echo "$1" |grep "^ \{0,\}$")" ] || [ -n "$(echo "$1" |grep "^\t\{0,\}$")" ]; then
-	   return
+      return
    fi
-	 
+
    if [ -n "$(echo "$1" |grep "&")" ]; then
       key_word=$(echo "$1" |sed 's/&/ /g')
       for k in $key_word
@@ -309,7 +309,7 @@ server_key_match()
          key_match_param="$key_match_param|$key_match"
       fi
    elif [ "$2" = "ex_keyword" ]; then
-   	  if [ -z "$key_ex_match_param" ]; then
+        if [ -z "$key_ex_match_param" ]; then
          key_ex_match_param="$key_match"
       else
          key_ex_match_param="$key_ex_match_param|$key_match"
@@ -406,10 +406,10 @@ sub_info_get()
       if [ -n "$de_ex_keyword" ]; then
          for i in $de_ex_keyword;
          do
-         	if [ -z "$key_ex_match_param" ]; then
-         	   key_ex_match_param="($i)"
-         	else
-         	   key_ex_match_param="$key_ex_match_param|($i)"
+            if [ -z "$key_ex_match_param" ]; then
+               key_ex_match_param="($i)"
+            else
+               key_ex_match_param="$key_ex_match_param|($i)"
             fi
          done
       fi

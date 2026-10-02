@@ -181,5 +181,10 @@ o.write = function()
 	HTTP.redirect(m.redirect)
 end
 
-m:append(Template("openclash/toolbar_show"))
+local render_children = m.render_children
+m.render_children = function(self, ...)
+	fs.render_page_head()
+	render_children(self, ...)
+end
+
 return m

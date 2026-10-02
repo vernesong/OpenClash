@@ -1,5 +1,10 @@
 // OpenClash shared utilities
-ocGuard: { if (window.ocCommonLoaded) break ocGuard; window.ocCommonLoaded = true; }
+
+// Version/language read from this file's own URL (translate_js?f=common&v=&l=); shared by all page scripts.
+var ocScriptUrl = (document.currentScript && document.currentScript.src) || '';
+window.ocPluginVer = (ocScriptUrl.match(/[?&]v=([^&]*)/) || [])[1] || '';
+window.ocLang = (ocScriptUrl.match(/[?&]l=([^&]*)/) || [])[1] || '';
+if (!window.ocCM6Url) window.ocCM6Url = '/luci-static/resources/openclash/js/cm6.min.js?v=' + window.ocPluginVer;
 
 // Load CodeMirror 6 on demand (pages that only need it after a user action)
 function ocRequireCM6(cb) {
@@ -8,6 +13,14 @@ function ocRequireCM6(cb) {
     if (cb) window.ocCM6Waiters.push(cb);
     if (window.ocCM6State === 1 || window.ocCM6State === 2) return;
     window.ocCM6State = 1;
+    // CM6 styles travel with the bundle (pages that never open an editor never fetch it)
+    if (!window.ocCM6CssInjected) {
+        window.ocCM6CssInjected = true;
+        var l = document.createElement('link');
+        l.rel = 'stylesheet';
+        l.href = (window.ocCM6Url || '/luci-static/resources/openclash/js/cm6.min.js').replace('/js/cm6.min.js', '/css/oc-cm6.css');
+        document.head.appendChild(l);
+    }
     var s = document.createElement('script');
     s.src = window.ocCM6Url || '/luci-static/resources/openclash/js/cm6.min.js';
     s.onload = function() {
@@ -105,18 +118,18 @@ function detectInitialAutoDark() {
 }
 
 function isDarkBackground(element) {
-	var cachedTheme = localStorage.getItem('oc-theme');
-	if (cachedTheme === 'dark') return true;
-	if (cachedTheme === 'light') return false;
+    var cachedTheme = localStorage.getItem('oc-theme');
+    if (cachedTheme === 'dark') return true;
+    if (cachedTheme === 'light') return false;
 
-	var style = window.getComputedStyle(element);
-	var bgColor = style.backgroundColor;
-	if (!bgColor || bgColor === 'transparent' || bgColor === 'rgba(0, 0, 0, 0)') {
-		bgColor = window.getComputedStyle(document.documentElement).backgroundColor;
-	}
-	var lum = luminanceFromColor(bgColor);
-	if (lum > 100 && lum < 156 && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return true;
-	return lum < 128;
+    var style = window.getComputedStyle(element);
+    var bgColor = style.backgroundColor;
+    if (!bgColor || bgColor === 'transparent' || bgColor === 'rgba(0, 0, 0, 0)') {
+        bgColor = window.getComputedStyle(document.documentElement).backgroundColor;
+    }
+    var lum = luminanceFromColor(bgColor);
+    if (lum > 100 && lum < 156 && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return true;
+    return lum < 128;
 }
 
 function ocApplyRootTheme() {
@@ -140,36 +153,38 @@ function ocApplyRootTheme() {
 }
 
 function ocInitTheme() {
-	if (window.ocThemeInited) {
-		ocUpdateTheme();
-		return;
-	}
-	window.ocThemeInited = true;
+    if (window.ocThemeInited) {
+        ocUpdateTheme();
+        return;
+    }
+    window.ocThemeInited = true;
 
-	ocApplyRootTheme();
+    ocApplyRootTheme();
 
-	var needsCorrection = (localStorage.getItem('oc-theme') || 'auto') === 'auto';
+    var needsCorrection = (localStorage.getItem('oc-theme') || 'auto') === 'auto';
 
-	function ocDomReady() {
-		if (needsCorrection) ocApplyRootTheme();
-		ocApplyEditorTheme();
-		ocHideEmptyCbiElements();
-		ocCenterCbiActions();
-	}
+    function ocDomReady() {
+        if (needsCorrection) ocApplyRootTheme();
+        ocApplyEditorTheme();
+        ocHideEmptyCbiElements();
+        ocWrapCbiActions();
+    }
 
-	if (document.readyState === 'loading') {
-		document.addEventListener('DOMContentLoaded', ocDomReady);
-	} else {
-		ocDomReady();
-	}
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', ocDomReady);
+    } else {
+        ocDomReady();
+    }
 }
 
 function ocUpdateTheme() {
-	ocApplyRootTheme();
-	ocApplyEditorTheme();
+    ocApplyRootTheme();
+    ocApplyEditorTheme();
 }
 
-if (window.matchMedia && !window.ocCommonLoaded) {
+// React to OS light/dark changes while the theme is on auto (register once per page)
+if (window.matchMedia && !window.ocThemeMediaBound) {
+    window.ocThemeMediaBound = true;
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
         if ((localStorage.getItem('oc-theme') || 'auto') === 'auto') {
             ocApplyRootTheme();
@@ -178,280 +193,254 @@ if (window.matchMedia && !window.ocCommonLoaded) {
     });
 }
 
-function winOpen(url) {
-	var win = window.open(url);
-	if (win == null) {
-		window.location.href = url;
-	}
-	return false;
+// Level tag text shown in logs, used to colour whole lines by their [Info]/[Warning]/... tag
+function ocGetLogColor(log) {
+    if (log.indexOf('[<%:Info%>]') >= 0) return 'var(--info-color)';
+    if (log.indexOf('[<%:Warning%>]') >= 0) return 'var(--warning-color)';
+    if (log.indexOf('[<%:Error%>]') >= 0) return 'var(--error-color)';
+    if (log.indexOf('[<%:Debug%>]') >= 0) return 'var(--debug-color)';
+    if (log.indexOf('[<%:Tip%>]') >= 0) return 'var(--tip-color)';
+    if (log.indexOf('[<%:Watchdog%>]') >= 0) return 'var(--watchdog-color)';
+    if (log.indexOf('[<%:Fatal%>]') >= 0) return 'var(--fatal-color)';
+    return 'var(--info-color)';
 }
 
-function ocGetLogColor(log) {
-	for (var levelKey in window.levelTranslations) {
-		var translatedText = '[' + window.levelTranslations[levelKey] + ']';
-		if (log.indexOf(translatedText) >= 0) return "var(--" + levelKey + "-color)";
-	}
-	return "var(--info-color)";
+function ocLogLevelText(level) {
+    if (level === 'info') return '<%:Info%>';
+    if (level === 'warning') return '<%:Warning%>';
+    if (level === 'error') return '<%:Error%>';
+    if (level === 'debug') return '<%:Debug%>';
+    if (level === 'tip') return '<%:Tip%>';
+    if (level === 'watchdog') return '<%:Watchdog%>';
+    if (level === 'fatal') return '<%:Fatal%>';
+    return level;
+}
+
+// winOpen is called from inline onclick markup generated by Lua models (config-overwrite,
+// config-subscribe-edit, servers, settings) and status.htm, so it lives in common.js.
+function winOpen(url) {
+    var win = window.open(url);
+    if (win == null) {
+        window.location.href = url;
+    }
+    return false;
 }
 
 function imgerrorfuns(imgobj, imgSrc) {
-	setTimeout(function() {
-		imgobj.src = imgSrc;
-		imgobj.loading = "lazy";
-	}, 1000 * 10);
+    setTimeout(function() {
+        imgobj.src = imgSrc;
+        imgobj.loading = "lazy";
+    }, 1000 * 10);
 }
 
 function ocMaxScroll(element) {
-	var computed = window.getComputedStyle(element);
-	var contentHeight = (parseFloat(computed.paddingTop) || 0) + (parseFloat(computed.paddingBottom) || 0);
-	var children = element.children;
-	for (var i = 0; i < children.length; i++) {
-		contentHeight += children[i].offsetHeight || 0;
-	}
-	var rowGap = parseFloat(computed.rowGap) || 0;
-	if (rowGap && children.length > 1) {
-		contentHeight += rowGap * (children.length - 1);
-	}
-	return Math.max(0, contentHeight - element.clientHeight);
+    var computed = window.getComputedStyle(element);
+    var contentHeight = (parseFloat(computed.paddingTop) || 0) + (parseFloat(computed.paddingBottom) || 0);
+    var children = element.children;
+    for (var i = 0; i < children.length; i++) {
+        contentHeight += children[i].offsetHeight || 0;
+    }
+    var rowGap = parseFloat(computed.rowGap) || 0;
+    if (rowGap && children.length > 1) {
+        contentHeight += rowGap * (children.length - 1);
+    }
+    return Math.max(0, contentHeight - element.clientHeight);
 }
 
 // Scroll to the bottom. One batch animates at a time, further requests set ocScrollPending
 // and the flush callback re-renders the accumulated lines.
 function ocAnimateScroll(element, flush, isFirst) {
-	if (!element) return;
+    if (!element) return;
 
-	if (element.ocScrollAnim) {
-		element.ocScrollPending = true;
-		if (flush) element.ocScrollFlush = flush;
-		return;
-	}
-	if (flush) element.ocScrollFlush = flush;
+    if (element.ocScrollAnim) {
+        element.ocScrollPending = true;
+        if (flush) element.ocScrollFlush = flush;
+        return;
+    }
+    if (flush) element.ocScrollFlush = flush;
 
-	var target = ocMaxScroll(element);
+    var target = ocMaxScroll(element);
 
-	var start = element.scrollTop;
-	var distance = target - start;
+    var start = element.scrollTop;
+    var distance = target - start;
 
-	var duration = isFirst ? 500 : Math.min(3600, Math.max(500, distance * 10));
+    var duration = isFirst ? 500 : Math.min(3600, Math.max(500, distance * 10));
 
-	if (!isFirst && distance <= 0.5) {
-		element.scrollTop = target;
-		element.ocScrollAnim = null;
-		element.ocScrollAnimId = null;
-		element.style.willChange = '';
-		if (element.ocScrollPending) {
-			element.ocScrollPending = false;
-			if (element.ocScrollFlush) element.ocScrollFlush();
-		}
-		return;
-	}
+    if (!isFirst && distance <= 0.5) {
+        element.scrollTop = target;
+        element.ocScrollAnim = null;
+        element.ocScrollAnimId = null;
+        element.style.willChange = '';
+        if (element.ocScrollPending) {
+            element.ocScrollPending = false;
+            if (element.ocScrollFlush) element.ocScrollFlush();
+        }
+        return;
+    }
 
-	var animation = {
-		raf: null,
-		start: start,
-		target: target,
-		distance: distance,
-		duration: duration,
-		startTime: null
-	};
-	element.ocScrollAnim = animation;
-	element.style.willChange = 'scroll-position';
+    var animation = {
+        raf: null,
+        start: start,
+        target: target,
+        distance: distance,
+        duration: duration,
+        startTime: null
+    };
+    element.ocScrollAnim = animation;
+    element.style.willChange = 'scroll-position';
 
-	function step(timestamp) {
-		if (element.ocScrollAnim !== animation) return;
-		if (!animation.startTime) animation.startTime = timestamp;
-		var elapsed = timestamp - animation.startTime;
-		var progress = Math.min(elapsed / animation.duration, 1);
-		var eased = 1 - Math.pow(1 - progress, 3);
-		element.scrollTop = Math.min(animation.target, animation.start + animation.distance * eased);
-		if (progress < 1) {
-			animation.raf = requestAnimationFrame(step);
-			element.ocScrollAnimId = animation.raf;
-		} else {
-			if (Math.abs(element.scrollTop - animation.target) > 0.5) {
-				element.scrollTop = animation.target;
-			}
-			element.ocScrollAnim = null;
-			element.ocScrollAnimId = null;
-			element.style.willChange = '';
-			if (element.ocScrollPending) {
-				element.ocScrollPending = false;
-				if (element.ocScrollFlush) element.ocScrollFlush();
-			}
-		}
-	}
-	animation.raf = requestAnimationFrame(step);
-	element.ocScrollAnimId = animation.raf;
+    function step(timestamp) {
+        if (element.ocScrollAnim !== animation) return;
+        if (!animation.startTime) animation.startTime = timestamp;
+        var elapsed = timestamp - animation.startTime;
+        var progress = Math.min(elapsed / animation.duration, 1);
+        var eased = 1 - Math.pow(1 - progress, 3);
+        element.scrollTop = Math.min(animation.target, animation.start + animation.distance * eased);
+        if (progress < 1) {
+            animation.raf = requestAnimationFrame(step);
+            element.ocScrollAnimId = animation.raf;
+        } else {
+            if (Math.abs(element.scrollTop - animation.target) > 0.5) {
+                element.scrollTop = animation.target;
+            }
+            element.ocScrollAnim = null;
+            element.ocScrollAnimId = null;
+            element.style.willChange = '';
+            if (element.ocScrollPending) {
+                element.ocScrollPending = false;
+                if (element.ocScrollFlush) element.ocScrollFlush();
+            }
+        }
+    }
+    animation.raf = requestAnimationFrame(step);
+    element.ocScrollAnimId = animation.raf;
 }
 
-function ocFormatOneDecimal(val) {
-	var num = Number(val);
-	if (!isFinite(num)) num = 0;
-	var text = num.toFixed(1);
-	return (text === '0.0' || text === '-0.0') ? '0' : text;
+function ocPad2(n) {
+    return (n < 10 ? '0' : '') + n;
 }
 
-function ocFormatUnixTime(unixTimestamp) {
-	if (!unixTimestamp || unixTimestamp === 0) {
-		return '--';
-	}
-	try {
-		var date = new Date(unixTimestamp * 1000);
-		var year = date.getFullYear();
-		var month = String(date.getMonth() + 1).padStart(2, '0');
-		var day = String(date.getDate()).padStart(2, '0');
-		var hour = String(date.getHours()).padStart(2, '0');
-		var minute = String(date.getMinutes()).padStart(2, '0');
-		var second = String(date.getSeconds()).padStart(2, '0');
-		return year + '-' + month + '-' + day + ' ' + hour + ':' + minute + ':' + second;
-	} catch (e) {
-		return '--';
-	}
-}
-
-function ocFormatBytes(bytes) {
-	if (bytes == null || bytes === 0) return '0 B';
-	var sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
-	var i = Math.floor(Math.log(bytes) / Math.log(1024));
-	if (i >= sizes.length) i = sizes.length - 1;
-	return (i === 0 ? bytes : (bytes / Math.pow(1024, i)).toFixed(1)) + ' ' + sizes[i];
-}
-
-function ocFormatFileSize(bytes) {
-	if (!bytes || bytes === 0) return '--';
-	return ocFormatBytes(bytes);
-}
-
-function ocDebounce(fn, delay) {
-	var timer = null;
-	return function(btn) {
-		var key = btn.id || btn.value;
-		if (timer) clearTimeout(timer);
-		btn.disabled = true;
-		timer = setTimeout(function() {
-			try { fn(btn); } finally { timer = null; }
-		}, delay || 300);
-		return false;
-	};
+function ocRandomInterval(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
 function ocGetCustomDashboardURL(status) {
-	var raw = status && status.dashboard_custom_url ? String(status.dashboard_custom_url).trim() : '';
-	if (!raw) return '';
-	if (/[\x00-\x20\\<>"{}|^`\x7f-\uffff]/.test(raw) || /%(?![0-9a-f]{2})/i.test(raw)) return '';
-	try {
-		var parsed = new URL(raw);
-		if ((parsed.protocol !== 'http:' && parsed.protocol !== 'https:') || !parsed.hostname || parsed.username || parsed.password) return '';
-		return raw;
-	} catch (e) {
-		return '';
-	}
+    var raw = status && status.dashboard_custom_url ? String(status.dashboard_custom_url).trim() : '';
+    if (!raw) return '';
+    if (/[\x00-\x20\\<>"{}|^`\x7f-\uffff]/.test(raw) || /%(?![0-9a-f]{2})/i.test(raw)) return '';
+    try {
+        var parsed = new URL(raw);
+        if ((parsed.protocol !== 'http:' && parsed.protocol !== 'https:') || !parsed.hostname || parsed.username || parsed.password) return '';
+        return raw;
+    } catch (e) {
+        return '';
+    }
 }
 
 function ocGetDashboardBaseURL(status) {
-	var publicHost = status.db_foward_domain ? String(status.db_foward_domain).trim() : '';
-	var embeddedPortMatch = publicHost.match(/\]:(\d+)(?:[\/?#]|$)/) || publicHost.match(/^(?:https?:\/\/)?[^:\/?#]+:(\d+)(?:[\/?#]|$)/i);
-	var embeddedPort = embeddedPortMatch ? embeddedPortMatch[1] : '';
-	var publicPort = status.db_foward_port ? String(status.db_foward_port).trim() : '';
-	var validPublicPort = /^\d+$/.test(publicPort) && Number(publicPort) > 0 && Number(publicPort) <= 65535;
-	var usePublic = !!(status.daip && window.location.hostname !== status.daip && publicHost);
-	var rawHost = usePublic ? publicHost : window.location.hostname;
-	var proto = usePublic && status.db_forward_ssl != 0 ? 'https:' : 'http:';
-	var configuredPort = usePublic ? publicPort : status.cn_port;
-	var parsed;
+    var publicHost = status.db_foward_domain ? String(status.db_foward_domain).trim() : '';
+    var embeddedPortMatch = publicHost.match(/\]:(\d+)(?:[\/?#]|$)/) || publicHost.match(/^(?:https?:\/\/)?[^:\/?#]+:(\d+)(?:[\/?#]|$)/i);
+    var embeddedPort = embeddedPortMatch ? embeddedPortMatch[1] : '';
+    var publicPort = status.db_foward_port ? String(status.db_foward_port).trim() : '';
+    var validPublicPort = /^\d+$/.test(publicPort) && Number(publicPort) > 0 && Number(publicPort) <= 65535;
+    var usePublic = !!(status.daip && window.location.hostname !== status.daip && publicHost);
+    var rawHost = usePublic ? publicHost : window.location.hostname;
+    var proto = usePublic && status.db_forward_ssl != 0 ? 'https:' : 'http:';
+    var configuredPort = usePublic ? publicPort : status.cn_port;
+    var parsed;
 
-	try {
-		parsed = new URL(/^https?:\/\//i.test(rawHost) ? rawHost : 'http://' + rawHost);
-		if (!parsed.hostname || parsed.username || parsed.password) throw new Error('invalid dashboard host');
-		var legacyPort = embeddedPort || parsed.port;
-		parsed.protocol = proto;
-		parsed.pathname = '/';
-		parsed.search = '';
-		parsed.hash = '';
-		if (usePublic && validPublicPort) {
-			parsed.port = String(configuredPort);
-		} else if (usePublic && legacyPort) {
-			parsed.port = legacyPort;
-		} else if (usePublic) {
-			parsed.port = proto === 'https:' ? '443' : '80';
-		} else if (!usePublic && configuredPort && /^\d+$/.test(String(configuredPort)) && Number(configuredPort) > 0 && Number(configuredPort) <= 65535) {
-			parsed.port = String(configuredPort);
-		}
-	} catch (e) {
-		parsed = new URL('http://' + window.location.hostname);
-		if (status.cn_port) parsed.port = status.cn_port;
-		usePublic = false;
-	}
+    try {
+        parsed = new URL(/^https?:\/\//i.test(rawHost) ? rawHost : 'http://' + rawHost);
+        if (!parsed.hostname || parsed.username || parsed.password) throw new Error('invalid dashboard host');
+        var legacyPort = embeddedPort || parsed.port;
+        parsed.protocol = proto;
+        parsed.pathname = '/';
+        parsed.search = '';
+        parsed.hash = '';
+        if (usePublic && validPublicPort) {
+            parsed.port = String(configuredPort);
+        } else if (usePublic && legacyPort) {
+            parsed.port = legacyPort;
+        } else if (usePublic) {
+            parsed.port = proto === 'https:' ? '443' : '80';
+        } else if (!usePublic && configuredPort && /^\d+$/.test(String(configuredPort)) && Number(configuredPort) > 0 && Number(configuredPort) <= 65535) {
+            parsed.port = String(configuredPort);
+        }
+    } catch (e) {
+        parsed = new URL('http://' + window.location.hostname);
+        if (status.cn_port) parsed.port = status.cn_port;
+        usePublic = false;
+    }
 
-	var effectivePort = parsed.port || (parsed.protocol === 'https:' ? '443' : '80');
-	return { host: parsed.hostname, port: effectivePort, proto: parsed.protocol + '//', origin: parsed.origin, secret: status.dase || '', isPublic: usePublic };
+    var effectivePort = parsed.port || (parsed.protocol === 'https:' ? '443' : '80');
+    return { host: parsed.hostname, port: effectivePort, proto: parsed.protocol + '//', origin: parsed.origin, secret: status.dase || '', isPublic: usePublic };
 }
 
 // LuCI over https: the control panel API needs the same-origin proxy (nginx /oc-api/),
 // the controller has no TLS listener and plain ws:// would be mixed content.
 function ocGetDashboardApiOrigin(status) {
-	var base = ocGetDashboardBaseURL(status);
-	if (!base.isPublic && window.location.protocol === 'https:') {
-		return 'https://' + window.location.host + '/oc-api';
-	}
-	return base.origin;
+    var base = ocGetDashboardBaseURL(status);
+    if (!base.isPublic && window.location.protocol === 'https:') {
+        return 'https://' + window.location.host + '/oc-api';
+    }
+    return base.origin;
 }
 
 function ocGetDashboardWebSocketOrigin(status) {
-	return ocGetDashboardApiOrigin(status).replace(/^http/, 'ws');
+    return ocGetDashboardApiOrigin(status).replace(/^http/, 'ws');
 }
 
 function ocGetDashboardLoginParams(base, clashCompatible) {
-	var params = new URLSearchParams();
-	params.set(clashCompatible ? 'host' : 'hostname', base.host);
-	params.set('port', base.port);
-	if (base.secret) params.set('secret', base.secret);
-	return params;
+    var params = new URLSearchParams();
+    params.set(clashCompatible ? 'host' : 'hostname', base.host);
+    params.set('port', base.port);
+    if (base.secret) params.set('secret', base.secret);
+    return params;
 }
 
 function ocBuildExternalDashboardURL(status) {
-	var customURL = ocGetCustomDashboardURL(status);
-	if (!customURL) return '';
+    var customURL = ocGetCustomDashboardURL(status);
+    if (!customURL) return '';
 
-	var base = ocGetDashboardBaseURL(status);
-	var clashCompatible = String(status.dashboard_custom_clash_compatible) === '1';
-	var parsed = new URL(customURL);
-	var params = ocGetDashboardLoginParams(base, clashCompatible);
+    var base = ocGetDashboardBaseURL(status);
+    var clashCompatible = String(status.dashboard_custom_clash_compatible) === '1';
+    var parsed = new URL(customURL);
+    var params = ocGetDashboardLoginParams(base, clashCompatible);
 
-	if (clashCompatible) {
-		var compatHash = parsed.hash.substring(1);
-		var compatSeparator = compatHash.indexOf('?');
-		var compatParams = new URLSearchParams(compatSeparator === -1 ? '' : compatHash.substring(compatSeparator + 1));
-		compatParams.delete('hostname');
-		params.forEach(function(value, key) { compatParams.set(key, value); });
-		parsed.hash = '#/?' + compatParams.toString();
-	} else if (!parsed.hash) {
-		parsed.searchParams.delete('host');
-		params.forEach(function(value, key) { parsed.searchParams.set(key, value); });
-	} else {
-		var hash = parsed.hash.substring(1);
-		var separator = hash.indexOf('?');
-		var route = separator === -1 ? hash : hash.substring(0, separator);
-		var hashParams = new URLSearchParams(separator === -1 ? '' : hash.substring(separator + 1));
-		hashParams.delete('host');
-		params.forEach(function(value, key) { hashParams.set(key, value); });
-		parsed.hash = '#' + route + '?' + hashParams.toString();
-	}
-	return parsed.toString();
+    if (clashCompatible) {
+        var compatHash = parsed.hash.substring(1);
+        var compatSeparator = compatHash.indexOf('?');
+        var compatParams = new URLSearchParams(compatSeparator === -1 ? '' : compatHash.substring(compatSeparator + 1));
+        compatParams.delete('hostname');
+        params.forEach(function(value, key) { compatParams.set(key, value); });
+        parsed.hash = '#/?' + compatParams.toString();
+    } else if (!parsed.hash) {
+        parsed.searchParams.delete('host');
+        params.forEach(function(value, key) { parsed.searchParams.set(key, value); });
+    } else {
+        var hash = parsed.hash.substring(1);
+        var separator = hash.indexOf('?');
+        var route = separator === -1 ? hash : hash.substring(0, separator);
+        var hashParams = new URLSearchParams(separator === -1 ? '' : hash.substring(separator + 1));
+        hashParams.delete('host');
+        params.forEach(function(value, key) { hashParams.set(key, value); });
+        parsed.hash = '#' + route + '?' + hashParams.toString();
+    }
+    return parsed.toString();
 }
 
 function ocBuildDashboardURL(status, uiPath, needsSetup) {
-	var base = ocGetDashboardBaseURL(status);
-	var url = base.origin + '/ui/' + uiPath;
-	var params = ocGetDashboardLoginParams(base, uiPath === 'dashboard').toString();
-	if (needsSetup) {
-		url += '/#/setup?' + params;
-	} else if (uiPath === 'yacd') {
-		url += '/?' + params;
-	} else if (uiPath === 'dashboard') {
-		url += '/#/?' + params;
-	}
-	return url;
+    var base = ocGetDashboardBaseURL(status);
+    var url = base.origin + '/ui/' + uiPath;
+    var params = ocGetDashboardLoginParams(base, uiPath === 'dashboard').toString();
+    if (needsSetup) {
+        url += '/#/setup?' + params;
+    } else if (uiPath === 'yacd') {
+        url += '/?' + params;
+    } else if (uiPath === 'dashboard') {
+        url += '/#/?' + params;
+    }
+    return url;
 }
 
 window.ocFullscreenActive = false;
@@ -462,378 +451,643 @@ window.ocFullscreenPatch = null;
 window.ocZoomLevels = [75, 90, 100, 110, 125, 150, 200];
 window.ocCurrentZoom = 100;
 
-// Return the editor DOM element of an EditorView (.dom) or a MergeView (.a/.b dom)
-function ocGetEditorDom(instance) {
-	if (!instance) return null;
-	if (instance.dom) return instance.dom;
-	if (instance.a && instance.a.dom) return instance.a.dom;
-	return null;
-}
-
 // Enter fullscreen: patch ancestor stacking contexts so position:fixed can break
 // out (clear the closest backdrop-filter, raise the outermost positioned z-index)
 function ocEnterFullscreen(dom) {
-	ocExitFullscreen();
-	var patch = window.ocFullscreenPatch = {};
-	var el = dom.parentNode;
-	while (el && el !== document.body && el !== document.documentElement) {
-		var cs = window.getComputedStyle(el);
-		if (!patch.bfEl) {
-			var bf = cs.backdropFilter || cs.webkitBackdropFilter;
-			if (bf && bf !== 'none') {
-				patch.bfEl = el;
-				patch.bfOld = el.style.backdropFilter;
-				el.style.backdropFilter = 'none';
-			}
-		}
-		var pos = cs.position;
-		var zi = cs.zIndex;
-		if ((pos === 'relative' || pos === 'absolute' || pos === 'fixed' || pos === 'sticky') && zi !== 'auto') {
-			patch.zEl = el;
-			patch.zOld = el.style.zIndex;
-		}
-		el = el.parentNode;
-	}
-	if (patch.zEl) {
-		patch.zEl.style.setProperty('z-index', '999999', 'important');
-	}
+    ocExitFullscreen();
+    var patch = window.ocFullscreenPatch = {};
+    var el = dom.parentNode;
+    while (el && el !== document.body && el !== document.documentElement) {
+        var cs = window.getComputedStyle(el);
+        if (!patch.bfEl) {
+            var bf = cs.backdropFilter || cs.webkitBackdropFilter;
+            if (bf && bf !== 'none') {
+                patch.bfEl = el;
+                patch.bfOld = el.style.backdropFilter;
+                el.style.backdropFilter = 'none';
+            }
+        }
+        var pos = cs.position;
+        var zi = cs.zIndex;
+        if ((pos === 'relative' || pos === 'absolute' || pos === 'fixed' || pos === 'sticky') && zi !== 'auto') {
+            patch.zEl = el;
+            patch.zOld = el.style.zIndex;
+        }
+        el = el.parentNode;
+    }
+    if (patch.zEl) {
+        patch.zEl.style.setProperty('z-index', '999999', 'important');
+    }
 }
 
 function ocExitFullscreen() {
-	var p = window.ocFullscreenPatch;
-	if (!p) return;
-	if (p.zEl) {
-		if (p.zOld !== undefined && p.zOld !== '') {
-			p.zEl.style.zIndex = p.zOld;
-		} else {
-			p.zEl.style.removeProperty('z-index');
-		}
-	}
-	if (p.bfEl) {
-		if (p.bfOld !== undefined && p.bfOld !== '') {
-			p.bfEl.style.backdropFilter = p.bfOld;
-		} else {
-			p.bfEl.style.removeProperty('backdrop-filter');
-		}
-	}
-	window.ocFullscreenPatch = null;
+    var p = window.ocFullscreenPatch;
+    if (!p) return;
+    if (p.zEl) {
+        if (p.zOld !== undefined && p.zOld !== '') {
+            p.zEl.style.zIndex = p.zOld;
+        } else {
+            p.zEl.style.removeProperty('z-index');
+        }
+    }
+    if (p.bfEl) {
+        if (p.bfOld !== undefined && p.bfOld !== '') {
+            p.bfEl.style.backdropFilter = p.bfOld;
+        } else {
+            p.bfEl.style.removeProperty('backdrop-filter');
+        }
+    }
+    window.ocFullscreenPatch = null;
 }
 
 // Return the active editor: merge editor state, then the ConfigEditor modal,
 // then CM6's own active editor
 function ocGetActiveEditorInstance() {
-	if (window.mergeEditorState && window.mergeEditorState.instance) {
-		return window.mergeEditorState.instance;
-	}
-	if (window.ConfigEditor && window.ConfigEditor.editorInstance) {
-		return window.ConfigEditor.editorInstance;
-	}
-	if (typeof CM6 !== 'undefined' && CM6.getActiveEditor) {
-		return CM6.getActiveEditor();
-	}
-	return null;
+    if (window.mergeEditorState && window.mergeEditorState.instance) {
+        return window.mergeEditorState.instance;
+    }
+    if (window.ConfigEditor && window.ConfigEditor.editorInstance) {
+        return window.ConfigEditor.editorInstance;
+    }
+    if (typeof CM6 !== 'undefined' && CM6.getActiveEditor) {
+        return CM6.getActiveEditor();
+    }
+    return null;
 }
 
 // Apply the zoom-{level} class to .cm-editor elements (both panels of a MergeView)
 function ocApplyZoom(instance, zoomLevel) {
-	var doms = [];
-	if (instance) {
-		if (instance.a && instance.a.dom && instance.b && instance.b.dom) {
-			doms = [instance.a.dom, instance.b.dom];
-		} else if (instance.dom) {
-			doms = [instance.dom];
-		} else if (instance.classList && instance.classList.contains('cm-editor')) {
-			doms = [instance];
-		}
-	}
+    var doms = [];
+    if (instance) {
+        if (instance.a && instance.a.dom && instance.b && instance.b.dom) {
+            doms = [instance.a.dom, instance.b.dom];
+        } else if (instance.dom) {
+            doms = [instance.dom];
+        } else if (instance.classList && instance.classList.contains('cm-editor')) {
+            doms = [instance];
+        }
+    }
 
-	if (!doms.length) {
-		var activeEl = document.activeElement;
-		if (activeEl) {
-			var ed = activeEl.closest('.cm-editor');
-			if (ed) doms = [ed];
-		}
-	}
-	if (!doms.length) return;
+    if (!doms.length) {
+        var activeEl = document.activeElement;
+        if (activeEl) {
+            var ed = activeEl.closest('.cm-editor');
+            if (ed) doms = [ed];
+        }
+    }
+    if (!doms.length) return;
 
-	doms.forEach(function(dom) {
-		window.ocZoomLevels.forEach(function(level) {
-			dom.classList.remove('zoom-' + level);
-		});
-		if (zoomLevel !== 100) {
-			dom.classList.add('zoom-' + zoomLevel);
-		}
-	});
-	window.ocCurrentZoom = zoomLevel;
+    doms.forEach(function(dom) {
+        window.ocZoomLevels.forEach(function(level) {
+            dom.classList.remove('zoom-' + level);
+        });
+        if (zoomLevel !== 100) {
+            dom.classList.add('zoom-' + zoomLevel);
+        }
+    });
+    window.ocCurrentZoom = zoomLevel;
 }
 
 // Zoom step helpers: return the new level without applying it
 function ocZoomIn(currentZoom) {
-	var cur = typeof currentZoom === 'number' ? currentZoom : window.ocCurrentZoom;
-	var idx = window.ocZoomLevels.indexOf(cur);
-	if (idx < window.ocZoomLevels.length - 1) {
-		return window.ocZoomLevels[idx + 1];
-	}
-	return cur;
+    var cur = typeof currentZoom === 'number' ? currentZoom : window.ocCurrentZoom;
+    var idx = window.ocZoomLevels.indexOf(cur);
+    if (idx < window.ocZoomLevels.length - 1) {
+        return window.ocZoomLevels[idx + 1];
+    }
+    return cur;
 }
 
 function ocZoomOut(currentZoom) {
-	var cur = typeof currentZoom === 'number' ? currentZoom : window.ocCurrentZoom;
-	var idx = window.ocZoomLevels.indexOf(cur);
-	if (idx > 0) {
-		return window.ocZoomLevels[idx - 1];
-	}
-	return cur;
+    var cur = typeof currentZoom === 'number' ? currentZoom : window.ocCurrentZoom;
+    var idx = window.ocZoomLevels.indexOf(cur);
+    if (idx > 0) {
+        return window.ocZoomLevels[idx - 1];
+    }
+    return cur;
 }
 
 function ocResetZoom() {
-	return 100;
+    return 100;
 }
-
-// Passthrough for CM5-era cmWhenReady compatibility
-window.cmWhenReady = function(cb) { cb(); };
 
 // Apply the CM6 editor themes and the highlight.js theme for the current dark mode
 function ocApplyEditorTheme() {
-	var isDark = document.documentElement.getAttribute('data-darkmode') === 'true';
-	if (typeof CM6 !== 'undefined' && CM6.dispatchTheme) {
-		var editors = document.querySelectorAll('.cm-editor');
-		for (var j = 0; j < editors.length; j++) {
-			var view = editors[j].cmView && editors[j].cmView.view;
-			if (view) {
-				try { CM6.dispatchTheme(view, isDark); } catch(e) {}
-			}
-		}
-	}
-	if (typeof CM6 !== 'undefined' && CM6.mirrorThemeScrollbar) {
-		try { CM6.mirrorThemeScrollbar(); } catch(e) {}
-	}
-	if (typeof CM6 !== 'undefined' && CM6.switchHljsTheme) {
-		CM6.switchHljsTheme(isDark);
-	}
-}
-
-function ocHideEmptyCbiElements() {
-	var emptyEls = document.querySelectorAll('.cbi-section-table-titles, .cbi-section-table-descr, .cbi-section-descr');
-	for (var i = 0; i < emptyEls.length; i++) {
-		if (emptyEls[i].textContent.trim() === '') { emptyEls[i].style.display = 'none'; }
-	}
-}
-
-function ocCenterCbiActions() {
-	var ids = ['Commit', 'Apply', 'Create', 'Back', 'Load_Config',
-		'Delete_Unused_Servers', 'Delete_Servers', 'Delete_Proxy_Provider', 'Delete_Groups',
-		'proxy_mg', 'rule_mg', 'pro_mg'];
-	for (var i = 0; i < ids.length; i++) {
-		var els = document.querySelectorAll('[id$="-' + ids[i] + '"]');
-		for (var j = 0; j < els.length; j++) {
-			els[j].style.textAlign = 'center';
-		}
-	}
+    var isDark = document.documentElement.getAttribute('data-darkmode') === 'true';
+    if (typeof CM6 !== 'undefined' && CM6.dispatchTheme) {
+        var editors = document.querySelectorAll('.cm-editor');
+        for (var j = 0; j < editors.length; j++) {
+            var view = editors[j].cmView && editors[j].cmView.view;
+            if (view) {
+                try { CM6.dispatchTheme(view, isDark); } catch(e) {}
+            }
+        }
+    }
+    if (typeof CM6 !== 'undefined' && CM6.mirrorThemeScrollbar) {
+        try { CM6.mirrorThemeScrollbar(); } catch(e) {}
+    }
+    if (typeof CM6 !== 'undefined' && CM6.switchHljsTheme) {
+        CM6.switchHljsTheme(isDark);
+    }
 }
 
 // Register the editor hotkeys once, in the capture phase so they beat CM6's own key
 // handling. Ctrl+Wheel zoom needs a separate non-passive wheel listener.
 function ocRegisterEditorHotkeys() {
-	if (window.ocEditorHotkeysBound) return;
-	window.ocEditorHotkeysBound = true;
+    if (window.ocEditorHotkeysBound) return;
+    window.ocEditorHotkeysBound = true;
 
-	document.addEventListener('keydown', function(e) {
-		if ((e.ctrlKey || e.metaKey) && (e.key === '=' || e.key === '+')) {
-			var inst = ocGetActiveEditorInstance();
-			if (inst) {
-				e.preventDefault();
-				var newZoom = ocZoomIn();
-				ocApplyZoom(inst, newZoom);
-			}
-			return;
-		}
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && (e.key === '=' || e.key === '+')) {
+            var inst = ocGetActiveEditorInstance();
+            if (inst) {
+                e.preventDefault();
+                var newZoom = ocZoomIn();
+                ocApplyZoom(inst, newZoom);
+            }
+            return;
+        }
 
-		if ((e.ctrlKey || e.metaKey) && e.key === '-') {
-			var inst = ocGetActiveEditorInstance();
-			if (inst) {
-				e.preventDefault();
-				var newZoom = ocZoomOut();
-				ocApplyZoom(inst, newZoom);
-			}
-			return;
-		}
+        if ((e.ctrlKey || e.metaKey) && e.key === '-') {
+            var inst = ocGetActiveEditorInstance();
+            if (inst) {
+                e.preventDefault();
+                var newZoom = ocZoomOut();
+                ocApplyZoom(inst, newZoom);
+            }
+            return;
+        }
 
-		if ((e.ctrlKey || e.metaKey) && e.key === '0') {
-			var inst = ocGetActiveEditorInstance();
-			if (inst) {
-				e.preventDefault();
-				var newZoom = ocResetZoom();
-				ocApplyZoom(inst, newZoom);
-			}
-			return;
-		}
+        if ((e.ctrlKey || e.metaKey) && e.key === '0') {
+            var inst = ocGetActiveEditorInstance();
+            if (inst) {
+                e.preventDefault();
+                var newZoom = ocResetZoom();
+                ocApplyZoom(inst, newZoom);
+            }
+            return;
+        }
 
-		if (e.key === 'F11') {
-			e.preventDefault();
-			if (window.ocFullscreenActive) {
-				var fsEl = document.getElementById('oc-fullscreen-active');
-				if (fsEl && typeof CM6 !== 'undefined' && CM6.toggleFullscreen) {
-					CM6.toggleFullscreen(fsEl);
-				}
-				ocExitFullscreen();
-				window.ocFullscreenActive = false;
-				if (window.ConfigEditor) window.ConfigEditor.isFullscreen = false;
-			} else {
-				if (typeof CM6 !== 'undefined' && CM6.getActiveEditor && CM6.toggleFullscreen) {
-					var target = CM6.getActiveEditor();
-					if (target) {
-						ocEnterFullscreen(target);
-						window.ocFullscreenActive = !!CM6.toggleFullscreen(target);
-						if (window.ConfigEditor) window.ConfigEditor.isFullscreen = window.ocFullscreenActive;
-					}
-				}
-			}
-			ocApplyEditorTheme();
-			return;
-		}
+        if (e.key === 'F11') {
+            e.preventDefault();
+            if (window.ocFullscreenActive) {
+                var fsEl = document.getElementById('oc-fullscreen-active');
+                if (fsEl && typeof CM6 !== 'undefined' && CM6.toggleFullscreen) {
+                    CM6.toggleFullscreen(fsEl);
+                }
+                ocExitFullscreen();
+                window.ocFullscreenActive = false;
+                if (window.ConfigEditor) window.ConfigEditor.isFullscreen = false;
+            } else {
+                if (typeof CM6 !== 'undefined' && CM6.getActiveEditor && CM6.toggleFullscreen) {
+                    var target = CM6.getActiveEditor();
+                    if (target) {
+                        ocEnterFullscreen(target);
+                        window.ocFullscreenActive = !!CM6.toggleFullscreen(target);
+                        if (window.ConfigEditor) window.ConfigEditor.isFullscreen = window.ocFullscreenActive;
+                    }
+                }
+            }
+            ocApplyEditorTheme();
+            return;
+        }
 
-		if (e.key === 'F10' && window.mergeViewInstance && window.mergeViewInstance.reconfigure) {
-			e.preventDefault();
-			window.ocMergeShowDifferences = !window.ocMergeShowDifferences;
-			window.mergeViewInstance.reconfigure({
-				highlightChanges: window.ocMergeShowDifferences,
-				gutter: window.ocMergeShowDifferences
-			});
-			if (window.mergeViewInstance.dom) {
-				window.mergeViewInstance.dom.classList.toggle('oc-diff-hidden', !window.ocMergeShowDifferences);
-			}
-			return;
-		}
+        if (e.key === 'F10' && window.mergeViewInstance && window.mergeViewInstance.reconfigure) {
+            e.preventDefault();
+            window.ocMergeShowDifferences = !window.ocMergeShowDifferences;
+            window.mergeViewInstance.reconfigure({
+                highlightChanges: window.ocMergeShowDifferences,
+                gutter: window.ocMergeShowDifferences
+            });
+            if (window.mergeViewInstance.dom) {
+                window.mergeViewInstance.dom.classList.toggle('oc-diff-hidden', !window.ocMergeShowDifferences);
+            }
+            return;
+        }
 
-		if (e.key === 'Escape' && window.ocFullscreenActive) {
-			e.preventDefault();
-			e.stopPropagation();
-			var fsEl = document.getElementById('oc-fullscreen-active');
-			if (fsEl && typeof CM6 !== 'undefined' && CM6.toggleFullscreen) {
-				CM6.toggleFullscreen(fsEl);
-			}
-			ocExitFullscreen();
-			window.ocFullscreenActive = false;
-			if (window.ConfigEditor) window.ConfigEditor.isFullscreen = false;
-			ocApplyEditorTheme();
-		}
-	}, true);
+        if (e.key === 'Escape' && window.ocFullscreenActive) {
+            e.preventDefault();
+            e.stopPropagation();
+            var fsEl = document.getElementById('oc-fullscreen-active');
+            if (fsEl && typeof CM6 !== 'undefined' && CM6.toggleFullscreen) {
+                CM6.toggleFullscreen(fsEl);
+            }
+            ocExitFullscreen();
+            window.ocFullscreenActive = false;
+            if (window.ConfigEditor) window.ConfigEditor.isFullscreen = false;
+            ocApplyEditorTheme();
+        }
+    }, true);
 
-	document.addEventListener('wheel', function(e) {
-		if (e.ctrlKey || e.metaKey) {
-			if (e.target.closest && e.target.closest('#config-editor-overlay')) return;
-			var inst = ocGetActiveEditorInstance();
-			if (inst) {
-				e.preventDefault();
-				var newZoom = e.deltaY < 0 ? ocZoomIn() : ocZoomOut();
-				ocApplyZoom(inst, newZoom);
-			}
-		}
-	}, { passive: false });
+    document.addEventListener('wheel', function(e) {
+        if (e.ctrlKey || e.metaKey) {
+            if (e.target.closest && e.target.closest('#config-editor-overlay')) return;
+            var inst = ocGetActiveEditorInstance();
+            if (inst) {
+                e.preventDefault();
+                var newZoom = e.deltaY < 0 ? ocZoomIn() : ocZoomOut();
+                ocApplyZoom(inst, newZoom);
+            }
+        }
+    }, { passive: false });
+}
+
+function ocHideEmptyCbiElements() {
+    var emptyEls = document.querySelectorAll('.cbi-section-table-titles, .cbi-section-table-descr, .cbi-section-descr');
+    for (var i = 0; i < emptyEls.length; i++) {
+        if (emptyEls[i].textContent.trim() === '') { emptyEls[i].style.display = 'none'; }
+    }
+}
+
+// Tags the legacy cbi action buttons (.cbi-button inside the known id cells) with .oc so
+// the shared variables and the footer-btn look in oc-common.css (.oc.cbi-button) apply;
+// the host table also gets .oc-cbi-table so its fixed layout gives every button one width.
+function ocWrapCbiActions() {
+    var ids = ['Commit', 'Apply', 'Create', 'Back', 'Load_Config', 'Refresh',
+        'Delete_Unused_Servers', 'Delete_Servers', 'Delete_Proxy_Provider', 'Delete_Groups', 'Delete_all',
+        'proxy_mg', 'rule_mg', 'pro_mg'];
+    for (var i = 0; i < ids.length; i++) {
+        var btns = document.querySelectorAll('[id$="-' + ids[i] + '"] .cbi-button');
+        for (var j = 0; j < btns.length; j++) {
+            btns[j].classList.add('oc');
+            var tbl = btns[j].closest('table');
+            if (tbl) tbl.classList.add('oc-cbi-table');
+        }
+    }
 }
 
 var ocLoadingMap = typeof WeakMap !== 'undefined' ? new WeakMap() : (function(){
-	var m = {};
-	return {
-		get: function(k) { return m[k.ocLid]; },
-		set: function(k, v) { var id = '_ocl' + Math.random(); k.ocLid = id; m[id] = v; },
-		delete: function(k) { delete m[k.ocLid]; }
-	};
+    var m = {};
+    return {
+        get: function(k) { return m[k.ocLid]; },
+        set: function(k, v) { var id = '_ocl' + Math.random(); k.ocLid = id; m[id] = v; },
+        delete: function(k) { delete m[k.ocLid]; }
+    };
 })();
 
 function ocShowLoading(container, message, minHeight) {
-	if (!container) return;
-	var prevPos = container.style.position;
-	var prevMinH = container.style.minHeight;
-	container.style.position = 'relative';
-	if (minHeight) container.style.minHeight = minHeight;
-	var el = document.createElement('div');
-	el.className = 'config-editor-loading';
-	el.innerHTML = '<div class="loading-spinner"></div><span>' + (message || 'Loading\u2026') + '</span>';
-	container.appendChild(el);
-	ocLoadingMap.set(container, { el: el, prevPos: prevPos, prevMinH: prevMinH });
+    if (!container) return;
+    if (ocLoadingMap.get(container)) return;
+    var prevPos = container.style.position;
+    var prevMinH = container.style.minHeight;
+    container.style.position = 'relative';
+    if (minHeight) container.style.minHeight = minHeight;
+    var el = document.createElement('div');
+    el.className = 'config-editor-loading';
+    el.innerHTML = '<div class="loading-spinner"></div><span>' + (message || 'Loading\u2026') + '</span>';
+    container.appendChild(el);
+    ocLoadingMap.set(container, { el: el, prevPos: prevPos, prevMinH: prevMinH });
 }
 
 function ocHideLoading(container) {
-	if (!container) return;
-	var handle = ocLoadingMap.get(container);
-	if (!handle) return;
-	if (handle.el && handle.el.parentNode) handle.el.remove();
-	container.style.position = handle.prevPos || '';
-	if (handle.prevMinH !== undefined) {
-		container.style.minHeight = handle.prevMinH;
-	}
-	ocLoadingMap.delete(container);
+    if (!container) return;
+    var handle = ocLoadingMap.get(container);
+    if (!handle) return;
+    if (handle.el && handle.el.parentNode) handle.el.remove();
+    container.style.position = handle.prevPos || '';
+    if (handle.prevMinH !== undefined) {
+        container.style.minHeight = handle.prevMinH;
+    }
+    ocLoadingMap.delete(container);
+}
+
+// Injects a stylesheet once; links already stamped by the template are kept as-is.
+function ocLoadCss(url) {
+    if (!url) return;
+    if (!window.ocCssState) window.ocCssState = {};
+    if (window.ocCssState[url]) return;
+    var links = document.head.querySelectorAll('link[rel="stylesheet"]');
+    for (var i = 0; i < links.length; i++) {
+        if (links[i].getAttribute('href') === url) { window.ocCssState[url] = true; return; }
+    }
+    window.ocCssState[url] = true;
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = url;
+    document.head.appendChild(link);
+}
+
+function ocRequireScript(url, cb) {
+    if (!url) return;
+    if (!window.ocScriptState) { window.ocScriptState = {}; window.ocScriptWaiters = {}; }
+    var state = window.ocScriptState[url];
+    if (state === 2) { if (cb) cb(); return; }
+    if (!window.ocScriptWaiters[url]) window.ocScriptWaiters[url] = [];
+    if (cb) window.ocScriptWaiters[url].push(cb);
+    if (state === 1) return;
+    window.ocScriptState[url] = 1;
+    var s = document.createElement('script');
+    s.src = url;
+    s.onload = function() {
+        window.ocScriptState[url] = 2;
+        var waiters = window.ocScriptWaiters[url] || [];
+        window.ocScriptWaiters[url] = [];
+        for (var i = 0; i < waiters.length; i++) {
+            try { waiters[i](); } catch (e) {}
+        }
+    };
+    s.onerror = function() {
+        window.ocScriptState[url] = 0;
+        window.ocScriptWaiters[url] = [];
+    };
+    document.head.appendChild(s);
+}
+
+// Contract: never-visible containers are never created and repeated queue
+// calls for the same container are ignored. The fallback timer covers
+// documents whose rendering is throttled while hidden (IntersectionObserver
+// never fires there).
+function ocQueueEditor(container, factory, onReady) {
+    if (!container || typeof factory !== 'function') return;
+    if (container.ocQueueStarted) return;
+    container.ocQueueStarted = true;
+    var started = false;
+    function start() {
+        if (started) return;
+        started = true;
+        ocRequireCM6(function() {
+            var view = null;
+            try { view = factory(); } catch (e) { if (window.console) console.error(e); }
+            if (view && typeof onReady === 'function') {
+                try { onReady(view); } catch (e) {}
+            }
+        });
+    }
+    function fallbackCheck() {
+        if (started || document.visibilityState !== 'visible') return;
+        var cs = getComputedStyle(container);
+        if (cs.display === 'none' || (container.offsetParent === null && cs.position !== 'fixed')) return;
+        start();
+    }
+    if (!window.IntersectionObserver || !container.isConnected) { start(); return; }
+    var io = new IntersectionObserver(function(entries) {
+        for (var i = 0; i < entries.length; i++) {
+            if (entries[i].isIntersecting) { io.disconnect(); start(); return; }
+        }
+    }, { rootMargin: '320px 0px' });
+    io.observe(container);
+    var fallbackTimer = setTimeout(function() {
+        fallbackCheck();
+        if (!started) document.addEventListener('visibilitychange', onVisibilityChange);
+    }, 4000);
+    function onVisibilityChange() {
+        if (started) {
+            document.removeEventListener('visibilitychange', onVisibilityChange);
+            return;
+        }
+        fallbackCheck();
+    }
+}
+
+// Load an external script (and its optional companion stylesheet) once the anchor
+// element approaches the viewport (320px margin). Used for below-the-fold bundles
+// whose UI lives further down the page.
+function ocLazyScriptOnView(el, url, cssUrl) {
+    if (!el || !url) return;
+    if (!window.IntersectionObserver) { ocLoadCss(cssUrl); ocRequireScript(url); return; }
+    var io = new IntersectionObserver(function(entries) {
+        for (var i = 0; i < entries.length; i++) {
+            if (entries[i].isIntersecting) { io.disconnect(); ocLoadCss(cssUrl); ocRequireScript(url); return; }
+        }
+    }, { rootMargin: '320px 0px' });
+    io.observe(el);
+}
+
+// SSE-style log streamer shared by the status overview and the update page.
+// The server streams /tmp/openclash_start.log from the beginning and ends the
+// response with ##FINISHED## when the watched script exits (##CONTINUE## while
+// it is still running). A watch stream that ended without ##FINISHED## reconnects
+// after a second; the lines that were already shown are skipped by counting them
+// in skipLines / onSkipLines.
+// opts: { url, script, initialMessage, skipLines, onSkipLines, maxWaitMs,
+//         display(text), onFinish(), onTimeout() }
+function ocCreateLogStream(opts) {
+    var xhr = null;
+    var reconnectTimer = null;
+    var maxWaitTimer = null;
+    var stopped = false;
+    var lastLineCount = opts.skipLines != null ? opts.skipLines : null;
+    var watchMode = !!opts.script && opts.script !== 'view';
+    var streamUrl = opts.url + (watchMode ? '?script=' + encodeURIComponent(opts.script) : '');
+
+    function openStream() {
+        if (stopped) return;
+        if (xhr) { xhr.abort(); xhr = null; }
+        var req = new XMLHttpRequest();
+        req.timeout = 0;
+        req.open('GET', streamUrl, true);
+        req.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        var streamEnded = false;
+        var processedLength = 0;
+        var pendingLine = '';
+        var cursorInitialized = false;
+        var finishTimer = null;
+
+        function consume(text, flush) {
+            if (!cursorInitialized) {
+                if (lastLineCount != null) {
+                    for (var lineIndex = 0; lineIndex < lastLineCount; lineIndex++) {
+                        var newlineIndex = text.indexOf('\n', processedLength);
+                        if (newlineIndex < 0) {
+                            processedLength = text.length;
+                            break;
+                        }
+                        processedLength = newlineIndex + 1;
+                    }
+                }
+                cursorInitialized = true;
+            }
+            if (text.length < processedLength) {
+                processedLength = 0;
+                pendingLine = '';
+            }
+            pendingLine += text.substring(processedLength);
+            processedLength = text.length;
+            var parts = pendingLine.split('\n');
+            if (flush) {
+                pendingLine = '';
+            } else {
+                pendingLine = parts.pop() || '';
+            }
+            var raw = parts.join('\n').replace(/##FINISHED##|##CONTINUE##|##FINISH##/g, '');
+            if (raw.trim()) opts.display(raw);
+        }
+
+        function rememberLines() {
+            lastLineCount = (req.responseText || '').replace(/##FINISHED##\s*$|##CONTINUE##\s*$/, '').replace(/\n+$/, '').split('\n').length;
+            if (opts.onSkipLines) opts.onSkipLines(lastLineCount);
+        }
+
+        function finishPermanent() {
+            xhr = null;
+            if (maxWaitTimer) { clearTimeout(maxWaitTimer); maxWaitTimer = null; }
+            try { req.abort(); } catch (e) {}
+            if (opts.onFinish) opts.onFinish();
+        }
+
+        function scheduleFinish() {
+            if (finishTimer) return;
+            finishTimer = setTimeout(function() {
+                streamEnded = true;
+                if (xhr !== req) return;
+                finishPermanent();
+            }, 10000);
+        }
+
+        function reconnect() {
+            if (stopped || reconnectTimer) return;
+            reconnectTimer = setTimeout(function() {
+                reconnectTimer = null;
+                if (!xhr && !stopped) openStream();
+            }, 1000);
+        }
+
+        req.onprogress = function() {
+            if (xhr !== req || streamEnded) return;
+            var text = req.responseText || '';
+            consume(text, false);
+            if (/##FINISHED##\s*$/.test(text)) scheduleFinish();
+        };
+
+        req.onload = function() {
+            if (xhr !== req || streamEnded) return;
+            var text = req.responseText || '';
+            consume(text, true);
+            if (!watchMode || /##FINISHED##\s*$/.test(text)) {
+                scheduleFinish();
+                return;
+            }
+            if (finishTimer) { clearTimeout(finishTimer); finishTimer = null; }
+            streamEnded = true;
+            rememberLines();
+            xhr = null;
+            reconnect();
+        };
+
+        req.onerror = function() {
+            if (xhr !== req) return;
+            if (finishTimer) { clearTimeout(finishTimer); finishTimer = null; }
+            streamEnded = true;
+            rememberLines();
+            xhr = null;
+            if (watchMode) reconnect();
+        };
+
+        req.send();
+        xhr = req;
+        if (opts.initialMessage) opts.display(opts.initialMessage);
+    }
+
+    function abort() {
+        stopped = true;
+        if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+        if (maxWaitTimer) { clearTimeout(maxWaitTimer); maxWaitTimer = null; }
+        if (xhr) { xhr.abort(); xhr = null; }
+    }
+
+    return {
+        start: function() {
+            if (opts.maxWaitMs && !maxWaitTimer) {
+                maxWaitTimer = setTimeout(function() {
+                    maxWaitTimer = null;
+                    abort();
+                    if (opts.onTimeout) opts.onTimeout();
+                }, opts.maxWaitMs);
+            }
+            openStream();
+        },
+        abort: abort,
+        isRunning: function() { return !!xhr; }
+    };
 }
 
 window.ocCopyToClipboard = function(text, btnElement, successMessage, failMessage) {
-	if (navigator.clipboard && navigator.clipboard.writeText) {
-		navigator.clipboard.writeText(text).then(function() {
-			ocShowCopySuccess(btnElement);
-		}).catch(function() {
-			ocFallbackCopy(text, btnElement, successMessage, failMessage);
-		});
-	} else {
-		ocFallbackCopy(text, btnElement, successMessage, failMessage);
-	}
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+            ocShowCopySuccess(btnElement);
+        }).catch(function() {
+            ocFallbackCopy(text, btnElement, successMessage, failMessage);
+        });
+    } else {
+        ocFallbackCopy(text, btnElement, successMessage, failMessage);
+    }
 };
 
 function ocShowCopySuccess(element) {
-	if (!element) return;
-	var origHTML = element.innerHTML;
-	element.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-	element.classList.add('copy-success');
-	setTimeout(function() {
-		element.innerHTML = origHTML;
-		element.classList.remove('copy-success');
-	}, 1500);
+    if (!element) return;
+    var origHTML = element.innerHTML;
+    element.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+    element.classList.add('copy-success');
+    setTimeout(function() {
+        element.innerHTML = origHTML;
+        element.classList.remove('copy-success');
+    }, 1500);
 }
 
 function ocFallbackCopy(text, btnElement, successMessage, failMessage) {
-	var ta = document.createElement('textarea');
-	ta.value = text;
-	ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
-	document.body.appendChild(ta);
-	ta.select();
-	var ok = false;
-	try { ok = document.execCommand('copy'); } catch(e) {}
-	document.body.removeChild(ta);
-	if (ok) {
-		ocShowCopySuccess(btnElement);
-	} else if (failMessage) {
-		prompt(failMessage, text);
-	}
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch(e) {}
+    document.body.removeChild(ta);
+    if (ok) {
+        ocShowCopySuccess(btnElement);
+    } else if (failMessage) {
+        prompt(failMessage, text);
+    }
 }
 
 function ocSetBtnLoading(btn, loading) {
-	var svg = btn.querySelector('svg');
-	if (loading) {
-		if (svg && !btn.dataset.ocSvgHtml) {
-			btn.dataset.ocSvgHtml = svg.outerHTML;
-			var spinner = document.createElement('span');
-			spinner.className = 'loading-spinner oc-btn-spinner';
-			spinner.style.verticalAlign = 'middle';
-			var svgW = parseInt(svg.getAttribute('width'), 10);
-			var size = (!isNaN(svgW) && svgW > 0) ? svgW : 14;
-			spinner.style.width = size + 'px';
-			spinner.style.height = size + 'px';
-			btn.replaceChild(spinner, svg);
-		}
-		btn.disabled = true;
-	} else {
-		btn.disabled = false;
-		if (btn.dataset.ocSvgHtml) {
-			var holder = document.createElement('span');
-			holder.innerHTML = btn.dataset.ocSvgHtml;
-			var newSvg = holder.firstChild;
-			var cur = btn.querySelector('.loading-spinner');
-			if (cur && newSvg) {
-				btn.replaceChild(newSvg, cur);
-			}
-			delete btn.dataset.ocSvgHtml;
-		}
-	}
+    var svg = btn.querySelector('svg');
+    if (loading) {
+        if (svg && !btn.dataset.ocSvgHtml) {
+            btn.dataset.ocSvgHtml = svg.outerHTML;
+            var spinner = document.createElement('span');
+            spinner.className = 'loading-spinner oc-btn-spinner';
+            spinner.style.verticalAlign = 'middle';
+            var svgW = parseInt(svg.getAttribute('width'), 10);
+            var size = (!isNaN(svgW) && svgW > 0) ? svgW : 14;
+            spinner.style.width = size + 'px';
+            spinner.style.height = size + 'px';
+            btn.replaceChild(spinner, svg);
+        }
+        btn.disabled = true;
+    } else {
+        btn.disabled = false;
+        if (btn.dataset.ocSvgHtml) {
+            var holder = document.createElement('span');
+            holder.innerHTML = btn.dataset.ocSvgHtml;
+            var newSvg = holder.firstChild;
+            var cur = btn.querySelector('.loading-spinner');
+            if (cur && newSvg) {
+                btn.replaceChild(newSvg, cur);
+            }
+            delete btn.dataset.ocSvgHtml;
+        }
+    }
+}
+
+// Toggle a button's spinner and swap its label while an action runs; the original
+// label is kept in ocBtnOriginalText so showing it again needs no second parameter.
+function ocSetBtnBusy(btn, busy, busyText) {
+    if (!btn) return;
+    var btnText = btn.querySelector('span:not(.loading-spinner)');
+    if (busy) {
+        if (btnText && !btn.dataset.ocBtnOriginalText) {
+            btn.dataset.ocBtnOriginalText = btnText.textContent;
+        }
+        if (btnText && busyText) { btnText.textContent = busyText; }
+        ocSetBtnLoading(btn, true);
+    } else {
+        ocSetBtnLoading(btn, false);
+        if (btnText && btn.dataset.ocBtnOriginalText) {
+            btnText.textContent = btn.dataset.ocBtnOriginalText;
+            delete btn.dataset.ocBtnOriginalText;
+        }
+    }
 }
 
 ocInitTheme();

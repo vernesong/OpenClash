@@ -3,7 +3,6 @@ local rowcnt = 1
 -- Follow the parent Map cursor so every caller keeps its own config dir
 local uci = self.map.uci or require("luci.model.uci").cursor()
 local fs = require "luci.openclash"
-local plugin_version = fs.oc_version()
 
 function rowstyle()
     rowcnt = rowcnt + 1
@@ -18,19 +17,6 @@ function width(o)
         return ' style="width:%s"' % o.width
     end
     return ''
-end
-
-function table_include(table, value)
-    if table == nil then
-        return false
-    end
-
-    for k, v in pairs(table) do
-        if v == value then
-            return true
-        end
-    end
-    return false
 end
 
 local a={}
@@ -48,9 +34,7 @@ else
         end
     end
 
-    if not table_include(e, "all") then
-        table.insert(e, 1, {name="all"})
-    end
+    table.insert(e, 1, {name="all"})
 end
 
 local file_path = fs.get_file_path_from_request()
@@ -275,7 +259,7 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
     <%- local count = 0 -%>
     <div id="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tabmenu">
         <ul class="cbi-tabmenu">
-            <%- 
+            <%-
             if self.sectiontype == "dns_servers" then
                 for i, tab in ipairs(e) do
                     if i == 1 then
@@ -369,7 +353,7 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
                     for i, k in ipairs(self:cfgsections()) do
                         local section = k
                         local should_render = false
-                        local section_name 
+                        local section_name
                         if self.sectiontype == "dns_servers" then
                             section_name = uci:get("openclash", section, "group")
                         else
@@ -416,8 +400,8 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
                                         %> alt="<%:Edit%>" title="<%:Edit%>" />
                                     <%- end; if self.addremove then -%>
                                         <%- if file_path then -%>
-                                            <input class="btn cbi-button cbi-button-remove" type="submit" value="<%:Delete%>" 
-                                            onclick="this.form.cbi_state='del-section'; var redirectUrl = 'servers?file=<%=file_path%>'; var originalSubmit = this.form.onsubmit; this.form.onsubmit = function(e) { var result = true; if (originalSubmit) { result = originalSubmit.call(this, e); } if (result !== false) { setTimeout(function() { window.location.href = redirectUrl; }, 200); } return result; }; return switch_to_tab<%=sectiontype%>()" 
+                                            <input class="btn cbi-button cbi-button-remove" type="submit" value="<%:Delete%>"
+                                            onclick="this.form.cbi_state='del-section'; var redirectUrl = 'servers?file=<%=file_path%>'; var originalSubmit = this.form.onsubmit; this.form.onsubmit = function(e) { var result = true; if (originalSubmit) { result = originalSubmit.call(this, e); } if (result !== false) { setTimeout(function() { window.location.href = redirectUrl; }, 200); } return result; }; return switch_to_tab<%=sectiontype%>()"
                                             name="cbi.rts.<%=self.config%>.<%=k%>" alt="<%:Delete%>" title="<%:Delete%>" />
                                         <%- else -%>
                                             <input class="btn cbi-button cbi-button-remove" type="submit" value="<%:Delete%>" onclick="this.form.cbi_state='del-section'; return switch_to_tab<%=sectiontype%>()" name="cbi.rts.<%=self.config%>.<%=k%>" alt="<%:Delete%>" title="<%:Delete%>" />
@@ -471,7 +455,6 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
 </fieldset>
 <!-- /tblsection -->
 
-<script src="/luci-static/resources/openclash/js/common.js?v=<%=plugin_version%>"></script>
 <script type="text/javascript">//<![CDATA[
     window.addEventListener('load', onload<%=sectiontype%>, false);
 

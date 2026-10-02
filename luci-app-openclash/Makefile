@@ -48,12 +48,14 @@ define Package/$(PKG_NAME)
 endef
 
 define Package/$(PKG_NAME)/description
-    A LuCI support for clash
+	A LuCI support for clash
 endef
 
 define Build/Prepare
 	$(CP) $(CURDIR)/root $(PKG_BUILD_DIR)
 	$(CP) $(CURDIR)/luasrc $(PKG_BUILD_DIR)
+	# Replace the @OPENCLASH_VERSION@ token with the package version (browser asset cache keys).
+	sed -i 's|@OPENCLASH_VERSION@|$(PKG_VERSION)|g' $(PKG_BUILD_DIR)/luasrc/openclash.lua $(PKG_BUILD_DIR)/luasrc/view/openclash/*.htm
 	$(foreach po,$(wildcard ${CURDIR}/po/zh-cn/*.po), \
 		po2lmo $(po) $(PKG_BUILD_DIR)/$(patsubst %.po,%.lmo,$(notdir $(po)));)
 	chmod 0755 $(PKG_BUILD_DIR)/root/etc/init.d/openclash

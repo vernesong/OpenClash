@@ -97,8 +97,8 @@ o.rmempty = true
 o:depends("sub_convert", "1")
 file = io.open("/usr/share/openclash/res/sub_ini.list", "r");
 for l in file:lines() do
-	if l ~= "" and l ~= nil then
-		o:value(string.sub(luci.sys.exec(string.format("echo '%s' |awk -F ',' '{print $1}' 2>/dev/null",l)),1,-2))
+	if l ~= "" then
+		o:value(l:match("^([^,]*)"))
 	end
 end
 file:close()
@@ -401,6 +401,11 @@ o.write = function()
 	HTTP.redirect(m.redirect)
 end
 
-m:append(Template("openclash/toolbar_show"))
+local render_children = m.render_children
+m.render_children = function(self, ...)
+	fs.render_page_head()
+	render_children(self, ...)
+end
+
 m:append(Template("openclash/subconverter_version"))
 return m

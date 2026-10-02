@@ -9,7 +9,7 @@ GET_ETAG_TIMESTAMP_BY_PATH() {
     [ ! -f "$ETAG_CACHE" ] && return 1
 
     local path_hash=$(echo -n "$path" | md5sum | cut -d' ' -f1)
-    
+
     awk -v hash="$path_hash" '
         $0 ~ "^\\[" hash "\\]" { found=1; next }
         /^\[/ { found=0 }
@@ -23,7 +23,7 @@ GET_ETAG_BY_PATH() {
     [ ! -f "$ETAG_CACHE" ] && return 1
 
     local path_hash=$(echo -n "$path" | md5sum | cut -d' ' -f1)
-    
+
     awk -v hash="$path_hash" '
         $0 ~ "^\\[" hash "\\]" { found=1; next }
         /^\[/ { found=0 }
@@ -33,16 +33,16 @@ GET_ETAG_BY_PATH() {
 
 # 保存或更新 ETag
 SAVE_ETAG_TO_CACHE() {
-    local url="\"$1\"" 
-    local etag="\"$2\"" 
-    local path="\"$3\"" 
+    local url="\"$1\""
+    local etag="\"$2\""
+    local path="\"$3\""
     local time="\"$(date '+%Y-%m-%d %H:%M:%S')\""
     local path_hash=$(echo -n "$3" | md5sum | cut -d' ' -f1)
-    
+
     mkdir -p "$(dirname "$ETAG_CACHE")"
-    
+
     [ ! -f "$ETAG_CACHE" ] && echo "# ETag Cache File" > "$ETAG_CACHE"
-    
+
     if grep -q "^\[$path_hash\]" "$ETAG_CACHE"; then
         local temp_file="${ETAG_CACHE}.tmp"
         awk -v hash="$path_hash" \
@@ -50,27 +50,27 @@ SAVE_ETAG_TO_CACHE() {
             -v new_etag="$etag" \
             -v new_path="$path" \
             -v new_time="$time" '
-            $0 ~ "^\\[" hash "\\]" { 
-                print; 
-                found=1; 
-                next 
+            $0 ~ "^\\[" hash "\\]" {
+                print;
+                found=1;
+                next
             }
             /^\[/ { found=0 }
-            found && /^url=/ { 
-                print "url=" new_url; 
-                next 
+            found && /^url=/ {
+                print "url=" new_url;
+                next
             }
-            found && /^path=/ { 
-                print "path=" new_path; 
-                next 
+            found && /^path=/ {
+                print "path=" new_path;
+                next
             }
-            found && /^etag=/ { 
-                print "etag=" new_etag; 
-                next 
+            found && /^etag=/ {
+                print "etag=" new_etag;
+                next
             }
-            found && /^time=/ { 
-                print "time=" new_time; 
-                next 
+            found && /^time=/ {
+                print "time=" new_time;
+                next
             }
             { print }
         ' "$ETAG_CACHE" > "$temp_file" && mv "$temp_file" "$ETAG_CACHE"

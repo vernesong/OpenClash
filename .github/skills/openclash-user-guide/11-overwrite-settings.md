@@ -261,7 +261,7 @@ dns:
   - `sniff.HTTP.ports: [80, 8080-8880]` — 解析 HTTP Host 头获取域名
   - `sniff.QUIC.ports: [443]` — 解析 QUIC Initial 包中的 SNI
   - `force-dns-mapping: true` (仅 Redir-Host) — 对 DNS 解析过的 IP 强制嗅探
-  - `override-destination: true` — 用嗅探到的域名覆盖连接目标，确保规则基于域名匹配
+  - `override-destination: false` — 用嗅探到的域名覆盖连接目标，确保规则基于域名匹配
   - 预置 `force-domain: ['+.netflix.com', '+.nflxvideo.net', '+.amazonaws.com', '+.media.dssott.com']` — 强制嗅探流媒体
   - 预置 `skip-domain: ['Mijia Cloud', 'dlg.io.mi.com', '+.oray.com', '+.sunlogin.net', '+.push.apple.com']` — 跳过智能家居/推送
 

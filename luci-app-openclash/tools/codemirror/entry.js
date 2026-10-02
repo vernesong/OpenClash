@@ -1,6 +1,9 @@
 // ============================================================
 // CodeMirror 6 Bundle — OpenClash
-// Build: npx esbuild tools/codemirror/entry.js --bundle --format=iife --global-name=CM6 --minify --target=es2019 --outfile=root/www/luci-static/resources/openclash/js/cm6.min.js --legal-comments=none --loader:.css=text
+// Build (three files, from tools/codemirror):
+//   npx esbuild entry.js --bundle --format=iife --global-name=CM6 --minify --target=es2019 --outfile=../../root/www/luci-static/resources/openclash/js/cm6.min.js --legal-comments=none --loader:.css=text
+//   npx esbuild entry-md-render.js --bundle --format=iife --global-name=OCMarkdown --minify --target=es2019 --outfile=../../root/www/luci-static/resources/openclash/js/md-render.min.js --legal-comments=none --loader:.css=text
+//   npx esbuild entry-lint-worker.js --bundle --format=iife --minify --target=es2019 --outfile=../../root/www/luci-static/resources/openclash/js/lint-worker.min.js --legal-comments=none
 // ============================================================
 
 // ---- Core ----
@@ -24,7 +27,7 @@ import {
 import {
     syntaxHighlighting, HighlightStyle, bracketMatching,
     foldGutter, indentOnInput, StreamLanguage, foldKeymap, indentUnit,
-    getIndentUnit, foldable, ensureSyntaxTree
+    getIndentUnit, ensureSyntaxTree
 } from "@codemirror/language"
 
 // ---- Tags ----
@@ -36,7 +39,6 @@ const logTag = {
     bracket: Tag.define(),
     category: Tag.define(),
     logString: Tag.define(),
-    logLink: Tag.define(),
     levelInfo: Tag.define(),
     levelWarning: Tag.define(),
     levelError: Tag.define(),
@@ -48,7 +50,6 @@ const logTag = {
 
 // ---- Language packages ----
 import { yaml } from "@codemirror/lang-yaml"
-import { markdown } from "@codemirror/lang-markdown"
 
 // ---- Legacy modes ----
 import { shell } from "@codemirror/legacy-modes/mode/shell"
@@ -56,7 +57,6 @@ import { properties } from "@codemirror/legacy-modes/mode/properties"
 
 // ---- Lint ----
 import { linter, lintGutter } from "@codemirror/lint"
-import { loadAll, YAML11_SCHEMA } from "js-yaml"
 
 // ---- Search ----
 import { search, searchKeymap, highlightSelectionMatches } from "@codemirror/search"
@@ -73,25 +73,87 @@ import { githubDark, githubLight } from "@fsegurai/codemirror-theme-bundle"
 // ---- Merge view ----
 import { MergeView } from "@codemirror/merge"
 
-// ---- Markdown rendering ----
-import { marked } from "marked"
-import hljs from "highlight.js/lib/core"
-import yamlLang from "highlight.js/lib/languages/yaml"
-import bashLang from "highlight.js/lib/languages/bash"
-import jsonLang from "highlight.js/lib/languages/json"
-import githubLightCSS from "highlight.js/styles/github.css"
-import githubDarkCSS from "highlight.js/styles/github-dark-dimmed.css"
+// ---- Markdown preview rendering (lazy-loaded from md-render.min.js) ----
+// Contract: pages that need the preview renderer call CM6.ensureMarkdown()
+// first and use window.OCMarkdown afterwards.
+var ocSelfSrc = (function () {
+    try { return document.currentScript ? document.currentScript.src : ''; } catch (e) { return ''; }
+})();
+var ocMdState = 0; // 0 idle, 1 loading, 2 ready
+var ocMdWaiters = [];
+var ocHljsDark = null;
 
-var _ocHljsReady = false;
-function _ocEnsureHljs() {
-    if (_ocHljsReady) return;
-    _ocHljsReady = true;
-    hljs.registerLanguage("yaml", yamlLang);
-    hljs.registerLanguage("yml", yamlLang);
-    hljs.registerLanguage("bash", bashLang);
-    hljs.registerLanguage("sh", bashLang);
-    hljs.registerLanguage("shell", bashLang);
-    hljs.registerLanguage("json", jsonLang);
+function ocMarkdownUrl() {
+    var base = window.ocCM6Url || ocSelfSrc;
+    if (!base) return '';
+    return base.replace(/cm6\.min\.js/, 'md-render.min.js');
+}
+
+function ensureMarkdown(cb) {
+    if (window.OCMarkdown) { if (cb) cb(); return; }
+    if (cb) ocMdWaiters.push(cb);
+    if (ocMdState === 1) return;
+    ocMdState = 1;
+    var s = document.createElement('script');
+    s.src = ocMarkdownUrl();
+    s.onload = function() {
+        ocMdState = 2;
+        var waiters = ocMdWaiters;
+        ocMdWaiters = [];
+        for (var i = 0; i < waiters.length; i++) {
+            try { waiters[i](); } catch (e) {}
+        }
+        if (ocHljsDark !== null && window.OCMarkdown && OCMarkdown.switchHljsTheme) {
+            try { OCMarkdown.switchHljsTheme(ocHljsDark); } catch (e) {}
+        }
+    };
+    s.onerror = function() {
+        ocMdState = 0;
+        ocMdWaiters = [];
+    };
+    document.head.appendChild(s);
+}
+
+function switchHljsTheme(isDark) {
+    ocHljsDark = isDark;
+    if (window.OCMarkdown && OCMarkdown.switchHljsTheme) {
+        try { OCMarkdown.switchHljsTheme(isDark); } catch (e) {}
+    }
+}
+
+function renderMarkdown(text) {
+    if (window.OCMarkdown && OCMarkdown.renderMarkdown) return OCMarkdown.renderMarkdown(text);
+    return '';
+}
+
+// ---- Minimal markdown language for the preview editors ----
+// The full @codemirror/lang-markdown pulls in the HTML/CSS/JS parser chain
+// (~240KB) for embedded code fences; a small stream mode is enough here and
+// StreamLanguage only tokenizes what is on screen.
+const ocMarkdownMode = {
+    name: "markdown",
+    startState: function () { return { fenced: false }; },
+    token: function (stream, state) {
+        if (stream.sol() && stream.match(/^(?:`{3,}|~{3,})/)) {
+            state.fenced = !state.fenced;
+            stream.skipToEnd();
+            return "comment";
+        }
+        if (state.fenced) { stream.skipToEnd(); return "comment"; }
+        if (stream.sol() && stream.match(/#{1,6}\s/)) { stream.skipToEnd(); return "heading"; }
+        if (stream.sol() && stream.match(/>\s?/)) return "quote";
+        if (stream.sol() && stream.match(/(?:[-*+]\s|\d+\.\s)/)) return "list";
+        if (stream.match(/`[^`\n]+`/)) return "monospace";
+        if (stream.match(/\*\*[^*\n]+\*\*/)) return "strong";
+        if (stream.match(/\*[^*\n]+\*/)) return "emphasis";
+        if (stream.match(/\[[^\]\n]*\]\([^)\n]*\)/)) return "link";
+        stream.next();
+        return null;
+    }
+};
+
+function markdown() {
+    return StreamLanguage.define(ocMarkdownMode);
 }
 
 // ============================================================
@@ -374,7 +436,7 @@ const mihomoSnippets = [
     }),
 
     // --- sniffer ---
-    snippetCompletion("sniffer:\n  enable: #{1}\n  override-destination: #{2}\n  sniff:\n    TLS:\n      ports: [443]\n    HTTP:\n      ports: [80, 8080-8880]\n      override-destination: true\n    QUIC:\n      ports: [443]\n  # force-domain:\n  #   - +.v2ex.com\n  # skip-domain:\n  #   - Mijia Cloud\n  # parse-pure-ip: true\n  # force-dns-mapping: true\n#{}", {
+    snippetCompletion("sniffer:\n  enable: #{1}\n  override-destination: #{2}\n  sniff:\n    TLS:\n      ports: [443]\n    HTTP:\n      ports: [80, 8080-8880]\n      override-destination: false\n    QUIC:\n      ports: [443]\n  # force-domain:\n  #   - +.v2ex.com\n  # skip-domain:\n  #   - Mijia Cloud\n  # parse-pure-ip: true\n  # force-dns-mapping: true\n#{}", {
         label: "sniffer", type: "snippet", detail: "Domain sniffing configuration"
     }),
 
@@ -457,55 +519,113 @@ const mihomoSnippets = [
     }),
 ]
 
+const mihomoCompletionIndex = mihomoKeywords
+    .map(k => ({ lower: k.label.toLowerCase(), item: k }))
+    .concat(mihomoSnippets.map(s => ({ lower: (s.label || '').toLowerCase(), item: s })))
+    .sort((a, b) => (a.lower < b.lower ? -1 : a.lower > b.lower ? 1 : 0))
+
+const mihomoValidFor = /^[\w-]*$/
+
 function mihomoCompletion(context) {
     const word = context.matchBefore(/[\w-]+/)
     if (!word || (word.from === word.to && !context.explicit)) return null
-    const filtered = mihomoKeywords.filter(k =>
-        k.label.toLowerCase().startsWith(word.text.toLowerCase())
-    )
-    const snippets = mihomoSnippets.filter(s => {
-        const label = (s.label || s.name || '')
-        return label.toLowerCase().startsWith(word.text.toLowerCase())
-    })
-    const options = [...filtered, ...snippets]
+    const lower = word.text.toLowerCase()
+    const options = []
+    // index is sorted by lower, so the first entry greater than lower ends the scan
+    for (let i = 0; i < mihomoCompletionIndex.length; i++) {
+        const entry = mihomoCompletionIndex[i]
+        if (entry.lower.startsWith(lower)) {
+            options.push(entry.item)
+        } else if (entry.lower > lower) {
+            break
+        }
+    }
     if (!options.length) return null
-    return { from: word.from, options, validFor: /^[\w-]*$/ }
+    return { from: word.from, options, validFor: mihomoValidFor }
+}
+
+// ---- YAML lint worker (lazy script: js-yaml runs off the main thread) ----
+var ocLintWorker = null
+var ocLintWorkerBroken = false
+var ocLintSeq = 0
+var ocLintWaiters = {}
+
+function ocLintWorkerUrl() {
+    var base = window.ocCM6Url || ocSelfSrc
+    if (!base) return ''
+    return base.replace(/cm6\.min\.js/, 'lint-worker.min.js')
+}
+
+function ocLintEnsureWorker() {
+    if (ocLintWorker || ocLintWorkerBroken) return
+    var url = ocLintWorkerUrl()
+    if (!url || typeof Worker === 'undefined') { ocLintWorkerBroken = true; return }
+    try {
+        ocLintWorker = new Worker(url)
+    } catch (e) {
+        ocLintWorkerBroken = true
+        return
+    }
+    ocLintWorker.onmessage = function (e) {
+        var data = e.data || {}
+        var resolve = ocLintWaiters[data.id]
+        if (!resolve) return
+        delete ocLintWaiters[data.id]
+        resolve(data.error || null)
+    }
+    // Worker missing or blocked: keep the editor usable, just without linting
+    ocLintWorker.onerror = function () {
+        ocLintWorkerBroken = true
+        ocLintWorker = null
+        var waiters = ocLintWaiters
+        ocLintWaiters = {}
+        for (var id in waiters) waiters[id](null)
+    }
+}
+
+function ocLintRun(text) {
+    var id = ++ocLintSeq
+    return new Promise(function (resolve) {
+        ocLintWaiters[id] = resolve
+        ocLintWorker.postMessage({ id: id, text: text })
+    })
 }
 
 function yamlLinter(delay = 750) {
+    ocLintEnsureWorker()
     return linter(view => {
-        const diagnostics = []
-        try { loadAll(view.state.doc.toString(), { schema: YAML11_SCHEMA }) } catch (e) {
-            const mark = e.mark
-            if (mark && mark.line !== undefined) {
-                const lineNo = mark.line + 1
-                if (lineNo <= view.state.doc.lines) {
-                    const line = view.state.doc.line(lineNo)
-                    const pos = Math.min(line.from + (mark.column || 0), line.to)
-                    diagnostics.push({ from: pos, to: Math.min(pos + 1, line.to), severity: "error", message: e.reason || e.message })
-                }
-            } else {
-                diagnostics.push({ from: 0, to: 0, severity: "error", message: e.reason || e.message })
-            }
-        }
-        return diagnostics
+        if (!ocLintWorker) return []
+        return ocLintRun(view.state.doc.toString()).then(error => {
+            if (!error) return []
+            if (error.line === null) return [{ from: 0, to: 0, severity: "error", message: error.message }]
+            if (error.line + 1 > view.state.doc.lines) return []
+            const line = view.state.doc.line(error.line + 1)
+            const pos = Math.min(line.from + (error.column || 0), line.to)
+            return [{ from: pos, to: Math.min(pos + 1, line.to), severity: "error", message: error.message }]
+        })
     }, typeof delay === 'number' ? { delay: delay } : undefined)
 }
 
-var _levelTagMap = null
-var _levelRegex = null
-function _buildLevelCache() {
-    if (!window.levelTranslations) { _levelTagMap = {}; _levelRegex = /(?!)/; return }
+var levelTagMap = null
+var levelRegex = null
+// Tags come from the page's ocLogLevelText() helper (compiled to the active language by the
+// "translate_js" controller endpoint); without that helper the log falls back to plain tokens.
+var logLevelKeys = ['info', 'warning', 'error', 'debug', 'tip', 'watchdog', 'fatal']
+function buildLevelCache() {
     var map = {}, parts = []
-    for (var key in window.levelTranslations) {
-        if (window.levelTranslations.hasOwnProperty(key)) {
-            var text = window.levelTranslations[key]
-            map[text] = key
-            parts.push(text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    if (typeof ocLogLevelText === 'function') {
+        for (var i = 0; i < logLevelKeys.length; i++) {
+            var key = logLevelKeys[i]
+            var text = ocLogLevelText(key)
+            if (text) {
+                map[text] = key
+                parts.push(text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+            }
         }
     }
-    _levelTagMap = map
-    _levelRegex = new RegExp('^\\[(' + parts.join('|') + ')\\]')
+    if (!parts.length) { levelTagMap = {}; levelRegex = /(?!)/; return }
+    levelTagMap = map
+    levelRegex = new RegExp('^\\[(' + parts.join('|') + ')\\]')
 }
 
 const logLanguage = StreamLanguage.define({
@@ -514,7 +634,6 @@ const logLanguage = StreamLanguage.define({
         bracket: logTag.bracket,
         category: logTag.category,
         logString: logTag.logString,
-        logLink: logTag.logLink,
         levelInfo: logTag.levelInfo,
         levelWarning: logTag.levelWarning,
         levelError: logTag.levelError,
@@ -535,10 +654,10 @@ const logLanguage = StreamLanguage.define({
         if (ch === '\u3010' && stream.match(/\u3010[^\u3011]*\u3011/)) return "bracket"
         if (state.tabDone) { stream.next(); return "logString" }
         if (ch === '[') {
-            if (_levelTagMap === null) _buildLevelCache()
-            var levelMatch = stream.match(_levelRegex)
+            if (levelTagMap === null) buildLevelCache()
+            var levelMatch = stream.match(levelRegex)
             if (levelMatch) {
-                var levelKey = _levelTagMap[levelMatch[1]]
+                var levelKey = levelTagMap[levelMatch[1]]
                 if (levelKey) {
                     var styleName = 'level' + levelKey.charAt(0).toUpperCase() + levelKey.slice(1)
                     if (logTag[styleName]) return styleName
@@ -558,7 +677,6 @@ const logHighlightStyle = HighlightStyle.define([
     { tag: logTag.bracket, class: "cmt-log-bracket" },
     { tag: logTag.category, class: "cmt-log-category" },
     { tag: logTag.logString, class: "cmt-log-string" },
-    { tag: logTag.logLink, class: "cmt-log-link" },
     { tag: logTag.levelInfo, class: "cmt-log-level-info" },
     { tag: logTag.levelWarning, class: "cmt-log-level-warning" },
     { tag: logTag.levelError, class: "cmt-log-level-error" },
@@ -570,18 +688,18 @@ const logHighlightStyle = HighlightStyle.define([
 
 function syntaxPreload(buffer = 1000) {
     return ViewPlugin.fromClass(class {
-        constructor(view) { this._preload(view) }
+        constructor(view) { this.preload(view) }
         update(u) {
             if (u.viewportChanged || u.docChanged) {
-                if (this._rafId) cancelAnimationFrame(this._rafId)
+                if (this.rafId) cancelAnimationFrame(this.rafId)
                 var self = this
-                this._rafId = requestAnimationFrame(function() {
-                    self._rafId = null
-                    self._preload(u.view)
+                this.rafId = requestAnimationFrame(function() {
+                    self.rafId = null
+                    self.preload(u.view)
                 })
             }
         }
-        _preload(view) {
+        preload(view) {
             var doc = view.state.doc
             var ll = doc.lineAt(view.viewport.to).number
             var target = Math.min(ll + buffer, doc.lines)
@@ -590,8 +708,8 @@ function syntaxPreload(buffer = 1000) {
     })
 }
 
-function baseExtensions(extra = []) {
-    return [
+function baseExtensions(extra = [], opts = {}) {
+    var list = [
         lineNumbers(), highlightActiveLine(), highlightActiveLineGutter(),
         highlightSpecialChars(), drawSelection(), dropCursor(),
         rectangularSelection(), crosshairCursor(),
@@ -599,10 +717,12 @@ function baseExtensions(extra = []) {
         indentOnInput(), history(),
         highlightSelectionMatches(), EditorView.lineWrapping,
         closeBrackets(),
-        syntaxPreload(),
         cmKeymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap, ...closeBracketsKeymap, ...foldKeymap, { key: 'Tab', run: function(v) { return acceptCompletion(v) || indentMore(v) } }]),
         ...extra
     ]
+    // the merge panes run two editors at once, so the forced viewport parse can be dropped there
+    if (opts.preload !== false) list.push(syntaxPreload())
+    return list
 }
 
 // ============================================================
@@ -614,7 +734,7 @@ function baseExtensions(extra = []) {
 // through wrapped text on long lines.
 // ============================================================
 
-const _ocImBaseTheme = EditorView.baseTheme({
+const ocImBaseTheme = EditorView.baseTheme({
     '.cm-line': { position: 'relative' },
     '.cm-oc-im::before': {
         content: '""',
@@ -631,7 +751,7 @@ const _ocImBaseTheme = EditorView.baseTheme({
     '&dark':  { '--oc-im-c': '#30363d', '--oc-im-ca': '#484f58' },
 })
 
-function _ocImIndent(text, ts) {
+function ocImIndent(text, ts) {
     let n = 0
     for (let i = 0; i < text.length; i++) {
         if (text[i] === ' ') n++
@@ -641,84 +761,52 @@ function _ocImIndent(text, ts) {
     return n
 }
 
-function _foldDepth(state, fl, ll, doc) {
-    var ranges = []
-    for (var n = fl; n <= ll; n++) {
-        var fr = foldable(state, doc.line(n).from, doc.line(n).to)
-        if (fr) ranges.push({ from: fr.from, to: fr.to })
-    }
-
-    var depths = new Int32Array(ll - fl + 1)
-    for (var n = fl; n <= ll; n++) {
-        var pos = doc.line(n).from, d = 0
-        for (var i = 0; i < ranges.length; i++)
-            if (ranges[i].from < pos && pos < ranges[i].to) d++
-        depths[n - fl] = d
-    }
-    return depths
-}
-
-function _foldDepth1(state, lineNo, fl, ll, doc) {
-    var pos = doc.line(lineNo).from, d = 0
-    for (var n = fl; n <= ll; n++) {
-        var fr = foldable(state, doc.line(n).from, doc.line(n).to)
-        if (fr && fr.from < pos && pos < fr.to) d++
-    }
-    return d
-}
-
-function indentMarkerExtension({ highlightActiveBlock = true, hideFirstIndent = false, thickness = 1, colors, deferMode = 'raf', buffer = 1000 } = {}) {
+function indentMarkerExtension({ highlightActiveBlock = true, hideFirstIndent = false, thickness = 1, colors, buffer = 1000 } = {}) {
     var extra = colors ? EditorView.baseTheme({
         '&light': { '--oc-im-c': colors.light || '#e1e4e8', '--oc-im-ca': colors.activeLight || '#d0d7de' },
         '&dark':  { '--oc-im-c': colors.dark  || '#30363d', '--oc-im-ca': colors.activeDark  || '#484f58' },
     }) : []
 
     return [
-        _ocImBaseTheme,
+        ocImBaseTheme,
         extra,
         ViewPlugin.fromClass(class {
             constructor(view) {
-                this._view = view
-                this._stepPx = null
-                this._measurePending = false
-                this.decorations = this._build(view)
-                this._scheduleMeasure(view)
+                this.view = view
+                this.stepPx = null
+                this.measurePending = false
+                this.cacheStep = 0
+                this.cacheLh = 0
+                this.styleCache = new Map()
+                this.decorations = this.build(view)
+                this.scheduleMeasure(view)
             }
 
             update(u) {
-                this._view = u.view
+                this.view = u.view
                 var needsRebuild = u.docChanged || u.viewportChanged ||
                     (highlightActiveBlock && u.selectionSet)
-                if (needsRebuild) {
-                    if (deferMode === 'raf' && u.viewportChanged && !u.docChanged) {
-                        if (this._rafId) cancelAnimationFrame(this._rafId)
-                        var self = this
-                        this._rafId = requestAnimationFrame(function() {
-                            self._rafId = null
-                            self._stepPx = null
-                            self._measurePending = false
-                            self.decorations = self._build(u.view)
-                            self._scheduleMeasure(u.view)
-                        })
-                        return
+                if (!needsRebuild) {
+                    if (this.measurePending) {
+                        this.measurePending = false
+                        this.decorations = this.build(u.view)
                     }
-                    if (this._rafId) { cancelAnimationFrame(this._rafId); this._rafId = null }
-                    this._stepPx = null
-                    this._measurePending = false
-                    this.decorations = this._build(u.view)
-                    this._scheduleMeasure(u.view)
-                } else if (this._measurePending) {
-                    this._measurePending = false
-                    this.decorations = this._build(u.view)
+                    return
                 }
+                // decorations must cover the committed viewport in this update cycle;
+                // only the glyph metrics follow the layout, so they are kept between scroll frames
+                var remeasure = u.geometryChanged || this.stepPx === null
+                if (remeasure) this.stepPx = null
+                this.decorations = this.build(u.view)
+                if (remeasure) this.scheduleMeasure(u.view)
             }
 
-            _scheduleMeasure(view) {
-                if (this._measureId !== undefined) view.cancelMeasure(this._measureId)
-                this._measureId = view.requestMeasure(this._mkSpec())
+            scheduleMeasure(view) {
+                if (this.measureId !== undefined) view.cancelMeasure(this.measureId)
+                this.measureId = view.requestMeasure(this.mkSpec())
             }
 
-            _mkSpec() {
+            mkSpec() {
                 var self = this
                 return {
                     read: function(view) {
@@ -728,7 +816,7 @@ function indentMarkerExtension({ highlightActiveBlock = true, hideFirstIndent = 
 
                         var hasIndent = false
                         for (var n = fl; n <= ll; n++) {
-                            if (_ocImIndent(doc.line(n).text, ts) >= iw) { hasIndent = true; break }
+                            if (ocImIndent(doc.line(n).text, ts) >= iw) { hasIndent = true; break }
                         }
 
                         var stepPx = 0, lineHeight = 0
@@ -737,7 +825,7 @@ function indentMarkerExtension({ highlightActiveBlock = true, hideFirstIndent = 
                             for (var n = fl; n <= ll; n++) {
                                 var t = doc.line(n).text
                                 if (t.trim() === '') continue
-                                if (_ocImIndent(t, ts) >= iw) {
+                                if (ocImIndent(t, ts) >= iw) {
                                     var c0 = view.coordsAtPos(doc.line(n).from)
                                     var c1 = view.coordsAtPos(doc.line(n).from + iw)
                                     if (c0 && c1) { stepPx = Math.round((c1.left - c0.left) * 100) / 100; break }
@@ -765,20 +853,20 @@ function indentMarkerExtension({ highlightActiveBlock = true, hideFirstIndent = 
                             stepPx = -1; lineHeight = 0
                         }
                         if (typeof stepPx === 'number') {
-                            self._stepPx = stepPx > 0 ? stepPx : -1
-                            self._lineHeight = lineHeight
-                            self._measurePending = true
-                            var v = self._view
+                            self.stepPx = stepPx > 0 ? stepPx : -1
+                            self.lineHeight = lineHeight
+                            self.measurePending = true
+                            var v = self.view
                             // Defer dispatch past the current update cycle
                             queueMicrotask(function() {
-                                if (v && self._measurePending) v.dispatch({})
+                                if (v && self.measurePending) v.dispatch({})
                             })
                         }
                     }
                 }
             }
 
-            _build(view) {
+            build(view) {
                 var sa = hideFirstIndent ? 1 : 0
                 var state = view.state
                 var iw = getIndentUnit(state)
@@ -788,20 +876,37 @@ function indentMarkerExtension({ highlightActiveBlock = true, hideFirstIndent = 
                 var ll = doc.lineAt(view.viewport.to).number
                 var bl = Math.max(1, fl - buffer), el = Math.min(doc.lines, ll + buffer)
 
-                var lvls = new Int32Array(el - bl + 1)
-                var bk = new Uint8Array(el - bl + 1)
-                for (var n = bl; n <= el; n++) {
-                    var t = doc.line(n).text
-                    var b = t.trim() === ''
-                    bk[n - bl] = b ? 1 : 0
-                    lvls[n - bl] = b ? -1 : Math.floor(_ocImIndent(t, ts) / iw)
+                var cnt = el - bl + 1
+                var lvls = new Int32Array(cnt)
+                var bk = new Uint8Array(cnt)
+                var nextNB = new Int32Array(cnt)
+                for (var i = 0; i < cnt; i++) {
+                    var text = doc.line(bl + i).text
+                    var ind = 0
+                    var blank = true
+                    for (var c = 0; c < text.length; c++) {
+                        var ch = text.charCodeAt(c)
+                        if (ch === 32) ind++
+                        else if (ch === 9) ind += ts
+                        else { blank = false; break }
+                    }
+                    bk[i] = blank ? 1 : 0
+                    lvls[i] = blank ? 0 : Math.floor(ind / iw)
                 }
-                for (var n = bl; n <= el; n++) {
-                    if (!bk[n - bl]) continue
-                    var p = 0, nx = 0
-                    for (var x = n - 1; x >= bl; x--) if (!bk[x - bl]) { p = lvls[x - bl]; break }
-                    for (var x = n + 1; x <= el; x++) if (!bk[x - bl]) { nx = lvls[x - bl]; break }
-                    lvls[n - bl] = Math.min(p, nx)
+                var prevLvl = 0
+                for (var i = 0; i < cnt; i++) {
+                    if (bk[i]) lvls[i] = prevLvl
+                    else prevLvl = lvls[i]
+                }
+                var nextLvl = 0
+                for (var i = cnt - 1; i >= 0; i--) {
+                    if (bk[i]) lvls[i] = Math.min(lvls[i], nextLvl)
+                    else nextLvl = lvls[i]
+                }
+                var lastNB = -1
+                for (var i = cnt - 1; i >= 0; i--) {
+                    nextNB[i] = lastNB
+                    if (!bk[i]) lastNB = i
                 }
 
                 var maxLvl = 0
@@ -811,79 +916,91 @@ function indentMarkerExtension({ highlightActiveBlock = true, hideFirstIndent = 
                 }
                 if (maxLvl <= sa) return Decoration.none
 
-                var scopeOpen = new Uint8Array(maxLvl)
-                var showGuides = new Array(ll - fl + 1)
+                var keep = Math.min(maxLvl, 30)
 
-                for (var n = bl; n <= el; n++) {
-                    var lv = lvls[n - bl]
-                    var isBlank = bk[n - bl] === 1
-
-                    if (!isBlank) {
-                        for (var k = lv; k < maxLvl; k++) scopeOpen[k] = 0
-                    }
-
-                    if (n >= fl && n <= ll) {
-                        var guides = new Uint8Array(maxLvl)
-                        showGuides[n - fl] = guides
-                        if (lv > sa) {
-                            for (var k = sa; k < lv && k < maxLvl; k++) {
-                                if (scopeOpen[k]) guides[k] = 1
-                            }
-                        }
-                    }
-
-                    if (!isBlank) {
-                        var nextN = -1, nextLv = -1
-                        for (var x = n + 1; x <= el; x++) {
-                            if (!bk[x - bl]) { nextN = x; nextLv = lvls[x - bl]; break }
-                        }
-                        if (nextN >= 0 && nextLv > lv && lv < maxLvl) {
-                            scopeOpen[lv] = 1
-                        }
-                    }
-                }
-
-                var activeLvl = undefined
+                var activeLvl = -1
                 if (highlightActiveBlock) {
                     var cn = doc.lineAt(state.selection.main.head).number
-                    if (cn >= fl && cn <= ll) {
-                        var cl = lvls[cn - bl]
-                        var cGuides = showGuides[cn - fl]
-                        if (cGuides && cl > sa) {
-                            for (var k = cl - 1; k >= sa; k--) {
-                                if (cGuides[k]) { activeLvl = k; break }
+                    if (cn >= fl && cn <= ll && lvls[cn - bl] > sa) {
+                        // replay the scope state up to the cursor line, only its guide column matters
+                        var sc = new Uint8Array(maxLvl)
+                        for (var i = 0; i <= cn - bl; i++) {
+                            var lv = lvls[i], isB = bk[i] === 1
+                            if (!isB) {
+                                for (var k = lv; k < maxLvl; k++) sc[k] = 0
+                            }
+                            if (bl + i === cn) {
+                                for (var k = Math.min(lv, keep) - 1; k >= sa; k--) {
+                                    if (sc[k]) { activeLvl = k; break }
+                                }
+                            }
+                            if (!isB) {
+                                var nbi = nextNB[i]
+                                if (nbi >= 0 && lvls[nbi] > lv && lv < maxLvl) sc[lv] = 1
                             }
                         }
                     }
                 }
 
-                var stepPx = this._stepPx
+                var stepPx = this.stepPx
                 if (stepPx === null || stepPx <= 0)
                     stepPx = iw * (view.defaultCharacterWidth || 8)
-                var lh = this._lineHeight
+                var lh = this.lineHeight
+                if (this.cacheStep !== stepPx || this.cacheLh !== lh) {
+                    this.cacheStep = stepPx
+                    this.cacheLh = lh
+                    this.styleCache.clear()
+                }
+
+                var pos = new Int32Array(keep)
+                for (var k = 0; k < keep; k++) pos[k] = Math.round(k * stepPx)
 
                 var builder = new RangeSetBuilder()
-                for (var n = fl; n <= ll; n++) {
-                    var guides = showGuides[n - fl]
-                    if (!guides) continue
-                    var parts = []
-                    for (var k = sa; k < maxLvl; k++) {
-                        if (!guides[k]) continue
-                        var pos = Math.round(k * stepPx)
-                        var cv = (activeLvl !== undefined && k === activeLvl)
-                            ? 'var(--oc-im-ca)' : 'var(--oc-im-c)'
-                        parts.push('linear-gradient(' + cv + ',' + cv + ') ' + pos + 'px 0/' + thickness + 'px 100% no-repeat')
+                var scopeOpen = new Uint8Array(maxLvl)
+                for (var n = bl; n <= el; n++) {
+                    var i2 = n - bl
+                    var lv2 = lvls[i2], isB2 = bk[i2] === 1
+                    if (!isB2) {
+                        for (var k = lv2; k < maxLvl; k++) scopeOpen[k] = 0
                     }
-                    if (!parts.length) continue
-                    var line = doc.line(n)
-                    var style = '--oc-im:' + parts.join(',')
-                    if (lh > 0) style += ';--oc-lh:' + lh + 'px'
-                    builder.add(line.from, line.from, Decoration.line({
-                        class: 'cm-oc-im',
-                        attributes: { style: style }
-                    }))
+                    if (n >= fl && n <= ll) {
+                        var mask = 0
+                        for (var k = sa; k < lv2 && k < keep; k++) {
+                            if (scopeOpen[k]) mask |= (1 << k)
+                        }
+                        if (mask) {
+                            var style = this.styleFor(mask, activeLvl, pos)
+                            var from = doc.line(n).from
+                            builder.add(from, from, Decoration.line({
+                                class: 'cm-oc-im',
+                                attributes: { style: style }
+                            }))
+                        }
+                    }
+                    if (!isB2) {
+                        var nbi2 = nextNB[i2]
+                        if (nbi2 >= 0 && lvls[nbi2] > lv2 && lv2 < maxLvl) scopeOpen[lv2] = 1
+                    }
                 }
                 return builder.finish()
+            }
+
+            styleFor(mask, activeLvl, pos) {
+                var hl = (activeLvl >= 0 && (mask & (1 << activeLvl))) ? activeLvl : -1
+                var key = mask + ':' + hl
+                var s = this.styleCache.get(key)
+                if (s !== undefined) return s
+                var parts = []
+                for (var k = 0; k < 30; k++) {
+                    if (!(mask & (1 << k))) continue
+                    var cv = (k === hl) ? 'var(--oc-im-ca)' : 'var(--oc-im-c)'
+                    parts.push('linear-gradient(' + cv + ',' + cv + ') ' + pos[k] + 'px 0/' + thickness + 'px 100% no-repeat')
+                }
+                s = '--oc-im:' + parts.join(',')
+                if (this.lineHeight > 0) s += ';--oc-lh:' + this.lineHeight + 'px'
+                if (this.styleCache.size > 1024) this.styleCache.clear()
+                this.styleCache.set(key, s)
+                return s
             }
         }, { decorations: v => v.decorations })
     ]
@@ -935,7 +1052,7 @@ function mirrorThemeScrollbar() {
         var thumbColor = 'rgba(' + r + ',' + g + ',' + b + ',0.60)';
         var thumbHover = 'rgba(' + r + ',' + g + ',' + b + ',0.70)';
     } else {
-        var ocIsDark = _ocIsDark();
+        var ocIsDark = isDarkMode();
         var thumbColor = ocIsDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.60)';
         var thumbHover  = ocIsDark ? 'rgba(255,255,255,0.70)' : 'rgba(0,0,0,0.70)';
     }
@@ -1041,7 +1158,7 @@ function toggleFullscreen(dom) {
 // Theme helpers — read data-darkmode set by common.js
 // ============================================================
 
-function _ocIsDark() {
+function isDarkMode() {
     return document.documentElement.getAttribute('data-darkmode') === 'true';
 }
 
@@ -1049,56 +1166,7 @@ function _ocIsDark() {
 // Markdown rendering (for debug log preview)
 // ============================================================
 
-var _hljsCSSInjected = false
-function injectHljsCSS() {
-    if (_hljsCSSInjected) return
-    _hljsCSSInjected = true
-    _ocEnsureHljs();
-    var isDark = _ocIsDark()
-    var style = document.createElement("style")
-    style.id = "hljs-theme"
-    style.textContent = isDark ? githubDarkCSS : githubLightCSS
-    document.head.appendChild(style)
-}
 
-function switchHljsTheme(isDark) {
-    if (!_hljsCSSInjected) { injectHljsCSS(); if (!_hljsCSSInjected) return }
-    var style = document.getElementById("hljs-theme")
-    if (style) style.textContent = isDark ? githubDarkCSS : githubLightCSS
-}
-
-function escapeHtml(s) {
-    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
-}
-
-var _ocMarkedReady = false;
-function _ocEnsureMarked() {
-    if (_ocMarkedReady) return;
-    _ocMarkedReady = true;
-    _ocEnsureHljs();
-    marked.use({
-        breaks: true,
-        gfm: true,
-        silent: true,
-        renderer: {
-            code: function(token) {
-                var lang = token.lang || ""
-                if (lang && hljs.getLanguage(lang)) {
-                    injectHljsCSS()
-                    var result = hljs.highlight(token.text, { language: lang, ignoreIllegals: true })
-                    return '<pre><code class="hljs language-' + lang + '"><span class="code-content">' + result.value + '</span></code></pre>'
-                }
-                return '<pre><code><span class="code-content">' + escapeHtml(token.text) + '</span></code></pre>'
-            }
-        }
-    })
-}
-
-function renderMarkdown(text) {
-    if (!text) return ''
-    _ocEnsureMarked();
-    try { return marked.parse(text) } catch(e) { return text }
-}
 
 export {
     EditorView, EditorState, Compartment,
@@ -1120,7 +1188,6 @@ export {
     baseExtensions, syntaxPreload, placeholderExtension, indentMarkerExtension,
     topSearchExtension, mergeDefaultConfig, mirrorThemeScrollbar,
     themeExtension, dispatchTheme,
-    switchHljsTheme,
-    renderMarkdown,
+    switchHljsTheme, ensureMarkdown, renderMarkdown,
     getActiveEditor, toggleFullscreen
 }

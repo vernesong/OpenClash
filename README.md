@@ -147,6 +147,8 @@ popd
 pushd luci-app-openclash/tools/codemirror
 npm install
 npx esbuild entry.js --bundle --format=iife --global-name=CM6 --minify --target=es2019 --outfile=../../root/www/luci-static/resources/openclash/js/cm6.min.js --legal-comments=none --loader:.css=text
+npx esbuild entry-md-render.js --bundle --format=iife --global-name=OCMarkdown --minify --target=es2019 --outfile=../../root/www/luci-static/resources/openclash/js/md-render.min.js --legal-comments=none --loader:.css=text
+npx esbuild entry-lint-worker.js --bundle --format=iife --minify --target=es2019 --outfile=../../root/www/luci-static/resources/openclash/js/lint-worker.min.js --legal-comments=none
 rm -rf node_modules
 popd
 

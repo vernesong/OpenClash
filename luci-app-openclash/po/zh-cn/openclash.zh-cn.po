@@ -987,9 +987,6 @@ msgstr "UDP 流量转发"
 msgid "The Servers Must Support UDP forwarding"
 msgstr "启用时服务器必须支持 UDP 转发"
 
-msgid "If Docker is Installed, UDP May Not Forward Normally"
-msgstr "安装了 Docker 的固件请使用 TUN 模式，否则可能无法正常转发 UDP，造成游戏异常"
-
 msgid "Disable QUIC"
 msgstr "*禁用 QUIC"
 
@@ -2192,6 +2189,9 @@ msgstr "备份文件"
 
 msgid "Backup File Restore Successful!"
 msgstr "备份文件恢复成功！"
+
+msgid "Backup File Restore Failed!"
+msgstr "备份文件恢复失败！"
 
 msgid "Not Select"
 msgstr "未选择"
@@ -6434,6 +6434,12 @@ msgstr "逐个切换配置文件并预览各自的信息"
 
 msgid "A plain YAML file only shows its name and the last modified time"
 msgstr "普通 YAML 文件只显示名称和最后修改时间"
+
+msgid "No config file yet, this area stays empty until the first one is added"
+msgstr "还没有配置文件，添加第一个之后这里才会显示内容"
+
+msgid "Once a config is added, its subscription info bar shows here: name, modified time, traffic and the action buttons"
+msgstr "添加配置后，它的订阅信息栏会在这里出现：名称、修改时间、流量和操作按钮"
 
 msgid "Prev / Next"
 msgstr "上一个 / 下一个"

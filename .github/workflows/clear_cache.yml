@@ -1,8 +1,8 @@
 name: Clean jsDelivr Cache
 
-on: 
+on:
   push:
-    branches: 
+    branches:
       - master
       - dev
       - core

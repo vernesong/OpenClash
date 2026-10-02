@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: core
-      
+
       - name: Get Current Version
         id: current_id
         run: |
@@ -37,7 +37,7 @@ jobs:
           repository: Dreamacro/clash
           ref: dev
           fetch-depth: '0'
-      
+
       - name: Get Upstream Version
         id: upstream_id
         run: |
@@ -87,12 +87,12 @@ jobs:
           repository: Dreamacro/clash
           ref: dev
           fetch-depth: '0'
-      
+
       - name: Compile Dev Clash
         run: |
           cp ../tmp/Makefile ./Makefile
           make releases
-          
+
       - name: Copy Clash Bin
         run: |
           cp -rf "./bin/." "../tmp/bin/"

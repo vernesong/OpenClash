@@ -1,0 +1,159 @@
+/* ==========================================================================
+ * OpenClash stylesheet - oc-cm6.css
+ * Loaded on demand together with js/cm6.min.js (ocRequireCM6).
+ * ========================================================================== */
+
+/* ---- Base typography & layout (port from old CM5 .CodeMirror / .CodeMirror-line) ---- */
+.oc .cm-editor {
+    text-align: left !important;
+    font-size: 15px;
+    line-height: 150%;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.oc .cm-content {
+    font-family: 'Menlo', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', ui-monospace, 'Courier New', 'PingFang SC', 'Microsoft Yahei', 'Hiragino Sans GB', 'WenQuanYi Micro Hei', 'Noto Sans SC', sans-serif, 'Twemoji Mozilla' !important;
+}
+
+.oc .cm-content, .oc .cm-line {
+    word-break: break-all !important;
+    overflow-wrap: break-word !important;
+}
+
+/* ---- Dark mode: override CM6 editor background via CSS variable ---- */
+html[data-darkmode="true"] .oc .cm-editor {
+    background-color: var(--editor-bg) !important;
+}
+
+/* Modal editor override: smaller font */
+.oc .config-editor-model .cm-editor {
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* ---- Fullscreen ---- */
+#oc-fullscreen-active.cm-editor {
+    position: fixed !important;
+    top: 0 !important; left: 0 !important;
+    right: 0 !important; bottom: 0 !important;
+    width: 100% !important; height: 100% !important;
+    z-index: 999999 !important;
+    background: var(--editor-bg, #f5f5f5) !important;
+}
+
+#oc-fullscreen-active.cm-editor > .cm-scroller {
+    height: 100% !important;
+    overflow: auto !important;
+}
+
+#oc-fullscreen-active.cm-mergeView {
+    position: fixed !important;
+    top: 0 !important; left: 0 !important;
+    right: 0 !important; bottom: 0 !important;
+    width: 100% !important; height: 100% !important;
+    z-index: 999999 !important;
+    background: var(--editor-bg, #f5f5f5) !important;
+    overflow-y: auto !important;
+}
+
+/* ---- Cursor gap (visual spacing between cursor and text) ---- */
+.oc .cm-editor.cm-focused { outline: none; }
+
+.oc .cm-editor.cm-focused .cm-cursor { transform: translateX(2px); }
+
+/* ---- Hide diff highlights when F10 toggles differences off ---- */
+.oc-diff-hidden .cm-insertedLine,
+.oc-diff-hidden ins.cm-insertedLine,
+.oc-diff-hidden ins.cm-insertedLine:not(:has(.cm-changedText)),
+.oc-diff-hidden .cm-deletedLine,
+.oc-diff-hidden del.cm-deletedLine,
+.oc-diff-hidden del.cm-deletedLine:not(:has(.cm-deletedText)),
+.oc-diff-hidden del {
+    background: transparent !important;
+    color: inherit !important;
+    border: none !important;
+    text-decoration: none !important;
+}
+
+.oc-diff-hidden .cm-merge-a .cm-changedLine,
+.oc-diff-hidden .cm-merge-b .cm-changedLine,
+.oc-diff-hidden .cm-deletedChunk,
+.oc-diff-hidden .cm-inlineChangedLine,
+.oc-diff-hidden .cm-changedLineGutter,
+.oc-diff-hidden .cm-deletedLineGutter { background: transparent !important; }
+
+/* ---- Zoom ---- */
+.oc .cm-editor.zoom-75 { font-size: 10.5px !important; }
+
+.oc .cm-editor.zoom-90 { font-size: 12.6px !important; }
+
+.oc .cm-editor.zoom-110 { font-size: 15.4px !important; }
+
+.oc .cm-editor.zoom-125 { font-size: 17.5px !important; }
+
+.oc .cm-editor.zoom-150 { font-size: 21px   !important; }
+
+.oc .cm-editor.zoom-200 { font-size: 28px   !important; }
+
+/* ---- Merge View ---- */
+.oc #config-mergeview-container .cm-mergeView,
+.oc .cm-mergeView {
+    height: 100% !important;
+    overflow: auto;
+}
+
+.oc #config-mergeview-container .cm-mergeViewEditor,
+.oc .cm-mergeViewEditor {
+    height: 100% !important;
+}
+
+/* ---- Editor internals ---- */
+.oc .cm-placeholder {
+    color: var(--cm-placeholder) !important;
+    font-style: italic;
+}
+
+/* ---- Log Viewer Token Styles ---- */
+.cmt-log-level-info,
+.cmt-log-level-warning,
+.cmt-log-level-error,
+.cmt-log-level-debug,
+.cmt-log-level-tip,
+.cmt-log-level-fatal,
+.cmt-log-level-watchdog {
+    font-weight: 500;
+    margin: 2px 0;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Log viewer tokens */
+.cmt-log-timestamp { color: var(--magenta) !important; font-weight: 500; background-color: var(--magenta-a15); padding: 0 5px; margin: 2px 0; border-radius: 5px; display: inline-block; }
+
+.cmt-log-bracket { color: var(--success-color) !important; font-weight: 600; }
+
+.cmt-log-string { color: var(--black) !important; font-weight: 500; }
+
+.cmt-log-category { color: var(--orange) !important; font-weight: 500; background-color: var(--orange-a15); padding: 0 5px; margin: 2px 0; border-radius: 5px; display: inline-block; text-align: center; }
+
+.cmt-log-level-info { color: var(--teal) !important; background-color: var(--teal-a15); }
+
+.cmt-log-level-warning { color: var(--warning-color) !important; background-color: var(--magenta-bright-a15); }
+
+.cmt-log-level-error { color: var(--red) !important; background-color: var(--red-a15); }
+
+.cmt-log-level-debug { color: var(--azure) !important; background-color: var(--azure-a15); }
+
+.cmt-log-level-tip { color: var(--orange) !important; background-color: var(--orange-a15); }
+
+.cmt-log-level-fatal { color: var(--red) !important; background-color: var(--red-a15); }
+
+.cmt-log-level-watchdog { color: var(--amber) !important; background-color: var(--amber-a15); }

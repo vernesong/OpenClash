@@ -1,0 +1,1437 @@
+/* ==========================================================================
+ * OpenClash stylesheet - oc-common.css
+ * Loaded by: every page, via page_head.htm / config_editor.htm / page templates.
+ * Shared base + shared components only; page/feature styles live in oc-<name>.css.
+ * Split from oc.css 2026-10-02; edit in place, CI minifies every css/*.css.
+ * ========================================================================== */
+
+@font-face {
+    font-family: 'Twemoji Mozilla';
+    src: url('/luci-static/resources/openclash/fonts/TwemojiMozilla-flags.woff2') format('woff2');
+}
+
+.oc {
+    /* ── Background & Text ── */
+    --bg-white: #ffffff;
+    --bg-light: #f8fafc;
+    --bg-gray: #f1f5f9;
+    --text-primary: #374151;
+    --text-secondary: #64748b;
+    --text-title: #4d4d4d;
+
+    /* ── Semantic Colours ── */
+    --primary-color: #3b82f6;
+    --success-color: #059669;
+    --success-dark: #047857;
+    --info-color: #3b82f6;
+    --debug-color: #6b7280;
+    --tip-color: #f59e0b;
+    --error-color: #dc2626;
+    --warning-color: #ff00bb;
+    --watchdog-color: #b300ff;
+    --fatal-color: #991b1b;
+
+    /* ── Alpha Variants · Primary ── */
+    --primary-a5: rgba(59, 130, 246, 0.05);
+    --primary-a10: rgba(59, 130, 246, 0.1);
+    --primary-a20: rgba(59, 130, 246, 0.2);
+    --primary-a30: rgba(59, 130, 246, 0.3);
+    --primary-a40: rgba(59, 130, 246, 0.4);
+    --primary-a50: rgba(59, 130, 246, 0.5);
+    --primary-a60: rgba(59, 130, 246, 0.6);
+
+    /* ── Alpha Variants · Success ── */
+    --success-a5: rgba(5, 150, 105, 0.05);
+    --success-a10: rgba(5, 150, 105, 0.1);
+    --success-a20: rgba(5, 150, 105, 0.2);
+    --success-a50: rgba(5, 150, 105, 0.5);
+
+    /* ── Alpha Variants · Warning ── */
+    --warning-a10: rgba(245, 158, 11, 0.1);
+
+    /* ── Alpha Variants · Error ── */
+    --error-a10: rgba(220, 38, 38, 0.1);
+    --error-a12: rgba(255,80,80,0.12);
+    --error-a18: rgba(255,80,80,0.18);
+    --error-a20: rgba(220, 38, 38, 0.2);
+    --error-a50: rgba(220, 38, 38, 0.5);
+
+    /* ── Violet ── */
+    --violet: #7c3aed;
+    --violet-a15: rgba(124, 58, 237, 0.15);
+    --violet-light: #c4b5fd;
+    --violet-a25: rgba(139, 92, 246, 0.25);
+
+    /* ── Message Bars ── */
+    --green-50: #d1fae5;
+    --green-200: #a7f3d0;
+    --green-800: #065f46;
+    --red-50: #fee2e2;
+    --red-200: #fecaca;
+    --red-800: #991b1b;
+    --blue-50: #dbeafe;
+    --blue-200: #bfdbfe;
+    --blue-800: #1e40af;
+
+    /* ── Borders & Selection ── */
+    --border-color: #b1b1b1;
+    --border-light: #e2e8f0;
+    --hover-bg: #f3f4f6;
+    --select-hover: #ebebeb;
+
+    /* ── Buttons & Switches ── */
+    --text-on-primary: #ffffff;
+    --btn-primary-hover: #2563eb;
+    --switch-off-bg: #e5e7eb;
+    --switch-knob-bg: #ffffff;
+    --switch-knob-shadow: 0 1px 2px rgba(0,0,0,0.2);
+
+    /* ── Announcement ── */
+    --announcement-end: #1d4ed8;
+    --announcement-icon-bg: rgba(255, 255, 255, 0.1);
+
+    /* ── Overlay & Editor ── */
+    --overlay-bg: rgba(0, 0, 0, 0.5);
+    --editor-bg: #f5f5f5;
+
+    /* ── Shadows · Radii · Transitions ── */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --radius-sm: 6px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease;
+
+    /* ── Layout & Spacing ── */
+    --control-height: 32px;
+    --card-padding: 6px 8px;
+    --card-outer-padding: 12px;
+    --section-gap: 12px;
+    --card-grid-gap: 8px;
+    --card-item-min-height: 100px;
+    --content-gap: 10px;
+    --tight-gap: 6px;
+    --version-right: 8px;
+
+    /* ── Card Titles (large / small cards) ── */
+    --card-title-size: 15px;
+    --card-title-size-sm: 12px;
+
+    /* ── Row Heights (status page) ── */
+    --row-1-height: 160px;
+    --row-2-height: 140px;
+    --row-3-height: 140px;
+    --row-4-height: 280px;
+
+    /* ── Stripe ── */
+    --stripe-color: rgba(255,255,255,0.24);
+    --stripe-opacity: 0.5;
+    --stripe-size: 40px;
+
+    /* ── Log Highlighting ── */
+    --magenta: #b53cf1;
+    --magenta-a15: rgba(181,60,241,0.15);
+    --magenta-bright: #ff00bb;
+    --magenta-bright-a15: rgba(255,0,187,0.15);
+    --black: #000000;
+    --orange: #FF6B00;
+    --orange-a15: rgba(255,107,0,0.15);
+    --blue: #0000FF;
+    --teal: #25b5b8;
+    --teal-a15: rgba(37,181,184,0.15);
+    --red: #FF0000;
+    --red-a15: rgba(255,0,0,0.15);
+    --azure: #0062ff;
+    --azure-a15: rgba(0,98,255,0.15);
+    --amber: #ffa700;
+    --amber-a15: rgba(255,167,0,0.15);
+
+    /* ── CDN Badges ── */
+    --blue-300: #93c5fd;
+    --blue-400: #60a5fa;
+    --blue-a28: rgba(59, 130, 246, 0.28);
+
+    /* ── Card (oixcloud legacy) ── */
+    --card-bg-start: #f8f8f8;
+    --card-btn-bg: #1473e6;
+    --card-accent: #337ab7;
+    --card-shadow: 0 8px 16px -8px rgba(0,0,0,0.4);
+
+    /* ── Progress Bar ── */
+    --green-pale: #9edd9e;
+    --peach-pale: #ffc99f;
+    --pink-pale: #ffb9b9;
+
+    /* ── Developer Cards ── */
+    --slate-a80: rgba(17, 24, 39, 0.8);
+    --white-a90: rgba(255, 255, 255, 0.9);
+    --black-a10: rgba(0, 0, 0, 0.1);
+
+    /* ── Developer Avatar Gradient ── */
+    --indigo: #667eea;
+    --grape: #764ba2;
+    --pink-light: #f093fb;
+    --coral: #f5576c;
+
+    /* ── OixCloud Dark ── */
+    --slate-500: #657183;
+    --slate-400: #6c83c5;
+    --slate-200: #dfdfdf;
+    --slate-100: #ededed;
+
+    /* ── Tab / Radio ── */
+    --radio-hover-bg: #f0f6ff;
+
+    /* ── Debug Rendered Dark ── */
+    --gray-50: #f8fafc;
+    --gray-100: #f1f5f9;
+    --gray-150: #e9ecf1;
+    --gray-200: #e2e8f0;
+    --gray-400: #94a3b8;
+
+    /* ── Debug / Diagnostic ── */
+    --debug-bg: #404040;
+
+    /* ── Dividers & Scrollbars ── */
+    --divider: #eee;
+    --scrollbar-thumb: #888;
+    --scrollbar-thumb-hover: #555;
+
+    /* ── Misc ── */
+    --cm-placeholder: rgba(128,128,128,0.5);
+    --mask-opaque: #000;
+
+    font-family: "Microsoft Yahei", "sans-serif", "Helvetica Neue", "Helvetica", "Hiragino Sans GB", 'Twemoji Mozilla';
+}
+
+html[data-darkmode="true"] .oc {
+    /* ── Background & Text ── */
+    --bg-white: #1f2937;
+    --bg-light: #374151;
+    --bg-gray: #4b5563;
+    --text-primary: #ebebeb;
+    --text-secondary: #d0cfcf;
+    --text-title: #e5e7eb;
+
+    /* ── Borders & Selection ── */
+    --border-color: #939393;
+    --border-light: #6b7280;
+    --hover-bg: #374151;
+    --select-hover: #ebebeb;
+
+    /* ── Semantic Colours ── */
+    --primary-color: #3b82f6;
+    --success-color: #34d399;
+    --success-dark: #10b981;
+    --info-color: #3b82f6;
+    --debug-color: #9ca3af;
+    --tip-color: #f9bb51;
+    --error-color: #ff7070;
+    --warning-color: #fa41c8;
+    --watchdog-color: #c147f5;
+    --fatal-color: #f87171;
+
+    /* ── Message Bars ── */
+    --green-50: rgba(52, 211, 153, 0.4);
+    --green-800: #6ee7b7;
+    --green-200: rgba(52, 211, 153, 0.4);
+    --red-50: rgba(255, 112, 112, 0.4);
+    --red-800: #fca5a5;
+    --red-200: rgba(255, 112, 112, 0.4);
+    --blue-50: rgba(96, 165, 250, 0.4);
+    --blue-800: #93c5fd;
+    --blue-200: rgba(96, 165, 250, 0.4);
+
+    /* ── Stripe ── */
+    --stripe-color: rgba(0, 0, 0, 0.255);
+    --stripe-opacity: 0.8;
+
+    /* ── Buttons & Switches ── */
+    --text-on-primary: #ffffff;
+    --btn-primary-hover: #2563eb;
+    --switch-off-bg: #6b7280;
+    --switch-knob-bg: #f9fafb;
+    --switch-knob-shadow: 0 1px 2px rgba(0,0,0,0.2);
+
+    /* ── Announcement ── */
+    --announcement-end: #3555bf;
+    --announcement-icon-bg: rgba(255, 255, 255, 0.1);
+
+    /* ── Overlay & Editor ── */
+    --overlay-bg: rgba(0, 0, 0, 0.5);
+    --editor-bg: #1f2937;
+
+    /* ── Alpha Variants · Primary ── */
+    --primary-a5: rgba(96, 165, 250, 0.05);
+    --primary-a10: rgba(96, 165, 250, 0.1);
+    --primary-a20: rgba(96, 165, 250, 0.2);
+    --primary-a30: rgba(96, 165, 250, 0.3);
+    --primary-a40: rgba(96, 165, 250, 0.4);
+    --primary-a50: rgba(96, 165, 250, 0.5);
+    --primary-a60: rgba(96, 165, 250, 0.6);
+
+    /* ── Alpha Variants · Success ── */
+    --success-a5: rgba(52, 211, 153, 0.05);
+    --success-a10: rgba(52, 211, 153, 0.1);
+    --success-a20: rgba(52, 211, 153, 0.2);
+    --success-a50: rgba(52, 211, 153, 0.5);
+
+    /* ── Alpha Variants · Warning ── */
+    --warning-a10: rgba(250, 65, 200, 0.1);
+
+    /* ── Alpha Variants · Error ── */
+    --error-a10: rgba(255, 112, 112, 0.1);
+    --error-a12: rgba(255,80,80,0.12);
+    --error-a18: rgba(255,80,80,0.18);
+    --error-a20: rgba(255, 80, 80, 0.2);
+    --error-a50: rgba(255, 80, 80, 0.5);
+
+    /* ── Violet ── */
+    --violet: #8b5cf6;
+    --violet-a15: rgba(139, 92, 246, 0.2);
+    --violet-light: #c4b5fd;
+
+    /* ── CodeMirror ── */
+    --cm-placeholder: rgba(255,255,255,0.25);
+
+    /* ── Developer Cards ── */
+    --slate-a80: rgba(249, 250, 251, 0.8);
+    --white-a90: rgba(31, 41, 55, 0.9);
+    --black-a10: rgba(107, 114, 128, 0.3);
+
+    /* ── Developer Avatar Gradient ── */
+    --indigo: #818cf8;
+    --grape: #a78bfa;
+    --pink-light: #f0abfc;
+    --coral: #fb7185;
+
+    /* ── Log Highlighting ── */
+    --magenta: #c655ff;
+    --magenta-a15: rgba(198,85,255,0.2);
+    --black: #ffffff;
+    --orange: #ff6f00;
+    --orange-a15: rgba(255,111,0,0.2);
+    --blue: #82AAFF;
+    --teal: #31edf0;
+    --teal-a15: rgba(49,237,240,0.2);
+    --magenta-bright: #ff66cc;
+    --magenta-bright-a15: rgba(255,102,204,0.2);
+    --red: #FF0000;
+    --red-a15: rgba(255,0,0,0.2);
+    --azure: #287bff;
+    --azure-a15: rgba(40,123,255,0.2);
+    --amber: #ffb833;
+    --amber-a15: rgba(255,184,51,0.15);
+
+    /* ── CDN Badges ── */
+    --blue-300: #93c5fd;
+    --blue-400: #60a5fa;
+    --blue-a28: rgba(59, 130, 246, 0.28);
+    --violet-a25: rgba(139, 92, 246, 0.25);
+
+    /* ── Card (oixcloud legacy) ── */
+    --card-bg-start: #3b4252;
+    --card-btn-bg: #5a7bb5;
+    --card-accent: #337ab7;
+    --card-shadow: 0 8px 16px -8px rgba(0,0,0,0.6);
+
+    /* ── OixCloud ── */
+    --slate-500: #657183;
+    --slate-400: #6c83c5;
+    --slate-200: #e2e8f0;
+
+    /* ── Dividers & Scrollbars ── */
+    --divider: #eee;
+    --scrollbar-thumb: #6b7280;
+    --scrollbar-thumb-hover: #9ca3af;
+
+    /* ── Progress Bar ── */
+    --green-pale: #5da05d;
+    --peach-pale: #cc8550;
+    --pink-pale: #cc6262;
+    --green-muted: #5da05d;
+    --peach-muted: #cc8550;
+    --pink-muted: #cc6262;
+
+    /* ── Debug Rendered ── */
+    --gray-50: #e2e8f0;
+    --gray-100: #cbd5e1;
+    --gray-150: #b7c2cf;
+    --gray-200: #94a3b8;
+    --gray-400: #9ca3af;
+
+    /* ── Debug / Diagnostic ── */
+    --debug-bg: #1a1a1a;
+
+    /* ── Tab / Radio ── */
+    --radio-hover-bg: #1e3a5f;
+    --tab-text-dark: #a1a1aa;
+    --tab-hover-dark-bg: #22304a;
+
+}
+
+.oc-flex-center { display: flex; align-items: center; }
+
+.oc-flex-1 { flex: 1; }
+
+.oc-ml-2 { margin-left: 8px; }
+
+.oc-mb-5 { margin-bottom: 20px; }
+
+.oc-mt-5 { margin-top: 20px; }
+
+.oc-svg-inline { vertical-align: middle; margin-right: 4px; flex-shrink: 0; }
+
+.oc-w100 { width: 100%; }
+
+.oc-w-auto { width: auto; }
+
+.oc-text-center { text-align: center; }
+
+/* Use classList to toggle; !important ensures it beats any component-level display rule */
+.oc-hidden { display: none !important; }
+
+/* ── Upload page bar (responsive 1/2/3 rows) ── */
+.oc .upload-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    width: auto;
+    max-width: 800px;
+    margin: 0 auto 0 auto;
+    line-height: normal;
+    overflow-x: visible;
+    border-radius: 0;
+    position: relative;
+    padding-bottom: 12px;
+}
+
+.oc .upload-bar::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50%;
+    height: 1px;
+    background-color: var(--border-light);
+}
+
+.oc .upload-bar > label {
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.oc .upload-bar .form-select-wrapper {
+    flex-shrink: 0;
+    width: auto;
+}
+
+.oc .upload-bar .form-select {
+    width: auto;
+    min-width: 0;
+}
+
+.oc .upload-bar .form-file {
+    flex: 1 1 260px;
+    min-width: 180px;
+}
+
+/* ── Upload note / result ── */
+.oc .upload-note {
+    max-width: 720px;
+    margin: 0px auto 0 auto;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.oc .upload-note-default,
+.oc .upload-result {
+    display: inline-block;
+    padding: 8px 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.oc .upload-result {
+    color: var(--success-color);
+}
+
+/* ── File input (matches form-input / form-select height) ── */
+.oc .form-file {
+    flex: 1;
+    min-width: 200px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    background: var(--bg-white);
+    color: var(--text-secondary);
+    font-size: 14px;
+    transition: all var(--transition-fast);
+    cursor: pointer;
+}
+
+.oc .form-file::file-selector-button {
+    height: 100%;
+    padding: 0 14px;
+    margin-right: 12px;
+    border: none;
+    border-right: 1px solid var(--border-light);
+    border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+    background: var(--primary-color);
+    color: var(--text-on-primary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.oc .form-file::file-selector-button:hover {
+    opacity: 0.9;
+}
+
+.oc .form-file:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-a10);
+}
+
+/* dark mode */
+html[data-darkmode="true"] .oc .form-file {
+    background: var(--bg-gray);
+    border-color: var(--border-light);
+    color: var(--text-secondary);
+}
+
+html[data-darkmode="true"] .oc .form-file::file-selector-button {
+    background: var(--primary-color);
+    border-color: var(--border-light);
+    color: var(--text-on-primary);
+}
+
+html[data-darkmode="true"] .oc .form-file::file-selector-button:hover {
+    background: var(--primary-a10);
+    color: var(--primary-color);
+}
+
+html[data-darkmode="true"] .oc svg {
+    filter: none;
+}
+
+.oc * {
+    box-sizing: border-box;
+}
+
+.oc {
+    line-height: 1.6;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    border-radius: var(--radius-lg);
+}
+
+.oc .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-white);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    padding: 0;
+    font-size: 0;
+    overflow: hidden;
+}
+
+.oc .icon-btn:hover {
+    background: var(--bg-light) !important;
+    border-color: var(--primary-color) !important;
+    color: var(--primary-color) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.oc .icon-btn svg {
+    width: 14px !important;
+    height: 14px !important;
+    flex-shrink: 0 !important;
+}
+
+.oc .help-link {
+    display: inline-flex;
+    align-items: center;
+    color: var(--primary-color);
+    text-decoration: none;
+    opacity: 0.7;
+    transition: opacity var(--transition-fast);
+    margin-bottom: 2px;
+    border-radius: var(--radius-sm);
+}
+
+.oc .help-link:hover {
+    opacity: 1;
+    background: var(--primary-a10);
+}
+
+.oc .help-link svg {
+    width: 12px;
+    height: 12px;
+}
+
+.oc .config-file-name {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.oc .mode-tabs {
+    display: flex;
+    background: var(--bg-gray);
+    border-radius: var(--radius-md);
+    padding: 4px;
+    gap: 4px;
+}
+
+.oc .mode-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 16px;
+    border: none !important;
+    border-radius: calc(var(--radius-md) - 2px);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.oc .mode-tab:hover {
+    color: var(--text-primary);
+    background: var(--primary-a10);
+}
+
+.oc .mode-tab.active {
+    background: var(--primary-color);
+    color: var(--text-on-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.oc .mode-tab svg {
+    display: block;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.oc .mode-tab span,
+.oc .add-row-btn span {
+    line-height: 1;
+}
+
+.oc .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+}
+
+.oc .form-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.oc .form-select-wrapper {
+    position: relative;
+}
+
+.oc .form-select-wrapper::after {
+    content: '';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid var(--text-secondary);
+    pointer-events: none;
+}
+
+.oc .form-input,
+.oc .form-select {
+    width: 100%;
+    height: 40px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    background: var(--bg-white) !important;
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: all var(--transition-fast);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.oc .form-input:focus,
+.oc .form-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-a10);
+}
+
+.oc .form-input::placeholder {
+    color: var(--text-secondary);
+}
+
+.oc .form-select {
+    cursor: pointer;
+    box-sizing: border-box;
+    padding: 0 12px;
+    line-height: 38px;
+}
+
+.oc .form-textarea {
+    width: 100%;
+    min-height: 150px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    background: var(--bg-white);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    transition: all var(--transition-fast);
+}
+
+.oc .form-textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-a10);
+}
+
+.oc .oc-usage-help-float {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--primary-color, #3b82f6);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 9999;
+    box-shadow: 0 4px 12px var(--primary-a40);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: none;
+    outline: none;
+    will-change: transform;
+}
+
+.oc .oc-usage-help-float:hover {
+    transform: scale(1.1) translateZ(0);
+}
+
+.oc .oc-usage-help-float:active {
+    transform: scale(0.95) translateZ(0);
+}
+
+.oc .form-textarea::placeholder {
+    color: var(--text-secondary);
+}
+
+.oc .form-row {
+    display: flex;
+    gap: 16px;
+    padding-top: 5px;
+}
+
+.oc .form-half {
+    flex: 1;
+}
+
+.oc .form-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-primary);
+    margin-bottom: 5px;
+}
+
+.oc .form-checkbox input[type="checkbox"] {
+    display: none;
+}
+
+.oc .checkmark {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border-light);
+    border-radius: 3px;
+    background: var(--bg-white);
+    position: relative;
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.oc .form-checkbox input[type="checkbox"]:checked + .checkmark {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.oc .form-checkbox input[type="checkbox"]:checked + .checkmark::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 0;
+    width: 4px;
+    height: 8px;
+    border: solid var(--text-on-primary);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.oc .form-checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--section-gap);
+}
+
+.oc .form-help {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 0;
+    margin-bottom: 10px;
+    line-height: 1.4;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--tight-gap);
+}
+
+.oc .form-help::before {
+    content: '';
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cpath d='M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3'%3E%3C/path%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'%3E%3C/line%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0.7;
+}
+
+/* required mark of the form labels: same tokens as .guide-tag.req in oc-guide.css,
+   keep the two in sync so the popups and the form labels show the same pill */
+.oc label .guide-tag {
+    display: inline-block;
+    margin-left: 5px;
+    padding: 0 6px;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 15px;
+    vertical-align: 1px;
+    white-space: nowrap;
+}
+
+.oc label .guide-tag.req {
+    background: rgba(59, 130, 246, 0.14);
+    color: #2563eb;
+}
+
+.oc .subconverter-version-status {
+    display: flex;
+    align-items: center;
+    max-width: 100%;
+    gap: var(--tight-gap);
+    margin: 0 0 2px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: inherit;
+    line-height: 15px;
+    box-sizing: border-box;
+    word-break: break-word;
+}
+
+.oc .subconverter-version-status[hidden] {
+    display: none !important;
+}
+
+.oc .subconverter-version-label {
+    color: inherit;
+    font-weight: 600;
+    flex: 0 0 auto;
+}
+
+.oc .subconverter-version-text {
+    min-width: 0;
+}
+
+.oc .subconverter-version-status[data-state="checking"] {
+    color: var(--primary-color);
+}
+
+.oc .subconverter-version-status[data-state="success"] {
+    color: var(--success-color);
+}
+
+.oc .subconverter-version-status[data-state="unrecognized"],
+.oc .subconverter-version-status[data-state="empty"] {
+    color: var(--tip-color);
+}
+
+.oc .subconverter-version-status[data-state="error"] {
+    color: var(--error-color);
+}
+
+[data-page^="admin-services-openclash-config-subscribe-edit"] #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node[id^="cbi-openclash-"] {
+    padding-top: 14px;
+}
+
+[data-page^="admin-services-openclash-config-subscribe-edit"] #cbi-openclash > .cbi-section:not(.cbi-tblsection) textarea.cbi-input-textarea {
+    vertical-align: top;
+}
+
+html[data-darkmode="true"] .oc .form-input,
+html[data-darkmode="true"] .oc .form-select,
+html[data-darkmode="true"] .oc .filename-input-container input {
+    border-color: var(--border-light);
+    color: var(--text-primary);
+    background-color: var(--bg-gray) !important;
+}
+
+html[data-darkmode="true"] .oc .form-input:focus,
+html[data-darkmode="true"] .oc .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-a10);
+}
+
+html[data-darkmode="true"] .oc .form-input::placeholder {
+    color: var(--text-secondary);
+}
+
+html[data-darkmode="true"] .oc .form-textarea {
+    background: var(--bg-gray);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+}
+
+html[data-darkmode="true"] .oc .form-textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-a10);
+}
+
+html[data-darkmode="true"] .oc .form-textarea::placeholder {
+    color: var(--text-secondary);
+}
+
+html[data-darkmode="true"] .oc label .guide-tag.req {
+    background: rgba(96, 165, 250, 0.2);
+    color: #93c5fd;
+}
+
+html[data-darkmode="true"] .oc .checkmark {
+    border-color: var(--border-light);
+    background: var(--bg-gray);
+}
+
+html[data-darkmode="true"] .oc .form-help::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d0cfcf' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cpath d='M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3'%3E%3C/path%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'%3E%3C/line%3E%3C/svg%3E");
+    opacity: 0.6;
+}
+
+html[data-darkmode="true"] .oc #config-mode-tabs .mode-tab.active {
+    background: var(--primary-color);
+    color: var(--text-on-primary);
+}
+
+.oc .config-editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-light);
+    background: var(--bg-gray);
+    flex-shrink: 0;
+    cursor: move;
+    user-select: none;
+    min-width: 0;
+    position: relative;
+}
+
+.oc .config-editor-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--card-grid-gap);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1 1 auto;
+    padding-right: 10px;
+}
+
+.oc .config-editor-title #editTitle,
+.oc .config-editor-title #config-file-name {
+    user-select: text;
+    -webkit-user-select: text;
+    cursor: text;
+}
+
+.oc .config-editor-title .config-file-name {
+    color: var(--primary-color);
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: bottom;
+    padding: 3px 14px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 40vw;
+    background: var(--primary-a30);
+    border-radius: 12px;
+    line-height: 1.4;
+}
+
+.oc .config-editor-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--section-gap);
+}
+
+#config-mergeview-container {
+    width: 100%;
+    height: 100%;
+    display: block;
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--bg-white);
+    z-index: 2;
+}
+
+/* the edit modal ships with the client page while its sheet (oc-config-edit.css) is
+   lazy-loaded: keep the hidden baseline in this always-loaded sheet */
+.oc .config-editor-model-overlay {
+    display: none;
+}
+
+.oc .config-editor-loading {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--section-gap);
+    background: var(--bg-white);
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.oc .loading-spinner {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    margin: 0 4px;
+    border: 3px solid var(--border-light);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.oc .config-editor-footer {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 4px 12px;
+    padding: 8px 16px;
+    background: var(--bg-gray);
+    flex-shrink: 0;
+    position: relative;
+}
+
+.oc .config-editor-status {
+    font-size: 12px;
+    color: var(--text-secondary);
+    flex: 1 1 0;
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.oc .config-editor-help {
+    font-size: 12px;
+    color: var(--text-secondary);
+    opacity: 0.8;
+    flex: 1 1 0;
+    min-width: 0;
+    text-align: right;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.oc #config-mode-tabs .mode-tabs {
+    width: 100%;
+    margin: 0 auto;
+}
+
+.oc #config-mode-tabs .mode-tab {
+    flex: 1 1 0;
+    min-width: 0;
+    width: 0;
+    padding: 12px 0;
+    box-sizing: border-box;
+}
+
+.oc .update-row > .form-select-wrapper {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.oc .update-row .form-select {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.oc .overwrite-config-dropdown.form-select-wrapper {
+    width: 100%;
+}
+
+.oc .overwrite-config-dropdown-btn.form-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+/* ---- CBI section description ---- */
+.oc .cbi-section-descr {
+    font-size: 13px;
+    color: var(--text-secondary);
+    background: var(--bg-gray);
+    padding: 2px 4px;
+    margin: 8px 0;
+    border-radius: var(--radius-sm);
+    line-height: 1.5;
+}
+
+.oc .cbi-section-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--card-outer-padding);
+    box-shadow: var(--shadow-sm);
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.tabs > li {
+    vertical-align: middle !important;
+}
+
+.tool_label:hover {
+    border-color: rgba(0, 0, 0, 0) !important;
+    background-color: unset !important;
+    color: unset !important;
+    cursor: unset !important;
+}
+
+.tool_label::after {
+    border-color: rgba(0, 0, 0, 0) !important;
+    background-color: unset !important;
+    color: unset !important;
+    cursor: unset !important;
+    content: unset !important;
+}
+
+.tool_label_span {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.tool_label_select {
+    width: auto;
+}
+
+.cbi-input-select {
+    width: auto !important;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+ul {
+    list-style: none;
+}
+
+.oc .config-editor-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    text-align: left;
+    flex: 1;
+}
+
+.oc .help-link {
+    display: inline-flex;
+    align-items: center;
+    color: var(--primary-color);
+    text-decoration: none;
+    opacity: .7;
+    transition: opacity var(--transition-fast);
+    margin-bottom: 2px;
+    border-radius: var(--radius-sm);
+}
+
+.oc .help-link:hover {
+    opacity: 1;
+    background: rgba(59, 130, 246, .1);
+}
+
+.oc .select-popup-footer {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    align-items: stretch;
+    gap: 10px;
+    margin-top: 16px;
+    padding: var(--card-outer-padding);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: var(--bg-gray);
+    box-shadow: var(--shadow-sm);
+}
+
+.oc .select-popup-footer.log-footer {
+    grid-template-columns: repeat(5, 1fr);
+}
+
+.oc .footer-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--primary-color);
+    border-radius: var(--radius-sm);
+    background: var(--primary-color);
+    color: var(--text-on-primary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+    box-sizing: border-box;
+    line-height: 1;
+}
+
+.oc .footer-btn:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+.oc .footer-btn svg {
+    width: 1.1em;
+    height: 1.1em;
+    flex-shrink: 0;
+    display: block;
+}
+
+.oc .footer-btn .loading-spinner.oc-btn-spinner {
+    width: 1.1em;
+    height: 1.1em;
+    border-width: 2px;
+    margin: 0;
+    border-color: rgba(255, 255, 255, 0.35);
+    border-top-color: var(--text-on-primary);
+}
+
+.oc .footer-btn:disabled,
+.oc .footer-btn:disabled:hover {
+    background: var(--primary-color);
+    color: var(--text-on-primary);
+    border-color: var(--primary-color);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.oc .footer-btn:disabled svg,
+.oc .footer-btn:disabled span:not(.loading-spinner) {
+    opacity: 0.55;
+}
+
+.oc .footer-btn:disabled .loading-spinner.oc-btn-spinner {
+    opacity: 1;
+}
+
+/* ==========================================================================
+ * Responsive rules (split from the original combined media blocks)
+ * ========================================================================== */
+@media (max-width: 768px) {
+    /* floating action buttons - status/merge/log pages */
+    .oc .oc-usage-help-float { width: 44px; height: 44px; }
+    .oc .oc-float-stack .oc-usage-help-float svg,
+        .oc #oc-merge-toggle-btn.oc-usage-help-float svg { width: 22px; height: 22px; }
+    .oc .config-file-name { max-width: 100%; font-size: 18px; }
+    /* config_upload.htm */
+    .oc .form-help { font-size: 11px; margin-bottom: 10px; gap: 5px; }
+    .oc .form-help::before { width: 11px; height: 11px; margin-top: 1px; }
+    .oc .config-editor-actions { gap: 5px; }
+    .oc .config-editor-title #editTitle {
+            flex: 0 1 auto;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    .oc .config-editor-title .config-file-name {
+            position: static;
+            left: auto;
+            transform: none;
+            max-width: none;
+            flex: 0 0 auto;
+            min-width: 0;
+            margin: 0 auto;
+        }
+    /* myip.htm */
+    .oc { --card-item-min-height: 80px; }
+    .oc .select-popup-footer { grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 10px; }
+    .oc .select-popup-footer.log-footer { grid-template-columns: repeat(3, 1fr); }
+    .oc .select-popup-footer .select-class {
+            height: 32px;
+            min-height: 32px;
+            padding: 5px 28px 5px 10px;
+            line-height: 20px;
+        }
+    .oc .footer-btn { font-size: 12px; padding: 6px 10px; height: 32px; }
+}
+
+@media (max-width: 480px) {
+    /* floating action buttons - status/merge/log pages */
+    .oc .oc-usage-help-float { width: 40px; height: 40px; }
+    .oc .oc-float-stack .oc-usage-help-float svg,
+        .oc #oc-merge-toggle-btn.oc-usage-help-float svg { width: 20px; height: 20px; }
+    .oc .icon-btn { width: 24px; height: 24px; min-width: 24px; }
+    .oc .icon-btn svg { width: 12px !important; height: 12px !important; }
+    .oc .config-file-name { font-size: 15px; }
+    /* config_upload.htm */
+    .oc .form-help { font-size: 10px; margin-bottom: 8px; gap: 4px; }
+    .oc .form-help::before { width: 10px; height: 10px; margin-top: 1px; }
+    .oc .mode-tab { padding: 10px 12px; font-size: 13px; }
+    .oc .mode-tab svg { width: 12px; height: 12px; }
+    /* myip.htm */
+    .oc { --card-outer-padding: 8px; --section-gap: 10px; --card-grid-gap: 6px; --card-item-min-height: 70px; }
+    .oc .select-popup-footer { grid-template-columns: repeat(2, 1fr); gap: 4px; padding: 8px; }
+    .oc .select-popup-footer.log-footer { grid-template-columns: repeat(2, 1fr); }
+    .oc .select-popup-footer .select-class {
+            height: 30px;
+            min-height: 30px;
+            padding: 4px 24px 4px 8px;
+            line-height: 20px;
+        }
+    .oc .footer-btn { font-size: 11px; padding: 5px 8px; gap: 4px; height: 30px; }
+}
+
+@media (max-width: 320px) {
+    /* floating action buttons - status/merge/log pages */
+    .oc .oc-usage-help-float { width: 36px; height: 36px; }
+    .oc .oc-float-stack .oc-usage-help-float svg,
+        .oc #oc-merge-toggle-btn.oc-usage-help-float svg { width: 18px; height: 18px; }
+}
+
+/* ==========================================================================
+ * CBI action buttons (tagged .oc by ocWrapCbiActions) adopt the footer-btn look
+ * ========================================================================== */
+@media (min-width: 769px) {
+    .oc-cbi-table { table-layout: fixed; }
+}
+
+.oc.cbi-button.cbi-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100% !important;
+    max-width: 320px;
+    padding: 10px 14px;
+    border: 1px solid var(--primary-color) !important;
+    border-radius: var(--radius-sm);
+    background: var(--primary-color) !important;
+    color: var(--text-on-primary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+    box-sizing: border-box;
+    line-height: 1;
+}
+
+.oc.cbi-button.cbi-button:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+.oc.cbi-button.cbi-button:disabled,
+.oc.cbi-button.cbi-button:disabled:hover {
+    background: var(--primary-color) !important;
+    color: var(--text-on-primary);
+    border-color: var(--primary-color) !important;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+@media (max-width: 768px) {
+    .oc.cbi-button.cbi-button { font-size: 12px; padding: 6px 10px; height: 32px; }
+}
+
+@media (max-width: 480px) {
+    .oc.cbi-button.cbi-button { font-size: 11px; padding: 5px 8px; gap: 4px; height: 30px; }
+}

@@ -118,5 +118,10 @@ o.write = function()
 	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "config"))
 end
 
-proxy_form:append(Template("openclash/toolbar_show"))
+local render_children = proxy_form.render_children
+proxy_form.render_children = function(self, ...)
+	fs.render_page_head()
+	render_children(self, ...)
+end
+
 return proxy_form

@@ -339,7 +339,7 @@ revert_dnsmasq()
       wan6_dns=$(/usr/share/openclash/openclash_get_network.lua "dns6")
       mkdir -p "$(dirname "$resolv_file")"
       touch "$resolv_file"
-      
+
       if [ -n "$wan_dns" ]; then
          echo "# Interface lan" > "$resolv_file"
          for dns in $wan_dns; do

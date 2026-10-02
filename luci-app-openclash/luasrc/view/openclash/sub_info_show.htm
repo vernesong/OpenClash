@@ -1,16 +1,13 @@
 <%+cbi/valueheader%>
 <%
     local fs = require "luci.openclash"
-    local plugin_version = fs.oc_version()
 %>
 <%
-	local fs = require "luci.openclash"
-	local val = self:cfgvalue(section)
-	local filename = fs.filename(val)
-	local idname = math.random(1000)..(string.match(filename, "[%w_]+") or "")
+    local val = self:cfgvalue(section)
+    local filename = fs.filename(val)
+    local idname = math.random(1000)..(string.match(filename, "[%w_]+") or "")
 %>
 
-<script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
 <div class="oc">
     <div class="sub_div">
         <span id='<%=idname%>' class="sub_tab"></span>
@@ -26,6 +23,7 @@
     </div>
 </div>
 
+<script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%="@OPENCLASH_VERSION@"%>"></script>
 <script type="text/javascript">//<![CDATA[
 
 var retry_<%=idname%> = 0;
@@ -283,7 +281,7 @@ function dispaly_progressbar(id, status) {
 };
 
 function sub_info_refresh_<%=idname%>(force) {
-	if (s_<%=idname%>) { clearTimeout(s_<%=idname%>);};
+    if (s_<%=idname%>) { clearTimeout(s_<%=idname%>);};
 
     if (force) {
         localStorage.removeItem("sub_info_<%=filename%>");
@@ -315,7 +313,7 @@ function sub_info_refresh_<%=idname%>(force) {
         document.getElementById('<%=idname%>').innerHTML = "<span><%:Collecting data...%></span>";
     }
 
-	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "sub_info_get")%>', {filename: "<%=filename%>"}, function(x, status) {
+    XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "sub_info_get")%>', {filename: "<%=filename%>"}, function(x, status) {
         var needsErrorHandling = false;
         if (x && x.status == 200 && status.providers.length > 0) {
             var save_info_length = (save_info && save_info.providers) ? save_info.providers.length : 0;
@@ -329,9 +327,9 @@ function sub_info_refresh_<%=idname%>(force) {
                 (window.requestIdleCallback || function(cb) { setTimeout(cb, 1); })(function() { localStorage.setItem("sub_info_<%=filename%>", JSON.stringify(status)); });
                 dispaly_progressbar('<%=idname%>', status);
             }
-		} else {
+        } else {
             needsErrorHandling = true;
-		};
+        };
 
         if (needsErrorHandling && retry_<%=idname%> <= 2) {
             retry_<%=idname%>++;
@@ -344,17 +342,23 @@ function sub_info_refresh_<%=idname%>(force) {
             }
             s_<%=idname%> = setTimeout("sub_info_refresh_<%=idname%>(false)", 60000*15);
         };
-	});
+    });
 };
 
 function setUrlConfig_<%=idname%>() {
+    if (typeof SubscriptionUrlSetter === 'undefined') {
+        ocRequireScript('/cgi-bin/luci/admin/services/openclash/translate_js?f=config_upload&v=<%="@OPENCLASH_VERSION@"%>&l=<%=luci.i18n.context.lang%>', setUrlConfig_<%=idname%>);
+        return false;
+    }
     SubscriptionUrlSetter.show("<%=filename%>", "sub_info_refresh_<%=idname%>(true)");
     return false;
 }
 
 function uploadConfig_<%=idname%>() {
-    if (typeof ConfigUploader === 'undefined') return false;
-
+    if (typeof ConfigUploader === 'undefined') {
+        ocRequireScript('/cgi-bin/luci/admin/services/openclash/translate_js?f=config_upload&v=<%="@OPENCLASH_VERSION@"%>&l=<%=luci.i18n.context.lang%>', uploadConfig_<%=idname%>);
+        return false;
+    }
     var filename = "<%=filename%>";
     var cb = "sub_info_refresh_<%=idname%>(true)";
     XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_subscribe_data")%>', {

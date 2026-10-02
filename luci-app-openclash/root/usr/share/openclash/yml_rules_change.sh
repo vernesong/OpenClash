@@ -299,13 +299,13 @@ yml_other_set()
                         # CDN
                         if '$github_address_mod' != '0' and config['url'] then
                            if config['url'] =~ /^https:\/\/raw.githubusercontent.com/ then
-                              if '$github_address_mod' == 'https://cdn.jsdelivr.net/' or 
-                                 '$github_address_mod' == 'https://fastly.jsdelivr.net/' or 
+                              if '$github_address_mod' == 'https://cdn.jsdelivr.net/' or
+                                 '$github_address_mod' == 'https://fastly.jsdelivr.net/' or
                                  '$github_address_mod' == 'https://testingcf.jsdelivr.net/' then
                                  url_parts = config['url'].split('/');
                                  if url_parts.length >= 5 then
-                                    config['url'] = '$github_address_mod' + 'gh/' + url_parts[3] + '/' + 
-                                                   url_parts[4] + '@' + config['url'].split(url_parts[2] + 
+                                    config['url'] = '$github_address_mod' + 'gh/' + url_parts[3] + '/' +
+                                                   url_parts[4] + '@' + config['url'].split(url_parts[2] +
                                                    '/' + url_parts[3] + '/' + url_parts[4] + '/')[1];
                                  end;
                               else

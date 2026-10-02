@@ -986,9 +986,6 @@ msgstr "Proxy para tráfico UDP"
 msgid "The Servers Must Support UDP forwarding"
 msgstr "Los servidores deben soportar reenvío UDP"
 
-msgid "If Docker is Installed, UDP May Not Forward Normally"
-msgstr "Si se usa Docker, utiliza modo TUN; de lo contrario UDP puede fallar en juegos."
-
 msgid "Disable QUIC"
 msgstr "Deshabilitar QUIC"
 
@@ -6472,6 +6469,12 @@ msgstr "recorre las configuraciones y previsualiza cada una"
 
 msgid "A plain YAML file only shows its name and the last modified time"
 msgstr "un YAML simple solo muestra su nombre y la última hora de modificación"
+
+msgid "No config file yet, this area stays empty until the first one is added"
+msgstr "Aún no hay archivo de configuración, esta área permanece vacía hasta que se añada el primero"
+
+msgid "Once a config is added, its subscription info bar shows here: name, modified time, traffic and the action buttons"
+msgstr "Una vez añadida una configuración, aquí aparece su barra de información de suscripción: nombre, hora de modificación, tráfico y los botones de acción"
 
 msgid "Prev / Next"
 msgstr "Anterior / Siguiente"

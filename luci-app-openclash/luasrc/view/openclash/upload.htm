@@ -1,9 +1,5 @@
 <%+cbi/valueheader%>
-<%
-    local fs = require "luci.openclash"
-    local plugin_version = fs.oc_version()
-%>
-<script src="/luci-static/resources/openclash/js/common.js?v=<%=plugin_version%>"></script>
+<script src="/cgi-bin/luci/admin/services/openclash/translate_js?f=common&v=<%="@OPENCLASH_VERSION@"%>&l=<%=luci.i18n.context.lang%>"></script>
 <div class="oc">
 <div class="upload-bar">
 	<label for="file_type"><%:Upload File Type%>:</label>

@@ -7,11 +7,12 @@
 local diag_host = "www.instagram.com"
 local dns_host = "www.instagram.com"
 %>
+<link rel="stylesheet" href="/luci-static/resources/openclash/css/oc-common.css?v=<%="@OPENCLASH_VERSION@"%>">
+<link rel="stylesheet" href="/luci-static/resources/openclash/css/oc-settings.css?v=<%="@OPENCLASH_VERSION@"%>">
 
 <script type="text/javascript">//<![CDATA[
 	function show_diag_info(addr)
 	{
-		var addr = addr;
 		var legend = document.getElementById('diag-rc-legend');
 		var output = document.getElementById('diag-rc-output');
 
@@ -26,9 +27,7 @@ local dns_host = "www.instagram.com"
 					ta.style.width = '100%';
 					ta.value = x.responseText.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l !== ''; }).join('\n');
 					output.appendChild(ta);
-					cmWhenReady(function() {
-						other_editor(ta, true, '100%', '400px');
-					});
+					other_editor(ta, true, '100%', '400px');
 				}
 				else if (x.status == 500)
 				{
@@ -47,7 +46,7 @@ local dns_host = "www.instagram.com"
 		var addr = field.value;
 		var legend = document.getElementById('diag-rc-legend');
 		var output = document.getElementById('diag-rc-output');
-		
+
 		if (legend && output)
 		{
 			output.innerHTML =
@@ -58,7 +57,7 @@ local dns_host = "www.instagram.com"
 			legend.parentNode.classList.remove('oc-hidden');
 			legend.style.display = 'block';
 		}
-		
+
 		let HTTP = {
 			checker: (domain) => {
 			let img = new Image;
@@ -85,13 +84,13 @@ local dns_host = "www.instagram.com"
 			};
 		HTTP.runcheck();
 	}
-	
+
 	function diag_dns(field)
 	{
 		var addr = field.value;
 		var legend = document.getElementById('dns-rc-legend');
 		var output = document.getElementById('dns-rc-output');
-		
+
 		if (legend && output)
 		{
 			output.innerHTML =
@@ -102,7 +101,7 @@ local dns_host = "www.instagram.com"
 			legend.parentNode.classList.remove('oc-hidden');
 			legend.style.display = 'block';
 		}
-		
+
 		if (legend && output)
 		{
 			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "diag_dns")%>', {addr: addr}, function(x, status) {
@@ -114,9 +113,7 @@ local dns_host = "www.instagram.com"
 					ta.style.width = '100%';
 					ta.value = x.responseText.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l !== ''; }).join('\n');
 					output.appendChild(ta);
-					cmWhenReady(function() {
-						other_editor(ta, true, '100%', '400px');
-					});
+					other_editor(ta, true, '100%', '400px');
 				}
 				else if (x.status == 500)
 				{

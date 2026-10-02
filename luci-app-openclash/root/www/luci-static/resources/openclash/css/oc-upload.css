@@ -1,0 +1,490 @@
+/* ==========================================================================
+ * OpenClash stylesheet - oc-upload.css
+ * Loaded by: client + config pages (config_upload.htm).
+ * Upload dialog / subscribe conversion / overwrite upload UI.
+ * ========================================================================== */
+
+.oc .upload-bar .config-upload-buttons {
+    flex-shrink: 0;
+}
+
+.oc .upload-bar .config-upload-buttons .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 14px;
+    background: var(--bg-white);
+    color: var(--text-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.oc .upload-bar .config-upload-buttons .btn:hover {
+    background: var(--primary-a10);
+    color: var(--primary-color);
+}
+
+.oc .upload-bar .config-upload-buttons .btn svg {
+    flex-shrink: 0;
+    display: block;
+}
+
+.oc .config-upload-btn-large {
+    min-width: 200px !important;
+    height: 60px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    padding: 0 30px !important;
+    border-radius: var(--radius-lg) !important;
+    background: var(--primary-color) !important;
+    color: var(--text-on-primary) !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: all var(--transition-fast) !important;
+    box-shadow: var(--shadow-md) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 12px !important;
+}
+
+.oc .config-upload-btn-large:hover {
+    background: var(--btn-primary-hover) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px var(--primary-a30) !important;
+}
+
+.oc .config-upload-btn-large svg {
+    width: 20px !important;
+    height: 20px !important;
+}
+
+.oc .config-upload-model-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--overlay-bg);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+}
+
+.oc .config-upload-model-overlay.show {
+    display: flex;
+}
+
+.oc .config-upload-model {
+    background: var(--bg-white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    width: 90vw;
+    max-width: 550px;
+    min-width: 400px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+    max-height: 85vh;
+    transition: all var(--transition-fast);
+}
+
+.oc .config-upload-model.usage-help-model {
+    max-width: 800px;
+    max-height: 90vh;
+}
+
+.oc .config-upload-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-light);
+    background: var(--bg-gray);
+    flex-shrink: 0;
+}
+
+.oc .config-upload-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.oc .config-upload-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    border-top: 1px solid var(--border-light);
+    background: var(--bg-gray);
+    flex-shrink: 0;
+}
+
+.oc .config-upload-status {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.oc .config-upload-buttons {
+    display: flex;
+    gap: var(--section-gap);
+}
+
+.oc .config-upload-content {
+    padding: 24px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.oc .upload-mode-selector {
+    margin-bottom: 24px;
+    border-radius: var(--radius-md);
+}
+
+.oc .upload-mode-content {
+    transition: all var(--transition-fast);
+}
+
+.oc .upload-zone {
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 40px 20px;
+    margin-bottom: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    background: var(--bg-light);
+}
+
+.oc .upload-zone:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-a5);
+}
+
+.oc .upload-zone.dragover {
+    border-color: var(--primary-color);
+    background: var(--primary-a10);
+}
+
+.oc .upload-zone.has-file {
+    border-color: var(--success-color);
+    background: var(--success-a5);
+}
+
+.oc .upload-icon {
+    margin-bottom: 16px;
+    color: var(--text-secondary);
+}
+
+.oc .upload-zone.has-file .upload-icon {
+    color: var(--success-color);
+}
+
+.oc .upload-primary {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
+}
+
+.oc .upload-secondary {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.oc .subscribe-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.oc .highlight-label {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 6px 12px;
+    background: var(--bg-gray);
+    border-left: 3px solid var(--primary-color);
+    border-right: 3px solid var(--primary-color);
+    border-radius: var(--radius-sm);
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+
+.oc .filename-input-container {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.oc .filename-input-container label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.oc .filename-input-container input {
+    flex: 1;
+    height: 36px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    background: var(--bg-white);
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: all var(--transition-fast);
+}
+
+.oc .filename-input-container input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-a10);
+}
+
+.oc .filename-extension {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.oc .upload-progress {
+    margin-top: 20px;
+}
+
+.oc .progress-bar {
+    height: 8px;
+    background: var(--bg-gray);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.oc .progress-fill {
+    height: 100%;
+    background: var(--primary-color);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.oc .progress-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.oc .config-upload-buttons .btn {
+    padding: 8px 16px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.oc .cancel-btn {
+    background: var(--bg-white);
+    color: var(--text-secondary);
+}
+
+.oc .cancel-btn:hover {
+    background: var(--bg-light);
+    color: var(--text-primary);
+}
+
+.oc .upload-btn {
+    background: var(--primary-color);
+    color: var(--text-on-primary);
+    border-color: var(--primary-color);
+}
+
+.oc .upload-btn:hover:not(:disabled) {
+    background: var(--primary-color);
+    opacity: 0.9;
+}
+
+.oc .upload-btn:disabled {
+    background: var(--primary-color);
+    color: var(--text-on-primary);
+    border-color: var(--primary-color);
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.oc .add-row-btn {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: var(--tight-gap);
+    padding: 6px 8px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--primary-color);
+    border-radius: var(--radius-sm);
+    background: var(--primary-color);
+    color: var(--text-on-primary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.oc .add-row-btn:hover {
+    opacity: 0.9;
+}
+
+.oc .add-row-btn svg {
+    display: block;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.oc .advanced-options-container {
+    padding: 12px;
+    background: var(--bg-light);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-light);
+    transition: all var(--transition-fast);
+}
+
+.oc .advanced-options-container > .sub-convert-options:first-child,
+.oc .sub-convert-options > .sub-convert-options:first-child {
+    margin-top: 0;
+}
+
+.oc .advanced-options-container > .sub-convert-options:last-child,
+.oc .sub-convert-options > .sub-convert-options:last-child {
+    margin-bottom: 0;
+}
+
+.oc .advanced-options-container .sub-convert-options,
+.oc .sub-convert-options .sub-convert-options {
+    margin: 12px auto;
+    margin-left: 0;
+    background: var(--primary-a5);
+    border-color: var(--primary-a20);
+    max-width: 100%;
+}
+
+.oc .sub-convert-options {
+    margin: 0;
+    padding: 12px;
+    background: var(--bg-light);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-light);
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+html[data-darkmode="true"] .oc .config-upload-header,
+html[data-darkmode="true"] .oc .config-upload-footer {
+    background: var(--bg-gray);
+    border-color: var(--border-light);
+}
+
+html[data-darkmode="true"] .oc .config-upload-content {
+    background: var(--bg-white);
+    color: var(--text-primary);
+}
+
+html[data-darkmode="true"] .oc .config-upload-title {
+    color: var(--text-primary);
+}
+
+html[data-darkmode="true"] .oc .config-upload-status {
+    color: var(--text-secondary);
+}
+
+html[data-darkmode="true"] .oc .highlight-label {
+    background: var(--bg-gray);
+    color: var(--text-primary);
+}
+
+html[data-darkmode="true"] .oc .cancel-btn {
+    background: var(--bg-gray);
+    color: var(--text-secondary);
+    border-color: var(--border-light);
+}
+
+html[data-darkmode="true"] .oc .cancel-btn:hover {
+    background: var(--bg-light);
+    color: var(--text-primary);
+}
+
+html[data-darkmode="true"] .oc .upload-zone.has-file .upload-icon {
+    color: var(--success-color);
+}
+
+html[data-darkmode="true"] .oc .progress-bar {
+    background: var(--bg-gray);
+}
+
+html[data-darkmode="true"] .oc .progress-fill {
+    background: var(--primary-color);
+}
+
+html[data-darkmode="true"] .oc .cancel-btn {
+    background: var(--bg-white);
+    color: var(--text-secondary);
+    border-color: var(--border-light);
+}
+
+html[data-darkmode="true"] .oc .cancel-btn:hover {
+    background: var(--bg-light);
+    color: var(--text-primary);
+}
+
+html[data-darkmode="true"] .oc .upload-btn {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+html[data-darkmode="true"] .oc .upload-btn:disabled {
+    background: var(--primary-color);
+    color: var(--text-on-primary);
+    border-color: var(--primary-color);
+    opacity: 0.55;
+}
+
+html[data-darkmode="true"] .oc .sub-convert-options {
+    background: var(--primary-a5);
+    border-color: var(--border-light);
+}
+
+html[data-darkmode="true"] .oc .advanced-options-container {
+    background: var(--primary-a5);
+    border-color: var(--border-light);
+}
+
+html[data-darkmode="true"] .oc .advanced-options-container .sub-convert-options,
+html[data-darkmode="true"] .oc .sub-convert-options .sub-convert-options {
+    background: var(--primary-a10);
+    border-color: var(--border-light);
+}
+
+/* ==========================================================================
+ * Responsive rules (split from the original combined media blocks)
+ * ========================================================================== */
+@media (max-width: 768px) {
+    .oc .config-upload-btn-large { min-width: 180px !important; height: 50px !important; font-size: 14px !important; padding: 0 24px !important; }
+    .oc .sub-convert-options { margin: 0; padding: var(--card-outer-padding); max-width: 100%; }
+}
+
+@media (max-width: 480px) {
+    .oc .config-upload-btn-large { min-width: 160px !important; height: 45px !important; font-size: 13px !important; padding: 0 20px !important; }
+    .oc .sub-convert-options { margin: 0; padding: 10px; max-width: 100%; }
+    .oc .config-upload-model { width: 95vw; min-width: 320px; }
+    .oc .config-upload-content { padding: 20px; }
+    .oc .upload-zone { padding: 30px 15px; }
+}

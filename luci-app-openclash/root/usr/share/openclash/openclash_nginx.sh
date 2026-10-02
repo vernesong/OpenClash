@@ -25,7 +25,7 @@ EOF
 )
 
 if [ -f "$FILE" ] && [ "$(cat "$FILE")" = "$NEW" ]; then
-	exit 0
+    exit 0
 fi
 
 printf '%s\n' "$NEW" > "$FILE"

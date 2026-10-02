@@ -1,13 +1,8 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> 
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,minimal-ui">
-<%
-    local fs = require "luci.openclash"
-    local plugin_version = fs.oc_version()
-%>
-  <script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
 </head>
 
 <body>
@@ -92,6 +87,7 @@
 </td></tr></table>
 </fieldset>
 
+<script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%="@OPENCLASH_VERSION@"%>"></script>
 <script type="text/javascript">//<![CDATA[
   var oix_plan = document.getElementById('oix-plan');
   var oix_plantime = document.getElementById('oix-plantime');
@@ -102,7 +98,6 @@
   var oix_unused = document.getElementById('oix-unused');
   var oix_traffic = document.getElementById('oix-traffic');
   var oix_integral = document.getElementById('oix-integral');
-  var oix_checkin = document.getElementById('oix-checkin');
   var obj = document.getElementById("additional");
   var card = document.getElementById("card");
   var oix_it = document.getElementById("oix_it");

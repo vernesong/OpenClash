@@ -1,10 +1,6 @@
-<%
-    local fs = require "luci.openclash"
-    local plugin_version = fs.oc_version()
-%>
 <div class="oc-subconverter-version-loader" hidden></div>
-<script src="/luci-static/resources/openclash/js/subconverter-version.js?v=<%=plugin_version%>"></script>
 <script type="text/javascript">//<![CDATA[
+ocRequireScript('/luci-static/resources/openclash/js/subconverter-version.js?v=<%="@OPENCLASH_VERSION@"%>');
 document.addEventListener('DOMContentLoaded', function() {
 	var attempts = 0;
 
