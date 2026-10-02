@@ -35,20 +35,9 @@
     var oixcloud = document.getElementById('oixcloud');
     var more = document.getElementById('more');
 
-    function getAvatarSize() {
-        var width = window.innerWidth;
-        if (width <= 320) return '30px';
-        if (width <= 480) return '35px';
-        if (width <= 600) return '40px';
-        if (width <= 768) return '45px';
-        if (width >= 1200) return '60px';
-        return '50px';
-    }
-
     function createAvatarHTML(src, title, alt, clickHandler) {
-        var size = getAvatarSize();
         return '<div class="developer-avatar-container">' +
-               '<img src="' + src + '" loading="lazy" class="developer-avatar" title="' + title + '" alt="' + alt + '" width="' + size + '" height="' + size + '" onerror="return imgerrorfun(this,this.src)" onclick="return ' + clickHandler + '()" />' +
+               '<img src="' + src + '" loading="lazy" class="developer-avatar" title="' + title + '" alt="' + alt + '" onerror="return imgerrorfun(this,this.src)" onclick="return ' + clickHandler + '()" />' +
                '<div class="developer-label">' + title + '</div>' +
                '</div>';
     }
@@ -80,9 +69,30 @@
 
     setAvatars();
 
-    window.addEventListener('resize', function() {
-        setAvatars();
-    });
+    // entrance animation runs when the card first scrolls into view; the timer keeps
+    // the grid visible in documents where intersection callbacks never fire
+    (function() {
+        var grid = document.querySelector('.developer-grid');
+        if (!grid) return;
+        grid.classList.add('dev-prepare');
+        var revealed = false;
+        function reveal() {
+            if (revealed) return;
+            revealed = true;
+            grid.classList.add('dev-inview');
+        }
+        if (window.IntersectionObserver) {
+            var io = new IntersectionObserver(function(entries) {
+                for (var i = 0; i < entries.length; i++) {
+                    if (entries[i].isIntersecting) { io.disconnect(); reveal(); return; }
+                }
+            }, { rootMargin: '0px 0px -40px 0px' });
+            io.observe(grid);
+        } else {
+            reveal();
+        }
+        setTimeout(reveal, 6000);
+    })();
 
     function Dreamacro_rediret() {
         window.open('https://github.com/Dreamacro');
@@ -118,15 +128,23 @@
         window.open('https://github.com/MetaCubeX');
     }
     function oixcloud_rediret() {
-        window.open('http://bit.ly/oixcloud-register');
+        window.open('https://oixcloud.com/');
     }
     function more_rediret() {
         window.open('https://github.com/vernesong/OpenClash/graphs/contributors');
     }
 
     function imgerrorfun(imgobj, imgSrc) {
+        var tries = parseInt(imgobj.dataset.retry || '0', 10) + 1;
+        imgobj.dataset.retry = tries;
+        if (tries > 3) {
+            imgobj.onerror = null;
+            imgobj.src = '/luci-static/resources/openclash/img/logo.png';
+            imgobj.classList.add('developer-avatar-offline');
+            return;
+        }
         setTimeout(function() {
-            imgobj.src = imgSrc;
+            imgobj.src = imgSrc + (imgSrc.indexOf('?') === -1 ? '?' : '&') + 'r=' + Date.now();
         }, 1000 * 10);
     }
 

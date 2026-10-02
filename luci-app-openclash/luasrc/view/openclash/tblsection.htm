@@ -3,7 +3,6 @@ local rowcnt = 1
 -- Follow the parent Map cursor so every caller keeps its own config dir
 local uci = self.map.uci or require("luci.model.uci").cursor()
 local fs = require "luci.openclash"
-local plugin_version = fs.oc_version()
 
 function rowstyle()
     rowcnt = rowcnt + 1
@@ -18,19 +17,6 @@ function width(o)
         return ' style="width:%s"' % o.width
     end
     return ''
-end
-
-function table_include(table, value)
-    if table == nil then
-        return false
-    end
-
-    for k, v in pairs(table) do
-        if v == value then
-            return true
-        end
-    end
-    return false
 end
 
 local a={}
@@ -48,9 +34,7 @@ else
         end
     end
 
-    if not table_include(e, "all") then
-        table.insert(e, 1, {name="all"})
-    end
+    table.insert(e, 1, {name="all"})
 end
 
 local file_path = fs.get_file_path_from_request()
@@ -84,12 +68,6 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
 -%>
 
 <style type="text/css">
-    *{margin: 0;padding: 0;}
-
-    ul{
-        list-style: none;
-    }
-
     h3{
         margin-top: 0;
     }
@@ -114,13 +92,26 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
     #tab-header-<%=self.config%>-<%=self.sectiontype%> ul{
         display: flex;
         width: 100%;
-        background: #f1f5f9;
+        background: var(--bg-gray, #f1f5f9);
         border-radius: 8px;
         border-bottom: none !important;
         border: none !important;
         gap: 5px;
         margin: 0;
         padding: 0;
+    }
+
+    #tab-header-<%=self.config%>-<%=self.sectiontype%> ul::-webkit-scrollbar{
+        height: 6px;
+    }
+
+    #tab-header-<%=self.config%>-<%=self.sectiontype%> ul::-webkit-scrollbar-track{
+        background: transparent;
+    }
+
+    #tab-header-<%=self.config%>-<%=self.sectiontype%> ul::-webkit-scrollbar-thumb{
+        background: var(--border-color, #b1b1b1);
+        border-radius: 3px;
     }
 
     #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li{
@@ -135,9 +126,9 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
         height: 100%;
         font-size: 13px;
         font-weight: 400;
-        color: #64748b;
+        color: var(--text-secondary, #64748b);
         background: transparent;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--border-light, #e2e8f0);
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.18s;
@@ -148,8 +139,8 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
     }
 
     #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab{
-        background: #3b82f6;
-        color: #fff;
+        background: var(--primary-color, #3b82f6);
+        color: var(--text-on-primary, #fff);
         font-weight: 600;
         z-index: 2;
         border-radius: 6px;
@@ -180,30 +171,30 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
     }
 
     #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab > a{
-        color: #fff !important;
+        color: var(--text-on-primary, #fff) !important;
         font-weight: 500;
     }
 
     #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab-disabled{
-        color: #fff;
-        background: #f9f9f9;
+        color: var(--text-on-primary, #fff);
+        background: var(--bg-light, #f9f9f9);
         opacity: 0.7;
         cursor: pointer;
     }
 
     #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab-disabled a{
-        color: #000 !important;
+        color: var(--text-primary, #000) !important;
     }
 
     #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.cbi-tab):hover,
     #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.cbi-tab):focus{
-        color: #3b82f6;
-        background: rgba(59,130,246,0.10);
+        color: var(--primary-color, #3b82f6);
+        background: var(--primary-a10, rgba(59,130,246,0.10));
     }
 
     #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.cbi-tab):hover a,
     #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.cbi-tab):focus a{
-        color: #3b82f6 !important;
+        color: var(--primary-color, #3b82f6) !important;
     }
 
     #tab-content .dom-<%=self.config%>-<%=self.sectiontype%>{
@@ -214,52 +205,6 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
       float: left;
       margin: 15px 10px;
       width: 225px;
-    }
-
-    html[data-darkmode="true"] .oc #tab-header-<%=self.config%>-<%=self.sectiontype%>{
-        background: #374151;
-        border-bottom: 1px solid #374151;
-    }
-
-    html[data-darkmode="true"] .oc #tab-header-<%=self.config%>-<%=self.sectiontype%> ul{
-        background: #374151;
-    }
-
-    html[data-darkmode="true"] .oc #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li{
-        background: #1f2937;
-        color: #a1a1aa;
-        border-color: #374151;
-    }
-
-    html[data-darkmode="true"] .oc #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab{
-        background: #2563eb;
-        color: #fff;
-    }
-
-    html[data-darkmode="true"] .oc #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab a{
-        color: #fff !important;
-    }
-
-    html[data-darkmode="true"] .oc #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab-disabled{
-        color: #1f2937;
-        background: #1f2937;
-        opacity: 0.7;
-    }
-
-    html[data-darkmode="true"] .oc #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab-disabled a{
-        color: #fff !important;
-    }
-
-    html[data-darkmode="true"] .oc #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.cbi-tab):hover,
-    html[data-darkmode="true"] .oc #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.cbi-tab):focus{
-        color: #3b82f6;
-        border-color: #3b82f6;
-        background: #22304a;
-    }
-
-    html[data-darkmode="true"] .oc #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.cbi-tab):hover a,
-    html[data-darkmode="true"] .oc #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.cbi-tab):focus a{
-        color: #60a5fa !important;
     }
 </style>
 
@@ -275,7 +220,7 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
     <%- local count = 0 -%>
     <div id="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tabmenu">
         <ul class="cbi-tabmenu">
-            <%- 
+            <%-
             if self.sectiontype == "dns_servers" then
                 for i, tab in ipairs(e) do
                     if i == 1 then
@@ -369,7 +314,7 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
                     for i, k in ipairs(self:cfgsections()) do
                         local section = k
                         local should_render = false
-                        local section_name 
+                        local section_name
                         if self.sectiontype == "dns_servers" then
                             section_name = uci:get("openclash", section, "group")
                         else
@@ -416,8 +361,8 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
                                         %> alt="<%:Edit%>" title="<%:Edit%>" />
                                     <%- end; if self.addremove then -%>
                                         <%- if file_path then -%>
-                                            <input class="btn cbi-button cbi-button-remove" type="submit" value="<%:Delete%>" 
-                                            onclick="this.form.cbi_state='del-section'; var redirectUrl = 'servers?file=<%=file_path%>'; var originalSubmit = this.form.onsubmit; this.form.onsubmit = function(e) { var result = true; if (originalSubmit) { result = originalSubmit.call(this, e); } if (result !== false) { setTimeout(function() { window.location.href = redirectUrl; }, 200); } return result; }; return switch_to_tab<%=sectiontype%>()" 
+                                            <input class="btn cbi-button cbi-button-remove" type="submit" value="<%:Delete%>"
+                                            onclick="this.form.cbi_state='del-section'; var redirectUrl = 'servers?file=<%=file_path%>'; var originalSubmit = this.form.onsubmit; this.form.onsubmit = function(e) { var result = true; if (originalSubmit) { result = originalSubmit.call(this, e); } if (result !== false) { setTimeout(function() { window.location.href = redirectUrl; }, 200); } return result; }; return switch_to_tab<%=sectiontype%>()"
                                             name="cbi.rts.<%=self.config%>.<%=k%>" alt="<%:Delete%>" title="<%:Delete%>" />
                                         <%- else -%>
                                             <input class="btn cbi-button cbi-button-remove" type="submit" value="<%:Delete%>" onclick="this.form.cbi_state='del-section'; return switch_to_tab<%=sectiontype%>()" name="cbi.rts.<%=self.config%>.<%=k%>" alt="<%:Delete%>" title="<%:Delete%>" />
@@ -471,7 +416,6 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
 </fieldset>
 <!-- /tblsection -->
 
-<script src="/luci-static/resources/openclash/js/common.js?v=<%=plugin_version%>"></script>
 <script type="text/javascript">//<![CDATA[
     window.addEventListener('load', onload<%=sectiontype%>, false);
 

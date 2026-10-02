@@ -378,13 +378,13 @@ msgid "PQ (mlkem768-x25519)"
 msgstr "PQ (mlkem768-x25519)"
 
 msgid "Failed to generate age key"
-msgstr "生成 Age 密钥失败"
+msgstr "Age 密钥生成失败"
 
 msgid "No public key"
-msgstr "没有公钥"
+msgstr "公钥不能为空"
 
 msgid "No secret key"
-msgstr "没有私钥"
+msgstr "私钥不能为空"
 
 msgid "Age Encryption For Config, Click For More:"
 msgstr "使用 Age 加密配置，点击获取更多信息："
@@ -396,10 +396,16 @@ msgid "Calculate Public Key"
 msgstr "计算公钥"
 
 msgid "Please enter the Age Secret Key to calculate the public key!"
-msgstr "请先输入私钥来计算公钥！"
+msgstr "私钥不能为空"
 
 msgid "Failed to calculate public key"
 msgstr "公钥计算失败"
+
+msgid "Generated successfully"
+msgstr "生成成功"
+
+msgid "Calculated successfully"
+msgstr "计算成功"
 
 msgid "Add"
 msgstr "添加"
@@ -894,7 +900,7 @@ msgstr "更新时间"
 msgid "File Name"
 msgstr "文件名"
 
-msgid "Switch"
+msgid "SwiTch"
 msgstr "切换"
 
 msgid "Size"
@@ -986,9 +992,6 @@ msgstr "UDP 流量转发"
 
 msgid "The Servers Must Support UDP forwarding"
 msgstr "启用时服务器必须支持 UDP 转发"
-
-msgid "If Docker is Installed, UDP May Not Forward Normally"
-msgstr "安装了 Docker 的固件请使用 TUN 模式，否则可能无法正常转发 UDP，造成游戏异常"
 
 msgid "Disable QUIC"
 msgstr "*禁用 QUIC"
@@ -2193,6 +2196,9 @@ msgstr "备份文件"
 msgid "Backup File Restore Successful!"
 msgstr "备份文件恢复成功！"
 
+msgid "Backup File Restore Failed!"
+msgstr "备份文件恢复失败！"
+
 msgid "Not Select"
 msgstr "未选择"
 
@@ -2202,8 +2208,8 @@ msgstr "1. 可能是插件未在运行"
 msgid "2. It may be that the cache causes the browser to directly use the IP for access"
 msgstr "2. 可能是缓存导致浏览直接使用 IP 地址进行访问"
 
-msgid "3. It may be that DNS hijacking did not take effect, so clash unable to reverse the domain name"
-msgstr "3. 可能是 DNS 未劫持成功，导致 Clash 无法正确反推出域名连接"
+msgid "3. It may be that DNS hijacking did not take effect, so the domain name cannot be reversed"
+msgstr "3. DNS 未劫持成功时，无法反推出域名"
 
 msgid "4. It may be that the filled address cannot be resolved and connected"
 msgstr "4. 可能是所填地址无法进行解析和连接"
@@ -2989,13 +2995,13 @@ msgid "Other Parameters"
 msgstr "其他附加配置"
 
 msgid "Empty URL"
-msgstr "URL 为空"
+msgstr "链接不能为空"
 
 msgid "Only HTTP/HTTPS URLs are supported"
 msgstr "仅支持 HTTP/HTTPS 链接"
 
 msgid "Invalid URL format"
-msgstr "无效的 URL 格式"
+msgstr "链接格式不正确"
 
 msgid "URL missing hostname"
 msgstr "URL 缺少主机名"
@@ -3445,10 +3451,43 @@ msgid "Ready to upload file"
 msgstr "准备上传文件"
 
 msgid "Ready to add subscription"
-msgstr "准备添加订阅"
+msgstr "可添加订阅"
 
 msgid "Ready to edit subscription"
-msgstr "准备编辑订阅"
+msgstr "可保存修改"
+
+msgid "Save Subscription"
+msgstr "保存订阅"
+
+msgid "Config enabled"
+msgstr "配置已启用"
+
+msgid "Kernel service is not running"
+msgstr "内核服务未运行"
+
+msgid "Program starting..."
+msgstr "操作执行中…"
+
+msgid "Unsaved changes"
+msgstr "未保存的修改"
+
+msgid "Download and check complete"
+msgstr "下载并校验完成"
+
+msgid "Executing"
+msgstr "操作执行"
+
+msgid "Discard unsaved changes?"
+msgstr "放弃未保存的修改？"
+
+msgid "The edits in this form will be lost."
+msgstr "表单中的修改将丢失。"
+
+msgid "Keep editing"
+msgstr "继续编辑"
+
+msgid "Discard"
+msgstr "放弃修改"
 
 msgid "File selected:"
 msgstr "已选择文件："
@@ -3457,10 +3496,10 @@ msgid "Size:"
 msgstr "大小："
 
 msgid "Please select a YAML file"
-msgstr "请选择 YAML 文件"
+msgstr "仅支持 YAML 文件"
 
 msgid "File size exceeds 10MB limit"
-msgstr "文件大小超过 10MB 限制"
+msgstr "文件大小不能超过 10MB"
 
 msgid "File ready to upload"
 msgstr "文件准备就绪"
@@ -3499,7 +3538,7 @@ msgid "Please enter subscription config name"
 msgstr "请输入订阅配置名称"
 
 msgid "Invalid subscription URL format"
-msgstr "订阅地址格式无效"
+msgstr "订阅链接格式不正确"
 
 msgid "Config name contains invalid characters"
 msgstr "配置名称包含无效字符"
@@ -3672,8 +3711,8 @@ msgstr "重启内核失败"
 msgid "Invalid config file selected"
 msgstr "选择的配置文件无效"
 
-msgid "Config editor not ready, please try again"
-msgstr "配置编辑未就绪，请重试"
+msgid "Failed to load the interface, please refresh the page and try again"
+msgstr "界面加载失败，请刷新页面后重试"
 
 msgid "New version available"
 msgstr "发现新版本"
@@ -4480,6 +4519,9 @@ msgid "to Avoid Core Start Failed..."
 msgstr "避免内核启动失败..."
 
 msgid "Built-in"
+msgstr "内置"
+
+msgid "Builtin"
 msgstr "内置"
 
 msgid "Unset"
@@ -6222,8 +6264,8 @@ msgstr "所有流量都不走代理"
 msgid "some providers need a certain request header, one row per header"
 msgstr "有些服务商要求特定请求头，一个头一行"
 
-msgid "the Mihomo core that carries the traffic"
-msgstr "负责跑流量的 Mihomo 内核"
+msgid "the core that carries the traffic"
+msgstr "负责流量转发的内核"
 
 msgid "the name the config list shows later"
 msgstr "以后配置列表里显示的名字"
@@ -6435,6 +6477,12 @@ msgstr "逐个切换配置文件并预览各自的信息"
 msgid "A plain YAML file only shows its name and the last modified time"
 msgstr "普通 YAML 文件只显示名称和最后修改时间"
 
+msgid "No config file yet, this area stays empty until the first one is added"
+msgstr "还没有配置文件，添加第一个之后这里才会显示内容"
+
+msgid "Once a config is added, its subscription info bar shows here: name, modified time, traffic and the action buttons"
+msgstr "添加配置后，它的订阅信息栏会在这里出现：名称、修改时间、流量和操作按钮"
+
 msgid "Prev / Next"
 msgstr "上一个 / 下一个"
 
@@ -6452,3 +6500,510 @@ msgstr "打开开关让插件开始工作"
 
 msgid "Use the buttons below or the arrow keys to step through, Esc ends the guide"
 msgstr "用下方按钮或键盘方向键翻页，Esc 结束引导"
+
+msgid "Requesting subscription..."
+msgstr "请求订阅中…"
+
+msgid "Verifying..."
+msgstr "校验中…"
+
+msgid "Applying..."
+msgstr "写入配置中…"
+
+msgid "Executing..."
+msgstr "操作执行…"
+
+msgid "Starting kernel..."
+msgstr "内核启动中…"
+
+msgid "Waiting for core..."
+msgstr "等待内核就绪…"
+
+msgid "Finishing startup..."
+msgstr "等待启动完成…"
+
+msgid "Subscribe"
+msgstr "请求订阅"
+
+msgid "Template structure"
+msgstr "模板结构"
+
+msgid "Running Log"
+msgstr "运行日志"
+
+msgid "Group Types"
+msgstr "分组类型"
+
+msgid "Member Composition"
+msgstr "成员构成"
+
+msgid "TFO Enable"
+msgstr "TFO 加速"
+
+msgid "TLS 1.3"
+msgstr "TLS 1.3"
+
+msgid "Group refs"
+msgstr "分组引用"
+
+msgid "Filters"
+msgstr "筛选"
+
+msgid "File download"
+msgstr "文件下载"
+
+msgid "File verification"
+msgstr "文件校验"
+
+msgid "Apply config"
+msgstr "应用配置"
+
+msgid "Core startup"
+msgstr "内核启动"
+
+msgid "Remaining setup"
+msgstr "剩余设置"
+
+msgid "Start complete"
+msgstr "启动完成"
+
+msgid "Read data after core is ready"
+msgstr "内核就绪后自动回读"
+
+msgid "Log"
+msgstr "日志"
+
+msgid "Message"
+msgstr "消息"
+
+msgid "Elapsed"
+msgstr "已用时"
+
+msgid "Problem?"
+msgstr "遇到问题？"
+
+msgid "Running, cannot cancel"
+msgstr "执行中，无法取消"
+
+msgid "Close anytime, task keeps running"
+msgstr "完成后自动收起，可随时关闭"
+
+msgid "Config saved"
+msgstr "配置已保存"
+
+msgid "View Config"
+msgstr "查看配置"
+
+msgid "Refresh Info"
+msgstr "刷新信息"
+
+msgid "Switch and Enable"
+msgstr "切换并启用"
+
+msgid "Strategy Groups"
+msgstr "策略组预览"
+
+msgid "Config check failed"
+msgstr "配置校验失败"
+
+msgid "Config check passed"
+msgstr "配置校验通过"
+
+msgid "Convert enabled"
+msgstr "订阅转换 · 已开启"
+
+msgid "Convert disabled"
+msgstr "订阅转换 · 未开启"
+
+msgid "Template"
+msgstr "模板"
+
+msgid "Age encrypted / decrypted"
+msgstr "AGE 加密"
+
+msgid "Age key missing, stats unavailable"
+msgstr "未提供密钥，统计暂不可用"
+
+msgid "Nodes"
+msgstr "节点"
+
+msgid "Proxy Providers"
+msgstr "代理集"
+
+msgid "nodes from proxy sets, protocol not read"
+msgstr "个来自代理集的节点未读取协议"
+
+msgid "Rules"
+msgstr "规则"
+
+msgid "Rule Sets"
+msgstr "规则集"
+
+msgid "Providers"
+msgstr "个 Provider"
+
+msgid "Nodes provided by proxy-providers, read after enable"
+msgstr "节点由 proxy-providers 提供，启用后自动回读"
+
+msgid "Stats unavailable"
+msgstr "统计不可用"
+
+msgid "Retry without convert"
+msgstr "不转换重试"
+
+msgid "Switch failed"
+msgstr "切换失败"
+
+msgid "Switch finished, stats delayed"
+msgstr "切换完成，数据稍后读取"
+
+msgid "Groups"
+msgstr "策略组"
+
+msgid "Subscription failed, see the log above for details"
+msgstr "订阅处理失败，详情见上方日志"
+
+msgid "Convert Template Preview"
+msgstr "模板预览"
+
+msgid "Parse the template only, no subscription needed"
+msgstr "仅解析模板，无需订阅"
+
+msgid "Local cache"
+msgstr "本地缓存"
+
+msgid "Just fetched"
+msgstr "刚刚获取"
+
+msgid "just now"
+msgstr "刚刚"
+
+msgid "minutes ago"
+msgstr "分钟前获取"
+
+msgid "Group Structure"
+msgstr "分组结构"
+
+msgid "Rule Flow"
+msgstr "规则流向"
+
+msgid "Extra Settings"
+msgstr "附加设置"
+
+msgid "Core Groups"
+msgstr "核心分组"
+
+msgid "Secondary Groups"
+msgstr "次要分组"
+
+msgid "refs"
+msgstr "个引用"
+
+msgid "Test Groups"
+msgstr "自动测速组"
+
+msgid "Smart Groups"
+msgstr "Smart 策略组"
+
+msgid "All Nodes"
+msgstr "全部节点"
+
+msgid "No extra settings"
+msgstr "无附加设置"
+
+msgid "Preview"
+msgstr "预览"
+
+msgid "Template not found"
+msgstr "未找到该模板"
+
+msgid "Failed to fetch template"
+msgstr "模板获取失败，请检查网络后重试"
+
+msgid "Enter the template URL first"
+msgstr "请先填写自定义模板地址"
+
+msgid "Unsupported template format"
+msgstr "不支持的模板格式（仅支持 subconverter ini 模板）"
+
+msgid "seconds ago"
+msgstr "秒前获取"
+
+msgid "Config Summary"
+msgstr "配置摘要"
+
+msgid "Updated at"
+msgstr "更新于"
+
+msgid "Node Protocols"
+msgstr "节点协议"
+
+msgid "Rule Targets"
+msgstr "规则去向"
+
+msgid "Top 6 Targets"
+msgstr "前 6 目标"
+
+msgid "Rule Types"
+msgstr "规则类型"
+
+msgid "Proxy Sources"
+msgstr "代理来源"
+
+msgid "Unavailable"
+msgstr "不可用"
+
+msgid "Provider Nodes"
+msgstr "代理集节点"
+
+msgid "No protocol data"
+msgstr "无协议数据"
+
+msgid "Template URL"
+msgstr "模板地址"
+
+msgid "View Summary"
+msgstr "查看摘要"
+
+msgid "Subscribe Convert"
+msgstr "订阅转换"
+
+msgid "Core failed to start, check the log above"
+msgstr "内核启动失败，请查看上方日志"
+
+msgid "proxy-providers not downloaded, unable to read"
+msgstr "proxy-providers 暂未下载，无法读取"
+
+msgid "providers"
+msgstr "个代理集"
+
+msgid "Look inside the template before using it: its groups and rule flow"
+msgstr "用它查看模板里的策略组与规则流向，再决定是否使用"
+
+msgid "The template is fetched once and kept in the router cache"
+msgstr "模板只下载一次并缓存在路由器上"
+
+msgid "The run stays on the progress page; when it ends press View Summary to inspect the result or switch over"
+msgstr "运行结束后停留在进度页，点「查看摘要」查看结果或切换使用"
+
+msgid "Template parsed"
+msgstr "模板解析完成"
+
+msgid "File parsed"
+msgstr "文件解析完成"
+
+msgid "YAML template, no static structure to preview"
+msgstr "YAML 模板，结构在生成时填充，无法静态预览"
+
+msgid "OK"
+msgstr "确定"
+
+msgid "Rename Failed"
+msgstr "重命名失败"
+
+msgid "Create File Failed"
+msgstr "创建文件失败"
+
+msgid "Clear Log"
+msgstr "清空日志"
+
+msgid "Switch OpenClash to Fake-IP mode (page reload required)"
+msgstr "将 OpenClash 切换为 Fake-IP 模式（需重载页面）"
+
+msgid "Switch OpenClash to Redir-Host mode (page reload required)"
+msgstr "将 OpenClash 切换为 Redir-Host 模式（需重载页面）"
+
+msgid "Switching the DNS mode affects all traffic and reloads the page. Continue?"
+msgstr "切换 DNS 模式会影响所有流量并重载页面，是否继续？"
+
+msgid "Switching the DNS mode requires a plugin restart to take effect. Continue?"
+msgstr "切换 DNS 模式后需要重启插件才能生效，是否继续？"
+
+msgid "Sub info fetch failed, retrying in 5s..."
+msgstr "订阅信息获取失败，5 秒后重试…"
+
+msgid "Sub info fetch failed, click refresh to retry"
+msgstr "订阅信息获取失败，点击刷新重试"
+
+msgid "Files are saved to the path shown for the selected type."
+msgstr "文件将保存到所选类型对应的路径。"
+
+msgid "File exceeds 10MB limit"
+msgstr "文件超过 10MB 限制"
+
+msgid "Backup downloaded"
+msgstr "备份已下载"
+
+msgid "Profiles are saved to the config directory (/etc/openclash/config)"
+msgstr "配置文件保存在配置目录（/etc/openclash/config）"
+
+msgid "Proxy provider files are saved to /etc/openclash/proxy_provider"
+msgstr "代理集文件保存在 /etc/openclash/proxy_provider"
+
+msgid "Rule provider files are saved to /etc/openclash/rule_provider"
+msgstr "规则集文件保存在 /etc/openclash/rule_provider"
+
+msgid "Core files are extracted to /etc/openclash/core"
+msgstr "内核文件解压到 /etc/openclash/core"
+
+msgid "Backup files restore settings from a previous backup"
+msgstr "备份文件用于恢复此前的设置"
+
+msgid "Advanced Subscription Options"
+msgstr "订阅高级选项"
+
+msgid "Switch and enable"
+msgstr "切换并启用"
+
+msgid "Still required: Subscribe URL"
+msgstr "订阅链接为必填项"
+
+msgid "Convert: off"
+msgstr "转换：关闭"
+
+msgid "Convert: on"
+msgstr "转换：开启"
+
+msgid "Filter: off"
+msgstr "过滤：关闭"
+
+msgid "Filter: on"
+msgstr "过滤：开启"
+
+msgid "Include"
+msgstr "包含"
+
+msgid "Exclude"
+msgstr "排除"
+
+msgid "Age Key"
+msgstr "Age 密钥"
+
+msgid "Advanced:"
+msgstr "高级："
+
+msgid "Advanced: default"
+msgstr "高级：默认"
+
+msgid "Still required: Config Name"
+msgstr "配置名称为必填项"
+
+msgid "Auto Exclude"
+msgstr "自动排除"
+
+msgid "Privacy"
+msgstr "隐私"
+
+msgid "Queries go to 4 public services, the eye button hides the results"
+msgstr "查询会向 4 个公共服务发送请求，点眼睛按钮可隐藏结果"
+
+msgid "Consistent"
+msgstr "一致"
+
+msgid "Different"
+msgstr "不同"
+
+msgid "Avg"
+msgstr "平均"
+
+msgid "Remove Downloaded Core"
+msgstr "删除已下载内核"
+
+msgid "Editor failed to load, showing the plain text box"
+msgstr "编辑器加载失败，已切换为普通文本框"
+
+msgid "Step"
+msgstr "步骤"
+
+msgid "Core updated"
+msgstr "内核已更新"
+
+msgid "Config added"
+msgstr "配置已添加"
+
+msgid "OpenClash started"
+msgstr "已启动"
+
+msgid "Continue with the rest of the page"
+msgstr "继续了解页面其他部分"
+
+msgid "Switch Theme"
+msgstr "主题切换"
+
+msgid "Mode"
+msgstr "模式"
+
+msgid "Theme"
+msgstr "主题"
+
+msgid "Light"
+msgstr "亮色"
+
+msgid "Dark"
+msgstr "暗色"
+
+msgid "Auto"
+msgstr "自动"
+
+msgid "Light Mode"
+msgstr "亮色模式"
+
+msgid "Dark Mode"
+msgstr "暗色模式"
+
+msgid "Auto Mode"
+msgstr "自动模式"
+
+msgid "Applies to all OpenClash pages"
+msgstr "对所有 OpenClash 页面生效"
+
+msgid "Classic Blue"
+msgstr "经典蓝"
+
+msgid "Nocturne Cyan"
+msgstr "极夜青"
+
+msgid "Indigo Voyage"
+msgstr "夜航靛"
+
+msgid "Graphite Silver"
+msgstr "石墨银"
+
+msgid "Ember Amber"
+msgstr "暖砂琥珀"
+
+msgid "Imperial Purple"
+msgstr "帝王紫"
+
+msgid "Sweet Rose"
+msgstr "甜酷玫粉"
+
+msgid "Smoky Pink"
+msgstr "烟灰粉"
+
+msgid "Configuration has unsaved changes"
+msgstr "配置有未保存的修改"
+
+msgid "Closing will discard the changes"
+msgstr "直接关闭将丢失这些修改"
+
+msgid "Close without saving"
+msgstr "不保存并关闭"
+
+msgid "Save and close"
+msgstr "保存并关闭"
+
+msgid "Delete module"
+msgstr "删除模块"
+
+msgid "This cannot be undone"
+msgstr "删除后无法恢复"
+
+msgid "Remove all core files"
+msgstr "删除全部内核文件"
+
+msgid "Restore default configuration"
+msgstr "恢复默认配置"
+
+msgid "Start Test"
+msgstr "开始测试"

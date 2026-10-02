@@ -1,0 +1,1159 @@
+/* ==========================================================================
+ * OpenClash stylesheet - oc-update.css
+ * Loaded by: client + settings pages (update.htm).
+ * Version update popup / version tab.
+ * ========================================================================== */
+
+.oc .select-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg-white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--card-outer-padding);
+    z-index: 1000;
+    max-width: 90%;
+    min-width: 300px;
+    width: 60%;
+    box-shadow: var(--shadow-md);
+    /* NOTE: do not add `transition: all` here — the popup height changes when the
+       custom-option-input is shown/hidden, and transitioning `transform: translate(-50%, -50%)`
+       animates the popup through subpixel positions, which blurs all its text. */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.oc .select-popup.hidden {
+    display: none;
+}
+
+/* Tab mode: update embedded in the version_update tab (settings.lua) */
+.oc .select-popup-tab {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    margin: 0;
+    box-shadow: none;
+}
+
+.oc .select-popup-tab .select-popup-body {
+    max-height: none;
+    overflow: visible;
+}
+
+.oc .select-popup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-light);
+    background: var(--bg-gray);
+    flex-shrink: 0;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.oc .select-popup-header.oc-draggable {
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+}
+
+.oc .select-popup-header.oc-draggable:active {
+    cursor: grabbing;
+}
+
+.oc .select-config-section {
+    background: var(--bg-gray);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: var(--card-padding);
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+}
+
+.oc .config-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--content-gap);
+    align-items: center;
+}
+
+.oc .config-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    width: 100%;
+    position: relative;
+}
+
+/* Unified option title with underline for update */
+.oc .oc-option-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    min-width: 0;
+    position: relative;
+}
+
+.oc .oc-option-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    line-height: 1.2;
+}
+
+.oc .oc-option-title::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 1px;
+    background-color: var(--border-color);
+}
+
+.oc .oc-option-title > svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.oc .oc-option-title b {
+    color: var(--warning-color);
+}
+
+.oc .select-class {
+    width: 100% !important;
+    height: 36px;
+    min-height: 36px;
+    margin: 0;
+    padding: 0 32px 0 12px;
+    line-height: 34px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    background: var(--bg-white) !important;
+    color: var(--text-primary) !important;
+    font-size: 13px;
+    appearance: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    box-sizing: border-box;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.oc .select-class:hover {
+    border-color: var(--primary-color);
+}
+
+.oc .select-class:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-a10);
+}
+
+.oc .select-class option {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: var(--bg-white);
+    color: var(--text-primary);
+}
+
+.oc .select-popup-body {
+    --addr-head-bg: var(--bg-gray);
+    --addr-row-bg: var(--bg-white);
+    --addr-row-alt: var(--bg-light);
+    /* the plugin and core columns are as wide as the versions shown in them: the script measures the
+     * widest cell and overwrites these, so a long version is never shortened behind an ellipsis. The
+     * table is kept at least as wide as its columns too, otherwise the part of a column that hangs
+     * out of a row box is painted without the row background */
+    --addr-ver-plugin: 84px;
+    --addr-ver-core: 110px;
+    --addr-cols: calc(44px + 110px + 88px + var(--addr-ver-plugin) + var(--addr-ver-core) + 5 * 8px + 2 * 16px);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: var(--addr-row-bg);
+    box-shadow: var(--shadow-sm);
+}
+
+.oc .addr-list-scroll {
+    max-height: 300px;
+    overflow-y: auto;
+    overflow-x: auto;
+    scrollbar-gutter: stable;
+    counter-reset: addr-row;
+    background: var(--addr-row-bg, var(--bg-white));
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+}
+
+.oc .addr-list-scroll::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.oc .addr-list-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.oc .addr-list-scroll::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: var(--border-color);
+    background-clip: content-box;
+}
+
+.oc .addr-list-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+    background-clip: content-box;
+}
+
+.oc .addr-list-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-gray);
+    opacity: 0.85;
+    backdrop-filter: blur(2px);
+    border-radius: var(--radius-md);
+    z-index: 5;
+}
+
+.oc .addr-list-loading .addr-list-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--border-light);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.oc .select-popup-status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 16px;
+    padding: 10px 16px;
+    margin-top: 12px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: var(--bg-gray);
+    flex-shrink: 0;
+}
+
+.oc .select-popup-status {
+    font-size: 12px;
+    color: var(--text-secondary);
+    flex: 1 0 auto;
+    min-width: 0;
+    white-space: nowrap;
+}
+
+.oc .select-popup-tip {
+    font-size: 12px;
+    color: var(--text-secondary);
+    opacity: 0.8;
+    text-align: right;
+    min-width: 0;
+    flex: 0 1 auto;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.oc .select-popup-tip b {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.oc .select-option {
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-light);
+    transition: all var(--transition-fast);
+    font-size: 14px;
+    color: var(--text-primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-direction: row;
+}
+
+.oc .select-option span {
+    white-space: normal;
+    word-break: break-all;
+}
+
+.oc .select-option:last-child {
+    border-bottom: none;
+}
+
+.oc .select-option:hover {
+    background-color: var(--bg-light);
+    color: var(--primary-color);
+}
+
+.oc .select-option[data-value=custom] {
+    background: linear-gradient(135deg, var(--primary-a10), var(--primary-a20));
+    border-color: var(--primary-a20);
+    font-weight: 500;
+}
+
+.oc .select-option[data-value=custom]:hover {
+    background: linear-gradient(135deg, var(--primary-a20), var(--primary-a30));
+}
+
+.oc .custom-option-input {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 10px 0;
+    padding: 10px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    background: var(--bg-white);
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: all var(--transition-fast);
+}
+
+.oc .custom-option-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-a10);
+}
+
+.oc .custom-option-input::placeholder {
+    color: var(--text-secondary);
+    opacity: .7;
+}
+
+.oc #addCustomOption {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--primary-color);
+    color: var(--text-on-primary);
+    font-weight: 500;
+    border-bottom: none !important;
+    margin: 10px 0;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    text-align: center;
+    cursor: pointer;
+}
+
+.oc #addCustomOption:hover {
+    background: var(--btn-primary-hover, #2563eb);
+    color: var(--text-on-primary, white);
+}
+
+.oc .addr-status {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    margin-left: 8px;
+    white-space: nowrap !important;
+}
+
+.oc .addr-status.fast {
+    background: var(--success-a10);
+    color: var(--success-color);
+}
+
+.oc .addr-status.medium {
+    background: var(--warning-a10);
+    color: var(--tip-color);
+}
+
+.oc .addr-status.slow {
+    background: var(--error-a10);
+    color: var(--error-color);
+}
+
+.oc .addr-status.err {
+    background: var(--error-a12);
+    color: var(--error-color);
+}
+
+/* ========== Version Display ========== */
+.oc .version-card {
+    padding: 8px 0 0 0;
+    margin-bottom: 8px;
+}
+
+.oc .version-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 10px;
+    align-items: start;
+}
+
+.oc .ver-value {
+    display: block;
+    line-height: 34px;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    font-size: 13px;
+    font-weight: 400;
+    min-height: 36px;
+    height: 36px;
+    padding: 0 12px;
+    background: var(--bg-white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-primary);
+    box-sizing: border-box;
+}
+
+.oc .ver-hint {
+    --hint-line-max: 80%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 16px 0;
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--error-a12);
+    color: var(--error-color);
+    background: var(--error-a12);
+}
+
+html[data-darkmode="true"] .oc .ver-hint {
+    border: 1px solid var(--error-a20);
+    color: var(--error-color);
+    background: var(--error-a20);
+}
+
+.oc .ver-hint.show {
+    display: flex;
+}
+
+.oc .ver-hint svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    display: block;
+}
+
+.oc .ver-hint span {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: var(--hint-line-max);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
+    display: inline-block;
+    line-height: 1.5;
+    vertical-align: middle;
+}
+
+[data-darkmode=true] .oc .ver-hint svg {
+    stroke: var(--error-color);
+}
+
+/* Neutral note/log style for the hint area (update_tip merged) */
+.oc .ver-hint.note {
+    border: 1px solid var(--primary-a20);
+    color: var(--primary-color);
+    background: var(--primary-a10);
+}
+
+html[data-darkmode=true] .oc .ver-hint.note {
+    border: 1px solid var(--primary-a20);
+    color: var(--primary-color);
+    background: var(--primary-a10);
+}
+
+.oc .ver-hint.logging {
+    box-sizing: border-box;
+    height: calc(1.5em + 18px);
+    padding: 0 12px;
+    gap: 0;
+    overflow: hidden;
+    overflow-anchor: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: center;
+}
+
+.oc .ver-hint.logging div {
+    white-space: nowrap;
+    line-height: calc(1.5em + 16px);
+    flex-shrink: 0;
+    max-width: var(--hint-line-max);
+    text-align: left;
+}
+
+.oc .ver-hint.logging div > b {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.oc .addr-header-label .help-link {
+    margin-bottom: 0;
+}
+
+.oc .addr-row,
+.oc .addr-header {
+    display: grid;
+    min-width: var(--addr-cols, 508px);
+    grid-template-columns: 44px minmax(0, 1fr) 110px minmax(var(--addr-ver-plugin), 0.5fr) minmax(var(--addr-ver-core), 0.85fr) 88px;
+    gap: 8px;
+    align-items: center;
+}
+
+.oc #custom-addr-option {
+    min-width: var(--addr-cols, 508px);
+}
+
+.oc .custom-option-input,
+.oc #addCustomOption {
+    min-width: var(--addr-cols, 508px);
+}
+
+.oc .addr-header-index {
+    font-size: 12px;
+}
+
+.oc .addr-row-index {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: center;
+    justify-self: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.oc .addr-row-index::before {
+    counter-increment: addr-row;
+    content: counter(addr-row);
+}
+
+.oc .addr-row span {
+    word-break: normal !important;
+}
+
+.oc .addr-row-url {
+    min-width: 0;
+    white-space: normal;
+    word-break: break-all !important;
+    overflow-wrap: anywhere;
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--text-primary);
+}
+
+.oc .addr-status {
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.3;
+    padding: 2px 7px 2px 5px;
+    border-radius: 999px;
+    font-variant-numeric: tabular-nums;
+    box-sizing: border-box;
+    border: 1px solid transparent;
+    justify-self: center;
+}
+
+.oc .addr-status.fast { color: var(--success-color); background: var(--success-a10); }
+
+.oc .addr-status.medium { color: var(--tip-color); background: var(--warning-a10); }
+
+.oc .addr-status.slow { color: var(--error-color); background: var(--error-a10); }
+
+.oc .addr-status.err { color: var(--error-color); background: var(--error-a12); }
+
+.oc .addr-proxy {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.3;
+    padding: 2px 6px;
+    border-radius: 999px;
+    box-sizing: border-box;
+    border: 1px solid transparent;
+    font-variant-numeric: tabular-nums;
+    justify-self: center;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition: all var(--transition-fast);
+}
+
+.oc .addr-proxy.on { color: var(--success-color); background: var(--success-a10); }
+
+.oc .addr-proxy.off { color: var(--error-color); background: var(--error-a12); }
+
+.oc .addr-proxy:hover { filter: brightness(1.1); }
+
+.oc .addr-proxy-static {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.3;
+    padding: 2px 6px;
+    border-radius: 999px;
+    box-sizing: border-box;
+    font-variant-numeric: tabular-nums;
+    justify-self: center;
+    white-space: nowrap;
+    color: var(--primary-color);
+    background: transparent;
+    border: 1px dashed var(--primary-color);
+    user-select: none;
+    cursor: pointer;
+}
+
+/* same horizontal footprint as the toggle circle (1.02em + .42em of .68em font),
+   so both pills keep exactly the same width; the chain icon reads as "direct link" */
+.oc .addr-proxy-static svg {
+    width: 1.15em;
+    height: 1.15em;
+    margin: 0 .156em 0 0;
+    flex-shrink: 0;
+    display: block;
+}
+
+.oc .addr-row .ver-text {
+    font-size: 12px;
+    line-height: 1.3;
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 2px 4px;
+    border-radius: var(--radius-sm);
+    box-sizing: border-box;
+    border: 1px solid transparent;
+    font-variant-numeric: tabular-nums;
+    justify-self: center;
+    min-width: 0;
+    max-width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.oc .addr-row .ver-text.has-data {
+    border: 0;
+    padding: 0 4px;
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+/* a version cell never shrinks below the widest version of its column (the script measures that and
+ * writes the two custom properties), so the version is not cut behind an ellipsis on a narrow screen */
+.oc .addr-row .ver-text.ver-plugin {
+    min-width: var(--addr-ver-plugin, 84px);
+}
+
+.oc .addr-row .ver-text.ver-core {
+    min-width: var(--addr-ver-core, 110px);
+}
+
+.oc .addr-row .ver-text.ver-plugin.has-data .ver-link,
+.oc .addr-row .ver-text.ver-core.has-data .ver-link {
+    background: var(--primary-a20);
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+.oc .addr-row .ver-text.has-data.err {
+    background: var(--error-a12);
+    color: var(--error-color);
+    font-weight: 500;
+    padding: 3px 4px;
+}
+
+.oc .addr-row .ver-link {
+    display: inline-block;
+    min-width: 0;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    line-height: 1.3;
+    padding: 3px 6px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    transition: all var(--transition-fast);
+}
+
+.oc .addr-row .ver-link:hover {
+    filter: brightness(1.15);
+    text-decoration: underline;
+}
+
+.oc .addr-row .ver-text.ver-plugin.has-data .ver-link,
+.oc .addr-row .ver-text.ver-core.has-data .ver-link,
+.oc .addr-row .ver-text.ver-plugin.has-data .ver-link:hover,
+.oc .addr-row .ver-text.ver-core.has-data .ver-link:hover {
+    text-decoration: none;
+}
+
+.oc .dl-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.8em;
+    height: 1.8em;
+    min-width: 1.8em;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-white);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-decoration: none;
+    box-sizing: border-box;
+}
+
+.oc .dl-btn:hover {
+    background: var(--bg-light);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.oc .dl-btn svg {
+    width: 0.9em;
+    height: 0.9em;
+    flex-shrink: 0;
+    display: block;
+}
+
+.oc .addr-header {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 6px 16px;
+    border-bottom: 2px solid var(--border-light);
+    cursor: default;
+    background: var(--addr-head-bg, var(--bg-gray));
+    position: sticky;
+    top: 0;
+    z-index: 6;
+}
+
+.oc .addr-header-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 0 4px;
+    box-sizing: border-box;
+    justify-self: center;
+    min-width: 0;
+    max-width: 100%;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.oc .addr-header-label span {
+    line-height: 1.2;
+    white-space: nowrap;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.oc .addr-header-icon {
+    display: block;
+    flex-shrink: 0;
+    color: var(--text-secondary);
+}
+
+.oc .addr-header-icon svg {
+    width: 12px;
+    height: 12px;
+    display: block;
+}
+
+/* Address list: zebra rows, hover accent, and the mirror currently in use */
+.oc .select-option.addr-row:nth-of-type(even) {
+    background: var(--addr-row-alt, var(--bg-light));
+}
+
+.oc .select-option.addr-row:has(.addr-proxy.on) {
+    background: var(--primary-a5);
+    box-shadow: inset 3px 0 0 var(--primary-color);
+}
+
+.oc .select-option.addr-row:hover {
+    background: var(--primary-a5);
+    box-shadow: inset 3px 0 0 var(--primary-color);
+}
+
+.oc .select-option.addr-header:hover {
+    background: var(--addr-head-bg, var(--bg-gray));
+    color: var(--text-secondary);
+}
+
+/* Latency badge: status dot in front of the value */
+.oc .addr-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.oc .addr-status.fast::before,
+.oc .addr-status.medium::before,
+.oc .addr-status.slow::before,
+.oc .addr-status.err::before {
+    content: '';
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    margin-right: 3px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: .8;
+}
+
+/* Proxy toggle: circular glyph in front of the state word */
+.oc .addr-proxy::before {
+    content: '';
+    flex-shrink: 0;
+    width: 1.5em;
+    height: 1.5em;
+    margin-right: .42em;
+    border-radius: 50%;
+    color: #fff;
+    font-size: .68em;
+    font-weight: 700;
+    line-height: 1.5em;
+    text-align: center;
+}
+
+.oc .addr-proxy.on::before {
+    content: '';
+    background-color: var(--success-color);
+}
+
+.oc .addr-proxy.off::before {
+    content: '';
+    background-color: var(--error-color);
+}
+
+.oc .addr-row.row-error .ver-text {
+    visibility: hidden;
+}
+
+.oc .addr-row.row-error .addr-row-index { grid-column: 1; grid-row: 1; }
+
+.oc .addr-row.row-error .addr-row-url { grid-column: 2; grid-row: 1; }
+
+.oc .addr-row.row-error .addr-status {
+    grid-column: 3 / span 3;
+    grid-row: 1;
+    justify-self: center;
+    margin-left: 0;
+    padding: 2px 12px;
+}
+
+.oc .addr-row.row-error .ver-plugin { grid-column: 4; grid-row: 1; }
+
+.oc .addr-row.row-error .ver-core { grid-column: 5; grid-row: 1; }
+
+.oc .addr-row.row-error .addr-proxy,
+.oc .addr-row.row-error .addr-proxy-static { grid-column: 6; grid-row: 1; }
+
+/* Empty / error state of the mirror list */
+.oc .addr-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 22px 16px;
+    text-align: center;
+}
+
+.oc .addr-empty.err {
+    background: var(--error-a10);
+}
+
+.oc .addr-empty-icon {
+    display: block;
+    color: var(--text-secondary);
+    opacity: .75;
+}
+
+.oc .addr-empty.err .addr-empty-icon {
+    color: var(--error-color);
+    opacity: 1;
+}
+
+.oc .addr-empty-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.oc .addr-empty-text {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    max-width: 420px;
+}
+
+.oc .addr-empty-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 30px;
+    margin-top: 4px;
+    padding: 0 14px;
+    border: 1px solid var(--primary-color);
+    border-radius: 999px;
+    background: var(--primary-color);
+    color: var(--text-on-primary, #fff);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.oc .addr-empty-btn:hover {
+    filter: brightness(1.08);
+}
+
+.oc .addr-empty-btn svg {
+    width: 13px;
+    height: 13px;
+    display: block;
+}
+
+/* every mirror failed: the notice above carries the message, keep the rows readable
+   but dim the report columns only so the proxy toggle stays clearly usable */
+.oc .addr-list-scroll.all-failed .addr-row .addr-row-index,
+.oc .addr-list-scroll.all-failed .addr-row .addr-row-url,
+.oc .addr-list-scroll.all-failed .addr-row .addr-status {
+    opacity: .5;
+}
+
+.oc .addr-list-scroll.all-failed .addr-row:hover .addr-row-index,
+.oc .addr-list-scroll.all-failed .addr-row:hover .addr-row-url,
+.oc .addr-list-scroll.all-failed .addr-row:hover .addr-status {
+    opacity: 1;
+}
+
+[data-darkmode=true] .oc .addr-row .ver-text.has-data.err {
+    color: var(--error-color);
+    background: var(--error-a10);
+    font-weight: 500;
+}
+
+[data-darkmode=true] .oc .dl-btn {
+    background: var(--bg-white);
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+}
+
+[data-darkmode=true] .oc .dl-btn:hover {
+    background: var(--bg-light);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+[data-darkmode=true] .oc .addr-status.fast {
+    color: var(--success-color);
+    background: var(--success-a10);
+}
+
+[data-darkmode=true] .oc .addr-status.medium {
+    color: var(--tip-color);
+    background: var(--warning-a10);
+}
+
+[data-darkmode=true] .oc .addr-status.slow {
+    color: var(--error-color);
+    background: var(--error-a10);
+}
+
+[data-darkmode=true] .oc .addr-status.err {
+    color: var(--error-color);
+    background: var(--error-a10);
+}
+
+html[data-darkmode=true] .oc .select-popup-body {
+    --addr-head-bg: var(--bg-light);
+}
+
+html[data-darkmode=true] .oc .addr-proxy.on::before,
+html[data-darkmode=true] .oc .addr-proxy.off::before {
+    color: var(--bg-white);
+}
+
+html[data-darkmode=true] .oc .select-class {
+    background: var(--bg-white) !important;
+    border-color: var(--border-light) !important;
+    color: var(--text-primary) !important;
+}
+
+html[data-darkmode=true] .oc .select-class:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-a20);
+}
+
+html[data-darkmode=true] .oc .select-class option {
+    background: var(--bg-white) !important;
+    color: var(--text-primary) !important;
+}
+
+html[data-darkmode=true] .oc #addCustomOption:hover {
+    background: var(--btn-primary-hover);
+}
+
+body.oc-guide-open .select-popup {
+    z-index: 20055;
+}
+
+/* ==========================================================================
+ * Responsive rules (split from the original combined media blocks)
+ * ========================================================================== */
+@media (max-width: 1024px) {
+    /* update.htm */
+    .oc .config-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .oc .config-item { width: 100%; max-width: 100%; }
+    .oc .select-class { max-width: 100%; font-size: 13px; }
+    .oc .select-popup { min-width: 80%; width: 80%; }
+    .oc .addr-row, .oc .addr-header { grid-template-columns: 24px minmax(96px, 1fr) 64px minmax(var(--addr-ver-plugin), 0.5fr) minmax(var(--addr-ver-core), 0.85fr) 78px; gap: 6px; }
+    .oc .select-popup-body {
+            --addr-ver-plugin: 96px;
+            --addr-ver-core: 166px;
+            --addr-cols: calc(24px + 96px + 64px + 78px + var(--addr-ver-plugin) + var(--addr-ver-core) + 5 * 6px + 2 * 16px);
+        }
+    .oc .addr-row-url { font-size: 11px; }
+    .oc .addr-status { font-size: 10px; }
+    .oc .addr-status { font-size: 11px; }
+    .oc .addr-proxy, .oc .addr-proxy-static { font-size: 11px; }
+    .oc .addr-row .ver-text { font-size: 11px; }
+    .oc .addr-row-index, .oc .addr-header-index { font-size: 11px; }
+    .oc .addr-header-label { font-size: 11px; }
+}
+
+@media (max-width: 768px) {
+    /* update.htm */
+    .oc .select-popup { min-width: 80%; width: 80%; padding: var(--card-outer-padding); max-height: 90vh; overflow-y: auto; }
+    .oc .config-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .oc .config-item { text-align: center; gap: 8px; }
+    .oc .config-item .ver-value,
+        .oc .config-item .select-class { text-align: left; }
+    .oc .select-popup-header { font-size: 16px; margin-bottom: 12px; padding-bottom: 10px; }
+    .oc .select-config-section { padding: 10px; margin-bottom: 10px; }
+    .oc .addr-list-scroll { max-height: 200px; }
+    .oc .select-option { padding: 10px 12px; font-size: 13px; align-items: flex-start; gap: 4px; }
+    .oc .custom-option-input, .oc #addCustomOption { font-size: 13px; padding: 10px 12px; margin: 8px 0; }
+    .oc .version-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .oc .version-card { margin-bottom: 6px; }
+    .oc #addr-list-body { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .oc .addr-row, .oc .addr-header {
+            grid-template-columns: 20px minmax(96px, 1fr) 66px minmax(var(--addr-ver-plugin), 0.5fr) minmax(var(--addr-ver-core), 0.85fr) 70px;
+            gap: 4px;
+        }
+    .oc .select-popup-body {
+            --addr-ver-plugin: 92px;
+            --addr-ver-core: 157px;
+            --addr-cols: calc(20px + 96px + 66px + 70px + var(--addr-ver-plugin) + var(--addr-ver-core) + 5 * 4px + 2 * 12px);
+        }
+    .oc .addr-row {
+            min-height: 52px;
+            align-items: center;
+        }
+    .oc .addr-row-url { font-size: 10px; }
+    .oc .addr-status { font-size: 10px; }
+    .oc .addr-proxy, .oc .addr-proxy-static { font-size: 10px; padding: 2px 5px; }
+    .oc .addr-row-index, .oc .addr-header-index { font-size: 10px; }
+    .oc .addr-row .ver-text { font-size: 10px; padding: 2px 3px; gap: 3px; }
+    .oc .addr-header-label { font-size: 10px; }
+}
+
+@media (max-width: 480px) {
+    /* update.htm */
+    .oc .select-popup { min-width: 80%; width: 80%; padding: 10px; }
+    .oc .select-popup-header { font-size: 14px; margin-bottom: 8px; }
+    .oc .select-config-section { padding: 8px; }
+    .oc .oc-option-title { font-size: 12px; }
+    .oc .oc-option-title::after { bottom: -3px; }
+    .oc .select-class { font-size: 12px; padding: 6px 28px 6px 10px; line-height: 22px; }
+    .oc .select-option { padding: 8px 10px; font-size: 12px; }
+    .oc .custom-option-input, .oc #addCustomOption { font-size: 12px; padding: 8px 10px; margin: 6px 0; }
+    .oc .config-grid { grid-template-columns: 1fr 1fr; }
+    .oc .version-row { grid-template-columns: 1fr 1fr; gap: 6px; }
+    .oc .version-card { margin-bottom: 4px; }
+    .oc .config-item { gap: 6px; }
+    .oc .addr-row, .oc .addr-header {
+            grid-template-columns: 20px minmax(72px, 1fr) 60px minmax(var(--addr-ver-plugin), 0.5fr) minmax(var(--addr-ver-core), 0.85fr) 62px;
+            gap: 3px;
+        }
+    .oc .select-popup-body {
+            --addr-ver-plugin: 80px;
+            --addr-ver-core: 110px;
+            --addr-cols: calc(20px + 72px + 60px + 62px + var(--addr-ver-plugin) + var(--addr-ver-core) + 5 * 3px + 2 * 10px);
+        }
+    .oc .addr-row {
+            min-height: 48px;
+            align-items: center;
+        }
+    .oc .addr-row-url { font-size: 10px; }
+    .oc .addr-status { font-size: 9px; }
+    .oc .addr-proxy, .oc .addr-proxy-static { font-size: 9px; padding: 2px 4px; }
+    .oc .addr-row-index, .oc .addr-header-index { font-size: 9px; }
+    .oc .addr-row .ver-text { font-size: 9px; padding: 1px 2px; }
+    .oc .addr-header-label { font-size: 9px; }
+}

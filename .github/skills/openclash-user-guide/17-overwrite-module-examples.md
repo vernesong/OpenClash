@@ -151,7 +151,7 @@ fi
 
 #### 17.5.1 字段详解
 
-**`config` (目标配置)**: 
+**`config` (目标配置)**:
 - 覆写条目**必须**通过此字段匹配当前运行的配置文件才会执行。匹配逻辑（`overwrite_config_match_check()`）：
   - `config` 列表包含 `all` → 匹配所有配置
   - `config` 列表包含当前 `config_path` UCI 值 → 匹配

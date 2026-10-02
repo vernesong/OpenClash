@@ -8,7 +8,7 @@ local fs = require "luci.openclash"
 local uci = require("luci.model.uci").cursor()
 local CHIF = "0"
 
-font_green = [[<b style=color:green>]]
+font_green = [[<b class="oc-txt-good">]]
 font_off = [[</b>]]
 bold_on = [[<strong>]]
 bold_off = [[</strong>]]
@@ -131,15 +131,35 @@ HTTP.setfilehandler(
 				else
 					os.execute(string.format("mv '%s' '/etc/openclash/core/%s' >/dev/null 2>&1", (core_dir .. meta.file), fp))
 				end
-				
+
 				os.execute(string.format("chmod 4755 '/etc/openclash/core/%s' >/dev/null 2>&1", fp))
 				os.execute(string.format("rm -rf %s >/dev/null 2>&1", core_dir))
 				o.value = translate("File saved to") .. ' "/etc/openclash/core/"'
 			elseif fp == "backup-file" then
-				os.execute("tar -C '/etc/openclash/' -xzf %s >/dev/null 2>&1" % (backup_dir .. meta.file))
-				os.execute("mv /etc/openclash/openclash /etc/config/openclash >/dev/null 2>&1")
-				fs.unlink(backup_dir .. meta.file)
-				o.value = translate("Backup File Restore Successful!")
+				local archive = backup_dir .. meta.file
+				local quoted = UTIL.shellquote(archive)
+				-- list the archive before touching /etc/openclash: a broken upload used to
+				-- report success because every tar/mv error was discarded, and members with
+				-- absolute or parent-relative paths must not be extracted
+				local listfile = "/tmp/oc_restore.list"
+				local tarok = SYS.call("tar tzf " .. quoted .. " >" .. listfile .. " 2>/dev/null") == 0
+				local has_members = SYS.call("grep -q . " .. listfile) == 0
+				local has_config = SYS.call("grep -Fxq './openclash' " .. listfile) == 0
+				local unsafe = SYS.call("grep -qE '(^|/)\\.\\./|^/' " .. listfile) == 0
+				local restored = false
+				if tarok and has_members and has_config and not unsafe then
+					local extracted = SYS.call("tar -C '/etc/openclash/' -xzf " .. quoted .. " >/dev/null 2>&1") == 0
+					if extracted then
+						restored = SYS.call("mv -f /etc/openclash/openclash /etc/config/openclash >/dev/null 2>&1") == 0
+					end
+				end
+				if restored then
+					o.value = translate("Backup File Restore Successful!")
+				else
+					o.value = translate("Backup File Restore Failed!")
+				end
+				SYS.call("rm -f " .. listfile)
+				fs.unlink(archive)
 			end
 		end
 	end
@@ -159,9 +179,9 @@ e[t]={}
 e[t].name=fs.basename(o)
 e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",a.mtime)
 if fs.uci_get_config("config", "config_path") and string.sub(fs.uci_get_config("config", "config_path"), 23, -1) == e[t].name then
-	e[t].state=translate("Enabled")
+	e[t].state="Enabled"
 else
-	e[t].state=translate("Disabled")
+	e[t].state="Disabled"
 end
 e[t].size=fs.filesize(a.size)
 e[t].remove=0
@@ -180,7 +200,7 @@ sz=tb:option(DummyValue,"size",translate("Size"))
 st.template="openclash/cfg_check"
 sb.template="openclash/sub_info_show"
 
-btnis=tb:option(Button,"switch",translate("Switch"))
+btnis=tb:option(Button,"switch",translate("SwiTch"))
 btnis.render=function(o,t,a)
 	if not e[t] then return false end
 	if fs.IsYamlExt(e[t].name) then
@@ -345,7 +365,7 @@ m.reset = false
 m.submit = false
 
 local tab = {
- {user, default}
+	{user, default}
 }
 
 s = m:section(Table, tab)

@@ -46,7 +46,7 @@ fi
 if [ "$1" = "fake-ip" ] && [ "$enable_redirect_dns" != "2" ]; then
    TMP_FILTER_FILE="/tmp/yaml_openclash_fake_filter_include"
    > "$TMP_FILTER_FILE"
-   
+
    process_pass_list() {
       [ ! -f "$1" ] && return
       awk '
@@ -557,8 +557,8 @@ begin
 
          if enable_sniffer
             sniffer_config = {
-               'enable' => true, 'override-destination' => true,
-               'sniff' => {'QUIC' => {'ports' => [443]}, 'TLS' => {'ports' => [443, 8443]}, 'HTTP' => {'ports' => [80, '8080-8880'], 'override-destination' => true}},
+               'enable' => true, 'override-destination' => false,
+               'sniff' => {'QUIC' => {'ports' => [443]}, 'TLS' => {'ports' => [443, 8443]}, 'HTTP' => {'ports' => [80, '8080-8880'], 'override-destination' => false}},
                'force-domain' => ['+.netflix.com', '+.nflxvideo.net', '+.amazonaws.com', '+.media.dssott.com'],
                'skip-domain' => ['Mijia Cloud', 'dlg.io.mi.com', '+.oray.com', '+.sunlogin.net', '+.push.apple.com']
             }

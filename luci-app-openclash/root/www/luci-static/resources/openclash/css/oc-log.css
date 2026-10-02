@@ -1,0 +1,615 @@
+/* ==========================================================================
+ * OpenClash stylesheet - oc-log.css
+ * Loaded by: log page (log.htm) only.
+ * ========================================================================== */
+
+#tab {
+    width: 100%;
+    height: 100%;
+    border: 1px solid var(--tab-border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 0 2px var(--tab-border);
+    background: var(--bg-white);
+    overflow: hidden;
+}
+
+#tab-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-light, #e2e8f0);
+    background: var(--bg-gray, #f1f5f9);
+    min-width: 0;
+    box-shadow: none;
+    position: relative;
+    z-index: 1;
+}
+
+#tab-header ul.oc-tabmenu {
+    display: flex;
+    width: 100%;
+    background: var(--bg-gray, #f1f5f9);
+    border-radius: 8px;
+    border-bottom: none !important;
+    border: none !important;
+    gap: 5px;
+    margin: 0;
+    padding: 0;
+}
+
+#tab-header ul.oc-tabmenu li {
+    flex: 1 1 0;
+    min-width: 0;
+    width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 8px;
+    height: 40px;
+    font-weight: 500;
+    color: var(--text-secondary, #64748b);
+    background: transparent;
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .18s;
+    margin: 0;
+    user-select: none;
+    position: relative;
+    box-sizing: border-box;
+    font-size: 14px;
+}
+
+#tab-header ul.oc-tabmenu li a svg {
+    width: 1.1em;
+    height: 1.1em;
+    flex-shrink: 0;
+    display: block;
+}
+
+#tab-header ul.oc-tabmenu li.oc-tab {
+    background: var(--primary-color, #3b82f6);
+    color: var(--text-on-primary, #fff);
+    font-weight: 600;
+    z-index: 2;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, .03);
+}
+
+#tab-header ul.oc-tabmenu li.oc-tab a {
+    color: var(--text-on-primary, #fff) !important;
+    font-weight: 600;
+}
+
+#tab-header ul.oc-tabmenu li.oc-tab-disabled {
+    color: var(--text-on-primary, #fff);
+    background: var(--bg-light);
+    opacity: .7;
+    cursor: pointer;
+}
+
+#tab-header ul.oc-tabmenu li.oc-tab-disabled a {
+    color: var(--text-primary, #000) !important;
+}
+
+#tab-header ul.oc-tabmenu li:not(.oc-tab):hover,
+#tab-header ul.oc-tabmenu li:not(.oc-tab):focus {
+    color: var(--primary-color, #3b82f6);
+    background: var(--primary-a10, rgba(59, 130, 246, .1));
+}
+
+#tab-header ul.oc-tabmenu li:not(.oc-tab):hover a,
+#tab-header ul.oc-tabmenu li:not(.oc-tab):focus a {
+    color: var(--primary-color, #3b82f6) !important;
+}
+
+#tab-header ul.oc-tabmenu li a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    text-decoration: none;
+    background: 0;
+    border: none;
+    outline: 0;
+    font: inherit;
+    color: inherit;
+    cursor: inherit;
+    padding: 0;
+    margin: 0;
+    user-select: none;
+    transition: color .18s;
+    box-shadow: none;
+}
+
+#tab-header ul.oc-tabmenu li a span {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#tab-content {
+    position: relative;
+    min-height: 540px;
+}
+
+/* Panes stay alive and laid out; the inactive ones are moved off-screen with a
+   transform so switching never re-computes styles/layout for their content. */
+#tab-content .dom {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    transform: translateX(-200%);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+#tab-content .dom ul li {
+    float: left;
+    margin: 15px 10px;
+    width: 225px;
+}
+
+.radio-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-gray, #f1f5f9);
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin: 10px auto;
+    width: 100%;
+    max-width: 500px;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, .05);
+}
+
+.radio-button input[type=radio] {
+    display: none;
+}
+
+.radio-button label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 18px;
+    font-size: 15px;
+    color: var(--text-secondary, #64748b);
+    background: var(--bg-white, #fff);
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all .2s;
+    font-weight: 500;
+    min-width: 60px;
+    user-select: none;
+}
+
+.radio-button label:hover {
+    color: var(--primary-color, #3b82f6);
+    border-color: var(--primary-color, #3b82f6);
+    background: var(--radio-hover-bg);
+}
+
+.radio-button input[type=radio]:checked + label {
+    background: var(--primary-color, #3b82f6);
+    color: var(--text-on-primary, #fff);
+    border-color: var(--primary-color, #3b82f6);
+    box-shadow: 0 1px 2px 0 var(--primary-a10);
+}
+
+.oc .oc-input-textarea {
+    width: 100%;
+    min-height: 150px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    background: var(--bg-white);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.oc .oc-input-textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-a10);
+}
+
+html[data-darkmode=true] .oc #tab-header {
+    background: var(--bg-light, #374151);
+    border-bottom: 1px solid var(--bg-light, #374151);
+}
+
+html[data-darkmode=true] .oc #tab-header ul.oc-tabmenu {
+    background: var(--bg-light, #374151);
+}
+
+html[data-darkmode=true] .oc #tab-header ul.oc-tabmenu li {
+    background: var(--bg-white, #1f2937);
+    color: var(--tab-text-dark);
+    border-color: var(--bg-light, #374151);
+}
+
+html[data-darkmode=true] .oc #tab-header ul.oc-tabmenu li.oc-tab {
+    background: var(--btn-primary-hover, #2563eb);
+    color: var(--text-on-primary, #fff);
+}
+
+html[data-darkmode=true] .oc #tab-header ul.oc-tabmenu li.oc-tab a {
+    color: var(--text-on-primary, #fff) !important;
+}
+
+html[data-darkmode=true] .oc #tab-header ul.oc-tabmenu li.oc-tab-disabled {
+    color: var(--bg-white, #1f2937);
+    background: var(--bg-white, #1f2937);
+    opacity: .7;
+}
+
+html[data-darkmode=true] .oc #tab-header ul.oc-tabmenu li.oc-tab-disabled a {
+    color: var(--text-primary) !important;
+}
+
+html[data-darkmode=true] .oc #tab-header ul.oc-tabmenu li:not(.oc-tab):hover,
+html[data-darkmode=true] .oc #tab-header ul.oc-tabmenu li:not(.oc-tab):focus {
+    color: var(--primary-color, #3b82f6);
+    border-color: var(--primary-color, #3b82f6);
+    background: var(--tab-hover-dark-bg);
+}
+
+html[data-darkmode=true] .oc .radio-button {
+    background: var(--bg-white, #1f2937);
+}
+
+html[data-darkmode=true] .oc .radio-button label {
+    background: var(--bg-light, #374151);
+    color: var(--text-primary, #d1d5db);
+    border-color: var(--border-light, #4b5563);
+}
+
+html[data-darkmode=true] .oc .radio-button label:hover {
+    color: var(--primary-bright, #60a5fa);
+    border-color: var(--primary-bright, #60a5fa);
+    background: var(--radio-hover-bg);
+}
+
+html[data-darkmode=true] .oc .radio-button input[type=radio]:checked + label {
+    background: var(--btn-primary-hover, #2563eb);
+    color: var(--text-on-primary, #fff);
+    border-color: var(--btn-primary-hover, #2563eb);
+}
+
+/* Debug log rendered view */
+.oc #debug-render-wrapper {
+    position: relative;
+    display: none;
+    width: 100%;
+}
+
+.oc #debug-rendered {
+    width: 100%;
+    max-height: 540px;
+    overflow: auto;
+    padding: 6px;
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: 0 0 6px;
+    background: var(--bg-white, #fff);
+    color: var(--text-primary, #374151);
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+#debug-rendered h1, #debug-rendered h2, #debug-rendered h3,
+#debug-rendered h4, #debug-rendered h5, #debug-rendered h6 {
+    margin: 1em 0 0.5em;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text-title, #1f2937);
+    border-bottom: none;
+}
+
+#debug-rendered h1 { font-size: 1.5em; }
+
+#debug-rendered h2 { font-size: 1.3em; padding: 6px 10px; background: var(--bg-gray, #f1f5f9); border-radius: 4px; }
+
+#debug-rendered h3 { font-size: 1.15em; padding: 4px 8px; background: var(--bg-gray, #f8fafc); border-radius: 3px; }
+
+#debug-rendered h4 { font-size: 1.05em; }
+
+#debug-rendered h5 { font-size: 0.95em; }
+
+#debug-rendered h6 { font-size: 0.85em; }
+
+#debug-rendered hr {
+    border: none;
+    border-top: 1px solid var(--border-light, #e2e8f0);
+    margin: 1em 0;
+}
+
+#debug-rendered p { margin: 0.5em 0; color: inherit !important; }
+
+#debug-rendered a {
+    color: var(--primary-color, #3b82f6) !important;
+    text-decoration: none;
+}
+
+#debug-rendered a:hover { text-decoration: underline; }
+
+#debug-rendered strong, #debug-rendered b { font-weight: 600; }
+
+#debug-rendered em, #debug-rendered i { font-style: italic; }
+
+#debug-rendered code {
+    font-family: 'Menlo', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', ui-monospace, 'Courier New', 'PingFang SC', 'Microsoft Yahei', 'Hiragino Sans GB', 'WenQuanYi Micro Hei', 'Noto Sans SC', sans-serif, 'Twemoji Mozilla';
+    padding: 0 2px;
+    font-size: 0.9em;
+}
+
+#debug-rendered .pre-copy-wrap {
+    position: relative;
+    margin: 0.75em 0;
+}
+
+#debug-rendered pre {
+    position: relative;
+    background: var(--bg-gray, #f1f5f9);
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: 6px;
+    padding: 6px;
+    overflow-x: auto;
+    margin: 0;
+    line-height: 1.5;
+}
+
+#debug-rendered pre code {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 5px;
+    min-height: 48px;
+    box-sizing: border-box;
+}
+
+#debug-rendered .pre-copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    border: none;
+    background: rgba(0,0,0,0.06);
+    color: var(--text-secondary, #6b7280);
+    cursor: pointer;
+    transition: opacity 0.15s;
+    z-index: 5;
+    -webkit-tap-highlight-color: transparent;
+    opacity: 1;
+}
+
+#debug-rendered .pre-copy-btn:hover {
+    background: rgba(0,0,0,0.12);
+}
+
+#debug-rendered .pre-copy-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+#debug-rendered blockquote {
+    border-left: 3px solid var(--primary-color, #3b82f6);
+    margin: 0.75em 0;
+    padding: 0.5em 1em;
+    color: var(--text-secondary, #6b7280);
+    background: var(--bg-gray, #f9fafb);
+    border-radius: 0 4px 4px 0;
+}
+
+#debug-rendered ul, #debug-rendered ol {
+    margin: 0.5em 0;
+    padding-left: 1.5em;
+}
+
+#debug-rendered li { margin: 0.25em 0; }
+
+#debug-rendered table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0.75em 0;
+}
+
+#debug-rendered th, #debug-rendered td {
+    border: 1px solid var(--border-light, #e2e8f0);
+    padding: 6px 12px;
+    text-align: left;
+    font-size: 0.9em;
+}
+
+#debug-rendered th {
+    background: var(--bg-gray, #f1f5f9);
+    font-weight: 600;
+    font-size: 0.95em;
+}
+
+#debug-rendered tr:nth-child(even) { background: rgba(0,0,0,0.02); }
+
+#debug-rendered img { max-width: 100%; }
+
+.oc #debug-copy-source.oc-usage-help-float {
+    position: absolute;
+    bottom: 12px;
+    right: 20px;
+    z-index: 10;
+}
+
+/* ---- Dark mode ---- */
+html[data-darkmode=true] .oc #debug-rendered {
+    background: var(--bg-dark, #1e293b);
+    color: var(--gray-200);
+    border-color: var(--border-dark, #334155);
+}
+
+html[data-darkmode=true] .oc #debug-rendered p,
+html[data-darkmode=true] .oc #debug-rendered span:not([class*="hljs"]),
+html[data-darkmode=true] .oc #debug-rendered li {
+    color: var(--gray-200);
+}
+
+html[data-darkmode=true] .oc #debug-rendered h1 {
+    color: var(--gray-50);
+}
+
+html[data-darkmode=true] .oc #debug-rendered h2,
+html[data-darkmode=true] .oc #debug-rendered h3,
+html[data-darkmode=true] .oc #debug-rendered h4,
+html[data-darkmode=true] .oc #debug-rendered h5,
+html[data-darkmode=true] .oc #debug-rendered h6 {
+    background: rgba(255,255,255,0.07);
+    color: var(--gray-100);
+}
+
+html[data-darkmode=true] .oc #debug-rendered hr {
+    border-top-color: var(--border-dark, #334155);
+}
+
+html[data-darkmode=true] .oc #debug-rendered a {
+    color: var(--blue-400);
+}
+
+html[data-darkmode=true] .oc #debug-rendered .pre-copy-btn {
+    background: rgba(255,255,255,0.08);
+    color: var(--gray-400);
+}
+
+html[data-darkmode=true] .oc #debug-rendered .pre-copy-btn:hover {
+    background: rgba(255,255,255,0.15);
+    color: var(--gray-200);
+}
+
+html[data-darkmode=true] .oc #debug-rendered pre {
+    background: rgba(0,0,0,0.3);
+    border-color: var(--border-dark, #334155);
+}
+
+html[data-darkmode=true] .oc #debug-rendered blockquote {
+    color: var(--gray-50);
+    background: rgba(255,255,255,0.08);
+    border-left-color: var(--blue-300);
+}
+
+html[data-darkmode=true] .oc #debug-rendered th,
+html[data-darkmode=true] .oc #debug-rendered td {
+    border-color: var(--border-dark, #334155);
+}
+
+html[data-darkmode=true] .oc #debug-rendered td {
+    color: var(--gray-150);
+}
+
+html[data-darkmode=true] .oc #debug-rendered th {
+    background: rgba(255,255,255,0.08);
+    color: var(--gray-50);
+}
+
+html[data-darkmode=true] .oc #debug-rendered tr:nth-child(even) {
+    background: rgba(255,255,255,0.03);
+}
+
+/* ==========================================================================
+ * Responsive rules (split from the original combined media blocks)
+ * ========================================================================== */
+@media (max-width: 1024px) {
+    /* log.htm - debug rendered copy button */
+    #debug-rendered .pre-copy-btn { width: 26px; height: 26px; }
+    #debug-rendered .pre-copy-btn svg { width: 13px; height: 13px; }
+    /* log.htm - tab menu responsive font */
+    #tab-header ul.oc-tabmenu li { font-size: 13px; }
+}
+
+@media (max-width: 768px) {
+    #debug-rendered { font-size: 13px; max-height: 460px; }
+    #debug-rendered h1 { font-size: 1.4em; }
+    #debug-rendered h2 { font-size: 1.2em; }
+    #debug-rendered h3 { font-size: 1.1em; }
+    #debug-rendered h4 { font-size: 1em; }
+    #debug-rendered h5 { font-size: 0.92em; }
+    #debug-rendered h6 { font-size: 0.85em; }
+    #debug-rendered code { font-size: 0.85em; }
+    #debug-rendered .pre-copy-btn { width: 24px; height: 24px; }
+    #debug-rendered .pre-copy-btn svg { width: 12px; height: 12px; }
+    /* log.htm - tab menu responsive font */
+    #tab-header ul.oc-tabmenu li { font-size: 12px; }
+}
+
+@media (max-width: 480px) {
+    #debug-rendered { font-size: 12px; max-height: 400px; }
+    #debug-rendered h1 { font-size: 1.35em; }
+    #debug-rendered h2 { font-size: 1.15em; }
+    #debug-rendered h3 { font-size: 1.05em; }
+    #debug-rendered h4 { font-size: 0.98em; }
+    #debug-rendered h5 { font-size: 0.9em; }
+    #debug-rendered h6 { font-size: 0.82em; }
+    #debug-rendered code { font-size: 0.8em; }
+    #debug-rendered .pre-copy-btn { width: 22px; height: 22px; }
+    #debug-rendered .pre-copy-btn svg { width: 11px; height: 11px; }
+    /* log.htm - tab menu responsive font */
+    #tab-header ul.oc-tabmenu li { font-size: 11px; }
+}
+
+@media (max-width: 320px) {
+    #debug-rendered { font-size: 11px; max-height: 360px; }
+    #debug-rendered h1 { font-size: 1.3em; }
+    #debug-rendered h2 { font-size: 1.1em; }
+    #debug-rendered h3 { font-size: 1em; }
+    #debug-rendered h4 { font-size: 0.95em; }
+    #debug-rendered h5 { font-size: 0.88em; }
+    #debug-rendered h6 { font-size: 0.8em; }
+    #debug-rendered code { font-size: 0.75em; }
+    #debug-rendered .pre-copy-btn { width: 20px; height: 20px; }
+    #debug-rendered .pre-copy-btn svg { width: 10px; height: 10px; }
+    /* log.htm - tab menu responsive font */
+    #tab-header ul.oc-tabmenu li { font-size: 10px; }
+}
+
+@media (hover: hover) {
+    #debug-rendered .pre-copy-btn { opacity: 0; }
+    #debug-rendered .pre-copy-wrap:hover .pre-copy-btn { opacity: 1; }
+}
+
+@media (pointer: coarse) {
+    #debug-rendered .pre-copy-btn { width: 36px; height: 36px; }
+    #debug-rendered .pre-copy-btn svg { width: 18px; height: 18px; }
+}
+
+@media (pointer: coarse) and (max-width: 1024px) {
+    #debug-rendered .pre-copy-btn { width: 34px; height: 34px; }
+    #debug-rendered .pre-copy-btn svg { width: 17px; height: 17px; }
+}
+
+@media (pointer: coarse) and (max-width: 768px) {
+    #debug-rendered .pre-copy-btn { width: 32px; height: 32px; }
+    #debug-rendered .pre-copy-btn svg { width: 16px; height: 16px; }
+}
+
+@media (pointer: coarse) and (max-width: 480px) {
+    #debug-rendered .pre-copy-btn { width: 30px; height: 30px; }
+    #debug-rendered .pre-copy-btn svg { width: 15px; height: 15px; }
+}
+
+@media (pointer: coarse) and (max-width: 320px) {
+    #debug-rendered .pre-copy-btn { width: 28px; height: 28px; }
+    #debug-rendered .pre-copy-btn svg { width: 14px; height: 14px; }
+}

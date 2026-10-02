@@ -1,6 +1,6 @@
 name: Compile The New Version OpenClash
 
-on: 
+on:
   push:
     branches:
       - dev
@@ -152,31 +152,40 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Build CodeMirror 6 Bundle & Minify CSS/JS
+      - name: Build Frontend Bundles & Minify CSS/JS
         run: |
           cd tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/tools/codemirror
           # Install dependencies
           npm install
-          # Build CodeMirror 6 JS
+          # Build CodeMirror 6 core bundle
           npx esbuild entry.js --bundle --format=iife --global-name=CM6 --minify --target=es2019 --outfile=../../root/www/luci-static/resources/openclash/js/cm6.min.js --legal-comments=none --loader:.css=text
-          # Minify other JS files (exclude cm6.min.js which is already built)
+          # Build the markdown preview bundle (lazy-loaded by CM6.ensureMarkdown)
+          npx esbuild entry-md-render.js --bundle --format=iife --global-name=OCMarkdown --minify --target=es2019 --outfile=../../root/www/luci-static/resources/openclash/js/md-render.min.js --legal-comments=none --loader:.css=text
+          # Build the YAML lint worker (lazy-loaded by CM6.yamlLinter)
+          npx esbuild entry-lint-worker.js --bundle --format=iife --minify --target=es2019 --outfile=../../root/www/luci-static/resources/openclash/js/lint-worker.min.js --legal-comments=none
+          # Minify page scripts (skip prebuilt *.min.js bundles and third-party files)
+          # --charset=utf8 keeps the sources byte-identical; the server-side template
+          # compile relies on the exact bytes (ascii charset would escape non-ASCII text).
           JS_DIR="../../root/www/luci-static/resources/openclash/js"
           for js in "$JS_DIR"/*.js; do
             [ -f "$js" ] || continue
-            [ "$(basename "$js")" = "cm6.min.js" ] && continue
+            case "$(basename "$js")" in *.min.js) continue ;; esac
             SIZE_BEFORE_JS=$(wc -c < "$js")
-            npx esbuild "$js" --minify --target=es2019 --outfile="$js.tmp"
+            npx esbuild "$js" --minify --charset=utf8 --target=es2019 --outfile="$js.tmp"
             mv "$js.tmp" "$js"
             SIZE_AFTER_JS=$(wc -c < "$js")
             echo "$(basename "$js") minified: ${SIZE_BEFORE_JS} -> ${SIZE_AFTER_JS} bytes ($(( 100 - SIZE_AFTER_JS * 100 / SIZE_BEFORE_JS ))% reduction)"
           done
-          # Minify CSS
-          CSS_PATH="../../root/www/luci-static/resources/openclash/css/oc.css"
-          SIZE_BEFORE=$(wc -c < "$CSS_PATH")
-          npx lightningcss --minify --targets 'iOS >= 12, safari >= 12, android >= 4.4' "$CSS_PATH" -o "$CSS_PATH.tmp"
-          mv "$CSS_PATH.tmp" "$CSS_PATH"
-          SIZE_AFTER=$(wc -c < "$CSS_PATH")
-          echo "CSS minified: ${SIZE_BEFORE} -> ${SIZE_AFTER} bytes ($(( 100 - SIZE_AFTER * 100 / SIZE_BEFORE ))% reduction)"
+          # Minify every stylesheet in place (sources live in luci-static)
+          CSS_DIR="../../root/www/luci-static/resources/openclash/css"
+          for css in "$CSS_DIR"/*.css; do
+            [ -f "$css" ] || continue
+            SIZE_BEFORE=$(wc -c < "$css")
+            npx lightningcss --minify --targets 'iOS >= 12, safari >= 12, android >= 4.4' "$css" -o "$css.tmp"
+            mv "$css.tmp" "$css"
+            SIZE_AFTER=$(wc -c < "$css")
+            echo "$(basename "$css") minified: ${SIZE_BEFORE} -> ${SIZE_AFTER} bytes ($(( 100 - SIZE_AFTER * 100 / SIZE_BEFORE ))% reduction)"
+          done
           rm -rf node_modules
 
       - name: Compile po2lmo

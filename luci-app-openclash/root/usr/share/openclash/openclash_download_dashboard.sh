@@ -72,20 +72,20 @@ EOF
    github_address_mod=$(uci_get_config "github_address_mod" || echo 0)
    if [ "$DASH_NAME" == "Dashboard" ]; then
       UNPACK_FILE_DIR="/usr/share/openclash/ui/dashboard/"
-		if [ "$DASH_TYPE" == "Official" ]; then
-			DOWNLOAD_PATH="https://codeload.github.com/ayanamist/clash-dashboard/zip/refs/heads/gh-pages"
+      if [ "$DASH_TYPE" == "Official" ]; then
+         DOWNLOAD_PATH="https://codeload.github.com/ayanamist/clash-dashboard/zip/refs/heads/gh-pages"
          FILE_PATH_INCLUDE="clash-dashboard-gh-pages"
       else
-			DOWNLOAD_PATH="https://codeload.github.com/MetaCubeX/Razord-meta/zip/refs/heads/gh-pages"
+         DOWNLOAD_PATH="https://codeload.github.com/MetaCubeX/Razord-meta/zip/refs/heads/gh-pages"
          FILE_PATH_INCLUDE="Razord-meta-gh-pages"
       fi
-	elif [ "$DASH_NAME" == "Yacd" ]; then
+   elif [ "$DASH_NAME" == "Yacd" ]; then
       UNPACK_FILE_DIR="/usr/share/openclash/ui/yacd/"
-		if [ "$DASH_TYPE" == "Official" ]; then
-			DOWNLOAD_PATH="https://codeload.github.com/haishanh/yacd/zip/refs/heads/gh-pages"
+      if [ "$DASH_TYPE" == "Official" ]; then
+         DOWNLOAD_PATH="https://codeload.github.com/haishanh/yacd/zip/refs/heads/gh-pages"
          FILE_PATH_INCLUDE="yacd-gh-pages"
       else
-			DOWNLOAD_PATH="https://codeload.github.com/MetaCubeX/Yacd-meta/zip/refs/heads/gh-pages"
+         DOWNLOAD_PATH="https://codeload.github.com/MetaCubeX/Yacd-meta/zip/refs/heads/gh-pages"
          FILE_PATH_INCLUDE="Yacd-meta-gh-pages"
       fi
   elif [ "$DASH_NAME" == "Zashboard" ]; then
@@ -94,9 +94,9 @@ EOF
       FILE_PATH_INCLUDE="zashboard-gh-pages-cdn-fonts"
    else
       UNPACK_FILE_DIR="/usr/share/openclash/ui/metacubexd/"
-		DOWNLOAD_PATH="https://codeload.github.com/MetaCubeX/metacubexd/zip/refs/heads/gh-pages"
+      DOWNLOAD_PATH="https://codeload.github.com/MetaCubeX/metacubexd/zip/refs/heads/gh-pages"
       FILE_PATH_INCLUDE="metacubexd-gh-pages"
-	fi
+   fi
    TARGET_FILE_DIR="${UNPACK_FILE_DIR%/}"
    TARGET_PARENT_DIR="$(dirname "$TARGET_FILE_DIR")"
    NEW_FILE_DIR="${TARGET_PARENT_DIR}/.openclash_dashboard_new.$$"

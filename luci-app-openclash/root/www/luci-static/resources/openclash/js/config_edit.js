@@ -1,0 +1,2862 @@
+// Extracted from luasrc/view/openclash/config_edit.htm - edit this file, not the template.
+// <%:Message%> markers and <%=...%> islands are compiled server-side by the "openclash/translate_js" controller action.
+
+ocRegisterEditorHotkeys();
+
+var ocIcons = {
+    SVG_COMPARE: '<svg width="24" height="24"><use href="#oc-icon-compare"/></svg>',
+    SVG_RESTORE: '<svg width="24" height="24"><use href="#oc-icon-restore"/></svg>'
+};
+
+var OC_CUSTOM_OVERWRITE = 'openclash_custom_overwrite.sh';
+var OC_BUILTIN_OVERWRITE = [OC_CUSTOM_OVERWRITE, 'default', 'Google_Play'];
+
+// Uses EditorView.updateListener instead of view.dispatch override.
+// dispatch() can receive TransactionSpec objects which lack docChanged.
+
+var ConfigEditor = {
+    overlay: null,
+    model: null,
+    editorInstance: null,
+    currentEditorMode: null,
+    originalContent: '',
+    isModified: false,
+    currentZoom: 100,
+    currentConfigFile: '',
+    zoomLevels: [75, 90, 100, 110, 125, 150, 200],
+    isOverwrite: false,
+    currentViewMode: 'original',
+    runtimeContent: '',
+    mergeViewActive: false,
+    isFullscreen: false,
+    mergeShowDifferences: true,
+
+    overwriteFiles: [],
+    overwriteSubInfo: {},
+    overwriteSidePanel: null,
+    overwriteSideCollapsed: false,
+    overwriteSideKey: 'oc_overwrite_side_collapsed',
+    overwriteDrag: {
+        dragging: null,
+        startIndex: null,
+        insertIndex: null,
+        touchTimer: null,
+        isTouchDragging: false,
+        touchDraggingMoved: false,
+        touchDraggingItem: null,
+        startTouch: null
+    },
+
+    init: function() {
+        this.overlay = document.getElementById('config-editor-overlay');
+        this.model = document.getElementById('config-editor-model');
+        this.overwriteSidePanel = document.getElementById('overwrite-side-panel');
+        this.mergeViewActive = false;
+        this.lastFocus = null;
+
+        if (!this.overlay || !this.model) {
+            return;
+        }
+
+        // keep the modal outside of the page stacking context, otherwise theme sidebars overlap it
+        var host = this.overlay.parentNode;
+        if (host && host.classList && host.classList.contains('oc') && host.parentNode !== document.body) {
+            document.body.appendChild(host);
+        }
+
+        if (this.model) this.model.setAttribute('tabindex', '-1');
+
+        this.bindEvents();
+        this.restoreOverwriteSide();
+    },
+
+    bindEvents: function() {
+        var self = this;
+
+        document.getElementById('config-editor-save').addEventListener('click', function() {
+            self.saveConfigContent();
+        });
+
+        document.getElementById('config-editor-download').addEventListener('click', function() {
+            self.downloadConfigContent();
+        });
+
+        document.getElementById('config-editor-close').addEventListener('click', function() {
+            self.closeEditor();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (!self.overlay.classList.contains('show')) return;
+
+            if (e.key === 'Escape' && self.isFullscreen) {
+                e.preventDefault();
+                self.toggleFullscreen(false);
+            } else if (e.key === 'Escape' && !self.isFullscreen) {
+                self.closeEditor();
+            } else if (e.key === 'Tab') {
+                var active = document.activeElement;
+                // CM6 owns Tab inside the editor (indent/autocomplete), never steal it
+                if (!active || e.defaultPrevented || (active.closest && active.closest('.cm-editor'))) return;
+                var list = self.getFocusables();
+                if (!list.length) return;
+                var first = list[0];
+                var last = list[list.length - 1];
+                if (!e.shiftKey && (active === last || !self.model.contains(active))) {
+                    e.preventDefault();
+                    first.focus();
+                } else if (e.shiftKey && (active === first || !self.model.contains(active))) {
+                    e.preventDefault();
+                    last.focus();
+                }
+            }
+        });
+
+        this.overlay.addEventListener('wheel', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+
+                if (e.deltaY < 0) {
+                    self.zoomIn();
+                } else {
+                    self.zoomOut();
+                }
+            }
+        });
+
+        var tabOriginal = document.getElementById('tab-original-config');
+        var tabRuntime = document.getElementById('tab-runtime-config');
+        if (tabOriginal && tabRuntime) {
+            tabOriginal.addEventListener('click', function() {
+                if (self.currentViewMode !== 'original') {
+                    self.currentViewMode = 'original';
+                    self.loadConfigContent();
+                    self.updateModeTabs();
+                }
+            });
+            tabRuntime.addEventListener('click', function() {
+                if (self.currentViewMode !== 'runtime') {
+                    self.currentViewMode = 'runtime';
+                    self.loadConfigContent();
+                    self.updateModeTabs();
+                }
+            });
+        };
+
+        var layoutBtn = document.getElementById('config-editor-layout');
+        if (layoutBtn) {
+            layoutBtn.addEventListener('click', function() {
+                if (!self.mergeViewActive) {
+                    self.showMergeView();
+                    self.currentViewMode = 'original';
+                    layoutBtn.title = '<%:Restore%>';
+                    layoutBtn.setAttribute('aria-label', '<%:Restore%>');
+                    layoutBtn.innerHTML = ocIcons.SVG_RESTORE;
+                } else {
+                    self.hideMergeView();
+                    layoutBtn.title = '<%:Compare%>';
+                    layoutBtn.setAttribute('aria-label', '<%:Compare%>');
+                    layoutBtn.innerHTML = ocIcons.SVG_COMPARE;
+                }
+            });
+        };
+
+        var sideToggle = document.getElementById('overwrite-side-toggle');
+        if (sideToggle) {
+            sideToggle.addEventListener('click', function() {
+                self.toggleOverwriteSide();
+            });
+        }
+
+        var newFileBtn = document.getElementById('overwrite-new-file');
+        if (newFileBtn) {
+            newFileBtn.addEventListener('click', function() {
+                self.showAddOverwritemodel();
+            });
+        }
+
+        this.bindOverwriteListEvents();
+        this.makeDraggable();
+        this.makeResizable();
+    },
+
+    show: function(configFile) {
+        var self = this;
+        this.isOverwrite = false;
+        this.currentViewMode = 'original';
+        this.currentConfigFile = '';
+        this.originalContent = '';
+        this.runtimeContent = '';
+        this.isModified = false;
+        this.mergeViewActive = false;
+        this.isFullscreen = false;
+
+        if (this.editorInstance) {
+            this.destroyEditor();
+            this.editorInstance = null;
+        }
+        var textarea = document.getElementById('config-editor-textarea');
+        if (textarea) {
+            textarea.value = '';
+            textarea.classList.add('oc-hidden');
+        }
+        ocShowLoading(textarea.parentNode, '<%:Loading config file...%>');
+        var mergeview = document.getElementById('config-mergeview-container');
+        if (mergeview) mergeview.classList.add('oc-hidden');
+
+        var banner = document.getElementById('overwrite-banner');
+        if (banner) banner.classList.add('oc-hidden');
+
+        var tabs = document.getElementById('config-mode-tabs');
+        if (tabs) tabs.classList.remove('oc-hidden');
+
+        var layoutBtn = document.getElementById('config-editor-layout');
+        if (layoutBtn) layoutBtn.classList.remove('oc-hidden');
+
+        if (!configFile) {
+            ocAlert('<%:Please select a config file first%>');
+            return;
+        }
+
+        this.currentConfigFile = configFile;
+        this.lastFocus = document.activeElement;
+        this.overlay.classList.add('show');
+        if (this.model) {
+            try { this.model.focus(); } catch (e) {}
+        }
+
+        this.model.classList.remove('maximized');
+        this.model.classList.remove('minimized');
+        this.resetModelStyles();
+
+        var editTitle = document.getElementById('editTitle');
+        if (editTitle) {
+            editTitle.textContent = '<%:File Edit%>: ';
+        }
+
+        var configNameElement = document.getElementById('config-file-name');
+        if (configNameElement) {
+            configNameElement.textContent = this.formatDisplayName(configFile);
+        }
+
+        this.hideMergeView();
+        this.updateModeTabs();
+        self.loadConfigContent();
+    },
+
+    showOverwrite: function() {
+        var self = this;
+        this.isOverwrite = true;
+        this.currentViewMode = 'original';
+        this.originalContent = '';
+        this.runtimeContent = '';
+        this.isModified = false;
+        this.mergeViewActive = false;
+        this.isFullscreen = false;
+
+        if (this.editorInstance) {
+            this.destroyEditor();
+            this.editorInstance = null;
+        }
+        var textarea = document.getElementById('config-editor-textarea');
+        if (textarea) {
+            textarea.value = '';
+            textarea.classList.add('oc-hidden');
+        }
+        ocShowLoading(textarea.parentNode, '<%:Loading config file...%>');
+        var mergeview = document.getElementById('config-mergeview-container');
+        if (mergeview) mergeview.classList.add('oc-hidden');
+
+        var banner = document.getElementById('overwrite-banner');
+        if (banner) banner.classList.remove('oc-hidden');
+
+        var tabs = document.getElementById('config-mode-tabs');
+        if (tabs) tabs.classList.add('oc-hidden');
+
+        var layoutBtn = document.getElementById('config-editor-layout');
+        if (layoutBtn) layoutBtn.classList.add('oc-hidden');
+
+        if (!this.currentConfigFile) {
+            this.currentConfigFile = '/etc/openclash/custom/openclash_custom_overwrite.sh';
+        }
+        this.lastFocus = document.activeElement;
+        this.overlay.classList.add('show');
+        if (this.model) {
+            try { this.model.focus(); } catch (e) {}
+        }
+
+        this.model.classList.remove('maximized');
+        this.model.classList.remove('minimized');
+        this.resetModelStyles();
+
+        var editTitle = document.getElementById('editTitle');
+        if (editTitle) {
+            editTitle.textContent = '<%:Overwrite Edit%>: ';
+        }
+
+        if (this.overwriteSidePanel) this.overwriteSidePanel.classList.remove('oc-hidden');
+        this.restoreOverwriteSide();
+        this.loadOverwriteFiles();
+
+        var configNameElement = document.getElementById('config-file-name');
+        if (configNameElement) {
+            configNameElement.textContent = this.formatDisplayName(this.currentConfigFile);
+        }
+
+        this.hideMergeView();
+        self.loadConfigContent();
+    },
+
+    destroyEditor: function() {
+        this.toggleFullscreen(false);
+        if (this.editorInstance) {
+            if (this.editorInstance.a && this.editorInstance.a.destroy) {
+                this.editorInstance.a.destroy();
+                if (this.editorInstance.b && this.editorInstance.b.destroy) this.editorInstance.b.destroy();
+            } else if (this.editorInstance.destroy) {
+                this.editorInstance.destroy();
+            } else if (this.editorInstance.toTextArea) {
+                this.editorInstance.toTextArea();
+            }
+            this.editorInstance = null;
+        }
+        this.currentEditorMode = null;
+        var textarea = document.getElementById('config-editor-textarea');
+        if (textarea) textarea.classList.remove('oc-hidden');
+    },
+
+    toggleFullscreen: function(forceState) {
+        var nextState = typeof forceState === 'boolean' ? forceState : !this.isFullscreen;
+        this.isFullscreen = nextState;
+        window.ocFullscreenActive = nextState;
+        if (typeof CM6 !== 'undefined' && CM6.toggleFullscreen) {
+            if (nextState) {
+                var dom = this.editorInstance;
+                if (dom && dom.dom) dom = dom.dom;
+                if (dom && dom.classList) {
+                    if (typeof ocEnterFullscreen === 'function') ocEnterFullscreen(dom);
+                    CM6.toggleFullscreen(dom);
+                }
+            } else {
+                var fsEl = document.getElementById('oc-fullscreen-active');
+                if (fsEl) CM6.toggleFullscreen(fsEl);
+                if (typeof ocExitFullscreen === 'function') ocExitFullscreen();
+            }
+        }
+    },
+
+    hide: function() {
+        this.overlay.classList.remove('show');
+        if (this.lastFocus && typeof this.lastFocus.focus === 'function') {
+            try { this.lastFocus.focus(); } catch (e) {}
+        }
+        this.lastFocus = null;
+
+        this.destroyEditor();
+        this.finishOverwriteDrag();
+        window.mergeViewInstance = null;
+
+        this.isModified = false;
+        this.originalContent = '';
+        if (this.overwriteSidePanel) this.overwriteSidePanel.classList.add('oc-hidden');
+        if (!this.isOverwrite) {
+            this.currentConfigFile = '';
+        }
+
+        var textarea = document.getElementById('config-editor-textarea');
+        var mergeview = document.getElementById('config-mergeview-container');
+        var editor_help = document.getElementById('config-editor-help');
+        var layoutBtn = document.getElementById('config-editor-layout');
+
+        if (textarea) {
+            ocHideLoading(textarea.parentNode);
+            textarea.classList.add('oc-hidden');
+        }
+        if (mergeview) mergeview.classList.add('oc-hidden');
+        if (layoutBtn) {
+            layoutBtn.classList.remove('active');
+            layoutBtn.title = '<%:Compare%>';
+            layoutBtn.setAttribute('aria-label', '<%:Compare%>');
+            layoutBtn.innerHTML = ocIcons.SVG_COMPARE;
+        }
+        if (editor_help) editor_help.innerHTML = ocEditorHelpHtml(false);
+    },
+
+    getFocusables: function() {
+        var nodes = this.model.querySelectorAll('button:not([disabled]):not(.oc-hidden), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [contenteditable="true"]');
+        var list = [];
+        for (var i = 0; i < nodes.length; i++) {
+            if (nodes[i].offsetParent !== null || nodes[i] === document.activeElement) list.push(nodes[i]);
+        }
+        return list;
+    },
+
+    resetModelStyles: function() {
+        if (!this.model) return;
+        this.model.style.position = '';
+        this.model.style.left = '';
+        this.model.style.top = '';
+        this.model.style.right = '';
+        this.model.style.bottom = '';
+        this.model.style.margin = '';
+        this.model.style.transform = '';
+        this.model.style.transition = '';
+        this.model.style.width = '';
+        this.model.style.height = '';
+    },
+
+    formatDisplayName: function(fileName) {
+        if (!fileName) return '<%:Unknown%>';
+
+        if (fileName === '/etc/openclash/custom/openclash_custom_overwrite.sh') {
+            return 'openclash_custom_overwrite.sh';
+        }
+
+        var name = fileName.split('/').pop().split('\\').pop();
+        return name;
+    },
+
+    updateModeTabs: function() {
+        var tabOriginal = document.getElementById('tab-original-config');
+        var tabRuntime = document.getElementById('tab-runtime-config');
+        var saveBtn = document.getElementById('config-editor-save');
+        if (this.isOverwrite) {
+            if (tabOriginal && tabRuntime) {
+                tabOriginal.classList.remove('active');
+                tabRuntime.classList.remove('active');
+            }
+            if (saveBtn) {
+                saveBtn.disabled = !this.isModified;
+            }
+            return;
+        }
+        if (tabOriginal && tabRuntime) {
+            if (this.currentViewMode === 'original') {
+                tabOriginal.classList.add('active');
+                tabRuntime.classList.remove('active');
+                if (saveBtn) {
+                    saveBtn.disabled = !this.isModified;
+                }
+            } else {
+                tabOriginal.classList.remove('active');
+                tabRuntime.classList.add('active');
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                }
+            }
+        }
+    },
+
+    loadConfigContent: function() {
+        var self = this;
+        var statusText = document.getElementById('config-editor-status-text');
+        var textarea = document.getElementById('config-editor-textarea');
+        var mergeview = document.getElementById('config-mergeview-container');
+        if (mergeview) mergeview.classList.add('oc-hidden');
+
+        statusText.textContent = '<%:Loading...%>';
+
+        var url, mode;
+        if (this.isOverwrite) {
+            var file = this.currentConfigFile || '/etc/openclash/custom/openclash_custom_overwrite.sh';
+            url = '/cgi-bin/luci/admin/services/openclash/config_file_read?config_file=' + encodeURIComponent(file);
+            if (file.endsWith('.yaml') || file.endsWith('.yml')) {
+                mode = "text/yaml";
+            } else if (file.endsWith('.sh')) {
+                mode = "text/x-sh";
+            } else {
+                mode = "text/x-properties";
+            }
+        } else if (this.currentViewMode === 'runtime') {
+            var runtimePath = '/etc/openclash/' + encodeURIComponent(this.formatDisplayName(this.currentConfigFile));
+            url = '/cgi-bin/luci/admin/services/openclash/config_file_read?config_file=' + runtimePath;
+            mode = "text/yaml";
+        } else {
+            url = '/cgi-bin/luci/admin/services/openclash/config_file_read?config_file=' + encodeURIComponent(this.currentConfigFile);
+            mode = "text/yaml";
+        }
+
+        function renderEditor(content, mode, readOnly, lint) {
+            if (typeof CM6 === 'undefined') {
+                ocRequireCM6(function() { renderEditor(content, mode, readOnly, lint); });
+                return;
+            }
+            textarea.value = content;
+
+            var editorKey = mode + '|' + (readOnly ? 'r' : 'w') + '|' + (lint ? 'l' : 'n');
+
+            if (self.editorInstance && self.currentEditorMode === editorKey && !self.mergeViewActive) {
+                self.originalContent = content;
+                self.editorInstance.dispatch({
+                    changes: { from: 0, to: self.editorInstance.state.doc.length, insert: content }
+                });
+                self.isModified = false;
+                self.updateSaveButtonState();
+                textarea.classList.add('oc-hidden');
+                ocHideLoading(textarea.parentNode);
+                return;
+            }
+
+            if (self.editorInstance) {
+                self.destroyEditor();
+            }
+            self.currentEditorMode = editorKey;
+
+            var exts = [];
+            var isDark = isDarkBackground(document.body);
+            var topSearch = (CM6 && CM6.topSearchExtension) ? CM6.topSearchExtension() : null;
+            exts.push(CM6.themeExtension(isDark));
+            if (topSearch) exts.push(topSearch);
+
+            if (mode === 'text/yaml' || mode === 'text/x-yaml') {
+                exts.push(CM6.yaml());
+                if (lint) {
+                    exts.push(CM6.yamlLinter());
+                    exts.push(CM6.lintGutter());
+                }
+                exts.push(CM6.autocompletion({ override: [CM6.mihomoCompletion] }));
+                exts.push(CM6.indentUnit.of("  "));
+                exts.push(CM6.indentMarkerExtension());
+            } else if (mode === 'text/x-sh' || mode === 'shell') {
+                exts.push(CM6.StreamLanguage.define(CM6.shell));
+            } else if (mode === 'text/x-properties' || mode === 'properties') {
+                exts.push(CM6.StreamLanguage.define(CM6.properties));
+            }
+
+            if (readOnly) {
+                exts.push(CM6.EditorState.readOnly.of(true));
+            } else {
+                if (mode === 'text/yaml' || mode === 'text/x-yaml') {
+                    exts.push(CM6.placeholderExtension('<%:Enter YAML configuration...%>'));
+                } else if (mode === 'text/x-sh' || mode === 'shell') {
+                    exts.push(CM6.placeholderExtension('<%:Enter shell script...%>'));
+                } else {
+                    exts.push(CM6.placeholderExtension('<%:Enter configuration...%>'));
+                }
+            }
+
+            exts.push(CM6.keymap.of([
+                { key: 'Ctrl-s', run: function() {
+                    if (!readOnly) self.saveConfigContent();
+                    return true;
+                }}
+            ]));
+
+            if (!readOnly) {
+                exts.push(CM6.EditorView.updateListener.of(function(update) {
+                    if (update.docChanged) {
+                        self.isModified = update.state.doc.toString() !== self.originalContent;
+                        self.updateSaveButtonState();
+                    }
+                }));
+            }
+
+            var parent = textarea.parentNode;
+            self.editorInstance = new CM6.EditorView({
+                state: CM6.EditorState.create({
+                    doc: content,
+                    extensions: [CM6.baseExtensions(), ...exts]
+                }),
+                parent: parent
+            });
+
+            textarea.classList.add('oc-hidden');
+            self.editorInstance.dom.style.height = '100%';
+            ocHideLoading(textarea.parentNode);
+
+            if (CM6.mirrorThemeScrollbar) CM6.mirrorThemeScrollbar();
+        }
+
+        if (!this.isOverwrite) {
+            if (this.currentViewMode === 'original' && this.originalContent) {
+                renderEditor(this.originalContent, "text/yaml", false, true);
+                statusText.textContent = '<%:Ready%>';
+                self.updateModeTabs();
+                return;
+            }
+            if (this.currentViewMode === 'runtime' && this.runtimeContent) {
+                renderEditor(this.runtimeContent, "text/yaml", true, false);
+                statusText.textContent = '<%:Runtime config (read only)%>';
+                self.updateModeTabs();
+                return;
+            }
+        }
+
+        fetch(url)
+            .then(function(r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
+            .then(function(data) {
+                if (data.status === 'success' && data.content !== undefined) {
+                    if (self.currentViewMode === 'runtime' && !self.isOverwrite) {
+                        self.runtimeContent = data.content;
+                        renderEditor(self.runtimeContent, "text/yaml", true, false);
+                        statusText.textContent = '<%:Runtime config (read only)%>';
+                    } else {
+                        self.originalContent = data.content;
+                        renderEditor(self.originalContent, mode, self.isOverwrite ? false : false, !self.isOverwrite);
+                        statusText.textContent = '<%:Ready%>';
+                    }
+                    self.updateModeTabs();
+                } else {
+                    ocHideLoading(textarea.parentNode);
+                    statusText.textContent = '<%:Load failed%>';
+                }
+            })
+            .catch(function(err) {
+                ocHideLoading(textarea.parentNode);
+                statusText.textContent = '<%:Load failed%>';
+            });
+    },
+
+    showMergeView: function() {
+        var self = this;
+        if (this.isOverwrite) return;
+        if (typeof CM6 === 'undefined') {
+            ocRequireCM6(function() { self.showMergeView(); });
+            return;
+        }
+        var container = document.getElementById('config-mergeview-container');
+        var textarea = document.getElementById('config-editor-textarea');
+        var tabs = document.getElementById('config-mode-tabs');
+        var editor_help = document.getElementById('config-editor-help');
+        var statusText = document.getElementById('config-editor-status-text');
+
+        if (tabs) tabs.classList.add('oc-hidden');
+        if (textarea) {
+            textarea.classList.add('oc-hidden');
+            ocHideLoading(textarea.parentNode);
+        }
+        if (container) container.classList.remove('oc-hidden');
+        if (statusText) statusText.textContent = '<%:Loading...%>';
+        if (editor_help) editor_help.innerHTML = ocEditorHelpHtml(true);
+
+        var getOriginal = function() {
+            return new Promise(function(resolve, reject) {
+                if (self.originalContent) return resolve(self.originalContent);
+                var url = '/cgi-bin/luci/admin/services/openclash/config_file_read?config_file=' + encodeURIComponent(self.currentConfigFile);
+                fetch(url).then(function(r){return r.json()}).then(function(data){
+                    resolve(data.content || '');
+                }).catch(function(){resolve('')});
+            });
+        };
+        var getRuntime = function() {
+            return new Promise(function(resolve, reject) {
+                if (self.runtimeContent) return resolve(self.runtimeContent);
+                var runtimePath = '/etc/openclash/' + encodeURIComponent(self.formatDisplayName(self.currentConfigFile));
+                var url = '/cgi-bin/luci/admin/services/openclash/config_file_read?config_file=' + runtimePath;
+                fetch(url).then(function(r){return r.json()}).then(function(data){
+                    resolve(data.content || '');
+                }).catch(function(){resolve('')});
+            });
+        };
+
+        this.mergeShowDifferences = true;
+
+        Promise.all([getOriginal(), getRuntime()]).then(function(contents){
+            var original = contents[0] || '';
+            var runtime = contents[1] || '';
+            container.innerHTML = '';
+            if (self.editorInstance) self.destroyEditor();
+
+            var isDark = isDarkBackground(document.body);
+            var themeExt = CM6.themeExtension(isDark);
+            var topSearch = (CM6 && CM6.topSearchExtension) ? CM6.topSearchExtension() : null;
+            var extA = [CM6.baseExtensions([], { preload: false }), themeExt, CM6.placeholderExtension('<%:Edit original config...%>'), CM6.yaml(), CM6.yamlLinter(), CM6.lintGutter(), CM6.autocompletion({ override: [CM6.mihomoCompletion] }), CM6.indentUnit.of("  "), CM6.indentMarkerExtension()];
+            var extB = [CM6.baseExtensions([], { preload: false }), themeExt, CM6.placeholderExtension('<%:Runtime config (read only)%>'), CM6.yaml(), CM6.indentUnit.of("  "), CM6.indentMarkerExtension(), CM6.EditorState.readOnly.of(true)];
+            var mergeDefaults = CM6.mergeDefaultConfig || {};
+            if (topSearch) {
+                extA.push(topSearch);
+                extB.push(topSearch);
+            }
+
+            extA.push(CM6.EditorView.updateListener.of(function(update) {
+                if (update.docChanged) {
+                    self.isModified = update.state.doc.toString() !== self.originalContent;
+                    self.updateSaveButtonState();
+                }
+            }));
+
+            self.editorInstance = new CM6.MergeView({
+                a: {
+                    doc: original,
+                    extensions: extA
+                },
+                b: {
+                    doc: runtime,
+                    extensions: extB
+                },
+                parent: container,
+                diffConfig: mergeDefaults.diffConfig || { scanLimit: 5000 },
+                gutter: mergeDefaults.gutter !== false,
+                revertControls: mergeDefaults.revertControls || 'b-to-a',
+                highlightChanges: self.mergeShowDifferences,
+                collapseUnchanged: mergeDefaults.collapseUnchanged || false
+            });
+
+            self.mergeViewActive = true;
+            window.mergeViewInstance = self.editorInstance;
+
+            if (CM6.mirrorThemeScrollbar) CM6.mirrorThemeScrollbar();
+
+            if (statusText) statusText.textContent = '<%:Compare mode: left(Original Config), right(Runtime Config)%>';
+            var layoutBtn = document.getElementById('config-editor-layout');
+            if (layoutBtn) layoutBtn.classList.add('active');
+        });
+    },
+
+    hideMergeView: function() {
+        var container = document.getElementById('config-mergeview-container');
+        var textarea = document.getElementById('config-editor-textarea');
+        var tabs = document.getElementById('config-mode-tabs');
+        var editor_help = document.getElementById('config-editor-help');
+        var layoutBtn = document.getElementById('config-editor-layout');
+        if (container) {
+            container.innerHTML = '';
+            container.classList.add('oc-hidden');
+        }
+        if (textarea) textarea.classList.remove('oc-hidden');
+        if (!this.isOverwrite && tabs) tabs.classList.remove('oc-hidden');
+        this.mergeViewActive = false;
+        window.mergeViewInstance = null;
+        this.loadConfigContent();
+
+        if (layoutBtn) {
+            layoutBtn.classList.remove('active');
+            layoutBtn.title = '<%:Compare%>';
+            layoutBtn.setAttribute('aria-label', '<%:Compare%>');
+            layoutBtn.innerHTML = ocIcons.SVG_COMPARE;
+        }
+
+        if (editor_help) editor_help.innerHTML = ocEditorHelpHtml(false);
+    },
+
+    saveConfigContent: function(onDone) {
+        if (!this.editorInstance || !this.isModified) {
+            if (onDone) onDone(false);
+            return;
+        }
+
+        var self = this;
+        var statusText = document.getElementById('config-editor-status-text');
+        var saveBtn = document.getElementById('config-editor-save');
+
+        statusText.textContent = '<%:Saving...%>';
+        saveBtn.disabled = true;
+
+        var content;
+        if (this.mergeViewActive && this.editorInstance && this.editorInstance.a) {
+            content = this.editorInstance.a.state.doc.toString();
+        } else if (this.editorInstance.state) {
+            content = this.editorInstance.state.doc.toString();
+        } else {
+            content = '';
+        }
+
+        if (!content) {
+            saveBtn.disabled = false;
+            statusText.textContent = '<%:Config file content is empty%>';
+            if (onDone) onDone(false);
+            return;
+        }
+
+        var formData = new FormData();
+        if (this.isOverwrite) {
+            formData.append('config_file', this.currentConfigFile || '/etc/openclash/custom/openclash_custom_overwrite.sh');
+        } else {
+            formData.append('config_file', this.currentConfigFile);
+        }
+        formData.append('content', content);
+
+        fetch('/cgi-bin/luci/admin/services/openclash/config_file_save', {
+            method: 'POST',
+            body: formData
+        })
+        .then(function(r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json();
+        })
+        .then(function(data) {
+            saveBtn.disabled = false;
+
+            if (data.status === 'success') {
+                self.originalContent = content;
+                self.isModified = false;
+                self.updateSaveButtonState();
+                statusText.textContent = '<%:Saved successfully%>';
+                if (onDone) onDone(true);
+
+                setTimeout(function() {
+                    if (statusText && statusText.textContent === '<%:Saved successfully%>') {
+                        statusText.textContent = '<%:Ready%>';
+                    }
+                }, 3000);
+            } else {
+                statusText.textContent = '<%:Save failed%>: ' + (data.message || '<%:Unknown error%>');
+                if (onDone) onDone(false);
+
+                setTimeout(function() {
+                    if (statusText && statusText.textContent.indexOf('<%:Save failed%>') === 0) {
+                        statusText.textContent = '<%:Ready%>';
+                    }
+                }, 3000);
+            }
+        })
+        .catch(function(err) {
+            saveBtn.disabled = false;
+            statusText.textContent = '<%:Failed to save config file:%> ' + err.message;
+            if (onDone) onDone(false);
+        });
+    },
+
+    downloadConfigContent: function() {
+        if (!this.editorInstance) {
+            document.getElementById('config-editor-status-text').textContent = '<%:Editor not ready%>';
+            return;
+        }
+
+        var content;
+        if (this.mergeViewActive && this.editorInstance && this.editorInstance.a) {
+            content = this.editorInstance.a.state.doc.toString();
+        } else if (this.editorInstance.state) {
+            content = this.editorInstance.state.doc.toString();
+        } else {
+            content = '';
+        }
+
+        var filename;
+        if (this.isOverwrite) {
+            filename = this.formatDisplayName(this.currentConfigFile);
+            if (!filename) filename = 'openclash_custom_overwrite.sh';
+        } else {
+            filename = this.formatDisplayName(this.currentConfigFile);
+            if (!filename.toLowerCase().endsWith('.yaml') && !filename.toLowerCase().endsWith('.yml')) {
+                filename += '.yaml';
+            }
+        }
+
+        try {
+            var blob = new Blob([content], { type: 'text/yaml;charset=utf-8' });
+            var url = window.URL.createObjectURL(blob);
+            var link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.style.display = 'none';
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            var statusText = document.getElementById('config-editor-status-text');
+            if (statusText) {
+                var originalText = statusText.textContent;
+                statusText.textContent = '<%:Download started%>';
+
+                setTimeout(function() {
+                    if (statusText && statusText.textContent === '<%:Download started%>') {
+                        statusText.textContent = originalText;
+                    }
+                }, 2000);
+            }
+
+        } catch (error) {
+            document.getElementById('config-editor-status-text').textContent = '<%:Download failed:%> ' + error.message;
+        }
+    },
+
+    updateSaveButtonState: function() {
+        this.updateModeTabs();
+    },
+
+    restoreOverwriteSide: function() {
+        var stored = null;
+        try {
+            stored = window.localStorage.getItem(this.overwriteSideKey);
+        } catch (e) {
+            stored = null;
+        }
+        if (stored === '1' || stored === '0') {
+            this.overwriteSideCollapsed = stored === '1';
+        } else {
+            this.overwriteSideCollapsed = window.innerWidth < 768;
+        }
+        this.applyOverwriteSideState();
+    },
+
+    toggleOverwriteSide: function() {
+        this.overwriteSideCollapsed = !this.overwriteSideCollapsed;
+        this.applyOverwriteSideState(true);
+    },
+
+    applyOverwriteSideState: function(persist) {
+        var panel = this.overwriteSidePanel;
+        if (!panel) return;
+
+        if (this.overwriteSideCollapsed) {
+            panel.classList.add('rail');
+        } else {
+            panel.classList.remove('rail');
+        }
+
+        var toggle = document.getElementById('overwrite-side-toggle');
+        if (toggle) {
+            toggle.title = this.overwriteSideCollapsed ? '<%:Expand%>' : '<%:Collapse%>';
+        }
+
+        if (persist) {
+            try {
+                window.localStorage.setItem(this.overwriteSideKey, this.overwriteSideCollapsed ? '1' : '0');
+            } catch (e) {
+                return;
+            }
+        }
+    },
+
+    loadOverwriteFiles: function() {
+        var self = this;
+        fetch('/cgi-bin/luci/admin/services/openclash/overwrite_file_list')
+        .then(r => r.json())
+        .then(function(data) {
+            var files = [];
+            if (data.overwrite_files) {
+                files = data.overwrite_files.filter(function(f) {
+                    return (f.path && (f.path.indexOf('/etc/openclash/overwrite/') === 0 || f.path === '/etc/openclash/custom/openclash_custom_overwrite.sh'));
+                });
+            }
+            files = files.filter(f => f.path !== '/etc/openclash/custom/openclash_custom_overwrite.sh');
+            files.unshift({
+                path: '/etc/openclash/custom/openclash_custom_overwrite.sh',
+                name: 'openclash_custom_overwrite.sh'
+            });
+            self.overwriteFiles = files;
+            self.loadOverwriteSubInfo();
+        });
+    },
+
+    loadOverwriteSubInfo: function() {
+        var self = this;
+        fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info')
+        .then(r => r.json())
+        .then(function(data) {
+            if (data.status === 'success') {
+                self.overwriteSubInfo = (data && data.data) ? data.data : {};
+                Object.keys(self.overwriteSubInfo).forEach(function(key) {
+                    var subInfo = self.overwriteSubInfo[key] || {};
+                    subInfo.config = self.parseOverwriteConfigValue(subInfo.config);
+                    self.overwriteSubInfo[key] = subInfo;
+                });
+                var customEntry = self.overwriteFiles.filter(function(f) {
+                    return self.getOverwriteFileName(f) === OC_CUSTOM_OVERWRITE;
+                });
+                var moduleEntries = self.overwriteFiles.filter(function(f) {
+                    return self.getOverwriteFileName(f) !== OC_CUSTOM_OVERWRITE;
+                });
+                moduleEntries.sort(function(a, b) {
+                    return self.getOverwriteOrder(self.getOverwriteFileName(a)) - self.getOverwriteOrder(self.getOverwriteFileName(b));
+                });
+                // keep the built-in custom overwrite script pinned at the first position
+                self.overwriteFiles = customEntry.concat(moduleEntries);
+                self.renderOverwriteCards();
+            } else {
+                var statusText = document.getElementById('config-editor-status-text');
+                if (statusText) statusText.textContent = '<%:Failed to save subscription info:%> ' + (data.message || '');
+            }
+        });
+    },
+
+    renderOverwriteCards: function() {
+        var self = this;
+        if (!this.overwriteSidePanel) return;
+        var list = document.getElementById('overwrite-side-list');
+        if (!list) return;
+        list.innerHTML = '';
+
+        var statusText = document.getElementById('config-editor-status-text');
+        var itemCount = 0;
+
+        var appendAvatar = function(item, name) {
+            var avatar = document.createElement('div');
+            avatar.className = 'overwrite-item-avatar';
+            var letter = (name.charAt(0) || '?').toUpperCase();
+            avatar.textContent = letter;
+            if (letter.charCodeAt(0) > 0x2e80) {
+                avatar.classList.add('cjk');
+            }
+            item.appendChild(avatar);
+        };
+
+        var appendMain = function(item, name, subText, tagText, tagClass) {
+            var main = document.createElement('div');
+            main.className = 'overwrite-item-main';
+
+            var line = document.createElement('div');
+            line.className = 'overwrite-item-line';
+
+            var title = document.createElement('div');
+            title.className = 'overwrite-item-title';
+            title.textContent = name;
+            line.appendChild(title);
+            main.appendChild(line);
+
+            var meta = document.createElement('div');
+            meta.className = 'overwrite-item-meta';
+
+            if (tagText) {
+                var tag = document.createElement('span');
+                tag.className = 'overwrite-item-tag' + (tagClass ? ' ' + tagClass : '');
+                tag.textContent = tagText;
+                meta.appendChild(tag);
+            }
+
+            var info = document.createElement('div');
+            info.className = 'overwrite-item-sub';
+            info.textContent = subText;
+            meta.appendChild(info);
+            main.appendChild(meta);
+
+            item.appendChild(main);
+
+            return { line: line, meta: meta };
+        };
+
+        var selectFile = function(path) {
+            if (self.currentConfigFile === path) return;
+            self.currentConfigFile = path;
+            self.loadConfigContent();
+            self.renderOverwriteCards();
+            var configNameElement = document.getElementById('config-file-name');
+            if (configNameElement) {
+                configNameElement.textContent = self.formatDisplayName(path);
+            }
+        };
+
+        var customIdx = self.overwriteFiles.findIndex(f => (f.name === 'openclash_custom_overwrite.sh' || (f.path && f.path.endsWith('/openclash_custom_overwrite.sh'))));
+        var customFile = customIdx !== -1 ? self.overwriteFiles[customIdx] : null;
+
+        if (customFile) {
+            var customName = self.getOverwriteFileName(customFile);
+
+            var customItem = document.createElement('div');
+            customItem.className = 'overwrite-item';
+            customItem.dataset.file = customFile.path;
+            customItem.dataset.index = 'custom';
+            customItem.title = customName;
+
+            if (self.currentConfigFile === customFile.path) {
+                customItem.classList.add('active');
+            }
+
+            appendAvatar(customItem, customName);
+            appendMain(customItem, customName, '<%:Local Mod%>', '<%:Builtin%>', 'builtin');
+
+            customItem.onclick = function() {
+                selectFile(customFile.path);
+            };
+
+            customItem.draggable = false;
+
+            list.appendChild(customItem);
+            itemCount++;
+        }
+
+        var files = self.overwriteFiles.filter((f, i) => i !== customIdx);
+        files.forEach(function(file, idx) {
+            var name = self.getOverwriteFileName(file);
+            var sub = self.overwriteSubInfo[name] || {};
+            var registered = !!self.overwriteSubInfo[name];
+            var enable = typeof sub.enable !== 'undefined' ? sub.enable : 0;
+            var builtin = OC_BUILTIN_OVERWRITE.indexOf(name) !== -1;
+            var tagText = !registered ? '<%:Unset%>' : (builtin ? '<%:Builtin%>' : '');
+            var tagClass = (registered && builtin) ? 'builtin' : '';
+
+            var item = document.createElement('div');
+            item.className = 'overwrite-item';
+            item.dataset.file = file.path;
+            item.dataset.index = idx;
+            item.title = name;
+
+            if (self.currentConfigFile === file.path) {
+                item.classList.add('active');
+            }
+            if (!registered) {
+                item.classList.add('unconfigured');
+            } else if (enable != 1) {
+                item.classList.add('off');
+            }
+
+            appendAvatar(item, name);
+            var itemParts = appendMain(item, name, sub.url ? '<%:Sub Mod%>' : '<%:Local Mod%>', tagText, tagClass);
+
+            var switchLabel = document.createElement('label');
+            switchLabel.className = 'oc-switch';
+
+            var switchInput = document.createElement('input');
+            switchInput.type = 'checkbox';
+            switchInput.checked = enable == 1 ? true : false;
+            switchInput.onchange = function(e) {
+                e.stopPropagation();
+                if (switchInput.dataset.busy === '1') return;
+
+                var newEnable = switchInput.checked ? 1 : 0;
+                var formData = new FormData();
+                formData.append('filename', name);
+                formData.append('type', sub.type || 'file');
+                formData.append('url', sub.url || '');
+                formData.append('update_days', sub.update_days || '');
+                formData.append('update_hour', sub.update_hour || '');
+                formData.append('order', self.getOverwriteOrder(name));
+                formData.append('param', sub.param || '');
+                formData.append('config', self.parseOverwriteConfigValue(sub.config).join('\n'));
+                formData.append('enable', newEnable);
+
+                switchInput.dataset.busy = '1';
+                switchInput.disabled = true;
+
+                var fail = function(message) {
+                    switchInput.dataset.busy = '0';
+                    switchInput.disabled = false;
+                    switchInput.checked = !switchInput.checked;
+                    statusText.textContent = '<%:Failed to update enable status%>' + (message ? ': ' + message : '');
+                    // the backend may have applied part of the change: resync instead of assuming
+                    self.loadOverwriteSubInfo();
+                    setTimeout(function() {
+                        if (statusText && statusText.textContent.indexOf('<%:Failed to update enable status%>') === 0) {
+                            statusText.textContent = '<%:Ready%>';
+                        }
+                    }, 3000);
+                };
+
+                fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
+                    method: 'POST',
+                    body: formData
+                }).then(function(r) { return r.json(); }).then(function(data) {
+                    if (data.status === 'success') {
+                        switchInput.dataset.busy = '0';
+                        switchInput.disabled = false;
+                        self.overwriteSubInfo[name] = self.overwriteSubInfo[name] || {};
+                        self.overwriteSubInfo[name].enable = newEnable;
+                        item.classList.toggle('off', newEnable != 1);
+                    } else {
+                        fail(data.message);
+                    }
+                }).catch(function() {
+                    fail();
+                });
+            };
+            switchInput.onclick = function(e) { e.stopPropagation(); };
+            switchInput.onmousedown = function(e) { e.stopPropagation(); };
+            switchInput.ontouchstart = function(e) { e.stopPropagation(); };
+            switchLabel.onclick = function(e) { e.stopPropagation(); };
+            switchLabel.onmousedown = function(e) { e.stopPropagation(); };
+            switchLabel.ontouchstart = function(e) { e.stopPropagation(); };
+
+            var switchSpan = document.createElement('span');
+            switchSpan.className = 'oc-switch-slider';
+
+            switchLabel.appendChild(switchInput);
+            switchLabel.appendChild(switchSpan);
+
+            var extra = document.createElement('div');
+            extra.className = 'overwrite-item-extra';
+            extra.appendChild(switchLabel);
+            itemParts.line.appendChild(extra);
+
+            var actions = document.createElement('div');
+            actions.className = 'overwrite-item-actions';
+            itemParts.meta.appendChild(actions);
+
+            if (sub.type === 'http') {
+                var refresh = document.createElement('button');
+                refresh.className = 'icon-btn';
+                refresh.type = 'button';
+                refresh.title = '<%:Refresh Subscription%>';
+                refresh.innerHTML = '<svg width="14" height="14"><use href="#oc-icon-update"/></svg>';
+                refresh.onclick = function(e) {
+                    e.stopPropagation();
+                    var statusText = document.getElementById('config-editor-status-text');
+                    if (statusText) {
+                        statusText.textContent = '<%:Refreshing subscription...%>';
+                    }
+                    refresh.disabled = true;
+                    var formData = new FormData();
+                    formData.append('filename', name);
+                    formData.append('type', sub.type || 'http');
+                    formData.append('url', sub.url || '');
+                    formData.append('update_days', sub.update_days || '');
+                    formData.append('update_hour', sub.update_hour || '');
+                    formData.append('order', (typeof sub.order !== 'undefined' && sub.order !== null && sub.order !== '') ? sub.order : idx);
+                    formData.append('param', sub.param || '');
+                    formData.append('config', self.parseOverwriteConfigValue(sub.config).join('\n'));
+                    formData.append('enable', typeof sub.enable !== 'undefined' ? sub.enable : 1);
+                    formData.append('refresh', '1');
+                    fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
+                        method: 'POST',
+                        body: formData
+                    }).then(r=>r.json()).then(function(data){
+                        refresh.disabled = false;
+                        if (statusText) {
+                            if (data.status === 'success') {
+                                statusText.textContent = '<%:Subscription refreshed successfully%>';
+                            } else {
+                                statusText.textContent = '<%:Subscription refresh failed%>: ' + (data.message || '');
+                            }
+                        }
+                        setTimeout(function(){
+                            if (statusText && (statusText.textContent.startsWith('<%:Subscription refreshed successfully%>') || statusText.textContent.startsWith('<%:Subscription refresh failed%>'))) {
+                                statusText.textContent = '<%:Ready%>';
+                            }
+                        }, 2000);
+                    }).catch(function(){
+                        refresh.disabled = false;
+                        if (statusText) statusText.textContent = '<%:Subscription refresh failed%>';
+                        setTimeout(function(){
+                            if (statusText && statusText.textContent.startsWith('<%:Subscription refresh failed%>')) {
+                                statusText.textContent = '<%:Ready%>';
+                            }
+                        }, 2000);
+                    });
+                    setTimeout(function(){
+                        self.loadConfigContent();
+                    }, 1000);
+                };
+                actions.appendChild(refresh);
+            }
+
+            var gear = document.createElement('button');
+            gear.className = 'icon-btn';
+            gear.type = 'button';
+            gear.title = '<%:Edit Module Info%>';
+            gear.innerHTML = '<svg width="14" height="14"><use href="#oc-icon-gear"/></svg>';
+            gear.onclick = function(e) {
+                e.stopPropagation();
+                ConfigEditor.showOverwriteSubmodel(name, sub, file.path);
+            };
+            actions.appendChild(gear);
+
+            var del = document.createElement('button');
+            del.className = 'icon-btn';
+            del.type = 'button';
+            del.title = '<%:Delete%>';
+            del.innerHTML = '<svg width="14" height="14"><use href="#oc-icon-trash"/></svg>';
+            del.onclick = function(e) {
+                e.stopPropagation();
+                ocConfirm({
+                    title: '<%:Delete module%>',
+                    body: '<%:Are you sure you want to delete this module and its subscription info?%> <%:This cannot be undone%>',
+                    buttons: [
+                        { label: '<%:Cancel%>', value: null },
+                        { label: '<%:OK%>', value: 'delete', kind: 'danger' }
+                    ]
+                }).then(function(choice) {
+                    if (choice !== 'delete') {
+                        return;
+                    }
+                    fetch('/cgi-bin/luci/admin/services/openclash/delete_overwrite_file', {
+                        method: 'POST',
+                        body: new URLSearchParams({ filename: name })
+                    })
+                    .then(r => r.json())
+                    .then(function(data) {
+                        if (data.status === 'success') {
+                            self.loadOverwriteFiles();
+                            setTimeout(function() {
+                                var remaining = self.overwriteFiles.filter(function(f) {
+                                    return self.getOverwriteFileName(f) !== name;
+                                });
+                                var nextPath = remaining.length ? remaining[0].path : '/etc/openclash/custom/openclash_custom_overwrite.sh';
+                                self.currentConfigFile = nextPath;
+                                self.loadConfigContent();
+                                self.renderOverwriteCards();
+                                var configNameElement = document.getElementById('config-file-name');
+                                if (configNameElement) {
+                                    configNameElement.textContent = self.formatDisplayName(nextPath);
+                                }
+                            }, 300);
+                        } else if (statusText) {
+                            statusText.textContent = '<%:Delete failed%>: ' + (data.message || '');
+                        }
+                    });
+                });
+            };
+            actions.appendChild(del);
+
+            item.onclick = function(e) {
+                selectFile(file.path);
+            };
+
+            item.draggable = registered;
+            item.addEventListener('dragstart', function(e) {
+                self.clearOverwriteDropIndicator();
+                self.overwriteDrag.dragging = item;
+                self.overwriteDrag.startIndex = idx;
+                item.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            });
+            item.addEventListener('dragend', function(e) {
+                self.finishOverwriteDrag();
+            });
+            item.addEventListener('touchstart', function(e) {
+                if (!registered) return;
+                if (e.touches.length !== 1) return;
+
+                var target = e.target;
+                var isButton = target.closest('.overwrite-item-actions, .oc-switch');
+                if (isButton) return;
+
+                self.beginOverwriteTouchDrag(item, e.touches[0]);
+            });
+
+            item.addEventListener('touchmove', function(e) {
+                if (e.touches.length !== 1 || !self.overwriteDrag.startTouch) return;
+                if (self.overwriteDrag.touchDraggingItem !== item) return;
+
+                if (!self.overwriteDrag.touchDraggingMoved) {
+                    var dx = Math.abs(e.touches[0].clientX - self.overwriteDrag.startTouch.clientX);
+                    var dy = Math.abs(e.touches[0].clientY - self.overwriteDrag.startTouch.clientY);
+                    if (dx > 12 || dy > 12) {
+                        self.overwriteDrag.touchDraggingMoved = true;
+                        if (self.overwriteDrag.touchTimer) {
+                            clearTimeout(self.overwriteDrag.touchTimer);
+                            self.overwriteDrag.touchTimer = null;
+                        }
+                    }
+                }
+            });
+
+            list.appendChild(item);
+            itemCount++;
+        });
+
+        if (self.isOverwrite) {
+            self.overwriteSidePanel.classList.remove('oc-hidden');
+        } else {
+            self.overwriteSidePanel.classList.add('oc-hidden');
+        }
+
+        var count = document.getElementById('overwrite-side-count');
+        if (count) count.textContent = itemCount;
+    },
+
+    getOverwriteFileName: function(file) {
+        if (!file) return '';
+        return file.name || (file.path ? file.path.split('/').pop() : '');
+    },
+
+    getOverwriteOrder: function(name) {
+        var sub = this.overwriteSubInfo[name];
+        // files without a uci section are not executed by the core: keep them at the end
+        if (!sub) return 9999;
+        var order = parseInt(sub.order, 10);
+        return isNaN(order) ? 0 : order;
+    },
+
+    getNextOverwriteOrder: function() {
+        var self = this;
+        var maxOrder = 0;
+        this.overwriteFiles.forEach(function(file) {
+            var name = self.getOverwriteFileName(file);
+            if (!name || name === OC_CUSTOM_OVERWRITE) return;
+            if (!self.overwriteSubInfo[name]) return;
+            var order = self.getOverwriteOrder(name);
+            if (order > maxOrder && order < 9999) maxOrder = order;
+        });
+        return maxOrder + 1;
+    },
+
+    getOverwriteList: function() {
+        return document.getElementById('overwrite-side-list');
+    },
+
+    getOverwriteModuleItems: function() {
+        var list = this.getOverwriteList();
+        if (!list) return [];
+        return Array.prototype.slice.call(list.querySelectorAll('.overwrite-item')).filter(function(item) {
+            return !!(item.dataset && typeof item.dataset.index !== 'undefined' && item.dataset.index !== 'custom');
+        });
+    },
+
+    computeOverwriteDropIndex: function(clientY) {
+        var items = this.getOverwriteModuleItems();
+        for (var i = 0; i < items.length; i++) {
+            var rect = items[i].getBoundingClientRect();
+            if (clientY < rect.top + rect.height / 2) return i;
+        }
+        return items.length;
+    },
+
+    clearOverwriteDropIndicator: function() {
+        var list = this.getOverwriteList();
+        this.overwriteDrag.insertIndex = null;
+        if (!list) return;
+        Array.prototype.slice.call(list.querySelectorAll('.overwrite-drag-line')).forEach(function(line) {
+            if (line.parentNode) line.parentNode.removeChild(line);
+        });
+    },
+
+    updateOverwriteDropIndicator: function(insertIndex, touch) {
+        var list = this.getOverwriteList();
+        if (!list || insertIndex === null || insertIndex === undefined) return;
+
+        var items = this.getOverwriteModuleItems();
+        if (insertIndex < 0) insertIndex = 0;
+        if (insertIndex > items.length) insertIndex = items.length;
+
+        var line = list.querySelector('.overwrite-drag-line');
+        if (!line) {
+            line = document.createElement('div');
+            line.className = 'overwrite-drag-line';
+            list.appendChild(line);
+        }
+
+        var listRect = list.getBoundingClientRect();
+        var listStyle = window.getComputedStyle(list);
+        var gapSize = parseFloat(listStyle.rowGap || listStyle.gap);
+        if (isNaN(gapSize) || gapSize <= 0) {
+            gapSize = 6;
+        }
+
+        var prevBottom = null;
+        var nextTop = null;
+        if (insertIndex > 0) {
+            prevBottom = items[insertIndex - 1].getBoundingClientRect().bottom;
+        }
+        if (insertIndex < items.length) {
+            nextTop = items[insertIndex].getBoundingClientRect().top;
+        }
+
+        var center;
+        if (prevBottom !== null && nextTop !== null) {
+            center = (prevBottom + nextTop) / 2;
+        } else if (prevBottom !== null) {
+            center = prevBottom + gapSize / 2;
+        } else if (nextTop !== null) {
+            center = nextTop - gapSize / 2;
+        } else {
+            center = listRect.top + parseFloat(listStyle.paddingTop || 6);
+        }
+
+        var top = center - listRect.top + list.scrollTop;
+        line.style.top = Math.round(top - 1) + 'px';
+        line.style.width = Math.max(0, list.clientWidth - 8) + 'px';
+
+        if (touch) {
+            var scrollZone = 60;
+            if (touch.clientY - listRect.top < scrollZone && list.scrollTop > 0) {
+                list.scrollTop -= 12;
+            } else if (listRect.bottom - touch.clientY < scrollZone) {
+                list.scrollTop += 12;
+            }
+        }
+
+        this.overwriteDrag.insertIndex = insertIndex;
+    },
+
+    bindOverwriteListEvents: function() {
+        var self = this;
+        var list = this.getOverwriteList();
+        if (!list || list.dataset.dragBound === '1') return;
+        list.dataset.dragBound = '1';
+
+        list.addEventListener('dragover', function(e) {
+            if (!self.overwriteDrag.dragging) return;
+            e.preventDefault();
+            if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+            self.updateOverwriteDropIndicator(self.computeOverwriteDropIndex(e.clientY), null);
+
+            var listRect = list.getBoundingClientRect();
+            var scrollZone = 40;
+            if (e.clientY - listRect.top < scrollZone && list.scrollTop > 0) {
+                list.scrollTop -= 8;
+            } else if (listRect.bottom - e.clientY < scrollZone) {
+                list.scrollTop += 8;
+            }
+        });
+
+        list.addEventListener('dragleave', function(e) {
+            if (!list.contains(e.relatedTarget)) {
+                self.clearOverwriteDropIndicator();
+            }
+        });
+
+        list.addEventListener('drop', function(e) {
+            if (!self.overwriteDrag.dragging) return;
+            e.preventDefault();
+            var from = parseInt(self.overwriteDrag.dragging.dataset.index, 10);
+            var to = (self.overwriteDrag.insertIndex === null || self.overwriteDrag.insertIndex === undefined)
+                ? self.computeOverwriteDropIndex(e.clientY)
+                : self.overwriteDrag.insertIndex;
+            self.finishOverwriteDrag();
+            self.applyOverwriteReorder(from, to);
+        });
+
+        list.addEventListener('touchmove', function(e) {
+            if (!self.overwriteDrag.isTouchDragging || e.touches.length !== 1) return;
+            var touch = e.touches[0];
+            self.updateOverwriteDropIndicator(self.computeOverwriteDropIndex(touch.clientY), touch);
+            e.preventDefault();
+        }, { passive: false });
+
+        list.addEventListener('touchend', function(e) {
+            if (!self.overwriteDrag.isTouchDragging) return;
+            var from = parseInt(self.overwriteDrag.startIndex, 10);
+            var to = self.overwriteDrag.insertIndex;
+            var moved = self.overwriteDrag.touchDraggingMoved;
+            self.finishOverwriteDrag();
+            if (to !== null && to !== undefined) {
+                self.applyOverwriteReorder(from, to);
+            }
+            if (moved) e.preventDefault();
+        });
+
+        list.addEventListener('touchcancel', function() {
+            if (!self.overwriteDrag.isTouchDragging) return;
+            self.finishOverwriteDrag();
+        });
+    },
+
+    beginOverwriteTouchDrag: function(item, touch) {
+        var self = this;
+        this.finishOverwriteDrag();
+
+        this.overwriteDrag.touchDraggingItem = item;
+        this.overwriteDrag.startTouch = { clientX: touch.clientX, clientY: touch.clientY };
+
+        this.overwriteDrag.touchTimer = setTimeout(function() {
+            if (!self.overwriteDrag.touchDraggingMoved && self.overwriteDrag.touchDraggingItem === item) {
+                self.overwriteDrag.isTouchDragging = true;
+                self.overwriteDrag.dragging = item;
+                self.overwriteDrag.startIndex = parseInt(item.dataset.index, 10);
+                item.classList.add('dragging');
+                if (navigator.vibrate) navigator.vibrate(50);
+            }
+        }, 500);
+    },
+
+    finishOverwriteDrag: function() {
+        if (this.overwriteDrag.touchTimer) {
+            clearTimeout(this.overwriteDrag.touchTimer);
+            this.overwriteDrag.touchTimer = null;
+        }
+        if (this.overwriteDrag.dragging && this.overwriteDrag.dragging.classList) {
+            this.overwriteDrag.dragging.classList.remove('dragging');
+        }
+        this.overwriteDrag.dragging = null;
+        this.overwriteDrag.startIndex = null;
+        this.overwriteDrag.isTouchDragging = false;
+        this.overwriteDrag.touchDraggingMoved = false;
+        this.overwriteDrag.touchDraggingItem = null;
+        this.overwriteDrag.startTouch = null;
+        this.clearOverwriteDropIndicator();
+    },
+
+    applyOverwriteReorder: function(from, to) {
+        if (isNaN(from) || to === null || to === undefined || to === from || to === from + 1) return;
+
+        var modules = this.overwriteFiles.filter(function(file) {
+            var name = file.name || (file.path ? file.path.split('/').pop() : '');
+            return name !== OC_CUSTOM_OVERWRITE;
+        });
+        if (from < 0 || from >= modules.length) return;
+
+        var moved = modules.splice(from, 1)[0];
+        modules.splice(to > from ? to - 1 : to, 0, moved);
+
+        var customEntries = this.overwriteFiles.filter(function(file) {
+            var name = file.name || (file.path ? file.path.split('/').pop() : '');
+            return name === OC_CUSTOM_OVERWRITE;
+        });
+        this.overwriteFiles = customEntries.concat(modules);
+        this.renderOverwriteCards();
+        this.saveOverwriteSort();
+    },
+
+    saveOverwriteSort: function() {
+        var self = this;
+        var statusText = document.getElementById('config-editor-status-text');
+        var pending = [];
+        var position = 0;
+
+        this.overwriteFiles.forEach(function(file) {
+            var name = self.getOverwriteFileName(file);
+            if (!name || name === OC_CUSTOM_OVERWRITE) return;
+            var sub = self.overwriteSubInfo[name];
+            if (!sub) return;
+            position++;
+            if (self.getOverwriteOrder(name) === position) return;
+            pending.push({ name: name, sub: sub, order: position });
+        });
+
+        if (!pending.length) return;
+
+        if (statusText) statusText.textContent = '<%:Saving...%>';
+
+        var failed = false;
+        var chain = Promise.resolve();
+        pending.forEach(function(item) {
+            chain = chain.then(function() {
+                var formData = new FormData();
+                formData.append('filename', item.name);
+                formData.append('type', item.sub.type || 'file');
+                formData.append('url', item.sub.url || '');
+                formData.append('update_days', item.sub.update_days || '');
+                formData.append('update_hour', item.sub.update_hour || '');
+                formData.append('param', item.sub.param || '');
+                formData.append('config', self.parseOverwriteConfigValue(item.sub.config).join('\n'));
+                formData.append('order', item.order);
+                formData.append('enable', parseInt(item.sub.enable, 10) === 1 ? '1' : '0');
+                return fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
+                    method: 'POST',
+                    body: formData
+                }).then(function(r) { return r.json(); }).then(function(data) {
+                    if (!data || data.status !== 'success') failed = true;
+                }).catch(function() {
+                    failed = true;
+                });
+            });
+        });
+
+        chain.then(function() {
+            if (!failed) {
+                pending.forEach(function(item) {
+                    if (self.overwriteSubInfo[item.name]) {
+                        self.overwriteSubInfo[item.name].order = item.order;
+                    }
+                });
+            }
+            if (statusText) statusText.textContent = failed ? '<%:Save failed%>' : '<%:Saved successfully%>';
+            setTimeout(function() {
+                if (statusText && (statusText.textContent === '<%:Save failed%>' || statusText.textContent === '<%:Saved successfully%>')) {
+                    statusText.textContent = '<%:Ready%>';
+                }
+            }, 2000);
+            if (failed) self.loadOverwriteSubInfo();
+        });
+    },
+
+    getOverwriteConfigFiles: function() {
+        var rawList = [];
+        if (window.configFiles && Array.isArray(window.configFiles)) {
+            rawList = window.configFiles;
+        } else if (window.ConfigFileManager && Array.isArray(window.ConfigFileManager.configList)) {
+            rawList = window.ConfigFileManager.configList;
+        }
+
+        return rawList.map(function(file) {
+            if (typeof file === 'string') {
+                return {
+                    name: file,
+                    path: file
+                };
+            }
+            return {
+                name: file.name || file.filename || file.path || '',
+                path: file.path || file.filepath || file.name || ''
+            };
+        }).filter(function(file) {
+            return !!file.path;
+        });
+    },
+
+    parseOverwriteConfigValue: function(value) {
+        if (!value) return [];
+        if (Array.isArray(value)) {
+            return value.filter(function(item) { return !!item; });
+        }
+        return String(value).split(/[\r\n,;]+/).map(function(item) {
+            return item.trim();
+        }).filter(function(item) {
+            return !!item;
+        });
+    },
+
+    escapeOverwriteHtml: function(value) {
+        return String(value === undefined || value === null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    },
+
+    renderOverwriteConfigDropdown: function(configValue, dropdownId) {
+        var self = this;
+        var files = this.getOverwriteConfigFiles();
+        var selected = this.parseOverwriteConfigValue(configValue);
+        var selectedMap = {};
+        selected.forEach(function(item) {
+            selectedMap[item] = true;
+        });
+
+        if (!selected.length) {
+            selectedMap['all'] = true;
+        }
+
+        var allChecked = !!selectedMap['all'];
+
+        var known = {};
+        files.forEach(function(file) {
+            known[file.path] = true;
+            known[file.name] = true;
+        });
+        // saved values must survive even when the config file list is unavailable
+        var orphans = selected.filter(function(item) {
+            return item !== 'all' && !known[item];
+        });
+
+        var allOptionHtml = `
+            <label class="overwrite-config-option${allChecked ? ' selected' : ''}" data-path="all" data-all-option="1">
+                <span class="overwrite-config-option-left">
+                    <input type="checkbox" value="all"${allChecked ? ' checked' : ''}>
+                    <span class="overwrite-config-option-name" title="${'<%:Use For All Config File%>'}">${'<%:Use For All Config File%>'}</span>
+                </span>
+                <span class="overwrite-config-option-state">${allChecked ? '✓' : ''}</span>
+            </label>
+        `;
+
+        var fileOptionsHtml = files.map(function(file) {
+            var checked = (!allChecked && (selectedMap[file.path] || selectedMap[file.name])) ? ' checked' : '';
+            var disabled = allChecked;
+            return `
+                <label class="overwrite-config-option${checked ? ' selected' : ''}${disabled ? ' disabled-by-all' : ''}" data-path="${self.escapeOverwriteHtml(file.path)}">
+                    <span class="overwrite-config-option-left">
+                        <input type="checkbox" value="${self.escapeOverwriteHtml(file.path)}"${checked}${disabled ? ' disabled' : ''}>
+                        <span class="overwrite-config-option-name" title="${self.escapeOverwriteHtml(file.name)}">${self.escapeOverwriteHtml(file.name)}</span>
+                    </span>
+                    <span class="overwrite-config-option-state">${checked ? '✓' : ''}</span>
+                </label>
+            `;
+        }).join('');
+
+        var orphanOptionsHtml = orphans.map(function(value) {
+            var checked = allChecked ? '' : ' checked';
+            var disabled = allChecked;
+            var label = String(value).split('/').pop() || String(value);
+            return `
+                <label class="overwrite-config-option${checked ? ' selected' : ''}${disabled ? ' disabled-by-all' : ''}" data-path="${self.escapeOverwriteHtml(value)}">
+                    <span class="overwrite-config-option-left">
+                        <input type="checkbox" value="${self.escapeOverwriteHtml(value)}"${checked}${disabled ? ' disabled' : ''}>
+                        <span class="overwrite-config-option-name" title="${self.escapeOverwriteHtml(value)}">${self.escapeOverwriteHtml(label)}</span>
+                    </span>
+                    <span class="overwrite-config-option-state">${checked ? '✓' : ''}</span>
+                </label>
+            `;
+        }).join('');
+
+        var emptyHtml = (!fileOptionsHtml && !orphanOptionsHtml) ? '<div class="overwrite-config-option"><span class="overwrite-config-option-name"><%:No config files found%></span></div>' : '';
+        var optionsHtml = allOptionHtml + fileOptionsHtml + orphanOptionsHtml + emptyHtml;
+
+        return `
+            <div class="overwrite-config-dropdown form-select-wrapper" id="${dropdownId}">
+                <button type="button" class="overwrite-config-dropdown-btn form-select">
+                    <span class="overwrite-config-dropdown-text">${'<%:Use For All Config File%>'}</span>
+                    <span class="overwrite-config-dropdown-arrow"></span>
+                </button>
+                <div class="overwrite-config-dropdown-panel">
+                    ${optionsHtml}
+                </div>
+            </div>
+        `;
+    },
+
+    updateOverwriteConfigDropdownLabel: function(dropdown) {
+        if (!dropdown) return;
+        var textEl = dropdown.querySelector('.overwrite-config-dropdown-text');
+        if (!textEl) return;
+        var checked = dropdown.querySelectorAll('.overwrite-config-option input[type="checkbox"]:checked');
+        if (!checked.length) {
+            textEl.textContent = '<%:Use For All Config File%>';
+            return;
+        }
+        if (checked.length === 1) {
+            var oneName = checked[0].closest('.overwrite-config-option').querySelector('.overwrite-config-option-name');
+            textEl.textContent = oneName ? oneName.textContent : '<%:1 file selected%>';
+            return;
+        }
+        textEl.textContent = checked.length + ' <%:files selected%>';
+    },
+
+    bindOverwriteConfigDropdown: function(container) {
+        if (!container || container.dataset.inited === '1') return;
+        container.dataset.inited = '1';
+
+        var self = this;
+        var btn = container.querySelector('.overwrite-config-dropdown-btn');
+        var panel = container.querySelector('.overwrite-config-dropdown-panel');
+
+        function syncAllExclusiveState() {
+            var allInput = container.querySelector('.overwrite-config-option input[type="checkbox"][value="all"]');
+            var allOption = allInput ? allInput.closest('.overwrite-config-option') : null;
+            var allState = allOption ? allOption.querySelector('.overwrite-config-option-state') : null;
+            var allSelected = !!(allInput && allInput.checked);
+
+            if (allOption) {
+                allOption.classList.toggle('selected', allSelected);
+            }
+            if (allState) {
+                allState.textContent = allSelected ? '✓' : '';
+            }
+
+            container.querySelectorAll('.overwrite-config-option input[type="checkbox"]').forEach(function(input) {
+                if (input.value === 'all') return;
+                var option = input.closest('.overwrite-config-option');
+                var state = option ? option.querySelector('.overwrite-config-option-state') : null;
+                if (allSelected) {
+                    input.checked = false;
+                }
+                input.disabled = allSelected;
+                if (option) {
+                    option.classList.toggle('selected', input.checked);
+                    option.classList.toggle('disabled-by-all', allSelected);
+                    option.setAttribute('aria-disabled', allSelected ? 'true' : 'false');
+                }
+                if (state) {
+                    state.textContent = input.checked ? '✓' : '';
+                }
+            });
+        }
+
+        this.updateOverwriteConfigDropdownLabel(container);
+        syncAllExclusiveState();
+        this.updateOverwriteConfigDropdownLabel(container);
+
+        if (btn && !btn.disabled) {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                container.classList.toggle('open');
+            });
+        }
+
+        container.querySelectorAll('.overwrite-config-option input[type="checkbox"]').forEach(function(input) {
+            input.addEventListener('change', function() {
+                if (input.value === 'all') {
+                    syncAllExclusiveState();
+                } else if (input.checked) {
+                    var allInput = container.querySelector('.overwrite-config-option input[type="checkbox"][value="all"]');
+                    if (allInput) {
+                        allInput.checked = false;
+                    }
+                    syncAllExclusiveState();
+                }
+
+                var option = input.closest('.overwrite-config-option');
+                var state = option ? option.querySelector('.overwrite-config-option-state') : null;
+                if (option) {
+                    option.classList.toggle('selected', input.checked);
+                }
+                if (state) {
+                    state.textContent = input.checked ? '✓' : '';
+                }
+                self.updateOverwriteConfigDropdownLabel(container);
+            });
+        });
+
+        if (panel) {
+            panel.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!container.contains(e.target)) {
+                container.classList.remove('open');
+            }
+        });
+    },
+
+    addOverwriteParamRow: function(container, name, value) {
+        var row = document.createElement('div');
+        row.className = 'form-row overwrite-param-row';
+        row.style.cssText = 'align-items: center; gap: 6px; margin-bottom: 6px;';
+
+        var nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.className = 'form-input';
+        nameInput.placeholder = 'Key';
+        nameInput.value = name || '';
+        nameInput.style.cssText = 'flex: 1; height: 32px;';
+
+        var valueInput = document.createElement('input');
+        valueInput.type = 'text';
+        valueInput.className = 'form-input';
+        valueInput.placeholder = 'Value';
+        valueInput.value = value || '';
+        valueInput.style.cssText = 'flex: 1.5; height: 32px;';
+
+        var removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'icon-btn';
+        removeBtn.title = '<%:Remove%>';
+        removeBtn.style.cssText = 'flex-shrink: 0;';
+        removeBtn.innerHTML = '<svg width="14" height="14"><use href="#oc-icon-close"/></svg>';
+        removeBtn.addEventListener('click', function() {
+            row.parentNode.removeChild(row);
+            if (container.children.length === 0) {
+                container.classList.add('oc-hidden');
+            }
+        });
+
+        row.appendChild(nameInput);
+        row.appendChild(valueInput);
+        row.appendChild(removeBtn);
+        container.appendChild(row);
+        container.classList.remove('oc-hidden');
+    },
+
+    buildOverwriteParamRows: function(container, paramStr) {
+        if (!paramStr) return;
+        var pairs = paramStr.split(';');
+        for (var i = 0; i < pairs.length; i++) {
+            var pair = pairs[i].trim();
+            if (pair) {
+                var eqIdx = pair.indexOf('=');
+                var name = eqIdx > 0 ? pair.substring(0, eqIdx).trim() : pair;
+                var value = eqIdx > 0 ? pair.substring(eqIdx + 1).trim() : '';
+                this.addOverwriteParamRow(container, name, value);
+            }
+        }
+    },
+
+    collectOverwriteParams: function(container) {
+        var rows = container.querySelectorAll('.overwrite-param-row');
+        var params = [];
+        for (var i = 0; i < rows.length; i++) {
+            var inputs = rows[i].querySelectorAll('input');
+            var name = inputs[0].value.trim();
+            var value = inputs[1].value.trim();
+            if (name) {
+                params.push(name + '=' + value);
+            }
+        }
+        return params.join(';');
+    },
+
+    getOverwriteConfigSelection: function(root, dropdownId) {
+        var dropdown = root.querySelector('#' + dropdownId);
+        if (!dropdown) return [];
+        var selected = Array.from(dropdown.querySelectorAll('.overwrite-config-option input[type="checkbox"]:checked')).map(function(input) {
+            return input.value;
+        }).filter(function(value) {
+            return !!value;
+        });
+        if (selected.indexOf('all') !== -1) {
+            return ['all'];
+        }
+        return selected;
+    },
+
+    renderOverwriteSubForm: function(options) {
+        var name = options.name || '';
+        var sub = options.sub || {};
+        var readonly = !!options.readonly;
+        var showTabs = !!options.showTabs;
+        var activeTab = options.activeTab || 'file';
+        var fileConfigDropdown = this.renderOverwriteConfigDropdown(sub.config || '', 'overwrite-upload-config-dropdown');
+        var subscribeConfigDropdown = this.renderOverwriteConfigDropdown(sub.config || '', 'overwrite-subscribe-config-dropdown');
+
+        var tabsHtml = showTabs ? `
+            <div class="upload-mode-selector">
+                <div class="mode-tabs">
+                    <button type="button" class="mode-tab${activeTab==='file'?' active':''}" id="overwrite-upload-mode-file" data-mode="file">
+                        <svg width="16" height="16"><use href="#oc-icon-upload"/></svg>
+                        ${'<%:Local Module%>'}
+                    </button>
+                    <button type="button" class="mode-tab${activeTab==='subscribe'?' active':''}" id="overwrite-upload-mode-subscribe" data-mode="subscribe">
+                        <svg width="15" height="15"><use href="#oc-icon-link"/></svg>
+                        ${'<%:Subscribe Link%>'}
+                    </button>
+                </div>
+            </div>
+        ` : '';
+
+        var fileContent = `
+            <form id="overwrite-upload-form-file" style="display:${activeTab==='file'?'block':'none'};">
+                <div class="form-group oc-mb-5">
+                    <label for="overwrite-upload-config">${'<%:Config File%>'}:</label>
+                    ${fileConfigDropdown}
+                </div>
+                <div class="upload-zone" id="overwrite-upload-zone">
+                    <div class="upload-icon">
+                        <svg width="48" height="48"><use href="#oc-icon-upload-feather"/></svg>
+                    </div>
+                    <div class="upload-text">
+                        <p class="upload-primary">${'<%:Click to select file or drag and drop%>'}</p>
+                        <p class="upload-secondary">${'<%:Support txt,conf files, max size 10MB%>'}</p>
+                    </div>
+                    <input type="file" id="overwrite-upload-file-input" accept=".txt,.conf,*" class="oc-hidden">
+                </div>
+                <div class="filename-input-container oc-mt-5">
+                    <label for="overwrite-upload-filename-input">${'<%:Module Name%>'}:<span class="guide-tag req">${'<%:Required%>'}</span></label>
+                    <input type="text" id="overwrite-upload-filename-input" placeholder="${'<%:Please enter a module name%>'}" class="form-input" value="${name}" ${readonly ? 'readonly' : ''}/>
+                </div>
+            </form>
+        `;
+
+        var subscribeContent = `
+            <form id="overwrite-upload-form-subscribe" class="subscribe-form">
+                <div class="form-group">
+                    <label>${'<%:Module Name%>'}:<span class="guide-tag req">${'<%:Required%>'}</span></label>
+                    <input type="text" class="form-input" name="filename" id="overwrite-subscribe-filename" value="${name}" ${readonly ? 'readonly' : ''} placeholder="${'<%:Please enter a module name%>'}">
+                </div>
+                <div class="form-group">
+                    <label for="overwrite-subscribe-config">${'<%:Config File%>'}:</label>
+                    ${subscribeConfigDropdown}
+                </div>
+                <div class="form-group">
+                    <label>${'<%:Type%>'}:</label>
+                    <div class="form-select-wrapper">
+                        <select class="form-select" name="type" id="overwrite-subscribe-type" ${readonly ? 'disabled' : ''}>
+                            <option value="file" ${(sub.type === 'file' || !sub.type) ? 'selected' : ''}>file</option>
+                            <option value="http" ${sub.type === 'http' ? 'selected' : ''}>http</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" id="overwrite-subscribe-url-group" style="display:${sub.type === 'http' ? 'block' : 'none'};">
+                    <label>${'<%:Subscription URL%>'}:<span class="guide-tag req">${'<%:Required%>'}</span></label>
+                    <input type="text" class="form-input" name="url" id="overwrite-subscribe-url" value="${sub.url||''}">
+                </div>
+                <div class="form-group" id="overwrite-subscribe-update-group" style="display:${sub.type === 'http' ? 'block' : 'none'};">
+                    <label>${'<%:Update Time%>'}:</label>
+                    <div class="update-row">
+                        <div class="form-select-wrapper">
+                            <select class="form-select" name="update_days" id="overwrite-subscribe-update-days">
+                                <option value="off" ${sub.update_days==='off'?'selected':''}>${'<%:OFF%>'}</option>
+                                <option value="*" ${sub.update_days==='*'?'selected':''}>${'<%:Every Day%>'}</option>
+                                <option value="1" ${sub.update_days==='1'?'selected':''}>${'<%:Every Monday%>'}</option>
+                                <option value="2" ${sub.update_days==='2'?'selected':''}>${'<%:Every Tuesday%>'}</option>
+                                <option value="3" ${sub.update_days==='3'?'selected':''}>${'<%:Every Wednesday%>'}</option>
+                                <option value="4" ${sub.update_days==='4'?'selected':''}>${'<%:Every Thursday%>'}</option>
+                                <option value="5" ${sub.update_days==='5'?'selected':''}>${'<%:Every Friday%>'}</option>
+                                <option value="6" ${sub.update_days==='6'?'selected':''}>${'<%:Every Saturday%>'}</option>
+                                <option value="0" ${sub.update_days==='0'?'selected':''}>${'<%:Every Sunday%>'}</option>
+                            </select>
+                        </div>
+                        <div class="form-select-wrapper">
+                            <select class="form-select" name="update_hour" id="overwrite-subscribe-update-hour">
+                                <option value="off" ${sub.update_hour==='off'?'selected':''}>${'<%:OFF%>'}</option>
+                                ${[...Array(24).keys()].map(h=>`<option value="${h}" ${sub.update_hour==h?'selected':''}>${h}:00</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group" id="overwrite-subscribe-param-group" style="display:'block';">
+                    <label>${'<%:Environment variable%>'}:</label>
+                    <div class="form-help" style="margin-bottom: unset;">${'<%:Set environment variables for the overwrite script%>'}</div>
+                    <div id="overwrite-subscribe-param-container" class="oc-hidden"></div>
+                    <button type="button" id="overwrite-subscribe-param-add" class="add-row-btn"><svg><use href="#oc-icon-add"/></svg><span>${'<%:Add Param%>'}</span></button>
+                </div>
+                <div class="upload-progress oc-hidden" id="overwrite-upload-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="overwrite-progress-fill" style="width:0%;"></div>
+                    </div>
+                    <div class="progress-text" id="overwrite-progress-text">0%</div>
+                </div>
+            </form>
+        `;
+
+        return `
+            ${tabsHtml}
+            <div class="config-upload-content" id="overwrite-upload-content-file" style="${activeTab==='file'?'':'display:none;'}">
+                ${fileContent}
+            </div>
+            <div class="config-upload-content" id="overwrite-upload-content-subscribe" style="${activeTab==='subscribe'?'':'display:none;'}">
+                ${subscribeContent}
+            </div>
+        `;
+    },
+
+    showAddOverwritemodel: function() {
+        var self = this;
+        if (document.getElementById('overwrite-add-model')) return;
+
+        var ocDiv = document.createElement('div');
+        ocDiv.className = 'oc';
+        if (document.documentElement.getAttribute('data-darkmode') === 'true') {
+            ocDiv.setAttribute('data-darkmode', 'true');
+        }
+
+        var overlay = document.createElement('div');
+        overlay.className = 'config-upload-model-overlay show';
+        overlay.style.zIndex = 10001;
+        overlay.id = 'overwrite-add-model';
+
+        var model = document.createElement('div');
+        model.className = 'config-upload-model';
+
+        model.innerHTML = `
+            <div class="config-upload-header">
+                <div class="config-upload-title">
+                    <span>${'<%:Add Overwrite Module%>'}</span>
+                </div>
+                <div class="config-upload-actions">
+                    <button type="button" class="icon-btn" id="overwrite-add-close" title="${'<%:Close%>'}">
+                        <svg width="14" height="14"><use href="#oc-icon-close"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="config-upload-content">
+                ${self.renderOverwriteSubForm({name:'', sub:{}, readonly:false, showTabs:true, activeTab:'file'})}
+            </div>
+            <div class="config-upload-footer">
+                <div class="config-upload-status">
+                    <span id="overwrite-upload-status-text">${'<%:Ready to add module%>'}</span>
+                </div>
+                <div class="config-upload-buttons">
+                    <button type="button" class="btn cancel-btn" id="overwrite-upload-cancel">${'<%:Cancel%>'}</button>
+                    <button type="button" class="btn upload-btn" id="overwrite-upload-submit">${'<%:Add%>'}</button>
+                </div>
+            </div>
+        `;
+
+        overlay.appendChild(model);
+        ocDiv.appendChild(overlay);
+        document.body.appendChild(ocDiv);
+
+        this.bindOverwriteConfigDropdown(model.querySelector('#overwrite-upload-config-dropdown'));
+        this.bindOverwriteConfigDropdown(model.querySelector('#overwrite-subscribe-config-dropdown'));
+
+        var tabFile = model.querySelector('#overwrite-upload-mode-file');
+        var tabSub = model.querySelector('#overwrite-upload-mode-subscribe');
+        var contentFile = model.querySelector('#overwrite-upload-content-file');
+        var contentSub = model.querySelector('#overwrite-upload-content-subscribe');
+        tabFile.onclick = function() {
+            tabFile.classList.add('active');
+            tabSub.classList.remove('active');
+            contentFile.style.display = 'block';
+            contentSub.style.display = 'none';
+        };
+        tabSub.onclick = function() {
+            tabFile.classList.remove('active');
+            tabSub.classList.add('active');
+            contentFile.style.display = 'none';
+            contentSub.style.display = 'block';
+        };
+
+        var typeSelect = model.querySelector('#overwrite-subscribe-type');
+        var urlGroup = model.querySelector('#overwrite-subscribe-url-group');
+        var updateGroup = model.querySelector('#overwrite-subscribe-update-group');
+        if (typeSelect) {
+            if (typeSelect.value === 'http') {
+                urlGroup.style.display = 'block';
+                updateGroup.style.display = 'block';
+            } else {
+                urlGroup.style.display = 'none';
+                updateGroup.style.display = 'none';
+            }
+            typeSelect.addEventListener('change', function() {
+                if (typeSelect.value === 'http') {
+                    urlGroup.style.display = 'block';
+                    updateGroup.style.display = 'block';
+                } else {
+                    urlGroup.style.display = 'none';
+                    updateGroup.style.display = 'none';
+                }
+            });
+        }
+
+        var urlInput = model.querySelector('#overwrite-subscribe-url');
+        var filenameInputSub = model.querySelector('#overwrite-subscribe-filename');
+        if (urlInput && filenameInputSub) {
+            urlInput.addEventListener('input', function() {
+                if (!filenameInputSub.value.trim() && urlInput.value.trim()) {
+                    try {
+                        var url = urlInput.value.trim();
+                        var name = url.split('?')[0].split('/').pop();
+                        if (name && /^[\w\.\-\_]+$/.test(name)) {
+                            filenameInputSub.value = name;
+                        }
+                    } catch (e) {}
+                }
+            });
+        }
+
+        model.querySelector('#overwrite-add-close').onclick = function() {
+            document.body.removeChild(ocDiv);
+        };
+
+        model.querySelector('#overwrite-upload-cancel').onclick = function() {
+            document.body.removeChild(ocDiv);
+        };
+
+        var uploadZone = model.querySelector('#overwrite-upload-zone');
+        var fileInput = model.querySelector('#overwrite-upload-file-input');
+        var filenameInput = model.querySelector('#overwrite-upload-filename-input');
+        var statusText = model.querySelector('#overwrite-upload-status-text');
+        var selectedFile = null;
+
+        uploadZone.onclick = function() {
+            fileInput.click();
+        };
+        fileInput.onchange = function(e) {
+            if (e.target.files.length > 0) {
+                selectedFile = e.target.files[0];
+                uploadZone.classList.add('has-file');
+                uploadZone.querySelector('.upload-primary').textContent = '<%:File selected:%> ' + selectedFile.name;
+                uploadZone.querySelector('.upload-secondary').textContent = '<%:Size:%> ' + (selectedFile.size/1024/1024).toFixed(2) + ' MB';
+                filenameInput.value = selectedFile.name;
+            }
+        };
+
+        var submitBtn = model.querySelector('#overwrite-upload-submit');
+        function validateAddOverwriteForm() {
+            if (tabFile.classList.contains('active')) {
+                const filename = filenameInput.value.trim();
+                submitBtn.disabled = !(selectedFile && filename && filename !== 'openclash_custom_overwrite.sh');
+            } else {
+                const filename = model.querySelector('#overwrite-subscribe-filename').value.trim();
+                const type = model.querySelector('#overwrite-subscribe-type').value;
+                const url = model.querySelector('#overwrite-subscribe-url').value.trim();
+                let valid = !!filename && filename !== 'openclash_custom_overwrite.sh';
+                if (type === 'http') {
+                    valid = valid && !!url && /^https?:\/\/[^ \n|]+$/.test(url);
+                }
+                submitBtn.disabled = !valid;
+            }
+        }
+        validateAddOverwriteForm();
+
+        filenameInput.addEventListener('input', validateAddOverwriteForm);
+
+        if (model.querySelector('#overwrite-subscribe-filename')) {
+            model.querySelector('#overwrite-subscribe-filename').addEventListener('input', validateAddOverwriteForm);
+        }
+        var paramContainer = model.querySelector('#overwrite-subscribe-param-container');
+        if (paramContainer) {
+            self.buildOverwriteParamRows(paramContainer, '');
+            model.querySelector('#overwrite-subscribe-param-add').addEventListener('click', function() {
+                self.addOverwriteParamRow(paramContainer, '', '');
+            });
+        }
+
+        if (model.querySelector('#overwrite-subscribe-type')) {
+            model.querySelector('#overwrite-subscribe-type').addEventListener('change', validateAddOverwriteForm);
+        }
+        if (model.querySelector('#overwrite-subscribe-url')) {
+            model.querySelector('#overwrite-subscribe-url').addEventListener('input', validateAddOverwriteForm);
+        }
+        tabFile.addEventListener('click', function() {
+            setTimeout(validateAddOverwriteForm, 0);
+        });
+        tabSub.addEventListener('click', function() {
+            setTimeout(validateAddOverwriteForm, 0);
+        });
+
+
+        fileInput.addEventListener('change', validateAddOverwriteForm);
+
+        model.querySelector('#overwrite-upload-submit').onclick = function() {
+            if (tabFile.classList.contains('active')) {
+                var filename = filenameInput.value.trim();
+                if (!filename) {
+                    ocAlert('<%:Please enter a module name%>');
+                    return;
+                }
+                if (filename === 'openclash_custom_overwrite.sh') {
+                    ocAlert('<%:openclash_custom_overwrite.sh already exists and cannot be added again%>');
+                    return;
+                }
+                if (selectedFile) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        submitBtn.disabled = true;
+                        var fileContent = e.target.result;
+                        var selectedConfigPaths = self.getOverwriteConfigSelection(model, 'overwrite-upload-config-dropdown');
+                        if (!selectedConfigPaths.length) {
+                            selectedConfigPaths = ['all'];
+                        }
+                        var formData = new FormData();
+                        formData.append('filename', filename);
+                        formData.append('config_file', fileContent);
+                        formData.append('order', self.getNextOverwriteOrder());
+                        formData.append('enable', '0');
+                        formData.append('config', selectedConfigPaths.join('\n'));
+
+                        fetch('/cgi-bin/luci/admin/services/openclash/upload_overwrite', {
+                            method: 'POST',
+                            body: formData
+                        }).then(r=>r.json()).then(function(data){
+                            if (data.status === 'success') {
+                                statusText.textContent = '<%:Upload successful%>';
+                                document.body.removeChild(ocDiv);
+                                self.loadOverwriteFiles();
+                                setTimeout(function() {
+                                    self.currentConfigFile = '/etc/openclash/overwrite/' + filename;
+                                    self.isOverwrite = true;
+                                    self.showOverwrite(self.currentConfigFile);
+                                }, 300);
+                            } else {
+                                statusText.textContent = '<%:Upload failed:%> ' + (data.message || '');
+                                validateAddOverwriteForm();
+                            }
+                        });
+                    };
+                    reader.onerror = function() {
+                        statusText.textContent = '<%:Failed to read file%>';
+                        validateAddOverwriteForm();
+                    };
+                    reader.readAsText(selectedFile, 'UTF-8');
+                } else {
+                    ocAlert('<%:No Specify Upload File%>');
+                    return;
+                }
+            } else {
+                var form = model.querySelector('#overwrite-upload-form-subscribe');
+                var filename = form.querySelector('#overwrite-subscribe-filename').value.trim();
+                var url = form.querySelector('#overwrite-subscribe-url').value.trim();
+                var update_days = form.querySelector('#overwrite-subscribe-update-days').value;
+                var update_hour = form.querySelector('#overwrite-subscribe-update-hour').value;
+                var type = form.querySelector('#overwrite-subscribe-type').value;
+                var param = self.collectOverwriteParams(form.querySelector('#overwrite-subscribe-param-container'));
+                var selectedConfigPaths = self.getOverwriteConfigSelection(model, 'overwrite-subscribe-config-dropdown');
+                if (!selectedConfigPaths.length) {
+                    selectedConfigPaths = ['all'];
+                }
+                if (!filename) {
+                    ocAlert('<%:Please enter a module name%>');
+                    return;
+                }
+                if (filename === 'openclash_custom_overwrite.sh') {
+                    ocAlert('<%:openclash_custom_overwrite.sh already exists and cannot be added again%>');
+                    return;
+                }
+                if (type === 'http' && !url) {
+                    ocAlert('<%:Please enter subscription URL%>');
+                    return;
+                }
+                if (type === 'http' && !/^https?:\/\/[^ \n|]+$/.test(url)) {
+                    ocAlert('<%:Invalid subscription URL format, only single HTTP/HTTPS link is supported%>');
+                    return;
+                }
+                var formData = new FormData();
+                formData.append('filename', filename);
+                formData.append('type', type);
+                formData.append('param', param);
+                formData.append('order', self.getNextOverwriteOrder());
+                formData.append('enable', '0');
+                formData.append('config', selectedConfigPaths.join('\n'));
+                if (type === 'http') {
+                    formData.append('url', url);
+                    formData.append('update_days', update_days);
+                    formData.append('update_hour', update_hour);
+                }
+                var progressContainer = form.querySelector('#overwrite-upload-progress');
+                var progressFill = form.querySelector('#overwrite-progress-fill');
+                var progressText = form.querySelector('#overwrite-progress-text');
+                submitBtn.disabled = true;
+                if (type === 'http') {
+                    statusText.textContent = '<%:Downloading subscription content...%>';
+                    progressContainer.classList.remove('oc-hidden');
+                    var progress = 0;
+                    var interval = setInterval(function() {
+                        progress = Math.min(progress + Math.random() * 20, 90);
+                        progressFill.style.width = progress + '%';
+                        progressText.textContent = '<%:Downloading...%> ' + Math.floor(progress) + '%';
+                    }, 200);
+                }
+                fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
+                    method: 'POST',
+                    body: formData
+                }).then(r=>r.json()).then(function(data){
+                    if (type === 'http') {
+                        clearInterval(interval);
+                        if (data.status !== 'success') {
+                            progressFill.style.width = '0%';
+                            progressText.textContent = '<%:Download failed%> 0%';
+                        } else {
+                            progressFill.style.width = '100%';
+                            progressText.textContent = '<%:Download completed%> 100%';
+                        }
+                    }
+                    if (data.status === 'success') {
+                        statusText.textContent = '<%:Subscription added successfully%>';
+                    } else {
+                        statusText.textContent = '<%:Failed to save subscription info:%> ' + (data.message || '');
+                        validateAddOverwriteForm();
+                    }
+                    setTimeout(function() {
+                        document.body.removeChild(ocDiv);
+                        self.loadOverwriteFiles();
+                        setTimeout(function() {
+                            self.currentConfigFile = '/etc/openclash/overwrite/' + filename;
+                            self.isOverwrite = true;
+                            self.showOverwrite(self.currentConfigFile);
+                        }, 300);
+                    }, 800);
+                });
+            }
+        };
+    },
+
+    showOverwriteSubmodel: function(name, sub, filePath) {
+        var self = this;
+        if (document.getElementById('overwrite-sub-model')) return;
+
+        var ocDiv = document.createElement('div');
+        ocDiv.className = 'oc';
+        if (document.documentElement.getAttribute('data-darkmode') === 'true') {
+            ocDiv.setAttribute('data-darkmode', 'true');
+        }
+
+        var overlay = document.createElement('div');
+        overlay.className = 'config-upload-model-overlay show';
+        overlay.style.zIndex = 10001;
+        overlay.id = 'overwrite-sub-model';
+
+        var model = document.createElement('div');
+        model.className = 'config-upload-model';
+
+        model.innerHTML = `
+            <div class="config-upload-header">
+                <div class="config-upload-title">
+                    <span>${'<%:Overwrite Module Edit%>'}</span>
+                </div>
+                <div class="config-upload-actions">
+                    <button type="button" class="icon-btn" id="overwrite-sub-close" title="${'<%:Close%>'}">
+                        <svg width="14" height="14"><use href="#oc-icon-close"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="config-upload-content">
+                ${self.renderOverwriteSubForm({name:name, sub:sub, readonly:false, showTabs:false, activeTab:'subscribe'})}
+            </div>
+            <div class="config-upload-footer">
+                <div class="config-upload-status">
+                    <span id="overwrite-edit-status-text">${'<%:Ready to edit%>'}</span>
+                </div>
+                <div class="config-upload-buttons">
+                    <button type="button" class="btn cancel-btn" id="overwrite-edit-cancel">${'<%:Cancel%>'}</button>
+                    <button type="button" class="btn upload-btn" id="overwrite-edit-submit">${'<%:Save%>'}</button>
+                </div>
+            </div>
+        `;
+
+        overlay.appendChild(model);
+        ocDiv.appendChild(overlay);
+        document.body.appendChild(ocDiv);
+
+        this.bindOverwriteConfigDropdown(model.querySelector('#overwrite-subscribe-config-dropdown'));
+
+        var paramContainer = model.querySelector('#overwrite-subscribe-param-container');
+        if (paramContainer && sub && sub.param) {
+            self.buildOverwriteParamRows(paramContainer, sub.param);
+        }
+        var paramAddBtn = model.querySelector('#overwrite-subscribe-param-add');
+        if (paramAddBtn) {
+            paramAddBtn.addEventListener('click', function() {
+                self.addOverwriteParamRow(paramContainer, '', '');
+            });
+        }
+
+        var typeSelect = model.querySelector('#overwrite-subscribe-type');
+        var urlGroup = model.querySelector('#overwrite-subscribe-url-group');
+        var updateGroup = model.querySelector('#overwrite-subscribe-update-group');
+        if (typeSelect) {
+            if (typeSelect.value === 'http') {
+                urlGroup.style.display = 'block';
+                updateGroup.style.display = 'block';
+            } else {
+                urlGroup.style.display = 'none';
+                updateGroup.style.display = 'none';
+            }
+            typeSelect.addEventListener('change', function() {
+                if (typeSelect.value === 'http') {
+                    urlGroup.style.display = 'block';
+                    updateGroup.style.display = 'block';
+                } else {
+                    urlGroup.style.display = 'none';
+                    updateGroup.style.display = 'none';
+                }
+            });
+        }
+
+        model.querySelector('#overwrite-sub-close').onclick = function() {
+            document.body.removeChild(ocDiv);
+        };
+        overlay.onclick = function(e) {
+            if (e.target === overlay) {
+                document.body.removeChild(ocDiv);
+            }
+        };
+        model.querySelector('#overwrite-edit-cancel').onclick = function() {
+            document.body.removeChild(ocDiv);
+        };
+
+        var submitBtn = model.querySelector('#overwrite-edit-submit');
+
+        function validateEditOverwriteForm() {
+            const form = model.querySelector('#overwrite-upload-form-subscribe');
+            const filename = form.querySelector('#overwrite-subscribe-filename').value.trim();
+            const type = form.querySelector('#overwrite-subscribe-type').value;
+            const url = form.querySelector('#overwrite-subscribe-url').value.trim();
+            let valid = !!filename && filename !== 'openclash_custom_overwrite.sh';
+            if (type === 'http') {
+                valid = valid && !!url && /^https?:\/\/[^ \n|]+$/.test(url);
+            }
+            submitBtn.disabled = !valid;
+        }
+
+        validateEditOverwriteForm();
+
+        model.querySelector('#overwrite-subscribe-filename').addEventListener('input', validateEditOverwriteForm);
+        model.querySelector('#overwrite-subscribe-type').addEventListener('change', validateEditOverwriteForm);
+        model.querySelector('#overwrite-subscribe-url').addEventListener('input', validateEditOverwriteForm);
+
+        model.querySelector('#overwrite-edit-submit').onclick = function() {
+            if (submitBtn.disabled) return;
+            submitBtn.disabled = true;
+            var form = model.querySelector('#overwrite-upload-form-subscribe');
+            var newName = form.querySelector('#overwrite-subscribe-filename').value.trim();
+            var type = form.querySelector('#overwrite-subscribe-type').value;
+            var url = form.querySelector('#overwrite-subscribe-url').value.trim();
+            var param = self.collectOverwriteParams(form.querySelector('#overwrite-subscribe-param-container'));
+            var selectedConfigPaths = self.getOverwriteConfigSelection(model, 'overwrite-subscribe-config-dropdown');
+            if (!selectedConfigPaths.length) {
+                selectedConfigPaths = self.parseOverwriteConfigValue(sub.config);
+            }
+            if (!selectedConfigPaths.length) {
+                selectedConfigPaths = ['all'];
+            }
+
+            if (!newName) {
+                ocAlert('<%:Please enter a module name%>');
+                return;
+            }
+            if (newName === 'openclash_custom_overwrite.sh') {
+                ocAlert('<%:openclash_custom_overwrite.sh already exists and cannot be added again%>');
+                return;
+            }
+            if (type === 'http') {
+                if (!url) {
+                    ocAlert('<%:Please enter subscription URL%>');
+                    return;
+                }
+                if (!/^https?:\/\/[^ \n|]+$/.test(url)) {
+                    ocAlert('<%:Invalid subscription URL format, only single HTTP/HTTPS link is supported%>');
+                    return;
+                }
+            }
+
+            var formData = new FormData(form);
+            if (type !== 'http') {
+                formData.delete('url');
+                formData.delete('update_days');
+                formData.delete('update_hour');
+            } else if (url !== (sub.url || '')) {
+                formData.append('refresh', '1');
+            }
+            formData.delete('config');
+            formData.append('config', selectedConfigPaths.join('\n'));
+            formData.append('param', param);
+            if (newName !== name) {
+                formData.append('old_filename', name);
+            }
+            if (typeof sub.enable !== 'undefined') {
+                formData.append('enable', sub.enable);
+            } else {
+                formData.append('enable', '0');
+            }
+            var currentOrder = parseInt(sub.order, 10);
+            formData.append('order', isNaN(currentOrder) ? self.getNextOverwriteOrder() : currentOrder);
+
+            var progressContainer = form.querySelector('#overwrite-upload-progress');
+            var progressFill = form.querySelector('#overwrite-progress-fill');
+            var progressText = form.querySelector('#overwrite-progress-text');
+            var statusText = model.querySelector('#overwrite-edit-status-text');
+            if (type === 'http') {
+                statusText.textContent = '<%:Downloading subscription content...%>';
+                progressContainer.classList.remove('oc-hidden');
+                var progress = 0;
+                var interval = setInterval(function() {
+                    progress = Math.min(progress + Math.random() * 20, 90);
+                    progressFill.style.width = progress + '%';
+                    progressText.textContent = '<%:Downloading...%> ' + Math.floor(progress) + '%';
+                }, 200);
+            }
+            fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
+                method: 'POST',
+                body: formData
+            }).then(r=>r.json()).then(function(data){
+                if (type === 'http') {
+                    clearInterval(interval);
+                    progressFill.style.width = '100%';
+                    progressText.textContent = '<%:Download completed%> 100%';
+                }
+                if (data.status === 'success') {
+                    if (type === 'http') {
+                        statusText.textContent = '<%:Subscription saved successfully%>';
+                    } else {
+                        statusText.textContent = '<%:Saved successfully%>';
+                    }
+                    setTimeout(function() {
+                        document.body.removeChild(ocDiv);
+
+                        if (newName !== name) {
+                            self.currentConfigFile = '/etc/openclash/overwrite/' + newName;
+                        }
+
+                        self.loadOverwriteFiles();
+                        setTimeout(function() {
+                            self.loadConfigContent();
+                            var configNameElement = document.getElementById('config-file-name');
+                            if (configNameElement) {
+                                configNameElement.textContent = self.formatDisplayName(self.currentConfigFile);
+                            }
+                        }, 300);
+
+                    }, 800);
+                } else {
+                    statusText.textContent = '<%:Failed to save subscription info:%> ' + (data.message || '');
+                    validateEditOverwriteForm();
+                }
+            });
+        };
+    },
+
+    closeEditor: function() {
+        var self = this;
+        var finish = function() {
+            self.hideMergeView();
+            self.hide();
+
+            if (window.OverwriteSubscribeManager && window.OverwriteSubscribeManager.load) {
+                window.OverwriteSubscribeManager.load(true);
+            }
+            try {
+                window.dispatchEvent(new Event('oc-overwrite-updated'));
+            } catch (e) {}
+        };
+
+        if (!this.isModified) {
+            finish();
+            return;
+        }
+
+        ocConfirm({
+            title: '<%:Configuration has unsaved changes%>',
+            body: '<%:Closing will discard the changes%>',
+            buttons: [
+                { label: '<%:Cancel%>', value: null },
+                { label: '<%:Close without saving%>', value: 'discard', kind: 'danger' },
+                { label: '<%:Save and close%>', value: 'save', kind: 'primary' }
+            ]
+        }).then(function(choice) {
+            if (choice === 'discard') {
+                finish();
+            } else if (choice === 'save') {
+                self.saveConfigContent(function(saved) {
+                    if (saved) finish();
+                });
+            }
+        });
+    },
+
+    updateZoom: function(newZoom) {
+        this.currentZoom = newZoom;
+        ocApplyZoom(this.editorInstance, newZoom);
+    },
+
+    zoomIn: function() {
+        var newZoom = ocZoomIn(this.currentZoom);
+        if (newZoom !== this.currentZoom) this.updateZoom(newZoom);
+    },
+
+    zoomOut: function() {
+        var newZoom = ocZoomOut(this.currentZoom);
+        if (newZoom !== this.currentZoom) this.updateZoom(newZoom);
+    },
+
+    resetZoom: function() {
+        this.updateZoom(ocResetZoom());
+    },
+
+    isPointOnTextContent: function(el, clientX, clientY) {
+        if (!el) return false;
+
+        var textWalker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+        var textNode;
+        while ((textNode = textWalker.nextNode())) {
+            if (!textNode.nodeValue || !textNode.nodeValue.trim()) {
+                continue;
+            }
+            var range = document.createRange();
+            range.selectNodeContents(textNode);
+            var rects = range.getClientRects();
+            for (var i = 0; i < rects.length; i++) {
+                var rect = rects[i];
+                if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    },
+
+    makeDraggable: function() {
+        var self = this;
+        var header = this.model.querySelector('.config-editor-header');
+        var isDragging = false;
+        var startX = 0, startY = 0, startLeft = 0, startTop = 0;
+
+        header.addEventListener('pointerdown', function(e) {
+            if (isDragging) return;
+            var target = e.target && e.target.nodeType === 1 ? e.target : e.target.parentElement;
+            if (target && target.closest('.config-editor-actions')) return;
+            var textEl = target ? target.closest('#editTitle, #config-file-name') : null;
+            if (textEl && self.isPointOnTextContent(textEl, e.clientX, e.clientY)) return;
+
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+
+            var rect = self.model.getBoundingClientRect();
+            startLeft = rect.left;
+            startTop = rect.top;
+
+            self.model.style.position = 'fixed';
+            self.model.style.left = startLeft + 'px';
+            self.model.style.top = startTop + 'px';
+            self.model.style.margin = '0';
+            self.model.style.transform = 'none';
+            self.model.style.transition = 'none';
+            header.style.touchAction = 'none';
+            if (header.setPointerCapture) {
+                try { header.setPointerCapture(e.pointerId); } catch(err) {}
+            }
+            e.preventDefault();
+        });
+
+        header.addEventListener('pointermove', function(e) {
+            if (!isDragging) return;
+            var rect = self.model.getBoundingClientRect();
+            var newLeft = Math.max(0, Math.min(startLeft + (e.clientX - startX), window.innerWidth - rect.width));
+            var newTop = Math.max(0, Math.min(startTop + (e.clientY - startY), window.innerHeight - rect.height));
+            self.model.style.left = newLeft + 'px';
+            self.model.style.top = newTop + 'px';
+        });
+
+        function stopDrag(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            header.style.touchAction = '';
+            self.model.style.transition = '';
+            if (header.releasePointerCapture) {
+                try { header.releasePointerCapture(e.pointerId); } catch(err) {}
+            }
+        }
+        header.addEventListener('pointerup', stopDrag);
+        header.addEventListener('pointercancel', stopDrag);
+    },
+
+    makeResizable: function() {
+        var self = this;
+        var resizeHandle = document.getElementById('config-editor-resize-handle');
+        var isResizing = false;
+        var startX, startY, startWidth, startHeight;
+
+        resizeHandle.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            startX = e.clientX;
+            startY = e.clientY;
+
+            var rect = self.model.getBoundingClientRect();
+            startWidth = rect.width;
+            startHeight = rect.height;
+
+            self.model.style.transition = 'none';
+            self.model.style.width = startWidth + 'px';
+            self.model.style.height = startHeight + 'px';
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+
+            e.preventDefault();
+        });
+
+        function onMouseMove(e) {
+            if (!isResizing) return;
+
+            var deltaX = e.clientX - startX;
+            var deltaY = e.clientY - startY;
+
+            var newWidth = Math.max(400, startWidth + deltaX);
+            var newHeight = Math.max(300, startHeight + deltaY);
+
+            var maxWidth = window.innerWidth * 0.98;
+            var maxHeight = window.innerHeight * 0.95;
+
+            newWidth = Math.min(newWidth, maxWidth);
+            newHeight = Math.min(newHeight, maxHeight);
+
+            self.model.style.width = newWidth + 'px';
+            self.model.style.height = newHeight + 'px';
+        }
+
+        function onMouseUp() {
+            isResizing = false;
+
+            self.model.style.transition = 'all 0.3s ease';
+
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+
+        resizeHandle.addEventListener('touchstart', function(e) {
+            if (e.touches.length !== 1) return;
+            isResizing = true;
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+
+            var rect = self.model.getBoundingClientRect();
+            startWidth = rect.width;
+            startHeight = rect.height;
+
+            self.model.style.transition = 'none';
+            self.model.style.width = startWidth + 'px';
+            self.model.style.height = startHeight + 'px';
+
+            document.addEventListener('touchmove', onTouchMove, {passive: false});
+            document.addEventListener('touchend', onTouchEnd);
+
+            e.preventDefault();
+        });
+
+        function onTouchMove(e) {
+            if (!isResizing || e.touches.length !== 1) return;
+
+            var deltaX = e.touches[0].clientX - startX;
+            var deltaY = e.touches[0].clientY - startY;
+
+            var newWidth = Math.max(320, startWidth + deltaX);
+            var newHeight = Math.max(200, startHeight + deltaY);
+
+            var maxWidth = window.innerWidth * 0.98;
+            var maxHeight = window.innerHeight * 0.95;
+
+            newWidth = Math.min(newWidth, maxWidth);
+            newHeight = Math.min(newHeight, maxHeight);
+
+            self.model.style.width = newWidth + 'px';
+            self.model.style.height = newHeight + 'px';
+
+            e.preventDefault();
+        }
+
+        function onTouchEnd() {
+            isResizing = false;
+            self.model.style.transition = 'all 0.3s ease';
+
+            document.removeEventListener('touchmove', onTouchMove);
+            document.removeEventListener('touchend', onTouchEnd);
+        }
+    }
+};
+
+// Call init directly when the script is lazy-loaded after DOMContentLoaded.
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        ConfigEditor.init();
+    });
+} else {
+    ConfigEditor.init();
+}

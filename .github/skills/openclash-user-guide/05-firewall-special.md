@@ -146,7 +146,7 @@ nft insert rule inet fw4 openclash_output position 0 tcp \
   ip saddr {192.168.1.100} counter return comment "my_user_rule"
 ```
 
-> **注意事项**: 
+> **注意事项**:
 > - 所有规则自动排除 Fake-IP 地址范围（`ip daddr != {<fakeip_range>}`），确保 Fake-IP 流量不受影响。
 > - `target=drop` 在防火墙规则中实际执行为 `return`（跳过代理），区别在于 `drop` 在策略路由/旁路由链中也执行 `return`。
 > - `user` 字段仅对 OUTPUT 链生效（路由器自身出站流量），入站流量不支持 UID 匹配。

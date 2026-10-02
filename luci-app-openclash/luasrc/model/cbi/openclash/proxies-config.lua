@@ -27,7 +27,7 @@ for _, legacy in ipairs({{"auth_name", "username"}, {"auth_pass", "password"}}) 
 	end
 end
 
-font_red = [[<b style=color:red>]]
+font_red = [[<b class="oc-txt-bad">]]
 font_off = [[</b>]]
 bold_on = [[<strong>]]
 bold_off = [[</strong>]]
@@ -1852,6 +1852,5 @@ o.write = function()
 	HTTP.redirect(m.redirect)
 end
 
-m:append(Template("openclash/toolbar_show"))
 m:append(Template("openclash/config_editor"))
 return m

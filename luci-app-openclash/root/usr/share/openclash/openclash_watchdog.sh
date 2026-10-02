@@ -414,7 +414,7 @@ fi
          uci -q delete dhcp.@dnsmasq[0].resolvfile
          uci -q set dhcp.@dnsmasq[0].noresolv=1
          [ "$disable_masq_cache" -eq 1 ] && {
-         	uci -q set dhcp.@dnsmasq[0].cachesize=0
+            uci -q set dhcp.@dnsmasq[0].cachesize=0
          }
          uci -q commit dhcp
          /etc/init.d/dnsmasq restart >/dev/null 2>&1

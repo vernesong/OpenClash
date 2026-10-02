@@ -16,7 +16,7 @@
 **共享配置项**：`*_update_week_time` (周几): `*`=每天, `1`=周一, `2`=周二, …, `0`=周日; `*_update_day_time` (小时): `0`-`23`; `*_custom_url` (自定义下载地址，留空使用默认)
 
 **Mihomo 对应**: `geox-url` 中的各字段 + `geo-auto-update` + `geo-update-interval`
-- **实现细节**: 
+- **实现细节**:
   - **Cron 触发**: `add_cron()`（定义在 `/etc/init.d/openclash`）由 GEO 更新脚本调用，为每种 GEO 类型注册 cron 任务
   - **下载流程**: `openclash_geo.sh` 使用自定义 URL（`*_custom_url`）或默认地址下载，保存到 `/etc/openclash/` 目录
   - **Mihomo 使用**: MMDB 用于 `GEOIP` 规则匹配（IP→国家），Dat 用于 `GEOSITE` 规则匹配（域名→类别），ASN 用于 Smart 策略
@@ -90,7 +90,7 @@
 | **还原默认 (Restore Default)** | 恢复 OpenClash 为默认出厂配置（确认后跳回设置页） |
 | **删除内核 (Remove Core)** | 删除所有核心二进制文件（红色危险按钮） |
 
-- **实现细节**: 
+- **实现细节**:
   - 所有配置修改（编译版本/分支/Smart）通过 `/save_corever_branch` API 即时保存到 UCI。
   - 内核下载：`core_download` 路由调用 `openclash_core.sh`，前端始终传入完整下载 URL（`download_url`）。文件名 `clash-{arch}.tar.gz`（arch 即 `core_version`，已带 `linux-` 前缀）；oix 内核为 `mihomo-{arch}-{version}.gz`（走 github release / dl.dler.io）。
   - 插件下载：`openclash_update.sh`，文件名 `luci-app-openclash_{ver}_all.ipk`（opkg）或 `luci-app-openclash-{ver}.apk`（apk）。

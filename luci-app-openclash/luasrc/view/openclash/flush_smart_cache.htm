@@ -4,33 +4,37 @@
 
 	function act_flush_smart_cache(btn)
 	{
+		var statusEl = document.getElementById('oc_flush_smart_status');
 		btn.disabled = true;
 		btn.value    = '<%:Flushing...%> ';
+		if (statusEl) { statusEl.textContent = ''; statusEl.className = 'oc-flush-status'; }
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash","flush_smart_cache")%>',
 			null,
 			function(x,status)
 			{
+				var msg, ok;
 				btn.disabled = false;
+				btn.value    = '<%:Flush%>';
 				if ( x && x.status == 200 ) {
-					if(status.flush_status === "")
-					{
-						btn.value = '<%:Flush Successful%>';
-					}
-					else
-					{
-						btn.value = '<%:Flush Failed%>';
-					}
+					ok  = (status.flush_status === "");
+					msg = ok ? '<%:Flush Successful%>' : '<%:Flush Failed%>';
 				}
 				else {
-					btn.value = '<%:Flush Timeout%>';
+					ok  = false;
+					msg = '<%:Flush Timeout%>';
+				}
+				if (statusEl) {
+					statusEl.textContent = msg;
+					statusEl.className = 'oc-flush-status' + (ok ? '' : ' err');
 				}
 			}
 		);
 		return false;
 	};
-	
+
 //]]></script>
 
 
 <input type="button" class="btn cbi-button cbi-input-reload" value="<%:Flush%>" onclick="return act_flush_smart_cache(this)" />
+<span id="oc_flush_smart_status" class="oc-flush-status"></span>
 <%+cbi/valuefooter%>

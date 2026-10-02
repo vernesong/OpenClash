@@ -398,6 +398,12 @@ msgstr "¡Introduce la clave secreta de Age para calcular la clave pública!"
 msgid "Failed to calculate public key"
 msgstr "No se ha podido calcular la clave pública"
 
+msgid "Generated successfully"
+msgstr "Generado correctamente"
+
+msgid "Calculated successfully"
+msgstr "Calculado correctamente"
+
 msgid "Add"
 msgstr "Añadir"
 
@@ -893,7 +899,7 @@ msgstr "Hora de actualización"
 msgid "File Name"
 msgstr "Nombre del archivo"
 
-msgid "Switch"
+msgid "SwiTch"
 msgstr "Cambiar"
 
 msgid "Size"
@@ -985,9 +991,6 @@ msgstr "Proxy para tráfico UDP"
 
 msgid "The Servers Must Support UDP forwarding"
 msgstr "Los servidores deben soportar reenvío UDP"
-
-msgid "If Docker is Installed, UDP May Not Forward Normally"
-msgstr "Si se usa Docker, utiliza modo TUN; de lo contrario UDP puede fallar en juegos."
 
 msgid "Disable QUIC"
 msgstr "Deshabilitar QUIC"
@@ -2198,8 +2201,8 @@ msgstr "1. Puede que el plugin no esté en ejecución."
 msgid "2. It may be that the cache causes the browser to directly use the IP for access"
 msgstr "2. La caché del navegador podría estar accediendo directamente por IP."
 
-msgid "3. It may be that DNS hijacking did not take effect, so clash unable to reverse the domain name"
-msgstr "3. El secuestro DNS podría no haber funcionado; Clash no puede resolver los dominios."
+msgid "3. It may be that DNS hijacking did not take effect, so the domain name cannot be reversed"
+msgstr "3. El secuestro DNS podría no haber funcionado; no se pueden resolver los dominios"
 
 msgid "4. It may be that the filled address cannot be resolved and connected"
 msgstr "4. La dirección introducida puede ser imposible de resolver."
@@ -3440,6 +3443,39 @@ msgstr "Listo para añadir suscripción"
 msgid "Ready to edit subscription"
 msgstr "Listo para editar suscripción"
 
+msgid "Save Subscription"
+msgstr "Guardar suscripción"
+
+msgid "Config enabled"
+msgstr "Configuración habilitada"
+
+msgid "Kernel service is not running"
+msgstr "El servicio del núcleo no está en ejecución"
+
+msgid "Program starting..."
+msgstr "Iniciando el programa…"
+
+msgid "Unsaved changes"
+msgstr "Cambios sin guardar"
+
+msgid "Download and check complete"
+msgstr "Descarga y verificación completadas"
+
+msgid "Executing"
+msgstr "Ejecutando"
+
+msgid "Discard unsaved changes?"
+msgstr "¿Descartar cambios sin guardar?"
+
+msgid "The edits in this form will be lost."
+msgstr "Se perderán los cambios del formulario."
+
+msgid "Keep editing"
+msgstr "Seguir editando"
+
+msgid "Discard"
+msgstr "Descartar"
+
 msgid "File selected:"
 msgstr "Archivo seleccionado:"
 
@@ -3662,8 +3698,8 @@ msgstr "Error al reiniciar el núcleo"
 msgid "Invalid config file selected"
 msgstr "Archivo de configuración no válido"
 
-msgid "Config editor not ready, please try again"
-msgstr "El editor de configuraciones no está listo, intenta nuevamente"
+msgid "Failed to load the interface, please refresh the page and try again"
+msgstr "Error al cargar la interfaz, actualiza la página e inténtalo de nuevo"
 
 msgid "New version available"
 msgstr "Nueva versión disponible"
@@ -4479,6 +4515,9 @@ msgid "to Avoid Core Start Failed..."
 msgstr "para evitar que el núcleo falle al iniciar..."
 
 msgid "Built-in"
+msgstr "Integrado"
+
+msgid "Builtin"
 msgstr "Integrado"
 
 msgid "Unset"
@@ -6257,8 +6296,8 @@ msgstr "no manda nada por el proxy"
 msgid "some providers need a certain request header, one row per header"
 msgstr "algunos proveedores piden una cabecera concreta, una fila por cabecera"
 
-msgid "the Mihomo core that carries the traffic"
-msgstr "el núcleo Mihomo que lleva el tráfico"
+msgid "the core that carries the traffic"
+msgstr "el núcleo que lleva el tráfico"
 
 msgid "the name the config list shows later"
 msgstr "el nombre que verás luego en la lista de configs"
@@ -6473,6 +6512,12 @@ msgstr "recorre las configuraciones y previsualiza cada una"
 msgid "A plain YAML file only shows its name and the last modified time"
 msgstr "un YAML simple solo muestra su nombre y la última hora de modificación"
 
+msgid "No config file yet, this area stays empty until the first one is added"
+msgstr "Aún no hay archivo de configuración, esta área permanece vacía hasta que se añada el primero"
+
+msgid "Once a config is added, its subscription info bar shows here: name, modified time, traffic and the action buttons"
+msgstr "Una vez añadida una configuración, aquí aparece su barra de información de suscripción: nombre, hora de modificación, tráfico y los botones de acción"
+
 msgid "Prev / Next"
 msgstr "Anterior / Siguiente"
 
@@ -6490,3 +6535,510 @@ msgstr "activa el interruptor y el plugin empieza a funcionar"
 
 msgid "Use the buttons below or the arrow keys to step through, Esc ends the guide"
 msgstr "usa los botones o las teclas de flecha para avanzar; Esc termina la guía"
+
+msgid "Requesting subscription..."
+msgstr "Solicitando suscripción..."
+
+msgid "Verifying..."
+msgstr "Verificando..."
+
+msgid "Applying..."
+msgstr "Aplicando..."
+
+msgid "Executing..."
+msgstr "Ejecutando..."
+
+msgid "Starting kernel..."
+msgstr "Iniciando el núcleo..."
+
+msgid "Waiting for core..."
+msgstr "Esperando al núcleo..."
+
+msgid "Finishing startup..."
+msgstr "Finalizando el inicio..."
+
+msgid "Subscribe"
+msgstr "Suscribir"
+
+msgid "Template structure"
+msgstr "Estructura de la plantilla"
+
+msgid "Running Log"
+msgstr "Registro en ejecución"
+
+msgid "Group Types"
+msgstr "Tipos de grupo"
+
+msgid "Member Composition"
+msgstr "Composición de miembros"
+
+msgid "TFO Enable"
+msgstr "Aceleración TFO"
+
+msgid "TLS 1.3"
+msgstr "TLS 1.3"
+
+msgid "Group refs"
+msgstr "Referencias de grupo"
+
+msgid "Filters"
+msgstr "Filtros"
+
+msgid "File download"
+msgstr "Descarga de archivo"
+
+msgid "File verification"
+msgstr "Verificación del archivo"
+
+msgid "Apply config"
+msgstr "Aplicar configuración"
+
+msgid "Core startup"
+msgstr "Inicio del núcleo"
+
+msgid "Remaining setup"
+msgstr "Configuración restante"
+
+msgid "Start complete"
+msgstr "Inicio completado"
+
+msgid "Read data after core is ready"
+msgstr "Leer datos cuando el núcleo esté listo"
+
+msgid "Log"
+msgstr "Registro"
+
+msgid "Message"
+msgstr "Mensaje"
+
+msgid "Elapsed"
+msgstr "Tiempo"
+
+msgid "Problem?"
+msgstr "¿Problema?"
+
+msgid "Running, cannot cancel"
+msgstr "En ejecución, no se puede cancelar"
+
+msgid "Close anytime, task keeps running"
+msgstr "Se puede cerrar, la tarea continúa"
+
+msgid "Config saved"
+msgstr "Configuración guardada"
+
+msgid "View Config"
+msgstr "Ver configuración"
+
+msgid "Refresh Info"
+msgstr "Actualizar información"
+
+msgid "Switch and Enable"
+msgstr "Cambiar y activar"
+
+msgid "Strategy Groups"
+msgstr "Grupos de estrategia"
+
+msgid "Config check failed"
+msgstr "Verificación fallida"
+
+msgid "Config check passed"
+msgstr "Verificación superada"
+
+msgid "Convert enabled"
+msgstr "Conversión activada"
+
+msgid "Convert disabled"
+msgstr "Conversión desactivada"
+
+msgid "Template"
+msgstr "Plantilla"
+
+msgid "Age encrypted / decrypted"
+msgstr "Cifrado AGE"
+
+msgid "Age key missing, stats unavailable"
+msgstr "Sin clave Age, estadísticas no disponibles"
+
+msgid "Nodes"
+msgstr "Nodos"
+
+msgid "Proxy Providers"
+msgstr "Conjuntos de proxy"
+
+msgid "nodes from proxy sets, protocol not read"
+msgstr "nodos de conjuntos de proxy, protocolo no leído"
+
+msgid "Rules"
+msgstr "Reglas"
+
+msgid "Rule Sets"
+msgstr "Conjuntos de reglas"
+
+msgid "Providers"
+msgstr "Proveedores"
+
+msgid "Nodes provided by proxy-providers, read after enable"
+msgstr "Nodos de proxy-providers, se leen al activar"
+
+msgid "Stats unavailable"
+msgstr "Estadísticas no disponibles"
+
+msgid "Retry without convert"
+msgstr "Reintentar sin conversión"
+
+msgid "Switch failed"
+msgstr "Fallo al cambiar"
+
+msgid "Switch finished, stats delayed"
+msgstr "Cambio completado, datos con retraso"
+
+msgid "Subscription failed, see the log above for details"
+msgstr "Suscripción fallida, consulte el registro de arriba"
+
+msgid "Groups"
+msgstr "Grupos"
+
+msgid "Convert Template Preview"
+msgstr "Vista previa de la plantilla"
+
+msgid "Parse the template only, no subscription needed"
+msgstr "Solo analiza la plantilla, sin suscripción"
+
+msgid "Local cache"
+msgstr "Caché local"
+
+msgid "Just fetched"
+msgstr "Recién obtenido"
+
+msgid "just now"
+msgstr "ahora mismo"
+
+msgid "minutes ago"
+msgstr "min hace"
+
+msgid "Group Structure"
+msgstr "Estructura de grupos"
+
+msgid "Rule Flow"
+msgstr "Flujo de reglas"
+
+msgid "Extra Settings"
+msgstr "Ajustes adicionales"
+
+msgid "Core Groups"
+msgstr "Grupos principales"
+
+msgid "Secondary Groups"
+msgstr "Grupos secundarios"
+
+msgid "refs"
+msgstr "referencias"
+
+msgid "Test Groups"
+msgstr "Grupos de prueba"
+
+msgid "Smart Groups"
+msgstr "Grupos smart"
+
+msgid "All Nodes"
+msgstr "Todos los nodos"
+
+msgid "No extra settings"
+msgstr "Sin ajustes adicionales"
+
+msgid "Preview"
+msgstr "Vista previa"
+
+msgid "Template not found"
+msgstr "Plantilla no encontrada"
+
+msgid "Failed to fetch template"
+msgstr "No se pudo obtener la plantilla"
+
+msgid "Enter the template URL first"
+msgstr "Introduce primero la URL de la plantilla"
+
+msgid "Unsupported template format"
+msgstr "Formato de plantilla no compatible (solo plantillas ini de subconverter)"
+
+msgid "seconds ago"
+msgstr "seg hace"
+
+msgid "Config Summary"
+msgstr "Resumen de configuración"
+
+msgid "Updated at"
+msgstr "Actualizado el"
+
+msgid "Node Protocols"
+msgstr "Protocolos de nodos"
+
+msgid "Rule Targets"
+msgstr "Destinos de reglas"
+
+msgid "Top 6 Targets"
+msgstr "Top 6 destinos"
+
+msgid "Rule Types"
+msgstr "Tipos de reglas"
+
+msgid "Proxy Sources"
+msgstr "Orígenes de proxy"
+
+msgid "Unavailable"
+msgstr "No disponible"
+
+msgid "Provider Nodes"
+msgstr "Nodos del proveedor"
+
+msgid "No protocol data"
+msgstr "Sin datos de protocolo"
+
+msgid "Template URL"
+msgstr "URL de plantilla"
+
+msgid "View Summary"
+msgstr "Ver resumen"
+
+msgid "Subscribe Convert"
+msgstr "Conversión de suscripción"
+
+msgid "Core failed to start, check the log above"
+msgstr "El núcleo no pudo iniciarse, revisa el registro"
+
+msgid "proxy-providers not downloaded, unable to read"
+msgstr "proxy-providers sin descargar, no se puede leer"
+
+msgid "providers"
+msgstr "conjuntos de proxy"
+
+msgid "Look inside the template before using it: its groups and rule flow"
+msgstr "Mira dentro de la plantilla antes de usarla: sus grupos y el flujo de reglas"
+
+msgid "The template is fetched once and kept in the router cache"
+msgstr "La plantilla se descarga una vez y queda en la caché del router"
+
+msgid "The run stays on the progress page; when it ends press View Summary to inspect the result or switch over"
+msgstr "La ejecución permanece en la página de progreso; al terminar pulsa Ver resumen para ver el resultado o cambiar"
+
+msgid "Template parsed"
+msgstr "Plantilla analizada"
+
+msgid "File parsed"
+msgstr "Archivo analizado"
+
+msgid "YAML template, no static structure to preview"
+msgstr "Plantilla YAML: su estructura se rellena al generar"
+
+msgid "OK"
+msgstr "Aceptar"
+
+msgid "Rename Failed"
+msgstr "Error al cambiar el nombre"
+
+msgid "Create File Failed"
+msgstr "Error al crear el archivo"
+
+msgid "Clear Log"
+msgstr "Borrar registro"
+
+msgid "Switch OpenClash to Fake-IP mode (page reload required)"
+msgstr "Cambiar OpenClash al modo Fake-IP (se recargará la página)"
+
+msgid "Switch OpenClash to Redir-Host mode (page reload required)"
+msgstr "Cambiar OpenClash al modo Redir-Host (se recargará la página)"
+
+msgid "Switching the DNS mode affects all traffic and reloads the page. Continue?"
+msgstr "Cambiar el modo DNS afecta a todo el tráfico y recarga la página. ¿Continuar?"
+
+msgid "Switching the DNS mode requires a plugin restart to take effect. Continue?"
+msgstr "Cambiar el modo DNS requiere reiniciar el plugin para que surta efecto. ¿Continuar?"
+
+msgid "Sub info fetch failed, retrying in 5s..."
+msgstr "No se pudo obtener la información, reintentando en 5 s..."
+
+msgid "Sub info fetch failed, click refresh to retry"
+msgstr "No se pudo obtener la información, pulsa actualizar para reintentar"
+
+msgid "Files are saved to the path shown for the selected type."
+msgstr "Los archivos se guardan en la ruta mostrada para el tipo seleccionado."
+
+msgid "File exceeds 10MB limit"
+msgstr "El archivo supera el límite de 10 MB"
+
+msgid "Backup downloaded"
+msgstr "Copia de seguridad descargada"
+
+msgid "Profiles are saved to the config directory (/etc/openclash/config)"
+msgstr "Los perfiles se guardan en el directorio de configuración (/etc/openclash/config)"
+
+msgid "Proxy provider files are saved to /etc/openclash/proxy_provider"
+msgstr "Los archivos de proveedor de proxy se guardan en /etc/openclash/proxy_provider"
+
+msgid "Rule provider files are saved to /etc/openclash/rule_provider"
+msgstr "Los archivos de proveedor de reglas se guardan en /etc/openclash/rule_provider"
+
+msgid "Core files are extracted to /etc/openclash/core"
+msgstr "Los archivos del núcleo se extraen en /etc/openclash/core"
+
+msgid "Backup files restore settings from a previous backup"
+msgstr "Los archivos de copia de seguridad restauran la configuración anterior"
+
+msgid "Advanced Subscription Options"
+msgstr "Opciones avanzadas de suscripción"
+
+msgid "Switch and enable"
+msgstr "Cambiar y activar"
+
+msgid "Still required: Subscribe URL"
+msgstr "Falta: URL de suscripción"
+
+msgid "Convert: off"
+msgstr "Conversión: desactivada"
+
+msgid "Convert: on"
+msgstr "Conversión: activada"
+
+msgid "Filter: off"
+msgstr "Filtro: desactivado"
+
+msgid "Filter: on"
+msgstr "Filtro: activado"
+
+msgid "Include"
+msgstr "Incluye"
+
+msgid "Exclude"
+msgstr "Excluye"
+
+msgid "Age Key"
+msgstr "Clave Age"
+
+msgid "Advanced:"
+msgstr "Avanzado:"
+
+msgid "Advanced: default"
+msgstr "Avanzado: predeterminado"
+
+msgid "Still required: Config Name"
+msgstr "Falta: nombre de configuración"
+
+msgid "Auto Exclude"
+msgstr "Autoexcluir"
+
+msgid "Privacy"
+msgstr "Privacidad"
+
+msgid "Queries go to 4 public services, the eye button hides the results"
+msgstr "Las consultas van a 4 servicios públicos; el botón del ojo oculta los resultados"
+
+msgid "Consistent"
+msgstr "Coincidentes"
+
+msgid "Different"
+msgstr "Diferente"
+
+msgid "Avg"
+msgstr "Media"
+
+msgid "Remove Downloaded Core"
+msgstr "Eliminar núcleos descargados"
+
+msgid "Editor failed to load, showing the plain text box"
+msgstr "No se pudo cargar el editor; se muestra el cuadro de texto sin formato"
+
+msgid "Step"
+msgstr "Paso"
+
+msgid "Core updated"
+msgstr "Núcleo actualizado"
+
+msgid "Config added"
+msgstr "Configuración añadida"
+
+msgid "OpenClash started"
+msgstr "OpenClash iniciado"
+
+msgid "Continue with the rest of the page"
+msgstr "Continuar con el resto de la página"
+
+msgid "Switch Theme"
+msgstr "Cambiar tema"
+
+msgid "Mode"
+msgstr "Modo"
+
+msgid "Theme"
+msgstr "Tema"
+
+msgid "Light"
+msgstr "Claro"
+
+msgid "Dark"
+msgstr "Oscuro"
+
+msgid "Auto"
+msgstr "Automático"
+
+msgid "Light Mode"
+msgstr "Modo claro"
+
+msgid "Dark Mode"
+msgstr "Modo oscuro"
+
+msgid "Auto Mode"
+msgstr "Modo automático"
+
+msgid "Applies to all OpenClash pages"
+msgstr "Se aplica a todas las páginas de OpenClash"
+
+msgid "Classic Blue"
+msgstr "Azul clásico"
+
+msgid "Nocturne Cyan"
+msgstr "Cian nocturno"
+
+msgid "Indigo Voyage"
+msgstr "Índigo nocturno"
+
+msgid "Graphite Silver"
+msgstr "Grafito"
+
+msgid "Ember Amber"
+msgstr "Ámbar cálido"
+
+msgid "Imperial Purple"
+msgstr "Púrpura imperial"
+
+msgid "Sweet Rose"
+msgstr "Rosa dulce"
+
+msgid "Smoky Pink"
+msgstr "Rosa ahumado"
+
+msgid "Configuration has unsaved changes"
+msgstr "La configuración tiene cambios sin guardar"
+
+msgid "Closing will discard the changes"
+msgstr "Cerrar descartará los cambios"
+
+msgid "Close without saving"
+msgstr "Cerrar sin guardar"
+
+msgid "Save and close"
+msgstr "Guardar y cerrar"
+
+msgid "Delete module"
+msgstr "Eliminar módulo"
+
+msgid "This cannot be undone"
+msgstr "Esta acción no se puede deshacer"
+
+msgid "Remove all core files"
+msgstr "Eliminar todos los núcleos"
+
+msgid "Restore default configuration"
+msgstr "Restaurar configuración predeterminada"
+
+msgid "Start Test"
+msgstr "Iniciar prueba"

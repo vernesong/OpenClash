@@ -1,9 +1,5 @@
 <%+cbi/valueheader%>
-<%
-    local fs = require "luci.openclash"
-    local plugin_version = fs.oc_version()
-%>
-<script src="/luci-static/resources/openclash/js/common.js?v=<%=plugin_version%>"></script>
+<script src="/cgi-bin/luci/admin/services/openclash/translate_js?f=common&v=@OPENCLASH_VERSION@&l=<%=luci.i18n.context.lang%>"></script>
 <div class="oc">
 <div class="upload-bar">
 	<label for="file_type"><%:Upload File Type%>:</label>
@@ -18,9 +14,9 @@
 	</div>
 	<input type="file" id="ulfile" name="ulfile" class="form-file" />
 	<div class="config-upload-buttons">
-		<button type="submit" class="btn" name="upload">
+		<button type="submit" class="btn" name="upload" id="upload-submit" disabled>
 			<svg width="14" height="14"><use href="#oc-icon-upload"/></svg>
-			<span><%:Upload%></span>
+			<span id="upload-submit-label"><%:Upload%></span>
 		</button>
 		<button type="button" class="btn" onclick="return backup_all_file(this)">
 			<svg width="14" height="14"><use href="#oc-icon-download"/></svg>
@@ -32,9 +28,11 @@
 	local msg = self:cfgvalue(section) or ""
 %>
 <div class="upload-note" id="upload-note">
-	<div class="upload-note-default" id="upload-note-default"><%:Note: Please Upload File According To File Type, File Will Be Saved To The Prompt Path%></div>
+	<div class="upload-note-default" id="upload-note-default"><%:Profiles are saved to the config directory (/etc/openclash/config)%></div>
 	<% if msg and msg ~= "" then %>
 	<div class="upload-result" id="upload-result"><%=pcdata(msg)%></div>
+	<% else %>
+	<div class="upload-result oc-hidden" id="upload-result"></div>
 	<% end %>
 </div>
 </div>
@@ -45,14 +43,104 @@
 (function() {
 	var result = document.getElementById('upload-result');
 	var defaultNote = document.getElementById('upload-note-default');
-	if (result && defaultNote) {
+	if (result && defaultNote && !result.classList.contains('oc-hidden')) {
 		defaultNote.classList.add('oc-hidden');
 		setTimeout(function() {
 			result.classList.add('oc-hidden');
 			defaultNote.classList.remove('oc-hidden');
 		}, 10000);
 	}
+
+	var typeSel = document.getElementById('file_type');
+	var fileInput = document.getElementById('ulfile');
+	var submitBtn = document.getElementById('upload-submit');
+	var submitLabel = document.getElementById('upload-submit-label');
+
+	var noteDefault = document.getElementById('upload-note-default');
+	var helpTexts = {
+		'config': '<%:Profiles are saved to the config directory (/etc/openclash/config)%>',
+		'proxy-provider': '<%:Proxy provider files are saved to /etc/openclash/proxy_provider%>',
+		'rule-provider': '<%:Rule provider files are saved to /etc/openclash/rule_provider%>',
+		'clash_meta': '<%:Core files are extracted to /etc/openclash/core%>',
+		'backup-file': '<%:Backup files restore settings from a previous backup%>'
+	};
+
+	function updateHelp() {
+		if (noteDefault && typeSel) noteDefault.textContent = helpTexts[typeSel.value] || helpTexts.config;
+	}
+
+	function fileAccept() {
+		var t = typeSel ? typeSel.value : 'config';
+		return (t === 'clash_meta' || t === 'backup-file') ? '.tar.gz' : '.yaml,.yml';
+	}
+
+	function updateSubmitState() {
+		if (!fileInput || !submitBtn) return;
+		var f = fileInput.files && fileInput.files[0];
+		if (!f) {
+			submitBtn.disabled = true;
+			submitLabel.textContent = '<%:Upload%>';
+			return;
+		}
+		if (f.size > 10 * 1024 * 1024) {
+			submitBtn.disabled = true;
+			submitLabel.textContent = '<%:File exceeds 10MB limit%>';
+			return;
+		}
+		submitBtn.disabled = false;
+		submitLabel.textContent = '<%:Upload%>' + ' ' + f.name;
+	}
+
+	if (typeSel && fileInput) {
+		fileInput.setAttribute('accept', fileAccept());
+		typeSel.addEventListener('change', function() {
+			fileInput.value = '';
+			fileInput.setAttribute('accept', fileAccept());
+			updateSubmitState();
+			updateHelp();
+		});
+		fileInput.addEventListener('change', updateSubmitState);
+		updateSubmitState();
+		updateHelp();
+	}
+
+	var dropBar = document.querySelector('.upload-bar');
+	if (dropBar && fileInput) {
+		['dragenter', 'dragover'].forEach(function(evt) {
+			dropBar.addEventListener(evt, function(e) {
+				e.preventDefault();
+				dropBar.classList.add('drag-over');
+			});
+		});
+		['dragleave', 'drop'].forEach(function(evt) {
+			dropBar.addEventListener(evt, function(e) {
+				e.preventDefault();
+				dropBar.classList.remove('drag-over');
+			});
+		});
+		dropBar.addEventListener('drop', function(e) {
+			if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+				fileInput.files = e.dataTransfer.files;
+				updateSubmitState();
+			}
+		});
+	}
 })();
+
+function uploadShowResult(message, isError)
+{
+	var result = document.getElementById('upload-result');
+	var defaultNote = document.getElementById('upload-note-default');
+	if (!result || !defaultNote) return;
+	result.textContent = message;
+	result.classList.toggle('err', !!isError);
+	result.classList.remove('oc-hidden');
+	defaultNote.classList.add('oc-hidden');
+	setTimeout(function() {
+		result.classList.add('oc-hidden');
+		defaultNote.classList.remove('oc-hidden');
+	}, 10000);
+}
 
 function backup_all_file(btn)
 {
@@ -74,17 +162,17 @@ function backup_all_file(btn)
 			document.body.appendChild(a);
 			a.click();
 			document.body.removeChild(a);
+			uploadShowResult('<%:Backup downloaded%>: ' + filename, false);
 			setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 1000);
 		} else {
-			alert('<%:Backup failed!%>');
+			uploadShowResult('<%:Backup failed!%>', true);
 		}
 	};
 	xhr.onerror = function() {
 		ocSetBtnLoading(btn, false);
-		alert('<%:Backup failed!%>');
+		uploadShowResult('<%:Backup failed!%>', true);
 	};
 	xhr.send();
 	return false;
 };
-
 //]]></script>

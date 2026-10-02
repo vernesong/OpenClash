@@ -4,7 +4,7 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
-  
+
 jobs:
   Sync_core_to_master:
     runs-on: ubuntu-latest
@@ -59,4 +59,3 @@ jobs:
           else
             echo "master package already sync to dev, exit"
           fi
-          

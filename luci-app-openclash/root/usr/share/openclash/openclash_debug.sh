@@ -28,7 +28,7 @@ DEBUG_LOG="/tmp/openclash_debug.log"
 LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 log_level=$(uci_get_config "log_level")
 enable_custom_dns=$(uci_get_config "enable_custom_dns")
-enable_custom_clash_rules=$(uci_get_config "enable_custom_clash_rules") 
+enable_custom_clash_rules=$(uci_get_config "enable_custom_clash_rules")
 ipv6_enable=$(uci_get_config "ipv6_enable")
 ipv6_dns=$(uci_get_config "ipv6_dns")
 enable_redirect_dns=$(uci_get_config "enable_redirect_dns")
@@ -94,28 +94,28 @@ fi
 
 ts_cf()
 {
-	if [ "$1" = "0" ] || [ -z "$1" ]; then
-	   echo "停用"
-	else
-	   echo "启用"
+   if [ "$1" = "0" ] || [ -z "$1" ]; then
+      echo "停用"
+   else
+      echo "启用"
    fi
 }
 
 ts_re()
 {
-	if [ -z "$1" ]; then
-	   echo "未安装"
-	else
-	   echo "已安装 ($1)"
+   if [ -z "$1" ]; then
+      echo "未安装"
+   else
+      echo "已安装 ($1)"
   fi
 }
 
 dns_re()
 {
    if [ "$1" = "1" ]; then
-	   echo "Dnsmasq 转发"
+      echo "Dnsmasq 转发"
    elif [ "$1" = "2" ]; then
-	   echo "Firewall 转发"
+      echo "Firewall 转发"
    else
       echo "停用"
    fi

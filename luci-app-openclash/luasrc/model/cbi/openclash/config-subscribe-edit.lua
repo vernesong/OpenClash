@@ -13,13 +13,14 @@ local age_section
 local backend_version_status = [[
 <div class="oc">
 	<div id="subconverter-version-status-cbi" class="subconverter-version-status" data-state="idle" hidden>
+		<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/><path d="M5 14h14a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2Z"/><path d="M7 7h.01M7 17h.01"/></svg>
 		<span class="subconverter-version-label"></span>
 		<span class="subconverter-version-text"></span>
 	</div>
 </div>
 ]]
 
-font_red = [[<b style=color:red>]]
+font_red = [[<b class="oc-txt-bad">]]
 font_off = [[</b>]]
 bold_on = [[<strong>]]
 bold_off = [[</strong>]]
@@ -84,7 +85,7 @@ o.default = 0
 ---- Convert Address
 o = s:option(Value, "convert_address", translate("Convert Address"))
 o.rmempty = true
-o.description = backend_version_status..font_red..bold_on..translate("Note: There is A Risk of Privacy Leakage in Online Convert")..bold_off..font_off
+o.description = backend_version_status..'<div class="oc-warn-strip"><svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 3 2 20h20ZM12 10v4m0 3h.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>'..translate("Note: There is A Risk of Privacy Leakage in Online Convert")..'</span></div>'
 o:depends("sub_convert", "1")
 o:value("https://api.asailor.org/sub", translate("api.asailor.org"))
 o:value("https://api.wcc.best/sub", translate("api.wcc.best"))
@@ -97,8 +98,8 @@ o.rmempty = true
 o:depends("sub_convert", "1")
 file = io.open("/usr/share/openclash/res/sub_ini.list", "r");
 for l in file:lines() do
-	if l ~= "" and l ~= nil then
-		o:value(string.sub(luci.sys.exec(string.format("echo '%s' |awk -F ',' '{print $1}' 2>/dev/null",l)),1,-2))
+	if l ~= "" then
+		o:value(l:match("^([^,]*)"))
 	end
 end
 file:close()
@@ -401,6 +402,11 @@ o.write = function()
 	HTTP.redirect(m.redirect)
 end
 
-m:append(Template("openclash/toolbar_show"))
+local render_children = m.render_children
+m.render_children = function(self, ...)
+	fs.render_page_head()
+	render_children(self, ...)
+end
+
 m:append(Template("openclash/subconverter_version"))
 return m

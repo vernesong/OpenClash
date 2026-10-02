@@ -1,16 +1,3 @@
-<html>
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> 
-  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,minimal-ui">
-<%
-    local fs = require "luci.openclash"
-    local plugin_version = fs.oc_version()
-%>
-  <script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
-</head>
-
-<body>
 <fieldset class="cbi-section">
 <table width="100%"><tr><td>
 <div class="oc">
@@ -82,7 +69,7 @@
                         </div>
                     </div>
                     <div class="more">
-                        <p>Powered by <a class="myip-footer" onclick="return web_oix()" href="javascript:void(0);">oixcloud.com</a></p>
+                        <p>Powered by <a onclick="return web_oix()" href="javascript:void(0);">oixcloud.com</a></p>
                     </div>
                 </div>
             </div>
@@ -92,6 +79,7 @@
 </td></tr></table>
 </fieldset>
 
+<script src="/luci-static/resources/openclash/js/oc-icons.js?v=@OPENCLASH_VERSION@"></script>
 <script type="text/javascript">//<![CDATA[
   var oix_plan = document.getElementById('oix-plan');
   var oix_plantime = document.getElementById('oix-plantime');
@@ -102,7 +90,6 @@
   var oix_unused = document.getElementById('oix-unused');
   var oix_traffic = document.getElementById('oix-traffic');
   var oix_integral = document.getElementById('oix-integral');
-  var oix_checkin = document.getElementById('oix-checkin');
   var obj = document.getElementById("additional");
   var card = document.getElementById("card");
   var oix_it = document.getElementById("oix_it");
@@ -118,6 +105,9 @@
       obj.classList.remove('collapsed');
       obj.classList.add('expanded');
   });
+
+  // open the cover on its own; slow or failed data requests must not trap the card
+  setTimeout(collapseCard, 2000);
 
   XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "oix_info")%>', null, function(x, status) {
     if (x && x.status == 200 && status.result != "error") {
@@ -143,15 +133,18 @@
             oix_plan.classList.add('oc-hidden');
             loadOixAnnouncement(status.result.announcement.date + ": " + status.result.announcement.content);
         }
-        show_info();
+        collapseCard();
     }
     else {
-        show_less();
+        expandCard();
     }
   });
 
-  XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "oix_info")%>', null, function(x, status) {
-    if (x && x.status == 200 && status.result != "error") {
+  var oixPollTimer = null;
+
+  function oixPollRefresh() {
+    XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "oix_info")%>', null, function(x, status) {
+      if (x && x.status == 200 && status.result != "error") {
         oix_plan.innerHTML = status.result.plan;
         oix_plantime.innerHTML = status.result.plan_time;
         oix_plantime.title = status.result.plan_time;
@@ -170,16 +163,41 @@
         oix_integral.innerHTML = status.result.integral;
         oix_integral.title = status.result.integral;
         if (showmore != 0) {
-            show_info();
+            collapseCard();
         }
         else {
-            show_less();
+            expandCard();
       }
+      }
+      else {
+          expandCard();
+      }
+    });
+  }
+
+  function startOixPoll() {
+    if (oixPollTimer) return;
+    oixPollTimer = setInterval(oixPollRefresh, 60000);
+  }
+
+  function stopOixPoll() {
+    if (oixPollTimer) {
+      clearInterval(oixPollTimer);
+      oixPollTimer = null;
     }
-    else {
-        show_less();
+  }
+
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      stopOixPoll();
+    } else {
+      startOixPoll();
+      oixPollRefresh();
     }
   });
+
+  startOixPoll();
+  if (document.hidden) stopOixPoll();
 
   function loadOixAnnouncement(content) {
     if (!oix_container || !oix_banner || !oix_content) return;
@@ -217,41 +235,42 @@
 
   function oix_checkin_btn(btn)
   {
+    if (btn && btn.disabled) return;
+    if (btn) btn.disabled = true;
     XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "oix_checkin")%>', null, function(x, status) {
+      if (btn) btn.disabled = false;
       if ( x && x.status == 200 && status.result != "error") {
         if (status.result.ret == 200) {
-          alert("<%:oixCloud Checkin Successful, Result:%>\n\n"+
-          status.result.data.checkin);
+          ocToast("<%:oixCloud Checkin Successful, Result:%> " + status.result.data.checkin, 'success');
         }
         else if (status.result.msg) {
-          alert("<%:oixCloud Checkin Failed, Result:%>\n\n"+
-          status.result.msg);
+          ocToast("<%:oixCloud Checkin Failed, Result:%> " + status.result.msg, 'error');
         }
         else {
-          alert("<%:oixCloud Checkin Failed! Please Check And Try Again...%>")
+          ocToast("<%:oixCloud Checkin Failed! Please Check And Try Again...%>", 'error');
         }
       }
       else {
-        alert("<%:oixCloud Checkin Failed! Please Check And Try Again...%>")
+        ocToast("<%:oixCloud Checkin Failed! Please Check And Try Again...%>", 'error');
       }
     });
   }
 
   function web_oix()
   {
-    url='http://bit.ly/oixcloud-register';
+    url='https://oixcloud.com/';
     window.open(url);
   }
 
   function show_more()
   {
     if (obj.classList.contains('expanded')) {
-      show_info();
+      collapseCard();
       showmore = 1;
     }
     else {
       if (oix_plan.innerHTML != "") {
-        show_less();
+        expandCard();
         showmore = 0;
       }
       else {
@@ -260,13 +279,8 @@
     }
   }
 
-  function show_less()
+  function randomizeSlogan()
   {
-    if (!obj.classList.contains('expanded')) {
-      obj.classList.add('expanded');
-      obj.classList.remove('collapsed');
-    }
-
     var rdmdl = Math.floor(Math.random() * 6) + 1;
     if (rdmdl == 1) {
       oix_it.innerHTML = '<%:Simple & trustworthy%>';
@@ -288,7 +302,17 @@
     }
   }
 
-  function show_info()
+  function expandCard()
+  {
+    var wasExpanded = obj.classList.contains('expanded');
+    if (!wasExpanded) {
+      obj.classList.add('expanded');
+      obj.classList.remove('collapsed');
+      randomizeSlogan();
+    }
+  }
+
+  function collapseCard()
   {
     if (!obj.classList.contains('collapsed')) {
       obj.classList.add('collapsed');
@@ -297,4 +321,3 @@
   }
 
 //]]></script>
-</html>

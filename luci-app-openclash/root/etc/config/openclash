@@ -64,7 +64,7 @@ config openclash 'config'
 	option geoasn_custom_url 'https://testingcf.jsdelivr.net/gh/xishang0128/geoip@release/GeoLite2-ASN.mmdb'
 	option chnr_custom_url 'https://ispip.clang.cn/all_cn.txt'
 	option chnr6_custom_url 'https://ispip.clang.cn/all_cn_ipv6.txt'
-	
+
 config dns_servers
 	option type 'udp'
 	option ip '114.114.114.114'

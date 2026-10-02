@@ -30,8 +30,8 @@ if [ "$(uci_get_config "enable_custom_domain_dns_server")" = "1" ] && [ "$(uci_g
 
    custom_domain_dns_server=$(uci_get_config "custom_domain_dns_server")
    [ -z "$custom_domain_dns_server" ] && {
-	   custom_domain_dns_server="114.114.114.114"
-	}
+      custom_domain_dns_server="114.114.114.114"
+   }
 
    if [ -s "/etc/openclash/custom/openclash_custom_domain_dns.list" ]; then
       mkdir -p ${DNSMASQ_CONF_DIR}

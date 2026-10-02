@@ -42,11 +42,6 @@
 | `external-ui` | `/usr/share/openclash/ui` | Dashboard 路径不可更改 |
 | `dns.listen` | `0.0.0.0:<dns_port>` | DNS 始终监听所有接口 |
 | `profile.store-selected` | `true` | 始终保存策略组选择状态 |
-| `sniffer.sniff` | HTTP:80,8080-8880 / TLS:443,8443 / QUIC:443 | 嗅探端口不可修改 |
-| `sniffer.override-destination` | `true` | 始终用嗅探结果覆盖连接目标 |
-| `sniffer.force-domain` | `+.netflix.com, +.nflxvideo.net, +.amazonaws.com, +.media.dssott.com` | 强制嗅探的流媒体域名 |
-| `sniffer.skip-domain` | `Mijia Cloud, dlg.io.mi.com, +.oray.com, +.sunlogin.net, +.push.apple.com` | 跳过嗅探的智能家居/推送域名 |
-| `sniffer.force-dns-mapping` | `true` (Redir-Host 时) | Redir-Host 模式下强制 DNS 映射嗅探 |
 | `iptables` | **删除** | 强制移除 iptables 相关配置 |
 | `ebpf` | **删除** | 强制移除 eBPF 相关配置 |
 | `auto-redir` | **删除** | 强制移除 auto-redir（由 OpenClash 防火墙管理） |
@@ -64,6 +59,11 @@
 | `ntp.port` | `123` | 仅当配置中未设置 |
 | `ntp.interval` | `30` (分钟) | 仅当配置中未设置 |
 | `ntp.write-to-system` | `true` | 仅当配置中未设置 |
+| `sniffer.sniff` | HTTP:80,8080-8880 / TLS:443,8443 / QUIC:443 | 嗅探端口不可修改 |
+| `sniffer.override-destination` | `false` | 始终用嗅探结果覆盖连接目标 |
+| `sniffer.force-domain` | `+.netflix.com, +.nflxvideo.net, +.amazonaws.com, +.media.dssott.com` | 强制嗅探的流媒体域名 |
+| `sniffer.skip-domain` | `Mijia Cloud, dlg.io.mi.com, +.oray.com, +.sunlogin.net, +.push.apple.com` | 跳过嗅探的智能家居/推送域名 |
+| `sniffer.force-dns-mapping` | `true` (Redir-Host 时) | Redir-Host 模式下强制 DNS 映射嗅探 |
 
 **防火墙固定值**（硬编码在 `init.d/openclash` 中）：
 
@@ -96,9 +96,9 @@
   - `fake-ip-mix` — Fake-IP (混合)
 - **Mihomo 对应配置**: `dns.enhanced-mode` (fake-ip / redir-host)
 - **Redir-Host 模式**: DNS 解析在客户端完成，核心根据 IP 规则分流。适合 BT/PT 下载
-- **Fake-IP 模式**: DNS 解析在核心完成，返回虚假 IP (198.18.x.x)，性能更高。规则基于域名匹配。**推荐作为日常使用首选**：「Fake-IP 模式」(选项 `fake-ip`)——DNS 解析快、占资源低，日常够用；若个别应用连不上（NAT 问题）改用「Fake-IP 混合」(选项 `fake-ip-mix`)；若固件装了 Docker 可直接用「Fake-IP TUN」(选项 `fake-ip-tun`)
+- **Fake-IP 模式**: DNS 解析在核心完成，返回虚假 IP (198.18.x.x)，性能更高。规则基于域名匹配。**推荐作为日常使用首选**：「Fake-IP 模式」(选项 `fake-ip`)——DNS 解析快、占资源低，日常够用；若个别应用连不上（NAT 问题）改用「Fake-IP 混合」(选项 `fake-ip-mix`)，或者「Fake-IP TUN」(选项 `fake-ip-tun`)
 - **TUN 模式**: 创建虚拟网卡，以网络层接管所有流量。对应 Mihomo `tun.enable=true`。需要 `kmod-tun` 内核模块
-- **混合模式**: TCP 使用 system 栈 (redirect)，UDP 使用 gvisor 栈 (TUN)。对应 Mihomo `tun.stack=mixed`。适合非直连游戏等对 NAT 类型有要求的场景
+- **混合模式**: TCP 使用 redirect，UDP 使用 TUN。对应 Mihomo `tun.stack=mixed`。适合非直连游戏等对 NAT 类型有要求的场景
 
 #### 8.2.2 stack_type — TUN 堆栈类型 (Select Stack Type)
 - **UCI 选项**: `openclash.@openclash[0].stack_type`
@@ -121,7 +121,7 @@
 #### 8.2.4 enable_udp_proxy — UDP 流量转发 (Proxy UDP Traffics)
 - **UCI 选项**: `openclash.@openclash[0].enable_udp_proxy`
 - **默认**: 1 (开启)
-- **说明**: 节点需支持 UDP 转发。Docker 环境可能导致 UDP 异常
+- **说明**: 节点需支持 UDP 转发。
 - **依赖**: 仅非 TUN 模式（`fake-ip` / `redir-host`）显示
 - **注意**: Fake-IP 模式即使关闭此选项，域名类 UDP 连接仍会经过核心
 
@@ -152,9 +152,9 @@
 - **说明**: 将核心和 GEOIP 数据文件移到 `/tmp/etc/openclash`，节省闪存空间。路由重启后需重新下载
 
 > **AI 行为指引 — QUIC 类节点（Hysteria / Hysteria2 / TUIC）故障排查**: 当用户报告 Hysteria、Hysteria2、TUIC 等基于 QUIC 协议的节点无法连接、频繁断流或握手超时时，AI 应先让用户生成调试日志查看核心日志中的 QUIC 相关错误。如日志含 `quic-go` / `GSO` / `timeout` 等关键字，**优先建议**用户在「插件设置→模式设置」中开启「禁用 quic-go GSO (Disable QUIC Go GSO)」选项并重启 OpenClash。这是 Linux 内核 ≥6.6 上最常见的 QUIC 兼容性问题。
-> 
+>
 > **关于 `disable_udp_quic`（禁用 QUIC）**：此选项**不会**影响 Mihomo 内核自身的 Hysteria/Hysteria2/TUIC 等 QUIC 出站连接，无需因使用此类节点而关闭该选项。原因：所有模式（TUN/非TUN）下 QUIC REJECT 规则均在 filter INPUT 链 + IPv6 TUN 模式下额外在 FORWARD -o utun 链，Mihomo 内核自身出站 QUIC 走 OUTPUT 链，回复包的目标端口为临时端口（非 443），均不命中拦截规则。`disable_udp_quic` 的目的是让 LAN 客户端的 YouTube 等 QUIC 流量降级到 TCP 以便代理，与内核节点通信无关。
-> 
+>
 > 若 GSO 选项开启后问题仍存在，建议查阅 [Mihomo Wiki Hysteria 配置](https://wiki.metacubex.one/config/proxies/hysteria/) 或 [Hysteria2 配置](https://wiki.metacubex.one/config/proxies/hysteria2/) 验证节点字段是否正确。
 
 #### 8.2.10 运行模式切换按钮 (switch_mode)
@@ -208,11 +208,10 @@
 - TUN 模式：流量进 `utun`，由所选栈处理
 
 **建议**（对比数据见 §8.4.3）
-1. **优先 REDIRECT/TPROXY**：批量吞吐与直连同级（内核 `splice` 零拷贝中继），每 256 MB core CPU 约 0.1 s、只有 TUN 数据面的约 1/30–1/100；短连接约为直连的 50%，高于 TUN。TUN 仅用于必须整机接管（如 Docker、无法下发透明代理规则的场景）。
-2. **保持现状（TCP=REDIRECT、UDP=TPROXY）**：两者 TCP 批量吞吐与 CPU 同级，而 REDIRECT 不需要额外的 `ip rule`/local 路由表，且对路由器自身流量同样生效。
-3. TPROXY-TCP 的意义在于**透明代理链路更干净**，属功能取舍而非性能优化：REDIRECT 在 PREROUTING 把目标 DNAT 成本地地址，代理只能靠 `getsockopt(SO_ORIGINAL_DST)` 从 conntrack 反查客户端原本要去的目标（查不到就静默断连）；TPROXY 不改写报文，目标直接来自报文本身（`github.com/metacubex/mihomo/listener/tproxy/tproxy.go` 读 `conn.LocalAddr()`）。**源 IP 两种方式都会保留**。
-4. **旁路由纯转发（不经代理）不是瓶颈**：转发 + NAT 可达线路速率，CPU 开销可忽略（`FLOWOFFLOAD` 把已建立连接交给 flowtable，开关无差异，且不影响被代理流量——命中 mark/TPROXY 的报文本就不走 offload）。旁路由的 masquerade 可关（主路由能回程即可）但收益≈零。
-5. **UDP 小包路径**：丢包基本由「每秒包数」而非转发方式决定（`mips`/`system` 下 TPROXY 与 TUN 同档）；flood 场景交付 TUN ≈ TPROXY（约 43–45 MB/s），`gvisor` 只有约 1/4（见 §8.4.3）。
+1. **优先 REDIRECT/TPROXY**：批量吞吐与直连同级（内核 `splice` 零拷贝中继），每 256 MB core CPU 约 0.1 s、只有 TUN 数据面的约 1/30–1/100；短连接约为直连的 50%，高于 TUN。
+2. TPROXY-TCP 的意义在于**透明代理链路更干净**，属功能取舍而非性能优化：REDIRECT 在 PREROUTING 把目标 DNAT 成本地地址，代理只能靠 `getsockopt(SO_ORIGINAL_DST)` 从 conntrack 反查客户端原本要去的目标（查不到就静默断连）；TPROXY 不改写报文，目标直接来自报文本身（`github.com/metacubex/mihomo/listener/tproxy/tproxy.go` 读 `conn.LocalAddr()`）。**源 IP 两种方式都会保留**。
+3. **旁路由纯转发（不经代理）不是瓶颈**：转发 + NAT 可达线路速率，CPU 开销可忽略（`FLOWOFFLOAD` 把已建立连接交给 flowtable，开关无差异，且不影响被代理流量——命中 mark/TPROXY 的报文本就不走 offload）。旁路由的 masquerade 可关（主路由能回程即可）但收益≈零。
+4. **UDP 小包路径**：丢包基本由「每秒包数」而非转发方式决定（`mips`/`system` 下 TPROXY 与 TUN 同档）；flood 场景交付 TUN ≈ TPROXY（约 43–45 MB/s），`gvisor` 只有约 1/4（见 §8.4.3）。
 
 #### 8.2.14 默认值与 MIPS 来源
 

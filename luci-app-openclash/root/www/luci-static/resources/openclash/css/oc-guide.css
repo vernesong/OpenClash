@@ -1,0 +1,1073 @@
+/* ==========================================================================
+ * OpenClash stylesheet - oc-guide.css
+ * Loaded on demand together with js/guide.js (tour/panel only; the floating button stays in oc-client.css).
+ * ========================================================================== */
+
+/* the four panels only block clicks outside the hole, the dim itself is painted by the spotlight
+ * shadow below, so the rounded hole stays free of corner gaps */
+.oc .guide-tour-mask {
+    position: fixed;
+    z-index: 20000;
+    background: transparent;
+    transition: opacity 0.18s ease;
+}
+
+.oc.guide-tour.full-dim .guide-tour-mask {
+    background: var(--overlay-bg, rgba(15, 23, 42, 0.5));
+}
+
+.oc .guide-spot {
+    position: fixed;
+    z-index: 20001;
+    border-radius: 10px;
+    box-shadow: 0 0 0 3px var(--primary-color), 0 0 0 9999px var(--overlay-bg, rgba(15, 23, 42, 0.5));
+    pointer-events: none;
+    transition: top 0.22s ease, left 0.22s ease, width 0.22s ease, height 0.22s ease, opacity 0.18s ease;
+}
+
+.oc .guide-spot::after {
+    content: '';
+    position: absolute;
+    top: -7px;
+    right: -7px;
+    bottom: -7px;
+    left: -7px;
+    border: 3px solid var(--primary-a50);
+    border-radius: 14px;
+    animation: guide-spot-pulse 1.8s ease-out 3;
+}
+
+@keyframes guide-spot-pulse {
+    0% { opacity: 0.9; transform: scale(0.995); }
+    70% { opacity: 0; transform: scale(1.02); }
+    100% { opacity: 0; transform: scale(1.02); }
+}
+
+/* the dialog already dims the page, and its content must stay above the spotlight shadow */
+.oc.guide-tour.dialog .guide-spot {
+    box-shadow: 0 0 0 3px var(--primary-color);
+}
+
+.oc .guide-spot.hidden {
+    display: none;
+}
+
+/* the first placement of a step must not animate, the callout would be seen flying to position */
+.oc.guide-tour.no-anim .guide-spot {
+    transition: none;
+}
+
+.oc.guide-tour.no-anim .guide-spot::after {
+    animation: none;
+}
+
+.oc.guide-tour.busy .guide-tour-mask,
+.oc.guide-tour.busy .guide-spot,
+.oc.guide-tour.busy .guide-pop {
+    opacity: 0;
+}
+
+.oc.guide-tour.busy .guide-pop {
+    visibility: hidden;
+    transition: none;
+}
+
+/* while the add window shows its progress/result pages the form steps would point at
+   hidden fields, so the whole overlay waits until the form is back */
+.oc.guide-tour.paused .guide-tour-mask,
+.oc.guide-tour.paused .guide-spot,
+.oc.guide-tour.paused .guide-pop {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: none;
+}
+
+/* a reader-opened window owns the stage: the tour stays hidden until it closes */
+.oc.guide-tour.extra-hold .guide-tour-mask,
+.oc.guide-tour.extra-hold .guide-spot,
+.oc.guide-tour.extra-hold .guide-pop {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: none;
+}
+
+.oc.guide-tour.closing .guide-tour-mask,
+.oc.guide-tour.closing .guide-spot,
+.oc.guide-tour.closing .guide-pop {
+    opacity: 0;
+    transition: opacity 0.18s ease;
+}
+
+.oc .guide-pop {
+    position: fixed;
+    z-index: 20002;
+    width: 390px;
+    max-width: calc(100vw - 24px);
+    padding: 14px 16px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    background: var(--bg-white);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.34);
+    transition: opacity 0.18s ease;
+}
+
+/* the lead of a step is its first paragraph: a cover image, a heading or a list that opens a step
+ * keeps its own style, and the frame is mirrored on both sides. It is indigo on purpose, so the
+ * opening line does not read as one of the blue tags, info notes or tips below it */
+.oc .guide-pop-body > p:first-of-type:not(.guide-sub):not(.guide-wait):not(.guide-tip):not(.guide-info):not(.guide-careful):not(.guide-note) {
+    margin-top: 0;
+    color: var(--text-secondary);
+    padding: 7px 10px;
+    border: 1px solid rgba(99, 102, 241, 0.24);
+    border-left: 3px solid #4f46e5;
+    border-right: 3px solid #4f46e5;
+    border-radius: 6px;
+    background: rgba(99, 102, 241, 0.07);
+    font-weight: 600;
+    line-height: 1.55;
+}
+
+.oc .guide-pop-body b {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.oc .guide-pop-body p {
+    margin: 0 0 6px;
+}
+
+/* a term row is one "name: explanation" pair; a heading over a list is not a term row */
+.oc .guide-pop-body > p:not(:first-of-type):not(.guide-sub):not(.guide-tip):not(.guide-info):not(.guide-careful):not(.guide-note):not(.guide-wait) {
+    margin-top: 6px;
+    padding: 6px 9px;
+    border: 1px solid var(--border-light);
+    border-radius: 5px;
+    background: var(--bg-gray);
+}
+
+.oc .guide-pop-body .guide-sub {
+    margin: 11px 0 0;
+    padding: 0 2px;
+    border: 0;
+    background: none;
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.oc .guide-pop-body > .guide-sub:first-child {
+    margin-top: 0;
+}
+
+/* the colon behind a label is drawn here, so each language gets its own punctuation */
+.oc .guide-pop-body .guide-sep::after {
+    content: ': ';
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+
+html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
+    content: '：';
+}
+
+/* the illustration that opens the first step and closes the last one */
+.oc .guide-pop-body .guide-cover {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 0 11px;
+    color: var(--primary-color);
+}
+
+.oc .guide-pop-body .guide-cover .cv-bg {
+    fill: currentColor;
+    fill-opacity: 0.05;
+    stroke: currentColor;
+    stroke-opacity: 0.16;
+}
+
+.oc .guide-pop-body .guide-cover .cv-beam {
+    fill: currentColor;
+    fill-opacity: 0.07;
+}
+
+.oc .guide-pop-body .guide-cover .cv-card,
+.oc .guide-pop-body .guide-cover .cv-ring {
+    fill: none;
+    stroke: currentColor;
+    stroke-opacity: 0.32;
+}
+
+.oc .guide-pop-body .guide-cover .cv-line,
+.oc .guide-pop-body .guide-cover .cv-dot {
+    fill: currentColor;
+    fill-opacity: 0.45;
+}
+
+.oc .guide-pop-body .guide-cover .cv-faint {
+    fill-opacity: 0.16;
+}
+
+.oc .guide-pop-body .guide-cover .cv-switch,
+.oc .guide-pop-body .guide-cover .cv-cursor {
+    fill: currentColor;
+}
+
+.oc .guide-pop-body .guide-cover .cv-knob {
+    fill: var(--bg-white);
+}
+
+.oc .guide-pop-body .guide-cover .cv-cursor {
+    stroke: var(--bg-white);
+    stroke-width: 1.4;
+}
+
+.oc .guide-pop-body .guide-cover .cv-check,
+.oc .guide-pop-body .guide-cover .cv-spark {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.oc .guide-pop-body .guide-cover .cv-wave {
+    fill: none;
+    stroke: currentColor;
+    stroke-opacity: 0.45;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.oc .guide-pop-body p:last-child {
+    margin-bottom: 0;
+}
+
+.oc .guide-pop-body li::marker {
+    color: var(--primary-color);
+}
+
+.oc .guide-pop-body code {
+    padding: 1px 5px;
+    border-radius: 5px;
+    background: var(--primary-a10);
+    color: var(--primary-color);
+    font-size: 12px;
+}
+
+.oc .guide-pop-body .guide-tag {
+    display: inline-block;
+    margin-left: 5px;
+    padding: 0 6px;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 15px;
+    vertical-align: 1px;
+    white-space: nowrap;
+}
+
+.oc .guide-pop-body .guide-tag.req {
+    background: var(--primary-a20);
+    color: var(--btn-primary-hover);
+}
+
+.oc .guide-pop-body .guide-tag.opt {
+    background: rgba(100, 116, 139, 0.16);
+    color: #475569;
+}
+
+.oc .guide-pop-body .guide-tag.rec {
+    background: rgba(16, 185, 129, 0.16);
+    color: #047857;
+}
+
+.oc .guide-pop-body .guide-tag.care {
+    background: rgba(245, 158, 11, 0.2);
+    color: #b45309;
+}
+
+.oc .guide-pop-body .guide-tip,
+.oc .guide-pop-body .guide-info,
+.oc .guide-pop-body .guide-careful {
+    --note-fs: 12px;
+    --note-lh: 1.6;
+    --note-pad: 6px;
+    --note-mark: 13px;
+    position: relative;
+    margin: 8px 0 0;
+    padding: var(--note-pad) 10px var(--note-pad) 27px;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    font-size: var(--note-fs);
+    line-height: var(--note-lh);
+}
+
+.oc .guide-pop-body > .guide-note:not(.oc-hidden) {
+    margin: 8px 0 0;
+    padding: 6px 9px;
+    border: 1px solid var(--border-light);
+    border-left: 2px solid var(--border-light);
+    border-radius: 5px;
+    background: var(--bg-gray);
+    line-height: 1.55;
+}
+
+.oc .guide-pop-body .guide-tip::before,
+.oc .guide-pop-body .guide-info::before,
+.oc .guide-pop-body .guide-careful::before {
+    position: absolute;
+    left: 8px;
+    /* first-line centring: padding + (line box − mark) / 2, all derived from the note tokens */
+    top: calc(var(--note-pad) + (var(--note-lh) * var(--note-fs) - var(--note-mark)) / 2);
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 13px;
+    text-align: center;
+}
+
+.oc .guide-pop-body .guide-tip {
+    background: rgba(16, 185, 129, 0.09);
+    border-left: 3px solid #10b981;
+    border-right: 3px solid #10b981;
+}
+
+.oc .guide-pop-body .guide-tip::before {
+    content: '';
+    background-color: #10b981;
+}
+
+.oc .guide-pop-body .guide-info {
+    background: var(--primary-a10);
+    border-left: 3px solid var(--primary-color);
+    border-right: 3px solid var(--primary-color);
+}
+
+.oc .guide-pop-body .guide-info::before {
+    content: 'i';
+    background: var(--primary-color);
+}
+
+.oc .guide-pop-body .guide-careful {
+    background: rgba(245, 158, 11, 0.11);
+    border-left: 3px solid #f59e0b;
+    border-right: 3px solid #f59e0b;
+}
+
+.oc .guide-pop-body .guide-careful::before {
+    content: '!';
+    background: #f59e0b;
+}
+
+.oc .guide-pop-body .guide-info::before {
+    color: var(--text-on-primary);
+}
+
+.oc .guide-pop-body ol,
+.oc .guide-pop-body ul {
+    margin: 6px 0 8px;
+    padding: 3px 10px 3px 29px;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    background: var(--bg-gray);
+}
+
+.oc .guide-pop-body ul {
+    list-style: disc;
+}
+
+.oc .guide-pop-body ol {
+    list-style: decimal;
+}
+
+/* the log.htm section resets list markers on every item (this beats the ul), restore them here */
+.oc .guide-pop-body ul li {
+    list-style: disc;
+}
+
+.oc .guide-pop-body ol li {
+    list-style: decimal;
+}
+
+.oc .guide-pop-body li {
+    margin: 0;
+    padding: 5px 0;
+}
+
+.oc .guide-pop-body li + li {
+    border-top: 1px solid var(--border-light);
+}
+
+.oc .guide-pop-body code {
+    padding: 1px 4px;
+    border-radius: 4px;
+    background: var(--bg-gray);
+}
+
+.oc .guide-pop-foot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-light);
+}
+
+.oc .guide-actions {
+    display: flex;
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    max-width: 100%;
+    margin-left: auto;
+}
+
+.oc .guide-pop.compact {
+    padding: 8px 10px;
+}
+
+/* a callout that is narrow on its own (a side placement on a wide screen, or any phone) stacks its
+ * footer: the step marks take a row of their own, both rows centred */
+.oc .guide-pop.narrow .guide-pop-foot {
+    gap: 6px;
+    justify-content: center;
+}
+
+.oc .guide-pop.narrow .guide-pop-foot .guide-dots {
+    flex: 1 0 100%;
+    justify-content: safe center;
+}
+
+.oc .guide-pop.narrow .guide-actions {
+    flex: 1 0 100%;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 6px;
+    margin-left: 0;
+}
+
+.oc .guide-pop.narrow .guide-pop-foot .guide-actions .btn {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0 8px;
+}
+
+/* compact only trades vertical room for the callout, the progress marks keep their size: the row
+ * scrolls instead, and a shrunken mark reads as a different step count */
+.oc .guide-pop.compact .guide-pop-head {
+    margin-bottom: 3px;
+}
+
+.oc .guide-pop.compact .guide-pop-foot {
+    margin-top: 4px;
+    padding-top: 5px;
+    gap: 6px;
+}
+
+.oc .guide-pop.compact .guide-actions {
+    gap: 6px;
+}
+
+.oc .guide-pop.compact .guide-pop-body {
+    line-height: 1.55;
+}
+
+.oc .guide-pop.compact .guide-note,
+.oc .guide-pop.compact .guide-wait {
+    margin-top: 5px;
+}
+
+.oc .guide-pop.compact .guide-pop-section {
+    display: none;
+}
+
+/* the row shrinks before any button does and never falls below the mark it has to show, the rest
+ * of it scrolls into reach with the current step centred instead of being cut off. The padding
+ * keeps the ring of the current mark inside the box that clips the row, at either end of the row */
+.oc .guide-dots {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 0 1 auto;
+    min-width: 0;
+    padding: 3px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+}
+
+/* between two steps of the same group the callout follows the ring over, while the first
+ * placement of a step stays instant (that is the no-anim state) */
+.oc.guide-tour:not(.no-anim) .guide-pop {
+    transition: top 0.22s ease, left 0.22s ease, opacity 0.18s ease;
+}
+
+.oc .guide-pop.wide {
+    width: 530px;
+}
+
+.oc .guide-pop.wide-dots {
+    width: 530px;
+}
+
+.oc .guide-pop.from-next {
+    animation: guide-pop-in-next 0.24s ease;
+}
+
+.oc .guide-pop.from-prev {
+    animation: guide-pop-in-prev 0.24s ease;
+}
+
+@keyframes guide-pop-in-next {
+    from { opacity: 0; translate: 0 7px; }
+    to { opacity: 1; translate: 0 0; }
+}
+
+@keyframes guide-pop-in-prev {
+    from { opacity: 0; translate: 0 -7px; }
+    to { opacity: 1; translate: 0 0; }
+}
+
+.oc .guide-pop.center {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.oc .guide-pop .guide-arrow {
+    position: absolute;
+    /* keeps a freshly rebuilt arrow off the title until the script places it */
+    top: -6px;
+    left: 32px;
+    width: 12px;
+    height: 12px;
+    background: var(--bg-white);
+    transform: rotate(45deg);
+}
+
+.oc .guide-pop-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.oc .guide-pop-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: 0.1px;
+}
+
+.oc .guide-pop-step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+.oc .guide-pop-section {
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--bg-gray);
+    color: var(--text-secondary);
+    font-size: 11px;
+}
+
+.oc .guide-pop-section.cfg {
+    background: var(--primary-a20);
+    color: var(--btn-primary-hover);
+}
+
+.oc .guide-pop-section.ovr {
+    background: rgba(139, 92, 246, 0.14);
+    color: #6d28d9;
+}
+
+.oc .guide-pop-section.upd {
+    background: rgba(245, 158, 11, 0.16);
+    color: #b45309;
+}
+
+.oc .guide-pop-count {
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--primary-a10, #eff6ff);
+    color: var(--primary-color);
+    font-size: 11.5px;
+    font-variant-numeric: tabular-nums;
+}
+
+.oc .guide-pop-body {
+    max-height: 52vh;
+    /* a long step scrolls its own text area, so the space for that bar is reserved up front: the copy
+     * keeps the width it was measured with and never ends up under the scrollbar. The bar itself is
+     * thin, and long words wrap instead of asking for a sideways scroll */
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+    overflow-wrap: break-word;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    text-align: left;
+}
+
+.oc .guide-pop-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.oc .guide-pop-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.oc .guide-pop-body::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: var(--scrollbar-thumb);
+}
+
+.oc .guide-pop-body::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+}
+
+.oc .guide-dots::-webkit-scrollbar {
+    display: none;
+}
+
+.oc .guide-dots i {
+    flex: 0 0 auto;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--primary-a20);
+    transition: width 0.24s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.oc .guide-dots i.done {
+    background: var(--primary-a50);
+}
+
+.oc .guide-dots i.on {
+    width: 16px;
+    background: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-a20);
+}
+
+.oc .guide-dots.dense {
+    gap: 3px;
+}
+
+.oc .guide-dots.dense i {
+    width: 5px;
+    height: 5px;
+}
+
+.oc .guide-dots.dense i.on {
+    width: 13px;
+}
+
+.oc .guide-dots.tiny {
+    gap: 2px;
+}
+
+.oc .guide-dots.tiny i {
+    width: 4.5px;
+    height: 4.5px;
+}
+
+.oc .guide-dots.tiny i.on {
+    width: 11px;
+    box-shadow: 0 0 0 1.5px var(--primary-a20);
+}
+
+.oc .guide-pop-foot .btn,
+.oc .guide-pop-body .guide-more {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    height: 30px;
+    padding: 0 10px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.oc .guide-pop-foot .cancel-btn,
+.oc .guide-pop-foot .guide-skip {
+    border: 1px solid var(--border-light);
+    background: var(--bg-white);
+    color: var(--text-secondary);
+}
+
+.oc .guide-pop-foot .cancel-btn:hover,
+.oc .guide-pop-foot .guide-skip:hover {
+    background: var(--bg-light);
+    color: var(--text-primary);
+}
+
+.oc .guide-pop-foot .upload-btn {
+    border: 1px solid var(--primary-color);
+    background: var(--primary-color);
+    color: var(--text-on-primary);
+}
+
+.oc .guide-pop-foot .upload-btn:hover:not(:disabled) {
+    border-color: var(--btn-primary-hover, #2563eb);
+    background: var(--btn-primary-hover, #2563eb);
+}
+
+.oc .guide-pop-foot .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.oc .guide-note code {
+    padding: 1px 4px;
+    border-radius: 4px;
+    background: var(--bg-gray);
+}
+
+.oc .guide-note {
+    margin: 10px 0 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.oc .guide-pop .guide-progress {
+    position: absolute;
+    top: 6px;
+    left: 16px;
+    right: 16px;
+    height: 3px;
+    display: flex;
+    gap: 3px;
+}
+
+.oc .guide-pop .guide-progress i {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--bg-gray);
+    transition: background-color 0.22s ease;
+}
+
+.oc .guide-pop .guide-progress i.done {
+    background: var(--primary-a20, #dbeafe);
+}
+
+.oc .guide-pop .guide-progress i.on {
+    background: var(--primary-color);
+}
+
+.oc .guide-pop .guide-wait {
+    margin: 10px 0 0;
+    padding: 6px 8px;
+    border-left: 3px solid var(--primary-color);
+    border-right: 3px solid var(--primary-color);
+    border-radius: var(--radius-sm);
+    background: var(--primary-a10, #eff6ff);
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+.oc .guide-pop .guide-live {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* the add module window is created on demand and carries its own inline z-index. It sits above the
+ * spotlight so the ring of the step before is hidden behind it, while the callout stays readable
+ * and the tips of its own steps go above the window again */
+body.oc-guide-open #overwrite-add-model {
+    z-index: 20080 !important;
+}
+
+body.oc-guide-open .guide-pop {
+    z-index: 20095 !important;
+}
+
+body.oc-guide-open .guide-tour.inadd .guide-spot {
+    z-index: 20090;
+}
+
+.oc .guide-arch {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.oc .guide-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+.oc .guide-checkbox input[type="checkbox"] {
+    flex: 0 0 auto;
+    margin: 2px 0 0;
+}
+
+html[data-darkmode=true] .oc .guide-pop-count {
+    background: var(--primary-a20);
+    color: var(--primary-soft);
+}
+
+html[data-darkmode=true] .oc .guide-pop-section {
+    background: rgba(148, 163, 184, 0.18);
+    color: var(--text-secondary);
+}
+
+html[data-darkmode=true] .oc .guide-pop-section.cfg {
+    background: var(--primary-a20);
+    color: var(--primary-soft);
+}
+
+html[data-darkmode=true] .oc .guide-pop-section.ovr {
+    background: rgba(167, 139, 250, 0.2);
+    color: #c4b5fd;
+}
+
+html[data-darkmode=true] .oc .guide-pop-section.upd {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+}
+
+html[data-darkmode=true] .oc .guide-dots i {
+    background: var(--primary-a20);
+}
+
+html[data-darkmode=true] .oc .guide-dots i.done {
+    background: var(--primary-a50);
+}
+
+html[data-darkmode=true] .oc .guide-dots i.on {
+    background: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-a20);
+}
+
+/* dims the callout's grey blocks on the dark panel so the text on them stays readable */
+html[data-darkmode=true] .oc .guide-pop-body {
+    --bg-gray: rgba(148, 163, 184, 0.12);
+}
+
+html[data-darkmode=true] .oc .guide-pop-body code {
+    background: var(--primary-a20);
+    color: var(--primary-soft);
+}
+
+html[data-darkmode=true] .oc .guide-pop-body .guide-tag.req {
+    background: var(--primary-a20);
+    color: var(--primary-soft);
+}
+
+html[data-darkmode=true] .oc .guide-pop-body .guide-tag.opt {
+    background: rgba(148, 163, 184, 0.22);
+    color: #cbd5e1;
+}
+
+html[data-darkmode=true] .oc .guide-pop-body .guide-tag.rec {
+    background: rgba(52, 211, 153, 0.2);
+    color: #34d399;
+}
+
+html[data-darkmode=true] .oc .guide-pop-body .guide-tag.care {
+    background: rgba(251, 191, 36, 0.22);
+    color: #fbbf24;
+}
+
+html[data-darkmode=true] .oc .guide-pop-body .guide-tip {
+    background: rgba(16, 185, 129, 0.14);
+}
+
+html[data-darkmode=true] .oc .guide-pop-body .guide-info {
+    background: var(--primary-a20);
+}
+
+html[data-darkmode=true] .oc .guide-pop-body .guide-careful {
+    background: rgba(245, 158, 11, 0.16);
+}
+
+html[data-darkmode=true] .oc .guide-spot {
+    box-shadow: 0 0 0 3px var(--primary-color), 0 0 0 9999px rgba(2, 6, 23, 0.66);
+}
+
+html[data-darkmode=true] .oc.guide-tour.full-dim .guide-tour-mask {
+    background: rgba(2, 6, 23, 0.66);
+}
+
+/* dialogs opened from inside the tour have to sit above the mask and the callout */
+body.oc-guide-open .config-upload-model-overlay {
+    z-index: 20060;
+}
+
+/* inside a dialog the tour drops its own mask (the dialog already dims the page) and lifts the
+ * spot plus the callout above that dialog */
+.oc.guide-tour.dialog .guide-tour-mask {
+    display: none;
+}
+
+.oc.guide-tour.dialog .guide-spot {
+    z-index: 20070;
+}
+
+.oc.guide-tour.dialog .guide-pop {
+    z-index: 20071;
+}
+
+.oc .guide-pop.bottom-sheet {
+    top: auto !important;
+    left: 12px !important;
+    right: 12px;
+    bottom: 12px;
+    width: auto;
+    max-width: none;
+}
+
+.oc .guide-pop.bottom-sheet.sheet-top {
+    top: 12px !important;
+    bottom: auto;
+}
+
+.oc .guide-pop.bottom-sheet .guide-arrow {
+    display: none;
+}
+
+.oc .guide-pop.bottom-sheet .guide-pop-body,
+.oc .guide-pop.bottom-sheet.log .guide-pop-body {
+    max-height: 38vh;
+}
+
+.oc .guide-pop.center .guide-pop-body {
+    max-height: 52vh;
+}
+
+.oc .guide-prefs {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px 14px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+}
+
+/* the hint takes a row of its own under the checkbox, its own top margin would push it out of line */
+.oc .guide-prefs .guide-tip {
+    flex: 1 0 100%;
+    margin: 0;
+}
+
+.oc .guide-pop-body .guide-receipt {
+    margin: 8px 0 0;
+    padding: 4px 10px;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    background: var(--bg-gray);
+    list-style: none;
+}
+
+.oc .guide-pop-body .guide-receipt:empty {
+    display: none;
+}
+
+.oc .guide-pop-body .guide-receipt li {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 3px 0;
+    list-style: none;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.oc .guide-pop-body .guide-receipt li::before {
+    content: '○';
+    width: 13px;
+    color: var(--text-secondary);
+    font-weight: 700;
+    text-align: center;
+}
+
+.oc .guide-pop-body .guide-receipt li.ok::before {
+    content: '✓';
+    color: #10b981;
+}
+
+.oc .guide-pop-body .guide-receipt li.miss {
+    color: var(--text-secondary);
+}
+
+.oc .guide-pop-body .guide-more {
+    display: block;
+    width: 100%;
+    margin: 8px 0 0;
+}
+
+/* ==========================================================================
+ * Responsive rules (split from the original combined media blocks)
+ * ========================================================================== */
+@media (max-width: 1024px) {
+    .oc .guide-pop,
+        .oc .guide-pop.wide,
+        .oc .guide-pop.wide-dots {
+            width: min(520px, calc(100vw - 24px));
+        }
+}
+
+@media (max-width: 768px) {
+    .oc .guide-pop,
+        .oc .guide-pop.wide,
+        .oc .guide-pop.wide-dots {
+            width: calc(100vw - 24px);
+        }
+    .oc .guide-pop-body { max-height: 42vh; }
+}
+
+@media (max-width: 480px) {
+    .oc .guide-pop.bottom-sheet .guide-pop-body { max-height: 30vh; }
+    .oc .guide-pop-head { flex-wrap: wrap; row-gap: 4px; }
+    .oc .guide-pop-title { font-size: 13.5px; }
+    .oc .guide-pop-section { display: none; }
+    .oc .guide-pop-foot { gap: 6px; justify-content: center; }
+    /* the row keeps the marks at full size here: even at 320px the whole tour fits on its own line,
+         * and "safe center" leaves the first marks reachable if a very long tour ever overflows */
+    .oc .guide-pop-foot .guide-dots { flex: 1 0 100%; justify-content: safe center; }
+    .oc .guide-actions { flex: 1 0 100%; flex-wrap: nowrap; justify-content: center; gap: 6px; margin-left: 0; }
+    .oc .guide-pop-foot .guide-actions .btn { flex: 1 1 0; min-width: 0; padding: 0 5px; font-size: 11px; }
+    .oc .guide-pop-foot .btn { min-width: 0; height: 28px; padding: 0 9px; font-size: 11.5px; }
+}
+
+@media (max-width: 320px) {
+    .oc .guide-pop { padding: 10px 12px; }
+    .oc .guide-pop-body { max-height: 34vh; font-size: 12px; }
+    .oc .guide-pop-foot .btn { padding: 0 7px; font-size: 11px; }
+}

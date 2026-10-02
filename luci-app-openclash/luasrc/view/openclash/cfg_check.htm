@@ -1,18 +1,11 @@
 <%+cbi/valueheader%>
 <div>
 <%
-	local val = self:cfgvalue(section)
-	if val == translate("Enable") or val == translate("Enabled") or val == translate("Config Normal") or val == translate("Exist") then
+	local val = self:cfgvalue(section) or ""
+	local ok = (val == "Enabled")
+	write('<div class="oc ' .. (ok and "oc-status-ok" or "oc-status-err") .. '">')
+	write(pcdata(translate(val)))
+	write('</div>')
 %>
-     <div class="oc" style="color: var(--success-color); font-weight:bold;">
-<%
-  else
-%>	
-     <div class="oc" style="color: var(--error-color); font-weight:bold;">
-<%	
-  end
-  write(pcdata(val))
-%>
-</div>
 </div>
 <%+cbi/valuefooter%>

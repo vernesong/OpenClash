@@ -7,6 +7,7 @@
     <div class="cbi-value-field" id="default_dashboard_<%=self.option%>">
         <input type="button" class="btn cbi-button cbi-button-apply" value="<%:Set to Default%>" onclick="return default_dashboard(this, '<%=self.option%>')"/>
     </div>
+    <span class="oc-flush-status" id="switch_dashboard_status_<%=self.option%>"></span>
 </div>
 
 <script type="text/javascript">//<![CDATA[
@@ -21,6 +22,13 @@
     var switchEl   = document.getElementById('switch_dashboard_'   + name);
     var defaultEl  = document.getElementById('default_dashboard_'  + name);
     var deleteEl   = document.getElementById('delete_dashboard_'   + name);
+
+    function setStatus(msg, ok) {
+        var el = document.getElementById('switch_dashboard_status_' + name);
+        if (!el) return;
+        el.textContent = msg || '';
+        el.className = 'oc-flush-status' + (msg && !ok ? ' err' : '');
+    }
 
     XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dashboard_type")%>', null, function(x, status) {
         if (!x || x.status != 200) return;
@@ -41,6 +49,7 @@
         if (status.default_dashboard == name.toLowerCase()) {
             defaultEl.innerHTML = makeBtn('<%:Default%>', 'default_dashboard', [name]);
             defaultEl.firstElementChild.disabled = true;
+            defaultEl.firstElementChild.dataset.isDefault = '1';
         }
         if (!status[name.toLowerCase()]) {
             defaultEl.firstElementChild.disabled = true;
@@ -49,42 +58,56 @@
     });
 
     window.switch_dashboard = window.switch_dashboard || function(btn, n, type) {
+        setStatus('', true);
+        var origLabel = btn.value;
         btn.disabled = true;
         btn.value = '<%:Downloading File...%>';
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_dashboard")%>', {name: n, type: type}, function(x, status) {
-            if (!x || x.status != 200) return;
+            btn.disabled = false;
+            if (!x || x.status != 200) { btn.value = origLabel; setStatus('<%:Switch Failed%>', false); return; }
             if (status.download_state == "0") {
                 var isUpdate = (n == "Metacubexd" || n == "Zashboard");
                 var nextLabel, nextType;
                 if (isUpdate) {
-                    nextLabel = '<%:Update Successful%> - ' + (n == "Metacubexd" ? '<%:Update Metacubexd Version%>' : '<%:Update Zashboard Version%>');
+                    nextLabel = (n == "Metacubexd" ? '<%:Update Metacubexd Version%>' : '<%:Update Zashboard Version%>');
                     nextType  = 'Official';
                 } else {
-                    nextLabel = '<%:Switch Successful%> - ' + (type == "Meta" ? '<%:Switch To Official Version%>' : '<%:Switch To Meta Version%>');
+                    nextLabel = (type == "Meta" ? '<%:Switch To Official Version%>' : '<%:Switch To Meta Version%>');
                     nextType  = type == "Meta" ? 'Official' : 'Meta';
                 }
                 document.getElementById('switch_dashboard_'  + n).innerHTML = makeBtn(nextLabel, 'switch_dashboard', [n, nextType]);
                 document.getElementById('default_dashboard_' + n).firstElementChild.disabled = false;
                 document.getElementById('delete_dashboard_'  + n).firstElementChild.disabled = false;
+                setStatus(isUpdate ? '<%:Update Successful%>' : '<%:Switch Successful%>', true);
             } else {
-                btn.value = status.download_state == "2" ? '<%:Unzip Error%>'
-                          : (n == "Metacubexd" || n == "Zashboard") ? '<%:Update Failed%>' : '<%:Switch Failed%>';
+                btn.value = origLabel;
+                setStatus(status.download_state == "2" ? '<%:Unzip Error%>'
+                          : (n == "Metacubexd" || n == "Zashboard") ? '<%:Update Failed%>' : '<%:Switch Failed%>', false);
             }
-            btn.disabled = false;
         });
         return false;
     };
 
     window.delete_dashboard = window.delete_dashboard || function(btn, n) {
-        if (!confirm("<%:Are you sure you want to delete this panel?%>")) return false;
-        btn.disabled = true;
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "delete_dashboard")%>', {name: n}, function(x, status) {
-            if (!x || x.status != 200) { btn.disabled = false; return; }
-            if (status.delete_state == "1") {
-                var defBtn = document.getElementById('default_dashboard_' + n).firstElementChild;
-                if (defBtn.disabled) defBtn.value = '<%:Set to Default%>';
-                defBtn.disabled = true;
-            } else btn.disabled = false;
+        ocConfirm({
+            title: n,
+            body: '<%:Are you sure you want to delete this panel?%>',
+            buttons: [
+                { label: '<%:Cancel%>', value: null },
+                { label: '<%:OK%>', value: 'ok', kind: 'danger' }
+            ]
+        }).then(function(choice) {
+            if (choice !== 'ok') return;
+            setStatus('', true);
+            btn.disabled = true;
+            XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "delete_dashboard")%>', {name: n}, function(x, status) {
+                if (!x || x.status != 200) { btn.disabled = false; return; }
+                if (status.delete_state == "1") {
+                    var defBtn = document.getElementById('default_dashboard_' + n).firstElementChild;
+                    if (defBtn.disabled) defBtn.value = '<%:Set to Default%>';
+                    defBtn.disabled = true;
+                } else btn.disabled = false;
+            });
         });
         return false;
     };
@@ -94,11 +117,13 @@
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "default_dashboard")%>', {name: n}, function(x, status) {
             if (!x || x.status != 200) { btn.disabled = false; return; }
             btn.value = '<%:Default%>';
+            btn.dataset.isDefault = '1';
             document.querySelectorAll('[id^="default_dashboard_"]').forEach(function(el) {
                 var b = el.firstElementChild;
-                if (b && b !== btn && b.value === '<%:Default%>') {
+                if (b && b !== btn && b.dataset.isDefault === '1') {
                     b.disabled = false;
                     b.value = '<%:Set to Default%>';
+                    delete b.dataset.isDefault;
                 }
             });
         });
