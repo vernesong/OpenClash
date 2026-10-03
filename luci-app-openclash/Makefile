@@ -5,6 +5,7 @@ PKG_VERSION:=0.47.168
 PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
+PKG_CONFIG_DEPENDS:=CONFIG_LUCI_APP_OPENCLASH_INCLUDE_CORE
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -35,13 +36,23 @@ define Package/$(PKG_NAME)/config
 
 	config PACKAGE_ipset
 	default y if ! PACKAGE_firewall4
+
+	config LUCI_APP_OPENCLASH_INCLUDE_CORE
+	bool "Include Meta core in package"
+	depends on PACKAGE_$(PKG_NAME)
+	default n
+	help
+	  Download the Meta (mihomo) core for the target architecture
+	  at build time and install it as /etc/openclash/core/clash_meta,
+	  so it is available right after flashing. Requires network
+	  access during build. The package becomes architecture-specific.
 endef
 
 define Package/$(PKG_NAME)
 	CATEGORY:=LuCI
 	SUBMENU:=3. Applications
 	TITLE:=LuCI support for clash
-	PKGARCH:=all
+	PKGARCH:=$(if $(CONFIG_LUCI_APP_OPENCLASH_INCLUDE_CORE),$(ARCH_PACKAGES),all)
 	DEPENDS:=+dnsmasq-full +bash +curl +ca-bundle +ip-full \
 	+ruby +ruby-yaml +kmod-tun +unzip
 	MAINTAINER:=vernesong
@@ -68,6 +79,37 @@ endef
 
 define Build/Compile
 endef
+
+ifeq ($(CONFIG_LUCI_APP_OPENCLASH_INCLUDE_CORE),y)
+# Keep in sync with the "Set Core Model" mapping in root/etc/uci-defaults/luci-openclash
+define Build/Compile
+	case "$(ARCH_PACKAGES)" in \
+		aarch64_*) CORE_ARCH="linux-arm64" ;; \
+		armeb_*) CORE_ARCH="" ;; \
+		arm_cortex-a5|arm_cortex-a5[^0-9]*|arm_cortex-a7|arm_cortex-a7[^0-9]*|arm_cortex-a8*|arm_cortex-a9*|arm_cortex-a12*|arm_cortex-a15*|arm_cortex-a17*) CORE_ARCH="linux-armv7" ;; \
+		arm_arm1176jzf-s*|arm_arm1136*|arm_mpcore*) CORE_ARCH="linux-armv6" ;; \
+		arm*) CORE_ARCH="linux-armv5" ;; \
+		i386_*) CORE_ARCH="linux-386" ;; \
+		mips64el_*) CORE_ARCH="linux-mips64le" ;; \
+		mips64_*) CORE_ARCH="linux-mips64" ;; \
+		mips_*) CORE_ARCH="linux-mips-softfloat" ;; \
+		mipsel_*) CORE_ARCH="linux-mipsle-softfloat" ;; \
+		riscv64*) CORE_ARCH="linux-riscv64" ;; \
+		loongarch64*|loongarch_*) CORE_ARCH="linux-loong64-abi2" ;; \
+		x86_64) CORE_ARCH="linux-amd64-v1" ;; \
+		*) CORE_ARCH="" ;; \
+	esac; \
+	if [ -z "$$$$CORE_ARCH" ]; then \
+		echo "ERROR: no Meta core available for $(ARCH_PACKAGES)" >&2; exit 1; \
+	fi; \
+	mkdir -p $(PKG_BUILD_DIR)/root/etc/openclash/core && \
+	curl -fSL --connect-timeout 30 --retry 3 \
+		-o $(PKG_BUILD_DIR)/clash_meta.tar.gz \
+		"https://raw.githubusercontent.com/vernesong/OpenClash/core/master/meta/clash-$$$$CORE_ARCH.tar.gz" && \
+	tar -xzf $(PKG_BUILD_DIR)/clash_meta.tar.gz -C $(PKG_BUILD_DIR) clash && \
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/clash $(PKG_BUILD_DIR)/root/etc/openclash/core/clash_meta
+endef
+endif
 
 define Package/$(PKG_NAME)/conffiles
 endef
