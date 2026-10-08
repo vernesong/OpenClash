@@ -136,6 +136,12 @@ ocGuard: { if (window.ocSubconverterLoaded) break ocGuard; window.ocSubconverter
 		return text;
 	}
 
+	function backendFamily(text) {
+		if (/^SubConverter-Extended\s+\S+\s+backend$/i.test(text)) return 'subconverter-extended';
+		if (/^subconverter\s+\S+(?:\s+.*)?\s+backend$/i.test(text)) return 'subconverter';
+		return 'unknown';
+	}
+
 	function fetchDirectVersion(versionURL, timeoutMs, signal) {
 		var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
 		var timeoutId;
@@ -271,6 +277,9 @@ ocGuard: { if (window.ocSubconverterLoaded) break ocGuard; window.ocSubconverter
 		var timeoutMs = typeof options.timeoutMs === 'number' ? options.timeoutMs : 6000;
 		var cacheMs = typeof options.cacheMs === 'number' ? options.cacheMs : 60000;
 		var proxyURL = options.proxyURL || '';
+		var onResult = options.onResult || function() {};
+		var onSelectionChange = options.onSelectionChange || function() {};
+		var lastSelected = getSelectedBackend(selectEl, customInputEl);
 		var debounceTimer = null;
 		var activeController = null;
 		var requestId = 0;
@@ -296,22 +305,32 @@ ocGuard: { if (window.ocSubconverterLoaded) break ocGuard; window.ocSubconverter
 		function run() {
 			window.clearTimeout(debounceTimer);
 			refreshTargets();
+			if (activeController) activeController.abort();
+			activeController = null;
+			var currentRequestId = ++requestId;
 
 			if (!enabled()) {
 				hideStatus(statusEl);
+				onResult({state: 'disabled', family: 'unknown'});
 				return;
 			}
 
 			var selected = getSelectedBackend(selectEl, customInputEl);
+			if (selected !== lastSelected) {
+				lastSelected = selected;
+				onSelectionChange();
+			}
 			var normalized = normalizeBackendURL(selected);
 
 			if (normalized.error === 'empty') {
 				renderStatus(statusEl, 'empty', labels.empty, labels);
+				onResult({state: 'empty', family: 'unknown'});
 				return;
 			}
 
 			if (normalized.error === 'invalid') {
 				renderStatus(statusEl, 'error', labels.invalid, labels);
+				onResult({state: 'error', family: 'unknown'});
 				return;
 			}
 
@@ -320,12 +339,11 @@ ocGuard: { if (window.ocSubconverterLoaded) break ocGuard; window.ocSubconverter
 			var cached = cache[cacheKey];
 			if (cached && now - cached.time < cacheMs) {
 				renderStatus(statusEl, cached.state, cached.message, labels);
+				onResult({state: cached.state, family: backendFamily(cached.message)});
 				return;
 			}
 
-			if (activeController) activeController.abort();
 			activeController = typeof AbortController !== 'undefined' ? new AbortController() : null;
-			var currentRequestId = ++requestId;
 
 			renderStatus(statusEl, 'checking', labels.checking, labels);
 
@@ -341,9 +359,11 @@ ocGuard: { if (window.ocSubconverterLoaded) break ocGuard; window.ocSubconverter
 					message: message
 				};
 				renderStatus(statusEl, state, message, labels);
+				onResult({state: state, family: backendFamily(result.text || '')});
 			}).catch(function() {
 				if (currentRequestId !== requestId) return;
 				renderStatus(statusEl, 'error', labels.failed, labels);
+				onResult({state: 'error', family: 'unknown'});
 			});
 		}
 
@@ -360,6 +380,7 @@ ocGuard: { if (window.ocSubconverterLoaded) break ocGuard; window.ocSubconverter
 		}
 		if (enableEl) enableEl.addEventListener('change', run);
 		if (options.watchDocument) {
+			document.addEventListener('cbi-dropdown-change', run, true);
 			document.addEventListener('change', run, true);
 			document.addEventListener('input', schedule, true);
 			document.addEventListener('click', schedule, true);
@@ -377,6 +398,8 @@ ocGuard: { if (window.ocSubconverterLoaded) break ocGuard; window.ocSubconverter
 			update: run,
 			schedule: schedule,
 			hide: function() {
+				window.clearTimeout(debounceTimer);
+				++requestId;
 				if (activeController) activeController.abort();
 				hideStatus(statusEl);
 			}

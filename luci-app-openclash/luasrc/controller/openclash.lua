@@ -5219,8 +5219,8 @@ function action_add_subscription()
 	local is_valid_url = false
 
 	if address and address ~= "" and sub_convert == "1" then
-		local prefixed_pattern = "^[^,%s]+,%a[%w+.-]*://.+"
-		local encoded_prefixed_pattern = "^[^%%%s]+%%2[Cc]%a[%%%w+.-]*%%3[Aa]%%2[Ff]%%2[Ff].+"
+		local prefixed_pattern = "^.-,%a[%w+.-]*://%S+$"
+		local encoded_prefixed_pattern = "^.-%%2[Cc]%a[%%%w+.-]*%%3[Aa]%%2[Ff]%%2[Ff].+"
 
 		if string.find(address, "\n") or string.find(address, "|") then
 			local links = {}
