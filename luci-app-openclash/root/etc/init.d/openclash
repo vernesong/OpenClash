@@ -1287,6 +1287,12 @@ if [ -n "$FW4" ]; then
       done
    fi
 
+   if [ -n "$lan_ip4s" ]; then
+      for lan_ip4 in $lan_ip4s; do
+         nft add element inet fw4 localnetwork { "$lan_ip4" }
+      done
+   fi
+
    #common ports
    if [ -n "$common_ports" ] && [ "$common_ports" != "0" ]; then
       nft 'add set inet fw4 common_ports { type inet_service; flags interval; }'
@@ -2130,6 +2136,12 @@ if [ -z "$FW4" ]; then
    if [ -n "$wan_ip4s" ]; then
       for wan_ip4 in $wan_ip4s; do
          ipset add localnetwork "$wan_ip4"
+      done
+   fi
+
+   if [ -n "$lan_ip4s" ]; then
+      for lan_ip4 in $lan_ip4s; do
+         ipset add localnetwork "$lan_ip4"
       done
    fi
 
@@ -3531,6 +3543,8 @@ get_config()
 
    wan_ip4s=$(/usr/share/openclash/openclash_get_network.lua "wanip" 2>/dev/null)
    wan_ip6s=$(ifconfig | grep 'inet6 addr' | awk '{print $3}' 2>/dev/null)
+   # Populate non-PPPoE WAN subnets before proxy rules, as the watchdog does.
+   lan_ip4s=$(/usr/share/openclash/openclash_get_network.lua "lan_cidr" 2>/dev/null)
    log_level=$(uci_get_config "log_level")
    intranet_allowed=$(uci_get_config "intranet_allowed")
    enable_udp_proxy=$(uci_get_config "enable_udp_proxy" || echo 1)
