@@ -36,6 +36,10 @@ function default_config_set(f)
 end
 
 ful = SimpleForm("upload", translate("Config Manage"), nil)
+if fs.is_oix_managed_config(fs.oix_config_path()) then
+	ful.description = translate("oixCloud Managed Configuration") .. " · " ..
+		translate("Managed through your oixCloud account; subscription links and local files are not editable here")
+end
 ful.reset = false
 ful.submit = false
 
@@ -59,6 +63,7 @@ backup_dir="/tmp/"
 HTTP.setfilehandler(
 	function(meta, chunk, eof)
 		if meta and meta.name == "oc_editor_content" then
+			if fs.is_oix_managed_file(conf) then return end
 			if not edit_fd and chunk then
 				edit_fd = nixio.open(conf, "w")
 			end
@@ -73,6 +78,11 @@ HTTP.setfilehandler(
 		end
 
 		local fp = HTTP.formvalue("file_type")
+		local upload_path = meta and ((fp == "config" and dir or fp == "proxy-provider" and proxy_pro_dir) or nil)
+		if upload_path and fs.is_oix_managed_file(upload_path .. meta.file) then
+			o.value = translate("Managed through your oixCloud account; subscription links and local files are not editable here")
+			return
+		end
 		if not fd then
 			if not meta then return end
 
@@ -172,9 +182,10 @@ if HTTP.formvalue("upload") then
 end
 
 local e,a={}
-for t,o in ipairs(fs.glob("/etc/openclash/config/*"))do
+for _,o in ipairs(fs.glob("/etc/openclash/config/*"))do
 a=fs.stat(o)
-if a then
+if a and not fs.is_oix_managed_config(o) then
+local t = #e + 1
 e[t]={}
 e[t].name=fs.basename(o)
 e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",a.mtime)
@@ -358,6 +369,12 @@ o.inputtitle = translate("Rule Providers File List")
 o.inputstyle = "reload"
 o.write = function()
 	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-providers-file-manage"))
+end
+
+-- The managed source and generated runtime configuration are not user files.
+if fs.is_oix_managed_config(fs.uci_get_config("config", "config_path")) then
+	ful:append(Template("openclash/config_upload"))
+	return ful, form, p
 end
 
 m = SimpleForm("openclash",translate("Config File Edit"))

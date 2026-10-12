@@ -5,7 +5,7 @@ local fs = require "luci.openclash"
 local DISP = require "luci.dispatcher"
 local file_path = fs.get_file_path_from_request()
 
-if not file_path then
+if not file_path or fs.is_oix_managed_file(file_path) then
 	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "%s") % arg[1])
 	return
 end

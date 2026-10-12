@@ -392,6 +392,61 @@ function uci_get_config(section, key)
 	return val
 end
 
+-- A managed configuration is an account resource; its local filename is an
+-- implementation detail. Keep identity checks shared by all LuCI entry points.
+function oix_config_path()
+	return "/etc/openclash/config/oixCloud - smart.yaml"
+end
+
+function oix_config_id()
+	return "@oix"
+end
+
+local function normalized_oix_path(value)
+	if type(value) == "string" and value:sub(1, 1) == "/" then
+		local parts = {}
+		for part in value:gmatch("[^/]+") do
+			if part == ".." then table.remove(parts)
+			elseif part ~= "." then parts[#parts + 1] = part end
+		end
+		value = "/" .. table.concat(parts, "/")
+	end
+	return value
+end
+
+function is_oix_managed_config(value)
+	if value == oix_config_id() then return true end
+	value = normalized_oix_path(value)
+	if value ~= "oixCloud - smart" and value ~= "oixCloud - smart.yaml"
+		and value ~= oix_config_path() and value ~= "/etc/openclash/oixCloud - smart.yaml" then
+		return false
+	end
+	local managed = false
+	uci:foreach("openclash", "config_subscribe", function(section)
+		if section.name == "oixCloud - smart" and section.oix_managed == "1" then
+			managed = true
+			return false
+		end
+	end)
+	-- Older login flows created the same fixed subscription without a marker.
+	local token = uci_get_config("config", "oix_token")
+	return managed or (type(token) == "string" and token ~= "")
+end
+
+-- Provider caches are managed files, but must never become switchable configs.
+function is_oix_managed_file(value)
+	if is_oix_managed_config(value) then return true end
+	return normalized_oix_path(value) == "/etc/openclash/proxy_provider/oixCloud"
+		and is_oix_managed_config(oix_config_path())
+end
+
+function config_display_name(value)
+	if is_oix_managed_config(value) then
+		return require("luci.i18n").translate("oixCloud Managed Configuration")
+	end
+	return value
+end
+
 function get_file_path_from_request()
 	local file_path = HTTP.formvalue("file")
 

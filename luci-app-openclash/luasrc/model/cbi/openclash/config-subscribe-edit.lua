@@ -36,7 +36,8 @@ m.description=translate("Convert Subscribe function of Online is Supported By su
 "<br/>"..
 "<br/>"..translate("If you have a recommended external configuration file (subscription conversion template), you can modify by following The file format of /usr/share/openclash/res/sub_ini.list and pr")
 m.redirect = DISP.build_url("admin/services/openclash/config-subscribe")
-if m.uci:get(openclash, sid) ~= "config_subscribe" then
+if m.uci:get(openclash, sid) ~= "config_subscribe"
+	or fs.is_oix_managed_config(m.uci:get(openclash, sid, "name")) then
 	HTTP.redirect(m.redirect)
 	return
 end

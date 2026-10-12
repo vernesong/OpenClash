@@ -10,7 +10,7 @@ local sid = arg[1]
 local uuid = luci.sys.exec("cat /proc/sys/kernel/random/uuid")
 local file_path = fs.get_file_path_from_request()
 
-if not file_path then
+if not file_path or fs.is_oix_managed_file(file_path) then
 	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "servers"))
 	return
 end
@@ -203,7 +203,7 @@ for t,f in ipairs(fs.glob("/etc/openclash/config/*"))do
 		e[t]={}
 		e[t].name=fs.basename(f)
 		if fs.IsYamlExt(e[t].name) then
-			o:value(e[t].name)
+			o:value(e[t].name, fs.config_display_name(e[t].name))
 		end
 	end
 end

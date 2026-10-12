@@ -764,6 +764,22 @@ var ocLang = window.ocLang || '';
             }
         },
 
+        getConfigEntry: function(value) {
+            return this.configList.find(function(file) {
+                return file && typeof file === 'object' && (file.path === value || file.id === value);
+            }) || null;
+        },
+
+        isManagedConfig: function(value) {
+            var entry = this.getConfigEntry(value);
+            return value === '@oix' || !!(entry && entry.managed);
+        },
+
+        isConfigAvailable: function(value) {
+            var entry = this.getConfigEntry(value);
+            return !entry || entry.available !== false;
+        },
+
         updateConfigSelect: function(configFiles, currentConfig) {
             var options = [];
 
@@ -785,12 +801,12 @@ var ocLang = window.ocLang || '';
                         filePath = file.path || file.filepath || file.name || file;
                     }
 
-                    var displayName = fileName;
+                    var displayName = file.managed ? '<%:oixCloud Managed Configuration%>' : fileName;
 
                     options.push({
                         value: filePath,
                         text: displayName,
-                        disabled: false,
+                        disabled: file.available === false,
                         selected: filePath === currentConfig || fileName === currentConfig
                     });
                 });
@@ -844,17 +860,34 @@ var ocLang = window.ocLang || '';
 
             if (configNameElement) {
                 var displayName = this.formatDisplayName(configFile);
+                configNameElement.textContent = displayName;
                 if (configFile === this.rawCurrentConfig) {
-                    configNameElement.innerHTML =
-                        '<span class="selected-file-dot"></span>' + displayName;
-                } else {
-                    configNameElement.textContent = displayName;
+                    var selectedDot = document.createElement('span');
+                    selectedDot.className = 'selected-file-dot';
+                    configNameElement.insertBefore(selectedDot, configNameElement.firstChild);
                 }
                 if (configNameElement.scrollWidth > configNameElement.clientWidth) {
                     configNameElement.title = displayName;
                 } else {
                     configNameElement.title = '';
                 }
+            }
+
+            var managed = this.isManagedConfig(configFile);
+            ['edit_config', 'edit_subscribe', 'config-subscription-url', 'refresh-subscription'].forEach(function(id) {
+                var button = document.getElementById(id);
+                if (button) button.classList.toggle('oc-hidden', managed);
+            });
+            ['switch_config', 'update_config'].forEach(function(id) {
+                var button = document.getElementById(id);
+                if (button) button.disabled = !ConfigFileManager.isConfigAvailable(configFile);
+            });
+            var fileInfoSection = document.getElementById('file-info-section');
+            if (fileInfoSection) fileInfoSection.classList.toggle('oc-hidden', managed);
+            if (managed) {
+                if (ageFileIconElement) ageFileIconElement.classList.add('oc-hidden');
+                SubscriptionManager.showManaged(configFile);
+                return;
             }
 
             if (fileInfo) {
@@ -902,6 +935,7 @@ var ocLang = window.ocLang || '';
 
         formatDisplayName: function(fileName) {
             if (!fileName) return '<%:Unknown%>';
+            if (this.isManagedConfig(fileName)) return '<%:oixCloud Managed Configuration%>';
 
             var name = fileName.split('/').pop().split('\\').pop();
 
@@ -1153,7 +1187,20 @@ var ocLang = window.ocLang || '';
             }
         },
 
+        showManaged: function(configFile) {
+            var progressSection = document.getElementById('subscription-progress-section');
+            if (!progressSection) return;
+            progressSection.className = 'subscription-progress';
+            progressSection.textContent = ConfigFileManager.isConfigAvailable(configFile || this.currentConfigFile || ConfigFileManager.getSelectedConfig())
+                ? '<%:Managed through your oixCloud account; subscription links and local files are not editable here%>'
+                : '<%:Sign in to oixCloud to use this configuration%>';
+        },
+
         getSubscriptionInfo: function() {
+            if (ConfigFileManager.isManagedConfig(this.currentConfigFile)) {
+                this.showManaged();
+                return;
+            }
             if (ConfigFileManager.configList.length === 0) {
                 return;
             }
@@ -4376,7 +4423,7 @@ var ocLang = window.ocLang || '';
         if (isEnabled) LogManager.markCoreStart();
         LogManager.startLogDisplay(isEnabled ? '<%:Starting...%>' : '<%:Stopping...%>', false, 'init');
         XHR.get('<%=url("admin", "services", "openclash", "action")%>', requestParams, function(x, status) {
-            if (x && x.status == 200) {
+            if (x && x.status == 200 && status && status.status === 'success') {
                 setTimeout(function() {
                     pluginToggleUserAction = false;
                     updatePluginToggleState(StateManager.current_status.clash || false);
@@ -4420,6 +4467,10 @@ var ocLang = window.ocLang || '';
 
     function switchConfig() {
         var currentConfig = ConfigFileManager.getSelectedConfig();
+        if (!ConfigFileManager.isConfigAvailable(currentConfig)) {
+            alert('<%:Sign in to oixCloud to use this configuration%>');
+            return false;
+        }
         if (!currentConfig) {
             ocAlert('<%:Please select a config file first%>');
             return false;
@@ -4455,6 +4506,10 @@ var ocLang = window.ocLang || '';
 
     function updateConfig() {
         var currentConfig = ConfigFileManager.getSelectedConfig();
+        if (!ConfigFileManager.isConfigAvailable(currentConfig)) {
+            alert('<%:Sign in to oixCloud to use this configuration%>');
+            return false;
+        }
         if (!currentConfig) {
             ocAlert('<%:Please select a config file first%>');
             return false;
@@ -4542,7 +4597,7 @@ var ocLang = window.ocLang || '';
             if (restartBtn) {
                 restartBtn.disabled = false;
             }
-            if (x && x.status == 200) {
+            if (x && x.status == 200 && status && status.status === 'success') {
                 setTimeout(function() {
                     pluginToggleUserAction = false;
                     updatePluginToggleState(StateManager.current_status.clash || false);
@@ -4568,6 +4623,7 @@ var ocLang = window.ocLang || '';
         }
 
         SubscriptionManager.currentConfigFile = currentConfig;
+        if (ConfigFileManager.isManagedConfig(currentConfig)) return false;
         SubscriptionManager.retryCount = 0;
 
         var filename = SubscriptionManager.extractFilename(currentConfig);
@@ -4602,6 +4658,7 @@ var ocLang = window.ocLang || '';
 
     function setSubscriptionUrl() {
         var currentConfig = ConfigFileManager.getSelectedConfig();
+        if (ConfigFileManager.isManagedConfig(currentConfig)) return false;
         if (!currentConfig) {
             ocAlert('<%:Please select a config file first%>');
             return false;
@@ -4710,6 +4767,7 @@ var ocLang = window.ocLang || '';
 
     function editSubscribe() {
         var currentConfig = ConfigFileManager.getSelectedConfig();
+        if (ConfigFileManager.isManagedConfig(currentConfig)) return false;
         if (!currentConfig) {
             ocAlert('<%:Please select a config file first%>');
             return false;
@@ -4742,6 +4800,7 @@ var ocLang = window.ocLang || '';
 
     function editConfig() {
         var currentConfig = ConfigFileManager.getSelectedConfig();
+        if (ConfigFileManager.isManagedConfig(currentConfig)) return false;
         if (!currentConfig) {
             ocAlert('<%:Please select a config file first%>');
             return false;

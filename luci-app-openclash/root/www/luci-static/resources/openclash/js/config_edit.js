@@ -183,6 +183,7 @@ var ConfigEditor = {
     },
 
     show: function(configFile) {
+        if (configFile === '@oix' || (typeof ConfigFileManager !== 'undefined' && ConfigFileManager.isManagedConfig(configFile))) return;
         var self = this;
         this.isOverwrite = false;
         this.currentViewMode = 'original';
@@ -1706,7 +1707,7 @@ var ConfigEditor = {
                 };
             }
             return {
-                name: file.name || file.filename || file.path || '',
+                name: file.managed ? '<%:oixCloud Managed Configuration%>' : (file.name || file.filename || file.path || ''),
                 path: file.path || file.filepath || file.name || ''
             };
         }).filter(function(file) {
@@ -1787,12 +1788,12 @@ var ConfigEditor = {
         var orphanOptionsHtml = orphans.map(function(value) {
             var checked = allChecked ? '' : ' checked';
             var disabled = allChecked;
-            var label = String(value).split('/').pop() || String(value);
+            var label = value === '@oix' ? '<%:oixCloud Managed Configuration%>' : (String(value).split('/').pop() || String(value));
             return `
                 <label class="overwrite-config-option${checked ? ' selected' : ''}${disabled ? ' disabled-by-all' : ''}" data-path="${self.escapeOverwriteHtml(value)}">
                     <span class="overwrite-config-option-left">
                         <input type="checkbox" value="${self.escapeOverwriteHtml(value)}"${checked}${disabled ? ' disabled' : ''}>
-                        <span class="overwrite-config-option-name" title="${self.escapeOverwriteHtml(value)}">${self.escapeOverwriteHtml(label)}</span>
+                        <span class="overwrite-config-option-name" title="${self.escapeOverwriteHtml(label)}">${self.escapeOverwriteHtml(label)}</span>
                     </span>
                     <span class="overwrite-config-option-state">${checked ? '✓' : ''}</span>
                 </label>
