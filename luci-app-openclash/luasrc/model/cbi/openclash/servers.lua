@@ -11,7 +11,7 @@ local function commit_all()
 	uci:commit("openclash")
 end
 
-if not file_path then
+if not file_path or fs.is_oix_managed_config(file_path) then
 	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "config"))
 	return
 end
@@ -57,7 +57,7 @@ end
 
 o = gs:option(DummyValue, "config", translate("Config File"))
 function o.cfgvalue(...)
-	return Value.cfgvalue(...) or translate("all")
+	return fs.config_display_name(Value.cfgvalue(...)) or translate("all")
 end
 
 o = gs:option(DummyValue, "type", translate("Group Type"))
@@ -99,7 +99,7 @@ end
 
 o = ps:option(DummyValue, "config", translate("Config File"))
 function o.cfgvalue(...)
-	return Value.cfgvalue(...) or translate("all")
+	return fs.config_display_name(Value.cfgvalue(...)) or translate("all")
 end
 
 o = ps:option(DummyValue, "type", translate("Provider Type"))
@@ -142,7 +142,7 @@ end
 
 o = ss:option(DummyValue, "config", translate("Config File"))
 function o.cfgvalue(...)
-	return Value.cfgvalue(...) or translate("all")
+	return fs.config_display_name(Value.cfgvalue(...)) or translate("all")
 end
 
 o = ss:option(DummyValue, "type", translate("Type"))

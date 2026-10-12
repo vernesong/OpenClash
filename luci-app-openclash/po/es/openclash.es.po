@@ -3890,38 +3890,11 @@ msgstr "Contraseña de la cuenta"
 msgid "Checkin Multiple"
 msgstr "Multiplicador de registro"
 
-msgid "Optional Parameters"
-msgstr "Parámetros opcionales"
+msgid "Node Filter"
+msgstr "Filtro de nodos"
 
-msgid "Optional parameters saved"
-msgstr "Parámetros opcionales guardados"
-
-msgid "Failed to save optional parameters, please try again"
-msgstr "Error al guardar parámetros opcionales, inténtelo de nuevo"
-
-msgid "For more information, please visit the"
-msgstr "Para más información, visite la"
-
-msgid "official documentation"
-msgstr "documentación oficial"
-
-msgid "Must start with &"
-msgstr "Debe comenzar con &"
-
-msgid "Params must not contain spaces"
-msgstr "Los parámetros no deben contener espacios"
-
-msgid "Params too long, max 8192 characters"
-msgstr "Parámetros demasiado largos, máximo 8192 caracteres"
-
-msgid "Invalid params format"
-msgstr "Formato de parámetros no válido"
-
-msgid "Invalid params format, must start with & and use key=value pairs"
-msgstr "Formato de parámetros no válido, debe comenzar con & y usar pares clave=valor"
-
-msgid "Params too long"
-msgstr "Parámetros demasiado largos"
+msgid "Open the oixCloud website to choose the nodes delivered to OpenClash"
+msgstr "Abrir el sitio web de oixCloud para elegir los nodos que recibe OpenClash"
 
 msgid "Usage Help"
 msgstr "Ayuda de uso"
@@ -5437,3 +5410,84 @@ msgstr "Iniciar prueba"
 
 msgid "switch the list to unlock checks, press again to pick the services"
 msgstr "cambia la lista a las comprobaciones de desbloqueo, pulsa otra vez para elegir los servicios"
+
+msgid "oixCloud Managed Configuration"
+msgstr "Configuración administrada de oixCloud"
+
+msgid "Managed through your oixCloud account; subscription links and local files are not editable here"
+msgstr "La configuración se administra desde tu cuenta de oixCloud; ajusta allí el filtro de nodos"
+
+msgid "Sign in to oixCloud to use this configuration"
+msgstr "Inicia sesión en oixCloud para usar esta configuración"
+
+msgid "oixCloud configuration and nodes are ready"
+msgstr "La configuración y los nodos de oixCloud están listos"
+
+msgid "oixCloud configuration is managed by your account. Use the account panel to make changes"
+msgstr "Tu cuenta administra la configuración de oixCloud; usa el panel de la cuenta para realizar cambios"
+
+msgid "Please sign in to oixCloud first"
+msgstr "Inicia sesión en oixCloud primero"
+
+msgid "oixCloud configuration updated"
+msgstr "Configuración de oixCloud actualizada"
+
+msgid "Unable to update oixCloud configuration. Check your account and try again"
+msgstr "No se pudo actualizar la configuración de oixCloud; comprueba tu cuenta e inténtalo de nuevo"
+
+msgid "oixCloud configuration is not ready. Please sign in again"
+msgstr "La configuración de oixCloud no está lista; vuelve a iniciar sesión"
+
+msgid "Unable to save managed configuration"
+msgstr "No se pudo guardar la configuración administrada; comprueba el espacio y los permisos"
+
+msgid "An oixCloud operation is already in progress"
+msgstr "Ya hay una operación de oixCloud en curso; inténtalo más tarde"
+
+msgid "Unable to load managed configuration"
+msgstr "No se pudo cargar la configuración administrada; inténtalo más tarde"
+
+msgid "Checking oixCloud core..."
+msgstr "Comprobando el núcleo de oixCloud..."
+
+msgid "Unable to update the oixCloud core"
+msgstr "No se pudo actualizar el núcleo de oixCloud; comprueba la red y la arquitectura seleccionada"
+
+msgid "Fetching managed configuration..."
+msgstr "Obteniendo la configuración administrada..."
+
+msgid "Unable to fetch managed configuration"
+msgstr "No se pudo obtener la configuración administrada; comprueba la red y tu plan"
+
+msgid "Invalid managed configuration"
+msgstr "La configuración administrada no es válida; inténtalo más tarde"
+
+msgid "Loading managed nodes..."
+msgstr "Cargando los nodos administrados..."
+
+msgid "The oixCloud core did not start"
+msgstr "El núcleo de oixCloud no se inició; consulta el registro"
+
+msgid "Unable to load managed nodes"
+msgstr "No se pudieron cargar los nodos administrados; comprueba la red y tu cuenta"
+
+msgid "No managed nodes were loaded"
+msgstr "No se cargaron nodos administrados; comprueba el filtro de nodos"
+
+msgid "Unable to select the OpenClash account"
+msgstr "No se pudo seleccionar el token de OpenClash; inténtalo más tarde"
+
+msgid "Unable to stop the oixCloud core"
+msgstr "No se pudo detener el núcleo de oixCloud; inténtalo más tarde"
+
+msgid "Managed nodes are not referenced by any proxy group"
+msgstr "Ningún grupo de proxies utiliza los nodos administrados"
+
+msgid "Unable to restore the previous configuration. Check OpenClash status"
+msgstr "No se pudo restaurar la configuración anterior. Compruebe el estado de OpenClash"
+
+msgid "Unable to remove managed configuration"
+msgstr "No se pudo eliminar la configuración administrada"
+
+msgid "The previous configuration could not be started"
+msgstr "Se cerró la sesión, pero no se pudo iniciar la configuración anterior"

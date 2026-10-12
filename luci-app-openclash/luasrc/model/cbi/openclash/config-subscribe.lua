@@ -66,6 +66,9 @@ s.addremove = true
 s.sortable = true
 s.template = "cbi/tblsection"
 s.extedit = DISP.build_url("admin/services/openclash/config-subscribe-edit/%s")
+function s.filter(self, section)
+	return not fs.is_oix_managed_config(self.map.uci:get("openclash", section, "name"))
+end
 function s.create(...)
 	local sid = TypedSection.create(...)
 	if sid then

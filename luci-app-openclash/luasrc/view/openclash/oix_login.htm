@@ -1,12 +1,9 @@
 <%-
 local fs = require "luci.openclash"
-local saved_token = fs.uci_get_config("config", "oix_token") and true or false
-local logged_in = saved_token
+local logged_in = (fs.uci_get_config("config", "oix_token") or "") ~= ""
 local checkin_enabled = fs.uci_get_config("config", "oix_checkin") == "1"
 local checkin_interval = fs.uci_get_config("config", "oix_checkin_interval") or "1"
 local checkin_multiple = fs.uci_get_config("config", "oix_checkin_multiple") or "1"
-local oix_params = fs.uci_get_config("config", "oix_params") or ""
-local oix_default_params = fs.uci_get_config("config", "oix_default_params") or ""
 local oix_logo_src = "/luci-static/resources/openclash/img/oixcloud.png"
 local function oix_logo_img(cls)
 	return '<img class="'..cls..'" src="'..oix_logo_src..'" loading="lazy" alt="oixCloud" title="oixCloud">'
@@ -36,8 +33,7 @@ end
 
 				<div id="oix-panel-account">
 					<div class="oix-field-group-sm">
-						<input type="text" id="oix-email" class="oix-input oix-input-ok" placeholder="<%:Account Email Address%>" autocomplete="email" inputmode="email"
-							value="<%= fs.uci_get_config('config', 'oix_email') or '' %>">
+						<input type="text" id="oix-email" class="oix-input oix-input-ok" placeholder="<%:Account Email Address%>" autocomplete="email" inputmode="email" value="">
 						<span id="oix-email-hint" class="oix-field-hint oix-field-help"></span>
 					</div>
 				<div class="oix-field-group">
@@ -106,6 +102,10 @@ end
 					<button type="button" class="oix-btn oix-btn-primary oix-btn-sm" onclick="OixCloud.doCheckin();return false;">
 						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-gift"/></svg>
 						<span><%:Checkin%></span>
+					</button>
+					<button type="button" id="oix-node-filter" class="oix-btn oix-btn-ghost-subtle oix-btn-sm oc-hidden" onclick="OixCloud.openNodeFilter();return false;" title="<%:Open the oixCloud website to choose the nodes delivered to OpenClash%>">
+						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-filter"/></svg>
+						<span><%:Node Filter%></span>
 					</button>
 					<button type="button" class="oix-btn oix-btn-ghost-subtle oix-btn-sm" onclick="OixCloud.openWebsite();return false;">
 						<img class="oix-img-inline" src="<%= oix_logo_src %>" width="14" height="14" alt="oixCloud">
@@ -212,18 +212,6 @@ end
 					</div>
 				</div>
 			</div>
-			<div class="oix-settings-grid">
-				<div class="oix-setting-card oix-card-span-2">
-					<div class="oix-params-item">
-						<span><%:Optional Parameters%>:</span>
-						<input type="text" id="oix-params" class="oix-input-num oix-input-ok oix-input-wide" value="<%= oix_params %>" onblur="OixCloud.saveParams()" oninput="OixCloud.validateParams(this)" placeholder="&type=love&tfo=true">
-					</div>
-					<div class="oix-card-help">
-						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-help"/></svg>
-						<span><%:For more information, please visit the%> <a href="https://docs.dler.io/black-hole/advanced/ding-yue-di-zhi-tuo-guan-di-zhi/untitled" target="_blank"><%:official documentation%></a></span>
-					</div>
-				</div>
-			</div>
 			<div class="oix-footer">
 				<span>Powered by <a href="javascript:void(0);" onclick="OixCloud.openWebsite();return false;">oixcloud.com</a></span>
 			</div>
@@ -236,9 +224,7 @@ end
 window.ocOixBoot = {
     loggedIn: <%= logged_in and 'true' or 'false' %>,
     checkinInterval: '<%= checkin_interval %>',
-    checkinMultiple: '<%= checkin_multiple %>',
-    params: '<%= oix_params %>',
-    defaultParams: '<%= oix_default_params %>'
+    checkinMultiple: '<%= checkin_multiple %>'
 };
 //]]></script>
 <script src="/cgi-bin/luci/admin/services/openclash/translate_js?f=oix_login&v=@OPENCLASH_VERSION@&l=<%=luci.i18n.context.lang%>"></script>

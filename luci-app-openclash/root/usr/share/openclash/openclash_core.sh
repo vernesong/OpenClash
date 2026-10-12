@@ -46,7 +46,7 @@ CORE_TYPE="$1"
 C_CORE_TYPE=$(uci_get_config "core_type")
 SMART_ENABLE=$(uci_get_config "smart_enable" || echo 0)
 OIX_TOKEN=$(uci_get_config "oix_token")
-[ "$SMART_ENABLE" -eq 1 ] && CORE_TYPE="Smart"
+[ "$SMART_ENABLE" -eq 1 ] && [ "$CORE_TYPE" != "Oix" ] && CORE_TYPE="Smart"
 [ -n "$OIX_TOKEN" ] && CORE_TYPE="Oix"
 [ -z "$CORE_TYPE" ] && CORE_TYPE="Meta"
 small_flash_memory=$(uci_get_config "small_flash_memory")
@@ -64,8 +64,9 @@ if [ -z "$DIRECT_CORE_URL" ]; then
    fi
    if [ -z "$CORE_LV" ]; then
       LOG_ERROR "【"$CORE_TYPE"】Core Version Check Error, Please Try Again Later..."
+      dec_job_counter_and_restart 0 "${OIX_INSTALL_ONLY:-0}"
       del_lock
-      exit 0
+      exit 1
    fi
 fi
 
@@ -212,5 +213,7 @@ fi
 
 rm -rf "$TMP_FILE" >/dev/null 2>&1
 [ "$UPDATE_SUCCESS" = "1" ] && restart=1 || restart=0
-dec_job_counter_and_restart "$restart"
+[ "$OIX_INSTALL_ONLY" = "1" ] && restart=0
+dec_job_counter_and_restart "$restart" "${OIX_INSTALL_ONLY:-0}"
 del_lock
+[ "$UPDATE_SUCCESS" = "1" ] || { [ -n "$CORE_LV" ] && [ "$CORE_CV" = "$CORE_LV" ]; }

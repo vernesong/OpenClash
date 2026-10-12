@@ -31,6 +31,7 @@ else
         if a then
             e[t]={}
             e[t].name=fs.basename(o)
+            e[t].title=fs.config_display_name(e[t].name)
         end
     end
 
@@ -234,13 +235,13 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
                 for i, tab in ipairs(e) do
                     if tab.name == cfg_name and cfg_name then
                 -%>
-                        <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab" data-group="<%=tab.name%>"><a title="<%=tab.name%>"><%=tab.name%></a></li>
+                        <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab" data-group="<%=tab.name%>"><a title="<%=tab.title or tab.name%>"><%=tab.title or tab.name%></a></li>
                     <%- elseif not cfg_name and tab.name == "all" then -%>
                         <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab" data-group="<%=tab.name%>"><a title="All">ALL</a></li>
                     <%- elseif tab.name == "all" then -%>
                         <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab-disabled" data-group="<%=tab.name%>"><a title="All">ALL</a></li>
                     <%- else -%>
-                        <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab-disabled" data-group="<%=tab.name%>"><a title="<%=tab.name%>"><%=tab.name%></a></li>
+                        <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab-disabled" data-group="<%=tab.name%>"><a title="<%=tab.title or tab.name%>"><%=tab.title or tab.name%></a></li>
                     <%- end -%>
                 <%- end -%>
             <%- else -%>

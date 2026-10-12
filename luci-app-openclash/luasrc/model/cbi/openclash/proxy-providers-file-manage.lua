@@ -10,9 +10,10 @@ local fs = require "luci.openclash"
 local uci = require "luci.model.uci".cursor()
 
 local p,r={}
-for x,y in ipairs(fs.glob("/etc/openclash/proxy_provider/*"))do
+for _,y in ipairs(fs.glob("/etc/openclash/proxy_provider/*"))do
 r=fs.stat(y)
-if r then
+if r and not fs.is_oix_managed_file(y) then
+local x = #p + 1
 p[x]={}
 p[x].num=string.format(x)
 p[x].name=fs.basename(y)
@@ -21,6 +22,13 @@ p[x].size=fs.filesize(r.size)
 p[x].remove=0
 p[x].enable=false
 end
+end
+
+local function editable_provider_path(index)
+	if not p[index] then return nil end
+	local path = "/etc/openclash/proxy_provider/" .. fs.basename(p[index].name)
+	if fs.is_oix_managed_file(path) then return nil end
+	return path
 end
 
 proxy_form=SimpleForm("proxy_provider_file_list",translate("Proxy Provider File List"))
@@ -38,7 +46,8 @@ p.inputstyle="apply"
 Button.render(p,x,r)
 end
 btned1.write=function(r,x)
-	local file_path = "/etc/openclash/proxy_provider/" .. fs.basename(p[x].name)
+	local file_path = editable_provider_path(x)
+	if not file_path then return end
 	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "other-file-edit", "proxy-providers-file-manage") .. "?file=" .. HTTP.urlencode(file_path))
 end
 
@@ -49,7 +58,8 @@ Button.render(y,x,r)
 end
 btndl1.write = function (r,x)
 	local sPath, sFile, fd, block
-	sPath = "/etc/openclash/proxy_provider/"..p[x].name
+	sPath = editable_provider_path(x)
+	if not sPath then return end
 	sFile = NXFS.basename(sPath)
 	if fs.isdirectory(sPath) then
 		fd = io.popen('tar -C "%s" -cz .' % {sPath}, "r")
@@ -80,7 +90,9 @@ p.inputstyle="reset"
 Button.render(p,x,r)
 end
 btnrm1.write=function(r,x)
-local r=fs.unlink("/etc/openclash/proxy_provider/"..luci.openclash.basename(p[x].name))
+local path = editable_provider_path(x)
+if not path then return end
+local r=fs.unlink(path)
 if r then table.remove(p,x)end
 return r
 end
@@ -107,7 +119,11 @@ o = a:option(Button, "Delete_all", " ")
 o.inputtitle = translate("Delete All File")
 o.inputstyle = "remove"
 o.write = function()
-	luci.sys.call("rm -rf /etc/openclash/proxy_provider/* >/dev/null 2>&1")
+	for _, path in ipairs(fs.glob("/etc/openclash/proxy_provider/*")) do
+		if not fs.is_oix_managed_file(path) then
+			SYS.call("rm -rf " .. UTIL.shellquote(path) .. " >/dev/null 2>&1")
+		end
+	end
 	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "proxy-providers-file-manage"))
 end
 

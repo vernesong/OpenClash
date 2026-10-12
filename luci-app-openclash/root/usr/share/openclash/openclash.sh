@@ -349,6 +349,12 @@ sub_info_get()
    local section="$1" subscribe_url template_path subscribe_url_param template_path_encode key_match_param key_ex_match_param c_address de_ex_keyword sub_ua sub_headers append_custom_params SECRET_KEY DOWNLOAD_URL DOWNLOAD_PARAM
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "name" "$section" "name" "config"
+   local oix_managed
+   config_get "oix_managed" "$section" "oix_managed" "0"
+   if [ "$oix_managed" = "1" ] || { [ "$name" = "oixCloud - smart" ] && [ -n "$(uci_get_config oix_token)" ]; }; then
+      # Managed nodes are refreshed by the core; LuCI refreshes the base via API.
+      return
+   fi
    config_get "sub_convert" "$section" "sub_convert" ""
    config_get "address" "$section" "address" ""
    config_get "keyword" "$section" "keyword" ""
