@@ -6,65 +6,18 @@ var OIX_URLS = {
     login: '<%=url("admin", "services", "openclash", "oix_login")%>',
     logout: '<%=url("admin", "services", "openclash", "oix_logout")%>',
     save: '<%=url("admin", "services", "openclash", "oix_login_info_save")%>',
-    checkin: '<%=url("admin", "services", "openclash", "oix_checkin")%>',
-    params: '<%=url("admin", "services", "openclash", "oix_params_sync")%>',
-    paramsGet: '<%=url("admin", "services", "openclash", "oix_params_get")%>'
+    checkin: '<%=url("admin", "services", "openclash", "oix_checkin")%>'
 };
 
 var OixCloud = {
     loggedIn: window.ocOixBoot.loggedIn,
     activeTab: 'account',
     pollTimer: null,
-    paramsRetry: 0,
-    paramsMaxRetry: 30,
-    paramsRetryTimer: null,
     origCheckinInterval: window.ocOixBoot.checkinInterval,
     origCheckinMultiple: window.ocOixBoot.checkinMultiple,
-    origParams: window.ocOixBoot.params,
 
     init: function() {
-        if (this.loggedIn) { this.loadAccountInfo(); this.startPolling(); this.fetchParams(); }
-    },
-
-    fetchParams: function() {
-        var input = document.getElementById('oix-params');
-        if (!input || input.value !== '') return;
-        var self = this;
-        var uciDefault = window.ocOixBoot.defaultParams;
-        XHR.get(OIX_URLS.paramsGet, null, function(x, status) {
-            if (x && x.status == 200 && status) {
-                if (status.params) {
-                    input.value = status.params;
-                    self.paramsRetry = 0;
-                    if (status.default_params) {
-                        XHR.get(OIX_URLS.save, {default_params: status.default_params}, function() {});
-                    }
-                } else if (status.default_params) {
-                    input.value = status.default_params;
-                    input.placeholder = status.default_params;
-                    self.paramsRetry = 0;
-                } else if (uciDefault) {
-                    input.value = uciDefault;
-                    input.placeholder = uciDefault;
-                    self.paramsRetry = 0;
-                } else {
-                    if (self.paramsRetry < self.paramsMaxRetry) {
-                        self.paramsRetry++;
-                        self.paramsRetryTimer = setTimeout(function() { self.fetchParams(); }, 5000);
-                    } else {
-                        self.paramsRetry = 0;
-                    }
-                }
-            } else {
-                if (self.paramsRetry < self.paramsMaxRetry) {
-                    self.paramsRetry++;
-                    self.paramsRetryTimer = setTimeout(function() { self.fetchParams(); }, 5000);
-                } else if (uciDefault) {
-                    input.value = uciDefault;
-                    input.placeholder = uciDefault;
-                }
-            }
-        });
+        if (this.loggedIn) { this.loadAccountInfo(); this.startPolling(); }
     },
 
     switchTab: function(tab) {
@@ -105,7 +58,7 @@ var OixCloud = {
             btns.forEach(function(b){ ocSetBtnBusy(b, false); });
             var info = '<%:oixCloud Login Successful%>, <%:Note: oixCloud need a specific core installed, OpenClash will auto download, After the core start, an oixCloud nodes provider will be added, which you can customize as needed%>';
             OixMsg.show(info, 'success', 20000);
-            self.loggedIn = true; self.showLoggedIn(); self.loadAccountInfo(); self.startPolling(); self.fetchParams();
+            self.loggedIn = true; self.showLoggedIn(); self.loadAccountInfo(); self.startPolling();
         };
 
         var onLoginError = function(msg) {
@@ -199,7 +152,6 @@ var OixCloud = {
     showLoggedOut: function() {
         document.getElementById('oix-login-section').classList.remove('oc-hidden');
         document.getElementById('oix-logged-section').classList.add('oc-hidden');
-        this.stopParamsRetry();
         this.clearForm();
         this.switchTab('account');
         this.rebuildCredentials();
@@ -228,7 +180,6 @@ var OixCloud = {
         document.getElementById('oix-checkin-enable').checked = false;
         document.getElementById('oix-checkin-interval').value = '1';
         document.getElementById('oix-checkin-multiple').value = '1';
-        document.getElementById('oix-params').value = '';
     },
 
     loadAccountInfo: function() {
@@ -317,9 +268,8 @@ var OixCloud = {
         });
     },
 
-    startPolling: function() { this.stopPolling(); var s=this; s.fetchParams(); this.pollTimer=setInterval(function(){s.loadAccountInfo();s.fetchParams();},600000); },
+    startPolling: function() { this.stopPolling(); var s=this; this.pollTimer=setInterval(function(){s.loadAccountInfo();},600000); },
     stopPolling: function() { if(this.pollTimer){clearInterval(this.pollTimer);this.pollTimer=null;} },
-    stopParamsRetry: function() { if(this.paramsRetryTimer){clearTimeout(this.paramsRetryTimer);this.paramsRetryTimer=null;} this.paramsRetry = 0; },
 
     doCheckin: function() {
         var self = this;
@@ -367,53 +317,6 @@ var OixCloud = {
             }
             else { OixMsg.show('<%:Failed to save checkin settings, please try again%>', 'error'); }
         });
-    },
-
-    saveParams: function() {
-        OixMsg.clearAll();
-        var params = document.getElementById('oix-params').value.trim();
-        if (params !== '' && !params.match(/^&[a-zA-Z][a-zA-Z0-9-]*(=[^&\s]*)?(&[a-zA-Z][a-zA-Z0-9-]*(=[^&\s]*)?)*$/)) {
-            OixMsg.field('oix-params', '<%:Invalid params format, must start with & and use key=value pairs%>');
-            OixMsg.show('<%:Invalid params format%>', 'error');
-            return;
-        }
-        if (params.length > 8192) {
-            OixMsg.field('oix-params', '<%:Params too long, max 8192 characters%>');
-            OixMsg.show('<%:Params too long%>', 'error');
-            return;
-        }
-        if (params === this.origParams) return;
-        var self = this;
-        XHR.get(OIX_URLS.params, {params: params}, function(x, status) {
-            if (x && x.status == 200) {
-                self.origParams = params;
-                OixMsg.show('<%:Optional parameters saved%>', 'success', 4000);
-            }
-            else { OixMsg.show('<%:Failed to save optional parameters, please try again%>', 'error'); }
-        });
-    },
-
-    validateParams: function(inp) {
-        if (!inp) return;
-        var v = inp.value.trim();
-        if (v === '') { OixMsg.field('oix-params', ''); return; }
-        if (!v.startsWith('&')) {
-            OixMsg.field('oix-params', '<%:Must start with &%>');
-            return;
-        }
-        if (/\s/.test(v)) {
-            OixMsg.field('oix-params', '<%:Params must not contain spaces%>');
-            return;
-        }
-        if (v.length > 8192) {
-            OixMsg.field('oix-params', '<%:Params too long, max 8192 characters%>');
-            return;
-        }
-        if (!v.match(/^&[a-zA-Z][a-zA-Z0-9-]*(=[^&\s]*)?(&[a-zA-Z][a-zA-Z0-9-]*(=[^&\s]*)?)*$/)) {
-            OixMsg.field('oix-params', '<%:Invalid params format, must start with & and use key=value pairs%>');
-            return;
-        }
-        OixMsg.field('oix-params', '');
     },
 
     validateMultiple: function(inp) {
@@ -484,7 +387,7 @@ var OixMsg = {
         var hint = document.getElementById(id + '-hint'), inp = document.getElementById(id);
         if (hint) { hint.textContent = msg || ''; hint.className = msg ? 'oix-field-hint oix-field-error' : 'oix-field-hint oix-field-help'; }
         if (inp) {
-            var isNum = id === 'oix-checkin-interval' || id === 'oix-checkin-multiple' || id === 'oix-params';
+            var isNum = id === 'oix-checkin-interval' || id === 'oix-checkin-multiple';
             var base = isNum ? 'oix-input-num' : 'oix-input';
             inp.className = msg ? (base + ' oix-input-err') : (base + ' oix-input-ok');
         }
