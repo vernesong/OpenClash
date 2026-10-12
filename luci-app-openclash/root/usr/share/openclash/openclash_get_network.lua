@@ -212,11 +212,11 @@ if type == "lan_cidr" then
 end
 
 if type == "lan_cidr6" then
-	if wan then
-		for o = 1, #(rv.wan) do
-			if rv.wan[o].proto ~= "pppoe" then
-				if rv.wan[o].ip6addr then
-					local ip6, prefix = rv.wan[o].ip6addr:match("([^/]+)/(%d+)")
+	if wan6 then
+		for o = 1, #(rv.wan6) do
+			if rv.wan6[o].proto ~= "pppoe" then
+				if rv.wan6[o].ip6addr then
+					local ip6, prefix = rv.wan6[o].ip6addr:match("([^/]+)/(%d+)")
 					local network = cidr.IPv6(ip6, tonumber(prefix)):network():string()
 					local prefix = cidr.IPv6(ip6, tonumber(prefix)):prefix()
 					print(network.."/"..prefix)
