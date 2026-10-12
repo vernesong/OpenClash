@@ -4421,8 +4421,8 @@ msgstr "编辑普通配置文件时这里还会多一个「比较」按钮"
 msgid "A config holds your proxies, groups and rules, this is the step that gets OpenClash working"
 msgstr "配置文件里有节点、策略组和规则，这一步做完 OpenClash 才真正能用"
 
-msgid "Upload a config file, or restore the whole setup from a backup"
-msgstr "可上传配置文件，或从备份恢复整套设置"
+msgid "Upload a config file, or add a subscription link"
+msgstr "可上传配置文件，或添加订阅链接"
 
 msgid "An older version rolls back after a bad release"
 msgstr "新版出问题时可以选回旧版"
@@ -4679,8 +4679,8 @@ msgstr "右边的开关可以启用或停用它"
 msgid "The tag tells where it comes from"
 msgstr "标签说明它从哪来"
 
-msgid "The three header buttons:"
-msgstr "标题栏这三个按钮："
+msgid "The four header buttons:"
+msgstr "标题栏这四个按钮："
 
 msgid "The two header icons redraw the same numbers:"
 msgstr "标题栏两个图标会把同一组数字换个画法："
@@ -4754,8 +4754,8 @@ msgstr "使用卡片视图展示所有信息"
 msgid "pick it here, or choose Custom and type your own"
 msgstr "在这里选，或者选自定义自己填"
 
-msgid "query addresses and latency again"
-msgstr "重新查询地址和延迟"
+msgid "query the IP addresses, latency and unlock checks again"
+msgstr "重新查询 IP 地址、延迟和解锁检查"
 
 msgid "redirect mode, TCP and UDP"
 msgstr "重定向模式，TCP 与 UDP 都接管"
@@ -5437,3 +5437,6 @@ msgstr "恢复默认配置"
 
 msgid "Start Test"
 msgstr "开始测试"
+
+msgid "switch the list to unlock checks, press again to pick the services"
+msgstr "切换为解锁检查，再按一次选择要检测的服务"

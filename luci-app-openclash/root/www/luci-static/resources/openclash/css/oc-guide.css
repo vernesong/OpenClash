@@ -539,7 +539,7 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
     to { opacity: 1; translate: 0 0; }
 }
 
-.oc .guide-pop.center {
+.oc .guide-pop.guide-center {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -725,13 +725,15 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
     color: var(--text-primary);
 }
 
-.oc .guide-pop-foot .upload-btn {
+.oc .guide-pop-foot .upload-btn,
+.oc .guide-pop-body .guide-more {
     border: 1px solid var(--primary-color);
     background: var(--primary-color);
     color: var(--text-on-primary);
 }
 
-.oc .guide-pop-foot .upload-btn:hover:not(:disabled) {
+.oc .guide-pop-foot .upload-btn:hover:not(:disabled),
+.oc .guide-pop-body .guide-more:hover:not(:disabled) {
     border-color: var(--btn-primary-hover, #2563eb);
     background: var(--btn-primary-hover, #2563eb);
 }
@@ -968,7 +970,7 @@ body.oc-guide-open .config-upload-model-overlay {
     max-height: 38vh;
 }
 
-.oc .guide-pop.center .guide-pop-body {
+.oc .guide-pop.guide-center .guide-pop-body {
     max-height: 52vh;
 }
 

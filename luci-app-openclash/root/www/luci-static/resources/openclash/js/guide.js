@@ -125,7 +125,7 @@ var Guide = {
             done: function (s) { return s.configs.length > 0; },
             body: function () {
                 return '<p><%:A config holds your proxies, groups and rules, this is the step that gets OpenClash working%><span class="guide-tag req"><%:Required%></span></p>'
-                    + '<p class="guide-tip"><%:Upload a config file, or restore the whole setup from a backup%></p>'
+                    + '<p class="guide-tip"><%:Upload a config file, or add a subscription link%></p>'
                     + '<p class="guide-tip"><%:“Open and continue” opens this window and walks you through it%></p>';
             }
         },
@@ -201,8 +201,7 @@ var Guide = {
             place: 'bottom',
             wide: true,
             body: function () {
-                return '<svg class="guide-cover" viewBox="0 0 320 84" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><rect class="cv-bg" x="0.5" y="0.5" width="319" height="83" rx="12"/><path class="cv-beam" d="M140 6 L196 6 L248 78 L88 78 Z"/><rect class="cv-card" x="118" y="18" width="150" height="48" rx="10"/><rect class="cv-line" x="132" y="32" width="52" height="7" rx="3.5"/><rect class="cv-line cv-faint" x="132" y="45" width="34" height="7" rx="3.5"/><rect class="cv-switch" x="214" y="32" width="28" height="16" rx="8"/><circle class="cv-knob" cx="234" cy="40" r="5.5"/><path class="cv-cursor" d="M234 45 l0 15 l4.4 -4.4 l2.9 6.3 l3.3 -1.6 l-2.9 -6.2 l6 0 z"/><circle class="cv-dot" cx="112" cy="76" r="3"/><circle class="cv-dot cv-faint" cx="128" cy="76" r="3"/><circle class="cv-dot cv-faint" cx="144" cy="76" r="3"/></svg>'
-                    + '<p><%:Six pages, one job each:%></p>'
+                return '<p><%:Six pages, one job each:%></p>'
                     + '<ul>'
                     + '<li><b><%:Overviews%></b><span class="guide-sep"></span><%:start and stop, modes, config, dashboard%></li>'
                     + '<li><b><%:Plugin Settings%></b><span class="guide-sep"></span><%:run mode, DNS, traffic, access control, IPv6%></li>'
@@ -374,11 +373,12 @@ var Guide = {
             target: '.myip-toolbar',
             place: 'bottom',
             body: function () {
-                return '<p><%:The three header buttons:%></p>'
+                return '<p><%:The four header buttons:%></p>'
                     + '<ul>'
                     + '<li><b><%:Hide IP%></b><span class="guide-sep"></span><%:blur the addresses before a screenshot%></li>'
                     + '<li><b><%:Query Mode%></b><span class="guide-sep"></span><%:starts the check from the router or from the current browser%></li>'
-                    + '<li><b><%:Refresh%></b><span class="guide-sep"></span><%:query addresses and latency again%></li>'
+                    + '<li><b><%:Unlock Check%></b><span class="guide-sep"></span><%:switch the list to unlock checks, press again to pick the services%></li>'
+                    + '<li><b><%:Refresh%></b><span class="guide-sep"></span><%:query the IP addresses, latency and unlock checks again%></li>'
                     + '</ul>';
             }
         },
@@ -1957,7 +1957,7 @@ var Guide = {
             document.getElementById('guide-tour').classList.add('full-dim');
             spot.classList.add('hidden');
             pop.classList.remove('bottom-sheet', 'sheet-top');
-            pop.classList.add('center');
+            pop.classList.add('guide-center');
             this.sheetSide = null;
             this.sheetTop = false;
             pop.style.top = '';
@@ -1972,7 +1972,7 @@ var Guide = {
         document.getElementById('guide-tour').classList.remove('full-dim');
         // the arrow belongs to the placement paths, a plain layout pass leaves it exactly as it is
         var arrowEl = pop.querySelector('.guide-arrow');
-        pop.classList.remove('center');
+        pop.classList.remove('guide-center');
 
         var r = this.stepRect(step, el);
         var pad = 6;
@@ -2215,16 +2215,13 @@ var Guide = {
 
     // a callout that grew past the edge after its placement is nudged back inside
     clampPop: function (pop, vw, vh) {
-        var r = pop.getBoundingClientRect();
-        var top = r.top;
-        var left = r.left;
-        if (r.bottom > vh - 12) top -= (r.bottom - (vh - 12));
-        if (top < 12) top = 12;
-        if (r.right > vw - 12) left -= (r.right - (vw - 12));
-        if (left < 12) left = 12;
-        top = Math.round(top);
-        left = Math.round(left);
-        if (top !== Math.round(r.top) || left !== Math.round(r.left)) this.setBox(pop, top, left, null, null);
+        // the rect of a callout still gliding in shows where it comes from, so clamp the target it was given
+        var top = parseFloat(pop.style.top);
+        var left = parseFloat(pop.style.left);
+        if (isNaN(top) || isNaN(left)) return;
+        var wantTop = Math.round(Math.max(12, Math.min(top, vh - 12 - pop.offsetHeight)));
+        var wantLeft = Math.round(Math.max(12, Math.min(left, vw - 12 - pop.offsetWidth)));
+        if (wantTop !== top || wantLeft !== left) this.setBox(pop, wantTop, wantLeft, null, null);
     },
 
     // a narrow callout puts its step marks and its buttons on two centred rows, side by side they get squeezed

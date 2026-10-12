@@ -4415,8 +4415,8 @@ msgstr "Al editar un archivo de configuración normal también aparece aquí el 
 msgid "A config holds your proxies, groups and rules, this is the step that gets OpenClash working"
 msgstr "La configuración contiene tus nodos, grupos y reglas; este paso pone OpenClash en marcha"
 
-msgid "Upload a config file, or restore the whole setup from a backup"
-msgstr "Sube un archivo de configuración o restaura toda la configuración desde una copia de seguridad"
+msgid "Upload a config file, or add a subscription link"
+msgstr "Sube un archivo de configuración o añade un enlace de suscripción"
 
 msgid "An older version rolls back after a bad release"
 msgstr "Una versión anterior permite volver atrás si una release falla"
@@ -4673,8 +4673,8 @@ msgstr "El interruptor de la derecha lo activa o lo desactiva"
 msgid "The tag tells where it comes from"
 msgstr "La etiqueta indica de dónde viene"
 
-msgid "The three header buttons:"
-msgstr "Los tres botones de la cabecera:"
+msgid "The four header buttons:"
+msgstr "Los cuatro botones de la cabecera:"
 
 msgid "The two header icons redraw the same numbers:"
 msgstr "Los dos iconos de la cabecera redibujan los mismos números:"
@@ -4748,8 +4748,8 @@ msgstr "muestra todo como tarjetas"
 msgid "pick it here, or choose Custom and type your own"
 msgstr "elígelo aquí, o usa Personalizado y escribe el tuyo"
 
-msgid "query addresses and latency again"
-msgstr "consulta otra vez las direcciones y la latencia"
+msgid "query the IP addresses, latency and unlock checks again"
+msgstr "consulta otra vez las direcciones IP, la latencia y las comprobaciones de desbloqueo"
 
 msgid "redirect mode, TCP and UDP"
 msgstr "modo redirect, TCP y UDP"
@@ -5434,3 +5434,6 @@ msgstr "Restaurar configuración predeterminada"
 
 msgid "Start Test"
 msgstr "Iniciar prueba"
+
+msgid "switch the list to unlock checks, press again to pick the services"
+msgstr "cambia la lista a las comprobaciones de desbloqueo, pulsa otra vez para elegir los servicios"
