@@ -157,6 +157,8 @@
 
 > **⚠️ `CONFIG_FILE` 路径限制**：只接受 `/etc/openclash/` 下的普通文件——路径含 `..`、以 `/` 结尾、文件名以 `.` 开头，或落在 `/etc/openclash/` 之外，整条都会被跳过并记录 `skip config file outside /etc/openclash` / `skip config file with unsafe path` / `skip hidden config file`（日志末尾是 `【General Key => 模块名: 路径】`）。合法写法如 `/etc/openclash/config/Custom_Clash.yaml`。
 
+> **值支持变量展开**：本段值（含 `CONFIG_FILE`、`SUB_INFO_URL`、`DOWNLOAD_FILE` 各字段）支持 `$NAME` / `${NAME}` / `${NAME:-默认值}`（`NAME` 匹配 `[A-Za-z_][A-Za-z0-9_]*`；`${NAME:-默认值}` 在变量未设置或为空时取默认值，默认值内可再引用其他变量）；其余 `$` 写法（`$1`、`${weird-name}`、`$(cmd)` 等）原样保留、不执行命令替换。变量来源见 `17-overwrite-module-examples.md` §17.5.1（模块 `param`）。
+
 > 这些环境变量在 `yml_change.sh`、`yml_rules_change.sh` 及自定义覆写脚本中可通过 `$KEY_NAME` 直接引用。
 > 本表按类别分组概览；**完整 Key 列表与对应 UCI** 见 `17-overwrite-module-examples.md` §17.5.2 速查表。
 
@@ -205,7 +207,7 @@
 
 大白话：**默认合并**（`key`）= 只改你写的那几项，其余不动（**但数组是整体替换**：写 `proxy-groups:` 会丢掉全部已有策略组，追加请用 `proxy-groups+:`）；**强制覆盖**（`key!`）= 把这一整块整个换成你写的。
 
-> **环境变量展开**：`${NAME}` / `$NAME`（`NAME` 匹配 `[A-Za-z_][A-Za-z0-9_]*`）会展开为环境变量值（`[General]` 的 Key、订阅 `param` 等）；其余 `$` 写法（`$1`、`${weird-name}`、`$(cmd)`、反引号）原样保留且**不执行命令替换**，`$` 紧跟 `$` 时两个 `$` 都原样保留（所以密码里的 `P@$$w0rd` 不会被吃掉）。因此正则里的 `$` 行尾锚、`(?=…)`、引号、反斜杠都可安全书写；目前没有保留字面量 `$名字` 的转义写法。
+> **环境变量展开**：`${NAME}` / `$NAME` / `${NAME:-默认值}`（`NAME` 匹配 `[A-Za-z_][A-Za-z0-9_]*`；`:-` 形式在未设置或为空时取默认值）会展开为环境变量值（`[General]` 的 Key、订阅 `param` 等）；其余 `$` 写法（`$1`、`${weird-name}`、`$(cmd)`、反引号、`${NAME:+x}`/`${NAME:?x}` 等其他操作符）原样保留且**不执行命令替换**，`$` 紧跟 `$` 时两个 `$` 都原样保留（所以密码里的 `P@$$w0rd` 不会被吃掉）。因此正则里的 `$` 行尾锚、`(?=…)`、引号、反斜杠都可安全书写；目前没有保留字面量 `$名字` 的转义写法。
 
 ##### 操作符详解与示例
 
@@ -401,3 +403,5 @@ dns:
 - `restart` — `true` 下载后重启核心
 
 > **⚠️ 路径限制**：`path` 必须位于 `/etc/openclash/` 或 `/tmp/` 下且不含 `..`，否则跳过该下载任务并记录 `skip download file outside /etc/openclash or /tmp` 或 `skip download file with unsafe path`。
+
+> **变量展开**：`url`/`path`/`cron`/`force`/`ua`/`restart` 各字段支持 `$NAME` / `${NAME}` / `${NAME:-默认值}`（展开规则见 §16.2.1 注），例如 `url=https://example.com/cfg/${EN_KEY2:-Custom_Clash}.yaml`。

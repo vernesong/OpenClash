@@ -168,6 +168,7 @@ fi
 **`param` (额外参数)**:
 - 格式 `KEY1=VALUE1;KEY2=VALUE2`，分号分隔
 - 值以环境变量 `$KEY1`、`$KEY2` 导出，可在 `[Overwrite]` 行的双引号参数内直接引用（`$KEY1`/`${KEY1}` 会展开；单引号参数内原样保留）
+- 在 `[General]` 值 / `DOWNLOAD_FILE` 字段 / `[YAML]` 行中可用 `$KEY` / `${KEY}` / `${KEY:-默认值}`（未设置或为空时取默认值，见 `16-overwrite-module-format.md` §16.2.1/§16.2.3）
 
 **`order` (执行顺序)**:
 - 多条覆写按 `sort -nr`（数值降序）排列执行

@@ -3189,9 +3189,9 @@ overwrite_config_match_item()
 
 expand_env_vars()
 {
-   #Expand ${VAR} / $VAR only, keep all other characters as-is
+   #Expand $VAR / ${VAR} and ${VAR:-default}, keep all other characters as-is
    local rest="$1"
-   local out="" head name val c
+   local out="" head name val c word op
 
    while :; do
       case "$rest" in
@@ -3207,9 +3207,21 @@ expand_env_vars()
             case "${rest#\{}" in
                *'}'*)
                   name="${rest#\{}"; name="${name%%\}*}"
+                  op=""
+                  word=""
                   case "$name" in
-                     ""|*[!A-Za-z0-9_]*|[0-9]*) out="$out\${$name}";;
-                     *) eval "val=\${$name-}"; out="$out$val";;
+                     *:-*) op=":-"; word="${name#*:-}"; name="${name%%:-*}";;
+                  esac
+                  case "$name" in
+                     ""|*[!A-Za-z0-9_]*|[0-9]*) out="$out\${$name$op$word}";;
+                     *)
+                        eval "val=\${$name-}"
+                        if [ -n "$op" ] && [ -z "$val" ]; then
+                           out="$out$(expand_env_vars "$word")"
+                        else
+                           out="$out$val"
+                        fi
+                        ;;
                   esac
                   rest="${rest#*\}}"
                   ;;
