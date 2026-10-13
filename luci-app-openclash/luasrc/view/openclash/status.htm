@@ -131,9 +131,9 @@
                                     <div class="card-controls">
                                         <div id="oc-setting-oversea" class="cbi-button-group oc-inline-flex">
                                             <input type="radio" id="oc_setting_oversea_1" name="oc-setting-oversea" value="1" onclick="return switch_oc_setting_oversea('1')"/>
-                                            <label for="oc_setting_oversea_1" class="cbi-button-option"><%:Mainland%></label>
+                                            <label for="oc_setting_oversea_1" class="cbi-button-option" title="<%:Mainland%>" aria-label="<%:Mainland%>"><% if luci.i18n.translate("Mainland") == "Mainland" then %><span style="text-decoration: underline; text-underline-offset: 2px;">M</span><% else %><%:Mainland%><% end %></label>
                                             <input type="radio" id="oc_setting_oversea_2" name="oc-setting-oversea" value="2" onclick="return switch_oc_setting_oversea('2')"/>
-                                            <label for="oc_setting_oversea_2" class="cbi-button-option"><%:Oversea%></label>
+                                            <label for="oc_setting_oversea_2" class="cbi-button-option" title="<%:Oversea%>" aria-label="<%:Oversea%>"><% if luci.i18n.translate("Oversea") == "Oversea" then %><span style="text-decoration: underline; text-underline-offset: 2px;">O</span><% else %><%:Oversea%><% end %></label>
                                             <input type="radio" id="oc_setting_oversea_0" name="oc-setting-oversea" value="0" onclick="return switch_oc_setting_oversea('0')"/>
                                             <label for="oc_setting_oversea_0" class="cbi-button-option"><%:Off%></label>
                                         </div>
