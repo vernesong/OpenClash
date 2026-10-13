@@ -6,7 +6,8 @@ var OIX_URLS = {
     login: '<%=url("admin", "services", "openclash", "oix_login")%>',
     logout: '<%=url("admin", "services", "openclash", "oix_logout")%>',
     save: '<%=url("admin", "services", "openclash", "oix_login_info_save")%>',
-    checkin: '<%=url("admin", "services", "openclash", "oix_checkin")%>'
+    checkin: '<%=url("admin", "services", "openclash", "oix_checkin")%>',
+    nodeFilter: 'https://oixcloud.com/user/node_filter?client=OpenClash'
 };
 
 var OixCloud = {
@@ -38,7 +39,7 @@ var OixCloud = {
             data.token = token;
         } else {
             var email = document.getElementById('oix-email').value.trim();
-            var passwd = document.getElementById('oix-passwd').value.trim();
+            var passwd = document.getElementById('oix-passwd').value;
             if (!email) { OixMsg.field('oix-email', '<%:Please enter email address%>'); return; }
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { OixMsg.field('oix-email', '<%:Please enter a valid email address%>'); return; }
             if (!passwd) { OixMsg.field('oix-passwd', '<%:Please enter password%>'); return; }
@@ -56,7 +57,7 @@ var OixCloud = {
 
         var onLoginSuccess = function() {
             btns.forEach(function(b){ ocSetBtnBusy(b, false); });
-            var info = '<%:oixCloud Login Successful%>, <%:Note: oixCloud need a specific core installed, OpenClash will auto download, After the core start, an oixCloud nodes provider will be added, which you can customize as needed%>';
+            var info = '<%:oixCloud configuration and nodes are ready%>';
             OixMsg.show(info, 'success', 20000);
             self.loggedIn = true; self.showLoggedIn(); self.loadAccountInfo(); self.startPolling();
         };
@@ -70,24 +71,26 @@ var OixCloud = {
         var doStreamLogin = function(loginData) {
             var xhr = new XMLHttpRequest();
             var url = OIX_URLS.login;
-            var sep = url.indexOf('?') >= 0 ? '&' : '?';
-            if (loginData) {
-                url += sep + Object.keys(loginData).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(loginData[k]); }).join('&');
-            }
-            xhr.open('GET', url, true);
+            var body = Object.keys(loginData).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(loginData[k]); }).join('&');
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
             xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-            var lastIndex = 0;
+            var lastIndex = 0, pending = '', finished = false;
 
-            var parseLines = function(text) {
-                var lines = text.split('\n');
+            var parseLines = function(text, complete) {
+                pending += text;
+                var lines = pending.split('\n');
+                pending = complete ? '' : lines.pop();
                 for (var i = 0; i < lines.length; i++) {
                     var line = lines[i].trim();
-                    if (!line) continue;
+                    if (!line || finished) continue;
                     try {
                         var obj = JSON.parse(line);
-                        if (obj.stage === 'done') {
+                        if (obj.stage === 'done' && obj.result === 200) {
+                            finished = true;
                             onLoginSuccess();
                         } else if (obj.stage === 'error') {
+                            finished = true;
                             onLoginError(obj.result || '<%:oixCloud Login Failed%>');
                         } else if (obj.text) {
                             updateBtnText(obj.text);
@@ -97,35 +100,33 @@ var OixCloud = {
             };
 
             xhr.onprogress = function() {
+                if (xhr.status !== 200) return;
                 var newText = xhr.responseText.substring(lastIndex);
                 lastIndex = xhr.responseText.length;
                 parseLines(newText);
             };
             xhr.onload = function() {
-                if (lastIndex < xhr.responseText.length) {
-                    parseLines(xhr.responseText.substring(lastIndex));
-                }
+                if (finished) return;
                 if (xhr.status !== 200) {
+                    finished = true;
                     onLoginError('<%:Network request failed, please check your connection and try again%>');
-                } else if (xhr.responseText.indexOf('"stage":"done"') === -1 &&
-                           xhr.responseText.indexOf('"stage":"error"') === -1) {
+                    return;
+                }
+                parseLines(xhr.responseText.substring(lastIndex), true);
+                if (!finished) {
+                    finished = true;
                     onLoginError('<%:Server response error, please try again later%>');
                 }
             };
             xhr.onerror = function() {
+                if (finished) return;
+                finished = true;
                 onLoginError('<%:Network request failed, please check your connection and try again%>');
             };
-            xhr.send();
+            xhr.send(body);
         };
 
-        if (isToken) {
-            doStreamLogin({token: data.token});
-        } else {
-            XHR.get(OIX_URLS.save, data, function(x, status) {
-                if (!x || x.status != 200) { OixMsg.show('<%:Network request failed, please check your connection and try again%>', 'error'); btns.forEach(function(b){ocSetBtnBusy(b, false);}); return; }
-                doStreamLogin(null);
-            });
-        }
+        doStreamLogin(data);
     },
 
     doLogout: function() {
@@ -134,11 +135,11 @@ var OixCloud = {
         if (btn) { btn.origHTML = btn.innerHTML; btn.disabled = true; var svg = btn.querySelector('svg'); btn.innerHTML = (svg ? svg.outerHTML : '') + ' <span><%:Logout...%></span>'; }
         XHR.get(OIX_URLS.logout, null, function(x, status) {
             if (btn) { btn.disabled = false; btn.innerHTML = btn.origHTML; }
-            if (x && x.status == 200 && status.result == 200) {
+            if (x && x.status == 200 && status && status.result == 200) {
                 OixMsg.show('<%:oixCloud Logout Successful%>', 'success', 2000);
                 self.loggedIn = false; self.stopPolling(); self.showLoggedOut();
             } else {
-            var msg = (status && status.result) ? status.result : '<%:oixCloud Logout Failed%>';
+                var msg = (status && status.result) ? status.result : '<%:oixCloud Logout Failed%>';
                 OixMsg.show('<%:oixCloud Logout Failed:%> ' + msg, 'error');
             }
         });
@@ -152,6 +153,7 @@ var OixCloud = {
     showLoggedOut: function() {
         document.getElementById('oix-login-section').classList.remove('oc-hidden');
         document.getElementById('oix-logged-section').classList.add('oc-hidden');
+        this.showNodeFilter(null);
         this.clearForm();
         this.switchTab('account');
         this.rebuildCredentials();
@@ -185,14 +187,16 @@ var OixCloud = {
     loadAccountInfo: function() {
         var self = this;
         XHR.get(OIX_URLS.info, null, function(x, status) {
-            if (x && x.status == 200 && status.result && typeof status.result === 'object') {
+            if (x && x.status == 200 && status && status.result && typeof status.result === 'object') {
+                document.getElementById('oix-cards').classList.remove('oc-hidden');
                 self.renderAccountInfo(status.result);
                 self.renderAnnouncement(status.result);
             } else {
+                self.showNodeFilter(null);
                 var cards = document.getElementById('oix-cards');
-            if (cards) cards.classList.add('oc-hidden');
-            var ann = document.getElementById('oix-announce');
-            if (ann) ann.classList.add('oc-hidden');
+                if (cards) cards.classList.add('oc-hidden');
+                var ann = document.getElementById('oix-announce');
+                if (ann) ann.classList.add('oc-hidden');
             }
         });
     },
@@ -259,12 +263,26 @@ var OixCloud = {
         document.getElementById('oix-used').textContent = d.used || '--';
         document.getElementById('oix-unused').textContent = d.unused || '--';
         document.getElementById('oix-today-used').textContent = d.today_used || '--';
+        this.showNodeFilter(d.plan_rank);
+    },
+
+    showNodeFilter: function(rank) {
+        var btn = document.getElementById('oix-node-filter');
+        if (btn) btn.classList.toggle('oc-hidden', !(this.loggedIn && Number(rank) >= 20));
+    },
+
+    openNodeFilter: function() {
+        window.open(OIX_URLS.nodeFilter, '_blank', 'noopener');
     },
 
     toggleInfoPage: function() {
         var on = document.getElementById('oix-show-info-page').checked;
         XHR.get(OIX_URLS.save, {show_info_page: on?'1':'0'}, function(x, status) {
-            if (x && x.status == 200) { OixMsg.show('<%:Setting saved%>', 'success', 2000); }
+            if (x && x.status == 200 && status && status.status === 'success') { OixMsg.show('<%:Setting saved%>', 'success', 2000); }
+            else {
+                document.getElementById('oix-show-info-page').checked = !on;
+                OixMsg.show('<%:Save failed%>', 'error');
+            }
         });
     },
 
@@ -277,40 +295,42 @@ var OixCloud = {
         if (btn) { btn.origHTML = btn.innerHTML; btn.disabled = true; var svg = btn.querySelector('svg'); btn.innerHTML = (svg ? svg.outerHTML : '') + ' <span><%:Checkin...%></span>'; }
         XHR.get(OIX_URLS.checkin, null, function(x, status) {
             if (btn) { btn.disabled = false; btn.innerHTML = btn.origHTML; }
-            if (x && x.status == 200 && status.result && status.result.ret == 200) {
+            if (x && x.status == 200 && status && status.result && status.result.ret == 200) {
                 OixMsg.show('<%:oixCloud Checkin Successful, Result:%> ' + (status.result.data && status.result.data.checkin || ''), 'success', 4000);
                 self.loadAccountInfo();
             } else {
-                var msg = (status.result && status.result.msg) ? status.result.msg : '<%:oixCloud Checkin Failed! Please Check And Try Again...%>';
-                OixMsg.show('<%:Checkin Failed:%> ' + msg, 'error');
+                var msg = (status && status.result && status.result.msg) ? status.result.msg : '';
+                OixMsg.show(msg ? ('<%:Checkin Failed:%> ' + msg) : '<%:oixCloud Checkin Failed! Please Check And Try Again...%>', 'error');
             }
         });
     },
 
     toggleCheckin: function() {
         var on = document.getElementById('oix-checkin-enable').checked;
-        var interval = document.getElementById('oix-checkin-interval').value || '1';
-        var multiple = document.getElementById('oix-checkin-multiple').value || '1';
-        XHR.get(OIX_URLS.save, {checkin: on?'1':'0', interval: interval, multiple: multiple}, function(x, status) {
-            if (x && x.status == 200) { OixMsg.show('<%:Setting saved%>', 'success', 2000); }
+        XHR.get(OIX_URLS.save, {checkin: on?'1':'0'}, function(x, status) {
+            if (x && x.status == 200 && status && status.status === 'success') { OixMsg.show('<%:Setting saved%>', 'success', 2000); }
+            else {
+                document.getElementById('oix-checkin-enable').checked = !on;
+                OixMsg.show('<%:Failed to save checkin settings, please try again%>', 'error');
+            }
         });
     },
 
     saveCheckin: function() {
         OixMsg.clearAll();
         var on = document.getElementById('oix-checkin-enable').checked;
-        var interval = parseInt(document.getElementById('oix-checkin-interval').value, 10);
-        var multiple = parseInt(document.getElementById('oix-checkin-multiple').value, 10);
+        var interval = Number(document.getElementById('oix-checkin-interval').value);
+        var multiple = Number(document.getElementById('oix-checkin-multiple').value);
         var valid = true;
-        if (isNaN(interval) || interval < 1 || interval > 720) { OixMsg.field('oix-checkin-interval', '<%:Checkin interval must be between 1 and 720%>'); OixMsg.show('<%:Checkin interval must be between 1 and 720%>', 'error'); valid = false; }
-        if (isNaN(multiple) || multiple < 1 || multiple > 100) { OixMsg.field('oix-checkin-multiple', '<%:Multiple Must Be a Positive Integer and No More Than 100%>'); OixMsg.show('<%:Multiple Must Be a Positive Integer and No More Than 100%>', 'error'); valid = false; }
+        if (interval % 1 !== 0 || interval < 1 || interval > 720) { OixMsg.field('oix-checkin-interval', '<%:Checkin interval must be between 1 and 720%>'); OixMsg.show('<%:Checkin interval must be between 1 and 720%>', 'error'); valid = false; }
+        if (multiple % 1 !== 0 || multiple < 1 || multiple > 100) { OixMsg.field('oix-checkin-multiple', '<%:Multiple Must Be a Positive Integer and No More Than 100%>'); OixMsg.show('<%:Multiple Must Be a Positive Integer and No More Than 100%>', 'error'); valid = false; }
         if (!valid) return;
-        var newInterval = String(isNaN(interval) ? 1 : interval);
-        var newMultiple = String(isNaN(multiple) ? 1 : multiple);
+        var newInterval = String(interval);
+        var newMultiple = String(multiple);
         if (newInterval === this.origCheckinInterval && newMultiple === this.origCheckinMultiple) return;
         var self = this;
         XHR.get(OIX_URLS.save, {checkin: on?'1':'0', interval: newInterval, multiple: newMultiple}, function(x, status) {
-            if (x && x.status == 200) {
+            if (x && x.status == 200 && status && status.status === 'success') {
                 self.origCheckinInterval = newInterval;
                 self.origCheckinMultiple = newMultiple;
                 OixMsg.show('<%:Checkin settings saved%>', 'success', 4000);
@@ -376,7 +396,8 @@ var OixMsg = {
             error:   '<svg width="15" height="15"><use href="#oc-icon-error"/></svg>',
             info:    '<svg width="15" height="15"><use href="#oc-icon-alert-circle"/></svg>'
         };
-        bar.classList.remove('oc-hidden'); bar.innerHTML = (icons[level] || icons.info) + '<span>' + msg + '</span>';
+        bar.classList.remove('oc-hidden'); bar.innerHTML = (icons[level] || icons.info) + '<span></span>';
+        bar.querySelector('span').textContent = msg;
         bar.className = 'oix-msg-bar oix-msg-' + (level || 'info');
         clearTimeout(this.timer);
         var t = (timeout !== undefined) ? timeout : (level === 'error' ? 6000 : 3000);

@@ -4376,7 +4376,7 @@ var ocLang = window.ocLang || '';
         if (isEnabled) LogManager.markCoreStart();
         LogManager.startLogDisplay(isEnabled ? '<%:Starting...%>' : '<%:Stopping...%>', false, 'init');
         XHR.get('<%=url("admin", "services", "openclash", "action")%>', requestParams, function(x, status) {
-            if (x && x.status == 200) {
+            if (x && x.status == 200 && status && status.status === 'success') {
                 setTimeout(function() {
                     pluginToggleUserAction = false;
                     updatePluginToggleState(StateManager.current_status.clash || false);
@@ -4542,7 +4542,7 @@ var ocLang = window.ocLang || '';
             if (restartBtn) {
                 restartBtn.disabled = false;
             }
-            if (x && x.status == 200) {
+            if (x && x.status == 200 && status && status.status === 'success') {
                 setTimeout(function() {
                     pluginToggleUserAction = false;
                     updatePluginToggleState(StateManager.current_status.clash || false);

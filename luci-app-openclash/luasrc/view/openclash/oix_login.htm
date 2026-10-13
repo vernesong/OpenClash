@@ -1,7 +1,6 @@
 <%-
 local fs = require "luci.openclash"
-local saved_token = fs.uci_get_config("config", "oix_token") and true or false
-local logged_in = saved_token
+local logged_in = (fs.uci_get_config("config", "oix_token") or "") ~= ""
 local checkin_enabled = fs.uci_get_config("config", "oix_checkin") == "1"
 local checkin_interval = fs.uci_get_config("config", "oix_checkin_interval") or "1"
 local checkin_multiple = fs.uci_get_config("config", "oix_checkin_multiple") or "1"
@@ -34,8 +33,7 @@ end
 
 				<div id="oix-panel-account">
 					<div class="oix-field-group-sm">
-						<input type="text" id="oix-email" class="oix-input oix-input-ok" placeholder="<%:Account Email Address%>" autocomplete="email" inputmode="email"
-							value="<%= fs.uci_get_config('config', 'oix_email') or '' %>">
+						<input type="text" id="oix-email" class="oix-input oix-input-ok" placeholder="<%:Account Email Address%>" autocomplete="email" inputmode="email" value="">
 						<span id="oix-email-hint" class="oix-field-hint oix-field-help"></span>
 					</div>
 				<div class="oix-field-group">
@@ -105,9 +103,9 @@ end
 						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-gift"/></svg>
 						<span><%:Checkin%></span>
 					</button>
-					<button type="button" class="oix-btn oix-btn-ghost-subtle oix-btn-sm" onclick="window.open('https://oixcloud.com/user/sub_manage', '_blank', 'noopener');return false;">
-						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-settings"/></svg>
-						<span><%:Node Management%></span>
+					<button type="button" id="oix-node-filter" class="oix-btn oix-btn-ghost-subtle oix-btn-sm oc-hidden" onclick="OixCloud.openNodeFilter();return false;" title="<%:Open the oixCloud website to choose the nodes delivered to OpenClash%>">
+						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-filter"/></svg>
+						<span><%:Node Filter%></span>
 					</button>
 					<button type="button" class="oix-btn oix-btn-ghost-subtle oix-btn-sm" onclick="OixCloud.openWebsite();return false;">
 						<img class="oix-img-inline" src="<%= oix_logo_src %>" width="14" height="14" alt="oixCloud">

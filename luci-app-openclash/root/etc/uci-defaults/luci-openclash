@@ -225,6 +225,15 @@ if [ -f "/tmp/openclash.bak" ]; then
 	rm -rf "/etc/openclash/backup" >/dev/null 2>&1
 fi
 
+#oixCloud keeps no saved credentials or optional parameters
+uci -q delete openclash.config.oix_email
+uci -q delete openclash.config.oix_passwd
+rm -f /tmp/oix_info /tmp/oix_checkin
+uci -q delete openclash.config.oix_params
+uci -q delete openclash.config.oix_default_params
+uci -q commit openclash
+rm -f "/etc/openclash/.oix_params" "/etc/openclash/.oix_default_params" >/dev/null 2>&1
+
 #long-running requests (streaming log)
 #uhttpd backend (older LuCI)
 if [ -x /etc/init.d/uhttpd ]; then
