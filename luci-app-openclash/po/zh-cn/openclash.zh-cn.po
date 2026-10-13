@@ -3128,17 +3128,11 @@ msgstr "下载中..."
 msgid "Downloading config..."
 msgstr "正在下载配置..."
 
-msgid "Downloading core..."
-msgstr "正在下载内核..."
-
 msgid "Fetching subscription..."
 msgstr "正在获取订阅..."
 
 msgid "Logging in..."
 msgstr "正在登录..."
-
-msgid "Saving token..."
-msgstr "正在保存令牌..."
 
 msgid "Sniff the domain name of the traffics to avoid rule-based proxy failure"
 msgstr "嗅探流量的域名信息，避免基于规则的代理失败"
@@ -3274,9 +3268,6 @@ msgstr "上传失败"
 
 msgid "Upload failed:"
 msgstr "上传失败："
-
-msgid "Failed to read file"
-msgstr "文件读取失败"
 
 msgid "Please enter subscription config name"
 msgstr "请输入订阅配置名称"
@@ -3674,9 +3665,6 @@ msgstr "跳过不支持的覆写命令"
 msgid "skip unsafe Overwrite command"
 msgstr "跳过不安全的覆写命令"
 
-msgid "skip Overwrite Module with undefined variable"
-msgstr "跳过变量未定义的覆写模块"
-
 msgid "Processing Overwrite Module"
 msgstr "执行覆写模块"
 
@@ -3818,12 +3806,6 @@ msgstr "退出中..."
 msgid "Checkin..."
 msgstr "签到中..."
 
-msgid "oixCloud Login Successful"
-msgstr "oixCloud 登录成功"
-
-msgid "Note: oixCloud need a specific core installed, OpenClash will auto download, After the core start, an oixCloud nodes provider will be added, which you can customize as needed"
-msgstr "注意：oixCloud 需要安装专用内核才能使用，插件会自动识别并进行内核下载，专用内核启动后，会添加一个 oixCloud 节点组到配置文件，供您自定义使用"
-
 msgid "oixCloud Login Failed"
 msgstr "oixCloud 登录失败"
 
@@ -3905,38 +3887,41 @@ msgstr "账号密码"
 msgid "Checkin Multiple"
 msgstr "签到倍数"
 
-msgid "Optional Parameters"
-msgstr "可选项参数"
+msgid "Node Filter"
+msgstr "节点筛选"
 
-msgid "Optional parameters saved"
-msgstr "可选项参数已保存"
+msgid "Open the oixCloud website to choose the nodes delivered to OpenClash"
+msgstr "前往 oixCloud 网站选择下发给 OpenClash 的节点"
 
-msgid "Failed to save optional parameters, please try again"
-msgstr "可选项参数保存失败，请重试"
+msgid "oixCloud configuration and nodes are ready"
+msgstr "oixCloud 配置与节点已加载"
 
-msgid "For more information, please visit the"
-msgstr "如需查看更多信息，请前往"
+msgid "Loading managed nodes..."
+msgstr "正在加载托管节点..."
 
-msgid "official documentation"
-msgstr "官方文档"
+msgid "The oixCloud core did not start"
+msgstr "oixCloud 内核未能启动，请查看运行日志"
 
-msgid "Must start with &"
-msgstr "必须以 & 开头"
+msgid "Unable to load managed nodes"
+msgstr "无法加载托管节点，请检查网络与账户状态"
 
-msgid "Params must not contain spaces"
-msgstr "参数不能包含空格"
+msgid "No managed nodes were loaded"
+msgstr "托管节点未加载，请检查节点筛选设置"
 
-msgid "Params too long, max 8192 characters"
-msgstr "参数过长，最多 8192 个字符"
+msgid "Managed nodes are not referenced by any proxy group"
+msgstr "策略组未引用托管节点，请检查覆写与节点筛选设置"
 
-msgid "Invalid params format"
-msgstr "参数格式无效"
+msgid "Unable to fetch managed configuration"
+msgstr "无法获取托管配置，请检查网络与套餐状态"
 
-msgid "Invalid params format, must start with & and use key=value pairs"
-msgstr "参数格式无效，必须以 & 开头并使用 key=value 键值对"
+msgid "Unable to update the oixCloud core"
+msgstr "无法更新 oixCloud 内核，请检查网络与内核架构设置"
 
-msgid "Params too long"
-msgstr "参数过长"
+msgid "Unable to select the OpenClash account"
+msgstr "无法切换到 OpenClash 对应的账户令牌，请稍后重试"
+
+msgid "Installing oixCloud core and restarting..."
+msgstr "正在安装 oixCloud 内核并重启..."
 
 msgid "Usage Help"
 msgstr "使用帮助"

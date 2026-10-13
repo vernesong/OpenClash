@@ -2057,6 +2057,9 @@ msgstr "Filtro de regiones"
 msgid "Unlock Nodes Filter"
 msgstr "Filtro de nodos desbloqueados"
 
+msgid "Start Auto Select Unlock Proxy..."
+msgstr "Iniciando selección automática de nodo desbloqueado..."
+
 msgid "Group:"
 msgstr "Grupo:"
 
@@ -3116,17 +3119,11 @@ msgstr "Descargando..."
 msgid "Downloading config..."
 msgstr "Descargando configuración..."
 
-msgid "Downloading core..."
-msgstr "Descargando núcleo..."
-
 msgid "Fetching subscription..."
 msgstr "Obteniendo suscripción..."
 
 msgid "Logging in..."
 msgstr "Iniciando sesión..."
-
-msgid "Saving token..."
-msgstr "Guardando token..."
 
 msgid "Sniff the domain name of the traffics to avoid rule-based proxy failure"
 msgstr "Analiza los dominios del tráfico para evitar fallos de proxy basados en reglas"
@@ -3259,9 +3256,6 @@ msgstr "Error en la subida"
 
 msgid "Upload failed:"
 msgstr "Error en la subida:"
-
-msgid "Failed to read file"
-msgstr "Error al leer el archivo"
 
 msgid "Please enter subscription config name"
 msgstr "Introduce el nombre de la configuración de suscripción"
@@ -3659,9 +3653,6 @@ msgstr "Comando de sobrescritura no válido, ignorado"
 msgid "skip unsafe Overwrite command"
 msgstr "Comando de sobrescritura no seguro, ignorado"
 
-msgid "skip Overwrite Module with undefined variable"
-msgstr "Variable no definida, módulo de sobrescritura ignorado"
-
 msgid "Processing Overwrite Module"
 msgstr "Procesando módulo de sobrescritura"
 
@@ -3803,12 +3794,6 @@ msgstr "Cerrando sesión..."
 msgid "Checkin..."
 msgstr "Registrando..."
 
-msgid "oixCloud Login Successful"
-msgstr "Inicio de sesión en oixCloud exitoso"
-
-msgid "Note: oixCloud need a specific core installed, OpenClash will auto download, After the core start, an oixCloud nodes provider will be added, which you can customize as needed"
-msgstr "Nota: oixCloud requiere un núcleo específico. OpenClash lo descargará y añadirá un proveedor de nodos personalizable."
-
 msgid "oixCloud Login Failed"
 msgstr "Fallo al iniciar sesión en oixCloud"
 
@@ -3890,38 +3875,41 @@ msgstr "Contraseña de la cuenta"
 msgid "Checkin Multiple"
 msgstr "Multiplicador de registro"
 
-msgid "Optional Parameters"
-msgstr "Parámetros opcionales"
+msgid "Node Filter"
+msgstr "Filtro de nodos"
 
-msgid "Optional parameters saved"
-msgstr "Parámetros opcionales guardados"
+msgid "Open the oixCloud website to choose the nodes delivered to OpenClash"
+msgstr "Abrir el sitio web de oixCloud para elegir los nodos que recibe OpenClash"
 
-msgid "Failed to save optional parameters, please try again"
-msgstr "Error al guardar parámetros opcionales, inténtelo de nuevo"
+msgid "oixCloud configuration and nodes are ready"
+msgstr "La configuración y los nodos de oixCloud están listos"
 
-msgid "For more information, please visit the"
-msgstr "Para más información, visite la"
+msgid "Loading managed nodes..."
+msgstr "Cargando los nodos administrados..."
 
-msgid "official documentation"
-msgstr "documentación oficial"
+msgid "The oixCloud core did not start"
+msgstr "El núcleo de oixCloud no se inició; consulta el registro"
 
-msgid "Must start with &"
-msgstr "Debe comenzar con &"
+msgid "Unable to load managed nodes"
+msgstr "No se pudieron cargar los nodos administrados; comprueba la red y tu cuenta"
 
-msgid "Params must not contain spaces"
-msgstr "Los parámetros no deben contener espacios"
+msgid "No managed nodes were loaded"
+msgstr "No se cargaron nodos administrados; comprueba el filtro de nodos"
 
-msgid "Params too long, max 8192 characters"
-msgstr "Parámetros demasiado largos, máximo 8192 caracteres"
+msgid "Managed nodes are not referenced by any proxy group"
+msgstr "Ningún grupo de proxies utiliza los nodos administrados"
 
-msgid "Invalid params format"
-msgstr "Formato de parámetros no válido"
+msgid "Unable to fetch managed configuration"
+msgstr "No se pudo obtener la configuración administrada; comprueba la red y tu plan"
 
-msgid "Invalid params format, must start with & and use key=value pairs"
-msgstr "Formato de parámetros no válido, debe comenzar con & y usar pares clave=valor"
+msgid "Unable to update the oixCloud core"
+msgstr "No se pudo actualizar el núcleo de oixCloud; comprueba la red y la arquitectura seleccionada"
 
-msgid "Params too long"
-msgstr "Parámetros demasiado largos"
+msgid "Unable to select the OpenClash account"
+msgstr "No se pudo seleccionar el token de OpenClash; inténtalo más tarde"
+
+msgid "Installing oixCloud core and restarting..."
+msgstr "Instalando el núcleo de oixCloud y reiniciando..."
 
 msgid "Usage Help"
 msgstr "Ayuda de uso"
