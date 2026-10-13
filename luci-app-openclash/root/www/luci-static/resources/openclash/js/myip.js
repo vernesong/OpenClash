@@ -737,6 +737,15 @@
         }
     }
 
+    function sync_myip_tooltips() {
+        document.querySelectorAll('.myip-toolbar button').forEach(function(button) {
+            var title = button.querySelector('svg title');
+            if (!title) return;
+            button.setAttribute('title', title.textContent);
+            button.setAttribute('aria-label', title.textContent);
+        });
+    }
+
     var unlock_gear_list = [];
     var unlock_gear_rows = {};
 
@@ -1465,7 +1474,7 @@
             dom[slot].card.style.display = 'none';
         });
         panel.classList.remove('oc-hidden');
-        unlock_set_unlock_icon(true);
+        unlock_set_unlock_icon(false);
         var title = document.getElementById('myip-check-title');
         if (title) title.textContent = '<%:Unlock Services%>';
         var icon = document.getElementById('unlock-icon');
@@ -1481,16 +1490,16 @@
         if (!unlock_view) {
             unlock_apply_view(true);
             run_unlock_check();
-        } else if (!unlock_gear) {
-            unlock_enter_gear();
         } else {
             unlock_apply_view(false);
         }
+        sync_myip_tooltips();
         return false;
     }
 
     function unlock_apply_view(on) {
         unlock_view = !!on;
+        document.getElementById('myip-unlock-settings').classList.toggle('oc-hidden', !unlock_view);
         unlock_gear = false;
         unlock_gear_drag_clear();
         localStorage.setItem('myip_unlock_view', unlock_view ? 'true' : 'false');
@@ -1566,6 +1575,7 @@
             eyeClosed.classList.remove('oc-hidden');
             if (titleElement) titleElement.textContent = '<%:Hide IP%>';
         }
+        sync_myip_tooltips();
     };
 
     function privacy_my_ip(svgElement) {
@@ -1636,6 +1646,7 @@
             modeIcon.classList.add('mode-browser');
             if (titleElement) titleElement.textContent = '<%:Browser Mode%>';
         }
+        sync_myip_tooltips();
     }
 
     function showAllGhosts() {

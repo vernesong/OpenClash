@@ -15,7 +15,7 @@
                     <div class="myip-main-card">
                         <div class="myip-content-grid">
                             <div class="myip-ip-section">
-                                <p class="myip-section-title">
+                                <p class="myip-section-title oc-hidden">
                                     <%:IP Address%>
                                 </p>
 
@@ -48,7 +48,7 @@
 
                             <div class="myip-check-section">
                                 <p class="myip-section-title">
-                                    <span id="myip-check-title"><%:Access Check%></span>
+                                    <span id="myip-check-title" class="oc-hidden"><%:Access Check%></span>
                                     <span class="icon-pill myip-toolbar">
                                         <button type="button" class="icon-pill-opt" onclick="return privacy_my_ip(this)">
                                             <svg id="eye-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" overflow="visible" xmlns="http://www.w3.org/2000/svg">
@@ -78,6 +78,11 @@
                                             <svg id="data-refresh-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                 <title><%:Refresh%></title>
                                                 <use href="#oc-icon-refresh" x="-0.8" y="-0.8" width="25.6" height="25.6"/>
+                                            </svg>
+                                        </button>
+                                        <button id="myip-unlock-settings" type="button" class="icon-pill-opt oc-hidden" onclick="unlock_enter_gear(); return false;" title="<%:Unlock Services%>" aria-label="<%:Unlock Services%>">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                                <use href="#oc-icon-gear" x="1.25" y="1.25" width="21.5" height="21.5"/>
                                             </svg>
                                         </button>
                                     </span>
