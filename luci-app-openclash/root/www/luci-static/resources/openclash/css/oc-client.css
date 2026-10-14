@@ -1966,13 +1966,18 @@ html[data-darkmode="true"] .oc .myip-footer p {
     display: contents;
 }
 
-.oc .myip-check-section > .myip-section-title {
+.oc .myip-content-grid.sub-card {
+    background: var(--bg-gray);
+}
+
+.oc .myip-check-section > .status-header-row {
     grid-row: 1;
-    justify-content: flex-end;
-    margin: 0;
-    padding: 0;
-    min-height: 0;
-    border: 0;
+}
+
+.oc .myip-check-section > .status-header-row .myip-toolbar {
+    margin-left: auto;
+    position: static;
+    flex-shrink: 0;
 }
 
 .oc .myip-ip-list {
