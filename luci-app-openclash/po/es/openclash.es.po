@@ -1430,6 +1430,9 @@ msgstr "apk update falló:"
 msgid "Pre update test failed:"
 msgstr "Las pruebas previas han fallado:"
 
+msgid "Pre update test failed..."
+msgstr "Las pruebas previas han fallado..."
+
 msgid ", retrying..."
 msgstr ", reintentando..."
 
@@ -1507,6 +1510,12 @@ msgstr "Archivo de verificación de Checksum no disponible o entrada no encontra
 
 msgid "Checksum mismatch for"
 msgstr "La verificación de Checksum no coincide"
+
+msgid ", expected"
+msgstr ", esperado"
+
+msgid ", got"
+msgstr ", obtenido"
 
 msgid "Unable to compute checksum, skip verification for"
 msgstr "No se puede calcular el Checksum, se omite la verificación"
@@ -1912,12 +1921,6 @@ msgstr "¡El cambio ha fallado!"
 
 msgid "Current Config"
 msgstr "Configuración actual"
-
-msgid "Up"
-msgstr "Subida"
-
-msgid "Down"
-msgstr "Descarga"
 
 msgid "Up Total"
 msgstr "Total subido"
@@ -2762,6 +2765,9 @@ msgstr "archivo de configuración"
 msgid "test failed"
 msgstr "prueba fallida"
 
+msgid "test is successful"
+msgstr "prueba exitosa"
+
 msgid "Config File Tested Failed, Please Check The Log Infos!"
 msgstr "La prueba del archivo de configuración ha fallado. Consulta el registro del núcleo."
 
@@ -3443,6 +3449,9 @@ msgstr "Anterior"
 msgid "Next"
 msgstr "Siguiente"
 
+msgid "Next Step"
+msgstr "Siguiente paso"
+
 msgid "Enter subscription URL or multiple links (one per line)"
 msgstr "Introduce una URL de suscripción o varias (una por línea)"
 
@@ -3622,6 +3631,24 @@ msgstr "Error al guardar la suscripción"
 
 msgid "Environment variable"
 msgstr "Variable de entorno"
+
+msgid "Description"
+msgstr "Descripción"
+
+msgid "Please enter a description"
+msgstr "Introduce una descripción"
+
+msgid "Select Source"
+msgstr "Elegir origen"
+
+msgid "Fill Module Info"
+msgstr "Completar la información"
+
+msgid "Pick a file or paste a link"
+msgstr "Elige un archivo o pega un enlace"
+
+msgid "Back"
+msgstr "Atrás"
 
 msgid "DOWNLOAD FILE no target in"
 msgstr "Descarga de archivo sin destino especificado en"
@@ -4376,9 +4403,6 @@ msgstr "Botones de la esquina"
 msgid "which generated config this module is applied to"
 msgstr "a qué configuración generada se aplica este módulo"
 
-msgid "The blue button adds the module, Cancel discards the form"
-msgstr "El botón azul añade el módulo; Cancelar descarta el formulario"
-
 msgid "domestic sites, they stay fast when they go direct"
 msgstr "sitios nacionales; deben ir rápidos cuando salen directo"
 
@@ -4496,9 +4520,6 @@ msgstr "subir, renombrar, descargar o borrar configuraciones"
 msgid "memory and CPU used by the core"
 msgstr "memoria y CPU utilizadas por el núcleo"
 
-msgid "where the module is downloaded from"
-msgstr "de dónde se descarga el módulo"
-
 msgid "which release line to follow, the default is fine"
 msgstr "qué línea de releases seguir; el valor por defecto está bien"
 
@@ -4580,11 +4601,38 @@ msgstr "La segunda caja descarta los nodos que no quieras"
 msgid "Give the subscription a name before saving"
 msgstr "Ponle un nombre a la suscripción antes de guardar"
 
-msgid "Extra fields for a module that comes from a link:"
-msgstr "Campos extra si el módulo viene de un enlace:"
+msgid "a short note kept with the module"
+msgstr "una nota breve guardada con el módulo"
 
-msgid "A local module needs three things:"
-msgstr "Un módulo local necesita tres cosas:"
+msgid "A file with #! info lines fills the name, description and variables for you"
+msgstr "Si el archivo incluye líneas de información #!, se rellenan el nombre, la descripción y las variables"
+
+msgid "optional module info lines read by the add dialog"
+msgstr "líneas de información opcionales que lee la ventana de añadir"
+
+msgid "The window runs in two steps: pick the source here, then review the details"
+msgstr "La ventana tiene dos pasos: elige el origen y luego revisa los detalles"
+
+msgid "Select the txt or conf file to upload here:"
+msgstr "Selecciona aquí el archivo txt o conf que quieres subir:"
+
+msgid "As soon as the file is chosen the window reads it and jumps to the details step"
+msgstr "Al elegir el archivo, la ventana lo lee y salta al paso de detalles"
+
+msgid "Paste the module link here:"
+msgstr "Pega aquí el enlace del módulo:"
+
+msgid "Click Next again to continue without the file info"
+msgstr "Pulsa Siguiente de nuevo para continuar sin la información del archivo"
+
+msgid "Everything read from the file can be checked and changed here:"
+msgstr "Todo lo leído del archivo puede revisarse y cambiarse aquí:"
+
+msgid "Add turns on once the required fields are filled"
+msgstr "Añadir se activa cuando los campos obligatorios están completos"
+
+msgid "Add saves the module, Back returns to the source step"
+msgstr "Añadir guarda el módulo; Atrás vuelve al paso de origen"
 
 msgid "Four options decide what gets installed:"
 msgstr "Cuatro opciones deciden qué se instala:"
@@ -4922,20 +4970,8 @@ msgstr "Tras guardar, pulse «Cambiar» en la lista de configuraciones para usar
 msgid "A name is asked for as well, it is filled in from the link"
 msgstr "Tambien pide un nombre, se rellena desde el enlace"
 
-msgid "select a txt or conf file to start from"
-msgstr "elige un archivo txt o conf como punto de partida"
-
-msgid "filled in from the file name, you can change it"
-msgstr "se rellena con el nombre del archivo, se puede cambiar"
-
 msgid "the name this module is listed under"
 msgstr "el nombre con el que aparece este modulo"
-
-msgid "Fields this tab fills in:"
-msgstr "Campos de esta pestana:"
-
-msgid "http pulls the module from a link"
-msgstr "http descarga el modulo desde un enlace"
 
 msgid "The file is split into sections and needs at least one header, here is what the editor starts from"
 msgstr "El archivo se divide en secciones y necesita al menos un encabezado; esto es lo que trae el editor"

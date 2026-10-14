@@ -1766,6 +1766,7 @@ var ocLang = window.ocLang || '';
                     modules.push({
                         name: moduleName,
                         type: moduleInfo.type || 'unknown',
+                        desc: moduleInfo.desc || '',
                         order: parseInt(moduleInfo.order, 10) || 0
                     });
                 }
@@ -1852,7 +1853,7 @@ var ocLang = window.ocLang || '';
                 var moduleItem = enabledModules[i];
                 var tag = document.createElement('span');
                 tag.className = 'subscription-overwrite-tag ' + this.getTypeClass(moduleItem.type);
-                tag.title = moduleItem.name;
+                tag.title = moduleItem.desc ? moduleItem.name + '\n' + moduleItem.desc : moduleItem.name;
                 tag.textContent = moduleItem.name;
                 tag.setAttribute('data-module', moduleItem.name);
                 tag.addEventListener('click', function(e) {
@@ -2693,7 +2694,7 @@ var ocLang = window.ocLang || '';
             }
             this.resetBuffer(Date.now());
             this.metrics = {
-                traffic: { unit: ' MB/s', series: [{ key: 'up', name: '<%:Up%>' }, { key: 'down', name: '<%:Down%>' }] },
+                traffic: { unit: ' MB/s', series: [{ key: 'up', name: '<%:Upload%>' }, { key: 'down', name: '<%:Download%>' }] },
                 memory: { unit: ' MB', series: [{ key: 'mem', name: '<%:Ram%>' }] },
                 cpu: { unit: ' %', series: [{ key: 'cpu', name: '<%:CPU%>' }] },
                 load: { unit: ' %', series: [{ key: 'load', name: '<%:Load Avg%>' }] },

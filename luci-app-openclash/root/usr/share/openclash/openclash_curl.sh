@@ -293,6 +293,6 @@ verify_sha256_checksum() {
         return 0
     fi
 
-    LOG_ERROR "Checksum mismatch for【$expected_name】(expected【$expected_hash】,got【$actual_hash】)"
+    LOG_ERROR "Checksum mismatch for【$expected_name】, expected【$expected_hash】, got【$actual_hash】"
     return 1
 }

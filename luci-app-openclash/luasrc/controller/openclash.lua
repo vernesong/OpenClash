@@ -111,6 +111,7 @@ function index()
 	entry({"admin", "services", "openclash", "add_age_config"}, call("action_add_age_config"))
 	entry({"admin", "services", "openclash", "upload_overwrite"}, call("action_upload_overwrite"))
 	entry({"admin", "services", "openclash", "overwrite_subscribe_info"}, call("action_overwrite_subscribe_info"))
+	entry({"admin", "services", "openclash", "overwrite_module_preview"}, call("action_overwrite_module_preview"))
 	entry({"admin", "services", "openclash", "overwrite_file_list"}, call("action_overwrite_file_list"))
 	entry({"admin", "services", "openclash", "delete_overwrite_file"}, call("delete_overwrite_file"))
 	entry({"admin", "services", "openclash", "get_subscribe_data"}, call("action_get_subscribe_data"))
@@ -6089,6 +6090,8 @@ function action_upload_overwrite()
 	end
 	local enable = HTTP.formvalue("enable")
 	local order = HTTP.formvalue("order")
+	local param = HTTP.formvalue("param")
+	local desc = HTTP.formvalue("desc")
 
 	if target_path then
 		local section_name = filename
@@ -6110,6 +6113,12 @@ function action_upload_overwrite()
 				-- an uploaded local file replaces the remote source of this module
 				uci:set("openclash", s[".name"], "type", "file")
 				uci:set("openclash", s[".name"], "url", "")
+				if param ~= nil then
+					uci:set("openclash", s[".name"], "param", param)
+				end
+				if desc ~= nil then
+					uci:set("openclash", s[".name"], "desc", desc)
+				end
 				if order ~= nil then
 					uci:set("openclash", s[".name"], "order", tostring(tonumber(order) or 0))
 				end
@@ -6123,6 +6132,12 @@ function action_upload_overwrite()
 			uci:delete("openclash", sid, "config")
 			if #config_values > 0 then
 				uci:set_list("openclash", sid, "config", config_values)
+			end
+			if param ~= nil then
+				uci:set("openclash", sid, "param", param)
+			end
+			if desc ~= nil then
+				uci:set("openclash", sid, "desc", desc)
 			end
 			if enable ~= nil then
 				uci:set("openclash", sid, "enable", tostring(enable))
@@ -6152,6 +6167,69 @@ function action_upload_overwrite()
 			readable_size = fs.filesize(file_size)
 		})
 	end
+end
+
+-- Runs one curl download while streaming NDJSON progress lines, so the browser bar follows real bytes.
+-- Returns the curl exit code, or nil when the wait ran out.
+local function stream_curl_download(url, tmp_file, max_filesize, emit_progress)
+	local hdr_file = tmp_file .. ".hdr"
+	local rc_file = tmp_file .. ".rc"
+	SYS.call(string.format("rm -f '%s' '%s' '%s'", tmp_file, hdr_file, rc_file))
+	local cmd = string.format(
+		"curl -fsSL --connect-timeout 5 -m 60 --retry 2%s -D '%s' -o '%s' %s >/dev/null 2>&1; echo $? > '%s'",
+		max_filesize and (" --max-filesize " .. tostring(max_filesize)) or "",
+		hdr_file, tmp_file, UTIL.shellquote(url), rc_file
+	)
+	local pid = nixio.fork()
+	if not pid or pid < 0 then
+		return nil
+	end
+	if pid == 0 then
+		nixio.exec("/bin/sh", "-c", cmd)
+	end
+
+	local total = 0
+	local reported = -1
+	local code = nil
+	local waited = 0
+	while waited < 120 do
+		local stat = fs.stat(tmp_file)
+		local received = (stat and stat.type == "regular" and stat.size) or 0
+		if total == 0 then
+			local header_text = nixio.fs.readfile(hdr_file)
+			for value in (header_text or ""):gmatch("[Cc]ontent%-[Ll]ength:%s*(%d+)") do
+				total = tonumber(value) or total
+			end
+		end
+		if received ~= reported then
+			if emit_progress then
+				write_padded(json.stringify({type = "progress", received = received, total = total}))
+			end
+			reported = received
+		end
+		if nixio.fs.access(rc_file) then
+			local rc_code = tonumber((nixio.fs.readfile(rc_file) or ""):match("%d+"))
+			if rc_code then
+				code = rc_code
+				break
+			end
+		end
+		nixio.nanosleep(0, 250000000)
+		waited = waited + 0.25
+	end
+
+	if code == nil then
+		pcall(nixio.kill, pid, nixio.const.SIGTERM)
+	end
+	for _ = 1, 20 do
+		local ok_w, wpid = pcall(nixio.waitpid, pid, "nohang")
+		if ok_w and wpid then break end
+		local ok_k, alive = pcall(nixio.kill, pid, 0)
+		if not (ok_k and alive) then break end
+		nixio.nanosleep(0, 50000000)
+	end
+	SYS.call(string.format("rm -f '%s' '%s'", hdr_file, rc_file))
+	return code
 end
 
 function action_overwrite_subscribe_info()
@@ -6201,6 +6279,7 @@ function action_overwrite_subscribe_info()
 					order = tonumber(s.order) or 0,
 					type = s.type or "file",
 					param = s.param or "",
+					desc = s.desc or "",
 					official = tonumber(s.official) or 0,
 					enable = tonumber(s.enable) or 0
 				}
@@ -6219,6 +6298,7 @@ function action_overwrite_subscribe_info()
 		local update_hour = HTTP.formvalue("update_hour") or ""
 		local order = HTTP.formvalue("order")
 		local param = HTTP.formvalue("param") or ""
+		local desc = HTTP.formvalue("desc")
 		local config_values = {}
 		local raw_config = HTTP.formvalue("config") or ""
 		if raw_config ~= "" then
@@ -6231,11 +6311,21 @@ function action_overwrite_subscribe_info()
 		end
 		typ = HTTP.formvalue("type") or typ or "file"
 		local enable = HTTP.formvalue("enable")
+		local stream_progress = HTTP.formvalue("stream") == "1"
+
+		-- a streamed reply already carries progress lines, its result must travel the same channel
+		local function respond_json(payload)
+			if stream_progress then
+				write_padded(json.stringify(payload))
+				return
+			end
+			HTTP.prepare_content("application/json")
+			HTTP.write_json(payload)
+		end
 
 		if typ == "http" then
 			if not url or url == "" then
-				HTTP.prepare_content("application/json")
-				HTTP.write_json({
+				respond_json({
 					status = "error",
 					message = "Subscribe URL cannot be empty"
 				})
@@ -6246,8 +6336,7 @@ function action_overwrite_subscribe_info()
 				is_valid_url = true
 			end
 			if not is_valid_url then
-				HTTP.prepare_content("application/json")
-				HTTP.write_json({
+				respond_json({
 					status = "error",
 					message = "Invalid subscribe URL format, only single HTTP/HTTPS link is supported"
 				})
@@ -6284,19 +6373,19 @@ function action_overwrite_subscribe_info()
 
 		if need_download then
 			local tmp_file = "/tmp/openclash_overwrite_download"
-			SYS.call("rm -f " .. tmp_file)
-			local ret = SYS.call(string.format('curl -fsSL --connect-timeout 5 -m 30 --retry 2 "%s" -o "%s"', url, tmp_file))
+			if stream_progress then
+				HTTP.prepare_content("text/plain; charset=utf-8")
+			end
+			local ret = stream_curl_download(url, tmp_file, nil, stream_progress)
 			local stat = fs.stat(tmp_file)
 			if ret ~= 0 or not stat or stat.type ~= "regular" or stat.size == 0 then
 				SYS.call("rm -f " .. tmp_file)
-				HTTP.prepare_content("application/json")
-				HTTP.write_json({status="error", message="Download failed"})
+				respond_json({status="error", message="Download failed"})
 				return
 			end
 			SYS.call(string.format("mkdir -p /etc/openclash/overwrite && mv -f '%s' '%s' && chmod 644 '%s'", tmp_file, file_path, file_path))
 			if not fs.access(file_path) then
-				HTTP.prepare_content("application/json")
-				HTTP.write_json({status="error", message="Failed to save downloaded file"})
+				respond_json({status="error", message="Failed to save downloaded file"})
 				return
 			end
 		end
@@ -6337,6 +6426,10 @@ function action_overwrite_subscribe_info()
 		uci:set("openclash", sid, "update_days", update_days)
 		uci:set("openclash", sid, "update_hour", update_hour)
 		uci:set("openclash", sid, "param", param)
+		-- desc stays untouched when the caller does not send one
+		if desc ~= nil then
+			uci:set("openclash", sid, "desc", desc)
+		end
 		if #config_values > 0 then
 			uci:delete("openclash", sid, "config")
 			uci:set_list("openclash", sid, "config", config_values)
@@ -6361,12 +6454,49 @@ function action_overwrite_subscribe_info()
 		uci:set("openclash", sid, "enable", tostring(enable_num == 1 and 1 or 0))
 		uci:commit("openclash")
 
-		HTTP.prepare_content("application/json")
-		HTTP.write_json({status="success"})
+		respond_json({status="success"})
 		return
 	else
 		HTTP.status(500, "Method Not Allowed")
 	end
+end
+
+-- Reads the head of a remote module file so the add dialog can prefill its fields from the #! markers.
+function action_overwrite_module_preview()
+	local url = HTTP.formvalue("url") or ""
+
+	if not url:match("^https?://") or url:find("%s") or url:find("|") then
+		HTTP.prepare_content("application/json")
+		HTTP.write_json({status = "error", message = "Invalid subscribe URL format, only single HTTP/HTTPS link is supported"})
+		return
+	end
+
+	HTTP.prepare_content("text/plain; charset=utf-8")
+	local tmp_file = "/tmp/openclash_overwrite_preview"
+	local ret = stream_curl_download(url, tmp_file, 524288, true)
+	local stat = fs.stat(tmp_file)
+	if ret ~= 0 or not stat or stat.type ~= "regular" or stat.size == 0 then
+		SYS.call("rm -f " .. tmp_file)
+		write_padded(json.stringify({type = "result", status = "error", message = "Download failed"}))
+		return
+	end
+
+	-- only the head is needed: the markers live at the top of the file
+	local f = io.open(tmp_file, "r")
+	local head = f and f:read(131072) or nil
+	if f then
+		f:close()
+	end
+	SYS.call("rm -f " .. tmp_file)
+
+	if not head then
+		write_padded(json.stringify({type = "result", status = "error", message = "Failed to read the downloaded file"}))
+		return
+	end
+
+	-- raw control bytes would break the JSON response; whitespace stays intact
+	head = head:gsub("[%z\1-\8\11\12\14-\31\127]", "")
+	write_padded(json.stringify({type = "result", status = "success", content = head}))
 end
 
 function action_overwrite_file_list()

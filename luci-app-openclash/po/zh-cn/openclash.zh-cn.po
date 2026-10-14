@@ -1439,6 +1439,9 @@ msgstr "apk update 失败:"
 msgid "Pre update test failed:"
 msgstr "更新前测试失败:"
 
+msgid "Pre update test failed..."
+msgstr "更新前测试失败..."
+
 msgid ", retrying..."
 msgstr "，正在重试..."
 
@@ -1516,6 +1519,12 @@ msgstr "校验文件不可用或未找到对应条目，跳过校验"
 
 msgid "Checksum mismatch for"
 msgstr "文件哈希不匹配"
+
+msgid ", expected"
+msgstr "，应为"
+
+msgid ", got"
+msgstr "，实际"
 
 msgid "Unable to compute checksum, skip verification for"
 msgstr "无法计算文件哈希，跳过校验"
@@ -1922,12 +1931,6 @@ msgstr "切换失败！"
 msgid "Current Config"
 msgstr "当前配置"
 
-msgid "Up"
-msgstr "上传"
-
-msgid "Down"
-msgstr "下载"
-
 msgid "Up Total"
 msgstr "上传总量"
 
@@ -2307,7 +2310,7 @@ msgid "Selecting..."
 msgstr "选择中..."
 
 msgid "Unlock Services"
-msgstr "解锁服务选择"
+msgstr "解锁检查服务选择"
 
 msgid "Must Select 4 Services"
 msgstr "必须选择 4 个服务"
@@ -2769,7 +2772,10 @@ msgid "configuration file"
 msgstr "配置文件"
 
 msgid "test failed"
-msgstr "测试失败..."
+msgstr "测试失败"
+
+msgid "test is successful"
+msgstr "测试成功"
 
 msgid "Config File Tested Failed, Please Check The Log Infos!"
 msgstr "配置文件测试失败，请查看《内核日志》排查失败原因！"
@@ -3455,6 +3461,9 @@ msgstr "上一个"
 msgid "Next"
 msgstr "下一个"
 
+msgid "Next Step"
+msgstr "下一步"
+
 msgid "Enter subscription URL or multiple links (one per line)"
 msgstr "输入订阅地址或多个链接（每行一个）"
 
@@ -3634,6 +3643,24 @@ msgstr "订阅保存失败"
 
 msgid "Environment variable"
 msgstr "环境变量"
+
+msgid "Description"
+msgstr "描述"
+
+msgid "Please enter a description"
+msgstr "请输入模块描述"
+
+msgid "Select Source"
+msgstr "选择来源"
+
+msgid "Fill Module Info"
+msgstr "填写模块信息"
+
+msgid "Pick a file or paste a link"
+msgstr "选择文件或粘贴链接"
+
+msgid "Back"
+msgstr "上一步"
 
 msgid "DOWNLOAD FILE no target in"
 msgstr "文件下载未指定目标参数"
@@ -4379,9 +4406,6 @@ msgstr "右上角按钮"
 msgid "which generated config this module is applied to"
 msgstr "这个模块覆盖哪份生成的配置"
 
-msgid "The blue button adds the module, Cancel discards the form"
-msgstr "蓝色按钮添加，取消就清空表单"
-
 msgid "domestic sites, they stay fast when they go direct"
 msgstr "国内站点，走直连时应该很快"
 
@@ -4499,9 +4523,6 @@ msgstr "上传、重命名、下载、删除配置文件"
 msgid "memory and CPU used by the core"
 msgstr "内核占用的内存和 CPU"
 
-msgid "where the module is downloaded from"
-msgstr "模块的下载地址"
-
 msgid "which release line to follow, the default is fine"
 msgstr "跟哪条发布分支，默认就行"
 
@@ -4583,11 +4604,38 @@ msgstr "第二个框用来剔除你不想要的节点"
 msgid "Give the subscription a name before saving"
 msgstr "保存前给订阅起个名字"
 
-msgid "Extra fields for a module that comes from a link:"
-msgstr "从链接获取模块时多出的字段："
+msgid "a short note kept with the module"
+msgstr "随模块保存的一句说明"
 
-msgid "A local module needs three things:"
-msgstr "本地模块需要这三样："
+msgid "A file with #! info lines fills the name, description and variables for you"
+msgstr "文件里带 #! 信息行时，会自动回填名称、描述和环境变量"
+
+msgid "optional module info lines read by the add dialog"
+msgstr "可选的模块信息行，供添加窗口读取"
+
+msgid "The window runs in two steps: pick the source here, then review the details"
+msgstr "窗口分两步：先选来源，再核对信息"
+
+msgid "Select the txt or conf file to upload here:"
+msgstr "在这里选择要上传的 txt/conf 文件："
+
+msgid "As soon as the file is chosen the window reads it and jumps to the details step"
+msgstr "选好文件后窗口会自动读取，并跳到第二步"
+
+msgid "Paste the module link here:"
+msgstr "在这里粘贴模块链接："
+
+msgid "Click Next again to continue without the file info"
+msgstr "再次点击「下一步」可跳过文件信息继续"
+
+msgid "Everything read from the file can be checked and changed here:"
+msgstr "从文件读取的信息都可以在这里核对和修改："
+
+msgid "Add turns on once the required fields are filled"
+msgstr "必填项填好后「添加」才会亮起"
+
+msgid "Add saves the module, Back returns to the source step"
+msgstr "「添加」保存模块，「上一步」返回选择来源"
 
 msgid "Four options decide what gets installed:"
 msgstr "四个选项决定装什么："
@@ -4922,20 +4970,8 @@ msgstr "保存后到配置列表里点「切换」才会用上"
 msgid "A name is asked for as well, it is filled in from the link"
 msgstr "还会要一个名字，会从链接自动填好"
 
-msgid "select a txt or conf file to start from"
-msgstr "选一个 txt 或 conf 文件作为起点"
-
-msgid "filled in from the file name, you can change it"
-msgstr "自动取文件名，可以自己改"
-
 msgid "the name this module is listed under"
 msgstr "这个模块在列表里的名字"
-
-msgid "Fields this tab fills in:"
-msgstr "这个页签要填的字段："
-
-msgid "http pulls the module from a link"
-msgstr "http 表示从链接拉取模块"
 
 msgid "The file is split into sections and needs at least one header, here is what the editor starts from"
 msgstr "文件分几个段，至少要有一个段头，下面是编辑器默认给的内容"

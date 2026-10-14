@@ -214,18 +214,6 @@ var SubscriptionUrlSetter = {
     }
 };
 
-function ocFormatSize(bytes) {
-    var value = parseFloat(bytes);
-    if (isNaN(value) || value < 0) return '—';
-    var units = ['B', 'KB', 'MB', 'GB'];
-    var i = 0;
-    while (value >= 1024 && i < units.length - 1) {
-        value = value / 1024;
-        i++;
-    }
-    return (i === 0 ? String(Math.round(value)) : value.toFixed(1)) + ' ' + units[i];
-}
-
 function ocStatBox(value, label, unit) {
     var box = document.createElement('div');
     box.className = 'oc-sub-stat';
@@ -2476,7 +2464,6 @@ var ConfigUploader = {
     currentMode: 'file',
     onSuccess: '',
     subconverterVersionChecker: null,
-    linkRe: null,
 
     init: function() {
         this.overlay = document.getElementById('config-upload-overlay');
@@ -2487,6 +2474,11 @@ var ConfigUploader = {
         }
 
         this.bindEvents();
+        this.progressBar = ocCreateProgressBar(
+            document.getElementById('upload-progress'),
+            document.getElementById('upload-progress-fill'),
+            document.getElementById('upload-progress-text')
+        );
     },
 
     bindEvents: function() {
@@ -2502,37 +2494,9 @@ var ConfigUploader = {
             self.switchMode('subscribe');
         });
 
-        uploadZone.addEventListener('click', function() {
-            if (!self.isProcessing && self.currentMode === 'file') {
-                fileInput.click();
-            }
-        });
-
-        fileInput.addEventListener('change', function(e) {
-            if (e.target.files.length > 0) {
-                self.handleFileSelect(e.target.files[0]);
-            }
-        });
-
-        uploadZone.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            if (!self.isProcessing && self.currentMode === 'file') {
-                uploadZone.classList.add('dragover');
-            }
-        });
-
-        uploadZone.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-            uploadZone.classList.remove('dragover');
-        });
-
-        uploadZone.addEventListener('drop', function(e) {
-            e.preventDefault();
-            uploadZone.classList.remove('dragover');
-
-            if (!self.isProcessing && self.currentMode === 'file' && e.dataTransfer.files.length > 0) {
-                self.handleFileSelect(e.dataTransfer.files[0]);
-            }
+        ocBindUploadZone(uploadZone, fileInput, {
+            canPick: function() { return !self.isProcessing && self.currentMode === 'file'; },
+            onSelect: function(file) { self.handleFileSelect(file); }
         });
 
         var subscribeUrlInput = document.getElementById('subscribe-url-input');
@@ -3084,9 +3048,8 @@ var ConfigUploader = {
             templateSelect.selectedIndex = 0;
         }
 
-        document.getElementById('upload-progress').classList.add('oc-hidden');
-        var resetStatus = document.getElementById('config-upload-status-text');
-        resetStatus.textContent = '<%:Ready to add config%>';
+        if (this.progressBar) this.progressBar.hide();
+        var resetStatus = document.getElementById('config-upload-status-text');        resetStatus.textContent = '<%:Ready to add config%>';
         resetStatus.classList.remove('is-error');
         document.getElementById('config-upload-submit').textContent = '<%:Add Config%>';
         this.setFilenameError('');
@@ -3291,9 +3254,7 @@ var ConfigUploader = {
         }
 
         this.selectedFile = null;
-        uploadZone.classList.remove('has-file');
-        uploadZone.querySelector('.upload-primary').textContent = '<%:Click to select file or drag and drop%>';
-        uploadZone.querySelector('.upload-secondary').textContent = '<%:Support YAML file%>';
+        ocSetUploadZoneFile(uploadZone, null, { empty: '<%:Support YAML file%>' });
 
         this.updateSubmitButton();
         this.updateFoldSummaries();
@@ -3308,7 +3269,7 @@ var ConfigUploader = {
         this.setFilenameError('');
 
         if (!file) {
-            uploadZone.classList.remove('has-file');
+            ocSetUploadZoneFile(uploadZone, null, { empty: '<%:Support YAML file%>' });
             this.updateSubmitButton();
             statusText.classList.remove('is-error');
             statusText.textContent = '<%:Ready to upload file%>';
@@ -3317,18 +3278,14 @@ var ConfigUploader = {
 
         if (!file.name.match(/\.(yaml|yml)$/i)) {
             this.selectedFile = null;
-            uploadZone.classList.remove('has-file');
-            uploadZone.querySelector('.upload-primary').textContent = '<%:Click to select file or drag and drop%>';
-            uploadZone.querySelector('.upload-secondary').textContent = '<%:Support YAML file%>';
+            ocSetUploadZoneFile(uploadZone, null, { empty: '<%:Support YAML file%>' });
             statusText.classList.add('is-error');
             statusText.textContent = '<%:Please select a YAML file%>';
             this.updateSubmitButton();
             return;
         }
 
-        uploadZone.classList.add('has-file');
-        uploadZone.querySelector('.upload-primary').textContent = '<%:File selected:%> ' + file.name;
-        uploadZone.querySelector('.upload-secondary').textContent = '<%:Size:%> ' + ocFormatSize(file.size);
+        ocSetUploadZoneFile(uploadZone, file);
 
         var defaultName = file.name.replace(/\.(yaml|yml)$/i, '');
         filenameInput.value = defaultName;
@@ -3557,9 +3514,6 @@ var ConfigUploader = {
         var submitBtn = document.getElementById('config-upload-submit');
         var cancelBtn = document.getElementById('config-upload-cancel');
         var statusText = document.getElementById('config-upload-status-text');
-        var progressContainer = document.getElementById('upload-progress');
-        var progressFill = document.getElementById('upload-progress-fill');
-        var progressText = document.getElementById('upload-progress-text');
 
         submitBtn.disabled = true;
         cancelBtn.disabled = true;
@@ -3585,16 +3539,7 @@ var ConfigUploader = {
             return;
         }
 
-        progressContainer.classList.remove('oc-hidden');
-
-        var progress = 0;
-        var progressInterval = setInterval(function() {
-            if (progress < 90) {
-                progress += Math.random() * 15;
-                progressFill.style.width = Math.min(progress, 90) + '%';
-                progressText.textContent = '<%:Uploading...%> ' + Math.floor(Math.min(progress, 90)) + '%';
-            }
-        }, 100);
+        self.progressBar.start('<%:Uploading...%>');
 
         var formData = new FormData();
         formData.append('config_file', this.selectedFile, filename);
@@ -3604,16 +3549,13 @@ var ConfigUploader = {
             body: formData
         })
         .then(function(response) {
-            clearInterval(progressInterval);
-
             if (!response.ok) {
                 throw new Error('HTTP error! status: ' + response.status);
             }
             return response.json();
         })
         .then(function(data) {
-            progressFill.style.width = '100%';
-            progressText.textContent = '<%:Upload completed%> 100%';
+            self.progressBar.done('<%:Upload completed%>');
 
             if (data.status === 'success') {
                 self.finishUpload(filename);
@@ -4014,21 +3956,16 @@ var ConfigUploader = {
 
     handleError: function(message) {
         var statusText = document.getElementById('config-upload-status-text');
-        var progressText = document.getElementById('upload-progress-text');
-        var progressFill = document.getElementById('upload-progress-fill');
         var submitBtn = document.getElementById('config-upload-submit');
         var cancelBtn = document.getElementById('config-upload-cancel');
-        var progressContainer = document.getElementById('upload-progress');
 
         statusText.textContent = message || '<%:Process failed%>';
         statusText.classList.add('is-error');
-        progressText.textContent = '<%:Process failed%>';
-        progressFill.style.width = '0%';
+        if (this.progressBar) this.progressBar.hide();
 
         this.isProcessing = false;
         submitBtn.disabled = false;
         cancelBtn.disabled = false;
-        progressContainer.classList.add('oc-hidden');
     }
 };
 

@@ -322,7 +322,7 @@ var Guide = {
             body: function () {
                 return '<p><%:The live numbers of this device:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Up%></b> / <b><%:Down%></b><span class="guide-sep"></span><%:the current speed%></li>'
+                    + '<li><b><%:Upload%></b> / <b><%:Download%></b><span class="guide-sep"></span><%:the current speed%></li>'
                     + '<li><b><%:Up Total%></b> / <b><%:Down Total%></b><span class="guide-sep"></span><%:counted since the core started%></li>'
                     + '<li><b><%:Connect%></b><span class="guide-sep"></span><%:connections the core handles right now%></li>'
                     + '<li><b><%:Ram%></b> / <b><%:CPU%></b><span class="guide-sep"></span><%:memory and CPU used by the core%></li>'
@@ -696,31 +696,29 @@ var Guide = {
             place: 'bottom',
             inAdd: true,
             // walking back into these steps must not depend on the window still being open
-            prepare: function () { Guide.ensureAddDialog(); },
+            prepare: function () { Guide.ensureAddDialog(); Guide.ensureAddStep('source'); },
             body: function () {
                 return '<p><%:Two tabs, two sources:%></p>'
                     + '<ul>'
                     + '<li><b><%:Local Module%></b><span class="guide-sep"></span><%:you write the content yourself, or upload a txt or conf file%></li>'
                     + '<li><b><%:Subscribe Link%></b><span class="guide-sep"></span><%:the module is downloaded from a URL and can refresh itself%></li>'
-                    + '</ul>';
+                    + '</ul>'
+                    + '<p class="guide-tip"><%:The window runs in two steps: pick the source here, then review the details%></p>';
             }
         },
         {
             key: 'addfile',
             title: '<%:Local Module%>',
-            target: function () { return Guide.inAddDialog('#overwrite-upload-form-file'); },
+            target: function () { return Guide.inAddDialog('#overwrite-source-file'); },
             place: 'bottom',
             tab: 'moduleFile',
             inAdd: true,
             wide: true,
-            prepare: function () { Guide.ensureAddDialog(); },
+            prepare: function () { Guide.ensureAddDialog(); Guide.ensureAddStep('source'); },
             body: function () {
-                return '<p><%:A local module needs three things:%></p>'
-                    + '<ul>'
-                    + '<li><b><%:Config File%></b><span class="guide-sep"></span><%:which generated config this module is applied to%><span class="guide-tag opt"><%:Optional%></span></li>'
-                    + '<li><b><%:Upload File%></b><span class="guide-sep"></span><%:select a txt or conf file to start from%><span class="guide-tag opt"><%:Optional%></span></li>'
-                    + '<li><b><%:Module Name%></b><span class="guide-sep"></span><%:filled in from the file name, you can change it%><span class="guide-tag req"><%:Required%></span></li>'
-                    + '</ul>';
+                return '<p><%:Select the txt or conf file to upload here:%></p>'
+                    + '<p class="guide-info"><%:As soon as the file is chosen the window reads it and jumps to the details step%></p>'
+                    + '<p class="guide-tip"><%:A file with #! info lines fills the name, description and variables for you%></p>';
             }
         },
         {
@@ -730,51 +728,52 @@ var Guide = {
             place: 'bottom',
             inAdd: true,
             switchTo: 'moduleSubscribe',
-            prepare: function () { Guide.ensureAddDialog(); },
+            prepare: function () { Guide.ensureAddDialog(); Guide.ensureAddStep('source'); },
             body: function () {
                 return '<p><%:A module can also be pulled from a URL, which keeps several routers on the same settings%></p>'
                     + '<p class="guide-tip"><%:Next switches to that tab%></p>';
             }
         },
         {
-            key: 'addfields',
-            title: '<%:Add Overwrite Module%>',
-            target: function () { return Guide.addBoxOf('#overwrite-subscribe-filename'); },
-            holeTo: function () { return Guide.boxList(['#overwrite-subscribe-config-dropdown', '#overwrite-subscribe-type'], true); },
-            place: 'bottom',
-            tab: 'moduleSubscribe',
-            inAdd: true,
-            wide: true,
-            prepare: function () { Guide.ensureAddDialog(); },
-            body: function () {
-                return '<p><%:Fields this tab fills in:%></p>'
-                    + '<ul>'
-                    + '<li><b><%:Module Name%></b><span class="guide-sep"></span><%:the name this module is listed under%><span class="guide-tag req"><%:Required%></span></li>'
-                    + '<li><b><%:Config File%></b><span class="guide-sep"></span><%:which generated config this module is applied to%><span class="guide-tag opt"><%:Optional%></span></li>'
-                    + '<li><b><%:Type%></b><span class="guide-sep"></span><%:http pulls the module from a link%></li>'
-                    + '</ul>';
-            }
-        },
-        {
             key: 'addurl',
             title: '<%:Subscription URL%>',
             target: function () { return Guide.addBoxOf('#overwrite-subscribe-url'); },
-            holeTo: function () { return Guide.boxList(['#overwrite-subscribe-update-days', '#overwrite-subscribe-param-add'], true); },
             place: 'bottom',
             tab: 'moduleSubscribe',
             inAdd: true,
             wide: true,
             prepare: function () {
                 Guide.ensureAddDialog();
-                Guide.ensureAddType('http');
+                Guide.ensureAddStep('source');
             },
             body: function () {
-                return '<p><%:Extra fields for a module that comes from a link:%></p>'
+                return '<p><%:Paste the module link here:%></p>'
+                    + '<p class="guide-tip"><%:Click Next again to continue without the file info%></p>';
+            }
+        },
+        {
+            key: 'addinfo',
+            title: '<%:Fill Module Info%>',
+            target: function () { return Guide.addBoxOf('#overwrite-add-filename'); },
+            holeTo: function () { return Guide.boxList(['#overwrite-add-config', '#overwrite-add-desc'], true); },
+            place: 'bottom',
+            tab: 'moduleSubscribe',
+            inAdd: true,
+            wide: true,
+            prepare: function () {
+                Guide.ensureAddDialog();
+                Guide.ensureAddStep('info');
+            },
+            body: function () {
+                return '<p><%:Everything read from the file can be checked and changed here:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Subscription URL%></b><span class="guide-sep"></span><%:where the module is downloaded from%><span class="guide-tag req"><%:Required%></span></li>'
+                    + '<li><b><%:Module Name%></b><span class="guide-sep"></span><%:the name this module is listed under%><span class="guide-tag req"><%:Required%></span></li>'
+                    + '<li><b><%:Description%></b><span class="guide-sep"></span><%:a short note kept with the module%><span class="guide-tag opt"><%:Optional%></span></li>'
+                    + '<li><b><%:Config File%></b><span class="guide-sep"></span><%:which generated config this module is applied to%><span class="guide-tag opt"><%:Optional%></span></li>'
                     + '<li><b><%:Update Time%></b><span class="guide-sep"></span><%:when it is fetched again, OFF means only on demand%><span class="guide-tag opt"><%:Optional%></span></li>'
                     + '<li><b><%:Environment variable%></b><span class="guide-sep"></span><%:extra variables handed to the script, only for modules that read them%><span class="guide-tag opt"><%:Optional%></span></li>'
-                    + '</ul>';
+                    + '</ul>'
+                    + '<p class="guide-tip"><%:Add turns on once the required fields are filled%></p>';
             }
         },
         {
@@ -784,7 +783,7 @@ var Guide = {
             place: 'top',
             inAdd: true,
             body: function () {
-                return '<p><%:The blue button adds the module, Cancel discards the form%></p>'
+                return '<p><%:Add saves the module, Back returns to the source step%></p>'
                     + '<p class="guide-info"><%:A new module starts off, turn the switch on, then restart OpenClash%></p>';
             }
         },
@@ -799,6 +798,7 @@ var Guide = {
                     + '<ul>'
                     + '<li><b>[YAML]</b><span class="guide-sep"></span><%:YAML fragments such as DNS settings, ports or TUN options%></li>'
                     + '<li><b>[Overwrite]</b> / <b>[General]</b><span class="guide-sep"></span><%:commands or plugin options, for dynamic cases%></li>'
+                    + '<li><b>#!</b><span class="guide-sep"></span><%:optional module info lines read by the add dialog%></li>'
                     + '</ul>'
                     + '<p class="guide-careful"><%:YAML indentation matters, an extra space can make the core refuse to start%></p>';
             }
@@ -1893,12 +1893,11 @@ var Guide = {
         if (!this.entryVisible('module')) this.openStepDialog('module');
     },
 
-    // the url and schedule fields of the add module form only show up for the http type
-    ensureAddType: function (type) {
-        var sel = this.inAddDialog('#overwrite-subscribe-type');
-        if (!sel || sel.value === type) return;
-        sel.value = type;
-        sel.dispatchEvent(new Event('change', { bubbles: true }));
+    // the add module window is a two step wizard, its steps are switched through the editor
+    ensureAddStep: function (step) {
+        if (typeof ConfigEditor !== 'undefined' && ConfigEditor.setAddWizardStep) {
+            ConfigEditor.setAddWizardStep(step);
+        }
     },
 
     // the module list starts collapsed on a narrow screen, its own tour needs it open

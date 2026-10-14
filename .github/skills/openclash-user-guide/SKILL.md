@@ -1,6 +1,6 @@
 ---
 name: openclash-user-guide
-description: 'OpenClash 用户功能指南。用于回答用户关于 OpenClash 插件如何启用/关闭各项功能的问题，包括：运行模式切换、代理开关、DNS 设置、流量控制、访问控制黑白名单、IPv6 开关、规则/GEO 更新、自动重启、仪表盘设置、订阅管理、覆写设置、连接异常排查等。每个选项均标注了对应的 UCI 配置项、修改的 Mihomo YAML 配置段、以及触发的脚本。Use when user asks how to enable, disable, configure, or troubleshoot any OpenClash feature on OpenWrt.'
+description: 'OpenClash（OpenWrt 上的 Mihomo/Clash Meta 客户端插件）用户功能指南：说明运行模式、代理开关、DNS、流量控制、访问控制、IPv6、规则/GEO 更新、自动重启、仪表盘、订阅与覆写模块、连接异常排查等功能的配置方式，并标注每项对应的 UCI 配置项、所改的 Mihomo YAML 配置段与触发脚本；适用于启用、配置或排查 OpenClash 各项功能的问题。'
 license: MIT
 compatibility: Designed for Claude Code / Copilot CLI / Codex / OpenCode / Gemini CLI / Cursor / Windsurf / Roo Code / Continue / Kiro / Trae / OpenHands 等 agent；需 SSH 访问运行 OpenClash 的 OpenWrt 路由器；路由器端需 uci、nft、curl、opkg、dnsmasq-full、ruby
 metadata:
@@ -93,7 +93,7 @@ disable-model-invocation: false
 | 运行日志 / 调试日志 / 生成日志 | `13-logs.md` | §13.1 页面总览、§13.2 三个标签页（Plugin/Core/Debug Logs）、§13.5 调试日志包含的 30 个章节 |
 | 需要 CLI 诊断 / AI 自助修复 | `14-diagnostics.md` | §14.2 诊断决策树（§14.2.7 TFO 未生效/异常）、§14.3 CLI 诊断命令、§14.4 诊断脚本、§14.5 认证前置、§14.6–14.7 AI 自助诊断与修复流程 |
 | LuCI / Mihomo HTTP API | `15-api.md` | §15.1 LuCI API、§15.2 Mihomo 内核 HTTP API |
-| 覆写模块格式 / 操作符 | `16-overwrite-module-format.md` | §16.1 覆写模块是什么、§16.2 覆写模块格式与操作符 |
+| 覆写模块格式 / 操作符 | `16-overwrite-module-format.md` | §16.1 覆写模块是什么、§16.2 覆写模块格式与操作符（含 §16.2.5 `#!` 元信息标识与添加时自动回填） |
 | 覆写模块示例 / UCI 结构 | `17-overwrite-module-examples.md` | §17.3 覆写模块示例、§17.5 覆写模块的 UCI 结构 |
 | 本文档未覆盖的查询 | `99-out-of-scope.md` | 外部资源优先级与主动查询流程 |
 
@@ -123,7 +123,7 @@ disable-model-invocation: false
 | 13 | `13-logs.md` | 运行日志 |
 | 14 | `14-diagnostics.md` | 诊断命令与 CLI（决策树、命令、脚本、AI 自助） |
 | 15 | `15-api.md` | LuCI 与 Mihomo HTTP API |
-| 16 | `16-overwrite-module-format.md` | 覆写模块详解：格式与操作符 |
+| 16 | `16-overwrite-module-format.md` | 覆写模块详解：格式、操作符与元信息标识 |
 | 17 | `17-overwrite-module-examples.md` | 覆写模块：示例与 UCI 结构 |
 | 99 | `99-out-of-scope.md` | 超出本文档范围的查询 |
 

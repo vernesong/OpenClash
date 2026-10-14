@@ -158,7 +158,7 @@ fi
 
 ### 6.4 Dnsmasq 重绑定保护（`rebind_protection`）的影响
 
-`rebind_protection` 是**系统 dnsmasq** 的开关（`dhcp.@dnsmasq[0]`，作用是阻断 DNS 重绑定攻击），插件不读写它。开启时 dnsmasq 丢弃上游应答里指向保留地址的记录；而 Mihomo 的 `hosts`（「覆写设置 → DNS → Hosts」）与 Fake-IP 的 IPv6 池返回的正是这类地址 ⇒ 相关域名在客户端侧解析不到地址。
+`rebind_protection` 是**系统 dnsmasq** 的开关（`dhcp.@dnsmasq[0]`），插件不读写它。开启时 dnsmasq 丢弃上游应答中指向保留地址的记录；Mihomo 的 `hosts`（「覆写设置 → DNS → Hosts」）与 Fake-IP 的 IPv6 池恰好返回这类地址 ⇒ 相关域名在客户端解析不到地址。
 
 **选项 → dnsmasq 参数**（`/etc/init.d/dnsmasq`）
 
@@ -180,9 +180,9 @@ fi
 | 其它 | `198.18.0.0/16`（Fake-IP 的 IPv4 池）、`0.0.0.0`、`192.0.0.1`、公网地址 | 放行 |
 
 > **三个判定要点**
-> - **整条应答一起丢弃**：应答里只要有一条地址落入上表（例如一条 A 应答同时含 `8.8.8.8` 与 `192.168.3.99`），整条应答都不返回，客户端得到「无记录」而不是 NXDOMAIN。
-> - **对任意上游生效**：包括 `127.0.0.1#7874`（Mihomo）⇒ 只要 dnsmasq 处在客户端与内核之间就会触发。`enable_redirect_dns=2`（nft 把 53 端口直接重定向到 `dns_port`）时客户端 DNS 不经过 dnsmasq，不受影响（见 §6.2 该选项行）。
-> - **日志可查**：触发时系统日志记录 `possible DNS-rebind attack detected: <域名>`（`logread | grep DNS-rebind`）。
+> - **整条应答一起丢弃**：只要应答里有一条地址落入上表（如同一应答同时含公网地址与 `192.168.x.x`），整条应答都不返回——客户端得到「无记录」而非 NXDOMAIN。
+> - **对任意上游生效**：包括 `127.0.0.1#7874`（Mihomo）；仅 `enable_redirect_dns=2`（nft 直接把 53 重定向到 `dns_port`）时客户端 DNS 不经过 dnsmasq，不受影响（见 §6.2）。
+> - **日志可查**：`logread | grep DNS-rebind` 命中 `possible DNS-rebind attack detected: <域名>`。
 
 **受影响场景**
 

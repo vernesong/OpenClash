@@ -1940,8 +1940,10 @@ html[data-darkmode="true"] .oc .myip-footer p {
 /* ---- base layout ---- */
 .oc .myip-main-card {
     --myip-label-h: 24px;
-    --myip-mid-h: 30px;
-    --myip-bottom-h: 26px;
+    /* Sized to the tallest content (3-line address / 2-line geo / 2-line node name) so the
+       card height never depends on the current values and refreshing cannot make it jump. */
+    --myip-mid-h: 47px;
+    --myip-bottom-h: 32px;
     background: var(--bg-white, #ffffff);
     margin: 0 auto;
     width: 100%;
@@ -2124,7 +2126,6 @@ html[data-darkmode="true"] .oc .myip-card-icon.ic-steam { color: #66C0F4; }
 }
 
 .oc .myip-main-card.oc-unlock-view {
-    --myip-mid-h: 46px;
     --myip-unlock-name-fs: 12px;
     --myip-unlock-name-lh: 1.3;
 }
@@ -2170,7 +2171,8 @@ html[data-darkmode="true"] .oc .myip-card-icon.ic-steam { color: #66C0F4; }
 }
 
 .oc .myip-gear-list {
-    max-height: 236px;
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
 }
@@ -2434,17 +2436,24 @@ html[data-darkmode="true"] .oc .myip-gear-state {
 }
 
 .oc .myip-unlock-region {
+    /* JS anchors it to the end of the name's first line; the translate straddles that line's
+       top edge so the pill overlaps the text top and never covers the text itself. */
     position: absolute;
-    top: -13px;
-    left: calc(100% + 2px);
+    top: 0;
+    left: 100%;
+    z-index: 1;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     font-size: 8px; font-weight: 700;
-    line-height: 13px;
+    line-height: 1;
     letter-spacing: 0.02em;
     color: #64748b;
     background: #f1f5f9;
     border: 1px solid var(--border-light, #e5e7eb);
     border-radius: 999px;
-    padding: 0 4px;
+    padding: 2px 4px;
     white-space: nowrap;
 }
 
@@ -2690,6 +2699,8 @@ html[data-darkmode="true"] .oc .myip-gear-state {
 .oc .myip-toolbar #mode-icon.mode-browser .mode-dot { fill: currentColor; stroke: currentColor; }
 
 .oc .myip-toolbar #unlock-icon.oc-unlock-on { color: var(--primary-color); }
+
+.oc .myip-toolbar #unlock-gear-icon.oc-gear-on { color: var(--primary-color); }
 
 .oc .developer-container {
     background: var(--bg-white);
@@ -3529,7 +3540,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     .oc .file-info { font-size: 10px; }
     .oc .file-info-item { font-size: 10px; }
     .oc .config-file-empty-message { font-size: 14px; }
-    .oc .myip-main-card { --myip-label-h: 20px; --myip-mid-h: 28px; --myip-bottom-h: 24px; max-width: 100%; width: 100%; }
+    .oc .myip-main-card { --myip-label-h: 20px; max-width: 100%; width: 100%; }
     .oc .myip-content-grid { grid-template-columns: 1fr; position: relative; }
     .oc .myip-toolbar {
         position: absolute;
@@ -3545,7 +3556,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     .oc .stats-section .stat-num { font-size: 17px; }
     .oc .myip-status-dot { width: 6px; height: 6px; }
     .oc .myip-sparkline-wrap svg.myip-sparkline-svg { height: 18px; }
-    .oc .myip-main-card.oc-unlock-view { --myip-mid-h: 40px; --myip-unlock-name-fs: 12px; }
+    .oc .myip-main-card.oc-unlock-view { --myip-unlock-name-fs: 12px; }
     .oc .myip-unlock-ribbon { width: 24px; height: 24px; }
     .oc .myip-unlock-ribbon svg { top: 3px; right: 3px; width: 9px; height: 9px; }
     .oc .myip-footer p { font-size: 13px !important; line-height: 18px !important; }
@@ -3615,7 +3626,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     .oc .file-info-item { font-size: 10px; }
     .oc .config-file-empty-state { padding: 30px 15px; gap: 15px; }
     .oc .config-file-empty-message { font-size: 13px; }
-    .oc .myip-main-card { --myip-label-h: 18px; --myip-mid-h: 26px; --myip-bottom-h: 22px; }
+    .oc .myip-main-card { --myip-label-h: 18px; }
     .oc .myip-ip-list, .oc .myip-check-list { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 1fr; }
     .oc .myip-section-title { margin-bottom: 10px; }
     .oc .myip-card-icon { width: 14px; height: 14px; }
@@ -3624,7 +3635,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     .oc .stats-section .stat-num { font-size: 16px; }
     .oc .myip-status-dot { width: 6px; height: 6px; }
     .oc .myip-sparkline-wrap svg.myip-sparkline-svg { height: 16px; }
-    .oc .myip-main-card.oc-unlock-view { --myip-mid-h: 38px; --myip-unlock-name-fs: 11.5px; }
+    .oc .myip-main-card.oc-unlock-view { --myip-unlock-name-fs: 11.5px; }
     .oc .myip-unlock-ribbon { width: 22px; height: 22px; }
     .oc .myip-unlock-ribbon svg { top: 2.5px; right: 2.5px; width: 8.5px; height: 8.5px; }
     .oc .myip-footer p { font-size: 11px !important; line-height: 16px !important; }

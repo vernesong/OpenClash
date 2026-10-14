@@ -1,3 +1,6 @@
+#!NAME = Tailscale
+#!DESC = Tailscale MagicDNS: resolve ts.net names through the Tailscale DNS stub
+
 # Tailscale MagicDNS: resolve ts.net names through the Tailscale DNS stub, the public DNS does
 # not know them. Requires tailscaled to be running.
 [YAML]

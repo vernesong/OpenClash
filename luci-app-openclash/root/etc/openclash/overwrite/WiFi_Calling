@@ -1,3 +1,7 @@
+#!NAME = WiFi_Calling
+#!DESC = WiFi Calling (VoWiFi): route carrier ePDG IKE/NAT-T traffic through a UDP-capable proxy group
+#!ENV = WIFI_CALLING_PROXY
+
 # WiFi Calling (VoWiFi): proxy the carrier ePDG traffic. Only IKE (UDP 500) and NAT-T (UDP 4500)
 # are proxyable - no TUN stack carries raw ESP (IP proto 50) - so the phone must stay on NAT-T.
 # WIFI_CALLING_PROXY (module param, e.g. WIFI_CALLING_PROXY=Smart) must be a UDP-capable group;

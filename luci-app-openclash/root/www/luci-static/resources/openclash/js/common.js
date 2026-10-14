@@ -959,6 +959,181 @@ function ocRequireScript(url, cb) {
     document.head.appendChild(s);
 }
 
+// Helpers shared by the config upload dialog and the overwrite module wizard.
+
+function ocFormatSize(bytes) {
+    var value = parseFloat(bytes);
+    if (isNaN(value) || value < 0) return '—';
+    var units = ['B', 'KB', 'MB', 'GB'];
+    var i = 0;
+    while (value >= 1024 && i < units.length - 1) {
+        value = value / 1024;
+        i++;
+    }
+    return (i === 0 ? String(Math.round(value)) : value.toFixed(1)) + ' ' + units[i];
+}
+
+// Single http(s) link: no whitespace and no "|" (multiple subscription links are joined with it).
+function ocIsHttpUrl(url) {
+    return /^https?:\/\/[^ \n|]+$/.test(String(url || '').trim());
+}
+
+// ocIsHttpUrl plus a dotted hostname, so half-typed hosts like "https://exa" do not pass.
+function ocIsCompleteHttpUrl(url) {
+    var value = String(url || '').trim();
+    if (!ocIsHttpUrl(value)) return false;
+    var host = value.slice(value.indexOf('//') + 2).split(/[/?#]/)[0];
+    return host.indexOf('.') > 0;
+}
+
+// Wires a .upload-zone: click opens the picker, drag&drop selects, both hand the file to onSelect.
+// canPick blocks picking while busy or on the other tab and also gates the dragover highlight.
+function ocBindUploadZone(zone, input, options) {
+    if (!zone || !input) return;
+    var opts = options || {};
+    function canPick() {
+        return !opts.canPick || opts.canPick();
+    }
+    function pick(file) {
+        if (opts.onSelect) opts.onSelect(file);
+    }
+    zone.addEventListener('click', function() {
+        if (canPick()) input.click();
+    });
+    input.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) pick(e.target.files[0]);
+    });
+    zone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        if (canPick()) zone.classList.add('dragover');
+    });
+    zone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        zone.classList.remove('dragover');
+    });
+    zone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        zone.classList.remove('dragover');
+        if (canPick() && e.dataTransfer && e.dataTransfer.files.length > 0) pick(e.dataTransfer.files[0]);
+    });
+}
+
+// Shows the chosen file on a .upload-zone or resets it to the idle state; opts.empty is the
+// idle secondary text (the zone itself is styled per source kind).
+function ocSetUploadZoneFile(zone, file, opts) {
+    if (!zone) return;
+    var options = opts || {};
+    var primary = zone.querySelector('.upload-primary');
+    var secondary = zone.querySelector('.upload-secondary');
+    if (file) {
+        zone.classList.add('has-file');
+        if (primary) primary.textContent = '<%:File selected:%> ' + file.name;
+        if (secondary) secondary.textContent = '<%:Size:%> ' + ocFormatSize(file.size);
+    } else {
+        zone.classList.remove('has-file');
+        if (primary) primary.textContent = options.pick || '<%:Click to select file or drag and drop%>';
+        if (secondary && options.empty) secondary.textContent = options.empty;
+    }
+}
+
+function ocCreateProgressBar(container, fill, text) {
+    var timer = null;
+    var value = 0;
+    function stop() {
+        if (timer) {
+            clearInterval(timer);
+            timer = null;
+        }
+    }
+    function render(label, percent) {
+        if (fill) fill.style.width = percent + '%';
+        if (text) text.textContent = label + ' ' + percent + '%';
+    }
+    return {
+        start: function(label) {
+            stop();
+            value = 0;
+            if (container) container.classList.remove('oc-hidden');
+            render(label, 0);
+            timer = setInterval(function() {
+                if (value < 90) {
+                    value += Math.random() * 15;
+                    render(label, Math.floor(Math.min(value, 90)));
+                }
+            }, 100);
+        },
+        done: function(label) {
+            stop();
+            render(label, 100);
+        },
+        fail: function(label) {
+            stop();
+            render(label, 0);
+        },
+        set: function(label, percent) {
+            stop();
+            value = Math.max(0, Math.min(100, percent));
+            render(label, Math.floor(value));
+        },
+        bytes: function(label, received) {
+            if (text) text.textContent = label + ' ' + ocFormatSize(received);
+        },
+        hide: function() {
+            stop();
+            if (container) container.classList.add('oc-hidden');
+            if (fill) fill.style.width = '0%';
+        }
+    };
+}
+
+// Posts a form and reads the NDJSON reply: progress lines feed onProgress, the first other
+// object resolves the promise (a plain JSON reply resolves the same way).
+function ocPostNdjson(url, formData, onProgress) {
+    return new Promise(function(resolve) {
+        var req = new XMLHttpRequest();
+        var settled = false;
+        var processed = 0;
+        var pending = '';
+        function finish(data) {
+            if (settled) return;
+            settled = true;
+            resolve(data);
+        }
+        function consume(flush) {
+            var text = req.responseText || '';
+            if (text.length < processed) {
+                processed = 0;
+                pending = '';
+            }
+            pending += text.substring(processed);
+            processed = text.length;
+            var parts = pending.split('\n');
+            pending = flush ? '' : (parts.pop() || '');
+            for (var i = 0; i < parts.length; i++) {
+                var line = parts[i].trim();
+                if (line.charAt(0) !== '{') continue;
+                var data;
+                try {
+                    data = JSON.parse(line);
+                } catch (e) {
+                    continue;
+                }
+                if (data.type === 'progress') {
+                    if (onProgress) onProgress(data.received || 0, data.total || 0);
+                } else {
+                    finish(data);
+                }
+            }
+        }
+        req.open('POST', url, true);
+        req.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        req.onprogress = function() { consume(false); };
+        req.onload = function() { consume(true); finish(null); };
+        req.onerror = function() { finish(null); };
+        req.send(formData);
+    });
+}
+
 // Contract: never-visible containers are never created and repeated queue
 // calls for the same container are ignored. The fallback timer covers
 // documents whose rendering is throttled while hidden (IntersectionObserver
