@@ -1,0 +1,19 @@
+.sce-editor { width: 100%; margin: 4px 0; }
+textarea.sce-raw[hidden], .sce-editor[hidden], .sce-editor [hidden] { display: none !important; }
+textarea.sce-raw[hidden] + br { display: none; }
+.sce-actions, .sce-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.sce-actions { margin-bottom: 8px; }
+.oc.sce-editor .footer-btn { width: auto; padding: 6px 10px; font-size: 12px; }
+.sce-list { display: flex; flex-direction: column; gap: 6px; }
+.sce-item { padding: 8px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); }
+.sce-row { min-width: 0; }
+.sce-index { min-width: 1.5em; text-align: center; }
+.sce-editor input.sce-url { flex: 1 1 12rem; width: auto; min-width: 0; }
+.sce-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 8px; }
+.sce-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.sce-field > span { font-size: 12px; }
+.sce-editor input, .sce-editor select, .sce-editor textarea { box-sizing: border-box; max-width: 100%; }
+.oc.sce-editor .sce-field input, .oc.sce-editor .sce-field select, .sce-import textarea { width: 100%; min-width: 0; }
+.sce-import textarea { margin-bottom: 8px; }
+.sce-message { margin-top: 8px; color: var(--error-color); font-size: 12px; }
+@media (max-width: 600px) { .sce-fields { grid-template-columns: 1fr; } }
