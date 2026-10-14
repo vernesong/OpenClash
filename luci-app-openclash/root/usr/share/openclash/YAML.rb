@@ -21,7 +21,26 @@ module YAML
 		puts Time.new.strftime("%Y-%m-%d %H:%M:%S") + " [Tip] " + "#{info}"
 	end
 
+	def self.subscription_status(filename, key_names = nil)
+		return 'EMPTY' if File.zero?(filename)
+
+		value = load_file(filename, key_names: key_names)
+		return 'INVALID' unless value.is_a?(Hash)
+
+		proxies = value['proxies']
+		providers = value['proxy-providers']
+		return 'INVALID' if value.key?('proxies') && !proxies.nil? && !proxies.is_a?(Array)
+		return 'INVALID' if value.key?('proxy-providers') && !providers.nil? && !providers.is_a?(Hash)
+		return 'INVALID' if proxies && !proxies.all? { |proxy| proxy.is_a?(Hash) }
+		return 'INVALID' if providers && !providers.values.all? { |provider| provider.is_a?(Hash) }
+		return 'NO_PROXIES' if (proxies.nil? || proxies.empty?) && (providers.nil? || providers.empty?)
+		'OK'
+	rescue StandardError
+		'INVALID'
+	end
+
 	def self.load_file(filename, *args, **kwargs)
+		key_names = kwargs.delete(:key_names)
 		secret = nil
 		if kwargs.key?(:secret)
 			secret = kwargs.delete(:secret)
@@ -40,13 +59,13 @@ module YAML
 				end
 			end
 
-			keys = find_age_keys_for_filename(filename)
+			secrets = Array(key_names || filename).flat_map { |name| find_age_keys_for_filename(name)[:secrets] || [] }.uniq
 			last_error = nil
-			(keys[:secrets] || []).each do |sec|
+			secrets.each do |sec|
 				begin
 					decrypted = decrypt_content_with_secret(sec, yaml_content)
 					if decrypted && !decrypted.empty? && !decrypted.include?("BEGIN AGE ENCRYPTED FILE")
-						return fix_and_load(decrypted, *args, **kwargs)
+							return fix_and_load(decrypted, *args, **kwargs)
 					end
 				rescue => e
 					last_error = e.message

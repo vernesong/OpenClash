@@ -500,7 +500,7 @@ function action_update_config()
 	else
 		HTTP.write_json({
 			status = "error",
-			message = "Failed to update config"
+			message = luci.i18n.translate("Subscription update failed; existing configuration was kept")
 		})
 	end
 end
@@ -7001,45 +7001,94 @@ local function fetch_oix_sub(token)
 	if type(sub_url) ~= "string" or not sub_url:match("^https://[^/%s]+/") or sub_url:find("[%c]") then
 		return nil, "Unable to fetch managed configuration"
 	end
+	oix_progress("downloading_config", "Downloading config...")
+	local temporary = SYS.exec("mktemp /etc/openclash/config/.oixCloud.XXXXXX 2>/dev/null")
+	temporary = temporary and temporary:match("^(/etc/openclash/config/%.oixCloud%.[%w]+)%s*$")
+	if not temporary then
+		return nil, "Unable to save subscription; existing configuration was kept"
+	end
+	local function fail(message, detail)
+		fs.unlink(temporary)
+		if detail then message = string.format(luci.i18n.translate(message), detail) end
+		return nil, message
+	end
+	local result = SYS.exec(string.format("curl -fsSL --connect-timeout 10 -m 10 --retry 2 --proto '=https' --proto-redir '=https' --user-agent clash -w '%%{http_code}' -o %s -- %s 2>/dev/null; printf ':%%s' \"$?\"", oix_quote(temporary), oix_quote(sub_url)))
+	local status, code = (result or ""):match("^(%d%d%d):(%d+)$")
+	if status and status ~= "000" and status ~= "200" then
+		return fail("Subscription download failed (HTTP %s); existing configuration was kept", status)
+	end
+	if code == "28" then
+		return fail("Subscription download timed out; existing configuration was kept")
+	end
+	if code ~= "0" or status ~= "200" then
+		return fail("Subscription request failed (curl %s); existing configuration was kept", code or "unknown")
+	end
+	local validation_result = SYS.exec("ruby -ryaml -rYAML -I /usr/share/openclash -E UTF-8 -e 'puts YAML.subscription_status(ARGV[0], ARGV.drop(1))' " .. oix_quote(temporary) .. " oixCloud 'oixCloud - smart' 2>/dev/null; printf ':%s' \"$?\"")
+	local validation, validation_code = (validation_result or ""):match("^%s*([%u_]+)%s*:(%d+)$")
+	if validation_code ~= "0" then validation = nil end
+	if validation == "EMPTY" then
+		return fail("Subscription response is empty; existing configuration was kept")
+	elseif validation == "INVALID" then
+		return fail("Subscription is not a valid Clash configuration; existing configuration was kept")
+	elseif validation == "NO_PROXIES" then
+		return fail("Subscription has no proxies or proxy providers; existing configuration was kept")
+	elseif validation ~= "OK" then
+		return fail("Subscription validation could not run; check Ruby dependencies. Existing configuration was kept")
+	end
 	local core = coremetacv()
 	if core == "0" or not string.match(core, "oix") then
 		oix_progress("downloading_core", "Installing oixCloud core and restarting...")
 		SYS.call("OIX_INSTALL_ONLY=1 /usr/share/openclash/openclash_core.sh Oix >/dev/null 2>&1")
 		local installed = coremetacv()
 		if installed == "0" or not string.match(installed, "oix") then
-			return nil, "Unable to update the oixCloud core"
+			return fail("Unable to update the oixCloud core")
 		end
 	end
+	local age_secret = SYS.exec("(. /usr/share/openclash/uci.sh; uci_get_age_secret_keys oixCloud; uci_get_age_secret_keys 'oixCloud - smart') 2>/dev/null") or ""
+	if SYS.call("OIX_TOKEN=" .. oix_quote(token) .. " OIX_CLIENT=openclash /etc/openclash/clash -t -d /etc/openclash -f " .. oix_quote(temporary) .. " -age-secret-key " .. oix_quote(age_secret) .. " >/dev/null 2>&1") ~= 0 then
+		return fail("Subscription failed core validation; existing configuration was kept")
+	end
+	local config_file = "/etc/openclash/config/oixCloud.yaml"
+	local legacy_file = "/etc/openclash/config/oixCloud - smart.yaml"
+	if not fs.rename(temporary, config_file) then
+		return fail("Unable to save subscription; existing configuration was kept")
+	end
+	fs.chmod(config_file, "rw-r--r--")
 	uci:set("openclash", "config", "oix_token", token)
+	local current_config = uci:get("openclash", "config", "config_path")
+	if not current_config or current_config == "" or current_config == legacy_file then
+		uci:set("openclash", "config", "config_path", config_file)
+	end
 	uci:commit("openclash")
-	local sub_match, sub_convert, sid = false, false, nil
-	uci:foreach("openclash", "config_subscribe",
-	function(s)
-		if s.name == "oixCloud - smart" and s.address == sub_url then
-			sub_match = true; return false
-		end
-		if s.name == "oixCloud - smart" then
-			sub_convert = true; sid = s['.name']; return false
+	local managed_sids = {}
+	uci:foreach("openclash", "config_subscribe", function(s)
+		if s.name == "oixCloud - smart" then managed_sids[s['.name']] = true end
+	end)
+	fs.config_refs("oixCloud - smart.yaml", "oixCloud.yaml")
+	uci:load("openclash")
+	local sid, duplicates = nil, {}
+	uci:foreach("openclash", "config_subscribe", function(s)
+		-- adopt only sections renamed from the legacy name or still pointing at the managed URL
+		if s.name == "oixCloud" and (managed_sids[s['.name']] or s.address == nil or s.address == "" or s.address == sub_url) then
+			if not sid then sid = s['.name'] else duplicates[#duplicates + 1] = s['.name'] end
 		end
 	end)
-	if not sub_match then
-		if sub_convert then uci:set("openclash", sid, "address", sub_url)
-		else
-			sid = uci:add("openclash", "config_subscribe")
-			uci:set("openclash", sid, "name", "oixCloud - smart")
-			uci:set("openclash", sid, "address", sub_url)
+	sid = sid or uci:add("openclash", "config_subscribe")
+	uci:set("openclash", sid, "name", "oixCloud")
+	uci:set("openclash", sid, "address", sub_url)
+	for _, duplicate in ipairs(duplicates) do uci:delete("openclash", duplicate) end
+	uci:foreach("openclash", "overwrite", function(s)
+		local paths, changed = s.config, false
+		if type(paths) == "string" then paths = {paths} end
+		if type(paths) == "table" then
+			for i, path in ipairs(paths) do
+				if path == legacy_file then paths[i] = config_file; changed = true end
+			end
+			if changed then uci:set("openclash", s['.name'], "config", paths) end
 		end
-		uci:commit("openclash")
-	end
-	oix_progress("downloading_config", "Downloading config...")
-	local yaml_rc = SYS.call(string.format("curl -sL -m 10 --retry 2 --user-agent \"clash\" %s -o \"/tmp/oixCloud-smart.yaml.new\" >/dev/null 2>&1", oix_quote(sub_url)))
-	if yaml_rc ~= 0 then
-		fs.unlink("/tmp/oixCloud-smart.yaml.new")
-		return nil, "Unable to fetch managed configuration"
-	end
-	if SYS.call("mv -f \"/tmp/oixCloud-smart.yaml.new\" \"/etc/openclash/config/oixCloud - smart.yaml\" >/dev/null 2>&1") ~= 0 then
-		return nil, "Unable to fetch managed configuration"
-	end
+	end)
+	uci:commit("openclash")
+	fs.unlink(legacy_file)
 	oix_progress("restarting", "Restarting...")
 	SYS.exec("/etc/init.d/openclash restart >/dev/null 2>&1")
 	return oix_wait_loaded()

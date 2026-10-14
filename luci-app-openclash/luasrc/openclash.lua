@@ -29,17 +29,15 @@ local os    = require "os"
 local ltn12 = require "luci.ltn12"
 local fs	= require "nixio.fs"
 local nutil = require "nixio.util"
--- The section types used to be written with a hyphen, convert the stored package once.
-do
-	local sys = require "luci.sys"
-	if sys.call("grep -q '^config proxy-groups\\|^config proxy-providers' /etc/config/openclash /tmp/.uci/openclash 2>/dev/null") == 0 then
-		sys.call("sed -i 's/^config proxy-groups/config proxy_groups/;s/^config proxy-providers/config proxy_providers/' /etc/config/openclash /tmp/.uci/openclash 2>/dev/null")
-	end
-end
 
 local uci = require "luci.model.uci".cursor()
-local dynamic_uci = require "luci.model.uci".cursor()
 local SYS  = require "luci.sys"
+-- The section types used to be written with a hyphen, convert the stored package once.
+do
+	if SYS.call("grep -q '^config proxy-groups\\|^config proxy-providers' /etc/config/openclash /tmp/.uci/openclash 2>/dev/null") == 0 then
+		SYS.call("sed -i 's/^config proxy-groups/config proxy_groups/;s/^config proxy-providers/config proxy_providers/' /etc/config/openclash /tmp/.uci/openclash 2>/dev/null")
+	end
+end
 local HTTP = require "luci.http"
 local json = require "luci.jsonc"
 local UTIL = require "luci.util"
@@ -576,7 +574,6 @@ function config_refs(old_file_name, new_file_name)
 				else
 					uci:delete("openclash", s[".name"])
 				end
-				return false
 			end
 		end
 	)
@@ -589,42 +586,41 @@ function config_refs(old_file_name, new_file_name)
 				else
 					uci:delete("openclash", s[".name"])
 				end
-				return false
 			end
 		end
 	)
 
-	dynamic_uci:foreach("openclash", "proxy_groups",
+	uci:foreach("openclash", "proxy_groups",
 		function(s)
 			if s.config == old_file_full then
 				if is_rename and new_name_no_ext ~= new_file_name then
-					dynamic_uci:set("openclash", s[".name"], "config", new_file_full)
+					uci:set("openclash", s[".name"], "config", new_file_full)
 				else
-					dynamic_uci:delete("openclash", s[".name"])
+					uci:delete("openclash", s[".name"])
 				end
 			end
 		end
 	)
 
-	dynamic_uci:foreach("openclash", "proxy_providers",
+	uci:foreach("openclash", "proxy_providers",
 		function(s)
 			if s.config == old_file_full then
 				if is_rename and new_name_no_ext ~= new_file_name then
-					dynamic_uci:set("openclash", s[".name"], "config", new_file_full)
+					uci:set("openclash", s[".name"], "config", new_file_full)
 				else
-					dynamic_uci:delete("openclash", s[".name"])
+					uci:delete("openclash", s[".name"])
 				end
 			end
 		end
 	)
 
-	dynamic_uci:foreach("openclash", "proxies",
+	uci:foreach("openclash", "proxies",
 		function(s)
 			if s.config == old_file_full then
 				if is_rename and new_name_no_ext ~= new_file_name then
-					dynamic_uci:set("openclash", s[".name"], "config", new_file_full)
+					uci:set("openclash", s[".name"], "config", new_file_full)
 				else
-					dynamic_uci:delete("openclash", s[".name"])
+					uci:delete("openclash", s[".name"])
 				end
 			end
 		end
@@ -638,13 +634,20 @@ function config_refs(old_file_name, new_file_name)
 				else
 					uci:delete("openclash", s[".name"])
 				end
-				return false
 			end
 		end
 	)
 
+	if is_rename then
+		-- Traffic history is stored per config name, keep it with the renamed config
+		local old_history = "/etc/openclash/history/" .. old_name_no_ext .. ".db"
+		local new_history = "/etc/openclash/history/" .. new_name_no_ext .. ".db"
+		if isfile(old_history) and not isfile(new_history) then
+			fs.rename(old_history, new_history)
+		end
+	end
+
 	uci:commit("openclash")
-	dynamic_uci:commit("openclash")
 end
 
 --- Returns the appropriate ps command string for the system's ps implementation.

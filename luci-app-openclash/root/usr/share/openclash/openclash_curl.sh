@@ -208,7 +208,7 @@ EOF
     fi
     NEW_ETAG=$(grep -i "^etag:" "$HEADER_TMP" 2>/dev/null | tail -1 | cut -d' ' -f2- | tr -d '\r\n' | sed 's/^"//;s/"$//')
 
-    if [ -n "$NEW_ETAG" ] && [ "$HTTP_CODE" = "200" ]; then
+    if [ -n "$NEW_ETAG" ] && [ "$HTTP_CODE" = "200" ] && [ "${DEFER_ETAG_SAVE:-0}" != "1" ]; then
         SAVE_ETAG_TO_CACHE "$DOWNLOAD_URL" "$NEW_ETAG" "$FILE_PATH"
     fi
 

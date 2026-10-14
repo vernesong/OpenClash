@@ -3929,6 +3929,36 @@ msgstr "Ningún grupo de proxies utiliza los nodos administrados"
 msgid "Unable to fetch managed configuration"
 msgstr "No se pudo obtener la configuración administrada; comprueba la red y tu plan"
 
+msgid "Subscription download failed (HTTP %s); existing configuration was kept"
+msgstr "La descarga de la suscripción falló (HTTP %s); se conservó la configuración anterior"
+
+msgid "Subscription download timed out; existing configuration was kept"
+msgstr "La descarga de la suscripción agotó el tiempo de espera; se conservó la configuración anterior"
+
+msgid "Subscription request failed (curl %s); existing configuration was kept"
+msgstr "La solicitud de suscripción falló (curl %s); se conservó la configuración anterior"
+
+msgid "Subscription response is empty; existing configuration was kept"
+msgstr "La respuesta de la suscripción está vacía; se conservó la configuración anterior"
+
+msgid "Subscription is not a valid Clash configuration; existing configuration was kept"
+msgstr "La suscripción no contiene una configuración de Clash válida; se conservó la configuración anterior"
+
+msgid "Subscription has no proxies or proxy providers; existing configuration was kept"
+msgstr "La suscripción no contiene proxies ni proveedores de proxies; se conservó la configuración anterior"
+
+msgid "Subscription validation could not run; check Ruby dependencies. Existing configuration was kept"
+msgstr "No se pudo validar la suscripción; comprueba las dependencias de Ruby. Se conservó la configuración anterior"
+
+msgid "Subscription failed core validation; existing configuration was kept"
+msgstr "La suscripción no superó la validación del núcleo; se conservó la configuración anterior"
+
+msgid "Unable to save subscription; existing configuration was kept"
+msgstr "No se pudo guardar la suscripción; se conservó la configuración anterior"
+
+msgid "Subscription update failed; existing configuration was kept"
+msgstr "La actualización de la suscripción falló; se conservó la configuración anterior"
+
 msgid "Unable to update the oixCloud core"
 msgstr "No se pudo actualizar el núcleo de oixCloud; comprueba la red y la arquitectura seleccionada"
 
