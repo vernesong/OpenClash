@@ -131,9 +131,9 @@
                                     <div class="card-controls">
                                         <div id="oc-setting-oversea" class="cbi-button-group oc-inline-flex">
                                             <input type="radio" id="oc_setting_oversea_1" name="oc-setting-oversea" value="1" onclick="return switch_oc_setting_oversea('1')"/>
-                                            <label for="oc_setting_oversea_1" class="cbi-button-option"><%:Mainland%></label>
+                                            <label for="oc_setting_oversea_1" class="cbi-button-option" title="<%:Mainland%>" aria-label="<%:Mainland%>"><% if luci.i18n.translate("Mainland") == "Mainland" then %><span style="text-decoration: underline; text-underline-offset: 2px;">M</span><% else %><%:Mainland%><% end %></label>
                                             <input type="radio" id="oc_setting_oversea_2" name="oc-setting-oversea" value="2" onclick="return switch_oc_setting_oversea('2')"/>
-                                            <label for="oc_setting_oversea_2" class="cbi-button-option"><%:Oversea%></label>
+                                            <label for="oc_setting_oversea_2" class="cbi-button-option" title="<%:Oversea%>" aria-label="<%:Oversea%>"><% if luci.i18n.translate("Oversea") == "Oversea" then %><span style="text-decoration: underline; text-underline-offset: 2px;">O</span><% else %><%:Oversea%><% end %></label>
                                             <input type="radio" id="oc_setting_oversea_0" name="oc-setting-oversea" value="0" onclick="return switch_oc_setting_oversea('0')"/>
                                             <label for="oc_setting_oversea_0" class="cbi-button-option"><%:Off%></label>
                                         </div>
@@ -328,8 +328,8 @@
                                 </div>
                             </div>
                             <div class="card-row stats-grid" id="stats-view-cards">
-                                <div class="sub-card stat-item"><span class="stat-label"><%:Up%></span><span id="upload_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB/s</span></span></div>
-                                <div class="sub-card stat-item"><span class="stat-label"><%:Down%></span><span id="download_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB/s</span></span></div>
+                                <div class="sub-card stat-item"><span class="stat-label"><%:Upload%></span><span id="upload_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB/s</span></span></div>
+                                <div class="sub-card stat-item"><span class="stat-label"><%:Download%></span><span id="download_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB/s</span></span></div>
                                 <div class="sub-card stat-item"><span class="stat-label"><%:Up Total%></span><span id="uploadtotal_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB</span></span></div>
                                 <div class="sub-card stat-item"><span class="stat-label"><%:Down Total%></span><span id="downloadtotal_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB</span></span></div>
                                 <div class="sub-card stat-item"><span class="stat-label"><%:Connect%></span><span id="connect_t" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span></span></div>

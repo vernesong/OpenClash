@@ -298,6 +298,41 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
     cursor: not-allowed;
 }
 
+.oc #overwrite-upload-status-text.is-error {
+    color: var(--error-color);
+}
+
+.oc #overwrite-upload-status-text.is-error::before {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 6px;
+    border-radius: 50%;
+    vertical-align: 1px;
+    background: var(--error-color);
+}
+
+.oc #overwrite-add-step-info {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.oc #overwrite-add-step-info .form-group label {
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.oc .oc-sub-stepper.overwrite-add-stepper {
+    max-width: 440px;
+    margin: 0 auto 14px;
+}
+
+.oc #overwrite-add-model .config-upload-content {
+    padding-top: 14px;
+}
+
 .oc .overwrite-side {
     flex: 0 0 auto;
     width: 240px;

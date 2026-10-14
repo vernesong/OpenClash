@@ -22,7 +22,7 @@ end
 
 function M.is_oix_mode()
 	local oix_token = fs.uci_get_config("config", "oix_token") or ""
-	return oix_token ~= ""
+	return oix_token ~= "" or os.getenv("OIX_INSTALL_ONLY") == "1"
 end
 
 function try_read(fd, maxlen)

@@ -47,6 +47,9 @@ if (myEditor_use && myEditor_def) {
 
 	myEditor_div_use.parentNode.className = 'cbi-value oc-merge-value';
 
+	// the runtime config box is display-only: drop its name so the CBI submit does not
+	// carry it as a buffered field (a >100KB runtime config trips LuCI's HTTP_MAX_CONTENT)
+	myEditor_def.removeAttribute('name');
 	myEditor_use.style.display = 'none';
 	myEditor_def.style.display = 'none';
 	ocShowLoading(myEditor_div_use, '<%:Loading...%>');

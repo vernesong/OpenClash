@@ -4,7 +4,7 @@
 
 > **AI 行为指引**: 当用户询问「覆写模块怎么写/怎么用」「给个示例」时，AI 应先确认用户需求（追加还是替换？改插件设置还是运行 YAML？），再按本文件 §17.3 示例给出带段头的可运行配置。格式与操作符细节见 `16-overwrite-module-format.md` §16.2；`[General]` 允许的 Key 见 §16.2.1 与 §17.5.2。
 
-> **小节索引**: §17.1 获取方式 · §17.2 匹配规则 · §17.3 实战示例（§17.3.1–17.3.8）· §17.4 自定义脚本 · §17.5 UCI 结构（§17.5.1 字段详解 / §17.5.2 Key 速查）
+> **小节索引**: §17.1 获取方式 · §17.2 匹配规则 · §17.3 实战示例（§17.3.1–17.3.9）· §17.4 自定义脚本 · §17.5 UCI 结构（§17.5.1 字段详解 / §17.5.2 Key 速查）
 
 ### 17.1 覆写模块的两种获取方式
 
@@ -14,6 +14,8 @@
 | **远程模块** | `http` | 从 URL 下载到 `/etc/openclash/overwrite/<名称>`，支持 cron 定时更新 |
 
 远程模块可设置 `update_days` 和 `update_hour` 实现定时自动拉取。
+
+> 模块文件内的 `#!NAME` / `#!DESC` / `#!CONFIG` / `#!CRON` / `#!ENV` 注释行声明元信息，添加模块时自动回填第二步表单（格式见 `16-overwrite-module-format.md` §16.2.5，示例见 §17.3.9）。
 
 > 插件内置四个订阅型模块（`type=http`、`update_days=off`、`config=all`、`enable=0`）：`default`（`order=1`）、`Google_Play`（`order=2`，用于解决 Google 商店下载/更新失败）、`Tailscale`（`order=3`）与 `WiFi_Calling`（`order=4`，让运营商 ePDG 的 IKE/NAT-T 流量走代理，需在模块参数中指定 UDP 代理组），都可在「覆写模块」窗口启用。
 
@@ -116,6 +118,20 @@ AGE_SECRET_KEY = AGE-SECRET-KEY-xxxxxxxxx
 DOWNLOAD_FILE = url=https://example.com/rules.yaml, path=/etc/openclash/rule_provider/custom_rules.yaml, ua=clash-verge/v2.4.5, cron=0 2 * * *
 ```
 
+#### 17.3.9 模块元信息标识（添加时自动回填表单）
+> `#!` 注释行对模块执行无影响，只在「添加新模块」时回填名称、描述、匹配配置、更新时间与环境变量（取值规则见 `16-overwrite-module-format.md` §16.2.5）。
+```ini
+#!NAME = My_Module
+#!DESC = 一句话说明这个模块做什么，会显示在模块提示里
+#!CONFIG = all
+#!CRON = 0 4 * * 3
+#!ENV = PROXY_GROUP=Smart;SUB_INFO_URL
+
+[YAML]
+rules+:
+  - DOMAIN-SUFFIX,example.com,${PROXY_GROUP}
+```
+
 ### 17.4 自定义覆写脚本（旧方式，兼容保留）
 
 **文件**: `/etc/openclash/custom/openclash_custom_overwrite.sh`
@@ -145,6 +161,7 @@ fi
 | `url` | string | *(空)* | `type=http` 时的下载地址 |
 | `config` | ListValue | *(空)* | 目标配置文件列表。`all`=应用到所有配置；或指定具体路径如 `/etc/openclash/config/xx.yaml`。**为空则永不匹配，覆写不生效** |
 | `param` | string | *(空)* | 传给覆写文件的额外键值对，格式 `KEY1=VALUE1;KEY2=VALUE2` |
+| `desc` | string | *(空)* | 模块描述，仅界面展示（模块列表/状态页模块标签的悬停提示）；由添加窗口的 `Description` 字段或文件内 `#!DESC` 回填，编辑窗口可改 |
 | `order` | int | `0` | 排序权重。**值越大越先执行**，新条目自动取 `max_order+1` |
 | `update_days` | string | *(空)* | `type=http` 时 cron 星期 (0-7, `*`=每天, `off`=不自动更新) |
 | `update_hour` | string | *(空)* | `type=http` 时 cron 小时 (0-23, `off`=不自动更新) |
@@ -169,6 +186,7 @@ fi
 - 格式 `KEY1=VALUE1;KEY2=VALUE2`，分号分隔
 - 值以环境变量 `$KEY1`、`$KEY2` 导出，可在 `[Overwrite]` 行的双引号参数内直接引用（`$KEY1`/`${KEY1}` 会展开；单引号参数内原样保留）
 - 在 `[General]` 值 / `DOWNLOAD_FILE` 字段 / `[YAML]` 行中可用 `$KEY` / `${KEY}` / `${KEY:-默认值}`（未设置或为空时取默认值，见 `16-overwrite-module-format.md` §16.2.1/§16.2.3）
+- 添加模块时可由模块文件内的 `#!ENV` 标识自动生成参数行（缺则新增、空值补默认值，见 `16-overwrite-module-format.md` §16.2.5）
 
 **`order` (执行顺序)**:
 - 多条覆写按 `sort -nr`（数值降序）排列执行
@@ -246,7 +264,6 @@ fi
 | `INTRANET_ALLOWED_WAN_NAME` | string | `intranet_allowed_wan_name` | WAN 接口名称 |
 | `CORE_TYPE` | string | `core_type` | 核心类型 |
 | `OIX_TOKEN` | string | `oix_token` | oixCloud Token |
-| `OIX_PARAMS` | string | `oix_params` | oixCloud 参数 |
 | **GEO 订阅类** | | | |
 | `GEO_AUTO_UPDATE` | int_bool | `geo_auto_update` | 自动更新 GeoIP MMDB |
 | `GEO_CUSTOM_URL` | string | `geo_custom_url` | MMDB 自定义 URL |

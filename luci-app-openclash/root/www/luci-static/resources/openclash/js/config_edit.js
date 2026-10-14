@@ -40,6 +40,8 @@ var ConfigEditor = {
         startIndex: null,
         insertIndex: null,
         touchTimer: null,
+        scrollTimer: null,
+        dragLastY: null,
         isTouchDragging: false,
         touchDraggingMoved: false,
         touchDraggingItem: null,
@@ -1068,7 +1070,7 @@ var ConfigEditor = {
             item.className = 'overwrite-item';
             item.dataset.file = file.path;
             item.dataset.index = idx;
-            item.title = name;
+            item.title = sub.desc ? name + '\n' + sub.desc : name;
 
             if (self.currentConfigFile === file.path) {
                 item.classList.add('active');
@@ -1276,38 +1278,26 @@ var ConfigEditor = {
             actions.appendChild(del);
 
             var touchPrimary = window.matchMedia && window.matchMedia('(hover: none)').matches;
-            item.draggable = registered && !touchPrimary;
 
             if (registered) {
                 var grip = document.createElement('span');
                 grip.className = 'overwrite-item-grip';
                 grip.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>';
-                if (touchPrimary) {
-                    grip.addEventListener('mousedown', function(e) {
-                        if (e.button !== 0) return;
-                        e.preventDefault();
-                        self.beginOverwriteMouseDrag(item, e);
-                    });
-                }
                 item.appendChild(grip);
+                item.addEventListener('mousedown', function(e) {
+                    if (e.button !== 0) return;
+                    if (touchPrimary && !(e.target.closest && e.target.closest('.overwrite-item-grip'))) return;
+                    if (e.target.closest && e.target.closest('.overwrite-item-actions, .oc-switch')) return;
+                    self.beginOverwriteMouseDrag(item, e);
+                });
             }
 
             item.onclick = function(e) {
                 selectFile(file.path);
             };
 
-            item.addEventListener('dragstart', function(e) {
-                self.clearOverwriteDropIndicator();
-                self.overwriteDrag.dragging = item;
-                self.overwriteDrag.startIndex = idx;
-                item.classList.add('dragging');
-                if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
-            });
             item.addEventListener('contextmenu', function(e) {
                 if (self.overwriteDrag.startTouch || self.overwriteDrag.isTouchDragging) e.preventDefault();
-            });
-            item.addEventListener('dragend', function(e) {
-                self.finishOverwriteDrag();
             });
             item.addEventListener('touchstart', function(e) {
                 if (!registered) return;
@@ -1407,7 +1397,7 @@ var ConfigEditor = {
         });
     },
 
-    updateOverwriteDropIndicator: function(insertIndex, touch) {
+    updateOverwriteDropIndicator: function(insertIndex) {
         var list = this.getOverwriteList();
         if (!list || insertIndex === null || insertIndex === undefined) return;
 
@@ -1453,16 +1443,26 @@ var ConfigEditor = {
         line.style.top = Math.round(top - 1) + 'px';
         line.style.width = Math.max(0, list.clientWidth - 8) + 'px';
 
-        if (touch) {
-            var scrollZone = 60;
-            if (touch.clientY - listRect.top < scrollZone && list.scrollTop > 0) {
-                list.scrollTop -= 12;
-            } else if (listRect.bottom - touch.clientY < scrollZone) {
-                list.scrollTop += 12;
-            }
-        }
-
         this.overwriteDrag.insertIndex = insertIndex;
+    },
+
+    // Timer driven so the list keeps scrolling while the pointer rests near an edge.
+    overwriteScrollTick: function() {
+        var list = this.getOverwriteList();
+        var y = this.overwriteDrag.dragLastY;
+        if (!list || y === null || y === undefined || !this.overwriteDrag.dragging) return;
+        var rect = list.getBoundingClientRect();
+        var zone = 48;
+        var before = list.scrollTop;
+        if (y - rect.top < zone) list.scrollTop -= 12;
+        else if (rect.bottom - y < zone) list.scrollTop += 12;
+        if (list.scrollTop !== before) this.updateOverwriteDropIndicator(this.computeOverwriteDropIndex(y));
+    },
+
+    startOverwriteAutoScroll: function() {
+        var self = this;
+        if (this.overwriteDrag.scrollTimer) return;
+        this.overwriteDrag.scrollTimer = setInterval(function() { self.overwriteScrollTick(); }, 50);
     },
 
     bindOverwriteListEvents: function() {
@@ -1471,42 +1471,11 @@ var ConfigEditor = {
         if (!list || list.dataset.dragBound === '1') return;
         list.dataset.dragBound = '1';
 
-        list.addEventListener('dragover', function(e) {
-            if (!self.overwriteDrag.dragging) return;
-            e.preventDefault();
-            if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
-            self.updateOverwriteDropIndicator(self.computeOverwriteDropIndex(e.clientY), null);
-
-            var listRect = list.getBoundingClientRect();
-            var scrollZone = 40;
-            if (e.clientY - listRect.top < scrollZone && list.scrollTop > 0) {
-                list.scrollTop -= 8;
-            } else if (listRect.bottom - e.clientY < scrollZone) {
-                list.scrollTop += 8;
-            }
-        });
-
-        list.addEventListener('dragleave', function(e) {
-            if (!list.contains(e.relatedTarget)) {
-                self.clearOverwriteDropIndicator();
-            }
-        });
-
-        list.addEventListener('drop', function(e) {
-            if (!self.overwriteDrag.dragging) return;
-            e.preventDefault();
-            var from = parseInt(self.overwriteDrag.dragging.dataset.index, 10);
-            var to = (self.overwriteDrag.insertIndex === null || self.overwriteDrag.insertIndex === undefined)
-                ? self.computeOverwriteDropIndex(e.clientY)
-                : self.overwriteDrag.insertIndex;
-            self.finishOverwriteDrag();
-            self.applyOverwriteReorder(from, to);
-        });
-
         list.addEventListener('touchmove', function(e) {
             if (!self.overwriteDrag.isTouchDragging || e.touches.length !== 1) return;
             var touch = e.touches[0];
-            self.updateOverwriteDropIndicator(self.computeOverwriteDropIndex(touch.clientY), touch);
+            self.overwriteDrag.dragLastY = touch.clientY;
+            self.updateOverwriteDropIndicator(self.computeOverwriteDropIndex(touch.clientY));
             e.preventDefault();
         }, { passive: false });
 
@@ -1543,7 +1512,9 @@ var ConfigEditor = {
                 self.overwriteDrag.isTouchDragging = true;
                 self.overwriteDrag.dragging = item;
                 self.overwriteDrag.startIndex = parseInt(item.dataset.index, 10);
+                self.overwriteDrag.dragLastY = self.overwriteDrag.startTouch.clientY;
                 item.classList.add('dragging');
+                self.startOverwriteAutoScroll();
                 if (navigator.vibrate) navigator.vibrate(50);
             }
         }, 500);
@@ -1566,9 +1537,11 @@ var ConfigEditor = {
                 self.overwriteDrag.dragging = item;
                 self.overwriteDrag.startIndex = self.overwriteDrag.mouseStartIndex;
                 item.classList.add('dragging');
+                self.startOverwriteAutoScroll();
             }
             me.preventDefault();
-            self.updateOverwriteDropIndicator(self.computeOverwriteDropIndex(me.clientY), null);
+            self.overwriteDrag.dragLastY = me.clientY;
+            self.updateOverwriteDropIndicator(self.computeOverwriteDropIndex(me.clientY));
         };
         var onUp = function() {
             document.removeEventListener('mousemove', onMove);
@@ -1590,6 +1563,11 @@ var ConfigEditor = {
             clearTimeout(this.overwriteDrag.touchTimer);
             this.overwriteDrag.touchTimer = null;
         }
+        if (this.overwriteDrag.scrollTimer) {
+            clearInterval(this.overwriteDrag.scrollTimer);
+            this.overwriteDrag.scrollTimer = null;
+        }
+        this.overwriteDrag.dragLastY = null;
         if (this.overwriteDrag.dragging && this.overwriteDrag.dragging.classList) {
             this.overwriteDrag.dragging.classList.remove('dragging');
         }
@@ -1885,6 +1863,9 @@ var ConfigEditor = {
 
         container.querySelectorAll('.overwrite-config-option input[type="checkbox"]').forEach(function(input) {
             input.addEventListener('change', function() {
+                if (container.dataset.applying !== '1') {
+                    container.dataset.touched = '1';
+                }
                 if (input.value === 'all') {
                     syncAllExclusiveState();
                 } else if (input.checked) {
@@ -1987,6 +1968,296 @@ var ConfigEditor = {
         return params.join(';');
     },
 
+    isValidOverwriteModuleName: function(name) {
+        if (!name || name.length > 128) return false;
+        if (name.charAt(0) === '.') return false;
+        if (name === OC_CUSTOM_OVERWRITE) return false;
+        return /^[A-Za-z0-9._-]+$/.test(name);
+    },
+
+    // Weekday names and a 0/00 minute (or a leading 0 second) are tolerated; ranges,
+    // lists and steps stay unsupported because the form stores a single whole hour.
+    parseOverwriteMetaCron: function(value) {
+        var lower = value.toLowerCase();
+        if (lower === 'off') return { days: 'off', hour: 'off' };
+        var dayNames = { sun: '0', mon: '1', tue: '2', wed: '3', thu: '4', fri: '5', sat: '6' };
+        var tokens = value.split(/\s+/);
+        var days;
+        var hour;
+        if (tokens.length === 6) {
+            if (tokens[0] !== '0' || !/^0{1,2}$/.test(tokens[1]) || tokens[3] !== '*' || tokens[4] !== '*') return null;
+            hour = tokens[2];
+            days = tokens[5];
+        } else if (tokens.length === 5) {
+            if (!/^0{1,2}$/.test(tokens[0]) || tokens[2] !== '*' || tokens[3] !== '*') return null;
+            hour = tokens[1];
+            days = tokens[4];
+        } else if (tokens.length === 2) {
+            days = tokens[0];
+            hour = tokens[1];
+        } else {
+            return null;
+        }
+        var dayWord = days.toLowerCase();
+        if (/^[a-z]+$/.test(dayWord) && dayNames[dayWord.slice(0, 3)] !== undefined) {
+            days = dayNames[dayWord.slice(0, 3)];
+        }
+        if (days === '7') days = '0';
+        if (days !== '*' && !/^[0-6]$/.test(days)) return null;
+        if (!/^\d{1,2}$/.test(hour) || parseInt(hour, 10) > 23) return null;
+        return { days: days, hour: String(parseInt(hour, 10)) };
+    },
+
+    // "#!KEY = value" comment lines carry module info for the add dialog only;
+    // the runtime parser skips every comment line, so they never change module behavior.
+    parseOverwriteModuleMeta: function(text) {
+        var meta = { name: '', desc: '', config: [], cron: null, env: [] };
+        if (!text) return meta;
+        var self = this;
+        var envSeen = {};
+        var lines = String(text).replace(/^\uFEFF/, '').split(/\r?\n/);
+        for (var i = 0; i < lines.length; i++) {
+            var m = lines[i].match(/^\s*#!\s*([A-Za-z][A-Za-z0-9_]*)\s*[=:]\s*(.*)$/);
+            if (!m) continue;
+            var key = m[1].toUpperCase();
+            var value = m[2].replace(/\s+$/, '');
+            if (key === 'NAME' && !meta.name) {
+                var name = value.trim();
+                if (self.isValidOverwriteModuleName(name)) meta.name = name;
+            } else if (key === 'DESC' && !meta.desc) {
+                var desc = value.trim();
+                if (desc) meta.desc = desc.slice(0, 200);
+            } else if (key === 'CONFIG' && !meta.config.length) {
+                value.split(',').forEach(function(raw) {
+                    var item = raw.trim();
+                    if (!item || meta.config.indexOf(item) !== -1) return;
+                    if (item === 'all') {
+                        meta.config = ['all'];
+                        return;
+                    }
+                    if (meta.config[0] !== 'all') meta.config.push(item);
+                });
+            } else if (key === 'CRON' && !meta.cron) {
+                var cron = self.parseOverwriteMetaCron(value.trim());
+                if (cron) meta.cron = cron;
+            } else if (key === 'ENV') {
+                value.split(';').forEach(function(raw) {
+                    var pair = raw.trim();
+                    if (!pair) return;
+                    var eq = pair.indexOf('=');
+                    var envName = (eq === -1 ? pair : pair.substring(0, eq)).trim();
+                    var envValue = eq === -1 ? '' : pair.substring(eq + 1).trim();
+                    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(envName) || envSeen[envName]) return;
+                    envSeen[envName] = true;
+                    meta.env.push({ name: envName, value: envValue });
+                });
+            }
+        }
+        return meta;
+    },
+
+    readOverwriteFileHead: function(file) {
+        return new Promise(function(resolve) {
+            try {
+                var reader = new FileReader();
+                reader.onload = function() { resolve(String(reader.result || '')); };
+                reader.onerror = function() { resolve(''); };
+                reader.readAsText(file.slice(0, 262144));
+            } catch (e) {
+                resolve('');
+            }
+        });
+    },
+
+    // Two-step wizard: source first, then the module info form.
+    setAddWizardStep: function(step) {
+        var model = document.getElementById('overwrite-add-model');
+        if (!model) return;
+        step = step === 'info' ? 'info' : 'source';
+        model.dataset.addStep = step;
+        var sourceSection = model.querySelector('#overwrite-add-step-source');
+        var infoSection = model.querySelector('#overwrite-add-step-info');
+        if (sourceSection) sourceSection.classList.toggle('oc-hidden', step !== 'source');
+        if (infoSection) infoSection.classList.toggle('oc-hidden', step !== 'info');
+        var stepper = model.querySelector('#overwrite-add-stepper');
+        if (stepper) {
+            Array.prototype.slice.call(stepper.querySelectorAll('.oc-sub-step')).forEach(function(node, idx) {
+                var nodeStep = node.dataset.step;
+                var done = nodeStep === 'source' && step === 'info';
+                node.classList.toggle('active', nodeStep === step);
+                node.classList.toggle('done', done);
+                var icon = node.querySelector('i');
+                if (icon) {
+                    icon.classList.toggle('oc-icon-check', done);
+                    icon.textContent = done ? '✓' : String(idx + 1);
+                }
+            });
+        }
+        var tabSub = model.querySelector('#overwrite-upload-mode-subscribe');
+        var updateGroup = model.querySelector('#overwrite-add-update-group');
+        if (updateGroup) {
+            updateGroup.classList.toggle('oc-hidden', step !== 'info' || !(tabSub && tabSub.classList.contains('active')));
+        }
+        var nextBtn = model.querySelector('#overwrite-upload-next');
+        var backBtn = model.querySelector('#overwrite-upload-back');
+        var cancelBtn = model.querySelector('#overwrite-upload-cancel');
+        var submitBtn = model.querySelector('#overwrite-upload-submit');
+        if (nextBtn) nextBtn.classList.toggle('oc-hidden', step !== 'source');
+        if (backBtn) backBtn.classList.toggle('oc-hidden', step !== 'info');
+        if (cancelBtn) cancelBtn.classList.toggle('oc-hidden', step !== 'source');
+        if (submitBtn) submitBtn.classList.toggle('oc-hidden', step !== 'info');
+        this.refreshAddWizard();
+    },
+
+    // Derives button and status state from the dialog DOM so the guide can reuse it.
+    refreshAddWizard: function() {
+        var model = document.getElementById('overwrite-add-model');
+        if (!model) return;
+        var busy = model.dataset.busy === '1';
+        var step = model.dataset.addStep === 'info' ? 'info' : 'source';
+        var tabSub = model.querySelector('#overwrite-upload-mode-subscribe');
+        var subscribe = !!(tabSub && tabSub.classList.contains('active'));
+        var urlInput = model.querySelector('#overwrite-subscribe-url');
+        var fileInput = model.querySelector('#overwrite-upload-file-input');
+        var ready = subscribe
+            ? !!(urlInput && ocIsHttpUrl(urlInput.value))
+            : !!(fileInput && (fileInput.files.length > 0 || fileInput.dataset.picked === '1'));
+        var nameInput = model.querySelector('#overwrite-add-filename');
+        var name = nameInput ? nameInput.value.trim() : '';
+        var valid = !!name && name !== OC_CUSTOM_OVERWRITE;
+        var nextBtn = model.querySelector('#overwrite-upload-next');
+        var submitBtn = model.querySelector('#overwrite-upload-submit');
+        if (nextBtn) nextBtn.disabled = busy || !ready;
+        if (submitBtn) submitBtn.disabled = busy || !valid;
+        var statusText = model.querySelector('#overwrite-upload-status-text');
+        if (statusText) {
+            statusText.classList.remove('is-error');
+            if (model.dataset.notice) {
+                statusText.textContent = model.dataset.notice;
+                statusText.classList.add('is-error');
+            } else if (step === 'source') {
+                statusText.textContent = '<%:Pick a file or paste a link%>';
+            } else {
+                statusText.textContent = valid ? '<%:Ready to add module%>' : '<%:Please enter a module name%>';
+            }
+        }
+    },
+
+    applyOverwriteEnvMeta: function(container, envList) {
+        if (!container || !envList || !envList.length) return 0;
+        var existing = {};
+        var rows = Array.prototype.slice.call(container.querySelectorAll('.overwrite-param-row'));
+        rows.forEach(function(row) {
+            var inputs = row.querySelectorAll('input');
+            var key = inputs[0] && inputs[0].value.trim();
+            if (key) existing[key] = inputs;
+        });
+        var added = 0;
+        envList.forEach(function(item) {
+            var inputs = existing[item.name];
+            if (inputs) {
+                if (!inputs[1].value.trim() && item.value) {
+                    inputs[1].value = item.value;
+                    added++;
+                }
+            } else {
+                ConfigEditor.addOverwriteParamRow(container, item.name, item.value || '');
+                added++;
+            }
+        });
+        return added;
+    },
+
+    setOverwriteConfigSelection: function(container, values) {
+        var allInput = container.querySelector('.overwrite-config-option input[type="checkbox"][value="all"]');
+        var wantAll = values.indexOf('all') !== -1;
+        container.dataset.applying = '1';
+        if (allInput && allInput.checked !== wantAll) {
+            allInput.checked = wantAll;
+            allInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        if (!wantAll) {
+            Array.prototype.slice.call(container.querySelectorAll('.overwrite-config-option input[type="checkbox"]')).forEach(function(input) {
+                if (input.value === 'all') return;
+                var want = values.indexOf(input.value) !== -1;
+                if (input.checked !== want) {
+                    input.checked = want;
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+        }
+        delete container.dataset.applying;
+    },
+
+    applyOverwriteConfigMeta: function(model, values) {
+        var dropdown = model.querySelector('#overwrite-add-config');
+        if (!dropdown || dropdown.dataset.touched === '1') return false;
+        var resolved = [];
+        if (values.indexOf('all') !== -1) {
+            resolved = ['all'];
+        } else {
+            var files = this.getOverwriteConfigFiles();
+            values.forEach(function(value) {
+                var match = null;
+                for (var i = 0; i < files.length; i++) {
+                    if (files[i].name === value || files[i].path === value) {
+                        match = files[i];
+                        break;
+                    }
+                }
+                var path = match ? match.path : (value.indexOf('/') !== -1 ? value : '/etc/openclash/config/' + value);
+                if (resolved.indexOf(path) === -1) resolved.push(path);
+            });
+        }
+        if (!resolved.length) return false;
+        this.setOverwriteConfigSelection(dropdown, resolved);
+        return true;
+    },
+
+    applyOverwriteCronMeta: function(model, cron) {
+        var daysSel = model.querySelector('#overwrite-add-update-days');
+        var hourSel = model.querySelector('#overwrite-add-update-hour');
+        if (!daysSel || !hourSel) return false;
+        if (daysSel.dataset.touched === '1' || hourSel.dataset.touched === '1') return false;
+        daysSel.value = cron.days;
+        hourSel.value = cron.hour;
+        return daysSel.value === cron.days && hourSel.value === cron.hour;
+    },
+
+    // Fills only empty or auto-filled fields: anything typed by hand always wins.
+    applyOverwriteMetaBackfill: function(model, meta) {
+        if (!model || !meta) return 0;
+        var applied = 0;
+
+        if (meta.name) {
+            var nameInput = model.querySelector('#overwrite-add-filename');
+            if (nameInput && (!nameInput.value.trim() || nameInput.dataset.auto === '1')) {
+                nameInput.value = meta.name;
+                nameInput.dataset.auto = '1';
+                applied++;
+            }
+        }
+
+        if (meta.desc) {
+            var descInput = model.querySelector('#overwrite-add-desc');
+            if (descInput && (!descInput.value.trim() || descInput.dataset.auto === '1')) {
+                descInput.value = meta.desc;
+                descInput.dataset.auto = '1';
+                applied++;
+            }
+        }
+
+        if (meta.config.length && this.applyOverwriteConfigMeta(model, meta.config)) applied++;
+        if (meta.cron && this.applyOverwriteCronMeta(model, meta.cron)) applied++;
+
+        if (meta.env.length) {
+            var container = model.querySelector('#overwrite-add-param-container');
+            if (container && this.applyOverwriteEnvMeta(container, meta.env)) applied++;
+        }
+
+        return applied;
+    },
+
     getOverwriteConfigSelection: function(root, dropdownId) {
         var dropdown = root.querySelector('#' + dropdownId);
         if (!dropdown) return [];
@@ -2001,58 +2272,22 @@ var ConfigEditor = {
         return selected;
     },
 
-    renderOverwriteSubForm: function(options) {
-        var name = options.name || '';
-        var sub = options.sub || {};
-        var readonly = !!options.readonly;
-        var showTabs = !!options.showTabs;
-        var activeTab = options.activeTab || 'file';
-        var fileConfigDropdown = this.renderOverwriteConfigDropdown(sub.config || '', 'overwrite-upload-config-dropdown');
+    // Form of the overwrite edit dialog; the add dialog builds its own two step markup.
+    renderOverwriteEditForm: function(sub, name) {
+        sub = sub || {};
         var subscribeConfigDropdown = this.renderOverwriteConfigDropdown(sub.config || '', 'overwrite-subscribe-config-dropdown');
+        var descValue = this.escapeOverwriteHtml(sub.desc || '');
+        var nameValue = this.escapeOverwriteHtml(name || '');
 
-        var tabsHtml = showTabs ? `
-            <div class="upload-mode-selector">
-                <div class="mode-tabs">
-                    <button type="button" class="mode-tab${activeTab==='file'?' active':''}" id="overwrite-upload-mode-file" data-mode="file">
-                        <svg width="16" height="16"><use href="#oc-icon-upload"/></svg>
-                        ${'<%:Local Module%>'}
-                    </button>
-                    <button type="button" class="mode-tab${activeTab==='subscribe'?' active':''}" id="overwrite-upload-mode-subscribe" data-mode="subscribe">
-                        <svg width="15" height="15"><use href="#oc-icon-link"/></svg>
-                        ${'<%:Subscribe Link%>'}
-                    </button>
-                </div>
-            </div>
-        ` : '';
-
-        var fileContent = `
-            <form id="overwrite-upload-form-file" style="display:${activeTab==='file'?'block':'none'};">
-                <div class="form-group oc-mb-5">
-                    <label for="overwrite-upload-config">${'<%:Config File%>'}:</label>
-                    ${fileConfigDropdown}
-                </div>
-                <div class="upload-zone" id="overwrite-upload-zone">
-                    <div class="upload-icon">
-                        <svg width="48" height="48"><use href="#oc-icon-upload-feather"/></svg>
-                    </div>
-                    <div class="upload-text">
-                        <p class="upload-primary">${'<%:Click to select file or drag and drop%>'}</p>
-                        <p class="upload-secondary">${'<%:Support txt,conf files%>'}</p>
-                    </div>
-                    <input type="file" id="overwrite-upload-file-input" accept=".txt,.conf,*" class="oc-hidden">
-                </div>
-                <div class="filename-input-container oc-mt-5">
-                    <label for="overwrite-upload-filename-input">${'<%:Module Name%>'}:<span class="guide-tag req">${'<%:Required%>'}</span></label>
-                    <input type="text" id="overwrite-upload-filename-input" placeholder="${'<%:Please enter a module name%>'}" class="form-input" value="${name}" ${readonly ? 'readonly' : ''}/>
-                </div>
-            </form>
-        `;
-
-        var subscribeContent = `
+        return `
             <form id="overwrite-upload-form-subscribe" class="subscribe-form">
                 <div class="form-group">
                     <label>${'<%:Module Name%>'}:<span class="guide-tag req">${'<%:Required%>'}</span></label>
-                    <input type="text" class="form-input" name="filename" id="overwrite-subscribe-filename" value="${name}" ${readonly ? 'readonly' : ''} placeholder="${'<%:Please enter a module name%>'}">
+                    <input type="text" class="form-input" name="filename" id="overwrite-subscribe-filename" value="${nameValue}" placeholder="${'<%:Please enter a module name%>'}">
+                </div>
+                <div class="form-group">
+                    <label for="overwrite-subscribe-desc-input">${'<%:Description%>'}:<span class="guide-tag opt">${'<%:Optional%>'}</span></label>
+                    <input type="text" class="form-input" name="desc" id="overwrite-subscribe-desc-input" value="${descValue}" placeholder="${'<%:Please enter a description%>'}">
                 </div>
                 <div class="form-group">
                     <label for="overwrite-subscribe-config">${'<%:Config File%>'}:</label>
@@ -2061,7 +2296,7 @@ var ConfigEditor = {
                 <div class="form-group">
                     <label>${'<%:Type%>'}:</label>
                     <div class="form-select-wrapper">
-                        <select class="form-select" name="type" id="overwrite-subscribe-type" ${readonly ? 'disabled' : ''}>
+                        <select class="form-select" name="type" id="overwrite-subscribe-type">
                             <option value="file" ${(sub.type === 'file' || !sub.type) ? 'selected' : ''}>file</option>
                             <option value="http" ${sub.type === 'http' ? 'selected' : ''}>http</option>
                         </select>
@@ -2095,7 +2330,7 @@ var ConfigEditor = {
                         </div>
                     </div>
                 </div>
-                <div class="form-group" id="overwrite-subscribe-param-group" style="display:'block';">
+                <div class="form-group" id="overwrite-subscribe-param-group">
                     <label>${'<%:Environment variable%>'}:</label>
                     <div class="form-help" style="margin-bottom: unset;">${'<%:Set environment variables for the overwrite script%>'}</div>
                     <div id="overwrite-subscribe-param-container" class="oc-hidden"></div>
@@ -2108,16 +2343,6 @@ var ConfigEditor = {
                     <div class="progress-text" id="overwrite-progress-text">0%</div>
                 </div>
             </form>
-        `;
-
-        return `
-            ${tabsHtml}
-            <div class="config-upload-content" id="overwrite-upload-content-file" style="${activeTab==='file'?'':'display:none;'}">
-                ${fileContent}
-            </div>
-            <div class="config-upload-content" id="overwrite-upload-content-subscribe" style="${activeTab==='subscribe'?'':'display:none;'}">
-                ${subscribeContent}
-            </div>
         `;
     },
 
@@ -2138,6 +2363,7 @@ var ConfigEditor = {
 
         var model = document.createElement('div');
         model.className = 'config-upload-model';
+        overlay.dataset.addStep = 'source';
 
         model.innerHTML = `
             <div class="config-upload-header">
@@ -2151,15 +2377,102 @@ var ConfigEditor = {
                 </div>
             </div>
             <div class="config-upload-content">
-                ${self.renderOverwriteSubForm({name:'', sub:{}, readonly:false, showTabs:true, activeTab:'file'})}
+                <div class="oc-sub-stepper overwrite-add-stepper" id="overwrite-add-stepper">
+                    <div class="oc-sub-step active" data-step="source"><i>1</i><span>${'<%:Select Source%>'}</span></div>
+                    <div class="oc-sub-step" data-step="info"><i>2</i><span>${'<%:Fill Module Info%>'}</span></div>
+                </div>
+                <div class="overwrite-add-section" id="overwrite-add-step-source">
+                    <div class="upload-mode-selector">
+                        <div class="mode-tabs">
+                            <button type="button" class="mode-tab active" id="overwrite-upload-mode-file" data-mode="file">
+                                <svg width="16" height="16"><use href="#oc-icon-upload"/></svg>
+                                ${'<%:Local Module%>'}
+                            </button>
+                            <button type="button" class="mode-tab" id="overwrite-upload-mode-subscribe" data-mode="subscribe">
+                                <svg width="15" height="15"><use href="#oc-icon-link"/></svg>
+                                ${'<%:Subscribe Link%>'}
+                            </button>
+                        </div>
+                    </div>
+                    <div id="overwrite-source-file">
+                        <div class="upload-zone" id="overwrite-upload-zone">
+                            <div class="upload-icon">
+                                <svg width="48" height="48"><use href="#oc-icon-upload-feather"/></svg>
+                            </div>
+                            <div class="upload-text">
+                                <p class="upload-primary">${'<%:Click to select file or drag and drop%>'}</p>
+                                <p class="upload-secondary">${'<%:Support txt,conf files%>'}</p>
+                            </div>
+                            <input type="file" id="overwrite-upload-file-input" accept=".txt,.conf,*" class="oc-hidden">
+                        </div>
+                    </div>
+                    <div id="overwrite-source-subscribe" class="oc-hidden">
+                        <div class="form-group">
+                            <label for="overwrite-subscribe-url">${'<%:Subscription URL%>'}:<span class="guide-tag req">${'<%:Required%>'}</span></label>
+                            <input type="text" class="form-input" id="overwrite-subscribe-url">
+                        </div>
+                    </div>
+                </div>
+                <div class="overwrite-add-section oc-hidden" id="overwrite-add-step-info">
+                    <div class="form-group">
+                        <label for="overwrite-add-filename">${'<%:Module Name%>'}:<span class="guide-tag req">${'<%:Required%>'}</span></label>
+                        <input type="text" id="overwrite-add-filename" placeholder="${'<%:Please enter a module name%>'}" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="overwrite-add-desc">${'<%:Description%>'}:<span class="guide-tag opt">${'<%:Optional%>'}</span></label>
+                        <input type="text" id="overwrite-add-desc" placeholder="${'<%:Please enter a description%>'}" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>${'<%:Config File%>'}:</label>
+                        ${self.renderOverwriteConfigDropdown('', 'overwrite-add-config')}
+                    </div>
+                    <div class="form-group oc-hidden" id="overwrite-add-update-group">
+                        <label>${'<%:Update Time%>'}:</label>
+                        <div class="update-row">
+                            <div class="form-select-wrapper">
+                                <select class="form-select" id="overwrite-add-update-days">
+                                    <option value="off" selected>${'<%:OFF%>'}</option>
+                                    <option value="*">${'<%:Every Day%>'}</option>
+                                    <option value="1">${'<%:Every Monday%>'}</option>
+                                    <option value="2">${'<%:Every Tuesday%>'}</option>
+                                    <option value="3">${'<%:Every Wednesday%>'}</option>
+                                    <option value="4">${'<%:Every Thursday%>'}</option>
+                                    <option value="5">${'<%:Every Friday%>'}</option>
+                                    <option value="6">${'<%:Every Saturday%>'}</option>
+                                    <option value="0">${'<%:Every Sunday%>'}</option>
+                                </select>
+                            </div>
+                            <div class="form-select-wrapper">
+                                <select class="form-select" id="overwrite-add-update-hour">
+                                    <option value="off" selected>${'<%:OFF%>'}</option>
+                                    ${[...Array(24).keys()].map(h=>`<option value="${h}">${h}:00</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>${'<%:Environment variable%>'}:</label>
+                        <div class="form-help" style="margin-bottom: unset;">${'<%:Set environment variables for the overwrite script%>'}</div>
+                        <div id="overwrite-add-param-container" class="oc-hidden"></div>
+                        <button type="button" id="overwrite-add-param-add" class="add-row-btn"><svg><use href="#oc-icon-add"/></svg><span>${'<%:Add Param%>'}</span></button>
+                    </div>
+                </div>
+                <div class="upload-progress oc-hidden" id="overwrite-upload-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="overwrite-progress-fill" style="width:0%;"></div>
+                    </div>
+                    <div class="progress-text" id="overwrite-progress-text">0%</div>
+                </div>
             </div>
             <div class="config-upload-footer">
                 <div class="config-upload-status">
-                    <span id="overwrite-upload-status-text">${'<%:Ready to add module%>'}</span>
+                    <span id="overwrite-upload-status-text">${'<%:Pick a file or paste a link%>'}</span>
                 </div>
                 <div class="config-upload-buttons">
                     <button type="button" class="btn cancel-btn" id="overwrite-upload-cancel">${'<%:Cancel%>'}</button>
-                    <button type="button" class="btn upload-btn" id="overwrite-upload-submit">${'<%:Add%>'}</button>
+                    <button type="button" class="btn cancel-btn oc-hidden" id="overwrite-upload-back">${'<%:Back%>'}</button>
+                    <button type="button" class="btn upload-btn" id="overwrite-upload-next" disabled>${'<%:Next Step%>'}</button>
+                    <button type="button" class="btn upload-btn oc-hidden" id="overwrite-upload-submit" disabled>${'<%:Add%>'}</button>
                 </div>
             </div>
         `;
@@ -2168,268 +2481,322 @@ var ConfigEditor = {
         ocDiv.appendChild(overlay);
         document.body.appendChild(ocDiv);
 
-        this.bindOverwriteConfigDropdown(model.querySelector('#overwrite-upload-config-dropdown'));
-        this.bindOverwriteConfigDropdown(model.querySelector('#overwrite-subscribe-config-dropdown'));
+        var bar = ocCreateProgressBar(
+            model.querySelector('#overwrite-upload-progress'),
+            model.querySelector('#overwrite-progress-fill'),
+            model.querySelector('#overwrite-progress-text')
+        );
+
+        this.bindOverwriteConfigDropdown(model.querySelector('#overwrite-add-config'));
 
         var tabFile = model.querySelector('#overwrite-upload-mode-file');
         var tabSub = model.querySelector('#overwrite-upload-mode-subscribe');
-        var contentFile = model.querySelector('#overwrite-upload-content-file');
-        var contentSub = model.querySelector('#overwrite-upload-content-subscribe');
-        tabFile.onclick = function() {
-            tabFile.classList.add('active');
-            tabSub.classList.remove('active');
-            contentFile.style.display = 'block';
-            contentSub.style.display = 'none';
-        };
-        tabSub.onclick = function() {
-            tabFile.classList.remove('active');
-            tabSub.classList.add('active');
-            contentFile.style.display = 'none';
-            contentSub.style.display = 'block';
-        };
-
-        var typeSelect = model.querySelector('#overwrite-subscribe-type');
-        var urlGroup = model.querySelector('#overwrite-subscribe-url-group');
-        var updateGroup = model.querySelector('#overwrite-subscribe-update-group');
-        if (typeSelect) {
-            if (typeSelect.value === 'http') {
-                urlGroup.style.display = 'block';
-                updateGroup.style.display = 'block';
-            } else {
-                urlGroup.style.display = 'none';
-                updateGroup.style.display = 'none';
-            }
-            typeSelect.addEventListener('change', function() {
-                if (typeSelect.value === 'http') {
-                    urlGroup.style.display = 'block';
-                    updateGroup.style.display = 'block';
-                } else {
-                    urlGroup.style.display = 'none';
-                    updateGroup.style.display = 'none';
-                }
-            });
-        }
-
-        var urlInput = model.querySelector('#overwrite-subscribe-url');
-        var filenameInputSub = model.querySelector('#overwrite-subscribe-filename');
-        if (urlInput && filenameInputSub) {
-            urlInput.addEventListener('input', function() {
-                if (!filenameInputSub.value.trim() && urlInput.value.trim()) {
-                    try {
-                        var url = urlInput.value.trim();
-                        var name = url.split('?')[0].split('/').pop();
-                        if (name && /^[\w\.\-\_]+$/.test(name)) {
-                            filenameInputSub.value = name;
-                        }
-                    } catch (e) {}
-                }
-            });
-        }
-
-        model.querySelector('#overwrite-add-close').onclick = function() {
-            document.body.removeChild(ocDiv);
-        };
-
-        model.querySelector('#overwrite-upload-cancel').onclick = function() {
-            document.body.removeChild(ocDiv);
-        };
-
+        var sourceFile = model.querySelector('#overwrite-source-file');
+        var sourceSub = model.querySelector('#overwrite-source-subscribe');
         var uploadZone = model.querySelector('#overwrite-upload-zone');
         var fileInput = model.querySelector('#overwrite-upload-file-input');
-        var filenameInput = model.querySelector('#overwrite-upload-filename-input');
+        var urlInput = model.querySelector('#overwrite-subscribe-url');
+        var nameInput = model.querySelector('#overwrite-add-filename');
+        var descInput = model.querySelector('#overwrite-add-desc');
+        var paramContainer = model.querySelector('#overwrite-add-param-container');
         var statusText = model.querySelector('#overwrite-upload-status-text');
-        var selectedFile = null;
-
-        uploadZone.onclick = function() {
-            fileInput.click();
-        };
-        fileInput.onchange = function(e) {
-            if (e.target.files.length > 0) {
-                selectedFile = e.target.files[0];
-                uploadZone.classList.add('has-file');
-                uploadZone.querySelector('.upload-primary').textContent = '<%:File selected:%> ' + selectedFile.name;
-                uploadZone.querySelector('.upload-secondary').textContent = '<%:Size:%> ' + (selectedFile.size/1024/1024).toFixed(2) + ' MB';
-                filenameInput.value = selectedFile.name;
-            }
-        };
-
+        var nextBtn = model.querySelector('#overwrite-upload-next');
+        var backBtn = model.querySelector('#overwrite-upload-back');
         var submitBtn = model.querySelector('#overwrite-upload-submit');
-        function validateAddOverwriteForm() {
-            if (tabFile.classList.contains('active')) {
-                const filename = filenameInput.value.trim();
-                submitBtn.disabled = !(selectedFile && filename && filename !== 'openclash_custom_overwrite.sh');
-            } else {
-                const filename = model.querySelector('#overwrite-subscribe-filename').value.trim();
-                const type = model.querySelector('#overwrite-subscribe-type').value;
-                const url = model.querySelector('#overwrite-subscribe-url').value.trim();
-                let valid = !!filename && filename !== 'openclash_custom_overwrite.sh';
-                if (type === 'http') {
-                    valid = valid && !!url && /^https?:\/\/[^ \n|]+$/.test(url);
-                }
-                submitBtn.disabled = !valid;
+        var cancelBtn = model.querySelector('#overwrite-upload-cancel');
+
+        function currentSource() {
+            return tabSub.classList.contains('active') ? 'subscribe' : 'file';
+        }
+
+        tabFile.onclick = function() {
+            cancelPreview();
+            tabFile.classList.add('active');
+            tabSub.classList.remove('active');
+            sourceFile.classList.remove('oc-hidden');
+            sourceSub.classList.add('oc-hidden');
+            delete overlay.dataset.notice;
+            self.setAddWizardStep(overlay.dataset.addStep || 'source');
+        };
+        tabSub.onclick = function() {
+            cancelPreview();
+            tabFile.classList.remove('active');
+            tabSub.classList.add('active');
+            sourceFile.classList.add('oc-hidden');
+            sourceSub.classList.remove('oc-hidden');
+            delete overlay.dataset.notice;
+            self.setAddWizardStep(overlay.dataset.addStep || 'source');
+        };
+
+        // a manual change to the update time keeps the file's #!CRON from overriding it
+        ['#overwrite-add-update-days', '#overwrite-add-update-hour'].forEach(function(sel) {
+            var select = model.querySelector(sel);
+            if (select) {
+                select.addEventListener('change', function() {
+                    select.dataset.touched = '1';
+                    self.refreshAddWizard();
+                });
+            }
+        });
+
+        var previewSeq = 0;
+        var failedUrl = '';
+
+        // An in-flight download is dropped when the user leaves the source tab so its
+        // backfill never lands on the other source.
+        function cancelPreview() {
+            previewSeq++;
+        }
+
+        function goToAddInfo() {
+            var was = overlay.dataset.addStep;
+            self.setAddWizardStep('info');
+            if (was !== 'info') {
+                try { nameInput.focus(); } catch (e) {}
             }
         }
-        validateAddOverwriteForm();
 
-        filenameInput.addEventListener('input', validateAddOverwriteForm);
-
-        if (model.querySelector('#overwrite-subscribe-filename')) {
-            model.querySelector('#overwrite-subscribe-filename').addEventListener('input', validateAddOverwriteForm);
-        }
-        var paramContainer = model.querySelector('#overwrite-subscribe-param-container');
-        if (paramContainer) {
-            self.buildOverwriteParamRows(paramContainer, '');
-            model.querySelector('#overwrite-subscribe-param-add').addEventListener('click', function() {
-                self.addOverwriteParamRow(paramContainer, '', '');
+        // The link is read on demand: Next starts the download instead of typing.
+        function startSubscribeDownload() {
+            var url = urlInput.value.trim();
+            if (!url || !ocIsHttpUrl(url) || overlay.dataset.busy === '1') return;
+            if (!document.body.contains(ocDiv)) return;
+            var seq = ++previewSeq;
+            failedUrl = '';
+            delete overlay.dataset.notice;
+            overlay.dataset.busy = '1';
+            bar.start('<%:Downloading...%>');
+            var formData = new FormData();
+            formData.append('url', url);
+            ocPostNdjson('/cgi-bin/luci/admin/services/openclash/overwrite_module_preview', formData, function(received, total) {
+                if (seq !== previewSeq) return;
+                if (total > 0) {
+                    bar.set('<%:Downloading...%>', received * 100 / total);
+                } else {
+                    bar.bytes('<%:Downloading...%>', received);
+                }
+            }).then(function(data) {
+                overlay.dataset.busy = '0';
+                if (seq !== previewSeq || !document.body.contains(ocDiv) || urlInput.value.trim() !== url) {
+                    bar.hide();
+                    self.refreshAddWizard();
+                    return;
+                }
+                if (!data || data.status !== 'success') {
+                    failedUrl = url;
+                    overlay.dataset.notice = '<%:Download failed%>';
+                    bar.fail('<%:Download failed%>');
+                    setTimeout(function() { bar.hide(); }, 1500);
+                    self.refreshAddWizard();
+                    return;
+                }
+                bar.done('<%:Download completed%>');
+                setTimeout(function() { bar.hide(); }, 900);
+                self.applyOverwriteMetaBackfill(model, self.parseOverwriteModuleMeta(data.content || ''));
+                goToAddInfo();
             });
         }
 
-        if (model.querySelector('#overwrite-subscribe-type')) {
-            model.querySelector('#overwrite-subscribe-type').addEventListener('change', validateAddOverwriteForm);
-        }
-        if (model.querySelector('#overwrite-subscribe-url')) {
-            model.querySelector('#overwrite-subscribe-url').addEventListener('input', validateAddOverwriteForm);
-        }
-        tabFile.addEventListener('click', function() {
-            setTimeout(validateAddOverwriteForm, 0);
+        urlInput.addEventListener('input', function() {
+            var url = urlInput.value.trim();
+            if ((!nameInput.value.trim() || nameInput.dataset.auto === '1') && ocIsCompleteHttpUrl(url)) {
+                try {
+                    var candidate = url.split('?')[0].split('/').pop();
+                    if (self.isValidOverwriteModuleName(candidate)) {
+                        nameInput.value = candidate;
+                        nameInput.dataset.auto = '1';
+                    }
+                } catch (e) {}
+            }
+            delete overlay.dataset.notice;
+            failedUrl = '';
+            self.refreshAddWizard();
         });
-        tabSub.addEventListener('click', function() {
-            setTimeout(validateAddOverwriteForm, 0);
+        urlInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !nextBtn.disabled) {
+                e.preventDefault();
+                nextBtn.click();
+            }
         });
 
+        model.querySelector('#overwrite-add-close').onclick = function() {
+            bar.hide();
+            document.body.removeChild(ocDiv);
+        };
+        cancelBtn.onclick = function() {
+            bar.hide();
+            document.body.removeChild(ocDiv);
+        };
+        backBtn.onclick = function() {
+            self.setAddWizardStep('source');
+        };
+        nextBtn.onclick = function() {
+            if (nextBtn.disabled) return;
+            if (currentSource() !== 'subscribe') {
+                goToAddInfo();
+                return;
+            }
+            // the second click after a failed read continues without the file info
+            if (failedUrl && urlInput.value.trim() === failedUrl) {
+                delete overlay.dataset.notice;
+                goToAddInfo();
+                return;
+            }
+            startSubscribeDownload();
+        };
 
-        fileInput.addEventListener('change', validateAddOverwriteForm);
+        var selectedFile = null;
+        function handleAddFile(file) {
+            if (!file) return;
+            selectedFile = file;
+            fileInput.dataset.picked = '1';
+            ocSetUploadZoneFile(uploadZone, file);
+            if (!nameInput.value.trim() || nameInput.dataset.auto === '1') {
+                nameInput.value = file.name;
+                nameInput.dataset.auto = '1';
+            }
+            delete overlay.dataset.notice;
+            goToAddInfo();
+            self.readOverwriteFileHead(file).then(function(text) {
+                self.applyOverwriteMetaBackfill(model, self.parseOverwriteModuleMeta(text));
+                self.refreshAddWizard();
+            });
+        }
+        ocBindUploadZone(uploadZone, fileInput, {
+            canPick: function() { return overlay.dataset.busy !== '1'; },
+            onSelect: handleAddFile
+        });
+
+        [nameInput, descInput].forEach(function(input) {
+            input.addEventListener('input', function() {
+                input.dataset.auto = '';
+                delete overlay.dataset.notice;
+                self.refreshAddWizard();
+            });
+        });
+
+        self.buildOverwriteParamRows(paramContainer, '');
+        model.querySelector('#overwrite-add-param-add').addEventListener('click', function() {
+            self.addOverwriteParamRow(paramContainer, '', '');
+        });
+
+        self.setAddWizardStep('source');
 
         model.querySelector('#overwrite-upload-submit').onclick = function() {
-            if (tabFile.classList.contains('active')) {
-                var filename = filenameInput.value.trim();
-                if (!filename) {
-                    ocAlert('<%:Please enter a module name%>');
-                    return;
-                }
-                if (filename === 'openclash_custom_overwrite.sh') {
-                    ocAlert('<%:openclash_custom_overwrite.sh already exists and cannot be added again%>');
-                    return;
-                }
-                if (selectedFile) {
-                    submitBtn.disabled = true;
-                    var selectedConfigPaths = self.getOverwriteConfigSelection(model, 'overwrite-upload-config-dropdown');
-                    if (!selectedConfigPaths.length) {
-                        selectedConfigPaths = ['all'];
-                    }
-                    var formData = new FormData();
-                    formData.append('config_file', selectedFile, filename);
-                    formData.append('order', self.getNextOverwriteOrder());
-                    formData.append('enable', '0');
-                    formData.append('config', selectedConfigPaths.join('\n'));
-
-                    fetch('/cgi-bin/luci/admin/services/openclash/upload_overwrite', {
-                        method: 'POST',
-                        body: formData
-                    }).then(r=>r.json()).then(function(data){
-                        if (data.status === 'success') {
-                            statusText.textContent = '<%:Upload successful%>';
-                            document.body.removeChild(ocDiv);
-                            self.loadOverwriteFiles();
-                            setTimeout(function() {
-                                self.currentConfigFile = '/etc/openclash/overwrite/' + filename;
-                                self.isOverwrite = true;
-                                self.showOverwrite(self.currentConfigFile);
-                            }, 300);
-                        } else {
-                            statusText.textContent = '<%:Upload failed:%> ' + (data.message || '');
-                            validateAddOverwriteForm();
-                        }
-                    });
-                } else {
-                    ocAlert('<%:No Specify Upload File%>');
-                    return;
-                }
-            } else {
-                var form = model.querySelector('#overwrite-upload-form-subscribe');
-                var filename = form.querySelector('#overwrite-subscribe-filename').value.trim();
-                var url = form.querySelector('#overwrite-subscribe-url').value.trim();
-                var update_days = form.querySelector('#overwrite-subscribe-update-days').value;
-                var update_hour = form.querySelector('#overwrite-subscribe-update-hour').value;
-                var type = form.querySelector('#overwrite-subscribe-type').value;
-                var param = self.collectOverwriteParams(form.querySelector('#overwrite-subscribe-param-container'));
-                var selectedConfigPaths = self.getOverwriteConfigSelection(model, 'overwrite-subscribe-config-dropdown');
-                if (!selectedConfigPaths.length) {
-                    selectedConfigPaths = ['all'];
-                }
-                if (!filename) {
-                    ocAlert('<%:Please enter a module name%>');
-                    return;
-                }
-                if (filename === 'openclash_custom_overwrite.sh') {
-                    ocAlert('<%:openclash_custom_overwrite.sh already exists and cannot be added again%>');
-                    return;
-                }
-                if (type === 'http' && !url) {
+            if (submitBtn.disabled) return;
+            var filename = nameInput.value.trim();
+            if (!filename) {
+                ocAlert('<%:Please enter a module name%>');
+                return;
+            }
+            if (filename === OC_CUSTOM_OVERWRITE) {
+                ocAlert('<%:openclash_custom_overwrite.sh already exists and cannot be added again%>');
+                return;
+            }
+            var source = currentSource();
+            var url = urlInput.value.trim();
+            if (source === 'subscribe') {
+                if (!url) {
                     ocAlert('<%:Please enter subscription URL%>');
                     return;
                 }
-                if (type === 'http' && !/^https?:\/\/[^ \n|]+$/.test(url)) {
+                if (!ocIsHttpUrl(url)) {
                     ocAlert('<%:Invalid subscription URL format, only single HTTP/HTTPS link is supported%>');
                     return;
                 }
+            } else if (!selectedFile) {
+                ocAlert('<%:No Specify Upload File%>');
+                return;
+            }
+            var selectedConfigPaths = self.getOverwriteConfigSelection(model, 'overwrite-add-config');
+            if (!selectedConfigPaths.length) {
+                selectedConfigPaths = ['all'];
+            }
+            var desc = descInput.value.trim();
+            var param = self.collectOverwriteParams(paramContainer);
+
+            overlay.dataset.busy = '1';
+            nextBtn.disabled = true;
+            backBtn.disabled = true;
+            cancelBtn.disabled = true;
+            submitBtn.disabled = true;
+
+            var fail = function(message) {
+                overlay.dataset.busy = '0';
+                overlay.dataset.notice = message;
+                bar.fail('<%:Process failed%>');
+                setTimeout(function() { bar.hide(); }, 1500);
+                backBtn.disabled = false;
+                cancelBtn.disabled = false;
+                self.refreshAddWizard();
+            };
+
+            var openAddedModule = function() {
+                document.body.removeChild(ocDiv);
+                self.loadOverwriteFiles();
+                setTimeout(function() {
+                    self.currentConfigFile = '/etc/openclash/overwrite/' + filename;
+                    self.isOverwrite = true;
+                    self.showOverwrite(self.currentConfigFile);
+                }, 300);
+            };
+
+            if (source === 'file') {
                 var formData = new FormData();
-                formData.append('filename', filename);
-                formData.append('type', type);
-                formData.append('param', param);
+                formData.append('config_file', selectedFile, filename);
                 formData.append('order', self.getNextOverwriteOrder());
                 formData.append('enable', '0');
                 formData.append('config', selectedConfigPaths.join('\n'));
-                if (type === 'http') {
-                    formData.append('url', url);
-                    formData.append('update_days', update_days);
-                    formData.append('update_hour', update_hour);
-                }
-                var progressContainer = form.querySelector('#overwrite-upload-progress');
-                var progressFill = form.querySelector('#overwrite-progress-fill');
-                var progressText = form.querySelector('#overwrite-progress-text');
-                submitBtn.disabled = true;
-                if (type === 'http') {
-                    statusText.textContent = '<%:Downloading subscription content...%>';
-                    progressContainer.classList.remove('oc-hidden');
-                    var progress = 0;
-                    var interval = setInterval(function() {
-                        progress = Math.min(progress + Math.random() * 20, 90);
-                        progressFill.style.width = progress + '%';
-                        progressText.textContent = '<%:Downloading...%> ' + Math.floor(progress) + '%';
-                    }, 200);
-                }
-                fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
+                formData.append('param', param);
+                formData.append('desc', desc);
+                bar.start('<%:Uploading...%>');
+                fetch('/cgi-bin/luci/admin/services/openclash/upload_overwrite', {
                     method: 'POST',
                     body: formData
-                }).then(r=>r.json()).then(function(data){
-                    if (type === 'http') {
-                        clearInterval(interval);
-                        if (data.status !== 'success') {
-                            progressFill.style.width = '0%';
-                            progressText.textContent = '<%:Download failed%> 0%';
-                        } else {
-                            progressFill.style.width = '100%';
-                            progressText.textContent = '<%:Download completed%> 100%';
-                        }
-                    }
+                }).then(function(r) { return r.json(); }).then(function(data) {
                     if (data.status === 'success') {
-                        statusText.textContent = '<%:Subscription added successfully%>';
+                        bar.done('<%:Upload completed%>');
+                        statusText.textContent = '<%:Upload successful%>';
+                        openAddedModule();
                     } else {
-                        statusText.textContent = '<%:Failed to save subscription info:%> ' + (data.message || '');
-                        validateAddOverwriteForm();
+                        fail('<%:Upload failed:%> ' + (data.message || ''));
                     }
-                    setTimeout(function() {
-                        document.body.removeChild(ocDiv);
-                        self.loadOverwriteFiles();
-                        setTimeout(function() {
-                            self.currentConfigFile = '/etc/openclash/overwrite/' + filename;
-                            self.isOverwrite = true;
-                            self.showOverwrite(self.currentConfigFile);
-                        }, 300);
-                    }, 800);
+                }).catch(function() {
+                    fail('<%:Upload failed:%>');
                 });
+                return;
             }
+
+            var formData = new FormData();
+            formData.append('filename', filename);
+            formData.append('type', 'http');
+            formData.append('stream', '1');
+            formData.append('param', param);
+            formData.append('desc', desc);
+            formData.append('order', self.getNextOverwriteOrder());
+            formData.append('enable', '0');
+            formData.append('config', selectedConfigPaths.join('\n'));
+            formData.append('url', url);
+            formData.append('update_days', model.querySelector('#overwrite-add-update-days').value);
+            formData.append('update_hour', model.querySelector('#overwrite-add-update-hour').value);
+            statusText.textContent = '<%:Downloading subscription content...%>';
+            bar.start('<%:Downloading...%>');
+            ocPostNdjson('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', formData, function(received, total) {
+                if (total > 0) {
+                    bar.set('<%:Downloading...%>', received * 100 / total);
+                } else {
+                    bar.bytes('<%:Downloading...%>', received);
+                }
+            }).then(function(data) {
+                if (!data || data.status !== 'success') {
+                    bar.fail('<%:Download failed%>');
+                    fail('<%:Failed to save subscription info:%> ' + ((data && data.message) || ''));
+                    return;
+                }
+                bar.done('<%:Download completed%>');
+                statusText.textContent = '<%:Subscription added successfully%>';
+                setTimeout(openAddedModule, 800);
+            });
         };
     },
 
@@ -2463,7 +2830,7 @@ var ConfigEditor = {
                 </div>
             </div>
             <div class="config-upload-content">
-                ${self.renderOverwriteSubForm({name:name, sub:sub, readonly:false, showTabs:false, activeTab:'subscribe'})}
+                ${self.renderOverwriteEditForm(sub, name)}
             </div>
             <div class="config-upload-footer">
                 <div class="config-upload-status">
@@ -2536,7 +2903,7 @@ var ConfigEditor = {
             const url = form.querySelector('#overwrite-subscribe-url').value.trim();
             let valid = !!filename && filename !== 'openclash_custom_overwrite.sh';
             if (type === 'http') {
-                valid = valid && !!url && /^https?:\/\/[^ \n|]+$/.test(url);
+                valid = valid && ocIsHttpUrl(url);
             }
             submitBtn.disabled = !valid;
         }
@@ -2576,7 +2943,7 @@ var ConfigEditor = {
                     ocAlert('<%:Please enter subscription URL%>');
                     return;
                 }
-                if (!/^https?:\/\/[^ \n|]+$/.test(url)) {
+                if (!ocIsHttpUrl(url)) {
                     ocAlert('<%:Invalid subscription URL format, only single HTTP/HTTPS link is supported%>');
                     return;
                 }
@@ -2604,31 +2971,23 @@ var ConfigEditor = {
             var currentOrder = parseInt(sub.order, 10);
             formData.append('order', isNaN(currentOrder) ? self.getNextOverwriteOrder() : currentOrder);
 
-            var progressContainer = form.querySelector('#overwrite-upload-progress');
-            var progressFill = form.querySelector('#overwrite-progress-fill');
-            var progressText = form.querySelector('#overwrite-progress-text');
+            var editBar = ocCreateProgressBar(
+                form.querySelector('#overwrite-upload-progress'),
+                form.querySelector('#overwrite-progress-fill'),
+                form.querySelector('#overwrite-progress-text')
+            );
             var statusText = model.querySelector('#overwrite-edit-status-text');
             if (type === 'http') {
                 statusText.textContent = '<%:Downloading subscription content...%>';
-                progressContainer.classList.remove('oc-hidden');
-                var progress = 0;
-                var interval = setInterval(function() {
-                    progress = Math.min(progress + Math.random() * 20, 90);
-                    progressFill.style.width = progress + '%';
-                    progressText.textContent = '<%:Downloading...%> ' + Math.floor(progress) + '%';
-                }, 200);
+                editBar.start('<%:Downloading...%>');
             }
             fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
                 method: 'POST',
                 body: formData
             }).then(r=>r.json()).then(function(data){
-                if (type === 'http') {
-                    clearInterval(interval);
-                    progressFill.style.width = '100%';
-                    progressText.textContent = '<%:Download completed%> 100%';
-                }
                 if (data.status === 'success') {
                     if (type === 'http') {
+                        editBar.done('<%:Download completed%>');
                         statusText.textContent = '<%:Subscription saved successfully%>';
                     } else {
                         statusText.textContent = '<%:Saved successfully%>';
@@ -2651,9 +3010,20 @@ var ConfigEditor = {
 
                     }, 800);
                 } else {
+                    if (type === 'http') {
+                        editBar.fail('<%:Download failed%>');
+                        setTimeout(function() { editBar.hide(); }, 1500);
+                    }
                     statusText.textContent = '<%:Failed to save subscription info:%> ' + (data.message || '');
                     validateEditOverwriteForm();
                 }
+            }).catch(function() {
+                if (type === 'http') {
+                    editBar.fail('<%:Download failed%>');
+                    setTimeout(function() { editBar.hide(); }, 1500);
+                }
+                statusText.textContent = '<%:Failed to save subscription info:%>';
+                validateEditOverwriteForm();
             });
         };
     },
