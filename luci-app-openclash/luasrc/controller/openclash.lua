@@ -7053,17 +7053,23 @@ local function fetch_oix_sub(token)
 	if not fs.rename(temporary, config_file) then
 		return fail("Unable to save subscription; existing configuration was kept")
 	end
+	fs.chmod(config_file, "rw-r--r--")
 	uci:set("openclash", "config", "oix_token", token)
 	local current_config = uci:get("openclash", "config", "config_path")
 	if not current_config or current_config == "" or current_config == legacy_file then
 		uci:set("openclash", "config", "config_path", config_file)
 	end
 	uci:commit("openclash")
+	local managed_sids = {}
+	uci:foreach("openclash", "config_subscribe", function(s)
+		if s.name == "oixCloud - smart" then managed_sids[s['.name']] = true end
+	end)
 	fs.config_refs("oixCloud - smart.yaml", "oixCloud.yaml")
 	uci:load("openclash")
 	local sid, duplicates = nil, {}
 	uci:foreach("openclash", "config_subscribe", function(s)
-		if s.name == "oixCloud" then
+		-- adopt only sections renamed from the legacy name or still pointing at the managed URL
+		if s.name == "oixCloud" and (managed_sids[s['.name']] or s.address == nil or s.address == "" or s.address == sub_url) then
 			if not sid then sid = s['.name'] else duplicates[#duplicates + 1] = s['.name'] end
 		end
 	end)

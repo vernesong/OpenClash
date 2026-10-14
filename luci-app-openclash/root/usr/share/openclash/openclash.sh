@@ -28,6 +28,7 @@ FW4=$(command -v fw4)
 CLASH="/etc/openclash/clash"
 CLASH_CONFIG="/etc/openclash"
 restart=0
+only_download=0
 norestart=0
 exit_code=0
 [ "$2" = "norestart" ] && norestart=1
@@ -83,7 +84,11 @@ yaml_sub_validate()
       EMPTY) LOG_ERROR "Subscription response is empty; existing configuration was kept" ;;
       INVALID) LOG_ERROR "Subscription is not a valid Clash configuration; existing configuration was kept" ;;
       NO_PROXIES) LOG_ERROR "Subscription has no proxies or proxy providers; existing configuration was kept" ;;
-      *) LOG_ERROR "Subscription validation could not run; check Ruby dependencies. Existing configuration was kept" ;;
+      *)
+         # Ruby unavailable: install the download without custom overwrite instead of failing closed
+         LOG_ERROR "Ruby Works Abnormally, Please Check The Ruby Library Depends!"
+         only_download=1
+         return 0 ;;
    esac
    return 1
 }
@@ -186,10 +191,15 @@ config_cus_up()
 config_su_check()
 {
    sed -i 's/!<str> /!!str /g' "$CFG_FILE" >/dev/null 2>&1
-   config_cus_up
-   if ! yaml_sub_validate; then
-      config_error
-      return
+   if [ "$only_download" -eq 0 ]; then
+      local before_cus_up
+      before_cus_up=$(md5sum "$CFG_FILE" | cut -d' ' -f1)
+      config_cus_up
+      # Re-validate the customized file only when config_cus_up changed it
+      if [ "$(md5sum "$CFG_FILE" | cut -d' ' -f1)" != "$before_cus_up" ] && ! yaml_sub_validate; then
+         config_error
+         return
+      fi
    fi
    LOG_OUT "Config File Test Successful, Check If There is Any Update..."
    if [ -f "$CONFIG_FILE" ]; then
@@ -205,9 +215,9 @@ config_su_check()
    else
       LOG_OUT "Config File【$name】Download Successful, Start To Create..."
    fi
-   local temporary
-   temporary=$(mktemp "$(dirname "$CONFIG_FILE")/.subscription.XXXXXX")
-   if [ -z "$temporary" ] || ! cp "$CFG_FILE" "$temporary" || ! mv -f "$temporary" "$CONFIG_FILE"; then
+   # Same-directory temp keeps the replacement atomic and preserves the file mode
+   local temporary="${CONFIG_FILE}.tmp.$$"
+   if ! cp "$CFG_FILE" "$temporary" || ! mv -f "$temporary" "$CONFIG_FILE"; then
       rm -f "$temporary"
       LOG_ERROR "Unable to save subscription; existing configuration was kept"
       config_error
@@ -338,7 +348,7 @@ sub_info_get()
    local section="$1" subscribe_url template_path subscribe_url_param template_path_encode key_match_param key_ex_match_param c_address de_ex_keyword sub_ua sub_headers append_custom_params SECRET_KEY DOWNLOAD_URL DOWNLOAD_PARAM
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "name" "$section" "name" "config"
-   config_get "sub_convert" "$section" "sub_convert" ""
+   config_get "sub_convert" "$section" "sub_convert" "0"
    config_get "address" "$section" "address" ""
    config_get "keyword" "$section" "keyword" ""
    config_get "ex_keyword" "$section" "ex_keyword" ""
@@ -422,9 +432,9 @@ sub_info_get()
       fi
    fi
 
-   if [ "$sub_convert" -eq 0 ]; then
+   if [ "${sub_convert:-0}" -eq 0 ]; then
       subscribe_url=$address
-   elif [ "$sub_convert" -eq 1 ] && [ -n "$template" ]; then
+   elif [ "${sub_convert:-0}" -eq 1 ] && [ -n "$template" ]; then
       while IFS= read -r line; do
          line=$(echo "$line" | tr -d '\r')
          subscribe_url=$([ -n "$subscribe_url" ] && echo "$subscribe_url|")$(urlencode "$line")
