@@ -234,7 +234,7 @@ uci -q delete openclash.config.oix_default_params
 uci -q commit openclash
 rm -f "/etc/openclash/.oix_params" "/etc/openclash/.oix_default_params" >/dev/null 2>&1
 
-#long-running requests (streaming log)
+#allow large config file upload (HTTP_MAX_CONTENT) and long-running requests (streaming log)
 #uhttpd backend (older LuCI)
 if [ -x /etc/init.d/uhttpd ]; then
 	uci -q set uhttpd.@uhttpd[0].max_requests=50
@@ -255,6 +255,13 @@ if [ -d /etc/nginx/conf.d ]; then
 	EOF
 	#same-origin proxy for the dashboard API so https pages can use wss
 	[ -x /usr/share/openclash/openclash_nginx.sh ] && /usr/share/openclash/openclash_nginx.sh -n
+fi
+
+if grep -q 'HTTP_MAX_CONTENT' /usr/lib/lua/luci/http.lua 2>/dev/null; then
+	sed -i 's/\(HTTP_MAX_CONTENT[[:space:]]*=[[:space:]]*\)[0-9][0-9]*\([[:space:]]*\*[[:space:]]*[0-9][0-9]*\)*/\11024*10240*2/' /usr/lib/lua/luci/http.lua
+fi
+if grep -q 'HTTP_MAX_CONTENT' /usr/share/ucode/luci/http.uc 2>/dev/null; then
+	sed -i 's/\(HTTP_MAX_CONTENT[[:space:]]*=[[:space:]]*\)[0-9][0-9]*\([[:space:]]*\*[[:space:]]*[0-9][0-9]*\)*/\11024*10240*2/' /usr/share/ucode/luci/http.uc
 fi
 
 [ -x /etc/init.d/uhttpd ] && /etc/init.d/uhttpd restart >/dev/null 2>&1
