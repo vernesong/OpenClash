@@ -21,7 +21,30 @@ module YAML
 		puts Time.new.strftime("%Y-%m-%d %H:%M:%S") + " [Tip] " + "#{info}"
 	end
 
+	def self.subscription_status(filename, key_names = nil)
+		return 'EMPTY' if File.zero?(filename)
+
+		value = load_file(filename, safe: true, key_names: key_names)
+		return 'INVALID' unless value.is_a?(Hash)
+
+		proxies = value['proxies']
+		providers = value['proxy-providers']
+		return 'INVALID' if value.key?('proxies') && !proxies.is_a?(Array)
+		return 'INVALID' if value.key?('proxy-providers') && !providers.is_a?(Hash)
+		return 'INVALID' if proxies && !proxies.all? { |proxy| proxy.is_a?(Hash) }
+		return 'INVALID' if providers && !providers.values.all? { |provider| provider.is_a?(Hash) }
+		return 'NO_PROXIES' if (proxies.nil? || proxies.empty?) && (providers.nil? || providers.empty?)
+
+		'OK'
+	rescue StandardError
+		'INVALID'
+	end
+
 	def self.load_file(filename, *args, **kwargs)
+		safe = kwargs.delete(:safe)
+		key_names = kwargs.delete(:key_names)
+		loader = safe ? :safe_load : :load
+		kwargs[:aliases] = true if safe
 		secret = nil
 		if kwargs.key?(:secret)
 			secret = kwargs.delete(:secret)
@@ -34,19 +57,19 @@ module YAML
 			if secret && secret.to_s.strip != ""
 				decrypted = decrypt_content_with_secret(secret.to_s, yaml_content)
 				if decrypted && !decrypted.empty? && !decrypted.include?("BEGIN AGE ENCRYPTED FILE")
-					return fix_and_load(decrypted, *args, **kwargs)
+					return fix_and_load(decrypted, *args, safe: safe, **kwargs)
 				else
 					raise "Decrypted content empty or still encrypted: [#{filename}]"
 				end
 			end
 
-			keys = find_age_keys_for_filename(filename)
+			secrets = Array(key_names || filename).flat_map { |name| find_age_keys_for_filename(name)[:secrets] || [] }.uniq
 			last_error = nil
-			(keys[:secrets] || []).each do |sec|
+			secrets.each do |sec|
 				begin
 					decrypted = decrypt_content_with_secret(sec, yaml_content)
 					if decrypted && !decrypted.empty? && !decrypted.include?("BEGIN AGE ENCRYPTED FILE")
-						return fix_and_load(decrypted, *args, **kwargs)
+							return fix_and_load(decrypted, *args, safe: safe, **kwargs)
 					end
 				rescue => e
 					last_error = e.message
@@ -62,20 +85,20 @@ module YAML
 		end
 
 		if base64 || protocol_param
-			fix_and_load(File.read(filename, mode: "r:bom|utf-8"), *args, **kwargs)
+			fix_and_load(File.read(filename, mode: "r:bom|utf-8"), *args, safe: safe, **kwargs)
 		elsif short_id
 			fixed = File.open(filename, "r:bom|utf-8") { |io| fix_short_id_text(io) }
 			begin
-				load(fixed, *args, **kwargs)
+				public_send(loader, fixed, *args, **kwargs)
 			rescue => e
 				raise "fix short-id values type failed: #{e.message}"
 			end
 		else
 			result = File.open(filename, "r:bom|utf-8") do |io|
-				load(io, *args, **kwargs)
+				public_send(loader, io, *args, **kwargs)
 			end
 			if result.nil? || result == false
-				result = fix_and_load(File.read(filename, mode: "r:bom|utf-8"), *args, **kwargs)
+				result = fix_and_load(File.read(filename, mode: "r:bom|utf-8"), *args, safe: safe, **kwargs)
 			end
 			result
 		end
@@ -365,13 +388,14 @@ module YAML
 	#   Input:  short-id: null        -> Output: short-id: ""
 
 	def self.fix_and_load(yaml_content, *args, **kwargs)
+		loader = kwargs.delete(:safe) ? :safe_load : :load
 		yaml_content = decode64(yaml_content)
 		# Fix bare protocol-param values that break YAML parsing (e.g. "1.2.3.4:8080#test")
 		yaml_content.gsub!(/^(\s*protocol-param:\s+)([^\s"'][^"\n\r]*[#:][^"\n\r]*)$/, '\1"\2"')
-		return load(yaml_content, *args, **kwargs) unless yaml_content.include?('short-id:')
+		return public_send(loader, yaml_content, *args, **kwargs) unless yaml_content.include?('short-id:')
 
 		begin
-			load(fix_short_id_text(yaml_content), *args, **kwargs)
+			public_send(loader, fix_short_id_text(yaml_content), *args, **kwargs)
 		rescue => e
 			raise "fix short-id values type failed: #{e.message}"
 		end

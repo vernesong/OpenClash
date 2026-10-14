@@ -3941,6 +3941,36 @@ msgstr "策略组未引用托管节点，请检查覆写与节点筛选设置"
 msgid "Unable to fetch managed configuration"
 msgstr "无法获取托管配置，请检查网络与套餐状态"
 
+msgid "Subscription download failed (HTTP %s); existing configuration was kept"
+msgstr "订阅下载失败（HTTP %s），已保留原配置"
+
+msgid "Subscription download timed out; existing configuration was kept"
+msgstr "订阅下载超时，已保留原配置"
+
+msgid "Subscription request failed (curl %s); existing configuration was kept"
+msgstr "订阅网络请求失败（curl %s），已保留原配置"
+
+msgid "Subscription response is empty; existing configuration was kept"
+msgstr "订阅返回内容为空，已保留原配置"
+
+msgid "Subscription is not a valid Clash configuration; existing configuration was kept"
+msgstr "订阅内容不是有效的 Clash 配置，请检查 YAML 格式和代理字段，已保留原配置"
+
+msgid "Subscription has no proxies or proxy providers; existing configuration was kept"
+msgstr "订阅缺少有效的代理节点或代理集，已保留原配置"
+
+msgid "Subscription validation could not run; check Ruby dependencies. Existing configuration was kept"
+msgstr "无法运行订阅校验，请检查 Ruby 依赖，已保留原配置"
+
+msgid "Subscription failed core validation; existing configuration was kept"
+msgstr "订阅未通过内核配置校验，已保留原配置"
+
+msgid "Unable to save subscription; existing configuration was kept"
+msgstr "无法保存订阅，请检查存储空间和写入权限，已保留原配置"
+
+msgid "Subscription update failed; existing configuration was kept"
+msgstr "订阅更新失败，已保留原配置"
+
 msgid "Unable to update the oixCloud core"
 msgstr "无法更新 oixCloud 内核，请检查网络与内核架构设置"
 
