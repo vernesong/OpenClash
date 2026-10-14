@@ -2693,7 +2693,7 @@ var ocLang = window.ocLang || '';
             }
             this.resetBuffer(Date.now());
             this.metrics = {
-                traffic: { unit: ' MB/s', series: [{ key: 'up', name: '<%:Up%>' }, { key: 'down', name: '<%:Down%>' }] },
+                traffic: { unit: ' MB/s', series: [{ key: 'up', name: '<%:Upload%>' }, { key: 'down', name: '<%:Download%>' }] },
                 memory: { unit: ' MB', series: [{ key: 'mem', name: '<%:Ram%>' }] },
                 cpu: { unit: ' %', series: [{ key: 'cpu', name: '<%:CPU%>' }] },
                 load: { unit: ' %', series: [{ key: 'load', name: '<%:Load Avg%>' }] },

@@ -322,7 +322,7 @@ var Guide = {
             body: function () {
                 return '<p><%:The live numbers of this device:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Up%></b> / <b><%:Down%></b><span class="guide-sep"></span><%:the current speed%></li>'
+                    + '<li><b><%:Upload%></b> / <b><%:Download%></b><span class="guide-sep"></span><%:the current speed%></li>'
                     + '<li><b><%:Up Total%></b> / <b><%:Down Total%></b><span class="guide-sep"></span><%:counted since the core started%></li>'
                     + '<li><b><%:Connect%></b><span class="guide-sep"></span><%:connections the core handles right now%></li>'
                     + '<li><b><%:Ram%></b> / <b><%:CPU%></b><span class="guide-sep"></span><%:memory and CPU used by the core%></li>'

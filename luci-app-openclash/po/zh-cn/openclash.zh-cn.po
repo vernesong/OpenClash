@@ -1922,12 +1922,6 @@ msgstr "切换失败！"
 msgid "Current Config"
 msgstr "当前配置"
 
-msgid "Up"
-msgstr "上传"
-
-msgid "Down"
-msgstr "下载"
-
 msgid "Up Total"
 msgstr "上传总量"
 
@@ -2307,7 +2301,7 @@ msgid "Selecting..."
 msgstr "选择中..."
 
 msgid "Unlock Services"
-msgstr "解锁服务选择"
+msgstr "解锁检查服务选择"
 
 msgid "Must Select 4 Services"
 msgstr "必须选择 4 个服务"

@@ -40,6 +40,8 @@ var ConfigEditor = {
         startIndex: null,
         insertIndex: null,
         touchTimer: null,
+        scrollTimer: null,
+        dragLastY: null,
         isTouchDragging: false,
         touchDraggingMoved: false,
         touchDraggingItem: null,
@@ -1276,38 +1278,26 @@ var ConfigEditor = {
             actions.appendChild(del);
 
             var touchPrimary = window.matchMedia && window.matchMedia('(hover: none)').matches;
-            item.draggable = registered && !touchPrimary;
 
             if (registered) {
                 var grip = document.createElement('span');
                 grip.className = 'overwrite-item-grip';
                 grip.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>';
-                if (touchPrimary) {
-                    grip.addEventListener('mousedown', function(e) {
-                        if (e.button !== 0) return;
-                        e.preventDefault();
-                        self.beginOverwriteMouseDrag(item, e);
-                    });
-                }
                 item.appendChild(grip);
+                item.addEventListener('mousedown', function(e) {
+                    if (e.button !== 0) return;
+                    if (touchPrimary && !(e.target.closest && e.target.closest('.overwrite-item-grip'))) return;
+                    if (e.target.closest && e.target.closest('.overwrite-item-actions, .oc-switch')) return;
+                    self.beginOverwriteMouseDrag(item, e);
+                });
             }
 
             item.onclick = function(e) {
                 selectFile(file.path);
             };
 
-            item.addEventListener('dragstart', function(e) {
-                self.clearOverwriteDropIndicator();
-                self.overwriteDrag.dragging = item;
-                self.overwriteDrag.startIndex = idx;
-                item.classList.add('dragging');
-                if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
-            });
             item.addEventListener('contextmenu', function(e) {
                 if (self.overwriteDrag.startTouch || self.overwriteDrag.isTouchDragging) e.preventDefault();
-            });
-            item.addEventListener('dragend', function(e) {
-                self.finishOverwriteDrag();
             });
             item.addEventListener('touchstart', function(e) {
                 if (!registered) return;
@@ -1407,7 +1397,7 @@ var ConfigEditor = {
         });
     },
 
-    updateOverwriteDropIndicator: function(insertIndex, touch) {
+    updateOverwriteDropIndicator: function(insertIndex) {
         var list = this.getOverwriteList();
         if (!list || insertIndex === null || insertIndex === undefined) return;
 
@@ -1453,16 +1443,26 @@ var ConfigEditor = {
         line.style.top = Math.round(top - 1) + 'px';
         line.style.width = Math.max(0, list.clientWidth - 8) + 'px';
 
-        if (touch) {
-            var scrollZone = 60;
-            if (touch.clientY - listRect.top < scrollZone && list.scrollTop > 0) {
-                list.scrollTop -= 12;
-            } else if (listRect.bottom - touch.clientY < scrollZone) {
-                list.scrollTop += 12;
-            }
-        }
-
         this.overwriteDrag.insertIndex = insertIndex;
+    },
+
+    // Timer driven so the list keeps scrolling while the pointer rests near an edge.
+    overwriteScrollTick: function() {
+        var list = this.getOverwriteList();
+        var y = this.overwriteDrag.dragLastY;
+        if (!list || y === null || y === undefined || !this.overwriteDrag.dragging) return;
+        var rect = list.getBoundingClientRect();
+        var zone = 48;
+        var before = list.scrollTop;
+        if (y - rect.top < zone) list.scrollTop -= 12;
+        else if (rect.bottom - y < zone) list.scrollTop += 12;
+        if (list.scrollTop !== before) this.updateOverwriteDropIndicator(this.computeOverwriteDropIndex(y));
+    },
+
+    startOverwriteAutoScroll: function() {
+        var self = this;
+        if (this.overwriteDrag.scrollTimer) return;
+        this.overwriteDrag.scrollTimer = setInterval(function() { self.overwriteScrollTick(); }, 50);
     },
 
     bindOverwriteListEvents: function() {
@@ -1471,42 +1471,11 @@ var ConfigEditor = {
         if (!list || list.dataset.dragBound === '1') return;
         list.dataset.dragBound = '1';
 
-        list.addEventListener('dragover', function(e) {
-            if (!self.overwriteDrag.dragging) return;
-            e.preventDefault();
-            if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
-            self.updateOverwriteDropIndicator(self.computeOverwriteDropIndex(e.clientY), null);
-
-            var listRect = list.getBoundingClientRect();
-            var scrollZone = 40;
-            if (e.clientY - listRect.top < scrollZone && list.scrollTop > 0) {
-                list.scrollTop -= 8;
-            } else if (listRect.bottom - e.clientY < scrollZone) {
-                list.scrollTop += 8;
-            }
-        });
-
-        list.addEventListener('dragleave', function(e) {
-            if (!list.contains(e.relatedTarget)) {
-                self.clearOverwriteDropIndicator();
-            }
-        });
-
-        list.addEventListener('drop', function(e) {
-            if (!self.overwriteDrag.dragging) return;
-            e.preventDefault();
-            var from = parseInt(self.overwriteDrag.dragging.dataset.index, 10);
-            var to = (self.overwriteDrag.insertIndex === null || self.overwriteDrag.insertIndex === undefined)
-                ? self.computeOverwriteDropIndex(e.clientY)
-                : self.overwriteDrag.insertIndex;
-            self.finishOverwriteDrag();
-            self.applyOverwriteReorder(from, to);
-        });
-
         list.addEventListener('touchmove', function(e) {
             if (!self.overwriteDrag.isTouchDragging || e.touches.length !== 1) return;
             var touch = e.touches[0];
-            self.updateOverwriteDropIndicator(self.computeOverwriteDropIndex(touch.clientY), touch);
+            self.overwriteDrag.dragLastY = touch.clientY;
+            self.updateOverwriteDropIndicator(self.computeOverwriteDropIndex(touch.clientY));
             e.preventDefault();
         }, { passive: false });
 
@@ -1543,7 +1512,9 @@ var ConfigEditor = {
                 self.overwriteDrag.isTouchDragging = true;
                 self.overwriteDrag.dragging = item;
                 self.overwriteDrag.startIndex = parseInt(item.dataset.index, 10);
+                self.overwriteDrag.dragLastY = self.overwriteDrag.startTouch.clientY;
                 item.classList.add('dragging');
+                self.startOverwriteAutoScroll();
                 if (navigator.vibrate) navigator.vibrate(50);
             }
         }, 500);
@@ -1566,9 +1537,11 @@ var ConfigEditor = {
                 self.overwriteDrag.dragging = item;
                 self.overwriteDrag.startIndex = self.overwriteDrag.mouseStartIndex;
                 item.classList.add('dragging');
+                self.startOverwriteAutoScroll();
             }
             me.preventDefault();
-            self.updateOverwriteDropIndicator(self.computeOverwriteDropIndex(me.clientY), null);
+            self.overwriteDrag.dragLastY = me.clientY;
+            self.updateOverwriteDropIndicator(self.computeOverwriteDropIndex(me.clientY));
         };
         var onUp = function() {
             document.removeEventListener('mousemove', onMove);
@@ -1590,6 +1563,11 @@ var ConfigEditor = {
             clearTimeout(this.overwriteDrag.touchTimer);
             this.overwriteDrag.touchTimer = null;
         }
+        if (this.overwriteDrag.scrollTimer) {
+            clearInterval(this.overwriteDrag.scrollTimer);
+            this.overwriteDrag.scrollTimer = null;
+        }
+        this.overwriteDrag.dragLastY = null;
         if (this.overwriteDrag.dragging && this.overwriteDrag.dragging.classList) {
             this.overwriteDrag.dragging.classList.remove('dragging');
         }

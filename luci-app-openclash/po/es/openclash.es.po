@@ -1913,12 +1913,6 @@ msgstr "¡El cambio ha fallado!"
 msgid "Current Config"
 msgstr "Configuración actual"
 
-msgid "Up"
-msgstr "Subida"
-
-msgid "Down"
-msgstr "Descarga"
-
 msgid "Up Total"
 msgstr "Total subido"
 
