@@ -51,6 +51,12 @@ o = s:option(Value, "name", translate("Config Alias"))
 o.description = font_red..bold_on..translate("Name For Distinguishing")..bold_off..font_off
 o.placeholder = translate("config")
 o.rmempty = true
+function o.validate(self, value)
+	if value and value ~= "" and not fs.is_safe_filename(value) then
+		return nil
+	end
+	return value
+end
 
 ---- address
 o = s:option(Value, "address", translate("Subscribe Address"))

@@ -302,6 +302,24 @@ function filename(str)
 	end
 end
 
+--- ASCII stays limited to [A-Za-z0-9._- ] so the name is safe in shell, ruby and cron
+--- arguments; non-ASCII (CJK) bytes are allowed, capped to fit the filesystem name limit.
+function is_safe_filename(name)
+	if type(name) ~= "string" or name == "" or #name > 200 or name:sub(1, 1) == "." then
+		return false
+	end
+	if name:match("^ +$") then
+		return false
+	end
+	for i = 1, #name do
+		local byte = name:byte(i)
+		if byte < 0x80 and not string.char(byte):match("[A-Za-z0-9._%- ]") then
+			return false
+		end
+	end
+	return true
+end
+
 function filesize(e)
 	local t=0
 	local a={' KB',' MB',' GB',' TB',' PB'}

@@ -130,6 +130,7 @@ local HTTP = require "luci.http"
 local DISP = require "luci.dispatcher"
 local UTIL = require "luci.util"
 local fs = require "luci.openclash"
+local is_safe_filename = fs.is_safe_filename
 local json = require "luci.jsonc"
 local uci = require("luci.model.uci").cursor()
 local datatype = require "luci.cbi.datatypes"
@@ -473,6 +474,14 @@ function action_update_config()
 		HTTP.write_json({
 			status = "error",
 			message = "Config file not found"
+		})
+		return
+	end
+
+	if not is_safe_filename(filename) then
+		HTTP.write_json({
+			status = "error",
+			message = "Invalid filename"
 		})
 		return
 	end
@@ -2461,9 +2470,22 @@ function ltn12_popen(command)
 	end
 end
 
+-- Only the plugin's own directories may be written, and the directory comes from this
+-- table instead of the request; names are validated by is_safe_filename().
+local plugin_file_dirs = {
+	["/etc/openclash/config/"] = true,
+	["/etc/openclash/proxy_provider/"] = true,
+	["/etc/openclash/rule_provider/"] = true,
+}
+
 function create_file()
 	local file_name = HTTP.formvalue("filename")
-	local file_path = HTTP.formvalue("filepath")..file_name
+	local file_dir = HTTP.formvalue("filepath")
+	if not plugin_file_dirs[file_dir] or not is_safe_filename(file_name) then
+		HTTP.status(400, "Invalid file path")
+		return
+	end
+	local file_path = file_dir..file_name
 	fs.writefile(file_path, "")
 	if not fs.isfile(file_path) then
 		HTTP.status(500, "Create File Failed")
@@ -2475,6 +2497,10 @@ function rename_file()
 	local new_file_name = HTTP.formvalue("new_file_name")
 	local file_path = HTTP.formvalue("file_path")
 	local old_file_name = HTTP.formvalue("file_name")
+	if not plugin_file_dirs[file_path] or not is_safe_filename(old_file_name) or not is_safe_filename(new_file_name) then
+		HTTP.status(400, "Invalid file path")
+		return
+	end
 	local old_file_path = file_path .. old_file_name
 	local new_file_path = file_path .. new_file_name
 	local old_run_file_path = "/etc/openclash/" .. old_file_name
@@ -4722,10 +4748,6 @@ function FindProxyForURLEx(url, host) {
 	return pac_script
 end
 
-local function is_safe_filename(filename)
-	return filename and filename:match("^[%w%._%-]+$") and not filename:match("^%.")
-end
-
 local function kill_process()
 	local cmd = string.format("%s |grep -E 'openclash|clash|mihomo' |grep -v grep |awk '{print $1}' |xargs -r kill -9 >/dev/null 2>&1", fs.ps_cmd())
 	SYS.call(cmd)
@@ -5303,6 +5325,14 @@ function action_add_subscription()
 		HTTP.write_json({
 			status = "error",
 			message = "Missing name parameter"
+		})
+		return
+	end
+
+	if not is_safe_filename(name) then
+		HTTP.write_json({
+			status = "error",
+			message = "Invalid filename"
 		})
 		return
 	end

@@ -1968,11 +1968,15 @@ var ConfigEditor = {
         return params.join(';');
     },
 
+    // ASCII stays limited to [A-Za-z0-9._- ] so the name is safe in shell, ruby and
+    // cron arguments; non-ASCII (CJK) names are allowed, capped by byte length.
     isValidOverwriteModuleName: function(name) {
-        if (!name || name.length > 128) return false;
-        if (name.charAt(0) === '.') return false;
+        if (!name || name.charAt(0) === '.') return false;
         if (name === OC_CUSTOM_OVERWRITE) return false;
-        return /^[A-Za-z0-9._-]+$/.test(name);
+        if (/^ +$/.test(name)) return false;
+        if (/[^\u0080-\uffff]/.test(name.replace(/[A-Za-z0-9._\- ]/g, ''))) return false;
+        var bytes = (typeof TextEncoder !== 'undefined') ? new TextEncoder().encode(name).length : name.length;
+        return bytes <= 200;
     },
 
     // Weekday names and a 0/00 minute (or a leading 0 second) are tolerated; ranges,

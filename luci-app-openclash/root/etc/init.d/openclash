@@ -3123,7 +3123,7 @@ add_overwrite_cron()
       return
    fi
 
-   safe_name=$(printf '%s' "$name" | tr -c 'A-Za-z0-9' '_')
+   safe_name=$(printf '%s' "$name" | md5sum | cut -c1-8)
    eval "restart_flag=\${OVERWRITE_RESTART_FLAG_${safe_name}}"
    cron_dest="/etc/openclash/overwrite/$name"
    cron_cmd="source /usr/share/openclash/openclash_curl.sh && DOWNLOAD_FILE_CURL $(cron_quote "$url") $(cron_quote "$cron_dest") $(cron_quote "$cron_dest")"
@@ -3443,7 +3443,7 @@ overwrite_file()
       age_config_name="${cfg_name%.*}"
       age_secret_key=""
       age_public_key=""
-      module_flag_name=$(printf '%s' "$name" | tr -c 'A-Za-z0-9' '_')
+      module_flag_name=$(printf '%s' "$name" | md5sum | cut -c1-8)
 
       param=$(uci -q get openclash."$sid".param 2>/dev/null || echo '')
       if [ -n "$param" ]; then
