@@ -8,8 +8,8 @@
 > 优先参考高赞反应的社区回复和作者（vernesong）给出的解决方案。搜索时可使用错误关键字作为搜索词。
 >
 > **两类日志说明**:
-> - **插件日志**（前九类）：由 OpenClash 的 Shell/Ruby/Lua 脚本产生，含 `[Info]`/`[Tip]`/`[Warning]`/`[Error]` 前缀，写入 `/tmp/openclash.log`。可在 LuCI「运行日志」页面查看。
-> - **内核日志**（第十、十一类）：由 Mihomo 核心（Go 程序）产生，含 `level=debug/info/warning/error/fatal` 标记，同样写入 `/tmp/openclash.log`。`level=fatal` 会导致核心进程退出。可在 LuCI「运行日志」页面查看，或在「运行状态」页面看到 `OpenClash Start Failed` 提示。
+> - **插件日志**（第一至第十类）：由 OpenClash 的 Shell/Ruby/Lua 脚本产生，含 `[Info]`/`[Tip]`/`[Warning]`/`[Error]` 前缀，写入 `/tmp/openclash.log`。可在 LuCI「运行日志」页面查看。
+> - **内核日志**（第十一类）：由 Mihomo 核心（Go 程序）产生，含 `level=debug/info/warning/error/fatal` 标记，同样写入 `/tmp/openclash.log`。`level=fatal` 会导致核心进程退出。可在 LuCI「运行日志」页面查看，或在「运行状态」页面看到 `OpenClash Start Failed` 提示。
 
 ### 3.1 内核启动与运行错误
 
@@ -140,8 +140,7 @@
 
 ### 3.11 Mihomo 内核配置解析错误（`level=fatal` / `level=error`）
 
-> 以下为 Mihomo 内核在**加载/解析 YAML 配置文件**时产生的错误。`level=fatal` 会导致核心进程退出。
-> 日志查看：LuCI「运行日志」页面或「运行状态」页面（若启动失败会显示 `OpenClash Start Failed`）。
+> 以下为 Mihomo 内核在**加载/解析 YAML 配置文件**时产生的错误；日志查看方式见文首「两类日志说明」。
 
 `Parse config error` 的具体子类型及修复方法：
 
@@ -179,7 +178,7 @@
 |-----------|---------|------|----------|------|
 | DNS 泄露（ipleak / `ipleak.net` 检测到国内 DNS） | 「覆写设置→DNS」 | Redir-Host/Fake-IP 下 nameserver 和 fallback 并发请求，国内 DNS 结果可能被优先采纳 | ① Meta 内核建议**放弃 fallback**，仅用 `nameserver-policy` 做 DNS 分流（国内域名→国内 DNS，国外域名→国外 DNS）；② 境外 DNS 地址后加 `#RULES` 让该查询按内核 `rules` 走（如 `https://1.1.1.1/dns-query#RULES`），或写已存在的策略组名 `#<组名>`（后缀语法见 `11-overwrite-settings.md` §11.3.13）；③ 删除原配置 YAML 的 `dns:` 段，仅通过「覆写设置→DNS」管理 DNS 配置避免冲突；④ 将 `proxy-server-nameserver` 设为国内 DNS 避免代理节点域名解析走境外 | [#3843](https://github.com/vernesong/OpenClash/issues/3843) |
 | `nameserver-policy` 未生效，DNS 仍走 nameserver | 「覆写设置→DNS」 | OpenClash 的「覆写设置→DNS」选项会与订阅配置的 `dns:` 段合并，可能导致预期外的 DNS 行为 | ① 在「覆写设置→DNS」启用「自定义 DNS 设置 (Custom DNS Setting)」后重新配置所有 DNS 规则；② 在「运行日志」中开启 Debug 等级观察实际 DNS 查询路径；③ 确认 `default-nameserver` 组的 DNS 服务器开启了「节点域名解析」选项 | 同上 |
-| DNS 泄露（开启 IPv6 后出现） | 「覆写设置→DNS」+「IPv6 设置」 | 运营商下发的 IPv6 DNS 绕过了 OpenClash 的 DNS 劫持，直接响应客户端请求（"抢答"） | ① 在 LuCI 的「网络→DHCP/DNS→高级设置」中取消 `过滤 IPv6 AAAA 记录`；② 在 LAN 接口 DHCP 服务器 IPv6 设置中**取消「本地 IPv6 DNS 服务器」**，强制设备使用路由器 IPv4 地址进行 DNS 解析；③ DHCPv6 服务设为已禁用，RA 设为服务器模式。原理：DNS 请求走 IPv4 通道，流量走 IPv6 通道——IPv4 DNS 同样可以查询 AAAA 记录返回 IPv6 地址 | — |
+| DNS 泄露（开启 IPv6 后出现） | 「覆写设置→DNS」+「IPv6 设置」 | 运营商下发的 IPv6 DNS 绕过了 OpenClash 的 DNS 劫持，直接响应客户端请求（「抢答」） | ① 在 LuCI 的「网络→DHCP/DNS→高级设置」中取消 `过滤 IPv6 AAAA 记录`；② 在 LAN 接口 DHCP 服务器 IPv6 设置中**取消「本地 IPv6 DNS 服务器」**，强制设备使用路由器 IPv4 地址进行 DNS 解析；③ DHCPv6 服务设为已禁用，RA 设为服务器模式。原理：DNS 请求走 IPv4 通道，流量走 IPv6 通道——IPv4 DNS 同样可以查询 AAAA 记录返回 IPv6 地址 | — |
 | 旁路由环境下 DNS 泄露 | 「运行状态」 | 旁路由设备未正确指定上游 DNS 为 OpenWrt IP（尤其是 IPv6 DNS 留空） | ① 旁路由设备必须**手动指定 IPv4 DNS 为 OpenWrt 路由器 IP**；② **IPv6 DNS 必须留空**；③ 若使用 DHCP 分配，确保 DHCP 服务器不下发 IPv6 DNS 地址 | — |
 
 ### 3.13 版本更新与下载失败
@@ -197,7 +196,7 @@
 |-----------|---------|------|----------|------|
 | **向日葵/AnyDesk 等远程软件无法连接** | 局域网客户端 | 远程软件域名/QUIC 流量被代理或阻断 | ①「覆写设置→规则」添加直连规则：`DOMAIN-SUFFIX,oray.com,DIRECT`、`DOMAIN-SUFFIX,sunlogin.net,DIRECT` 等；② 确认 sniffer `skip-domain` 已包含 `oray.com` 和 `sunlogin.net`（默认已含）；③ 尝试关闭「插件设置→流量控制」的 `disable_udp_quic` (禁用 QUIC) | [#3229](https://github.com/vernesong/OpenClash/issues/3229) |
 | **小米摄像机/智能家居外网无法访问** | 局域网 IoT 设备 | IoT 设备流量被代理导致 NAT 穿透失败 | ①「插件设置→黑白名单」添加摄像机 IP 到「不走代理的局域网设备 IP (LAN Bypassed Host List)」列表；② 确认 sniffer `skip-domain` 包含 `Mijia Cloud`（默认已含）；③「覆写设置→规则」添加 IoT 域名直连规则：`DOMAIN-SUFFIX,xiaomi.com,DIRECT` | [#2431](https://github.com/vernesong/OpenClash/issues/2431) |
-| **绕过中国大陆IP (China IP Route) 功能突然失效** | 升级后 / 「运行状态」 | 版本升级后 `china_ip_route` 的 nftables/ipset 重建失败或 chnroute 列表未更新 | ①「插件设置→大陆白名单订阅」手动更新一次大陆 IP 列表；②「运行状态」页面 Area Bypass 先切到关闭再切回「绕过中国大陆 (Bypass Mainland China)」重新触发；③ 终端执行 `nft list set inet fw4 china_ip_route | head` 检查 nft set 是否存在且非空 | [#4031](https://github.com/vernesong/OpenClash/issues/4031) |
+| **绕过中国大陆IP (China IP Route) 功能突然失效** | 升级后 / 「运行状态」 | 版本升级后 `china_ip_route` 的 nftables/ipset 重建失败或 chnroute 列表未更新 | ①「插件设置→大陆白名单订阅」手动更新一次大陆 IP 列表；②「运行状态」页面 Area Bypass 先切到关闭再切回「绕过中国大陆 (Bypass Mainland China)」重新触发；③ 终端执行 `nft list set inet fw4 china_ip_route \| head` 检查 nft set 是否存在且非空 | [#4031](https://github.com/vernesong/OpenClash/issues/4031) |
 | **自定义防火墙规则（开发者选项）不生效** | 「插件设置→开发者设置」 | 编辑后未重启或脚本语法错误 | ① 修改 `openclash_custom_firewall_rules.sh` 后需**重启 OpenClash**（不是重载防火墙）；② 用 `bash -n` 检查脚本语法；③「运行日志 → 调试日志」生成调试日志检查是否成功执行（日志中含自定义脚本内容） | [#4005](https://github.com/vernesong/OpenClash/issues/4005) |
 | **DDNS 服务（如 DDNS-GO）工作异常** | 路由器 DDNS 插件 | DDNS 服务商 API 域名被错误分配 Fake-IP，导致 IP 检测失败 | ① 将 DDNS 服务商的 API 域名加入「覆写设置→DNS」的 Fake-IP-Filter 中（填入域名使其返回真实 IP）；② 常见需排除的域名如 `ddns.oray.com`、`api.cloudflare.com` 等，具体根据所用服务商填写 | — |
 | **Cloudflare Tunnel (Cloudflared) 连接不稳定** | 路由器/内网设备 | Cloudflared 默认使用 QUIC 连接，而海外 QUIC 流量默认被 OpenClash 阻断 | ① 规则中已指定 Cloudflare Tunnel 相关域名直连；② 在 Cloudflared 启动参数中显式指定 `--protocol http2` 强制使用 HTTP/2（Docker 版：`command: [tunnel, --no-autoupdate, --protocol, http2, run, --token, ${CF_TOKEN}]`） | — |
@@ -205,7 +204,7 @@
 | **直连网站/APP/小程序打不开** | 局域网客户端 | 小众域名未被 geosite:cn 收录，被误判为非直连走代理 | ① 临时方案：将「漏网之鱼」策略组设为直连；② 永久方案：在「覆写设置→规则→自定义规则」中为对应域名添加 `DOMAIN-SUFFIX,xxx.com,DIRECT` 规则；③ 观察 zashboard 中命中策略组确认分流是否正确 | — |
 | **开启 IPv6 后某些直连访问卡顿** | 局域网客户端 | IPv6 DNS 抢答或运营商 IPv6 DNS 不稳定导致解析异常 | ① 禁用「覆写设置→DNS」的「追加上游 DNS」，改为在 NameServer 中手动添加 DoH 服务器（如 AliDNS）；② 确保 LAN 口未下发 IPv6 DNS 地址 | — |
 | **非直连站点打不开且内核日志无记录** | 「运行状态」 | WAN 接口名称填写错误或 DNS 重定向未关闭 | ①「插件设置→流量控制」清空 WAN 接口名称；② 确认「网络→DHCP/DNS」中 DNS 重定向功能已关闭；③ 两者均正确时，检查 OpenWrt 中是否有其他劫持 53 端口或修改 Dnsmasq 的插件 | — |
-| **Hysteria / Hysteria2 / TUIC 节点连接失败、断流、握手超时** | 内核日志 `level=error` | ① Linux 内核 ≥6.6 的 quic-go GSO 兼容性问题（最常见）；② Hysteria 协议对 `server`/`auth`/`tls`/`password` 字段配置敏感 | ① **优先尝试**：「插件设置→模式设置」开启**「禁用 quic-go GSO (Disable QUIC Go GSO)」**后重启 OpenClash；② 确认 YAML 中 `type: hysteria` 或 `type: hysteria2` 拼写正确、端口号正确；③ 检查节点的 `auth`/`password` 及 TLS 证书配置是否完整 | — |
+| **Hysteria / Hysteria2 / TUIC 节点连接失败、断流、握手超时** | 内核日志 `level=error` | ① Linux 内核 6.6 及以上的 quic-go GSO 兼容性问题（最常见）；② Hysteria 协议对 `server`/`auth`/`tls`/`password` 字段配置敏感 | ① **优先尝试**：「插件设置→模式设置」开启**「禁用 quic-go GSO (Disable QUIC Go GSO)」**后重启 OpenClash；② 确认 YAML 中 `type: hysteria` 或 `type: hysteria2` 拼写正确、端口号正确；③ 检查节点的 `auth`/`password` 及 TLS 证书配置是否完整 | — |
 | **开启「绕过中国大陆 IP」后 Google Play 商店无法下载/更新** | 客户端（Android 设备） | `services.googleapis.cn` 等 Google 域名被国内 DNS 解析到中国大陆 IP（`220.181.x.x`），被 `china_ip_route` 规则匹配后走直连；但 Google 中国服务器禁止境外 IP（代理节点）访问，导致死循环 | **从 DNS 和规则两方面同时入手**：<br><br>下面两段分别管两件事——**第一段**让 Google 域名走境外 DNS 解析，**第二段**让这些域名走代理；复制时把 `Proxy` 换成你的代理策略组名即可。<br><br>**① DNS 层面** — 插件内置覆写模块 `Google_Play` 已预置下面三条（默认未启用，可在「覆写模块」窗口启用）；若需自行配置，则按此强制 Google 域名走境外 DNS 解析，写入 YAML 的 `dns.nameserver-policy` 段：<br>```yaml<br>dns:<br>  nameserver-policy:<br>    '+.services.googleapis.cn': ['https://8.8.8.8/dns-query', 'https://dns.google/dns-query#RULES']<br>    '+.googleapis.cn': ['https://8.8.8.8/dns-query', 'https://dns.google/dns-query#RULES']<br>    '+.xn--ngstr-lra8j.com': ['https://8.8.8.8/dns-query', 'https://dns.google/dns-query#RULES']<br>```<br>也可用 `8.8.8.8` 或 `1.1.1.1` 替代 `https://dns.google/dns-query`。效果：域名解析到 Google 境外 IP（如 `142.250.x.x`），而非国内 `220.181.x.x`。<br><br>**② 规则层面** — 在「覆写设置→规则→自定义规则」中添加，写入 YAML 的 `rules` 段：<br>```yaml<br>rules:<br>  - DOMAIN-SUFFIX,services.googleapis.cn,Proxy<br>  - DOMAIN-SUFFIX,googleapis.cn,Proxy<br>  - DOMAIN-SUFFIX,xn--ngstr-lra8j.com,Proxy<br>```<br>其中 `Proxy` 替换为你的代理策略组名。更彻底的方式：`GEOSITE,google,Proxy` 将全部 Google 流量走代理。<br><br>**验证**：终端执行 `dig services.googleapis.cn @127.0.0.1 -p 7874` 应返回境外 IP；在 zashboard 连接日志中确认域名命中代理规则。 | [#5074](https://github.com/vernesong/OpenClash/issues/5074) |
 
 ### 3.15 运行时状态异常

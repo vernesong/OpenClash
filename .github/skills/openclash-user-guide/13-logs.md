@@ -9,7 +9,7 @@
 
 ### 13.1 实现总览
 
-运行日志页面是一个三标签页的日志查看器（Plugin Logs / Core Logs / Debug Logs）。页面布局包含以下区域：
+运行日志页面是一个三标签页的日志查看器（Plugin Logs / Core Logs / Debug Logs）。
 
 ### 13.2 标签页（Plugin / Core / Debug）
 
@@ -36,7 +36,7 @@
 | **Stop Refresh** (停止刷新) | 暂停日志刷新（XHR 轮询 + WebSocket 均停止） | 停止 `poll_log()` 和 `coreLogWebSocketStop()` |
 | **Start Refresh** (开始刷新) | 恢复日志刷新 | 重新启动轮询和 WebSocket |
 | **Clean** (清理日志) | 清空日志文本框 | GET `/del_log` |
-| **Download Log** (下载日志) | 下载完整日志文件（OC 日志 + Core 日志合并） | 调试日志会单独下载不会进行拼接 | 其他两个标签的内容前端进行拼接下载 |
+| **Download Log** (下载日志) | 下载当前标签的日志文件：Plugin/Core 标签内容由前端拼接（OC 日志 + Core 日志） | 调试日志单独下载、不拼接 |
 | **Generate Logs** (生成调试日志) | 点击生成调试日志并展示 | 前端下载时不拼接 |
 
 ### 13.4 日志来源

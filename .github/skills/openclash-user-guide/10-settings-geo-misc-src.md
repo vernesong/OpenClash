@@ -13,7 +13,7 @@
 | 自动更新 GeoSite 数据库 (Auto Update GeoSite) | `geosite_auto_update` | `openclash_geo.sh geosite` | `geosite_update_week_time` | `geosite_update_day_time` | `geosite_custom_url` |
 | 自动更新 Geo ASN 数据库 (Auto Update Geo ASN) | `geoasn_auto_update` | `openclash_geo.sh geoasn` | `geoasn_update_week_time` | `geoasn_update_day_time` | `geoasn_custom_url` |
 
-**共享配置项**：`*_update_week_time` (周几): `*`=每天, `1`=周一, `2`=周二, …, `0`=周日; `*_update_day_time` (小时): `0`-`23`; `*_custom_url` (自定义下载地址，留空使用默认)
+**共享配置项**：`*_update_week_time`（周几）：`*`=每天、`1`=周一、`2`=周二、…、`0`=周日；`*_update_day_time`（小时）：`0`-`23`；`*_custom_url`（自定义下载地址，留空使用默认）
 
 **Mihomo 对应**: `geox-url` 中的各字段 + `geo-auto-update` + `geo-update-interval`
 - **实现细节**:
@@ -178,7 +178,7 @@ config_foreach firewall_lan_ac_traffic "lan_ac_traffic"
 - **用户匹配**：nftables 用 `meta skuid UID`（仅 OUTPUT 链生效），iptables 用 `-m owner --uid-owner UID`
 - **DSCP 匹配**：nftables 用 `ip dscp 值`，iptables 需 `dscp` 模块（不可用时跳过并输出警告：`iptables DSCP module not available`）
 - **Fake-IP 排除**：所有规则自动排除 Fake-IP 地址段 `ip daddr != {198.18.0.0/16}`，避免影响 Fake-IP 内部映射
-- **drop→return 转换**：当 `target=DROP` 时，nftables 实际动作为 `return`（因 mangle 链不支持 drop），iptables 保持 `DROP`
+- **drop→return 转换**：当 `target=drop` 时，nat 链（`openclash`/`openclash_output`/`openclash_post`）实际动作为 `return`（跳过代理），mangle 链（`openclash_mangle` 等）保持真正 `drop`；nftables 与 iptables 行为一致
 
 **常见场景示例**：
 

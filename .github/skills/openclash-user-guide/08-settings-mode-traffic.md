@@ -2,7 +2,7 @@
 
 > **用途**: 插件设置页的模式与流量控制标签页各选项（UCI 与实现，§8.1–8.3）。
 
-> **小节索引**: §8.1 实现总览（§8.1.1 强制覆盖/禁用）· §8.2 模式设置（en_mode / stack_type / proxy_mode / …，§8.2.12 四栈选型、§8.2.13 转发模式、§8.2.14 默认值与 MIPS 来源、§8.2.15 TUN 数据面参数结论与选型、§8.2.16 TUN GSO 开关）· §8.3 流量控制（router_self_proxy / disable_udp_quic / china_ip_route / …）· §8.4 性能实测数据（§8.4.1 测量条件、§8.4.2 四栈 × gso 主表、§8.4.3 转发路径、§8.4.4 TUN 参数、§8.4.5 持续负载与延迟、§8.4.6 内核 sysctl）
+> **小节索引**: §8.1 实现总览（§8.1.1 强制覆盖/禁用）· §8.2 模式设置（en_mode / stack_type / proxy_mode / …，§8.2.12 四栈选型、§8.2.13 转发模式、§8.2.14 默认值与 MIPS 来源、§8.2.15 TUN 数据面参数结论与选型、§8.2.16 TUN GSO 开关）· §8.3 流量控制（router_self_proxy / disable_udp_quic / china_ip_route / …）· §8.4 性能实测数据（§8.4.1 测量条件、§8.4.2 四栈 × gso 主表、§8.4.3 转发路径、§8.4.4 TUN 参数、§8.4.5 持续满载、高并发与延迟、§8.4.6 内核 sysctl）
 
 > UCI Section: `openclash` (anonymous section)
 > 所有选项通过 `uci set openclash.@openclash[0].<option>=<value>` 设置
@@ -142,8 +142,8 @@
 
 #### 8.2.8 disable_quic_go_gso — 禁用 quic-go GSO (Disable QUIC Go GSO)
 - **UCI 选项**: `openclash.@openclash[0].disable_quic_go_gso`
-- **默认**: 0 (关闭)；但 `uci-defaults/luci-openclash` 在 Linux 内核 > 6.6 的固件上初始化为 1
-- **说明**: Linux 内核 6.6 以上版本遇到 QUIC UDP 问题时尝试开启。**Hysteria / Hysteria2 / TUIC 等基于 QUIC 协议的节点出现连接超时、断流、握手失败时，优先尝试开启此选项**
+- **默认**: 0 (关闭)；但 `uci-defaults/luci-openclash` 在 Linux 内核 6.6 及以上的固件上初始化为 1
+- **说明**: Linux 内核 6.6 及以上版本遇到 QUIC UDP 问题时尝试开启。**Hysteria / Hysteria2 / TUIC 等基于 QUIC 协议的节点出现连接超时、断流、握手失败时，优先尝试开启此选项**
 - **Mihomo 对应配置**: `experimental.quic-go-disable-gso: true`（注意键名顺序是 `quic-go-disable-gso`）
 
 #### 8.2.9 small_flash_memory — 小闪存模式 (Small Flash Memory)
@@ -151,7 +151,7 @@
 - **默认**: 0 (关闭)
 - **说明**: 将核心和 GEOIP 数据文件移到 `/tmp/etc/openclash`，节省闪存空间。路由重启后需重新下载
 
-> **AI 行为指引 — QUIC 类节点（Hysteria / Hysteria2 / TUIC）故障排查**: 当用户报告 Hysteria、Hysteria2、TUIC 等基于 QUIC 协议的节点无法连接、频繁断流或握手超时时，AI 应先让用户生成调试日志查看核心日志中的 QUIC 相关错误。如日志含 `quic-go` / `GSO` / `timeout` 等关键字，**优先建议**用户在「插件设置→模式设置」中开启「禁用 quic-go GSO (Disable QUIC Go GSO)」选项并重启 OpenClash。这是 Linux 内核 ≥6.6 上最常见的 QUIC 兼容性问题。
+> **AI 行为指引 — QUIC 类节点（Hysteria / Hysteria2 / TUIC）故障排查**: 当用户报告 Hysteria、Hysteria2、TUIC 等基于 QUIC 协议的节点无法连接、频繁断流或握手超时时，AI 应先让用户生成调试日志查看核心日志中的 QUIC 相关错误。如日志含 `quic-go` / `GSO` / `timeout` 等关键字，**优先建议**用户在「插件设置→模式设置」中开启「禁用 quic-go GSO (Disable QUIC Go GSO)」选项并重启 OpenClash。这是 Linux 内核 6.6 及以上版本上最常见的 QUIC 兼容性问题。
 >
 > **关于 `disable_udp_quic`（禁用 QUIC）**：此选项**不会**影响 Mihomo 内核自身的 Hysteria/Hysteria2/TUIC 等 QUIC 出站连接，无需因使用此类节点而关闭该选项。原因：所有模式（TUN/非TUN）下 QUIC REJECT 规则均在 filter INPUT 链 + IPv6 TUN 模式下额外在 FORWARD -o utun 链，Mihomo 内核自身出站 QUIC 走 OUTPUT 链，回复包的目标端口为临时端口（非 443），均不命中拦截规则。`disable_udp_quic` 的目的是让 LAN 客户端的 YouTube 等 QUIC 流量降级到 TCP 以便代理，与内核节点通信无关。
 >
@@ -242,7 +242,7 @@
    - `endpoint-independent-nat` 只改 UDP NAT 行为；`processors-per-channel` 对 `gvisor` 无改善。
 3. **栈选择见 §8.2.12（数据见 §8.4.2）**：默认 `mips` + `gso`（两种形态吞吐最高、短连接最快）；看重每字节 CPU 选 `system`；`gvisor` 仅在纯大流量上传时有优势；四种栈代理路由器自身流量经插件默认的标记 + 策略路由即可（无需 `auto-redirect`）。
 4. **延迟**：满载时小请求延迟 `mips` 升高约 320–360%（~2 ms → ~8–12 ms/req）、`mixed` 约 43 ms、`gvisor` 约 105 ms 且伴随失败（32 KB ×200；见 §8.4.5）；低延迟优先选内核短路路径（REDIRECT/TPROXY，见 §8.2.13）。
-5. **内核 sysctl 无需调优**：`rmem_max`/`wmem_max`/`tcp_rmem`/`tcp_wmem`（调至 16 MB）、`tcp_congestion_control=bbr`、`default_qdisc=fq`、`netdev_max_backlog`/`netdev_budget`、`tcp_fastopen`/`tcp_max_syn_backlog`/`somaxconn` 等即使全部一起修改，差异仍 ≤5%（`bbr` 反而略差）——TUN、REDIRECT、TPROXY 三种路径均已验证（见 §8.4.6）。
+5. **内核 sysctl 无需调优**：`rmem_max`/`wmem_max`/`tcp_rmem`/`tcp_wmem`（调至 16 MB）、`tcp_congestion_control=bbr`、`default_qdisc=fq`、`netdev_max_backlog`/`netdev_budget`、`tcp_fastopen`/`tcp_max_syn_backlog`/`somaxconn` 等即使全部一起修改，差异仍 ≤5%（`bbr` 反而略差）——TUN、REDIRECT、TPROXY 三种路径均已验证（见 §8.4.6）；UDP 缓冲默认值（`rmem_default`/`wmem_default` 等）、`dev_weight`、TCP 连接周转与发送行为参数同样无收益。
 6. `tun.gso` 与 `experimental.quic-go-disable-gso`（插件「禁用 quic-go GSO」开关）互不影响：前者作用于 tun 设备层；后者在核心启动前设置环境变量 `QUIC_GO_DISABLE_GSO`（`github.com/metacubex/mihomo/hub/executor/executor.go`），作用于 QUIC 的 UDP socket。内核并未默认禁用 GSO：`setsockopt(UDP_SEGMENT)`/`UDP_GRO` 均可用。QUIC 报文同样经过 tun，故 `tun.gso` 对 UDP/QUIC 吞吐同样有正收益。
 7. **持续满载无衰减**：连续满载 10 分钟（四栈均验证：单连接 2 GB 循环 + 4 连接循环）吞吐、每 256 MB CPU、RSS/fd 均平稳，无热降频——可长期满速（见 §8.4.5）。
 
@@ -366,7 +366,7 @@ tun:
 
 #### 8.4.1 测量条件
 
-- **两种形态**：**路由器自身**（本机客户端 ↔ 本机源站；域名经核心 fake-ip 解析 → 输出标记 → 策略路由进 TUN 闭环）与 **LAN 转发**（veth 命名空间客户端 ↔ 源站，同路径进 TUN）；并发档位另以 LAN 侧真实客户端（PC）交叉验证（见 §8.4.5）。§8.4.3 的转发路径与 UDP 对比也在设备内部完成（不经物理链路）。
+- **两种形态**：**路由器自身**（本机客户端 ↔ 本机源站；域名经核心 fake-ip 解析 → 输出标记 → 策略路由进 TUN 闭环）与 **LAN 转发**（veth 命名空间客户端 ↔ 源站，同路径进 TUN）；并发档位另以 LAN 侧真实客户端（PC）验证（见 §8.4.5）。§8.4.3 的转发路径与 UDP 对比也在设备内部完成（不经物理链路）。
 - **场景**：批量 TCP 256 MB（下载＝服务端→客户端：单连接测 2 次、4 连接并发测 1 次；上传＝`iperf3 -P4 -t 6`，4 连接并发）；短连接 3000 次 × 32 KB（20 并发）；UDP 200 B @20 kpps、1400 B @7.5 kpps 各 5 s。
 - **CPU**：核心进程 utime+stime（s/256MB）；`tun` 段与插件生成的标准配置一致。
 - 数值单位：吞吐 MB/s、短连接 rps、丢包 %；单连接为两次测量（区间/并列）；`gso` 对比见 §8.4.2（表中为「关 → 开」的数值与变化幅度）。
@@ -397,12 +397,12 @@ tun:
 | 短连接（rps） | 656 → 635（-3%） | 647 → 597（-8%） | 872 → 1162（+33%） | 93 → 401（+331%）\* |
 | UDP 200 B 丢包（%） | 0.3 → 0.1（-0.2 个百分点） | 0.3 → 0.3（持平） | 1.6 → 1.5（-0.1 个百分点） | 55 → 52（-3 个百分点） |
 
-> - \*：`gvisor` 短连接呈**双峰**波动——间歇处于劣化档（约 30–90 rps、大量请求失败）或正常档（150–650 rps、仍偶有失败），与 `gso`、客户端形态、平台均无关（表中 62/93/401 均为该区间的真实取值）。其余数据波动在 ±10% 内。
+> - \*：`gvisor` 短连接呈**双峰**波动——间歇处于劣化档（约 30–90 rps、大量请求失败）或正常档（150–650 rps、仍偶有失败），与 `gso`、客户端形态、平台均无关（表中 62/93/401 均落在该区间内）。其余数据波动在 ±10% 内。
 > - UDP 1400 B @7.5 kpps 丢包：各栈均 ≤0.9%（`gvisor` 0.8%）。
 
 #### 8.4.3 转发路径对比
 
-> 本轮对比使用**设备内部测试环境**（客户端与源站均位于设备内部、经虚拟网卡互通，不经物理链路），`gso` 开启。真实 PC 客户端另有链路上限（1GbE ≈ 110 MB/s、WiFi 更低）——此前表中 30–35 MB/s 的数字即受当时 PC 客户端链路限制。
+> 以下对比在**设备内部测试环境**完成（客户端与源站均位于设备内部、经虚拟网卡互通，不经物理链路），`gso` 开启。真实 PC 客户端另有链路上限（1GbE ≈ 110 MB/s、WiFi 更低）。
 
 | 路径 | 批量 TCP（单连接 / 4 连接） | 短连接（3000 次 × 32 KB，20 并发） | 每 256 MB core CPU |
 |------|---------------------------|-----------------------------------|--------------------|
@@ -444,7 +444,7 @@ tun:
 
 #### 8.4.5 持续满载、高并发与延迟
 
-四栈对照（`gso` 开启，路由器自身形态；`mips` 为原表数据，其余为本轮补测）：
+四栈对照（`gso` 开启，路由器自身形态）：
 
 | 场景 | `mips` | `system` | `mixed` | `gvisor` |
 |------|--------|----------|---------|----------|
@@ -455,7 +455,7 @@ tun:
 | 混合：短连接（20 并发、32 KB）+ 后台 2 连接批量 | 526–714 rps / 83–109 MB/s | — | 183 rps / 60 MB/s | 60 rps / 33 MB/s |
 | 延迟（32 KB 请求 ×200）：空载 → 满载 | ~2 ms → ~8–12 ms | — | ~2.1 ms → ~43 ms | ~3.3 ms → ~105 ms（含失败） |
 
-> 四栈连续满载 10 分钟均无衰减（`mixed` 单连接循环 32+ 轮、`gvisor` 4 连接循环 16 轮全程平稳，无热降频）。并发 ≥40 连接时各栈同档回落（40–57 MB/s，原因见下）；`gvisor` 的并发吞吐靠极低的单连接吞吐（~1.4 MB/s）叠加而来，且满载延迟与失败率最差。满载延迟从好到差：`mips`（升高约 320–360%）＜ `mixed`（~43 ms）＜ `gvisor`（~105 ms，200 次中失败 4 次）。
+> 四栈连续满载 10 分钟均无衰减（`mixed` 单连接循环 32 次以上、`gvisor` 4 连接循环 16 次，全程平稳、无热降频）。并发 ≥40 连接时各栈同档回落（40–57 MB/s，原因见下）；`gvisor` 的并发吞吐靠极低的单连接吞吐（~1.4 MB/s）叠加而来，且满载延迟与失败率最差。满载延迟从好到差：`mips`（升高约 320–360%）＜ `mixed`（~43 ms）＜ `gvisor`（~105 ms，200 次中失败 4 次）。
 
 **吞吐随并发数下降的原因**（`mips` + `gso`，512 MB 批量；含无代理直连参照）
 
@@ -466,14 +466,14 @@ tun:
 | 每 256 MB CPU（s） | 3.9 | 4.7 | 5.4 | 7.1 | 11.6 | 14.1 |
 
 - 吞吐随连接数**平滑**下降；40 连接连续传输 2 GB 期间全程稳定，无随时间衰减。核心向 tun 写出的包速率封顶约 **2.5 万包/秒**，吞吐 ≈ 包速率上限 × 合批尺寸——**直接原因是单次写入的合批尺寸随并发数变小**（近似 ∝ 1/连接数）。
-- 两种栈的每个包/每批都要经用户态处理（`system`：用户态地址改写 + 内核 TCP；`mips`：全用户态 TCP），读/写循环各只有一条运行在单线程上 ⇒ 并发升高后合批失效，逐批处理能力成为瓶颈；每字节 CPU 升至约 3 倍，并伴随重传（最多 1.4 万段）；`system` 趋势相同（107 降至 42 MB/s，-61%）。合批为何失效：sing-tun 单次写调用最多向栈取 64 个包、且 GRO 只在该批内合并（`github.com/metacubex/sing-tun/stack_mipstack.go`、`github.com/metacubex/sing-tun/tun_offload_linux.go`），而栈输出为全局单队列（256 槽，`github.com/metacubex/mipstack/stack.go`）⇒ 批内同连接连续包 ≈ 64/并发数。
-- 交叉验证（LAN 侧真实客户端）：以 PC 作为客户端验证同一路径——40/100 连接 = 59 / 52 MB/s（`mips`）、`system` 40 连接 53 MB/s，合批 2.2–2.5 KB、包速率 ~2.5 万/秒，与表中规律一致；不经代理直连时同路径 40/100 连接达 106 / 94 MB/s ⇒ 该下降属 TUN 数据面特有（逐包用户态 + 合批失效），与客户端、链路无关。
+- 两种栈的每个包/每批都要经用户态处理（`system`：用户态地址改写 + 内核 TCP；`mips`：全用户态 TCP），读/写循环均只有一条、运行在单线程上 ⇒ 并发升高后合批失效，逐批处理能力成为瓶颈；每字节 CPU 升至约 3 倍，并伴随重传（最多 1.4 万段）；`system` 趋势相同（107 降至 42 MB/s，-61%）。合批为何失效：sing-tun 单次写调用最多向栈取 64 个包、且 GRO 只在该批内合并（`github.com/metacubex/sing-tun/stack_mipstack.go`、`github.com/metacubex/sing-tun/tun_offload_linux.go`），而栈输出为全局单队列（256 槽，`github.com/metacubex/mipstack/stack.go`）⇒ 批内同连接连续包 ≈ 64/并发数。
+- **LAN 侧真实客户端（PC）验证**：40/100 连接 = 59 / 52 MB/s（`mips`）、`system` 40 连接 53 MB/s——合批 2.2–2.5 KB、包速率 ~2.5 万/秒，与上表规律一致；不经代理直连时同路径达 106 / 94 MB/s ⇒ 下降属 TUN 数据面特有（逐包用户态 + 合批失效），与客户端、链路无关。
 
 #### 8.4.6 内核 sysctl 调优
 
 `net.core.rmem_max`/`wmem_max` 调至 16 MB、`tcp_rmem`/`tcp_wmem` 调至 16 MB、`tcp_congestion_control=bbr`、`default_qdisc=fq`、`netdev_max_backlog=5000`、`netdev_budget=600`、`tcp_fastopen=3`、`tcp_max_syn_backlog=8192`、`somaxconn=8192`（`mips` + `gso`）：
 
-| 阶段 | 自身×下载单连接 | 短连接 rps | LAN×下载单连接 |
+| 状态 | 自身×下载单连接 | 短连接 rps | LAN×下载单连接 |
 |------|------------|-----------|-----------|
 | 默认 | 159 / 159 | 1288 | 141 |
 | 全部调优 | 154 / 154 | 1286 | 143 |
@@ -481,14 +481,24 @@ tun:
 
 同样参数在 **REDIRECT / TPROXY 路径**（同一测试环境；单连接 MB/s、短连接 rps）上也无影响：
 
-| 阶段 | REDIRECT 单连接（两次） | REDIRECT 短连接 | TPROXY 单连接（两次） | TPROXY 短连接 |
+| 状态 | REDIRECT 单连接（两次） | REDIRECT 短连接 | TPROXY 单连接（两次） | TPROXY 短连接 |
 |------|------------|-----------|-----------|-----------|
 | 默认 | 974 / 1033 | 2368 rps | 1096 / 860 | 2556 rps |
 | 全部调优 | 970 / 1078 | 2509 rps | 921 / 804 | 2428 rps |
 | 调优后还原 | 1052 / 1129 | 2504 rps | 958 / 1005 | 2443 rps |
 
-TPROXY 的 UDP 场景（200 B @20/40 kpps、1400 B @7.5 kpps、QUIC-40、flood）在三相位间的丢包差异也都在 3 个百分点以内。
+TPROXY 的 UDP 场景（200 B @20/40 kpps、1400 B @7.5 kpps、QUIC-40、flood）受调优影响也都在 3 个百分点以内。
 
-> 调整上述全部参数对三种路径（TUN / REDIRECT / TPROXY）的吞吐、短连接、UDP 丢包影响都在 ±5% 波动范围内（`bbr` 反而略差）⇒ **无需调优，保持系统默认**（`bbr` 模块本身可用：`reno cubic bbr`）。
+**其余常用参数**（各组单独调整）同样无收益：
+
+| 参数组 | 调整内容 |
+|--------|----------|
+| UDP 缓冲默认值 | `rmem_default`/`wmem_default` 调至 1 MB、`udp_rmem_min`/`udp_wmem_min` 调至 64 KB |
+| 内核接收批处理权重 | `dev_weight` 调至 512 |
+| TCP 连接周转与发送行为 | `tcp_max_tw_buckets`、`tcp_max_orphans`、`tcp_fin_timeout`、`ip_local_port_range`、`tcp_syncookies`、`tcp_no_metrics_save`、`tcp_slow_start_after_idle`、`tcp_autocorking`、`optmem_max` |
+
+小包 UDP 丢包（200 B @20/40 kpps）与默认基线的差异 ≤2 个百分点；瓶颈在核心的用户态读写循环与逐包处理（见 §8.4.5），与内核缓冲、软中断批处理权重或连接生命周期参数无关。
+
+> 以上全部参数对吞吐、短连接、UDP 丢包均无改善（`bbr` 反而略差）⇒ **无需调优，保持系统默认**（`bbr` 模块本身可用：`reno cubic bbr`；`tcp_tw_reuse` 内核默认即为 2，无需调整）。
 
 ---

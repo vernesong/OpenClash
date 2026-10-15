@@ -9,8 +9,8 @@
 > 2. `change_dnsmasq()` 修改系统 dnsmasq → LAN 客户端 DNS 被劫持到 Mihomo
 > 3. `openclash_custom_domain_dns.sh` 为自定义域名配置独立 DNS
 >
-> **AI 行为指引**: 当用户询问 DNS 劫持相关问题时（如"DNS 重定向模式选哪个"、"自定义上游 DNS 服务器怎么写"、
-> "Fake-IP 和 Redir-Host 的 DNS 行为有何不同"、"如何让特定域名不走 Fake-IP"），AI 应结合本文档的
+> **AI 行为指引**: 当用户询问 DNS 劫持相关问题时（如「DNS 重定向模式选哪个」「自定义上游 DNS 服务器怎么写」、
+> 「Fake-IP 和 Redir-Host 的 DNS 行为有何不同」「如何让特定域名不走 Fake-IP」），AI 应结合本文档的
 > `04/05/06-firewall-*.md`（防火墙与 DNS 规则详解）章节和 [Mihomo DNS 配置文档](https://wiki.metacubex.one/config/dns/)
 > 解释底层原理，然后告知用户在 LuCI 中的操作路径。
 > 涉及 dnsmasq 劫持实现时可查阅 [OpenClash 源码](https://github.com/vernesong/OpenClash/tree/dev) 中
@@ -65,8 +65,8 @@
 
 > **生效路径**: 访问控制完全在防火墙层面实现，不修改 YAML。
 >
-> **AI 行为指引**: 当用户询问访问控制问题时（如"如何让某个设备不走代理"、"如何让内网某设备全局代理"、
-> "代理黑名单和白名单的区别"），AI 应结合本章节的防火墙规则详解
+> **AI 行为指引**: 当用户询问访问控制问题时（如「如何让某个设备不走代理」「如何让内网某设备全局代理」、
+> 「代理黑名单和白名单的区别」），AI 应结合本章节的防火墙规则详解
 > （特别是 `06-firewall-options-dnsmasq.md` §6.2「各选项对防火墙规则的具体影响」表格）告知用户各选项组合的效果。
 > 涉及黑白名单匹配逻辑时，查阅 [OpenClash 源码](https://github.com/vernesong/OpenClash/tree/dev) 中
 > `init.d/openclash` 的 `firewall_lan_ac_traffic()` 函数和 `set_firewall()` 中的 `ipset`/`nft set` 创建逻辑。
@@ -118,8 +118,8 @@
 > **生效路径**: `openclash_streaming_unlock.lua` 脚本在核心启动后被守护进程调用，
 > 定期测试各流媒体服务的解锁情况，自动将策略组切换到支持该服务的节点。
 >
-> **AI 行为指引**: 当用户询问流媒体相关问题时（如"如何解锁 Netflix/Disney+"、"Bilibili 地区选项代表什么"、
-> "如何添加新的流媒体服务"、"Group Filter 正则怎么写"），AI 应查阅 [Mihomo 规则文档](https://wiki.metacubex.one/config/rules/)
+> **AI 行为指引**: 当用户询问流媒体相关问题时（如「如何解锁 Netflix/Disney+」「Bilibili 地区选项代表什么」、
+> 「如何添加新的流媒体服务」「Group Filter 正则怎么写」），AI 应查阅 [Mihomo 规则文档](https://wiki.metacubex.one/config/rules/)
 > 了解 GEOSITE/RULE-SET 等规则类型，并结合 OpenClash 的流媒体增强设置告知用户具体配置步骤。
 > 涉及流媒体解锁检测逻辑时，查阅 [OpenClash 源码](https://github.com/vernesong/OpenClash/tree/dev) 中
 > `openclash_streaming_unlock.lua` 脚本。

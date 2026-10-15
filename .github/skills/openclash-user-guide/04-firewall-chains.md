@@ -2,15 +2,15 @@
 
 > **用途**: 透明代理防火墙链结构（fw4/fw3）、模式解析与规则排序，理解流量如何被代理/绕过。
 
-> **小节索引**: §4.1 模式解析表 · §4.2 fw4 链结构（§4.2.1 DNS 劫持 / §4.2.2 非 TUN / §4.2.3 TUN / §4.2.4 IPv6）
+> **小节索引**: §4.1 模式解析表 · §4.2 fw4 链结构（§4.2.1 DNS 劫持 / §4.2.2 非 TUN / §4.2.3 TUN / §4.2.4 IPv6）· §4.3 策略路由辅助规则 · §4.4 Docker 网桥与 UDP TPROXY
 
 > OpenClash 同时支持 **fw3 (iptables/ipset)** 和 **fw4 (nftables)** 两种防火墙后端，通过 `command -v fw4` 自动检测：
 > - 存在 `fw4` → 使用 **nftables** (OpenWrt 22.03+)
 > - 不存在 `fw4` → 使用 **iptables + ipset** (旧版 OpenWrt)
 > 所有 `if [ -n "$FW4" ]` / `if [ -z "$FW4" ]` 分支互斥，两种后端的**规则逻辑完全相同**，仅语法不同。
 >
-> **AI 行为指引**: 当用户询问透明代理/防火墙相关问题时（如"为什么设备无法上网"、"旁路由模式下流量不走代理"、
-> "如何验证防火墙规则是否生效"、"TUN 模式下某协议不通"），AI 应**先让用户生成调试日志**
+> **AI 行为指引**: 当用户询问透明代理/防火墙相关问题时（如「为什么设备无法上网」「旁路由模式下流量不走代理」、
+> 「如何验证防火墙规则是否生效」「TUN 模式下某协议不通」），AI 应**先让用户生成调试日志**
 > （含完整防火墙规则链）。日志不足时再指导用户在路由器终端执行 `nft list ruleset`（fw4）或
 > `iptables -t nat -L -n`（fw3）查看实际规则。结合下表中的链结构和规则排序，对比用户的需求判断规则是否如预期生效。
 > 如涉及底层实现细节，查阅 [OpenClash 源码](https://github.com/vernesong/OpenClash/tree/dev) 中
@@ -293,7 +293,7 @@ nft insert rule inet fw4 input position 0 udp dport 443 \
 | nftables 链 | 功能 | 触发条件 |
 |-------------|------|----------|
 | `openclash_v6` | IPv6 TCP REDIRECT | `ipv6_mode=1` 或 `3` |
-| `openclash_mangle_v6` | IPv6 TPROXY / TUN fwmark | `enable_v6_udp_proxy=1` 或 `ipv6_mode≠1` |
+| `openclash_mangle_v6` | IPv6 TPROXY / TUN fwmark | `enable_v6_udp_proxy=1` 或 `ipv6_mode != 1` |
 | `openclash_output_v6` | 路由器自身 IPv6 TCP | `router_self_proxy=1` + (`ipv6_mode=1` 或 `3`) |
 | `openclash_mangle_output_v6` | 路由器自身 IPv6 fwmark | `router_self_proxy=1` |
 | `openclash_post_v6` | 旁路由 SNAT/MASQUERADE | `bypass_gateway_compatible=1` |

@@ -92,7 +92,7 @@ IPv6 非 TUN 模式下 ICMPv6 **不被标记也不被代理**。IPv6 Fake-IP 地
 
 当 ICMP echo-request 经策略路由进入 TUN 虚拟网卡后，Mihomo 内核按以下优先级处理：
 
-1. **目标是 Fake-IP 地址**（`resolver.IsFakeIP(addr)`） → 返回 `nil, nil`，内核用**伪造的 echo-reply** 回复。上层看到 "ping 成功" 但实际未经过网络，延迟显示为虚假的 ~0ms
+1. **目标是 Fake-IP 地址**（`resolver.IsFakeIP(addr)`） → 返回 `nil, nil`，内核用**伪造的 echo-reply** 回复。上层看到「ping 成功」但实际未经过网络，延迟显示为虚假的 ~0ms
 2. **目标是 TUN 接口自身 IP**（`inet4_address` / `inet6_address` 范围内） → 同上，伪造回复
 3. **`disable-icmp-forwarding: true`** → 所有 ICMP 均伪造回复
 4. **以上均不满足**（真实 IP 且未禁用转发） → 通过 `ping.ConnectDestination()` 以 **DIRECT 模式**发出真实 ICMP 包，等待真实 reply。延迟为本地网络到目标的实际 RTT
@@ -148,7 +148,7 @@ nft insert rule inet fw4 openclash_output position 0 tcp \
 
 > **注意事项**:
 > - 所有规则自动排除 Fake-IP 地址范围（`ip daddr != {<fakeip_range>}`），确保 Fake-IP 流量不受影响。
-> - `target=drop` 在防火墙规则中实际执行为 `return`（跳过代理），区别在于 `drop` 在策略路由/旁路由链中也执行 `return`。
+> - `target=drop`：nat 链（`openclash`/`openclash_output`/`openclash_post`）中实际执行为 `return`（跳过代理、不丢包）；mangle 链（`openclash_mangle` 等）中为真正的 `drop`（丢弃报文）。
 > - `user` 字段仅对 OUTPUT 链生效（路由器自身出站流量），入站流量不支持 UID 匹配。
 > - DSCP 匹配在 fw3 (iptables) 环境下需要 `iptables-mod-extra`（提供 DSCP 模块），如不可用会输出警告并跳过 DSCP 规则。
 

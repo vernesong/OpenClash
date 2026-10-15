@@ -61,13 +61,10 @@ Dashboard: http://路由器LAN_IP:9090/ui/
 - **UCI 配置根**: `openclash` (所有选项均在 `uci show openclash` 可见)
 - **Mihomo 运行时 API**: `http://路由器LAN_IP:9090` — 部分动态选项通过 PATCH `/configs` 热生效。注意：API 地址是**路由器 LAN 口 IP**，不是 127.0.0.1（核心监听 `0.0.0.0`，但 LuCI 后端通过 `127.0.0.1` 直连核心 API）
 - **核心启动脚本**: `/etc/init.d/openclash {start|stop|restart|reload|enable|disable}`
-- **自定义文件目录**: `/etc/openclash/custom/` — 存放用户自定义规则/DNS/防火墙脚本
 
 ---
 
 ## 系统启动完整流程
-
-> 理解此流程是理解所有选项实现逻辑的基础
 
 ```
 /etc/init.d/openclash start_service()

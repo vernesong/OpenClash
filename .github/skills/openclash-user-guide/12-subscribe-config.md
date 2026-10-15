@@ -4,8 +4,8 @@
 
 > UCI Section: `openclash.config_subscribe` (多条)
 
-> **AI 行为指引**: 当用户询问订阅相关问题（如"如何过滤节点"、"订阅转换怎么用"、"订阅 URL 格式不对怎么办"、
-> "keyword 和 ex_keyword 的区别"、"Age 加密是什么"），AI 应查阅 [Mihomo 代理协议文档](https://wiki.metacubex.one/config/proxies/)
+> **AI 行为指引**: 当用户询问订阅相关问题（如「如何过滤节点」「订阅转换怎么用」「订阅 URL 格式不对怎么办」、
+> 「keyword 和 ex_keyword 的区别」「Age 加密是什么」），AI 应查阅 [Mihomo 代理协议文档](https://wiki.metacubex.one/config/proxies/)
 > 了解节点名称的命名规范和常见格式，涉及订阅处理实现细节时查阅
 > [OpenClash 源码](https://github.com/vernesong/OpenClash/tree/dev) 中 `openclash.sh` 的
 > `sub_info_get()`、`config_cus_up()`、`server_key_match()` 等函数，
@@ -54,8 +54,8 @@
 
 ### 12.3 每条订阅 (`config_subscribe` TypedSection)
 
-| 字段 | 用途 |
-|------|------|
+| 字段 | UCI Key | 用途 |
+|------|---------|------|
 | 订阅名称 (Config Alias) | `name` | 用于区分，请勿重名 |
 | 订阅地址 (Subscribe Address) | `address` | 订阅 URL |
 | **User-Agent** (UA) | `sub_ua` | 预设 clash-verge/clash.meta/clash |
@@ -69,8 +69,8 @@
 > **跳过证书校验 (skip-cert-verify)**: 仅在订阅转换 `sub_convert` 启用时显示，用于转换时跳过 HTTPS 证书校验，默认 `true`（启用）；配置上传 (`config_upload`) 弹窗中的同名选项同样默认勾选。
 
 **关键字格式**: 使用 `&` 表示 AND (同时满足)，使用 `|` 表示 OR
-- 例：`香港&01` → 节点名同时包含"香港"和"01"
-- 例：`香港|台湾` → 节点名包含"香港"或"台湾"
+- 例：`香港&01` → 节点名同时包含「香港」和「01」
+- 例：`香港|台湾` → 节点名包含「香港」或「台湾」
 
 ---
 

@@ -24,7 +24,7 @@
 
 | 模式 | UCI `en_mode` 值 | 说明 |
 |------|-----------------|------|
-| **兼容 (Compat)** | `redir-host` | Redir-Host 模式，使用 iptables redirect 转发流量 |
+| **兼容 (Compat)** | `redir-host` / `fake-ip` | 非 TUN 模式：TCP REDIRECT + UDP TPROXY |
 | **TUN 模式** | `redir-host-tun` / `fake-ip-tun` | 使用 TUN 虚拟网卡接管所有流量 |
 | **混合 (Mix)** | `redir-host-mix` / `fake-ip-mix` | TUN + Redirect 混合，TCP 走 system 栈、UDP 走 gvisor 栈 |
 
@@ -134,7 +134,7 @@
 - **计划信息**：计划类型、到期时间、账户余额、推广余额、积分
 - **流量统计**：今日已用、计划已用、剩余流量、总流量
 - **签到按钮**：每日签到获取流量
-- **底部链接**："Powered by oixcloud.com"
+- **底部链接**：「Powered by oixcloud.com」
 
 > 登录入口：在「插件设置 → oixCloud」标签页中通过 Login Account 按钮登录。
 

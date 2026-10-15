@@ -5,7 +5,7 @@
 > **小节索引**: §11.1 实现总览 · §11.2 常规 · §11.3 DNS · §11.4 Meta · §11.5 Smart · §11.6 规则 · §11.7 认证
 
 > UCI Section: `openclash.config_overwrite`
-> 此页面用于覆写订阅配置中的特定字段，设置后通过 openclash.sh 脚本注入到生成的 YAML 中
+> 此页面用于覆写订阅配置中的特定字段，设置后由 `yml_change.sh` / `yml_rules_change.sh` 在启动时写入生成的 YAML（见 §11.1）
 
 ### 11.1 实现总览
 
@@ -78,8 +78,8 @@
 > **生效路径**: DNS 覆写通过 `yml_change.sh` 的 `yml_dns_custom()` 函数处理，
 > 构建完整的 `dns:` YAML 段并合并到运行配置。
 >
-> **AI 行为指引**: 当用户询问 DNS 配置问题时（如"如何配置 DoH/DoT"、"nameserver-policy 怎么写"、"hosts 格式是什么"、
-> "fallback-filter 各字段含义"等），AI 应查阅 [Mihomo DNS 配置文档](https://wiki.metacubex.one/config/dns/)
+> **AI 行为指引**: 当用户询问 DNS 配置问题时（如「如何配置 DoH/DoT」「nameserver-policy 怎么写」「hosts 格式是什么」、
+> 「fallback-filter 各字段含义」等），AI 应查阅 [Mihomo DNS 配置文档](https://wiki.metacubex.one/config/dns/)
 > 了解各字段的详细含义和用法，涉及 OpenClash 侧 DNS 覆写实现时查阅
 > [OpenClash 源码](https://github.com/vernesong/OpenClash/tree/dev) 中 `yml_change.sh` 的 `yml_dns_custom()` 函数，
 > 然后**结合 OpenClash 覆写模块的操作方式**告知用户如何配置，而非仅给出文档链接。
@@ -175,8 +175,8 @@
 
 #### 11.3.13 DNS 服务器列表 (dns_servers TypedSection)
 
-> **AI 行为指引**: 当用户询问 DNS 服务器类型（如"DoH 和 DoT 有什么区别"、"quic 类型怎么用"、
-> "dns 服务器的 `#proxy` 和 `#RULES` 后缀是什么意思"）时，AI 应查阅
+> **AI 行为指引**: 当用户询问 DNS 服务器类型（如「DoH 和 DoT 有什么区别」「quic 类型怎么用」、
+> 「dns 服务器的 `#proxy` 和 `#RULES` 后缀是什么意思」）时，AI 应查阅
 > [Mihomo DNS 类型文档](https://wiki.metacubex.one/config/dns/type/) 了解每种 DNS 协议的使用方法和参数，
 > 涉及 OpenClash 侧实现时查阅 [OpenClash 源码](https://github.com/vernesong/OpenClash/tree/dev) 中
 > `yml_change.sh` 的 DNS 相关逻辑，然后告知用户具体的配置写法。
@@ -204,7 +204,7 @@ dns:
 
 **DNS 服务器地址后缀语法（`#`）**:
 
-`nameserver` / `fallback` / `default-nameserver` / `proxy-server-nameserver` / `nameserver-policy` 的值都支持在 `#` 后追加“出站方式”，多个后缀用 `&` 连接：
+`nameserver` / `fallback` / `default-nameserver` / `proxy-server-nameserver` / `nameserver-policy` 的值都支持在 `#` 后追加「出站方式」，多个后缀用 `&` 连接：
 
 | 后缀 | 含义 | 示例 |
 |------|------|------|
@@ -213,7 +213,7 @@ dns:
 | `#<网卡名>` | 从指定网卡发出 | `'8.8.8.8#eth0'` |
 | `#k=v` | 传给该协议的参数，可与上面的出站后缀用 `&` 组合。常见参数：`h3=true`（DoH 强制 HTTP/3，`github.com/metacubex/mihomo/dns/doh.go`）、`skip-cert-verify=true`、`name-cert-verify=`（DoH/DoT/DoQ）、`disable-reuse=true`（DoT）、`ecs=`（EDNS Client Subnet）、`disable-ipv4=true`/`disable-ipv6=true` | `'https://dns.google/dns-query#Proxy&h3=true'` |
 
-- **`#RULES` 与全局「遵守路由规则 (`respect-rules`)」的区别**：全局开关开启时还**必须**配置 `proxy-server-nameserver`，否则内核启动即报错（`if “respect-rules” is turned on, “proxy-server-nameserver” cannot be empty`）；写成 `#RULES` 只影响这一条服务器，不触发该强校验，也不用预先配置 `proxy-server-nameserver`
+- **`#RULES` 与全局「遵守路由规则 (`respect-rules`)」的区别**：全局开关开启时还**必须**配置 `proxy-server-nameserver`，否则内核启动即报错（`if "respect-rules" is turned on, "proxy-server-nameserver" cannot be empty`）；写成 `#RULES` 只影响这一条服务器，不触发该强校验，也不用预先配置 `proxy-server-nameserver`
 - 实现：`github.com/metacubex/mihomo/config/config.go` 的 `parseNameServer()` 把 `#` 后不含 `=` 的片段当作 `proxyName`；`github.com/metacubex/mihomo/tunnel/dns_dialer.go` 中 `proxyName == "RULES"`（常量 `DnsRespectRules`）时调用 `resolveMetadata()` 走规则引擎
 - 插件内置示例：覆写模块 `Google_Play` 的 `'https://8.8.8.8/dns-query#RULES'` 与 `'https://dns.google/dns-query#RULES'` 两条并发查询
 
@@ -222,8 +222,8 @@ dns:
 > **生效路径**: Meta 选项通过 `yml_change.sh` 写入 YAML，所有选项在 Mihomo 启动时加载生效。
 > 部分选项（sniffer）支持运行时通过 API 热修改。
 >
-> **AI 行为指引**: 当用户询问 Meta 相关问题（如"tcp-concurrent 和 unified-delay 有什么区别"、
-> "find-process-mode 各模式的含义"、"sniffer 如何自定义"、"geodata-loader 选哪个"），
+> **AI 行为指引**: 当用户询问 Meta 相关问题（如「tcp-concurrent 和 unified-delay 有什么区别」、
+> 「find-process-mode 各模式的含义」「sniffer 如何自定义」「geodata-loader 选哪个」），
 > AI 应查阅 [Mihomo 全局配置文档](https://wiki.metacubex.one/config/general/) 和
 > [Mihomo Sniffer 文档](https://wiki.metacubex.one/config/sniff/) 了解各选项的详细含义，
 > 涉及 OpenClash 侧 Meta 选项注入实现时查阅 [OpenClash 源码](https://github.com/vernesong/OpenClash/tree/dev) 中
@@ -328,8 +328,8 @@ dns:
 > `yml_rules_change.sh` 负责将 url-test/load-balance 策略组类型转换为 `type: smart` 并设置 Smart 相关参数（uselightgbm、collectdata、sample-rate、policy-priority、prefer-asn）。
 > Smart 策略的运行时节点选择由 **Mihomo 内核 Smart 模块内部处理**，无需外部脚本干预。
 >
-> **AI 行为指引**: 当用户询问 Smart 策略相关问题时（如"Smart 和 url-test 有什么区别"、"如何训练 Smart 模型"、
-> "prefer-asn 是什么"、"sample-rate 怎么设置"、"LGBM 模型如何自定义下载"），AI 应：
+> **AI 行为指引**: 当用户询问 Smart 策略相关问题时（如「Smart 和 url-test 有什么区别」「如何训练 Smart 模型」、
+> 「prefer-asn 是什么」「sample-rate 怎么设置」「LGBM 模型如何自定义下载」），AI 应：
 > 1. 首先查阅下方「智能设置标签页」中对应 UCI 选项的说明，给出 LuCI 操作路径（覆写设置 → Smart 设置）
 > 2. Smart 策略组是 **Smart 核心源码独有的功能**（上游 Mihomo 核心无此特性），所有实现细节均应查阅
 >    [Smart 核心源码](https://github.com/vernesong/mihomo/tree/Alpha)：
@@ -343,7 +343,7 @@ dns:
 >    计算最优节点 → ⑥ `filterProxies()` 按权重排序过滤。后台定时任务持续维护排名
 >    （`updateNodeRanking`）、预取（`runPrefetch`）、稳定性检查（`checkNodesStable`）、
 >    被封节点恢复检测（`checkBlockedNodes`）、主机状态检查（`checkHostStatus`）。
-> 4. **关于"如何训练 Smart 模型"**：用户如需自行训练模型（而非使用预训练模型），AI 应主动读取
+> 4. **关于「如何训练 Smart 模型」**：用户如需自行训练模型（而非使用预训练模型），AI 应主动读取
 >    [Smart 核心源码](https://github.com/vernesong/mihomo/tree/Alpha) 中 `component/smart/lightgbm/` 目录，
 >    了解并告知用户以下信息：
 >    - **数据来源**：`github.com/vernesong/mihomo/component/smart/lightgbm/collector.go` — 开启 `smart_collect` 后核心会在 `/etc/openclash/` 下生成 CSV 训练数据文件（含延迟、抖动、丢包率等特征；特征工程见 `github.com/vernesong/mihomo/component/smart/lightgbm/transform.go`）
@@ -440,7 +440,7 @@ dns:
 | **启用 LightGBM** (Uselightgbm) | `uselightgbm` | `false` | `proxy-groups[].uselightgbm: true/false` | 是否为此策略组启用 LightGBM 模型预测权重。优先级高于全局 `smart_enable_lgbm` |
 | **收集训练数据** (Collectdata) | `collectdata` | `false` | `proxy-groups[].collectdata: true/false` | 是否为此策略组收集训练数据。优先级高于全局 `smart_collect` |
 | **策略优先级** (Policy Priority) | `policy_priority` | *(空)* | `proxy-groups[].policy-priority: "<pattern>"` | 此策略组内节点的权重优先级，格式同全局 `smart_policy_priority`（如 `Premium:0.9;SG:1.3`）。支持正则匹配节点名称 |
-| **延迟容差** (Tolerance) | `tolerance` | `150` | `proxy-groups[].tolerance: <ms>` | 仅 `type=url-test` 的组会显示（`proxy-groups-config.lua` 里 `o:depends("type", "url-test")`），由 `yml_rules_change.sh` 写入 url-test 组的 `tolerance`。smart 组不用这个字段（smart 组用全局 `smart_tolerance`） |
+| **延迟容差** (Tolerance) | `tolerance` | `150` | `proxy-groups[].tolerance: <ms>` | 仅 `type=url-test` 的组会显示（`proxy-groups-config.lua` 里 `o:depends("type", "url-test")`），由 `yml_rules_change.sh` 写入 url-test 组的 `tolerance` |
 
 > **注意**: Per-group 的 `tolerance` 只对 `type=url-test` 组生效；`type=smart` 的组由 `yml_rules_change.sh` 统一使用全局 `smart_tolerance`（见 §11.5.5）。如需对单个 smart 组单独设置，需通过覆写模块的 `[YAML]` 段手动指定。
 >
@@ -454,7 +454,7 @@ dns:
 
 ### 11.6 规则设置标签页 (Rules Settings / rules)
 
-> 此标签页用于管理自定义 Clash/Mihomo 路由规则。Mihomo 支持多种规则类型，
+> 此标签页用于管理自定义 Mihomo 路由规则。Mihomo 支持多种规则类型，
 > 用户在 LuCI 文本框中编写规则时需遵循特定格式。
 
 #### 11.6.1 enable_rule_proxy — 仅代理命中规则流量 (Rule Match Proxy Mode)
@@ -481,7 +481,7 @@ dns:
 
 #### 11.6.5 规则编写指南
 
-> **当用户描述需求（如"我想让某个域名走代理"、"禁止某个 IP 走代理"）时，AI 应查阅 [Mihomo 路由规则文档](https://wiki.metacubex.one/config/rules/) 了解各规则类型的作用，涉及规则注入实现时查阅 [OpenClash 源码](https://github.com/vernesong/OpenClash/tree/dev) 中 `yml_rules_change.sh` 和 `custom_rules*.list` 的处理逻辑，然后告知用户具体的规则写法。**
+> **当用户描述需求（如「我想让某个域名走代理」「禁止某个 IP 走代理」）时，AI 应查阅 [Mihomo 路由规则文档](https://wiki.metacubex.one/config/rules/) 了解各规则类型的作用，涉及规则注入实现时查阅 [OpenClash 源码](https://github.com/vernesong/OpenClash/tree/dev) 中 `yml_rules_change.sh` 和 `custom_rules*.list` 的处理逻辑，然后告知用户具体的规则写法。**
 >
 > **用 meta-rules-dat 确认分类名（写 `GEOSITE`/`GEOIP` 规则前必查）**：当用户想按分类添加规则（如 `GEOSITE,netflix,NETFLIX`、`GEOIP,telegram,PROXY`）时，先用 [meta-rules-dat meta 分支](https://github.com/MetaCubeX/meta-rules-dat/tree/meta) 的目录确认分类名是否存在及正确拼写——`geo/geosite/` 列出全部 GeoSite 域名分类（如 cn/netflix/google/youtube/biliintl/onedrive/steam@cn），`geo/geoip/` 列出 GeoIP 分类（如 telegram/cloudflare/netflix）。分类名不存在或拼错会导致规则不匹配。各分类内容来源与 `@cn` 等变体含义见 [master 分支 README](https://github.com/MetaCubeX/meta-rules-dat)。meta 分支同时提供 `.mrs` 规则集文件（`https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/<分类>.mrs`），可直接作 rule-providers 的下载地址。
 

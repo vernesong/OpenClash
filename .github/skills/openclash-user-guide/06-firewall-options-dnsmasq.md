@@ -1,6 +1,6 @@
 ## 防火墙选项影响、fw3 等效链与 Dnsmasq 修改
 
-> **用途**: 各选项对防火墙规则的影响速查表、fw3 等效链与 Dnsmasq 劫持实现（§6.1–6.3）。
+> **用途**: 各选项对防火墙规则的影响速查表、fw3 等效链与 Dnsmasq 劫持实现（§6.1–6.4）。
 
 > **AI 行为指引**: 当用户询问「改哪个 UCI 选项会生成什么防火墙规则」「fw3 与 fw4 后端差异」「DNS 劫持的 dnsmasq 实现」时，AI 应结合本文件（§6.2 选项→规则映射、§6.3 Dnsmasq）与 `04-firewall-chains.md`（§4.2 链结构）回答，说明选项如何影响 `set_firewall()` 生成的规则链，而非仅给出选项说明。涉及实现细节时查阅 [OpenClash 源码](https://github.com/vernesong/OpenClash/tree/dev) 中 `init.d/openclash` 的 `set_firewall()` 与 `change_dnsmasq()` 函数。
 
@@ -65,7 +65,7 @@ iptables -t mangle -A PREROUTING -p udp -j openclash
 | **`router_self_proxy`** (路由本机代理 / Router-Self Proxy) | `1` | 创建 OUTPUT 链 (`openclash_output` + `openclash_mangle_output`)，路由器自身流量被重定向/标记。非 TUN 模式额外对 Fake-IP 模式始终创建 OUTPUT 链（即使用户关闭 router_self_proxy） |
 | | `0` | 删除 OUTPUT 链，路由器自身流量走原始路由 |
 | **`intranet_allowed`** (仅允许内网 / Only Intranet Allowed) | `1` | IPv4: 创建 `openclash_wan_input` 链，REJECT 来自 WAN 口对全部服务端口的访问。IPv6: 创建 `openclash_wan6_input` 链。服务端口: `$proxy_port`(7892)、`$tproxy_port`(7895)、`$cn_port`(9090)、`$http_port`(7890)、`$socks_port`(7891)、`$mixed_port`(7893)、`$dns_port`(7874) |
-| **`bypass_gateway_compatible`** (旁路网关（旁路由）兼容 / Bypass Gateway Compatible) | `1` | IPv4: 创建 `openclash_post` 链（从 `srcnat`/`POSTROUTING` jump）。规则顺序: `skgid == 65534 return`（跳过内核自身）→ `mark 0x162 accept`（**已标记的代理流量不做 SNAT**）→ `ip daddr @localnetwork return`（内网目标不 NAT）→ `ct direction reply return`（回程方向不 NAT）→ **`fib saddr type != local masquerade`（只对“源地址非本机”的转发流量做 SNAT）**。IPv6: 对应创建 `openclash_post_v6` 链 |
+| **`bypass_gateway_compatible`** (旁路网关（旁路由）兼容 / Bypass Gateway Compatible) | `1` | IPv4: 创建 `openclash_post` 链（从 `srcnat`/`POSTROUTING` jump）。规则顺序: `skgid == 65534 return`（跳过内核自身）→ `mark 0x162 accept`（**已标记的代理流量不做 SNAT**）→ `ip daddr @localnetwork return`（内网目标不 NAT）→ `ct direction reply return`（回程方向不 NAT）→ **`fib saddr type != local masquerade`（只对「源地址非本机」的转发流量做 SNAT）**。IPv6: 对应创建 `openclash_post_v6` 链 |
 | **`skip_proxy_address`** (绕过服务器地址 / Skip Proxy Address) | `1` | 看门狗定时调用 `skip_proxies_address()` 通过内核 API 解析代理节点 `server` 地址并加入 `localnetwork` nft set，复用链首 RETURN 规则跳过代理，防止代理嵌套 |
 | **`enable_redirect_dns`** (本地 DNS 劫持 / Redirect Local DNS Setting) | `1` | IPv4+IPv6 在 `dstnat` 插入 DNS 53 端口 REDIRECT 规则到 dnsmasq 端口。AC 黑白名单设备过滤。`router_self_proxy=1` 时添加 OUTPUT DNS 劫持 |
 | | `2` | 创建 `openclash_dns_redirect` 链，IPv4+IPv6 DNS 流量直接 DNAT 到 `dns_port`(7874)。同样支持 AC 过滤和 OUTPUT 劫持 |
@@ -74,7 +74,7 @@ iptables -t mangle -A PREROUTING -p udp -j openclash
 | **UPNP 流量排除**（无 UCI 选项，自动检测 `/etc/config/upnpd` 租约文件） | 系统已安装 upnpd | 创建 `openclash_upnp` 链，`upnp_exclude()` 遍历 upnpd 租约文件，按 `saddr + sport + protocol` 三元组为每个映射添加 RETURN 规则。看门狗自动同步变更 |
 | **`ipv6_enable`** (IPv6 流量代理 / Proxy IPv6 Traffic) | `1` | 创建完整 IPv6 防火墙链：`openclash_v6`(TCP REDIRECT, ipv6_mode=1/3)、`openclash_mangle_v6`(UDP TPROXY/TUN fwmark)、`openclash_output_v6`/`openclash_mangle_output_v6`(路由自身)、`openclash_post_v6`(旁路由 SNAT)、`openclash_wan6_input`(仅内网防护) |
 | **`local_network6_pass`** (本地 IPv6 绕过地址 / Local IPv6 Network Bypassed List) | 已配置 | 创建 IPv6 `localnetwork6` nft set (默认包含 ::/128, ::1/128, fe80::/10, ff00::/8 等)，IPv6 链中匹配本地 IPv6 段 RETURN。WAN IPv6 接口地址自动加入 |
-| **ICMP/Ping 处理**（无 UCI 选项，由运行模式决定） | Redir-Host / Fake-IP（非 TUN） | ICMP echo-request 仅标记 fwmark `0x162` 后 accept，**不被代理**（只有 TCP/UDP 被重定向到内核）；Fake-IP 非 TUN 模式下对 `198.18.0.0/16` 的 ping 被防火墙 REJECT（INPUT/FORWARD/OUTPUT 三链阻断，OUTPUT 排除 skgid≠65534）。详见 `05-firewall-special.md` §5.1 |
+| **ICMP/Ping 处理**（无 UCI 选项，由运行模式决定） | Redir-Host / Fake-IP（非 TUN） | ICMP echo-request 仅标记 fwmark `0x162` 后 accept，**不被代理**（只有 TCP/UDP 被重定向到内核）；Fake-IP 非 TUN 模式下对 `198.18.0.0/16` 的 ping 被防火墙 REJECT（INPUT/FORWARD/OUTPUT 三链阻断；OUTPUT 链对 `skgid != 65534` 的报文执行 REJECT，OpenClash 自身进程 `skgid=65534` 除外）。详见 `05-firewall-special.md` §5.1 |
 | | TUN 模式 / Mix 模式 | ICMP 标记 fwmark 后经策略路由进入 TUN 虚拟网卡，由 TUN 内核处理（真实 IP → DIRECT 直连延迟，Fake-IP → 伪造回复 ~0ms）；可通过 Mihomo 的 `disable-icmp-forwarding` 禁用 |
 | **`firewall_lan_ac_traffic`** (高级流量控制 / Advanced Traffic Control) | 已配置 (UCI section) | 通过 `lan_ac_traffic` UCI sections 按设备/协议/端口/DSCP 精确控制，每条规则插入到对应链的最前面 (position 0)，优先级高于所有其他规则。支持 `return`(跳过代理)/`accept`(放行)/`drop`。详见 `05-firewall-special.md` §5.2 |
 

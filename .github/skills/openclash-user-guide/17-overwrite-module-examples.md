@@ -132,7 +132,7 @@ rules+:
   - DOMAIN-SUFFIX,example.com,${PROXY_GROUP}
 ```
 
-### 17.4 自定义覆写脚本（旧方式，兼容保留）
+### 17.4 自定义覆写脚本（兼容保留）
 
 **文件**: `/etc/openclash/custom/openclash_custom_overwrite.sh`
 **执行时机**: 在 `yml_change.sh` 和 `yml_rules_change.sh` 之间执行
