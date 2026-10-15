@@ -848,6 +848,7 @@ check_core_status()
 start_run_core()
 {
    # Set TCP Fast Open blackhole timeout to 0 (disable detection) for nodes TFO availability
+   [ -e /proc/sys/net/ipv4/tcp_fastopen ] && echo 3 > /proc/sys/net/ipv4/tcp_fastopen 2>/dev/null
    [ -e /proc/sys/net/ipv4/tcp_fastopen_blackhole_timeout_sec ] && echo 0 > /proc/sys/net/ipv4/tcp_fastopen_blackhole_timeout_sec 2>/dev/null
 
    ulimit -SHn 1000000
