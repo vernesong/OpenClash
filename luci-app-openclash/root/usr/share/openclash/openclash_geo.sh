@@ -27,7 +27,13 @@ update_one() {
    local tmpfile="$3"
    local path="$4"
    local name="$5"
-   local min_size=10240
+   local min_size=131072
+   case "$type" in
+      geoip|geosite)
+         # real .dat databases are several megabytes; reject large error pages and truncated downloads
+         min_size=1048576
+         ;;
+   esac
    local download_url=""
 
    local custom_url=$(uci_get_config "$custom_key")
@@ -111,6 +117,10 @@ update_one() {
    if [ "$DOWNLOAD_RESULT" -eq 0 ] && [ -s "/tmp/$tmpfile" ]; then
       if head -c 512 "/tmp/$tmpfile" | grep -qiE "<!doctype|<html|<head|<body"; then
          LOG_OUT "【$name】Download Failed: HTML Response Detected, Abort Update..."
+         rm -rf "/tmp/$tmpfile"
+      elif head -c 512 "/tmp/$tmpfile" | grep -qiE "too many requests|rate limit|bad gateway|service unavailable|gateway time-out|404: not found|couldn't find"; then
+         # CDN may serve plain-text upstream error pages with HTTP 200 (e.g. jsDelivr caching GitHub 429)
+         LOG_OUT "【$name】Download Failed: Error Page Detected, Abort Update..."
          rm -rf "/tmp/$tmpfile"
       elif [ $(du -b "/tmp/$tmpfile" 2>/dev/null | awk '{print $1}' || echo "$min_size") -lt "$min_size" ]; then
          LOG_OUT "【$name】Download Failed: File Size Too Small, Abort Update..."
