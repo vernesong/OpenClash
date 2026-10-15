@@ -45,7 +45,10 @@ else
    DOWNLOAD_FILE_CURL "$CHNR_CUSTOM_URL" "/tmp/china_ip_route.txt" "$chnr_path"
 fi
 DOWNLOAD_RESULT=$?
-if [ "$DOWNLOAD_RESULT" -eq 0 ]; then
+if [ "$DOWNLOAD_RESULT" -eq 0 ] && ! grep -qE '^([0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]{1,2}[[:space:]]*$' "/tmp/china_ip_route.txt"; then
+   LOG_OUT "Chnroute Cidr List Download Failed: Content Invalid, Abort Update..."
+   rm -rf "/tmp/china_ip_route.txt"
+elif [ "$DOWNLOAD_RESULT" -eq 0 ]; then
    LOG_OUT "Chnroute Cidr List Download Success, Check Updated..."
    #预处理
    if [ -n "$FW4" ]; then
@@ -83,7 +86,10 @@ else
    DOWNLOAD_FILE_CURL "$CHNR6_CUSTOM_URL" "/tmp/china_ip6_route.txt" "$chnr6_path"
 fi
 DOWNLOAD_RESULT=$?
-if [ "$DOWNLOAD_RESULT" -eq 0 ]; then
+if [ "$DOWNLOAD_RESULT" -eq 0 ] && ! grep -qE '^[0-9a-fA-F]*:[0-9a-fA-F:]*/[0-9]{1,3}[[:space:]]*$' "/tmp/china_ip6_route.txt"; then
+   LOG_OUT "Chnroute6 Cidr List Download Failed: Content Invalid, Abort Update..."
+   rm -rf "/tmp/china_ip6_route.txt"
+elif [ "$DOWNLOAD_RESULT" -eq 0 ]; then
    LOG_OUT "Chnroute6 Cidr List Download Success, Check Updated..."
    #预处理
    if [ -n "$FW4" ]; then

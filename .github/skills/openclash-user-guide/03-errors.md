@@ -41,7 +41,9 @@
 | 错误关键字 | 问题位置 | 原因 | 排查方法 |
 |-----------|---------|------|----------|
 | `Download Failed: HTML Response Detected` (下载失败：检测到 HTML 响应) | 「插件设置→GEO 数据库订阅」 | CDN 返回的是 HTML 错误页而非 GEO 文件 | 「覆写设置→常规」检查 Github 地址修改 CDN 选项 |
-| `Download Failed: File Size Too Small` (下载失败：文件过小) | 「插件设置→GEO 数据库订阅」 | 下载文件 <1KB，内容不完整 | 「插件设置→GEO 数据库订阅」检查 GEO 自定义 URL 是否正确 |
+| `Download Failed: Database Content Invalid` (下载失败：数据库内容无效) | 「插件设置→GEO 数据库订阅」 | 下载内容缺少预期的规则关键字（可能为限流或错误响应页） | 「覆写设置→常规」检查 Github 地址修改 CDN 选项；或检查 GEO 自定义 URL |
+| `Chnroute Cidr List Download Failed: Content Invalid` (大陆 IP 白名单下载失败：内容无效) | 「插件设置→大陆白名单订阅」 | 下载内容不含合法 CIDR 行（可能为限流或错误响应页） | 检查 `chnr_custom_url`；更换 CDN 后重新更新 |
+| `Chnroute6 Cidr List Download Failed: Content Invalid` (大陆 IPv6 白名单下载失败：内容无效) | 「插件设置→大陆白名单订阅」 | 下载内容不含合法 CIDR 行（可能为限流或错误响应页） | 检查 `chnr6_custom_url`；更换 CDN 后重新更新 |
 | `Update Error, Please Try Again Later` (更新失败，请稍后再试) | 「插件设置→GEO 数据库订阅」 | 网络下载失败 | 「运行状态」检查网络连通性；若使用代理下载，添加直连规则 |
 | `Control Panel【<名 - <类型>】Unzip Error!` (控制面板解压失败) | 「运行状态」仪表盘切换 | Dashboard 压缩包解压失败 | 「系统→软件包」确认 `unzip` 已安装 |
 | `LightGBM Model Update Error` (LGBM 模型更新失败) | 「覆写设置→智能设置」 | LGBM 模型下载失败 | 「覆写设置→智能设置」检查模型 URL |

@@ -1637,11 +1637,17 @@ msgstr "大陆 IP 白名单下载失败，请检查网络或稍后再试..."
 msgid "Chnroute6 Cidr List Update Error, Please Try Again Later..."
 msgstr "大陆 IPv6 白名单下载失败，请检查网络或稍后再试..."
 
+msgid "Chnroute Cidr List Download Failed: Content Invalid, Abort Update..."
+msgstr "大陆 IP 白名单下载失败：内容无效（可能为限流或错误页面），终止更新..."
+
+msgid "Chnroute6 Cidr List Download Failed: Content Invalid, Abort Update..."
+msgstr "大陆 IPv6 白名单下载失败：内容无效（可能为限流或错误页面），终止更新..."
+
 msgid "Download Failed: HTML Response Detected, Abort Update..."
 msgstr "下载失败：检测到 HTML 响应（可能为 CDN 错误页面），终止更新..."
 
-msgid "Download Failed: File Size Too Small, Abort Update..."
-msgstr "下载失败：文件大小过小（可能被截断），终止更新..."
+msgid "Download Failed: Database Content Invalid, Abort Update..."
+msgstr "下载失败：数据库内容无效（可能为限流或错误页面），终止更新..."
 
 msgid "Download Success, Check Updated..."
 msgstr "下载成功，检查数据库是否已更新..."
