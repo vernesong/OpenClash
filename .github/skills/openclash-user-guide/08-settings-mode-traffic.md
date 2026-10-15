@@ -2,7 +2,7 @@
 
 > **用途**: 插件设置页的模式与流量控制标签页各选项（UCI 与实现，§8.1–8.3）。
 
-> **小节索引**: §8.1 实现总览（§8.1.1 强制覆盖/禁用）· §8.2 模式设置（en_mode / stack_type / proxy_mode / …，§8.2.12 四栈选型、§8.2.13 转发模式、§8.2.14 默认值与 MIPS 来源、§8.2.15 TUN 数据面参数结论与选型）· §8.3 流量控制（router_self_proxy / disable_udp_quic / china_ip_route / …）· §8.4 性能实测数据（§8.4.1 测量条件、§8.4.2 四栈 × gso 主表、§8.4.3 转发路径、§8.4.4 TUN 参数、§8.4.5 持续负载与延迟、§8.4.6 内核 sysctl）
+> **小节索引**: §8.1 实现总览（§8.1.1 强制覆盖/禁用）· §8.2 模式设置（en_mode / stack_type / proxy_mode / …，§8.2.12 四栈选型、§8.2.13 转发模式、§8.2.14 默认值与 MIPS 来源、§8.2.15 TUN 数据面参数结论与选型、§8.2.16 TUN GSO 开关）· §8.3 流量控制（router_self_proxy / disable_udp_quic / china_ip_route / …）· §8.4 性能实测数据（§8.4.1 测量条件、§8.4.2 四栈 × gso 主表、§8.4.3 转发路径、§8.4.4 TUN 参数、§8.4.5 持续负载与延迟、§8.4.6 内核 sysctl）
 
 > UCI Section: `openclash` (anonymous section)
 > 所有选项通过 `uci set openclash.@openclash[0].<option>=<value>` 设置
@@ -234,8 +234,8 @@
 
 1. **`gso` 是唯一有量级影响的参数，插件默认开启**（`yml_change.sh` 重建 `tun` 段时写入 `gso: true`）。
    - 全栈全形态正收益：下载/短连接 `system`/`mixed`/`mips` 明显提升、每 256 MB CPU 降 30～45%；上传 `gvisor` +637%、`mips` +45%。完整量化见 §8.4.2。
-   - 代价：仅 Linux 支持；GSO 超包在出口网卡按 MTU 分段（对端 MTU 较小时多一层分片）。遇到兼容性问题时可按文末方法关闭。
-   - 实现位置：`github.com/metacubex/sing-tun/tun_linux.go`（`enableGSO()`；UDP offload 失败会被忽略，TCP offload 失败则建 tun 失败）——GSO 属设备层，与所选栈无关。
+   - 代价：仅 Linux 支持；GSO 超包在出口网卡按 MTU 分段（对端 MTU 较小时多一层分片）。遇到兼容性问题时可开启「禁用 TUN GSO」开关（见 §8.2.16），或用文末覆写方式关闭。
+   - 实现位置：`github.com/metacubex/sing-tun/tun_linux.go`（`GSO: false` 时建 tun 不启用 `IFF_VNET_HDR`、设备保持普通模式；开启时 `configure()` 调 `enableGSO()`，初始化失败仅告警并退回普通模式、不阻断建 tun，UDP offload 失败仅关闭 UDP GRO）——GSO 属设备层，与所选栈无关。
 2. **`mtu`、`gso-max-size`、`congestion-controller`、`processors-per-channel`、`endpoint-independent-nat` 无可测收益，保持默认**（对比数据见 §8.4.4）。
    - `mtu: 9000` 不是提速手段（GSO 超包在出口网卡仍需按 MTU 分段；改小 `mtu` 反而约 -6%）；`gso-max-size` 默认 65536 已足够。
    - `congestion-controller` 仅 `mips` 消费（唯一使用点 `github.com/metacubex/sing-tun/stack_mipstack.go`，`gvisor`/`system`/`mixed` 忽略该字段）：`cubic`/`reno`/`bbr`/`bbr3` 差异在 ±5% 波动范围内，保持 `cubic`；填非法值会使核心启动失败（`invalid TCP congestion control`）。
@@ -246,12 +246,19 @@
 6. `tun.gso` 与 `experimental.quic-go-disable-gso`（插件「禁用 quic-go GSO」开关）互不影响：前者作用于 tun 设备层；后者在核心启动前设置环境变量 `QUIC_GO_DISABLE_GSO`（`github.com/metacubex/mihomo/hub/executor/executor.go`），作用于 QUIC 的 UDP socket。内核并未默认禁用 GSO：`setsockopt(UDP_SEGMENT)`/`UDP_GRO` 均可用。QUIC 报文同样经过 tun，故 `tun.gso` 对 UDP/QUIC 吞吐同样有正收益。
 7. **持续满载无衰减**：连续满载 10 分钟（四栈均验证：单连接 2 GB 循环 + 4 连接循环）吞吐、每 256 MB CPU、RSS/fd 均平稳，无热降频——可长期满速（见 §8.4.5）。
 
-**如何覆盖默认值**：`tun` 段由 `yml_change.sh` 按模板重建（写入 `enable`/`stack`/`device`/`dns-hijack`/`endpoint-independent-nat`/`auto-route`/`auto-detect-interface`/`auto-redirect`/`strict-route`/`disable-icmp-forwarding`/`gso`）；需要不同取值时用**覆写模块的 `[YAML]` 块**（在 `yml_change.sh` 之后执行，可覆盖最终配置），保存后**重启 OpenClash**（覆写模块仅在 start/restart 生效）：
+**如何覆盖默认值**：`tun` 段由 `yml_change.sh` 按模板重建（写入 `enable`/`stack`/`device`/`dns-hijack`/`endpoint-independent-nat`/`auto-route`/`auto-detect-interface`/`auto-redirect`/`strict-route`/`disable-icmp-forwarding`/`gso`）；`gso` 另有「禁用 TUN GSO」开关（见 §8.2.16）；其余参数需要不同取值时用**覆写模块的 `[YAML]` 块**（在 `yml_change.sh` 之后执行，可覆盖最终配置），保存后**重启 OpenClash**（覆写模块仅在 start/restart 生效）：
 
 ```yaml
 tun:
-  gso: false      # 遇到 GSO 兼容性问题时关闭；插件默认开启
+  gso: false      # 遇到 GSO 兼容性问题时关闭；插件默认开启（也可用 §8.2.16 开关）
 ```
+
+#### 8.2.16 disable_tun_gso — 禁用 TUN GSO (Disable TUN GSO)
+- **UCI 选项**: `openclash.@openclash[0].disable_tun_gso`
+- **默认**: 0 (关闭，即 TUN GSO 保持开启)
+- **说明**: TUN 模式下遇到速度骤降或连接异常问题时尝试开启。个别固件内核的 TUN GSO 卸载实现存在兼容性缺陷（设备相关）；开启后核心以普通模式收发、不再启用 `IFF_VNET_HDR`，属性能取舍，非问题设备请保持关闭
+- **依赖**: 仅 TUN 模式生效（`fake-ip-tun` / `redir-host-tun` / 混合模式，或 IPv6 模式 2/3）；开关变更需重启 OpenClash
+- **Mihomo 对应配置**: `tun.gso: false`（插件默认写 `gso: true`）
 
 ### 8.3 流量控制标签页 (traffic_control)
 

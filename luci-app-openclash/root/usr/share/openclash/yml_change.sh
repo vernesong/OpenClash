@@ -20,6 +20,7 @@ china_ip_route=$(uci_get_config "china_ip_route" || echo 0)
 china_ip6_route=$(uci_get_config "china_ip6_route" || echo 0)
 china_ip_route_domain_source=$(uci_get_config "china_ip_route_domain_source" || echo "mrs")
 enable_redirect_dns=$(uci_get_config "enable_redirect_dns" || echo 1)
+disable_tun_gso=$(uci_get_config "disable_tun_gso" || echo 0)
 fake_ip_filter_mode="${33}"
 [ -z "$fake_ip_filter_mode" ] && fake_ip_filter_mode="blacklist"
 default_dashboard=$(uci_get_config "default_dashboard" || echo "metacubexd")
@@ -431,6 +432,7 @@ begin
    fake_ip_filter_mode = '$fake_ip_filter_mode'
    routing_mark_setting = '${34}'
    quic_gso = '${35}' == '1'
+   disable_tun_gso = '$disable_tun_gso' == '1'
    cors_origin = http_origin(ENV['OPENCLASH_CORS_CUSTOM_URL']) || controller_origin(ENV['OPENCLASH_CORS_DOMAIN'], ENV['OPENCLASH_CORS_PORT'], ENV['OPENCLASH_CORS_SSL'])
    geo_custom_url = '${37}'
    geoip_custom_url = '${38}'
@@ -578,7 +580,7 @@ begin
                'dns-hijack' => ['127.0.0.1:53'], 'endpoint-independent-nat' => true,
                'auto-route' => false, 'auto-detect-interface' => false,
                'auto-redirect' => false, 'strict-route' => false, 'disable-icmp-forwarding' => false,
-               'gso' => true
+               'gso' => !disable_tun_gso
             }
             Value['tun'].delete('iproute2-table-index')
          else

@@ -3323,6 +3323,7 @@ overwrite_file()
       DASHBOARD_PASSWORD:string \
       DELAY_START:int \
       DISABLE_QUIC_GO_GSO:int_bool \
+      DISABLE_TUN_GSO:int_bool \
       DISABLE_UDP_QUIC:int_bool \
       DNS_PORT:int \
       DOWNLOAD_FILE:string \

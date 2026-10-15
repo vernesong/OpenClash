@@ -126,6 +126,10 @@ o = s:taboption("op_mode", Flag, "disable_quic_go_gso", translate("Disable quic-
 o.description = font_red..bold_on..translate("Suggestion: If Encountering Issues With QUIC UDP on The Linux Kernel Version Above 6.6, Please Try to Enable.")..bold_off..font_off
 o.default = 0
 
+o = s:taboption("op_mode", Flag, "disable_tun_gso", translate("Disable TUN GSO Support"))
+o.description = font_red..bold_on..translate("Suggestion: If Encountering Speed Drops or Connection Issues With TUN Mode, Please Try to Enable.")..bold_off..font_off
+o.default = 0
+
 o = s:taboption("op_mode", Flag, "small_flash_memory", translate("Small Flash Memory"))
 o.description = translate("Move Core And GEOIP Data File To /tmp/etc/openclash For Small Flash Memory Device")
 o.default = 0

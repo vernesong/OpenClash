@@ -64,6 +64,7 @@ delay_start=$(uci_get_config "delay_start")
 log_size=$(uci_get_config "log_size")
 bypass_gateway_compatible=$(uci_get_config "bypass_gateway_compatible")
 disable_quic_go_gso=$(uci_get_config "disable_quic_go_gso")
+disable_tun_gso=$(uci_get_config "disable_tun_gso")
 small_flash_memory=$(uci_get_config "small_flash_memory")
 enable_meta_sniffer=$(uci_get_config "enable_meta_sniffer")
 enable_respect_rules=$(uci_get_config "enable_respect_rules")
@@ -324,6 +325,7 @@ cat >> "$DEBUG_LOG" <<-EOF
 | 日志大小 | ${log_size:-1024}KB |
 | 旁路由兼容 | $(ts_cf "$bypass_gateway_compatible") |
 | 禁用quic-go GSO | $(ts_cf "$disable_quic_go_gso") |
+| 禁用TUN GSO | $(ts_cf "$disable_tun_gso") |
 | 小闪存模式 | $(ts_cf "$small_flash_memory") |
 | 域名嗅探 | $(ts_cf "$enable_meta_sniffer") |
 | DNS代理 | $(ts_cf "$enable_respect_rules") |

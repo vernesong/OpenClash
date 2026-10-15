@@ -221,5 +221,6 @@
 |-----------|---------|------|----------|------|
 | 旁路由 R2S 等 ARM 设备 iPhone 待机耗电严重 | 局域网 | 代理模式下 ARP 代理或 TUN 模式的 keepalive 导致 iPhone 频繁被唤醒 | ① 尝试切换为 Fake-IP 模式；② 关闭「仅允许内网 (Only Intranet Allowed)」以外的 WAN 口访问；③ 主路由 DHCP 下发的网关和 DNS 指向旁路由 IP | [#2614](https://github.com/vernesong/OpenClash/issues/2614) |
 | 在 Fake-IP 模式下无法使用 UU 加速器等游戏加速软件 | 「运行状态」 | 游戏加速器需要真实 DNS 解析来优化连接，Fake-IP 返回虚拟 IP 导致失效 | ① 在「覆写设置→DNS」的 fake-ip-filter 中添加加速器相关域名（如 `+.leigod.com`、`+.vivox.com`）；② 将加速器所在设备的 IP 加入「不走代理的局域网设备 IP (LAN Bypassed Host List)」 | [#1751](https://github.com/vernesong/OpenClash/issues/1751) |
+| **TUN 模式下速度骤降或连接异常（个别固件）** | TUN 模式（含混合模式） | 个别固件内核的 TUN GSO 卸载实现存在兼容性缺陷（设备相关） | ①「插件设置→模式设置」开启**「禁用 TUN GSO (Disable TUN GSO)」**并重启 OpenClash 对比前后速度；② 若明显恢复，保持关闭（GSO 为性能参数，关闭属正常取舍） | — |
 
 ---

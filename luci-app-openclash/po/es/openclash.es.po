@@ -3005,6 +3005,12 @@ msgstr "Desactivar soporte GSO para quic-go"
 msgid "Suggestion: If Encountering Issues With QUIC UDP on The Linux Kernel Version Above 6.6, Please Try to Enable."
 msgstr "Sugerencia: si en kernels >6.6 aparecen problemas en QUIC–UDP, activa esta opción."
 
+msgid "Disable TUN GSO Support"
+msgstr "Desactivar soporte GSO para TUN"
+
+msgid "Suggestion: If Encountering Speed Drops or Connection Issues With TUN Mode, Please Try to Enable."
+msgstr "Sugerencia: si con el modo TUN aparecen caídas de velocidad o problemas de conexión, activa esta opción."
+
 msgid "Drop The Type of DNS Responsed"
 msgstr "Descartar tipos concretos de respuesta DNS"
 
