@@ -17,7 +17,7 @@
 
 > 模块文件内的 `#!NAME` / `#!DESC` / `#!CONFIG` / `#!CRON` / `#!ENV` 注释行声明元信息，添加模块时自动回填第二步表单（格式见 `16-overwrite-module-format.md` §16.2.5，示例见 §17.3.9）。
 
-> 插件内置四个订阅型模块（`type=http`、`update_days=off`、`config=all`、`enable=0`）：`default`（`order=1`）、`Google_Play`（`order=2`，用于解决 Google 商店下载/更新失败）、`Tailscale`（`order=3`）与 `WiFi_Calling`（`order=4`，让运营商 ePDG 的 IKE/NAT-T 流量走代理，需在模块参数中指定 UDP 代理组），都可在「覆写模块」窗口启用。
+> 插件内置四个订阅型模块（`type=http`、`update_days=off`、`config=all`、`enable=0`）：`default`（`order=1`）、`Google_Play`（`order=2`）、`Tailscale`（`order=3`）与 `WiFi_Calling`（`order=4`），都可在「覆写模块」窗口启用。`WiFi_Calling` 代理运营商 ePDG 的 IKE/NAT-T 流量；启用前须把 `WIFI_CALLING_PROXY` 设为现有 UDP 代理目标，留空不会跳过规则。
 
 ### 17.2 覆写与配置文件的匹配
 

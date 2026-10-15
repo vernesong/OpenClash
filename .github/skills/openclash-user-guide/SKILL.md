@@ -81,7 +81,7 @@ disable-model-invocation: false
 | 理解整体原理 / 启动流程 | `01-architecture.md` | 系统整体架构分层、UCI 配置根、开机启动链路、热生效与重启的差异 |
 | 启动失败 / 依赖缺失 | `02-dependencies.md` | §2.1–2.6 内核与依赖清单、启动前的依赖检查逻辑、启动失败故障速查表 |
 | 用户报错 / 日志异常 | `03-errors.md` | §3.1–3.16 常见错误关键字定位与对应排查方法 |
-| 透明代理 / 防火墙链原理 | `04-firewall-chains.md` | §4.1 运行模式与防火墙行为对照表、§4.2 fw4 防火墙链结构 |
+| 透明代理 / 防火墙链原理 / Docker 网桥与 UDP TPROXY | `04-firewall-chains.md` | §4.1 运行模式与防火墙行为对照表、§4.2 fw4 防火墙链结构、§4.4 Docker 网桥与 UDP TPROXY |
 | ping / ICMP / 高级流量控制 | `05-firewall-special.md` | §5.1 ICMP/Ping 转发处理规则、§5.2 高级流量控制（iptables）实现 |
 | 选项→规则映射 / fw3 / DNS 劫持实现 / 域名解析不到地址 | `06-firewall-options-dnsmasq.md` | §6.1 fw3 等效链、§6.2 插件选项对防火墙规则的影响、§6.3 插件选项改写 dnsmasq 配置的实现、§6.4 Dnsmasq 重绑定保护对 Hosts / Fake-IP 的影响 |
 | 运行状态页功能开关 | `07-page-overview.md` | §7.1–7.12 运行状态页核心控制、运行模式切换、仪表盘设置、IP 检测、oixCloud 服务开关 |

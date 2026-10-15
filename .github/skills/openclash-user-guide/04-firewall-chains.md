@@ -375,3 +375,9 @@ fe80::/10, ff00::/8
 | 路由器自身 fake-ip6（`ipv6_mode=2/3`，且 `router_self_proxy=1` 或 fake-ip 未走防火墙 DNS） | `ip -6 rule add iif lo to <fakeip_range6> lookup 0x162 pref 1887` | 本机发出的 fake-ip6 目标包在 output 打标前先命中该规则进代理表，转发流量仍走 main 表 |
 
 > 症状对照：TUN 模式「能连但部分目标不通、日志无异常」→ 先查 `sysctl net.ipv4.conf.all.src_valid_mark`；「路由器自身访问 fake-ip6 目标失败而内网客户端正常」。两者均在 `revert_firewall()` 中回滚。
+
+### 4.4 Docker 网桥与 UDP TPROXY
+
+IPv4：`docker0` 存在、`en_mode_tun` 为空且 `enable_udp_proxy=1` 时，先设 `nf_call_iptables=1`，成功后才把全局 `bridge-nf-call-iptables` 设为 `0`。IPv6：`ipv6_enable=1`、`enable_v6_udp_proxy=1` 且 `ipv6_mode=0/1` 时，同样处理 `nf_call_ip6tables` 与 `bridge-nf-call-ip6tables`。
+
+只处理 `docker0`；全局值影响所有网桥。停止 OpenClash 或切换模式不会恢复这些值。

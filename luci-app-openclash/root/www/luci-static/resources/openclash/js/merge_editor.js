@@ -76,8 +76,7 @@ function config_merge_editor(id, id2, target, target2, readOnly, readOnly2, wid,
         if (idx > 0) {
             var label = text.substring(0, idx + 1);
             var fname = text.substring(idx + 1).trim();
-            sectionDescr.innerHTML = '<span id="editTitle">' + label + '</span> ' +
-                '<span id="config-file-name" class="config-file-name">' + fname + '</span>';
+            sectionDescr.innerHTML = '<span id="config-file-name" class="config-file-name">' + fname + '</span>';
         }
         wrapper.insertBefore(sectionDescr, descr);
     }

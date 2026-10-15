@@ -2,13 +2,13 @@
 #!DESC = WiFi Calling (VoWiFi): route carrier ePDG IKE/NAT-T traffic through a UDP-capable proxy group
 #!ENV = WIFI_CALLING_PROXY
 
-# WiFi Calling (VoWiFi): proxy the carrier ePDG traffic. Only IKE (UDP 500) and NAT-T (UDP 4500)
-# are proxyable - no TUN stack carries raw ESP (IP proto 50) - so the phone must stay on NAT-T.
-# WIFI_CALLING_PROXY (module param, e.g. WIFI_CALLING_PROXY=Smart) must be a UDP-capable group;
-# without it the rules below are skipped and a warning is logged.
-# STACK_TYPE = mips reassembles fragmented NAT-T packets, "system" drops them; ENABLE_UDP_PROXY only
-# matters in the TProxy/redirect modes; CHINA_IP_ROUTE_PASS keeps a domestic ePDG out of the
-# "bypass mainland" RETURN.
+# These rules match UDP ports 500/4500 and the ePDG domain; raw ESP (IP protocol 50) does not
+# match the UDP port rules. Set WIFI_CALLING_PROXY to an existing UDP-capable proxy or group;
+# an empty value does not disable the rules. ENABLE_UDP_PROXY controls non-TUN UDP TProxy, while
+# STACK_TYPE only affects tun.stack when IPv4/IPv6 TUN or Mix mode enables it. CHINA_IP_ROUTE_PASS
+# excludes resolved ePDG addresses from mainland bypass when dnsmasq fills the pass set and
+# firewall DNS mode is not 2. The mips stack reassembles fragmented UDP for IPv4/IPv6; the system
+# stack does not deliver fragmented datagrams to the UDP handler.
 [General]
 ENABLE_UDP_PROXY = 1
 STACK_TYPE = mips
@@ -17,6 +17,6 @@ CHINA_IP6_ROUTE_PASS = pub.3gppnetwork.org
 
 [YAML]
 +rules:
-  - AND,((NETWORK,udp),(DST-PORT,500)),${WIFI_CALLING_PROXY}
-  - AND,((NETWORK,udp),(DST-PORT,4500)),${WIFI_CALLING_PROXY}
-  - DOMAIN-SUFFIX,pub.3gppnetwork.org,${WIFI_CALLING_PROXY}
+  - AND,((NETWORK,udp),(DST-PORT,500)),${WIFI_CALLING_PROXY:-DIRECT}
+  - AND,((NETWORK,udp),(DST-PORT,4500)),${WIFI_CALLING_PROXY:-DIRECT}
+  - DOMAIN-SUFFIX,pub.3gppnetwork.org,${WIFI_CALLING_PROXY:-DIRECT}
