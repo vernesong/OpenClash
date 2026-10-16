@@ -1649,6 +1649,9 @@ msgstr "下载失败：检测到 HTML 响应（可能为 CDN 错误页面），�
 msgid "Download Failed: Database Content Invalid, Abort Update..."
 msgstr "下载失败：数据库内容无效（可能为限流或错误页面），终止更新..."
 
+msgid "Local Database File Damaged, Delete And Re-Download..."
+msgstr "本地数据库文件已损坏，删除并重新下载..."
+
 msgid "Download Success, Check Updated..."
 msgstr "下载成功，检查数据库是否已更新..."
 

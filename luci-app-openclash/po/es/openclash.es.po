@@ -1640,6 +1640,9 @@ msgstr "Descarga fallida: respuesta HTML detectada, aborto de la actualización.
 msgid "Download Failed: Database Content Invalid, Abort Update..."
 msgstr "Descarga fallida: contenido de la base de datos no válido, aborto de la actualización..."
 
+msgid "Local Database File Damaged, Delete And Re-Download..."
+msgstr "Archivo de base de datos local dañado; eliminación y nueva descarga..."
+
 msgid "Download Success, Check Updated..."
 msgstr "Descarga correcta, comprobando actualizaciones..."
 

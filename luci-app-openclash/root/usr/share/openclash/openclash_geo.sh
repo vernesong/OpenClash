@@ -116,6 +116,14 @@ update_one() {
          ;;
    esac
 
+   # Delete damaged local file, otherwise its update may be skipped by the ETag cache
+   if [ -f "$path" ]; then
+      if head -c 512 "$path" | grep -qiE "<!doctype|<html|<head|<body" || ! grep -qaE "$required_rules" "$path"; then
+         LOG_OUT "【$name】Local Database File Damaged, Delete And Re-Download..."
+         rm -rf "$path"
+      fi
+   fi
+
    LOG_OUT "【$name】Start Downloading Database..."
 
    DOWNLOAD_FILE_CURL "$download_url" "/tmp/$tmpfile" "$path"
