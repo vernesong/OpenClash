@@ -739,6 +739,15 @@
         if (icon) icon.classList.toggle('oc-gear-on', !!on);
     }
 
+    function sync_myip_tooltips() {
+        document.querySelectorAll('.myip-toolbar button').forEach(function(button) {
+            var title = button.querySelector('svg title');
+            if (!title) return;
+            button.setAttribute('title', title.textContent);
+            button.setAttribute('aria-label', title.textContent);
+        });
+    }
+
     var unlock_gear_list = [];
     var unlock_gear_rows = {};
 
@@ -1493,6 +1502,7 @@
         } else {
             unlock_apply_view(false);
         }
+        sync_myip_tooltips();
         return false;
     }
 
@@ -1585,6 +1595,7 @@
             eyeClosed.classList.remove('oc-hidden');
             if (titleElement) titleElement.textContent = '<%:Hide IP%>';
         }
+        sync_myip_tooltips();
     };
 
     function privacy_my_ip(svgElement) {
@@ -1655,6 +1666,7 @@
             modeIcon.classList.add('mode-browser');
             if (titleElement) titleElement.textContent = '<%:Browser Mode%>';
         }
+        sync_myip_tooltips();
     }
 
     function showAllGhosts() {
