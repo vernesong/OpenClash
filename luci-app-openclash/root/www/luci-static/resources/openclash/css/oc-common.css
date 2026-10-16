@@ -2119,12 +2119,15 @@ ul {
 }
 
 .oc.cbi-button.cbi-button {
-    display: inline-flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     gap: 6px;
     width: 100% !important;
     max-width: 320px;
+    margin: 0 auto !important;
+    /* fixed height: the UA only centres the label while the content box fits the line */
+    height: 35px !important;
     padding: 10px 14px;
     border: 1px solid var(--primary-color) !important;
     border-radius: var(--radius-sm);
@@ -2153,11 +2156,11 @@ ul {
 }
 
 @media (max-width: 768px) {
-    .oc.cbi-button.cbi-button { font-size: 12px; padding: 6px 10px; height: 32px; }
+    .oc.cbi-button.cbi-button { font-size: 12px; padding: 6px 10px; height: 32px !important; }
 }
 
 @media (max-width: 480px) {
-    .oc.cbi-button.cbi-button { font-size: 11px; padding: 5px 8px; gap: 4px; height: 30px; }
+    .oc.cbi-button.cbi-button { font-size: 11px; padding: 5px 8px; gap: 4px; height: 30px !important; }
 }
 
 /* ==========================================================================
@@ -2441,6 +2444,7 @@ html[data-darkmode="true"] .oc-status-err {
     white-space: normal;
     line-height: 1.35;
     padding: 10px 16px;
+    height: auto !important;
 }
 
 .oc.oc-confirm-overlay {

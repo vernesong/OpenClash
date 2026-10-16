@@ -354,7 +354,7 @@
         } else {
             dot.className = 'myip-status-dot testing';
             dot.title = '<%:Testing...%>';
-            lat.textContent = '--';
+            lat.innerHTML = '<span class="loading-spinner"></span>';
             lat.className = 'myip-latency';
         }
     }
@@ -427,9 +427,7 @@
             script.src = 'https://whois.pconline.com.cn/ipJson.jsp?z=' + random;
             window.IPCallBack = function(data) {
                 if (data && data.ip) {
-                    if (localStorage.getItem('privacy_my_ip') != 'true') {
-                        $$.getElementById('ip-pcol').innerHTML = data.ip;
-                    }
+                    $$.getElementById('ip-pcol').innerHTML = localStorage.getItem('privacy_my_ip') == 'true' ? '***.***.***.***' : data.ip;
                     var geo = [];
                     if (data.pro) geo.push(data.pro);
                     if (data.city) geo.push(data.city);
@@ -450,9 +448,7 @@
                 const geoMatch = resp.data.match(/来自于：(.+)/);
 
                 if (ipMatch && geoMatch) {
-                    if (localStorage.getItem('privacy_my_ip') != 'true') {
-                        $$.getElementById('ip-ipip').innerHTML = ipMatch[1];
-                    }
+                    $$.getElementById('ip-ipip').innerHTML = localStorage.getItem('privacy_my_ip') == 'true' ? '***.***.***.***' : ipMatch[1];
                     $$.getElementById('ip-ipip-geo').innerHTML = geoMatch[1].trim();
                     addTitleOnOverflow();
                 }
@@ -461,9 +457,7 @@
         getIpifyIP: () => {
             IP.get(`https://api.ipify.org/?format=json&z=${random}`, 'json')
             .then(resp => {
-                if (localStorage.getItem('privacy_my_ip') != 'true') {
-                    $$.getElementById('ip-ipify').innerHTML = resp.data.ip;
-                };
+                $$.getElementById('ip-ipify').innerHTML = localStorage.getItem('privacy_my_ip') == 'true' ? '***.***.***.***' : resp.data.ip;
                 return resp.data.ip;
             })
             .then(ip => {
@@ -475,9 +469,7 @@
             fetch(`https://api.ip.sb/geoip?z=${random}`)
                 .then(response => response.json())
                 .then(data => {
-                    if (localStorage.getItem('privacy_my_ip') != 'true') {
-                        $$.getElementById('ip-ipsb').innerHTML = data.ip;
-                    };
+                    $$.getElementById('ip-ipsb').innerHTML = localStorage.getItem('privacy_my_ip') == 'true' ? '***.***.***.***' : data.ip;
                     $$.getElementById('ip-ipsb-geo').innerHTML = `${data.country} ${data.isp}`;
                     addTitleOnOverflow();
                 })
@@ -1143,7 +1135,7 @@
         }
         var parentLeft = d.region.parentNode.getBoundingClientRect().left;
         var left = Math.round(right - parentLeft + 5);
-        var card = d.region.closest('.myip-main-card');
+        var card = d.region.closest('.myip-check-item');
         if (card) {
             var maxLeft = Math.floor(card.getBoundingClientRect().right - d.region.offsetWidth - 4 - parentLeft);
             if (left > maxLeft) left = maxLeft;
@@ -1851,23 +1843,15 @@
 
     function refresh_myip(svgElement) {
         clearAllIntervals();
+        reset_display();
 
         if (use_router_mode) {
             get_router_ip_info();
         } else {
-            if (localStorage.getItem('privacy_my_ip') === 'true') {
-                $$.getElementById('ip-ipip-geo').innerHTML = '';
-                $$.getElementById('ip-ipsb-geo').innerHTML = '';
-                $$.getElementById('ip-pcol-geo').innerHTML = '';
-                $$.getElementById('ip-ipify-geo').innerHTML = '';
-                $$.getElementById('ip-ipip').innerHTML = '***.***.***.***';
-                $$.getElementById('ip-ipsb').innerHTML = '***.***.***.***';
-                $$.getElementById('ip-pcol').innerHTML = '***.***.***.***';
-                $$.getElementById('ip-ipify').innerHTML = '***.***.***.***';
-            }
             myip_Load();
         }
         if (!unlock_view) {
+            ACCESS_SLOTS.forEach(function(svc) { updateCheckCard(svc, 'testing'); });
             HTTP.runcheck();
         } else if (!unlock_gear) {
             run_unlock_check(null, true);

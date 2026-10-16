@@ -34,7 +34,7 @@ else
         end
     end
 
-    table.insert(e, 1, {name="all"})
+    table.insert(e, 1, {name="all", title="ALL"})
 end
 
 local file_path = fs.get_file_path_from_request()
@@ -65,23 +65,126 @@ end
 
 local sectiontype = "_"..(self.config:gsub("[^%w_]", "_")).."_"..(self.sectiontype:gsub("[^%w_]", "_"))
 local pin_tab = file_path and self.sectiontype ~= "dns_servers"
+
+local has_subhead = false
+if not self.anonymous and self.sectiondesc and self.sectiondesc ~= "" then
+    has_subhead = true
+else
+    for _, node in pairs(self.children) do
+        if not node.optional and node.description and node.description ~= "" then
+            has_subhead = true
+            break
+        end
+    end
+end
 -%>
 
 <style type="text/css">
-    h3{
+    #cbi-<%=self.config%>-<%=self.sectiontype%> h3{
         margin-top: 0;
     }
 
-    .cbi-value-field .cbi-dropdown, .cbi-value-field .cbi-input-select, .cbi-value input[type="text"], .cbi-value input[type="password"] {
-        min-width: auto;
+    #cbi-<%=self.config%>-<%=self.sectiontype%> .cbi-value-field .cbi-dropdown,
+    #cbi-<%=self.config%>-<%=self.sectiontype%> .cbi-value-field .cbi-input-select,
+    #cbi-<%=self.config%>-<%=self.sectiontype%> .cbi-value-field input.cbi-input-text{
+        min-width: 0;
+    }
+
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl{
+        width: 100%;
+        margin: 0;
+        border: 1px solid var(--border-light, #e2e8f0);
+        border-spacing: 0;
+        border-collapse: collapse;
+    }
+
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl > tbody > tr > td,
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl > tbody > tr > th{
+        padding: 8px;
+        font-size: 11px;
+        vertical-align: middle;
+        text-align: center;
+        white-space: normal;
+    }
+
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-head > th,
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-subhead > th{
+        padding: 10px 8px;
+        background: var(--bg-gray, #f1f5f9);
+        color: var(--text-secondary, #64748b);
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-head > th,
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-subhead > th{
+        border-top: none;
+    }
+
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-row{
+        background: var(--bg-white, #fff);
+    }
+
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.cbi-rowstyle-2{
+        background: var(--bg-light, #f9f9f9);
+    }
+
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-row > td,
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-row > th,
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-empty > td{
+        border-top: 1px solid var(--border-light, #e2e8f0);
+    }
+
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl .oc-cell p{
+        margin: 0;
+    }
+
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-row > th h3{
+        margin: 0;
+        font-size: inherit;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-empty > td{
+        height: 4em;
+        text-align: center;
+    }
+
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-empty em{
+        color: var(--text-secondary, #64748b);
+    }
+
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-row .cbi-value-field .cbi-input-text,
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-row .cbi-value-field .cbi-input-select,
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-row .cbi-value-field .cbi-input-password,
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-row .cbi-value-field .cbi-dropdown{
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-row .cbi-value-field [data-dynlist] > input{
+        width: calc(100% - 1.5rem);
+        min-width: 0;
+    }
+
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-row .oc-cell .cbi-button{
+        margin: 3px 4px;
+    }
+
+    #cbi-<%=self.config%>-<%=self.sectiontype%> div.dom-<%=self.config%>-<%=self.sectiontype%>{
+        overflow-x: auto;
     }
 
     #tab-header-<%=self.config%>-<%=self.sectiontype%>{
         display: flex;
         align-items: center;
         justify-content: flex-start;
-        padding: 16px 20px;
-        border-bottom: 1px solid var(--border-light, #e2e8f0);
+        padding: 16px 20px 8px;
+        border: none;
         background: var(--bg-gray, #f1f5f9);
         min-width: 0;
         box-shadow: none;
@@ -94,11 +197,10 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
         width: 100%;
         background: var(--bg-gray, #f1f5f9);
         border-radius: 8px;
-        border-bottom: none !important;
-        border: none !important;
         gap: 5px;
         margin: 0;
         padding: 0;
+        overflow-x: auto;
     }
 
     #tab-header-<%=self.config%>-<%=self.sectiontype%> ul::-webkit-scrollbar{
@@ -122,8 +224,8 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
         align-items: center;
         justify-content: center;
         gap: 8px;
-        padding: 12px 0;
-        height: 100%;
+        padding: 0 8px;
+        height: 40px;
         font-size: 13px;
         font-weight: 400;
         color: var(--text-secondary, #64748b);
@@ -132,13 +234,13 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.18s;
-        margin: 0;
+        margin: 0 0 5px;
         user-select: none;
         position: relative;
         box-sizing: border-box;
     }
 
-    #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab{
+    #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.oc-tab{
         background: var(--primary-color, #3b82f6);
         color: var(--text-on-primary, #fff);
         font-weight: 600;
@@ -150,7 +252,7 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
     #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li a{
         display: block;
         width: 100%;
-        height: 100%;
+        height: auto;
         text-align: center;
         text-decoration: none;
         background: none;
@@ -159,7 +261,7 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
         font: inherit;
         color: inherit;
         cursor: inherit;
-        padding: 5px;
+        padding: 0;
         margin: 0;
         user-select: none;
         pointer-events: none;
@@ -170,41 +272,35 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
         box-shadow: none;
     }
 
-    #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab > a{
-        color: var(--text-on-primary, #fff) !important;
+    #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.oc-tab > a{
+        color: var(--text-on-primary, #fff);
         font-weight: 500;
     }
 
-    #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab-disabled{
+    #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.oc-tab-disabled{
         color: var(--text-on-primary, #fff);
         background: var(--bg-light, #f9f9f9);
         opacity: 0.7;
         cursor: pointer;
     }
 
-    #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab-disabled a{
-        color: var(--text-primary, #000) !important;
+    #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.oc-tab-disabled a{
+        color: var(--text-primary, #000);
     }
 
-    #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.cbi-tab):hover,
-    #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.cbi-tab):focus{
+    #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.oc-tab):hover,
+    #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.oc-tab):focus{
         color: var(--primary-color, #3b82f6);
         background: var(--primary-a10, rgba(59,130,246,0.10));
     }
 
-    #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.cbi-tab):hover a,
-    #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.cbi-tab):focus a{
-        color: var(--primary-color, #3b82f6) !important;
+    #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.oc-tab):hover a,
+    #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.oc-tab):focus a{
+        color: var(--primary-color, #3b82f6);
     }
 
     #tab-content .dom-<%=self.config%>-<%=self.sectiontype%>{
         display: none;
-    }
-
-    #tab-content .dom-<%=self.config%>-<%=self.sectiontype%> ul li{
-      float: left;
-      margin: 15px 10px;
-      width: 225px;
     }
 </style>
 
@@ -218,33 +314,33 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
     <%- end -%>
     <div class="cbi-section-descr"><%=self.description%></div>
     <%- local count = 0 -%>
-    <div id="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tabmenu">
-        <ul class="cbi-tabmenu">
+    <div id="tab-header-<%=self.config%>-<%=self.sectiontype%>">
+        <ul class="oc-tabmenu">
             <%-
             if self.sectiontype == "dns_servers" then
                 for i, tab in ipairs(e) do
                     if i == 1 then
             -%>
-                        <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab" data-group="<%=tab.name%>"><a title="<%=tab.name%>"><%=tab.title%></a></li>
+                        <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="oc-tab" data-group="<%=tab.name%>"><a title="<%=tab.name%>"><%=tab.title%></a></li>
                     <%- else -%>
-                        <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab-disabled" data-group="<%=tab.name%>"><a title="<%=tab.name%>"><%=tab.title%></a></li>
+                        <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="oc-tab-disabled" data-group="<%=tab.name%>"><a title="<%=tab.name%>"><%=tab.title%></a></li>
                     <%- end -%>
                 <%- end -%>
             <%- elseif #e ~= 1 then
                 for i, tab in ipairs(e) do
                     if tab.name == cfg_name and cfg_name then
                 -%>
-                        <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab" data-group="<%=tab.name%>"><a title="<%=tab.name%>"><%=tab.name%></a></li>
+                        <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="oc-tab" data-group="<%=tab.name%>"><a title="<%=tab.title or tab.name%>"><%=tab.title or tab.name%></a></li>
                     <%- elseif not cfg_name and tab.name == "all" then -%>
-                        <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab" data-group="<%=tab.name%>"><a title="All">ALL</a></li>
+                        <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="oc-tab" data-group="<%=tab.name%>"><a title="ALL">ALL</a></li>
                     <%- elseif tab.name == "all" then -%>
-                        <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab-disabled" data-group="<%=tab.name%>"><a title="All">ALL</a></li>
+                        <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="oc-tab-disabled" data-group="<%=tab.name%>"><a title="ALL">ALL</a></li>
                     <%- else -%>
-                        <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab-disabled" data-group="<%=tab.name%>"><a title="<%=tab.name%>"><%=tab.name%></a></li>
+                        <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="oc-tab-disabled" data-group="<%=tab.name%>"><a title="<%=tab.name%>"><%=tab.name%></a></li>
                     <%- end -%>
                 <%- end -%>
             <%- else -%>
-                <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab" data-group="all"><a title="All">ALL</a></li>
+                <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="oc-tab" data-group="all"><a title="All">ALL</a></li>
             <%- end -%>
         </ul>
     </div>
@@ -266,49 +362,52 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
             <%- else -%>
                 <div class="dom-<%=self.config%>-<%=self.sectiontype%>" data-group="<%=tab.name%>">
             <%- end -%>
-                <table class="table cbi-section-table">
-                    <tr class="tr cbi-section-table-titles">
+                <%- count = 0 -%>
+                <table class="oc-tbl">
+                    <tr class="oc-tbl-head">
                     <%- if not self.anonymous then -%>
                         <%- if self.sectionhead then -%>
-                            <th class="th cbi-section-table-cell"><%=self.sectionhead%></th>
+                            <th class="oc-cell"><%=self.sectionhead%></th>
                         <%- else -%>
                             <th>&#160;</th>
                         <%- end -%>
-                    <%- end -%>
+                    <%- count = count + 1; end -%>
                     <%- for i, k in pairs(self.children) do if not k.optional then -%>
                         <%- if i == 1 then -%>
-                            <th class="th cbi-section-table-cell"><%:Serial Number%></th>
-                        <%- end -%>
-                        <th class="th cbi-section-table-cell"<%=width(k)%>>
+                            <th class="oc-cell"><%:Serial Number%></th>
+                        <%- count = count + 1; end -%>
+                        <th class="oc-cell"<%=width(k)%>>
                         <%- if k.titleref then -%><a title="<%=self.titledesc or translate('Go to relevant configuration page')%>" class="cbi-title-ref" href="<%=k.titleref%>"><%- end -%>
                             <%-=k.title-%>
                         <%- if k.titleref then -%></a><%- end -%>
                         </th>
                     <%- count = count + 1; end; end; if self.sortable then -%>
-                        <th class="th cbi-section-table-cell"><%:Sort%></th>
-                    <%- end; if self.extedit or self.addremove then -%>
-                        <th class="th cbi-section-table-cell"><%:Edit%></th>
+                        <th class="oc-cell"><%:Sort%></th>
+                    <%- count = count + 1; end; if self.extedit or self.addremove then -%>
+                        <th class="oc-cell"><%:Edit%></th>
                     <%- count = count + 1; end -%>
                     </tr>
-                    <tr class="tr cbi-section-table-descr">
+                    <%- if has_subhead then -%>
+                    <tr class="oc-tbl-subhead">
                     <%- if not self.anonymous then -%>
                         <%- if self.sectiondesc then -%>
-                            <th class="th cbi-section-table-cell"><%=self.sectiondesc%></th>
+                            <th class="oc-cell"><%=self.sectiondesc%></th>
                         <%- else -%>
-                            <th class="th cbi-section-table-cell"></th>
+                            <th class="oc-cell"></th>
                         <%- end -%>
                     <%- end -%>
                     <%- for i, k in pairs(self.children) do if not k.optional then -%>
                         <%- if i == 1 then -%>
-                            <th class="th cbi-section-table-cell"></th>
+                            <th class="oc-cell"></th>
                         <%- end -%>
-                        <th class="th cbi-section-table-cell"<%=width(k)%>><%=k.description%></th>
+                        <th class="oc-cell"<%=width(k)%>><%=k.description%></th>
                     <%- end; end; if self.sortable then -%>
-                        <th class="th cbi-section-table-cell"></th>
+                        <th class="oc-cell"></th>
                     <%- end; if self.extedit or self.addremove then -%>
-                        <th class="th cbi-section-table-cell"></th>
+                        <th class="oc-cell"></th>
                     <%- end -%>
                     </tr>
+                    <%- end -%>
                     <%- local isempty = true
                         local num = 1
                     for i, k in ipairs(self:cfgsections()) do
@@ -327,11 +426,11 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
                             isempty = false
                             scope = { valueheader = "cbi/cell_valueheader", valuefooter = "cbi/cell_valuefooter" }
                     -%>
-                            <tr class="tr cbi-section-table-row<% if self.extedit or self.rowcolors then %> cbi-rowstyle-<%=rowstyle()%><% end %>" id="cbi-<%=self.config%>-<%=section%>">
+                            <tr class="oc-tbl-row<% if self.extedit or self.rowcolors then %> cbi-rowstyle-<%=rowstyle()%><% end %>" id="cbi-<%=self.config%>-<%=section%>">
                             <%- if not self.anonymous then -%>
                                 <th><h3><%=(type(self.sectiontitle) == "function") and self:sectiontitle(section) or k%></h3></th>
                             <%- end -%>
-                            <td class="td cbi-section-table-cell">
+                            <td class="oc-cell">
                                 <p><%=num%></p>
                                 <%- num = num + 1 -%>
                             </td>
@@ -343,14 +442,14 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
                                 end
                             -%>
                             <%- if self.sortable then -%>
-                                <td class="tdcbi-section-table-cell">
+                                <td class="oc-cell">
                                     <input class="cbi-button cbi-button-up" type="button" value="<%:∧%>"  onclick="return cbi_row_swap(this, true, 'cbi.sts.<%=self.config%>.<%=self.sectiontype%>')" alt="<%:Move up%>" title="<%:Move up%>" />
                                     <input class="cbi-button cbi-button-down" type="button" value="<%:∨%>"  onclick="return cbi_row_swap(this, false, 'cbi.sts.<%=self.config%>.<%=self.sectiontype%>')" alt="<%:Move down%>" title="<%:Move down%>" />
                                 </td>
                             <%- end -%>
 
                             <%- if self.extedit or self.addremove then -%>
-                                <td class="td cbi-section-table-cell">
+                                <td class="oc-cell">
                                     <%- if self.extedit then -%>
                                         <input class="btn cbi-button cbi-button-edit" type="button" value="<%:Edit%>"
                                         <%- if type(self.extedit) == "string" then
@@ -377,8 +476,8 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
                     <%- end -%>
 
                     <%- if isempty then -%>
-                        <tr class="tr cbi-section-table-row placeholder">
-                            <td class="td" colspan="<%=count%>"><em><%:This section contains no values yet%></em></td>
+                        <tr class="oc-tbl-empty">
+                            <td class="oc-cell" colspan="<%=count%>"><em><%:This section contains no values yet%></em></td>
                         </tr>
                     <%- end -%>
                 </table>
@@ -426,7 +525,7 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
         if(titles<%=sectiontype%>.length != divs<%=sectiontype%>.length) return;
 
         for(var j=0; j < titles<%=sectiontype%>.length; j++){
-            if(titles<%=sectiontype%>[j].className === 'cbi-tab'){
+            if(titles<%=sectiontype%>[j].className === 'oc-tab'){
                 localStorage.setItem("titles<%=sectiontype%>", j);
                 break;
             }
@@ -457,10 +556,10 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
         if (localStorage.getItem("titles<%=sectiontype%>")) {
             if (titles<%=sectiontype%>[localStorage.getItem("titles<%=sectiontype%>")]) {
                 for(var j=0; j < titles<%=sectiontype%>.length; j++){
-                    titles<%=sectiontype%>[j].className = 'cbi-tab-disabled';
+                    titles<%=sectiontype%>[j].className = 'oc-tab-disabled';
                     divs<%=sectiontype%>[j].style.display = 'none';
                 };
-                titles<%=sectiontype%>[localStorage.getItem("titles<%=sectiontype%>")].className = 'cbi-tab';
+                titles<%=sectiontype%>[localStorage.getItem("titles<%=sectiontype%>")].className = 'oc-tab';
                 divs<%=sectiontype%>[localStorage.getItem("titles<%=sectiontype%>")].style.display = 'block';
             };
             localStorage.removeItem("titles<%=sectiontype%>");
@@ -473,6 +572,7 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
 
             var a<%=sectiontype%> = li<%=sectiontype%>.querySelector('a');
             if (a<%=sectiontype%>) {
+                li<%=sectiontype%>.title = a<%=sectiontype%>.title;
                 if (a<%=sectiontype%>.scrollWidth > a<%=sectiontype%>.clientWidth) {
                     a<%=sectiontype%>.style.textAlign = 'left';
                 } else {
@@ -483,20 +583,32 @@ local pin_tab = file_path and self.sectiontype ~= "dns_servers"
             li<%=sectiontype%>.onclick = function(){
                 <% if self.sectiontype == "dns_servers" then %>
                 for(var j=0; j < titles<%=sectiontype%>.length; j++){
-                    titles<%=sectiontype%>[j].className = 'cbi-tab-disabled';
+                    titles<%=sectiontype%>[j].className = 'oc-tab-disabled';
                     divs<%=sectiontype%>[j].style.display = 'none';
                 };
-                this.className = 'cbi-tab';
+                this.className = 'oc-tab';
                 divs<%=sectiontype%>[this.id].style.display = 'block';
                 localStorage.setItem("titles<%=sectiontype%>",this.id);
                 <% else %>
-                if (this.className === 'cbi-tab') return;
+                if (this.className === 'oc-tab') return;
                 location.href = location.pathname + '?file=' + encodeURIComponent(this.getAttribute('data-group'));
                 <% end %>
             };
 
             li<%=sectiontype%>.onTouchStart = li<%=sectiontype%>.onclick;
         };
+
+        for(var i=0; i < titles<%=sectiontype%>.length; i++){
+            if (titles<%=sectiontype%>[i].className === 'oc-tab') {
+                var tabBox<%=sectiontype%> = titles<%=sectiontype%>[i].getBoundingClientRect();
+                var tabUl<%=sectiontype%> = titles<%=sectiontype%>[i].parentNode;
+                var ulBox<%=sectiontype%> = tabUl<%=sectiontype%>.getBoundingClientRect();
+                if (tabBox<%=sectiontype%>.left < ulBox<%=sectiontype%>.left || tabBox<%=sectiontype%>.right > ulBox<%=sectiontype%>.right) {
+                    tabUl<%=sectiontype%>.scrollLeft += (tabBox<%=sectiontype%>.left - ulBox<%=sectiontype%>.left) - (ulBox<%=sectiontype%>.width - tabBox<%=sectiontype%>.width) / 2;
+                }
+                break;
+            }
+        }
     };
 //]]>
 </script>
