@@ -975,7 +975,7 @@
             }
             unlock_services = selected;
             unlock_save_services();
-            ocToast('<%:Saved successfully%>', 'success');
+            ocToast('<%:Saved%>', 'success');
             unlock_apply_view(true);
             run_unlock_check(null, true);
         };
@@ -1435,7 +1435,7 @@
                 } else {
                     if (unlock_view) {
                         unlock_render(key);
-                        ocToast('<%:Something Wrong While Testing...%>', 'error');
+                        ocToast('<%:Test failed%>', 'error');
                     }
                 }
                 delete unlock_find_keys[key];

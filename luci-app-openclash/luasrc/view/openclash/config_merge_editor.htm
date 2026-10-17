@@ -54,8 +54,13 @@ if (myEditor_use && myEditor_def) {
 	myEditor_def.style.display = 'none';
 	ocShowLoading(myEditor_div_use, '<%:Loading...%>');
 
-	ocQueueEditor(myEditor_div_use, function() {
-		config_merge_editor(myEditor_use, myEditor_def, myEditor_div_use, myEditor_div_def, true, false, 'auto', '700px');
+	ocRequireCM6(function() {
+		try {
+			config_merge_editor(myEditor_use, myEditor_def, myEditor_div_use, myEditor_div_def, true, false, 'auto', '700px');
+		} catch (e) {
+			if (window.console) console.error(e);
+			ocEditorFallback(myEditor_use);
+		}
 	});
 	ocStreamEditorOnSubmit(myEditor_use);
 }

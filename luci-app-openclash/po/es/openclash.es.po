@@ -1940,6 +1940,7 @@ msgstr "Total descargado"
 msgid "Connect"
 msgstr "Conexiones"
 
+
 msgid "Ram"
 msgstr "Memoria"
 
@@ -4223,8 +4224,8 @@ msgstr "Añadir configuración"
 msgid "Start OpenClash"
 msgstr "Iniciar OpenClash"
 
-msgid "Something wrong?"
-msgstr "¿Algo va mal?"
+msgid "Troubleshooting"
+msgstr "Solución de problemas"
 
 msgid "Required"
 msgstr "Obligatorio"
@@ -4259,8 +4260,8 @@ msgstr "Hecho"
 msgid "Open this guide automatically when the core is missing"
 msgstr "Abrir esta guía automáticamente cuando falte el núcleo"
 
-msgid "You can reopen this guide anytime with the “Quick Start” button at the bottom right"
-msgstr "Puedes volver a abrir esta guía en cualquier momento con el botón «Inicio rápido» de la esquina inferior derecha"
+msgid "The guide can be reopened with the “Quick Start” button at the bottom right"
+msgstr "La guía se puede reabrir con el botón «Inicio rápido» de la esquina inferior derecha"
 
 msgid "Detected architecture"
 msgstr "Arquitectura detectada"
@@ -4358,11 +4359,11 @@ msgstr "Mantenimiento"
 msgid "Back to guide"
 msgstr "Volver a la guía"
 
-msgid "rebuild the OpenClash firewall rules"
-msgstr "reconstruir las reglas de firewall de OpenClash"
+msgid "rebuilds the OpenClash firewall rules"
+msgstr "reconstruye las reglas de firewall de OpenClash"
 
-msgid "Still stuck? Use the usage help button at the bottom right to copy an AI prompt and ask an AI for advice"
-msgstr "¿sigue sin funcionar? usa el botón de ayuda abajo a la derecha para copiar un prompt de IA y pedirle consejo"
+msgid "If the problem remains, the usage help button at the bottom right copies an AI prompt for further advice"
+msgstr "Si el problema persiste, el botón de ayuda de la esquina inferior derecha copia una consulta para la IA"
 
 msgid "cloud icon"
 msgstr "icono de nube"
@@ -4379,8 +4380,8 @@ msgstr "Atajos"
 msgid "How to add a config"
 msgstr "Cómo añadir una configuración"
 
-msgid "Click this area to pick your YAML file, or drop one onto it"
-msgstr "Haz clic aquí para elegir tu archivo YAML o arrástralo"
+msgid "Click this area to pick a YAML file, or drop one onto it"
+msgstr "Haz clic para elegir un archivo YAML o arrástralo aquí"
 
 msgid "Save the config"
 msgstr "Guarda la configuración"
@@ -4415,14 +4416,14 @@ msgstr "Progreso y consejos"
 msgid "A config with the same name is replaced"
 msgstr "Una configuración con el mismo nombre se reemplaza"
 
-msgid "Click an entry to open it in the editor"
-msgstr "Haz clic en una entrada para abrirla en el editor"
+msgid "Clicking an entry opens it in the editor"
+msgstr "Al pulsar una entrada se abre en el editor"
 
-msgid "How often it refreshes is set in Config Subscribe, not here"
-msgstr "La frecuencia de actualización se ajusta en Config Subscribe, no aquí"
+msgid "The refresh interval is set in Config Subscribe, not here"
+msgstr "El intervalo de actualización se ajusta en Suscripciones, no aquí"
 
-msgid "Keep the name or type your own, this is the name the config list shows later"
-msgstr "Conserva el nombre o escribe el tuyo; es el nombre que verás luego en la lista de configuraciones"
+msgid "The name shown in the config list; keep it or type another"
+msgstr "El nombre que muestra la lista; consérvalo o escribe otro"
 
 msgid "The left side reports the state: ready, saving, saved or failed"
 msgstr "La izquierda muestra el estado: listo, guardando, guardado o fallido"
@@ -4433,14 +4434,14 @@ msgstr "La ventana no se abrió. Ábrela tú desde la página o salta este paso"
 msgid "This part has not appeared, open the matching tab or scroll inside the window"
 msgstr "Esta parte aún no ha aparecido; cambia a la pestaña correspondiente o desplázate dentro de la ventana"
 
-msgid "YAML indentation matters, an extra space can make the core refuse to start"
-msgstr "La indentación de YAML importa: un espacio de más puede impedir que el núcleo arranque"
+msgid "YAML indentation matters; an extra space can stop the core from starting"
+msgstr "La indentación YAML importa; un espacio extra puede impedir que el núcleo arranque"
 
-msgid "leave the editor"
-msgstr "salir del editor"
+msgid "closes the editor"
+msgstr "cierra el editor"
 
-msgid "the conversion service, a public one or your own backend"
-msgstr "el servicio de conversión, uno público o tu propio backend"
+msgid "conversion service: public or self-hosted"
+msgstr "servicio de conversión: público o propio"
 
 msgid "Window buttons"
 msgstr "Botones de la esquina"
@@ -4448,29 +4449,29 @@ msgstr "Botones de la esquina"
 msgid "which generated config this module is applied to"
 msgstr "a qué configuración generada se aplica este módulo"
 
-msgid "domestic sites, they stay fast when they go direct"
-msgstr "sitios nacionales; deben ir rápidos cuando salen directo"
+msgid "domestic sites; they stay fast when routed direct"
+msgstr "sitios nacionales; rápidos cuando van directo"
 
-msgid "A module can also be pulled from a URL, which keeps several routers on the same settings"
-msgstr "Un módulo también puede descargarse desde una URL, lo que mantiene varios routers con los mismos ajustes"
+msgid "A module can also be fetched from a URL, keeping several routers on the same settings"
+msgstr "También se puede obtener de una URL para mantener varios routers con los mismos ajustes"
 
-msgid "Left alone, every node of the subscription ends up in the config"
-msgstr "Si no filtras, todos los nodos de la suscripción acaban en la configuración"
+msgid "Empty, all nodes of the subscription are kept"
+msgstr "Vacío, se conservan todos los nodos de la suscripción"
 
-msgid "keep only the nodes whose name contains one of these words, one per line, for example hk or tw&bgp"
-msgstr "conserva solo los nodos cuyo nombre contenga alguna de estas palabras, una por línea, por ejemplo hk o tw&bgp"
+msgid "keeps only nodes whose name contains one of these words, one per line (for example hk or tw&bgp)"
+msgstr "conserva solo los nodos cuyo nombre contenga alguna palabra, una por línea (p. ej. hk o tw&bgp)"
 
-msgid "drop the nodes whose name contains these words, such as a trial or a backup server"
-msgstr "descarta los nodos cuyo nombre contenga estas palabras, como un servidor de prueba o de respaldo"
+msgid "removes nodes whose name contains these words, such as a trial or a backup server"
+msgstr "elimina nodos cuyo nombre contenga estas palabras (pruebas, servidores de respaldo)"
 
-msgid "extra variables handed to the script, only for modules that read them"
-msgstr "variables extra que se pasan al script, solo para módulos que las lean"
+msgid "extra variables passed to the script, only for modules that read them"
+msgstr "variables extra pasadas al script, solo para módulos que las leen"
 
 msgid "A Compare button also appears here when a plain config file is edited"
 msgstr "Al editar un archivo de configuración normal también aparece aquí el botón Comparar"
 
-msgid "A config holds your proxies, groups and rules, this is the step that gets OpenClash working"
-msgstr "La configuración contiene tus nodos, grupos y reglas; este paso pone OpenClash en marcha"
+msgid "A config contains the proxies, groups and rules; OpenClash needs one to run"
+msgstr "La configuración contiene los proxies, grupos y reglas; OpenClash necesita una para funcionar"
 
 msgid "Upload a config file, or add a subscription link"
 msgstr "Sube un archivo de configuración o añade un enlace de suscripción"
@@ -4481,8 +4482,8 @@ msgstr "Una versión anterior permite volver atrás si una release falla"
 msgid "Changing a selector refreshes the mirror list below"
 msgstr "Cambiar un selector refresca la lista de espejos de abajo"
 
-msgid "F11 fullscreen, Escape leaves it, Ctrl with the mouse wheel zooms, the bottom right corner resizes"
-msgstr "F11 pantalla completa, Escape la deja, Ctrl con la rueda hace zoom y la esquina inferior derecha redimensiona"
+msgid "F11 toggles fullscreen, Escape leaves it, Ctrl + wheel zooms, the bottom right corner resizes"
+msgstr "F11 alterna pantalla completa, Escape sale, Ctrl + rueda amplía, la esquina inferior derecha redimensiona"
 
 msgid "Keep the window open while it downloads, the overview page log reports the result"
 msgstr "Mantén la ventana abierta durante la descarga; el registro de la página de estado muestra el resultado"
@@ -4496,35 +4497,35 @@ msgstr "Lista de módulos"
 msgid "Mirror list"
 msgstr "Lista de espejos"
 
-msgid "Pick a config from the list, then press the button beside it to apply it"
-msgstr "Elige una configuración en la lista y pulsa el botón de al lado para aplicarla"
+msgid "Select a config in the list; the button beside it applies the selection"
+msgstr "Selecciona una configuración en la lista; el botón contiguo la aplica"
 
-msgid "“Open and continue” opens this window and walks you through it"
-msgstr "«Abrir y continuar» abre esta ventana y te guía paso a paso"
+msgid "“Open and continue” opens this window and starts the matching guide"
+msgstr "«Abrir y continuar» abre esta ventana e inicia la guía correspondiente"
 
-msgid "TUN and Mix need the TUN kernel module"
-msgstr "TUN y Mix necesitan el módulo TUN del kernel"
+msgid "TUN and Mix require the TUN kernel module"
+msgstr "TUN y Mix requieren el módulo de núcleo TUN"
 
-msgid "The blue button downloads the subscription and writes the YAML for you"
-msgstr "El botón azul descarga la suscripción y escribe el YAML por ti"
+msgid "The blue button downloads the subscription and writes the YAML"
+msgstr "El botón azul descarga la suscripción y genera el YAML"
 
 msgid "The live numbers of this device:"
 msgstr "Los números en vivo de este dispositivo:"
 
-msgid "The other way in: a subscription link from your provider"
-msgstr "La otra vía: un enlace de suscripción de tu proveedor"
+msgid "The second method: a subscription link from the provider"
+msgstr "Segundo método: un enlace de suscripción del proveedor"
 
-msgid "Zashboard is the recommended one"
-msgstr "El recomendado es Zashboard"
+msgid "Zashboard is recommended"
+msgstr "Se recomienda Zashboard"
 
 msgid "the connection latency of this router to that mirror"
 msgstr "latencia de conexión de este router con ese espejo"
 
-msgid "a subscription URL from your provider, it can refresh itself later"
-msgstr "una URL de suscripción de tu proveedor; puede refrescarse sola después"
+msgid "a subscription URL from the provider, refreshable later"
+msgstr "una URL de suscripción del proveedor, actualizable después"
 
-msgid "change the link, the User-Agent or the conversion"
-msgstr "cambiar el enlace, el User-Agent o la conversión"
+msgid "changes the link, the User-Agent or the conversion options"
+msgstr "cambia el enlace, el User-Agent o la conversión"
 
 msgid "counted since the core started"
 msgstr "contados desde que arrancó el núcleo"
@@ -4535,10 +4536,10 @@ msgstr "se detecta automáticamente; no se puede cambiar"
 msgid "extra converter arguments, one per line"
 msgstr "argumentos extra del convertidor, uno por línea"
 
-msgid "make the node names readable"
-msgstr "hacen legibles los nombres de los nodos"
+msgid "makes the node names readable"
+msgstr "hace legibles los nombres de nodo"
 
-msgid "open this config in the editor"
+msgid "opens this config in the editor"
 msgstr "abre esta configuración en el editor"
 
 msgid "start and stop, modes, config, dashboard"
@@ -4556,11 +4557,11 @@ msgstr "Versiones instaladas y de destino"
 msgid "the current speed"
 msgstr "la velocidad actual"
 
-msgid "the module is downloaded from a URL and can refresh itself"
-msgstr "el módulo se descarga desde una URL y puede refrescarse solo"
+msgid "the module is downloaded from a URL and can refresh later"
+msgstr "el módulo se descarga de una URL y puede actualizarse después"
 
-msgid "upload, rename, download or remove config files"
-msgstr "subir, renombrar, descargar o borrar configuraciones"
+msgid "uploads, renames, downloads or removes config files"
+msgstr "sube, renombra, descarga o elimina archivos de configuración"
 
 msgid "memory and CPU used by the core"
 msgstr "memoria y CPU utilizadas por el núcleo"
@@ -4568,11 +4569,11 @@ msgstr "memoria y CPU utilizadas por el núcleo"
 msgid "which release line to follow, the default is fine"
 msgstr "qué línea de releases seguir; el valor por defecto está bien"
 
-msgid "you already have a YAML file, it is copied in as it is"
-msgstr "ya tienes un archivo YAML; se copia tal cual"
+msgid "an existing YAML file, copied in as it is"
+msgstr "un archivo YAML existente, se copia tal cual"
 
-msgid "you write the content yourself, or upload a txt or conf file"
-msgstr "el contenido lo escribes tú, o subes un archivo txt o conf"
+msgid "content written manually, or uploaded from a txt or conf file"
+msgstr "contenido escrito a mano o subido desde un archivo txt/conf"
 
 msgid "Skip Section"
 msgstr "Saltar sección"
@@ -4595,8 +4596,8 @@ msgstr "Interruptores de conversión"
 msgid "Recommended"
 msgstr "Recomendado"
 
-msgid "a switch for the special cases, a plain upload leaves it off"
-msgstr "un interruptor para casos especiales; una subida normal lo deja apagado"
+msgid "options for special cases; a plain upload leaves it off"
+msgstr "opciones para casos especiales; una carga normal lo deja desactivado"
 
 msgid "Close this window and go back to the guide"
 msgstr "Cerrar esta ventana y volver a la guía"
@@ -4631,52 +4632,52 @@ msgstr "Reintentar"
 msgid "Only needed in special cases"
 msgstr "Solo hace falta en casos especiales"
 
-msgid "Some providers only answer a specific client"
+msgid "Some providers answer only a specific client"
 msgstr "Algunos proveedores solo responden a un cliente concreto"
 
-msgid "For providers that do not serve Clash format"
+msgid "For providers that do not serve the Clash format"
 msgstr "Para proveedores que no ofrecen formato Clash"
 
-msgid "Filter by node name: one box keeps what you want"
-msgstr "Filtra por nombre de nodo: una caja conserva los que quieras"
+msgid "Filters by node name: the first box keeps the wanted nodes"
+msgstr "Filtra por nombre: la primera caja conserva los nodos deseados"
 
-msgid "The second box drops the nodes you do not want"
-msgstr "La segunda caja descarta los nodos que no quieras"
+msgid "The second box removes unwanted nodes"
+msgstr "La segunda caja elimina los nodos no deseados"
 
-msgid "Give the subscription a name before saving"
-msgstr "Ponle un nombre a la suscripción antes de guardar"
+msgid "A name is required before saving"
+msgstr "Se requiere un nombre antes de guardar"
 
-msgid "a short note kept with the module"
+msgid "a short note stored with the module"
 msgstr "una nota breve guardada con el módulo"
 
-msgid "A file with #! info lines fills the name, description and variables for you"
-msgstr "Si el archivo incluye líneas de información #!, se rellenan el nombre, la descripción y las variables"
+msgid "A file with #! info lines fills the name, description and variables automatically"
+msgstr "Un archivo con líneas #! rellena el nombre, la descripción y las variables automáticamente"
 
 msgid "optional module info lines read by the add dialog"
 msgstr "líneas de información opcionales que lee la ventana de añadir"
 
-msgid "The window runs in two steps: pick the source here, then review the details"
-msgstr "La ventana tiene dos pasos: elige el origen y luego revisa los detalles"
+msgid "The window runs in two steps: pick the source, then review the details"
+msgstr "La ventana tiene dos pasos: elegir el origen y revisar los detalles"
 
 msgid "Select the txt or conf file to upload here:"
 msgstr "Selecciona aquí el archivo txt o conf que quieres subir:"
 
-msgid "As soon as the file is chosen the window reads it and jumps to the details step"
-msgstr "Al elegir el archivo, la ventana lo lee y salta al paso de detalles"
+msgid "Choosing the file reads it and jumps to the details step"
+msgstr "Al elegir el archivo se lee y salta al paso de detalles"
 
 msgid "Paste the module link here:"
 msgstr "Pega aquí el enlace del módulo:"
 
-msgid "Click Next again to continue without the file info"
+msgid "Press Next again to continue without the file info"
 msgstr "Pulsa Siguiente de nuevo para continuar sin la información del archivo"
 
-msgid "Everything read from the file can be checked and changed here:"
-msgstr "Todo lo leído del archivo puede revisarse y cambiarse aquí:"
+msgid "Everything read from the file can be reviewed and changed here:"
+msgstr "Aquí se puede revisar y cambiar todo lo leído del archivo:"
 
 msgid "Add turns on once the required fields are filled"
 msgstr "Añadir se activa cuando los campos obligatorios están completos"
 
-msgid "Add saves the module, Back returns to the source step"
+msgid "Add saves the module; Back returns to the source step"
 msgstr "Añadir guarda el módulo; Atrás vuelve al paso de origen"
 
 msgid "Four options decide what gets installed:"
@@ -4685,65 +4686,65 @@ msgstr "Cuatro opciones deciden qué se instala:"
 msgid "Three maintenance buttons:"
 msgstr "Tres botones de mantenimiento:"
 
-msgid "Turn this switch on and OpenClash starts working"
-msgstr "Activa este interruptor y OpenClash empieza a funcionar"
+msgid "Turns the plugin on"
+msgstr "Activa el complemento"
 
-msgid "The highlighted page holds the core log, the plugin log and the one click debug log generator"
-msgstr "la página destacada contiene el registro del núcleo, el del plugin y la generación del registro de depuración en un clic"
+msgid "The highlighted page holds the core log, the plugin log and the one-click debug log generator"
+msgstr "La página resaltada contiene el registro del núcleo, del complemento y el generador de depuración de un clic"
 
-msgid "Different addresses mean the rules are doing their job"
-msgstr "si las direcciones son distintas, la separación de tráfico está funcionando"
+msgid "Different addresses mean the rules are applied"
+msgstr "Direcciones distintas indican que las reglas se aplican"
 
-msgid "Arrows step through, Esc ends the guide"
-msgstr "Las flechas avanzan, Esc termina la guía"
+msgid "Arrow keys step through the guide; Esc closes it"
+msgstr "Las flechas avanzan; Esc cierra la guía"
 
-msgid "Cancel discards everything, the blue button adds the config"
-msgstr "Cancelar descarta todo; el botón azul añade el config"
+msgid "Cancel discards the input; the blue button adds the config"
+msgstr "Cancelar descarta la entrada; el botón azul añade la configuración"
 
-msgid "Every switch below is optional:"
-msgstr "Los interruptores de abajo son opcionales:"
+msgid "All switches below are optional:"
+msgstr "Todos los interruptores son opcionales:"
 
 msgid "Four one-click buttons:"
 msgstr "Cuatro botones de un clic:"
 
-msgid "Four public IP lookup services, they show the exit address in use and verify the rules"
-msgstr "cuatro servicios de consulta de IP pública: muestran la IP de salida en uso y verifican las reglas"
+msgid "Four public IP lookup services; they show the exit address and verify the rules"
+msgstr "Cuatro servicios de consulta de IP pública; muestran la dirección de salida y verifican las reglas"
 
 msgid "Pick the Compiled Version that matches this device, keep the default branch"
 msgstr "Elige la versión compilada que corresponda a este dispositivo y deja la rama por defecto"
 
-msgid "Latency to four sites, measured through the rules you are running:"
-msgstr "Latencia a cuatro sitios, medida con las reglas que usas:"
+msgid "Latency to four sites, measured through the active rules:"
+msgstr "Latencia a cuatro sitios, medida con las reglas activas:"
 
-msgid "Next switches to that tab"
-msgstr "Siguiente cambia a esa pestaña"
+msgid "Next switches to this tab"
+msgstr "Siguiente cambia a esta pestaña"
 
-msgid "Nothing to open yet? Install one in Plugin Settings, Dashboard Settings"
-msgstr "¿Aún no abre? Instala uno en Ajustes del plugin, Ajustes del panel"
+msgid "No dashboard installed: install one in Plugin Settings → Dashboard Settings"
+msgstr "Sin panel instalado: instala uno en Ajustes del complemento → Paneles"
 
-msgid "Only some providers need these two"
-msgstr "Solo algunos proveedores necesitan estas dos"
+msgid "Only some providers need these two boxes"
+msgstr "Solo algunos proveedores necesitan estas dos cajas"
 
-msgid "Paste the link from your provider, one per line"
-msgstr "Pega el enlace de tu proveedor, uno por línea"
+msgid "Paste the provider link, one per line"
+msgstr "Pega el enlace del proveedor, uno por línea"
 
 msgid "Refresh the version list and the mirror latency, ✕ closes the window"
 msgstr "Refresca la lista de versiones y la latencia del espejo; ✕ cierra la ventana"
 
-msgid "Six pages, one job each:"
+msgid "Six pages with one task each:"
 msgstr "Seis páginas, una tarea cada una:"
 
 msgid "TUN plus redirect"
 msgstr "TUN más redirección"
 
-msgid "The Update button in the config list refreshes it later"
-msgstr "El botón Actualizar de la lista de configs lo refresca después"
+msgid "The Update button in the config list refreshes it"
+msgstr "El botón Actualizar de la lista la actualiza"
 
-msgid "The debug log answers most questions"
-msgstr "El log de depuración responde a casi todo"
+msgid "The debug log covers most problems"
+msgstr "El registro de depuración cubre la mayoría de problemas"
 
-msgid "The first start may download missing GEO data and external rule sets, make sure the network is reachable"
-msgstr "el primer arranque puede descargar datos GEO y conjuntos de reglas externos; conviene asegurar antes la red"
+msgid "The first start may download missing GEO data and external rule sets; the network must be reachable"
+msgstr "El primer inicio puede descargar datos GEO y conjuntos de reglas externos; la red debe estar disponible"
 
 msgid "The left side shows what the download is doing"
 msgstr "La izquierda muestra qué está haciendo la descarga"
@@ -4757,38 +4758,41 @@ msgstr "La etiqueta indica de dónde viene"
 msgid "The four header buttons:"
 msgstr "Los cuatro botones de la cabecera:"
 
-msgid "The two header icons redraw the same numbers:"
-msgstr "Los dos iconos de la cabecera redibujan los mismos números:"
+msgid "The three header icons switch views:"
+msgstr "Los tres iconos de la cabecera cambian de vista:"
+
+msgid "lists LAN devices and sets each one to proxy or direct"
+msgstr "lista los dispositivos de la LAN y ajusta cada uno a proxy o directo"
 
 msgid "Three actions:"
 msgstr "Tres acciones:"
 
-msgid "Turning it on unfolds the fields below"
-msgstr "Al activarlo se despliegan los campos de abajo"
+msgid "Turning it on reveals the fields below"
+msgstr "Al activarlo aparecen los campos siguientes"
 
 msgid "Two tabs, two sources:"
 msgstr "Dos pestañas, dos fuentes:"
 
-msgid "Two tabs, two ways in:"
-msgstr "Dos pestañas, dos formas de entrar:"
+msgid "Two tabs, two input methods:"
+msgstr "Dos pestañas, dos formas de entrada:"
 
-msgid "Two versions update on their own:"
-msgstr "Dos versiones se actualizan solas:"
+msgid "Two versions update independently:"
+msgstr "Dos versiones se actualizan por separado:"
 
 msgid "Which traffic goes through the proxy:"
 msgstr "Qué tráfico pasa por el proxy:"
 
-msgid "add a config file or a subscription"
-msgstr "añade otro archivo de config o una suscripción"
+msgid "adds a config file or a subscription"
+msgstr "añade un archivo de configuración o una suscripción"
 
-msgid "blur the addresses before a screenshot"
-msgstr "tapa las direcciones antes de una captura"
+msgid "blurs the addresses before a screenshot"
+msgstr "difumina las direcciones antes de una captura"
 
-msgid "build a subscription and refresh it"
-msgstr "crea una suscripción y actualízala"
+msgid "builds a subscription and refreshes it"
+msgstr "crea una suscripción y la actualiza"
 
-msgid "clear the DNS cache"
-msgstr "limpia la caché de DNS"
+msgid "clears the DNS cache"
+msgstr "vacía la caché de DNS"
 
 msgid "click a version number to update only that piece"
 msgstr "pulsa una versión para actualizar solo esa parte"
@@ -4805,32 +4809,32 @@ msgstr "log del núcleo, log del plugin, log de depuración"
 msgid "delete the installed core"
 msgstr "borra el núcleo instalado"
 
-msgid "download the subscription again"
+msgid "downloads the subscription again"
 msgstr "vuelve a descargar la suscripción"
 
-msgid "drop all current connections"
-msgstr "corta todas las conexiones actuales"
+msgid "drops all current connections"
+msgstr "cierra todas las conexiones actuales"
 
-msgid "drop the provider info nodes that only carry the expiry date, traffic, plan or website"
-msgstr "descarta los nodos informativos que solo traen la fecha, el tráfico, el plan o la web"
+msgid "removes provider info nodes that only carry the expiry date, traffic, plan or website"
+msgstr "elimina nodos informativos del proveedor que solo llevan caducidad, tráfico, plan o sitio web"
 
 msgid "export the whole setup, or one part of it"
 msgstr "exporta todo el setup, o solo una parte"
 
-msgid "fake address, the real one resolves after the rules match"
-msgstr "dirección falsa, la real se resuelve al casar las reglas"
+msgid "fake address; the real address resolves after the rules match"
+msgstr "dirección falsa; la real se resuelve tras aplicar las reglas"
 
-msgid "follow the rules of the config"
-msgstr "sigue las reglas del config"
+msgid "follows the rules of the config"
+msgstr "sigue las reglas de la configuración"
 
 msgid "shows everything as cards"
 msgstr "muestra todo como tarjetas"
 
-msgid "pick it here, or choose Custom and type your own"
-msgstr "elígelo aquí, o usa Personalizado y escribe el tuyo"
+msgid "select one here, or choose Custom and enter another"
+msgstr "selecciónalo aquí o elige Personalizado e introduce otro"
 
-msgid "query the IP addresses, latency and unlock checks again"
-msgstr "consulta otra vez las direcciones IP, la latencia y las comprobaciones de desbloqueo"
+msgid "queries addresses, latency and unlock checks again"
+msgstr "vuelve a consultar direcciones, latencia y desbloqueo"
 
 msgid "redirect mode, TCP and UDP"
 msgstr "modo redirect, TCP y UDP"
@@ -4841,86 +4845,86 @@ msgstr "devuelve los ajustes de OpenClash al estado inicial"
 msgid "run mode, DNS, traffic, access control, IPv6"
 msgstr "modo de ejecución, DNS, tráfico, control de acceso, IPv6"
 
-msgid "starts the check from the router or from the current browser"
-msgstr "inicia la comprobación desde el router o desde el navegador actual"
+msgid "runs the check from the router or from this browser"
+msgstr "ejecuta la comprobación desde el router o desde este navegador"
 
-msgid "save the current content to a file"
+msgid "saves the current content to a file"
 msgstr "guarda el contenido actual en un archivo"
 
-msgid "send everything through the proxy"
-msgstr "manda todo por el proxy"
+msgid "sends everything through the proxy"
+msgstr "envía todo a través del proxy"
 
-msgid "send nothing through the proxy"
-msgstr "no manda nada por el proxy"
+msgid "sends nothing through the proxy"
+msgstr "no envía nada a través del proxy"
 
-msgid "some providers need a certain request header, one row per header"
-msgstr "algunos proveedores piden una cabecera concreta, una fila por cabecera"
+msgid "some providers require a certain request header, one row per header"
+msgstr "algunos proveedores exigen una cabecera concreta, una por fila"
 
-msgid "the core that carries the traffic"
-msgstr "el núcleo que lleva el tráfico"
+msgid "the proxy core"
+msgstr "el núcleo que transporta el tráfico"
 
-msgid "the name the config list shows later"
-msgstr "el nombre que verás luego en la lista de configs"
+msgid "the name shown in the config list"
+msgstr "el nombre que muestra la lista"
 
 msgid "overall system load of the router"
 msgstr "carga del sistema del router en conjunto, no solo del proceso de OpenClash"
 
-msgid "the secret key stays on this router and decrypts the config, the public key goes to the provider"
-msgstr "la clave privada se queda en el router y descifra el config; la pública va al proveedor"
+msgid "the secret key stays on this router and decrypts the config; the public key goes to the provider"
+msgstr "la clave secreta permanece en este router y descifra la configuración; la pública se entrega al proveedor"
 
 msgid "uses real addresses, for local services"
 msgstr "usa direcciones reales, para servicios locales"
 
-msgid "sites abroad, an abnormal result points at the proxy or the rules"
-msgstr "sitios del extranjero; un resultado anómalo apunta al proxy o a las reglas"
+msgid "sites abroad; an abnormal result points at the proxy or the rules"
+msgstr "sitios extranjeros; un resultado anómalo apunta al proxy o a las reglas"
 
-msgid "when it is fetched again, OFF means only on demand"
-msgstr "cuándo se vuelve a bajar; OFF solo a mano"
+msgid "when it is fetched again; OFF means on demand only"
+msgstr "cuándo se vuelve a obtener; OFF significa solo a petición"
 
 msgid "DNS mode in use:"
 msgstr "Modo DNS en uso:"
 
-msgid "Five buttons next to the list:"
-msgstr "Cinco botones junto a la lista:"
+msgid "Five buttons next to the config list:"
+msgstr "Cinco botones junto a la lista de configuraciones:"
 
-msgid "How traffic is taken over, in use:"
-msgstr "Cómo se toma el tráfico, en uso:"
+msgid "Traffic takeover method in use:"
+msgstr "Método de captura del tráfico en uso:"
 
-msgid "The online conversion service can see your subscription link"
-msgstr "el servicio de conversión en línea puede ver tu enlace de suscripción"
+msgid "The online conversion service can see the subscription link"
+msgstr "El servicio de conversión en línea puede ver el enlace de suscripción"
 
 msgid "Smart groups score nodes by latency and loss"
 msgstr "Los grupos Smart puntúan nodos por latencia y pérdida"
 
-msgid "accept unmatched certificates"
-msgstr "acepta certificados que no coinciden"
+msgid "accepts unmatched certificates"
+msgstr "acepta certificados no coincidentes"
 
-msgid "keep UDP for games and voice chat"
-msgstr "mantén UDP para juegos y voz"
+msgid "keeps UDP for games and voice chat"
+msgstr "mantiene UDP para juegos y voz"
 
-msgid "a ready made config and rule set applied to the result"
-msgstr "una configuración y unas reglas ya preparadas por otros, aplicadas al resultado"
+msgid "a ready-made config and rule set applied to the result"
+msgstr "una configuración y reglas listas aplicadas al resultado"
 
 msgid "virtual network card, TCP and UDP"
 msgstr "tarjeta de red virtual, TCP y UDP"
 
-msgid "write rules as providers, shorter config"
-msgstr "escribe las reglas como proveedor de reglas, configuración más corta"
+msgid "writes rules as providers, shorter config"
+msgstr "escribe reglas como proveedores, configuración más corta"
 
 msgid "An overwrite module overrides the plugin and config file options"
 msgstr "Un módulo de sobrescritura sobrescribe las opciones del plugin y del archivo de config"
 
-msgid "Creates a module, a small file holding the values that override the config"
-msgstr "Crea un módulo, un archivo pequeño con los valores que sobrescriben el config"
+msgid "Creates a module: a small file holding the values that override the config"
+msgstr "Crea un módulo: un archivo pequeño con los valores que sobrescriben la configuración"
 
 msgid "Each entry is a module that overrides the generated config"
 msgstr "Cada entrada es un módulo que sobrescribe el config generado"
 
-msgid "What you write here overrides the generated config, a wrong value can break the core"
-msgstr "Lo que escribas aquí sobrescribe el config generado; un valor mal puesto puede romper el núcleo"
+msgid "Content written here overrides the generated config; a wrong value can break the core"
+msgstr "El contenido escrito aquí sobrescribe la configuración generada; un valor erróneo puede romper el núcleo"
 
-msgid "override plugin and config file options"
-msgstr "sobrescribe las opciones del plugin y del archivo de config"
+msgid "overrides plugin and config file options"
+msgstr "sobrescribe opciones del complemento y del archivo de configuración"
 
 msgid "1 file selected"
 msgstr "1 archivo seleccionado"
@@ -4964,62 +4968,62 @@ msgstr "Tiempo de espera agotado..."
 msgid "This section contains no values yet"
 msgstr "Esta sección todavía no tiene valores"
 
-msgid "OpenClash rebuilds the running config every time it starts, so direct edits may be lost"
-msgstr "OpenClash rehace el config en marcha cada vez que arranca, los cambios directos se pueden perder"
+msgid "OpenClash rebuilds the running config on every start; direct edits can be lost"
+msgstr "OpenClash regenera la configuración en cada inicio; las ediciones directas pueden perderse"
 
-msgid "the switch starts and stops the plugin, the button beside it restarts OpenClash"
-msgstr "el interruptor arranca y para el plugin, el botón de al lado reinicia OpenClash"
+msgid "starts and stops the plugin"
+msgstr "inicia y detiene el complemento"
 
-msgid "Restart OpenClash after changing a config or a module"
-msgstr "después de cambiar la configuración o un módulo hay que reiniciar OpenClash"
+msgid "Restart OpenClash after changing a config or an overwrite module"
+msgstr "Reinicia OpenClash tras cambiar una configuración o un módulo de sobrescritura"
 
-msgid "write the module back, restart OpenClash to apply it"
-msgstr "guarda el módulo, reinicia OpenClash para aplicarlo"
+msgid "writes the module back; restart OpenClash to apply it"
+msgstr "guarda el módulo; reinicia OpenClash para aplicarlo"
 
-msgid "Change one module at a time, save, then restart OpenClash and check the log"
-msgstr "Cambia un módulo a la vez, guarda, reinicia OpenClash y mira el log"
+msgid "Change one module at a time, save, restart OpenClash and check the log"
+msgstr "Cambia un módulo a la vez, guarda, reinicia OpenClash y revisa el registro"
 
-msgid "The switch on the right enables or disables it, a restart applies it"
-msgstr "El interruptor de la derecha lo activa o lo desactiva, se aplica al reiniciar"
+msgid "The switch on the right enables or disables it; a restart applies the change"
+msgstr "El interruptor de la derecha lo activa o desactiva; un reinicio aplica el cambio"
 
-msgid "A new module starts off, turn the switch on, then restart OpenClash"
+msgid "A new module starts off; turn the switch on and restart OpenClash"
 msgstr "Un módulo nuevo empieza apagado; actívalo y reinicia OpenClash"
 
-msgid "No Core Version line means there is no core yet, Check Update below installs one"
-msgstr "Sin la linea «Versión del núcleo» no hay núcleo, Check Update de abajo instala uno"
+msgid "Without a Core Version line no core is installed; Check Update below installs one"
+msgstr "Sin línea de versión del núcleo no hay núcleo instalado; «Buscar actualizaciones» lo instala"
 
 msgid "Switching restarts OpenClash"
 msgstr "Cambiar reinicia OpenClash"
 
-msgid "One button per supported dashboard, it shows nodes, latency and live connections"
-msgstr "Un boton por panel soportado: nodos, latencia y conexiones en vivo"
+msgid "One button per installed dashboard; each shows nodes, latency and live connections"
+msgstr "Un botón por panel instalado; cada uno muestra nodos, latencia y conexiones en vivo"
 
-msgid "install or update the plugin and the core"
-msgstr "instalar o actualizar el plugin y el nucleo"
+msgid "installs or updates the plugin and the core"
+msgstr "instala o actualiza el complemento y el núcleo"
 
-msgid "One press checks for updates and opens this window"
-msgstr "Una pulsacion busca actualizaciones y abre esta ventana"
+msgid "Checks for updates and opens this window"
+msgstr "Busca actualizaciones y abre esta ventana"
 
-msgid "Only one config runs at a time, switching restarts OpenClash"
-msgstr "Solo corre un config a la vez, cambiar reinicia OpenClash"
+msgid "Only one config runs at a time; switching restarts OpenClash"
+msgstr "Solo se ejecuta una configuración a la vez; cambiarla reinicia OpenClash"
 
-msgid "apply the selected config and restart OpenClash"
-msgstr "aplicar el config elegido y reiniciar OpenClash"
+msgid "applies the selected config and restarts OpenClash"
+msgstr "aplica la configuración seleccionada y reinicia OpenClash"
 
 msgid "shows one metric as a curve"
 msgstr "muestra una sola métrica como curva"
 
-msgid "After saving, press Switch in the config list to use it"
-msgstr "Tras guardar, pulse «Cambiar» en la lista de configuraciones para usarlo"
+msgid "After saving, press Switch in the config list to use the config"
+msgstr "Tras guardar, pulsa Cambiar en la lista para usarla"
 
-msgid "A name is asked for as well, it is filled in from the link"
-msgstr "Tambien pide un nombre, se rellena desde el enlace"
+msgid "A name is also requested, pre-filled from the link"
+msgstr "También se pide un nombre, rellenado desde el enlace"
 
 msgid "the name this module is listed under"
 msgstr "el nombre con el que aparece este modulo"
 
-msgid "The file is split into sections and needs at least one header, here is what the editor starts from"
-msgstr "El archivo se divide en secciones y necesita al menos un encabezado; esto es lo que trae el editor"
+msgid "The file is split into sections and needs at least one header; the editor starts from this skeleton"
+msgstr "El archivo se divide en secciones y necesita al menos una cabecera; el editor parte de esta plantilla"
 
 msgid "YAML fragments such as DNS settings, ports or TUN options"
 msgstr "Fragmentos YAML como DNS, puertos u opciones TUN"
@@ -5036,50 +5040,50 @@ msgstr "Modo de consulta"
 msgid "The bar above the config list shows what the selected subscription holds:"
 msgstr "La barra sobre la lista de configuraciones muestra el estado de la suscripción seleccionada:"
 
-msgid "the file being viewed, a dot marks the one in use"
-msgstr "el archivo que estás viendo; un punto marca el que está en uso"
+msgid "the file being viewed; a dot marks the one in use"
+msgstr "el archivo en vista; un punto marca el que está en uso"
 
-msgid "when the file was written the last time"
-msgstr "cuándo se escribió el archivo por última vez"
+msgid "time of the last write"
+msgstr "hora de la última escritura"
 
-msgid "used and total of the plan, with its expiry date"
-msgstr "usado y total del plan, con su fecha de caducidad"
+msgid "plan usage and expiry date"
+msgstr "uso y total del plan, con su fecha de caducidad"
 
-msgid "reads the numbers from the provider again"
-msgstr "vuelve a leer los datos del proveedor"
+msgid "reads the usage from the provider again"
+msgstr "vuelve a leer el uso del proveedor"
 
-msgid "points this config at another subscription link"
-msgstr "apunta esta configuración a otro enlace de suscripción"
+msgid "points the config at another subscription link"
+msgstr "apunta la configuración a otro enlace de suscripción"
 
-msgid "walks through the config files and previews each one"
-msgstr "recorre las configuraciones y previsualiza cada una"
+msgid "steps through the config files and previews each one"
+msgstr "recorre las configuraciones y las previsualiza"
 
-msgid "A plain YAML file only shows its name and the last modified time"
-msgstr "un YAML simple solo muestra su nombre y la última hora de modificación"
+msgid "A plain YAML file shows only its name and the last modified time"
+msgstr "Un archivo YAML simple solo muestra su nombre y la última modificación"
 
-msgid "No config file yet, this area stays empty until the first one is added"
-msgstr "Aún no hay archivo de configuración, esta área permanece vacía hasta que se añada el primero"
+msgid "Empty until the first config is added"
+msgstr "Vacío hasta que se añada la primera configuración"
 
-msgid "Once a config is added, its subscription info bar shows here: name, modified time, traffic and the action buttons"
-msgstr "Una vez añadida una configuración, aquí aparece su barra de información de suscripción: nombre, hora de modificación, tráfico y los botones de acción"
+msgid "After a config is added, its subscription bar appears here: name, modified time, traffic and the action buttons"
+msgstr "Tras añadir una configuración aparece aquí su barra de suscripción: nombre, fecha de modificación, tráfico y botones de acción"
 
 msgid "Prev / Next"
 msgstr "Anterior / Siguiente"
 
-msgid "This tour sets OpenClash up first, then walks through the rest of the page"
-msgstr "Esta guía primero prepara OpenClash y después recorre el resto de la página"
+msgid "Covers the OpenClash setup first, then the other sections of this page"
+msgstr "Cubre primero la puesta en marcha de OpenClash y después el resto de la página"
 
-msgid "install or update the core"
+msgid "installs or updates the core"
 msgstr "instala o actualiza el núcleo"
 
-msgid "upload your own file or a subscription"
-msgstr "sube tu propio archivo o una suscripción"
+msgid "uploads a config file or a subscription"
+msgstr "sube un archivo de configuración o una suscripción"
 
-msgid "flip the switch and the plugin starts working"
-msgstr "activa el interruptor y el plugin empieza a funcionar"
+msgid "turns the plugin on"
+msgstr "activa el complemento"
 
-msgid "Use the buttons below or the arrow keys to step through, Esc ends the guide"
-msgstr "usa los botones o las teclas de flecha para avanzar; Esc termina la guía"
+msgid "The buttons below or the arrow keys step through the guide; Esc closes it"
+msgstr "Los botones de abajo o las flechas avanzan; Esc cierra la guía"
 
 msgid "Requesting subscription..."
 msgstr "Solicitando suscripción..."
@@ -5306,14 +5310,14 @@ msgstr "proxy-providers sin descargar, no se puede leer"
 msgid "providers"
 msgstr "conjuntos de proxy"
 
-msgid "Look inside the template before using it: its groups and rule flow"
-msgstr "Mira dentro de la plantilla antes de usarla: sus grupos y el flujo de reglas"
+msgid "Inspects the template before use: its groups and rule flow"
+msgstr "Inspecciona la plantilla antes de usarla: grupos y flujo de reglas"
 
 msgid "The template is fetched once and kept in the router cache"
 msgstr "La plantilla se descarga una vez y queda en la caché del router"
 
-msgid "The run stays on the progress page; when it ends press View Summary to inspect the result or switch over"
-msgstr "La ejecución permanece en la página de progreso; al terminar pulsa Ver resumen para ver el resultado o cambiar"
+msgid "The run stays on the progress page; when it ends, press View Summary to inspect or switch"
+msgstr "La ejecución permanece en la página de progreso; al terminar, pulsa Ver resumen para revisar o cambiar"
 
 msgid "Template parsed"
 msgstr "Plantilla analizada"
@@ -5504,5 +5508,206 @@ msgstr "Restaurar configuración predeterminada"
 msgid "Start Test"
 msgstr "Iniciar prueba"
 
-msgid "switch the list to unlock checks, press again to pick the services"
-msgstr "cambia la lista a las comprobaciones de desbloqueo, pulsa otra vez para elegir los servicios"
+msgid "switches the list to unlock checks; press again to choose the services"
+msgstr "cambia la lista a comprobaciones de desbloqueo; pulsa de nuevo para elegir servicios"
+
+msgid "Access Control"
+msgstr "Control de acceso"
+
+msgid "All set to Direct"
+msgstr "Todo en conexión directa"
+
+msgid "All set to Proxy"
+msgstr "Todo por el proxy"
+
+msgid "Auto detect restored"
+msgstr "Detección automática restaurada"
+
+msgid "Camera"
+msgstr "Cámara"
+
+msgid "Click to set name and icon"
+msgstr "Haga clic para definir nombre e icono"
+
+msgid "Connections"
+msgstr "Conexiones"
+
+msgid "DNS forwarding switched"
+msgstr "Reenvío DNS cambiado"
+
+msgid "Default Order"
+msgstr "Orden predeterminado"
+
+msgid "Default policy for devices without individual settings; new devices inherit it"
+msgstr "Política predeterminada para dispositivos sin ajuste individual; los nuevos dispositivos la heredan"
+
+msgid "Desktop"
+msgstr "Escritorio"
+
+msgid "Detected name"
+msgstr "Nombre detectado"
+
+msgid "Device"
+msgstr "Dispositivo"
+
+msgid "Device Name"
+msgstr "Nombre del dispositivo"
+
+msgid "Device Name & Icon"
+msgstr "Nombre e icono del dispositivo"
+
+msgid "Devices"
+msgstr "dispositivos"
+
+msgid "Devices appear here automatically once they join the network"
+msgstr "Los dispositivos aparecerán aquí automáticamente al conectarse a la red"
+
+msgid "Direct All"
+msgstr "Todo directo"
+
+msgid "Download Rate"
+msgstr "Velocidad de descarga"
+
+msgid "Fake-IP requires DNS hijack set to Firewall Forwarding"
+msgstr "Fake-IP requiere que el secuestro DNS se ajuste a Reenvío por cortafuegos"
+
+msgid "Game Console"
+msgstr "Consola de juegos"
+
+msgid "Icon"
+msgstr "Icono"
+
+msgid "Laptop"
+msgstr "Portátil"
+
+msgid "Leave empty to use the detected name"
+msgstr "Dejar vacío para usar el nombre detectado"
+
+msgid "Name"
+msgstr "Nombre"
+
+msgid "No LAN devices found"
+msgstr "No se encontraron dispositivos en la LAN"
+
+msgid "No hostname detected; you can set a custom name"
+msgstr "No se detectó nombre de host; puede definir uno personalizado"
+
+msgid "Offline"
+msgstr "Sin conexión"
+
+msgid "Operation timeout"
+msgstr "Tiempo de espera agotado"
+
+msgid "Phone"
+msgstr "Teléfono"
+
+msgid "Proxy All"
+msgstr "Todo por proxy"
+
+msgid "Rescan"
+msgstr "Reescanear"
+
+msgid "Rescan the LAN for devices"
+msgstr "Reescanear dispositivos de la LAN"
+
+msgid "Restore Auto Detect"
+msgstr "Restaurar detección automática"
+
+msgid "Route"
+msgstr "Ruta"
+
+msgid "Saved"
+msgstr "Guardado"
+
+msgid "Server / NAS"
+msgstr "Servidor / NAS"
+
+msgid "Set as Direct"
+msgstr "Configurado como directo"
+
+msgid "Set as Proxy"
+msgstr "Configurado como proxy"
+
+msgid "Smart Device"
+msgstr "Dispositivo inteligente"
+
+msgid "Speaker"
+msgstr "Altavoz"
+
+msgid "Switch"
+msgstr "Cambiar"
+
+msgid "Switch DNS forwarding first"
+msgstr "Cambie primero el reenvío DNS"
+
+msgid "TV"
+msgstr "TV"
+
+msgid "Tablet"
+msgstr "Tableta"
+
+msgid "Unknown Device"
+msgstr "Dispositivo desconocido"
+
+msgid "Upload Rate"
+msgstr "Velocidad de subida"
+
+msgid "Rescanned"
+msgstr "Reescaneado"
+
+msgid "Rescan failed"
+msgstr "Error al reescanear"
+
+msgid "Device is covered by a range entry; adjust it on the settings page"
+msgstr "El dispositivo está cubierto por un rango de la lista; ajústelo en la página de configuración"
+
+msgid "LAN devices discovered by the router:"
+msgstr "Dispositivos LAN descubiertos por el router:"
+
+msgid "routes one device without affecting the others"
+msgstr "enruta un dispositivo sin afectar a los demás"
+
+msgid "connections held by the device"
+msgstr "conexiones que mantiene el dispositivo"
+
+msgid "live speed of the device"
+msgstr "velocidad en vivo del dispositivo"
+
+msgid "default policy taken by new devices"
+msgstr "política predeterminada de los dispositivos nuevos"
+
+msgid "Saved; applies at the next start"
+msgstr "Guardado; se aplica en el próximo inicio"
+
+msgid "All devices default to proxy"
+msgstr "Todos los dispositivos van por el proxy por defecto"
+
+msgid "All devices default to direct"
+msgstr "Todos los dispositivos van directo por defecto"
+
+msgid "Current default is proxy mode"
+msgstr "El modo predeterminado actual es proxy"
+
+msgid "Current default is direct mode"
+msgstr "El modo predeterminado actual es conexión directa"
+
+msgid "Auto-discovered devices; rates refresh every 2 s (direct traffic included); click a name to rename; switching closes existing connections"
+msgstr "Dispositivos detectados automáticamente; las tasas se actualizan cada 2 s (incluido el tráfico directo); haz clic en un nombre para renombrarlo; al cambiar se cierran las conexiones existentes"
+
+msgid "Search name, IP, MAC or vendor"
+msgstr "Buscar nombre, IP, MAC o fabricante"
+
+msgid "No matching devices"
+msgstr "No hay dispositivos coincidentes"
+
+msgid "Clear"
+msgstr "Borrar"
+
+msgid "Printer"
+msgstr "Impresora"
+
+msgid "Router"
+msgstr "Router"
+
+msgid "Search devices"
+msgstr "Buscar dispositivos"

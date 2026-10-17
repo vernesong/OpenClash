@@ -66,13 +66,13 @@ var Guide = {
             wide: true,
             body: function () {
                 return '<svg class="guide-cover" viewBox="0 0 320 84" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><rect class="cv-bg" x="0.5" y="0.5" width="319" height="83" rx="12"/><circle class="cv-ring" cx="64" cy="42" r="25"/><path class="cv-check" d="M50 42.5 l9 9 l18 -21"/><rect class="cv-line" x="112" y="20" width="132" height="8" rx="4"/><rect class="cv-line cv-faint" x="112" y="38" width="106" height="8" rx="4"/><rect class="cv-line cv-faint" x="112" y="56" width="78" height="8" rx="4"/><path class="cv-spark" d="M262 22 l0 10 M257 27 l10 0"/><path class="cv-spark" d="M290 50 l0 8 M286 54 l8 0"/><circle class="cv-dot" cx="252" cy="56" r="3"/><circle class="cv-dot cv-faint" cx="270" cy="66" r="3"/></svg>'
-                    + '<p><%:This tour sets OpenClash up first, then walks through the rest of the page%></p>'
+                    + '<p><%:Covers the OpenClash setup first, then the other sections of this page%></p>'
                     + '<ul>'
-                    + '<li><b><%:Check Update%></b><span class="guide-sep"></span><%:install or update the core%></li>'
-                    + '<li><b><%:Add a config file%></b><span class="guide-sep"></span><%:upload your own file or a subscription%></li>'
-                    + '<li><b><%:Start OpenClash%></b><span class="guide-sep"></span><%:flip the switch and the plugin starts working%></li>'
+                    + '<li><b><%:Check Update%></b><span class="guide-sep"></span><%:installs or updates the core%></li>'
+                    + '<li><b><%:Add a config file%></b><span class="guide-sep"></span><%:uploads a config file or a subscription%></li>'
+                    + '<li><b><%:Start OpenClash%></b><span class="guide-sep"></span><%:turns the plugin on%></li>'
                     + '</ul>'
-                    + '<p class="guide-info"><%:Use the buttons below or the arrow keys to step through, Esc ends the guide%></p>';
+                    + '<p class="guide-info"><%:The buttons below or the arrow keys step through the guide; Esc closes it%></p>';
             }
         },
         {
@@ -85,8 +85,8 @@ var Guide = {
             entry: 'update',
             done: function (s) { return s.core === true; },
             body: function () {
-                return '<p><%:One press checks for updates and opens this window%></p>'
-                    + '<p class="guide-tip"><%:“Open and continue” opens this window and walks you through it%></p>'
+                return '<p><%:Checks for updates and opens this window%></p>'
+                    + '<p class="guide-tip"><%:“Open and continue” opens this window and starts the matching guide%></p>'
                     + '<p class="guide-info" id="guide-arch"></p>';
             }
         },
@@ -101,13 +101,13 @@ var Guide = {
             },
             done: function (s) { return !!s.current; },
             body: function () {
-                return '<p><%:Five buttons next to the list:%></p>'
+                return '<p><%:Five buttons next to the config list:%></p>'
                     + '<ul>'
-                    + '<li><b><%:SwiTch%></b><span class="guide-sep"></span><%:apply the selected config and restart OpenClash%></li>'
-                    + '<li><b><%:Update%></b><span class="guide-sep"></span><%:download the subscription again%></li>'
-                    + '<li><b><%:Edit%></b><span class="guide-sep"></span><%:open this config in the editor%></li>'
-                    + '<li><b><%:Edit Subscription%></b><span class="guide-sep"></span><%:change the link, the User-Agent or the conversion%></li>'
-                    + '<li><b><%:Add%></b><span class="guide-sep"></span><%:add a config file or a subscription%></li>'
+                    + '<li><b><%:SwiTch%></b><span class="guide-sep"></span><%:applies the selected config and restarts OpenClash%></li>'
+                    + '<li><b><%:Update%></b><span class="guide-sep"></span><%:downloads the subscription again%></li>'
+                    + '<li><b><%:Edit%></b><span class="guide-sep"></span><%:opens this config in the editor%></li>'
+                    + '<li><b><%:Edit Subscription%></b><span class="guide-sep"></span><%:changes the link, the User-Agent or the conversion options%></li>'
+                    + '<li><b><%:Add%></b><span class="guide-sep"></span><%:adds a config file or a subscription%></li>'
                     + '</ul>';
             }
         },
@@ -124,9 +124,9 @@ var Guide = {
             entry: 'upload',
             done: function (s) { return s.configs.length > 0; },
             body: function () {
-                return '<p><%:A config holds your proxies, groups and rules, this is the step that gets OpenClash working%><span class="guide-tag req"><%:Required%></span></p>'
+                return '<p><%:A config contains the proxies, groups and rules; OpenClash needs one to run%><span class="guide-tag req"><%:Required%></span></p>'
                     + '<p class="guide-tip"><%:Upload a config file, or add a subscription link%></p>'
-                    + '<p class="guide-tip"><%:“Open and continue” opens this window and walks you through it%></p>';
+                    + '<p class="guide-tip"><%:“Open and continue” opens this window and starts the matching guide%></p>';
             }
         },
         {
@@ -142,8 +142,8 @@ var Guide = {
             priority: 3,
             done: function (s) { return !!s.current; },
             body: function () {
-                return '<p><%:Pick a config from the list, then press the button beside it to apply it%><span class="guide-tag req"><%:Required%></span></p>'
-                    + '<p class="guide-info"><%:Only one config runs at a time, switching restarts OpenClash%></p>'
+                return '<p><%:Select a config in the list; the button beside it applies the selection%><span class="guide-tag req"><%:Required%></span></p>'
+                    + '<p class="guide-info"><%:Only one config runs at a time; switching restarts OpenClash%></p>'
                     + '<p class="guide-note" id="guide-config-note"></p>';
             }
         },
@@ -160,19 +160,19 @@ var Guide = {
             body: function () {
                 var area = Guide.configAreaTarget();
                 if (!area || area.id !== 'subscription-info-display') {
-                    return '<p><%:No config file yet, this area stays empty until the first one is added%></p>'
-                        + '<p class="guide-info"><%:Once a config is added, its subscription info bar shows here: name, modified time, traffic and the action buttons%></p>';
+                    return '<p><%:Empty until the first config is added%></p>'
+                        + '<p class="guide-info"><%:After a config is added, its subscription bar appears here: name, modified time, traffic and the action buttons%></p>';
                 }
                 return '<p><%:The bar above the config list shows what the selected subscription holds:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Config Name%></b><span class="guide-sep"></span><%:the file being viewed, a dot marks the one in use%></li>'
-                    + '<li><b><%:Modified%></b><span class="guide-sep"></span><%:when the file was written the last time%></li>'
-                    + '<li><b><%:Traffic%></b><span class="guide-sep"></span><%:used and total of the plan, with its expiry date%></li>'
-                    + '<li><b><%:Refresh%></b><span class="guide-sep"></span><%:reads the numbers from the provider again%></li>'
-                    + '<li><b><%:Specify URL%></b><span class="guide-sep"></span><%:points this config at another subscription link%></li>'
-                    + '<li><b><%:Prev / Next%></b><span class="guide-sep"></span><%:walks through the config files and previews each one%></li>'
+                    + '<li><b><%:Config Name%></b><span class="guide-sep"></span><%:the file being viewed; a dot marks the one in use%></li>'
+                    + '<li><b><%:Modified%></b><span class="guide-sep"></span><%:time of the last write%></li>'
+                    + '<li><b><%:Traffic%></b><span class="guide-sep"></span><%:plan usage and expiry date%></li>'
+                    + '<li><b><%:Refresh%></b><span class="guide-sep"></span><%:reads the usage from the provider again%></li>'
+                    + '<li><b><%:Specify URL%></b><span class="guide-sep"></span><%:points the config at another subscription link%></li>'
+                    + '<li><b><%:Prev / Next%></b><span class="guide-sep"></span><%:steps through the config files and previews each one%></li>'
                     + '</ul>'
-                    + '<p class="guide-info"><%:A plain YAML file only shows its name and the last modified time%></p>';
+                    + '<p class="guide-info"><%:A plain YAML file shows only its name and the last modified time%></p>';
             }
         },
         {
@@ -185,10 +185,10 @@ var Guide = {
             priority: 4,
             done: function (s) { return s.running; },
             body: function () {
-                return '<p><%:Turn this switch on and OpenClash starts working%></p>'
-                    + '<p><b><%:Start%></b><span class="guide-sep"></span><%:the switch starts and stops the plugin, the button beside it restarts OpenClash%><span class="guide-tag req"><%:Required%></span></p>'
-                    + '<p class="guide-info"><%:The first start may download missing GEO data and external rule sets, make sure the network is reachable%></p>'
-                    + '<p class="guide-tip"><%:Restart OpenClash after changing a config or a module%></p>'
+                return '<p><%:Turns the plugin on%></p>'
+                    + '<p><b><%:Start%></b><span class="guide-sep"></span><%:starts and stops the plugin%><span class="guide-tag req"><%:Required%></span></p>'
+                    + '<p class="guide-info"><%:The first start may download missing GEO data and external rule sets; the network must be reachable%></p>'
+                    + '<p class="guide-tip"><%:Restart OpenClash after changing a config or an overwrite module%></p>'
                     + '<p class="guide-note" id="guide-run-state"></p>';
             }
         },
@@ -201,16 +201,16 @@ var Guide = {
             place: 'bottom',
             wide: true,
             body: function () {
-                return '<p><%:Six pages, one job each:%></p>'
+                return '<p><%:Six pages with one task each:%></p>'
                     + '<ul>'
                     + '<li><b><%:Overviews%></b><span class="guide-sep"></span><%:start and stop, modes, config, dashboard%></li>'
                     + '<li><b><%:Plugin Settings%></b><span class="guide-sep"></span><%:run mode, DNS, traffic, access control, IPv6%></li>'
-                    + '<li><b><%:Overwrite Settings%></b><span class="guide-sep"></span><%:override plugin and config file options%></li>'
-                    + '<li><b><%:Config Subscribe%></b><span class="guide-sep"></span><%:build a subscription and refresh it%></li>'
-                    + '<li><b><%:Config Manage%></b><span class="guide-sep"></span><%:upload, rename, download or remove config files%></li>'
+                    + '<li><b><%:Overwrite Settings%></b><span class="guide-sep"></span><%:overrides plugin and config file options%></li>'
+                    + '<li><b><%:Config Subscribe%></b><span class="guide-sep"></span><%:builds a subscription and refreshes it%></li>'
+                    + '<li><b><%:Config Manage%></b><span class="guide-sep"></span><%:uploads, renames, downloads or removes config files%></li>'
                     + '<li><b><%:Server Logs%></b><span class="guide-sep"></span><%:core log, plugin log, debug log%></li>'
                     + '</ul>'
-                    + '<p class="guide-info"><%:Arrows step through, Esc ends the guide%></p>';
+                    + '<p class="guide-info"><%:Arrow keys step through the guide; Esc closes it%></p>';
             }
         },
         {
@@ -219,12 +219,12 @@ var Guide = {
             target: '.version-display-container',
             place: 'bottom',
             body: function () {
-                return '<p><%:Two versions update on their own:%></p>'
+                return '<p><%:Two versions update independently:%></p>'
                     + '<ul>'
                     + '<li><b><%:Plugin Version%></b><span class="guide-sep"></span><%:the LuCI plugin%></li>'
-                    + '<li><b><%:Core Version%></b><span class="guide-sep"></span><%:the core that carries the traffic%></li>'
+                    + '<li><b><%:Core Version%></b><span class="guide-sep"></span><%:the proxy core%></li>'
                     + '</ul>'
-                    + '<p class="guide-careful"><%:No Core Version line means there is no core yet, Check Update below installs one%></p>';
+                    + '<p class="guide-careful"><%:Without a Core Version line no core is installed; Check Update below installs one%></p>';
             }
         },
         {
@@ -235,8 +235,8 @@ var Guide = {
             entry: 'overwrite',
             body: function () {
                 return '<p><%:An overwrite module overrides the plugin and config file options%></p>'
-                    + '<p class="guide-info"><%:OpenClash rebuilds the running config every time it starts, so direct edits may be lost%></p>'
-                    + '<p class="guide-tip"><%:“Open and continue” opens this window and walks you through it%></p>';
+                    + '<p class="guide-info"><%:OpenClash rebuilds the running config on every start; direct edits can be lost%></p>'
+                    + '<p class="guide-tip"><%:“Open and continue” opens this window and starts the matching guide%></p>';
             }
         },
         {
@@ -249,7 +249,7 @@ var Guide = {
                 var m = Guide.dnsModes();
                 return '<p><%:DNS mode in use:%> <b>' + (m.active || '--') + '</b></p>'
                     + '<ul>'
-                    + '<li><b>' + m.fake + '</b><span class="guide-sep"></span>(<%:cloud icon%>) <%:fake address, the real one resolves after the rules match%><span class="guide-tag rec"><%:Recommended%></span></li>'
+                    + '<li><b>' + m.fake + '</b><span class="guide-sep"></span>(<%:cloud icon%>) <%:fake address; the real address resolves after the rules match%><span class="guide-tag rec"><%:Recommended%></span></li>'
                     + '<li><b>' + m.redir + '</b><span class="guide-sep"></span>(<%:desktop icon%>) <%:uses real addresses, for local services%></li>'
                     + '</ul>'
                     + '<p class="guide-info"><%:Switching restarts OpenClash%></p>';
@@ -263,13 +263,13 @@ var Guide = {
             body: function () {
                 // the button texts come from the page, some builds rename the first one
                 var m = Guide.runModeLabels();
-                return '<p><%:How traffic is taken over, in use:%> <b>' + (m.active || '--') + '</b></p>'
+                return '<p><%:Traffic takeover method in use:%> <b>' + (m.active || '--') + '</b></p>'
                     + '<ul>'
                     + '<li><b>' + m.normal + '</b><span class="guide-sep"></span><%:redirect mode, TCP and UDP%></li>'
                     + '<li><b>' + m.tun + '</b><span class="guide-sep"></span><%:virtual network card, TCP and UDP%></li>'
                     + '<li><b>' + m.mix + '</b><span class="guide-sep"></span><%:TUN plus redirect%><span class="guide-tag rec"><%:Recommended%></span></li>'
                     + '</ul>'
-                    + '<p class="guide-info"><%:TUN and Mix need the TUN kernel module%></p>';
+                    + '<p class="guide-info"><%:TUN and Mix require the TUN kernel module%></p>';
             }
         },
         {
@@ -280,9 +280,9 @@ var Guide = {
             body: function () {
                 return '<p><%:Which traffic goes through the proxy:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Rule%></b><span class="guide-sep"></span><%:follow the rules of the config%><span class="guide-tag rec"><%:Recommended%></span></li>'
-                    + '<li><b><%:Global%></b><span class="guide-sep"></span><%:send everything through the proxy%></li>'
-                    + '<li><b><%:Direct%></b><span class="guide-sep"></span><%:send nothing through the proxy%></li>'
+                    + '<li><b><%:Rule%></b><span class="guide-sep"></span><%:follows the rules of the config%><span class="guide-tag rec"><%:Recommended%></span></li>'
+                    + '<li><b><%:Global%></b><span class="guide-sep"></span><%:sends everything through the proxy%></li>'
+                    + '<li><b><%:Direct%></b><span class="guide-sep"></span><%:sends nothing through the proxy%></li>'
                     + '</ul>';
             }
         },
@@ -292,9 +292,9 @@ var Guide = {
             target: '.dashboard-buttons',
             place: 'bottom',
             body: function () {
-                return '<p><%:One button per supported dashboard, it shows nodes, latency and live connections%></p>'
-                    + '<p class="guide-tip"><%:Zashboard is the recommended one%></p>'
-                    + '<p class="guide-tip"><%:Nothing to open yet? Install one in Plugin Settings, Dashboard Settings%></p>';
+                return '<p><%:One button per installed dashboard; each shows nodes, latency and live connections%></p>'
+                    + '<p class="guide-tip"><%:Zashboard is recommended%></p>'
+                    + '<p class="guide-tip"><%:No dashboard installed: install one in Plugin Settings → Dashboard Settings%></p>';
             }
         },
         {
@@ -306,27 +306,26 @@ var Guide = {
             body: function () {
                 return '<p><%:Four one-click buttons:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Close Connect%></b><span class="guide-sep"></span><%:drop all current connections%></li>'
-                    + '<li><b><%:Reload Firewall%></b><span class="guide-sep"></span><%:rebuild the OpenClash firewall rules%></li>'
-                    + '<li><b><%:Flush DNS%></b><span class="guide-sep"></span><%:clear the DNS cache%></li>'
-                    + '<li><b><%:Check Update%></b><span class="guide-sep"></span><%:install or update the plugin and the core%></li>'
+                    + '<li><b><%:Close Connect%></b><span class="guide-sep"></span><%:drops all current connections%></li>'
+                    + '<li><b><%:Reload Firewall%></b><span class="guide-sep"></span><%:rebuilds the OpenClash firewall rules%></li>'
+                    + '<li><b><%:Flush DNS%></b><span class="guide-sep"></span><%:clears the DNS cache%></li>'
+                    + '<li><b><%:Check Update%></b><span class="guide-sep"></span><%:installs or updates the plugin and the core%></li>'
                     + '</ul>';
             }
         },
         {
             key: 'stats',
-            title: '<%:Statistics%>',
+            title: '<%:Access Control%>',
             target: '.stats-section',
             place: 'top',
             wide: true,
             body: function () {
-                return '<p><%:The live numbers of this device:%></p>'
+                return '<p><%:LAN devices discovered by the router:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Upload%></b> / <b><%:Download%></b><span class="guide-sep"></span><%:the current speed%></li>'
-                    + '<li><b><%:Up Total%></b> / <b><%:Down Total%></b><span class="guide-sep"></span><%:counted since the core started%></li>'
-                    + '<li><b><%:Connect%></b><span class="guide-sep"></span><%:connections the core handles right now%></li>'
-                    + '<li><b><%:Ram%></b> / <b><%:CPU%></b><span class="guide-sep"></span><%:memory and CPU used by the core%></li>'
-                    + '<li><b><%:Load Avg%></b><span class="guide-sep"></span><%:overall system load of the router%></li>'
+                    + '<li><b><%:Proxy%></b> / <b><%:Direct%></b><span class="guide-sep"></span><%:routes one device without affecting the others%></li>'
+                    + '<li><b><%:Connect%></b><span class="guide-sep"></span><%:connections held by the device%></li>'
+                    + '<li><b><%:Upload%></b> / <b><%:Download%></b><span class="guide-sep"></span><%:live speed of the device%></li>'
+                    + '<li><b><%:Proxy All%></b> / <b><%:Direct All%></b><span class="guide-sep"></span><%:default policy taken by new devices%></li>'
                     + '</ul>';
             }
         },
@@ -336,8 +335,9 @@ var Guide = {
             target: '.stats-view-toggle',
             place: 'bottom',
             body: function () {
-                return '<p><%:The two header icons redraw the same numbers:%></p>'
+                return '<p><%:The three header icons switch views:%></p>'
                     + '<ul>'
+                    + '<li><b><%:Access Control%></b><span class="guide-sep"></span><%:lists LAN devices and sets each one to proxy or direct%></li>'
                     + '<li><b><%:Cards%></b><span class="guide-sep"></span><%:shows everything as cards%></li>'
                     + '<li><b><%:Chart%></b><span class="guide-sep"></span><%:shows one metric as a curve%></li>'
                     + '</ul>';
@@ -349,8 +349,8 @@ var Guide = {
             target: '.myip-ip-section',
             place: 'bottom',
             body: function () {
-                return '<p><%:Four public IP lookup services, they show the exit address in use and verify the rules%></p>'
-                    + '<p class="guide-info"><%:Different addresses mean the rules are doing their job%></p>';
+                return '<p><%:Four public IP lookup services; they show the exit address and verify the rules%></p>'
+                    + '<p class="guide-info"><%:Different addresses mean the rules are applied%></p>';
             }
         },
         {
@@ -360,10 +360,10 @@ var Guide = {
             place: 'top',
             wide: true,
             body: function () {
-                return '<p><%:Latency to four sites, measured through the rules you are running:%></p>'
+                return '<p><%:Latency to four sites, measured through the active rules:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Baidu Search%></b> / <b><%:NetEase Music%></b><span class="guide-sep"></span><%:domestic sites, they stay fast when they go direct%></li>'
-                    + '<li><b>GitHub</b> / <b>YouTube</b><span class="guide-sep"></span><%:sites abroad, an abnormal result points at the proxy or the rules%></li>'
+                    + '<li><b><%:Baidu Search%></b> / <b><%:NetEase Music%></b><span class="guide-sep"></span><%:domestic sites; they stay fast when routed direct%></li>'
+                    + '<li><b>GitHub</b> / <b>YouTube</b><span class="guide-sep"></span><%:sites abroad; an abnormal result points at the proxy or the rules%></li>'
                     + '</ul>';
             }
         },
@@ -375,25 +375,25 @@ var Guide = {
             body: function () {
                 return '<p><%:The four header buttons:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Hide IP%></b><span class="guide-sep"></span><%:blur the addresses before a screenshot%></li>'
-                    + '<li><b><%:Query Mode%></b><span class="guide-sep"></span><%:starts the check from the router or from the current browser%></li>'
-                    + '<li><b><%:Unlock Check%></b><span class="guide-sep"></span><%:switch the list to unlock checks, press again to pick the services%></li>'
-                    + '<li><b><%:Refresh%></b><span class="guide-sep"></span><%:query the IP addresses, latency and unlock checks again%></li>'
+                    + '<li><b><%:Hide IP%></b><span class="guide-sep"></span><%:blurs the addresses before a screenshot%></li>'
+                    + '<li><b><%:Query Mode%></b><span class="guide-sep"></span><%:runs the check from the router or from this browser%></li>'
+                    + '<li><b><%:Unlock Check%></b><span class="guide-sep"></span><%:switches the list to unlock checks; press again to choose the services%></li>'
+                    + '<li><b><%:Refresh%></b><span class="guide-sep"></span><%:queries addresses, latency and unlock checks again%></li>'
                     + '</ul>';
             }
         },
         {
             key: 'logs',
-            title: '<%:Something wrong?%>',
+            title: '<%:Troubleshooting%>',
             target: function () {
                 return document.querySelector('#tabmenu a[href*="/openclash/log"], .tabs a[href*="/openclash/log"], a[href*="/openclash/log"]');
             },
             place: 'bottom',
             wide: true,
             body: function () {
-                return '<p><%:The debug log answers most questions%></p>'
-                    + '<p class="guide-info"><%:The highlighted page holds the core log, the plugin log and the one click debug log generator%></p>'
-                    + '<p class="guide-tip"><%:Still stuck? Use the usage help button at the bottom right to copy an AI prompt and ask an AI for advice%></p>';
+                return '<p><%:The debug log covers most problems%></p>'
+                    + '<p class="guide-info"><%:The highlighted page holds the core log, the plugin log and the one-click debug log generator%></p>'
+                    + '<p class="guide-tip"><%:If the problem remains, the usage help button at the bottom right copies an AI prompt for further advice%></p>';
             }
         },
         {
@@ -409,7 +409,7 @@ var Guide = {
                         : '')
                     + '<div class="guide-prefs">'
                     + '<label class="guide-checkbox"><input type="checkbox" id="guide-autostart" onchange="Guide.setAutostart(this.checked)"> <%:Open this guide automatically when the core is missing%></label>'
-                    + '<p class="guide-tip"><%:You can reopen this guide anytime with the “Quick Start” button at the bottom right%></p>'
+                    + '<p class="guide-tip"><%:The guide can be reopened with the “Quick Start” button at the bottom right%></p>'
                     + '</div>';
             }
         }
@@ -424,10 +424,10 @@ var Guide = {
             target: function () { return Guide.inDialog('.mode-tabs'); },
             place: 'bottom',
             body: function () {
-                return '<p><%:Two tabs, two ways in:%></p>'
+                return '<p><%:Two tabs, two input methods:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Upload File%></b><span class="guide-sep"></span><%:you already have a YAML file, it is copied in as it is%></li>'
-                    + '<li><b><%:Subscribe Link%></b><span class="guide-sep"></span><%:a subscription URL from your provider, it can refresh itself later%></li>'
+                    + '<li><b><%:Upload File%></b><span class="guide-sep"></span><%:an existing YAML file, copied in as it is%></li>'
+                    + '<li><b><%:Subscribe Link%></b><span class="guide-sep"></span><%:a subscription URL from the provider, refreshable later%></li>'
                     + '</ul>';
             }
         },
@@ -438,7 +438,7 @@ var Guide = {
             place: 'bottom',
             tab: 'upload',
             body: function () {
-                return '<p><%:Click this area to pick your YAML file, or drop one onto it%><span class="guide-tag req"><%:Required%></span></p>';
+                return '<p><%:Click this area to pick a YAML file, or drop one onto it%><span class="guide-tag req"><%:Required%></span></p>';
             }
         },
         {
@@ -449,8 +449,8 @@ var Guide = {
             tab: 'upload',
             body: function () {
                 return '<p><%:Only needed in special cases%></p>'
-                    + '<p><b><%:Advanced Options%></b><span class="guide-sep"></span><%:a switch for the special cases, a plain upload leaves it off%><span class="guide-tag opt"><%:Optional%></span></p>'
-                    + '<p class="guide-info"><%:Turning it on unfolds the fields below%></p>';
+                    + '<p><b><%:Advanced Options%></b><span class="guide-sep"></span><%:options for special cases; a plain upload leaves it off%><span class="guide-tag opt"><%:Optional%></span></p>'
+                    + '<p class="guide-info"><%:Turning it on reveals the fields below%></p>';
             }
         },
         {
@@ -459,7 +459,7 @@ var Guide = {
             target: function () { return Guide.inDialog('#config-filename-input'); },
             place: 'top',
             body: function () {
-                return '<p><%:Keep the name or type your own, this is the name the config list shows later%></p>'
+                return '<p><%:The name shown in the config list; keep it or type another%></p>'
                     + '<p class="guide-careful"><%:A config with the same name is replaced%></p>';
             }
         },
@@ -469,8 +469,8 @@ var Guide = {
             target: function () { return Guide.inDialog('.config-upload-footer'); },
             place: 'top',
             body: function () {
-                return '<p><%:Cancel discards everything, the blue button adds the config%></p>'
-                    + '<p class="guide-info"><%:After saving, press Switch in the config list to use it%></p>';
+                return '<p><%:Cancel discards the input; the blue button adds the config%></p>'
+                    + '<p class="guide-info"><%:After saving, press Switch in the config list to use the config%></p>';
             }
         },
         {
@@ -480,8 +480,8 @@ var Guide = {
             place: 'bottom',
             switchTo: 'subscribe',
             body: function () {
-                return '<p><%:The other way in: a subscription link from your provider%></p>'
-                    + '<p class="guide-tip"><%:Next switches to that tab%></p>';
+                return '<p><%:The second method: a subscription link from the provider%></p>'
+                    + '<p class="guide-tip"><%:Next switches to this tab%></p>';
             }
         }
     ],
@@ -494,8 +494,8 @@ var Guide = {
             place: 'bottom',
             tab: 'subscribe',
             body: function () {
-                return '<p><%:Paste the link from your provider, one per line%><span class="guide-tag req"><%:Required%></span></p>'
-                    + '<p class="guide-info"><%:A name is asked for as well, it is filled in from the link%></p>';
+                return '<p><%:Paste the provider link, one per line%><span class="guide-tag req"><%:Required%></span></p>'
+                    + '<p class="guide-info"><%:A name is also requested, pre-filled from the link%></p>';
             }
         },
         {
@@ -505,8 +505,8 @@ var Guide = {
             place: 'bottom',
             tab: 'subscribe',
             body: function () {
-                return '<p><%:Some providers only answer a specific client%></p>'
-                    + '<p><b><%:User-Agent%></b><span class="guide-sep"></span><%:pick it here, or choose Custom and type your own%><span class="guide-tag opt"><%:Optional%></span></p>';
+                return '<p><%:Some providers answer only a specific client%></p>'
+                    + '<p><b><%:User-Agent%></b><span class="guide-sep"></span><%:select one here, or choose Custom and enter another%><span class="guide-tag opt"><%:Optional%></span></p>';
             }
         },
         {
@@ -518,12 +518,12 @@ var Guide = {
             wide: true,
             prepare: function () { Guide.ensureChecked('#sub-convert-enable'); },
             body: function () {
-                return '<p><%:For providers that do not serve Clash format%><span class="guide-tag opt"><%:Optional%></span></p>'
+                return '<p><%:For providers that do not serve the Clash format%><span class="guide-tag opt"><%:Optional%></span></p>'
                     + '<ul>'
-                    + '<li><b><%:Convert Address%></b><span class="guide-sep"></span><%:the conversion service, a public one or your own backend%></li>'
-                    + '<li><b><%:Template Name%></b><span class="guide-sep"></span><%:a ready made config and rule set applied to the result%></li>'
+                    + '<li><b><%:Convert Address%></b><span class="guide-sep"></span><%:conversion service: public or self-hosted%></li>'
+                    + '<li><b><%:Template Name%></b><span class="guide-sep"></span><%:a ready-made config and rule set applied to the result%></li>'
                     + '</ul>'
-                    + '<p class="guide-careful"><%:The online conversion service can see your subscription link%></p>';
+                    + '<p class="guide-careful"><%:The online conversion service can see the subscription link%></p>';
             }
         },
         {
@@ -534,7 +534,7 @@ var Guide = {
             place: 'bottom',
             prepare: function () { Guide.ensureChecked('#sub-convert-enable'); },
             body: function () {
-                return '<p><%:Look inside the template before using it: its groups and rule flow%></p>'
+                return '<p><%:Inspects the template before use: its groups and rule flow%></p>'
                     + '<p class="guide-info"><%:The template is fetched once and kept in the router cache%></p>';
             }
         },
@@ -550,12 +550,12 @@ var Guide = {
             wide: true,
             prepare: function () { Guide.ensureChecked('#sub-convert-enable'); },
             body: function () {
-                return '<p><%:Every switch below is optional:%></p>'
+                return '<p><%:All switches below are optional:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Emoji%></b> / <b><%:Sort%></b> / <b><%:Append Node Type%></b><span class="guide-sep"></span><%:make the node names readable%></li>'
-                    + '<li><b><%:UDP Enable%></b><span class="guide-sep"></span><%:keep UDP for games and voice chat%></li>'
-                    + '<li><b><%:skip-cert-verify%></b><span class="guide-sep"></span><%:accept unmatched certificates%></li>'
-                    + '<li><b><%:Use Rule Provider%></b><span class="guide-sep"></span><%:write rules as providers, shorter config%></li>'
+                    + '<li><b><%:Emoji%></b> / <b><%:Sort%></b> / <b><%:Append Node Type%></b><span class="guide-sep"></span><%:makes the node names readable%></li>'
+                    + '<li><b><%:UDP Enable%></b><span class="guide-sep"></span><%:keeps UDP for games and voice chat%></li>'
+                    + '<li><b><%:skip-cert-verify%></b><span class="guide-sep"></span><%:accepts unmatched certificates%></li>'
+                    + '<li><b><%:Use Rule Provider%></b><span class="guide-sep"></span><%:writes rules as providers, shorter config%></li>'
                     + '<li><b><%:Custom Params%></b><span class="guide-sep"></span><%:extra converter arguments, one per line%></li>'
                     + '</ul>';
             }
@@ -571,9 +571,9 @@ var Guide = {
             wide: true,
             prepare: function () { Guide.ensureChecked('#keyword-options-enable'); },
             body: function () {
-                return '<p><%:Filter by node name: one box keeps what you want%><span class="guide-tag opt"><%:Optional%></span></p>'
-                    + '<p><b><%:Keyword Match%></b><span class="guide-sep"></span><%:keep only the nodes whose name contains one of these words, one per line, for example hk or tw&bgp%><span class="guide-tag opt"><%:Optional%></span></p>'
-                    + '<p class="guide-info"><%:Left alone, every node of the subscription ends up in the config%></p>';
+                return '<p><%:Filters by node name: the first box keeps the wanted nodes%><span class="guide-tag opt"><%:Optional%></span></p>'
+                    + '<p><b><%:Keyword Match%></b><span class="guide-sep"></span><%:keeps only nodes whose name contains one of these words, one per line (for example hk or tw&bgp)%><span class="guide-tag opt"><%:Optional%></span></p>'
+                    + '<p class="guide-info"><%:Empty, all nodes of the subscription are kept%></p>';
             }
         },
         {
@@ -586,10 +586,10 @@ var Guide = {
             wide: true,
             prepare: function () { Guide.ensureChecked('#keyword-options-enable'); },
             body: function () {
-                return '<p><%:The second box drops the nodes you do not want%></p>'
+                return '<p><%:The second box removes unwanted nodes%></p>'
                     + '<ul>'
-                    + '<li><b><%:Exclude Keyword Match%></b><span class="guide-sep"></span><%:drop the nodes whose name contains these words, such as a trial or a backup server%><span class="guide-tag opt"><%:Optional%></span></li>'
-                    + '<li><b><%:Exclude Keyword Match Default%></b><span class="guide-sep"></span><%:drop the provider info nodes that only carry the expiry date, traffic, plan or website%><span class="guide-tag rec"><%:Recommended%></span></li>'
+                    + '<li><b><%:Exclude Keyword Match%></b><span class="guide-sep"></span><%:removes nodes whose name contains these words, such as a trial or a backup server%><span class="guide-tag opt"><%:Optional%></span></li>'
+                    + '<li><b><%:Exclude Keyword Match Default%></b><span class="guide-sep"></span><%:removes provider info nodes that only carry the expiry date, traffic, plan or website%><span class="guide-tag rec"><%:Recommended%></span></li>'
                     + '</ul>';
             }
         },
@@ -602,10 +602,10 @@ var Guide = {
             place: 'bottom',
             wide: true,
             body: function () {
-                return '<p><%:Only some providers need these two%></p>'
+                return '<p><%:Only some providers need these two boxes%></p>'
                     + '<ul>'
-                    + '<li><b><%:Custom Headers%></b><span class="guide-sep"></span><%:some providers need a certain request header, one row per header%><span class="guide-tag opt"><%:Optional%></span></li>'
-                    + '<li><b><%:Age Key Type%></b><span class="guide-sep"></span><%:the secret key stays on this router and decrypts the config, the public key goes to the provider%><span class="guide-tag opt"><%:Optional%></span></li>'
+                    + '<li><b><%:Custom Headers%></b><span class="guide-sep"></span><%:some providers require a certain request header, one row per header%><span class="guide-tag opt"><%:Optional%></span></li>'
+                    + '<li><b><%:Age Key Type%></b><span class="guide-sep"></span><%:the secret key stays on this router and decrypts the config; the public key goes to the provider%><span class="guide-tag opt"><%:Optional%></span></li>'
                     + '</ul>';
             }
         },
@@ -615,9 +615,9 @@ var Guide = {
             target: function () { return Guide.inDialog('#config-filename-input'); },
             place: 'top',
             body: function () {
-                return '<p><%:Give the subscription a name before saving%></p>'
-                    + '<p><b><%:Config Name%></b><span class="guide-sep"></span><%:the name the config list shows later%><span class="guide-tag req"><%:Required%></span></p>'
-                    + '<p class="guide-info"><%:How often it refreshes is set in Config Subscribe, not here%></p>';
+                return '<p><%:A name is required before saving%></p>'
+                    + '<p><b><%:Config Name%></b><span class="guide-sep"></span><%:the name shown in the config list%><span class="guide-tag req"><%:Required%></span></p>'
+                    + '<p class="guide-info"><%:The refresh interval is set in Config Subscribe, not here%></p>';
             }
         },
         {
@@ -626,9 +626,9 @@ var Guide = {
             target: function () { return Guide.inDialog('.config-upload-footer'); },
             place: 'top',
             body: function () {
-                return '<p><%:The blue button downloads the subscription and writes the YAML for you%></p>'
-                    + '<p class="guide-info"><%:The run stays on the progress page; when it ends press View Summary to inspect the result or switch over%></p>'
-                    + '<p class="guide-info"><%:The Update button in the config list refreshes it later%></p>';
+                return '<p><%:The blue button downloads the subscription and writes the YAML%></p>'
+                    + '<p class="guide-info"><%:The run stays on the progress page; when it ends, press View Summary to inspect or switch%></p>'
+                    + '<p class="guide-info"><%:The Update button in the config list refreshes it%></p>';
             }
         }
     ],
@@ -643,9 +643,9 @@ var Guide = {
             body: function () {
                 return '<p><%:Three actions:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Download%></b><span class="guide-sep"></span><%:save the current content to a file%></li>'
-                    + '<li><b><%:Save%></b><span class="guide-sep"></span><%:write the module back, restart OpenClash to apply it%><span class="guide-tag req"><%:Required%></span></li>'
-                    + '<li><b><%:Close%></b><span class="guide-sep"></span><%:leave the editor%></li>'
+                    + '<li><b><%:Download%></b><span class="guide-sep"></span><%:saves the current content to a file%></li>'
+                    + '<li><b><%:Save%></b><span class="guide-sep"></span><%:writes the module back; restart OpenClash to apply it%><span class="guide-tag req"><%:Required%></span></li>'
+                    + '<li><b><%:Close%></b><span class="guide-sep"></span><%:closes the editor%></li>'
                     + '</ul>'
                     + '<p class="guide-info"><%:A Compare button also appears here when a plain config file is edited%></p>';
             }
@@ -657,8 +657,8 @@ var Guide = {
             place: 'bottom',
             wide: true,
             body: function () {
-                return '<p><%:What you write here overrides the generated config, a wrong value can break the core%></p>'
-                    + '<p class="guide-careful"><%:Change one module at a time, save, then restart OpenClash and check the log%></p>';
+                return '<p><%:Content written here overrides the generated config; a wrong value can break the core%></p>'
+                    + '<p class="guide-careful"><%:Change one module at a time, save, restart OpenClash and check the log%></p>';
             }
         },
         {
@@ -672,9 +672,9 @@ var Guide = {
                 return '<p><%:Each entry is a module that overrides the generated config%></p>'
                     + '<p class="guide-sub"><b><%:Module list%></b><span class="guide-sep"></span></p>'
                     + '<ul>'
-                    + '<li><%:Click an entry to open it in the editor%></li>'
+                    + '<li><%:Clicking an entry opens it in the editor%></li>'
                     + '<li><%:The tag tells where it comes from%></li>'
-                    + '<li><%:The switch on the right enables or disables it, a restart applies it%></li>'
+                    + '<li><%:The switch on the right enables or disables it; a restart applies the change%></li>'
                     + '</ul>';
             }
         },
@@ -685,8 +685,8 @@ var Guide = {
             place: 'right',
             entry: 'module',
             body: function () {
-                return '<p><%:Creates a module, a small file holding the values that override the config%></p>'
-                    + '<p class="guide-tip"><%:“Open and continue” opens this window and walks you through it%></p>';
+                return '<p><%:Creates a module: a small file holding the values that override the config%></p>'
+                    + '<p class="guide-tip"><%:“Open and continue” opens this window and starts the matching guide%></p>';
             }
         },
         {
@@ -700,10 +700,10 @@ var Guide = {
             body: function () {
                 return '<p><%:Two tabs, two sources:%></p>'
                     + '<ul>'
-                    + '<li><b><%:Local Module%></b><span class="guide-sep"></span><%:you write the content yourself, or upload a txt or conf file%></li>'
-                    + '<li><b><%:Subscribe Link%></b><span class="guide-sep"></span><%:the module is downloaded from a URL and can refresh itself%></li>'
+                    + '<li><b><%:Local Module%></b><span class="guide-sep"></span><%:content written manually, or uploaded from a txt or conf file%></li>'
+                    + '<li><b><%:Subscribe Link%></b><span class="guide-sep"></span><%:the module is downloaded from a URL and can refresh later%></li>'
                     + '</ul>'
-                    + '<p class="guide-tip"><%:The window runs in two steps: pick the source here, then review the details%></p>';
+                    + '<p class="guide-tip"><%:The window runs in two steps: pick the source, then review the details%></p>';
             }
         },
         {
@@ -717,8 +717,8 @@ var Guide = {
             prepare: function () { Guide.ensureAddDialog(); Guide.ensureAddStep('source'); },
             body: function () {
                 return '<p><%:Select the txt or conf file to upload here:%></p>'
-                    + '<p class="guide-info"><%:As soon as the file is chosen the window reads it and jumps to the details step%></p>'
-                    + '<p class="guide-tip"><%:A file with #! info lines fills the name, description and variables for you%></p>';
+                    + '<p class="guide-info"><%:Choosing the file reads it and jumps to the details step%></p>'
+                    + '<p class="guide-tip"><%:A file with #! info lines fills the name, description and variables automatically%></p>';
             }
         },
         {
@@ -730,8 +730,8 @@ var Guide = {
             switchTo: 'moduleSubscribe',
             prepare: function () { Guide.ensureAddDialog(); Guide.ensureAddStep('source'); },
             body: function () {
-                return '<p><%:A module can also be pulled from a URL, which keeps several routers on the same settings%></p>'
-                    + '<p class="guide-tip"><%:Next switches to that tab%></p>';
+                return '<p><%:A module can also be fetched from a URL, keeping several routers on the same settings%></p>'
+                    + '<p class="guide-tip"><%:Next switches to this tab%></p>';
             }
         },
         {
@@ -748,7 +748,7 @@ var Guide = {
             },
             body: function () {
                 return '<p><%:Paste the module link here:%></p>'
-                    + '<p class="guide-tip"><%:Click Next again to continue without the file info%></p>';
+                    + '<p class="guide-tip"><%:Press Next again to continue without the file info%></p>';
             }
         },
         {
@@ -765,13 +765,13 @@ var Guide = {
                 Guide.ensureAddStep('info');
             },
             body: function () {
-                return '<p><%:Everything read from the file can be checked and changed here:%></p>'
+                return '<p><%:Everything read from the file can be reviewed and changed here:%></p>'
                     + '<ul>'
                     + '<li><b><%:Module Name%></b><span class="guide-sep"></span><%:the name this module is listed under%><span class="guide-tag req"><%:Required%></span></li>'
-                    + '<li><b><%:Description%></b><span class="guide-sep"></span><%:a short note kept with the module%><span class="guide-tag opt"><%:Optional%></span></li>'
+                    + '<li><b><%:Description%></b><span class="guide-sep"></span><%:a short note stored with the module%><span class="guide-tag opt"><%:Optional%></span></li>'
                     + '<li><b><%:Config File%></b><span class="guide-sep"></span><%:which generated config this module is applied to%><span class="guide-tag opt"><%:Optional%></span></li>'
-                    + '<li><b><%:Update Time%></b><span class="guide-sep"></span><%:when it is fetched again, OFF means only on demand%><span class="guide-tag opt"><%:Optional%></span></li>'
-                    + '<li><b><%:Environment variable%></b><span class="guide-sep"></span><%:extra variables handed to the script, only for modules that read them%><span class="guide-tag opt"><%:Optional%></span></li>'
+                    + '<li><b><%:Update Time%></b><span class="guide-sep"></span><%:when it is fetched again; OFF means on demand only%><span class="guide-tag opt"><%:Optional%></span></li>'
+                    + '<li><b><%:Environment variable%></b><span class="guide-sep"></span><%:extra variables passed to the script, only for modules that read them%><span class="guide-tag opt"><%:Optional%></span></li>'
                     + '</ul>'
                     + '<p class="guide-tip"><%:Add turns on once the required fields are filled%></p>';
             }
@@ -783,8 +783,8 @@ var Guide = {
             place: 'top',
             inAdd: true,
             body: function () {
-                return '<p><%:Add saves the module, Back returns to the source step%></p>'
-                    + '<p class="guide-info"><%:A new module starts off, turn the switch on, then restart OpenClash%></p>';
+                return '<p><%:Add saves the module; Back returns to the source step%></p>'
+                    + '<p class="guide-info"><%:A new module starts off; turn the switch on and restart OpenClash%></p>';
             }
         },
         {
@@ -794,13 +794,13 @@ var Guide = {
             place: 'bottom',
             wide: true,
             body: function () {
-                return '<p><%:The file is split into sections and needs at least one header, here is what the editor starts from%><span class="guide-tag req"><%:Required%></span></p>'
+                return '<p><%:The file is split into sections and needs at least one header; the editor starts from this skeleton%><span class="guide-tag req"><%:Required%></span></p>'
                     + '<ul>'
                     + '<li><b>[YAML]</b><span class="guide-sep"></span><%:YAML fragments such as DNS settings, ports or TUN options%></li>'
                     + '<li><b>[Overwrite]</b> / <b>[General]</b><span class="guide-sep"></span><%:commands or plugin options, for dynamic cases%></li>'
                     + '<li><b>#!</b><span class="guide-sep"></span><%:optional module info lines read by the add dialog%></li>'
                     + '</ul>'
-                    + '<p class="guide-careful"><%:YAML indentation matters, an extra space can make the core refuse to start%></p>';
+                    + '<p class="guide-careful"><%:YAML indentation matters; an extra space can stop the core from starting%></p>';
             }
         },
         {
@@ -811,7 +811,7 @@ var Guide = {
             wide: true,
             body: function () {
                 return '<p><%:The left side reports the state: ready, saving, saved or failed%></p>'
-                    + '<p class="guide-tip"><%:F11 fullscreen, Escape leaves it, Ctrl with the mouse wheel zooms, the bottom right corner resizes%></p>';
+                    + '<p class="guide-tip"><%:F11 toggles fullscreen, Escape leaves it, Ctrl + wheel zooms, the bottom right corner resizes%></p>';
             }
         }
     ],

@@ -107,7 +107,7 @@
     gap: 4px;
     font-size: 13px;
     font-weight: 600;
-    line-height: 1;
+    line-height: normal;
     color: var(--text-secondary);
     white-space: nowrap;
     min-width: 0;

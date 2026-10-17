@@ -19,6 +19,11 @@ function index()
 	entry({"admin", "services", "openclash", "del_log"},call("action_del_log"))
 	entry({"admin", "services", "openclash", "del_start_log"},call("action_del_start_log"))
 	entry({"admin", "services", "openclash", "close_all_connection"},call("action_close_all_connection"))
+	entry({"admin", "services", "openclash", "clients_ac"}, call("action_clients_ac"))
+	entry({"admin", "services", "openclash", "clients_stats"}, call("action_clients_stats"))
+	entry({"admin", "services", "openclash", "clients_set"}, call("action_clients_set"))
+	entry({"admin", "services", "openclash", "clients_meta"}, call("action_clients_meta"))
+	entry({"admin", "services", "openclash", "clients_dns_switch"}, call("action_clients_dns_switch"))
 	entry({"admin", "services", "openclash", "reload_firewall"},call("action_reload_firewall"))
 	entry({"admin", "services", "openclash", "save_corever_branch"},call("action_save_corever_branch"))
 	entry({"admin", "services", "openclash", "update"},call("action_update"))
@@ -199,6 +204,56 @@ end
 
 local function dase()
 	return fs.uci_get_config("config", "dashboard_password")
+end
+
+-- curl startup is slow on some builds, uclient-fetch (aliased as wget on newer images) is slower than curl
+local function core_http_client()
+	if fs.access("/usr/bin/wget") then
+		local target = nixio.fs.readlink("/usr/bin/wget")
+		if not (target and target:find("uclient%-fetch", 1)) then
+			return "wget"
+		end
+	end
+	return "curl"
+end
+
+-- the core answers in a millisecond, curl startup on weak routers costs far more
+local function core_api_get(path)
+	local ip = daip()
+	local port = cn_port()
+	if not ip or not port then
+		return nil
+	end
+	local url = string.format("http://%s:%s%s", ip, port, path)
+	local auth = UTIL.shellquote("Authorization: Bearer " .. (dase() or ""))
+	local out
+	if core_http_client() == "wget" then
+		out = SYS.exec("wget -q -T 5 -O - --header=" .. auth .. " " .. UTIL.shellquote(url) .. " 2>/dev/null")
+	else
+		out = SYS.exec("curl -sL -m 5 --retry 1 -H " .. auth .. " " .. UTIL.shellquote(url) .. " 2>/dev/null")
+	end
+	if not out or out == "" then
+		return nil
+	end
+	return out
+end
+
+-- the core API write path
+local function core_api_post(path)
+	local ip = daip()
+	local port = cn_port()
+	if not ip or not port then
+		return ""
+	end
+	local url = string.format("http://%s:%s%s", ip, port, path)
+	local auth = UTIL.shellquote("Authorization: Bearer " .. (dase() or ""))
+	local out
+	if core_http_client() == "wget" then
+		out = SYS.exec("wget -q -T 3 -t 2 -O - --header=" .. auth .. " --header='Content-Type: application/json' --post-data='' " .. UTIL.shellquote(url) .. " 2>/dev/null")
+	else
+		out = SYS.exec("curl -sL -m 3 --retry 2 -H 'Content-Type: application/json' -H " .. auth .. " -XPOST " .. UTIL.shellquote(url) .. " 2>/dev/null")
+	end
+	return out or ""
 end
 
 local function dashboard_forward_domain()
@@ -431,13 +486,8 @@ function action_flush_dns_cache()
 	local fake_ip_state = ""
 	local dns_state = ""
 	if is_running() then
-		local daip = daip()
-		local dase = dase() or ""
-		local cn_port = cn_port()
-		if daip and cn_port then
-			fake_ip_state = SYS.exec(string.format('curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPOST http://"%s":"%s"/cache/fakeip/flush', dase, daip, cn_port))
-			dns_state = SYS.exec(string.format('curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPOST http://"%s":"%s"/cache/dns/flush', dase, daip, cn_port))
-		end
+		fake_ip_state = core_api_post("/cache/fakeip/flush")
+		dns_state = core_api_post("/cache/dns/flush")
 	end
 	HTTP.prepare_content("application/json")
 	HTTP.write_json({
@@ -450,12 +500,7 @@ end
 function action_flush_smart_cache()
 	local flush_state = ""
 	if is_running() then
-		local daip = daip()
-		local dase = dase() or ""
-		local cn_port = cn_port()
-		if daip and cn_port then
-			flush_state = SYS.exec(string.format('curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPOST http://"%s":"%s"/cache/smart/flush', dase, daip, cn_port))
-		end
+		flush_state = core_api_post("/cache/smart/flush")
 	end
 	HTTP.prepare_content("application/json")
 	HTTP.write_json({
@@ -1083,12 +1128,9 @@ function action_rule_mode(internal)
 	local mode
 	if is_running() then
 		local daip_val = daip()
-		local dase_val = dase() or ""
 		local cn_port_val = cn_port()
 		if daip_val and cn_port_val then
-			local info = json.parse(SYS.exec(string.format(
-				'curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://"%s":"%s"/configs',
-				dase_val, daip_val, cn_port_val)))
+			local info = json.parse(core_api_get("/configs"))
 			if info and info["mode"] then
 				mode = info["mode"]
 			end
@@ -1161,10 +1203,9 @@ function action_log_level()
 	local level, info
 	if is_running() then
 		local daip = daip()
-		local dase = dase() or ""
 		local cn_port = cn_port()
 		if not daip or not cn_port then return end
-		info = json.parse(SYS.exec(string.format('curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://"%s":"%s"/configs', dase, daip, cn_port)))
+		info = json.parse(core_api_get("/configs"))
 		if info then
 			level = info["log-level"]
 		else
@@ -1235,118 +1276,35 @@ local function proc_find_core_pid()
 	return nil
 end
 
-local function proc_core_cpu_percent(pid)
-	if nixio.fs.access("/sys/fs/cgroup/cpuacct") then
-		local dir = "/sys/fs/cgroup/cpuacct/openclash"
-		if not nixio.fs.access(dir) then
-			SYS.exec("mkdir -p " .. dir .. " 2>/dev/null")
-		end
-		if nixio.fs.access(dir) then
-			local f = io.open(dir .. "/cgroup.procs", "w")
-			if f then
-				f:write(pid, "\n")
-				f:close()
-				local usage_file = dir .. "/cpuacct.usage"
-				local function read_usage()
-					local raw = fs.readfile(usage_file)
-					if not raw then
-						return nil
-					end
-					return tonumber(raw:match("^(%d+)"))
-				end
-				local u1 = read_usage()
-				if u1 then
-					local up1 = tonumber((fs.readfile("/proc/uptime") or ""):match("^(%S+)"))
-					nixio.nanosleep(0, 200000000)
-					local u2 = read_usage()
-					local up2 = tonumber((fs.readfile("/proc/uptime") or ""):match("^(%S+)"))
-					if u2 and up1 and up2 and up2 > up1 then
-						return (u2 - u1) / ((up2 - up1) * 1e9)
-					end
-				end
-			end
-		end
+-- utime+stime in ticks, read once; the page turns two samples into a percentage
+local function proc_core_cpu_ticks(pid)
+	local stat = fs.readfile("/proc/" .. pid .. "/stat")
+	if not stat then return nil end
+	local last_bracket = 0
+	for pos in stat:gmatch("()%)") do
+		last_bracket = pos
 	end
-
-	if nixio.fs.access("/sys/fs/cgroup/cgroup.controllers") then
-		local cg = fs.readfile("/proc/" .. pid .. "/cgroup")
-		if cg then
-			local path = cg:match("0::([^\n]+)")
-			if path and path ~= "/" and path ~= "" then
-				local usage_file = "/sys/fs/cgroup" .. path .. "/cpu.stat"
-				local function read_usage()
-					local raw = fs.readfile(usage_file)
-					if not raw then
-						return nil
-					end
-					return tonumber(raw:match("usage_usec%s+(%d+)"))
-				end
-				local u1 = read_usage()
-				if u1 then
-					local up1 = tonumber((fs.readfile("/proc/uptime") or ""):match("^(%S+)"))
-					nixio.nanosleep(0, 200000000)
-					local u2 = read_usage()
-					local up2 = tonumber((fs.readfile("/proc/uptime") or ""):match("^(%S+)"))
-					if u2 and up1 and up2 and up2 > up1 then
-						return (u2 - u1) / ((up2 - up1) * 1e6)
-					end
-				end
-			end
-		end
+	if last_bracket == 0 then return nil end
+	local fields = {}
+	for field in stat:sub(last_bracket + 1):gmatch("%S+") do
+		fields[#fields + 1] = field
 	end
-
-	local function read_sample()
-		local uptime = fs.readfile("/proc/uptime")
-		local stat = fs.readfile("/proc/" .. pid .. "/stat")
-		if not uptime or not stat then
-			return nil
-		end
-		local up = tonumber(uptime:match("^(%S+)"))
-		local last_bracket = 0
-		for pos in stat:gmatch("()%)") do
-			last_bracket = pos
-		end
-		if not up or up <= 0 or last_bracket == 0 then
-			return nil
-		end
-		local fields = {}
-		for field in stat:sub(last_bracket + 1):gmatch("%S+") do
-			fields[#fields + 1] = field
-		end
-		local utime = tonumber(fields[12])
-		local stime = tonumber(fields[13])
-		if not utime or not stime then
-			return nil
-		end
-		return up, utime + stime
-	end
-
-	local up1, total1 = read_sample()
-	if not up1 then
-		return nil
-	end
-	nixio.nanosleep(0, 200000000)
-	local up2, total2 = read_sample()
-	if not up2 then
-		return nil
-	end
-	local elapsed = up2 - up1
-	if elapsed <= 0 then
-		return nil
-	end
-	return (total2 - total1) / elapsed
+	local utime = tonumber(fields[12])
+	local stime = tonumber(fields[13])
+	if not utime or not stime then return nil end
+	return utime + stime
 end
 
 function action_toolbar_show_sys()
-	local cpu = "0"
 	local load_avg = "0"
-	local cpu_count = proc_cpu_count()
+	local cpu_ticks = "0"
+	local cpu_count = tonumber(proc_cpu_count()) or 1
 	local pid = proc_find_core_pid()
 
 	if pid and pid ~= "" then
-		local usage = proc_core_cpu_percent(pid)
-		if usage then
-			cpu = usage
+		local ticks = proc_core_cpu_ticks(pid)
+		if ticks then
+			cpu_ticks = tostring(ticks)
 		end
 
 		local loadavg = nixio.fs.readfile("/proc/loadavg")
@@ -1361,135 +1319,36 @@ function action_toolbar_show_sys()
 
 	HTTP.prepare_content("application/json")
 	HTTP.write_json({
-		cpu = tostring(cpu),
-		load_avg = tostring(tonumber(load_avg) / tonumber(cpu_count) * 100);
+		cpu_ticks = cpu_ticks,
+		cpu_count = tostring(cpu_count),
+		load_avg = tostring(tonumber(load_avg) / cpu_count * 100);
 	})
 end
 
 function action_toolbar_show()
 	local pid = proc_find_core_pid()
-	local traffic, connections, connection, up, down, up_total, down_total, mem, cpu, load_avg, cpu_count
-	connection = "0"
-	up = "0"
-	down = "0"
-	up_total = "0"
-	down_total = "0"
-	mem = 0
-	cpu = 0
-	load_avg = "0"
-	cpu_count = proc_cpu_count()
+	local connection, up_total, down_total = "0", "0", "0"
+	local mem, cpu_ticks = 0, 0
+	local load_avg = "0"
+	local cpu_count = proc_cpu_count()
 	if pid and pid ~= "" then
 		local daip = daip()
-		local dase = dase() or ""
 		local cn_port = cn_port()
 		if not daip or not cn_port then return end
 
-		-- Parallel curl helper
-		local function fork_curl(endpoint)
-			local fdi, fdo = nixio.pipe()
-			if not fdi or not fdo then return nil end
-			local cmd = string.format(
-				'curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET "http://%s:%s/%s"',
-				dase, daip, cn_port, endpoint
-			)
-			local child = nixio.fork()
-			if child > 0 then
-				fdo:close()
-				return {pid = child, fdi = fdi, buf = ""}
-			elseif child == 0 then
-				nixio.dup(fdo, nixio.stdout)
-				fdi:close()
-				fdo:close()
-				nixio.exec("/bin/sh", "-c", cmd)
-			else
-				if fdi then fdi:close() end
-				if fdo then fdo:close() end
-				return nil
-			end
-		end
-
-		local t_job = fork_curl("traffic")
-		local c_job = fork_curl("connections")
-
-		if t_job and c_job then
-			local t_done, c_done = false, false
-			local delay = 50000000
-			local max_wait = 40
-			for _ = 1, max_wait do
-				if not t_done then
-					local buf = try_read(t_job.fdi, 4096)
-					if buf then t_job.buf = t_job.buf .. buf end
-					if nixio.waitpid(t_job.pid, "nohang") then
-						while true do
-							local b = try_read(t_job.fdi, 4096)
-							if not b then break end
-							t_job.buf = t_job.buf .. b
-						end
-						pcall(t_job.fdi.close, t_job.fdi)
-						t_done = true
-					end
-				end
-				if not c_done then
-					local buf = try_read(c_job.fdi, 4096)
-					if buf then c_job.buf = c_job.buf .. buf end
-					if nixio.waitpid(c_job.pid, "nohang") then
-						while true do
-							local b = try_read(c_job.fdi, 4096)
-							if not b then break end
-							c_job.buf = c_job.buf .. b
-						end
-						pcall(c_job.fdi.close, c_job.fdi)
-						c_done = true
-					end
-				end
-				if t_done and c_done then break end
-				nixio.nanosleep(0, delay)
-				delay = math.min(delay * 2, 200000000)
-			end
-			if not t_done then
-				pcall(t_job.fdi.close, t_job.fdi)
-				nixio.kill(t_job.pid, 9)
-			end
-			if not c_done then
-				pcall(c_job.fdi.close, c_job.fdi)
-				nixio.kill(c_job.pid, 9)
-			end
-			traffic = t_done and t_job.buf ~= "" and json.parse(t_job.buf) or nil
-			connections = c_done and c_job.buf ~= "" and json.parse(c_job.buf) or nil
-		else
-			if t_job then pcall(t_job.fdi.close, t_job.fdi) end
-			if c_job then pcall(c_job.fdi.close, c_job.fdi) end
-			traffic = json.parse(SYS.exec(string.format('curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://"%s":"%s"/traffic', dase, daip, cn_port)))
-			connections = json.parse(SYS.exec(string.format('curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://"%s":"%s"/connections', dase, daip, cn_port)))
-		end
-
-		if traffic and connections and connections.connections then
+		-- the totals are cumulative, the page turns two samples into the current rate
+		local connections = json.parse(core_api_get("/connections"))
+		if connections and connections.connections then
 			connection = #(connections.connections)
-			up = traffic.up
-			down = traffic.down
 			up_total = connections.uploadTotal
 			down_total = connections.downloadTotal
-		else
-			up = "0"
-			down = "0"
-			up_total = "0"
-			down_total = "0"
-			connection = "0"
 		end
 
-		mem = tonumber(SYS.exec(string.format("cat /proc/%s/status 2>/dev/null |grep -w VmRSS |awk '{print $2}'", pid)))
-		cpu = proc_core_cpu_percent(pid)
+		mem = tonumber((fs.readfile("/proc/" .. pid .. "/status") or ""):match("VmRSS:%s+(%d+)")) or 0
+		mem = mem * 1024
+		cpu_ticks = proc_core_cpu_ticks(pid) or 0
 
-		if mem then
-			mem = mem * 1024
-		else
-			mem = 0
-		end
-		cpu = cpu or 0
-
-		load_avg = SYS.exec("awk '{print $2; exit}' /proc/loadavg 2>/dev/null"):gsub("\n", "") or "0"
-		cpu_count = SYS.exec("grep -c ^processor /proc/cpuinfo 2>/dev/null"):gsub("\n", "") or 1
-
+		load_avg = (nixio.fs.readfile("/proc/loadavg") or ""):match("^%S+%s+(%S+)") or "0"
 		if not string.match(load_avg, "^[0-9]*%.?[0-9]*$") then
 			load_avg = "0"
 		end
@@ -1498,12 +1357,11 @@ function action_toolbar_show()
 	HTTP.prepare_content("application/json")
 	HTTP.write_json({
 		connections = connection,
-		up = up,
-		down = down,
 		up_total = up_total,
 		down_total = down_total,
 		mem = mem,
-		cpu = tostring(cpu),
+		cpu_ticks = tostring(cpu_ticks),
+		cpu_count = tostring(cpu_count),
 		load_avg = tostring(tonumber(load_avg) / tonumber(cpu_count) * 100);
 	})
 end
@@ -2890,8 +2748,8 @@ function action_myip_check()
 
 	if result.ipify and result.ipify.ip and result.ipify.ip ~= "" then
 		local geo_cmd = string.format(
-			'curl -sL -m 10 --retry 2 -A "%s" "https://api.ip.sb/geoip/%s" 2>/dev/null',
-			fs.user_agent, result.ipify.ip
+			'wget -q -T 10 -O - -U %s %s 2>/dev/null',
+			UTIL.shellquote(fs.user_agent), UTIL.shellquote("https://api.ip.sb/geoip/" .. result.ipify.ip)
 		)
 		local geo_data = SYS.exec(geo_cmd)
 
@@ -5600,23 +5458,6 @@ function action_config_stats()
 	end
 end
 
-local function core_api_get(path)
-	local ip = daip()
-	local port = cn_port()
-	local secret = dase() or ""
-	if not ip or not port then
-		return nil
-	end
-
-	local cmd = string.format('curl -sL -m 5 --retry 1 -H %s http://"%s":"%s"%s 2>/dev/null',
-		UTIL.shellquote("Authorization: Bearer " .. secret), ip, port, path)
-	local out = SYS.exec(cmd)
-	if not out or out == "" then
-		return nil
-	end
-	return out
-end
-
 function action_runtime_stats()
 	HTTP.prepare_content("application/json")
 
@@ -5842,8 +5683,8 @@ local function tpl_fetch(url, path, force)
 		return true, false
 	end
 	for _, source in ipairs(tpl_source_urls(url)) do
-		SYS.call(string.format("curl -sL -m 15 --retry 1 -A %s -o %s %s 2>/dev/null",
-			UTIL.shellquote(fs.user_agent), UTIL.shellquote(path), UTIL.shellquote(source)))
+		SYS.call(string.format("wget -q -T 15 -O %s -U %s %s 2>/dev/null",
+			UTIL.shellquote(path), UTIL.shellquote(fs.user_agent), UTIL.shellquote(source)))
 		local st2 = fs.stat(path)
 		if st2 and st2.size > 0 then
 			return true, true
@@ -7217,4 +7058,681 @@ function oix_checkin()
 	end
 	HTTP.prepare_content("application/json")
 	HTTP.write_json({result = result})
+end
+
+-- client access control: device list, per-client stats, access list hot updates, DNS hijack switch
+
+local CLIENTS_META_PATH = "/etc/openclash/history/clients.json"
+local CLIENTS_CACHE_PATH = "/tmp/openclash_clients.json"
+local CLIENTS_PROBE_TTL = 45
+local CLIENTS_PROBE_MAX = 16
+local CLIENTS_ICONS = {
+	phone = true, tablet = true, laptop = true, desktop = true, tv = true,
+	game = true, speaker = true, nas = true, camera = true, iot = true,
+	printer = true, router = true, unknown = true
+}
+
+local function clients_icon_ok(icon)
+	return CLIENTS_ICONS[icon] == true or icon:match("^brand_[a-z0-9_]+$") ~= nil
+end
+
+-- cut on a UTF-8 character boundary, #value alone would split a multibyte name
+local function clients_utf8_cut(value, limit)
+	local count, pos = 0, 1
+	while pos <= #value do
+		local byte = value:byte(pos)
+		local size = byte < 0x80 and 1 or (byte < 0xE0 and 2 or (byte < 0xF0 and 3 or 4))
+		count = count + 1
+		if count > limit then
+			return value:sub(1, pos - 1)
+		end
+		pos = pos + size
+	end
+	return value
+end
+
+local function clients_json(t)
+	HTTP.prepare_content("application/json")
+	HTTP.write_json(t)
+end
+
+-- one runtime cache for the whole feature: local nets, neighbour probes and ip to MAC history
+local function clients_cache_read()
+	local data = fs.readfile(CLIENTS_CACHE_PATH)
+	if data then
+		local ok, parsed = pcall(json.parse, data)
+		if ok and type(parsed) == "table" then return parsed end
+	end
+	return {}
+end
+
+local function clients_cache_write(cache)
+	fs.writefile(CLIENTS_CACHE_PATH, json.stringify(cache))
+end
+
+local function ip4_to_int(ip)
+	local a, b, c, d = (ip or ""):match("^(%d+)%.(%d+)%.(%d+)%.(%d+)$")
+	if not a then return nil end
+	a, b, c, d = tonumber(a), tonumber(b), tonumber(c), tonumber(d)
+	if a > 255 or b > 255 or c > 255 or d > 255 then return nil end
+	return a * 16777216 + b * 65536 + c * 256 + d
+end
+
+-- own addresses, subnets and interface MACs; cached since they only change on reconfiguration
+local function clients_local_nets(cache)
+	cache = cache or clients_cache_read()
+	local lan = cache.lan
+	local now = os.time()
+	if type(lan) == "table" and type(lan.nets) == "table" and type(lan.own) == "table"
+		and type(lan.own_macs) == "table" and (now - (tonumber(lan.ts) or 0)) < 60 then
+		return lan.nets, lan.own, lan.own_macs
+	end
+	local nets, own, own_macs = {}, {}, {}
+	-- family filtering drops the link/ether lines, so ask for every family here
+	local out = SYS.exec("ip addr show 2>/dev/null")
+	local iface_mac
+	for line in (out or ""):gmatch("[^\n]+") do
+		local mac = line:match("^%s*link/ether%s+(%x%x:%x%x:%x%x:%x%x:%x%x:%x%x)")
+		if mac then iface_mac = mac:lower() end
+		local ip, len = line:match("^%s*inet%s+([%d%.]+)/(%d+)")
+		if ip then
+			own[ip] = true
+			if iface_mac then own_macs[iface_mac] = true end
+			local n = ip4_to_int(ip)
+			len = tonumber(len)
+			if n and len and len >= 8 and len <= 32 then
+				local space = 2 ^ (32 - len)
+				nets[#nets + 1] = { space = space, net = n - (n % space), octets = math.floor(len / 8) }
+			end
+		end
+	end
+	cache.lan = { ts = now, nets = nets, own = own, own_macs = own_macs }
+	clients_cache_write(cache)
+	return nets, own, own_macs
+end
+
+local function clients_is_lan_ip(ip, nets, own)
+	if own[ip] then return false end
+	local n = ip4_to_int(ip)
+	if not n then return false end
+	for _, net in ipairs(nets) do
+		if n - (n % net.space) == net.net then
+			return true
+		end
+	end
+	return false
+end
+
+-- one IPv6 per MAC: global beats unique-local; link-local entries carry no extra info
+local function clients_v6_rank(addr)
+	if addr:find("^f[cd]") then return 2 end
+	return 3
+end
+
+-- conntrack prints IPv6 fully expanded (240e:03b6:...), the kernel neigh table compresses it,
+-- so both sides are folded into one canonical form before matching
+local function clients_v6_canon(addr)
+	addr = addr:gsub("%%[%w%.]+$", "")
+	local hex = {}
+	local left, right = addr:match("^(.-)::(.*)$")
+	if left then
+		for g in (left .. (left ~= "" and ":" or "")):gmatch("[^:]+") do hex[#hex + 1] = g end
+		local right_hex = {}
+		for g in right:gmatch("[^:]+") do right_hex[#right_hex + 1] = g end
+		for _ = 1, 8 - #hex - #right_hex do hex[#hex + 1] = "0" end
+		for i = 1, #right_hex do hex[#hex + 1] = right_hex[i] end
+	else
+		for g in addr:gmatch("[^:]+") do hex[#hex + 1] = g end
+	end
+	local out = {}
+	for i = 1, 8 do
+		out[i] = string.format("%04x", tonumber(hex[i] or "0", 16) or 0)
+	end
+	return table.concat(out, ":")
+end
+
+-- one neigh dump drives both families: one IPv6 address per MAC (global beats ULA) + IPv4 states/MACs
+local function clients_neighbors(own_macs)
+	local map, v4_state, v4_mac, v4_dev = {}, {}, {}, {}
+	local out = SYS.exec("ip neigh show 2>/dev/null")
+	for line in (out or ""):gmatch("[^\n]+") do
+		local addr, dev = line:match("^([%x:%.]+)%s+dev%s+(%S+)")
+		if addr then
+			local mac = line:match("lladdr%s+(%x%x:%x%x:%x%x:%x%x:%x%x:%x%x)")
+			if addr:find(":", 1, true) then
+				if mac and not addr:find("^fe80:") then
+					mac = mac:lower()
+					if not own_macs[mac] then
+						local prev = map[mac]
+						if not prev or clients_v6_rank(addr) > clients_v6_rank(prev) then
+							map[mac] = addr
+						end
+					end
+				end
+			else
+				v4_state[addr] = line:match("([A-Z]+)%s*$") or ""
+				v4_dev[addr] = dev
+				if mac then v4_mac[addr] = mac:lower() end
+			end
+		end
+	end
+	return map, v4_state, v4_mac, v4_dev
+end
+
+-- stale neighbours are confirmed by a small batch of parallel pings, rotating across
+-- polls; the result is written back into the kernel neighbour state the next poll reads
+local function clients_probe_trigger(cache, candidates)
+	local now = os.time()
+	local pinged = type(cache.ping) == "table" and cache.ping or {}
+	cache.ping = pinged
+	local todo = {}
+	for _, item in ipairs(candidates) do
+		if item.dev and now - (tonumber(pinged[item.mac]) or 0) >= CLIENTS_PROBE_TTL then
+			todo[#todo + 1] = item
+		end
+	end
+	for mac, t in pairs(pinged) do
+		if now - (tonumber(t) or 0) > 600 then pinged[mac] = nil end
+	end
+	if #todo == 0 then return false end
+	local cursor = (tonumber(cache.probe_cursor) or 0) % #todo
+	local args = {}
+	for i = 1, math.min(#todo, CLIENTS_PROBE_MAX) do
+		local item = todo[(cursor + i - 1) % #todo + 1]
+		pinged[item.mac] = now
+		args[#args + 1] = UTIL.shellquote(item.dev) .. " " .. UTIL.shellquote(item.ip) .. " " .. UTIL.shellquote(item.mac)
+	end
+	cache.probe_cursor = (cursor + #args) % #todo
+	SYS.call("sh /usr/share/openclash/openclash_client_ac.sh probe " .. table.concat(args, " ") .. " >/dev/null 2>&1 &")
+	return true
+end
+
+local function clients_meta_read()
+	local data = fs.readfile(CLIENTS_META_PATH)
+	if not data then return {} end
+	local ok, parsed = pcall(json.parse, data)
+	if ok and type(parsed) == "table" then return parsed end
+	return {}
+end
+
+local function clients_meta_write(meta)
+	SYS.call("mkdir -p /etc/openclash/history")
+	local tmp = CLIENTS_META_PATH .. ".tmp"
+	if fs.writefile(tmp, json.stringify(meta)) then
+		os.rename(tmp, CLIENTS_META_PATH)
+	end
+end
+
+local function clients_lease_names()
+	local by_mac, by_ip = {}, {}
+	local data = fs.readfile("/tmp/dhcp.leases")
+	if data then
+		for line in data:gmatch("[^\n]+") do
+			local mac, ip, name = line:match("^%d+ (%S+) (%S+) (%S+)")
+			if mac and mac ~= "*" and ip and ip ~= "*" then
+				if name and name ~= "*" then
+					by_mac[mac:lower()] = name
+					by_ip[ip] = name
+				end
+			end
+		end
+	end
+	return by_mac, by_ip
+end
+
+local function clients_list_values(key)
+	local values = uci:get_list("openclash", "config", key) or {}
+	local out = {}
+	for _, v in ipairs(values) do
+		v = UTIL.trim(v)
+		if v ~= "" then out[#out + 1] = v end
+	end
+	return out
+end
+
+local function clients_apply_list(key, values)
+	if #values == 0 then
+		uci:delete("openclash", "config", key)
+	else
+		uci:set_list("openclash", "config", key, values)
+	end
+end
+
+local function clients_is_mac_like(v)
+	return v:match("^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x$") ~= nil
+end
+
+local function clients_range_cover(values, ip)
+	local m = ip4_to_int(ip or "")
+	if not m then return false end
+	for _, v in ipairs(values) do
+		local net, len = v:match("^([%d%.]+)/(%d+)$")
+		local n = net and ip4_to_int(net)
+		len = tonumber(len)
+		if n and len and len >= 8 and len <= 32 then
+			local space = 2 ^ (32 - len)
+			if m - (m % space) == n - (n % space) then return true end
+		end
+	end
+	return false
+end
+
+-- a list entry may be an IPv4 address, an IPv4 range, an IPv6 address or a MAC;
+-- IPv6 forms are folded through clients_v6_canon before comparing
+local function clients_list_matcher(values)
+	local exact, ranges = {}, {}
+	for _, v in ipairs(values) do
+		local net, len = v:match("^([%d%.]+)/(%d+)$")
+		local n = net and ip4_to_int(net)
+		len = tonumber(len)
+		if n and len and len >= 8 and len <= 32 then
+			local space = 2 ^ (32 - len)
+			ranges[#ranges + 1] = { space = space, net = n - (n % space) }
+		elseif v:find(":", 1, true) and not clients_is_mac_like(v) then
+			exact[clients_v6_canon(v)] = true
+		else
+			exact[v:lower()] = true
+		end
+	end
+	return function(value)
+		if not value or value == "" then return false end
+		if value:find(":", 1, true) and not clients_is_mac_like(value) then
+			return exact[clients_v6_canon(value)] or false
+		end
+		if exact[value:lower()] then return true end
+		local n = ip4_to_int(value)
+		if n then
+			for _, r in ipairs(ranges) do
+				if n - (n % r.space) == r.net then return true end
+			end
+		end
+		return false
+	end
+end
+
+local function clients_ac_mode()
+	return tonumber(fs.uci_get_config("config", "lan_ac_mode") or "0") or 0
+end
+
+local function clients_need_fix()
+	local en_mode = fs.uci_get_config("config", "en_mode") or ""
+	local redirect_dns = tonumber(fs.uci_get_config("config", "enable_redirect_dns") or "0") or 0
+	return (en_mode:find("fake%-ip") ~= nil) and redirect_dns ~= 2
+end
+
+function action_clients_ac()
+	local cache = clients_cache_read()
+	local nets, own, own_macs = clients_local_nets(cache)
+	local ip6_by_mac, v4_state, v4_mac, v4_dev = clients_neighbors(own_macs)
+	local ac_mode = clients_ac_mode()
+	local meta = clients_meta_read()
+	local lease_by_mac, lease_by_ip = clients_lease_names()
+
+	local black_ips = clients_list_values("lan_ac_black_ips")
+	local white_ips = clients_list_values("lan_ac_white_ips")
+	local black_mac_list = clients_list_values("lan_ac_black_macs")
+	local white_mac_list = clients_list_values("lan_ac_white_macs")
+	local black_macs, white_macs = {}, {}
+	local match_black = clients_list_matcher(black_ips)
+	local match_white = clients_list_matcher(white_ips)
+	for _, mac in ipairs(black_mac_list) do black_macs[mac:lower()] = true end
+	for _, mac in ipairs(white_mac_list) do white_macs[mac:lower()] = true end
+
+	local devices, by_mac, by_ip = {}, {}, {}
+	local function ensure(mac, ip)
+		local d
+		if mac and by_mac[mac] then d = by_mac[mac]
+		elseif ip and by_ip[ip] then d = by_ip[ip]
+		else d = { ips = {} }; devices[#devices + 1] = d end
+		if mac and not d.mac then d.mac = mac end
+		if mac then by_mac[mac] = d end
+		if ip and not by_ip[ip] then
+			by_ip[ip] = d
+			d.ip = d.ip or ip
+			local exists = false
+			for _, v in ipairs(d.ips) do if v == ip then exists = true end end
+			if not exists then d.ips[#d.ips + 1] = ip end
+		end
+		return d
+	end
+
+	local probe = type(cache.probe) == "table" and cache.probe or {}
+	cache.probe = probe
+	local ip_mac = type(cache.ip_mac) == "table" and cache.ip_mac or {}
+	cache.ip_mac = ip_mac
+	local now = os.time()
+	local candidates = {}
+	for ip, mac in pairs(ip_mac) do
+		if now - (tonumber(mac.t) or 0) > 600 then ip_mac[ip] = nil end
+	end
+	for ip, state in pairs(v4_state) do
+		local mac = v4_mac[ip]
+		-- a failed address keeps no lladdr, the last seen MAC names the device
+		local last = ip_mac[ip]
+		if not mac and type(last) == "table" then mac = last.mac end
+		if mac and clients_is_lan_ip(ip, nets, own) then
+			ip_mac[ip] = { mac = mac, t = now }
+			local d = ensure(mac, ip)
+			-- DELAY/PROBE are transitional states, they are confirmed by ping below
+			if state == "STALE" or state == "DELAY" or state == "PROBE" then
+				local p = probe[mac]
+				-- a known-offline device stays offline until a reply is observed
+				if type(p) == "table" and (now - (tonumber(p.t) or 0) < CLIENTS_PROBE_TTL or p.ok == 0) then
+					d.online = p.ok == 1
+				else
+					d.online = true
+				end
+				candidates[#candidates + 1] = { mac = mac, ip = ip, dev = v4_dev[ip] }
+			elseif state == "FAILED" or state == "INCOMPLETE" then
+				d.online = false
+				probe[mac] = { t = now, ok = 0 }
+				candidates[#candidates + 1] = { mac = mac, ip = ip, dev = v4_dev[ip] }
+			else
+				d.online = true
+				probe[mac] = { t = now, ok = 1 }
+			end
+		end
+	end
+
+	local probing = clients_probe_trigger(cache, candidates)
+
+	-- list entries without a current neighbour stay manageable while offline
+	for _, ip in ipairs(black_ips) do
+		if not by_ip[ip] and clients_is_lan_ip(ip, nets, own) then ensure(nil, ip) end
+	end
+	for _, ip in ipairs(white_ips) do
+		if not by_ip[ip] and clients_is_lan_ip(ip, nets, own) then ensure(nil, ip) end
+	end
+	for _, mac in ipairs(black_mac_list) do
+		if not by_mac[mac:lower()] then ensure(mac:lower(), nil) end
+	end
+	for _, mac in ipairs(white_mac_list) do
+		if not by_mac[mac:lower()] then ensure(mac:lower(), nil) end
+	end
+
+	-- IPv6-only devices still belong to the list
+	for mac in pairs(ip6_by_mac) do
+		if not by_mac[mac] then
+			local d = ensure(mac, nil)
+			d.online = true
+		end
+	end
+
+	local out = {}
+	for _, d in ipairs(devices) do
+		local mac = d.mac
+		local m = mac and meta[mac] or nil
+		local ip6 = mac and ip6_by_mac[mac] or nil
+		-- set_firewall only loads the list of the active mode, so the direction of
+		-- a device is decided by the current mode's list alone
+		local in_black = (mac and black_macs[mac]) or match_black(d.ip) or match_black(ip6) or false
+		local in_white = (mac and white_macs[mac]) or match_white(d.ip) or match_white(ip6) or false
+		local dir
+		if ac_mode == 1 then
+			dir = in_white and "proxy" or "direct"
+		else
+			dir = in_black and "direct" or "proxy"
+		end
+		out[#out + 1] = {
+			mac = mac,
+			ip = d.ip,
+			ip6 = ip6,
+			hostname = d.hostname or (mac and lease_by_mac[mac]) or (d.ip and lease_by_ip[d.ip]) or nil,
+			name = m and m.name or nil,
+			icon = m and m.icon or nil,
+			online = d.online or false,
+			dir = dir,
+			listed = in_black or in_white
+		}
+	end
+	clients_cache_write(cache)
+
+	clients_json({
+		ok = true,
+		core_running = is_running(),
+		en_mode = fs.uci_get_config("config", "en_mode"),
+		redirect_dns = tonumber(fs.uci_get_config("config", "enable_redirect_dns") or "0") or 0,
+		ac_mode = ac_mode,
+		default_dir = ac_mode == 1 and "direct" or "proxy",
+		need_fix = clients_need_fix(),
+		probing = probing,
+		devices = out
+	})
+end
+
+-- raw conntrack dump for the browser to parse and aggregate
+function action_clients_stats()
+	local acct = fs.readfile("/proc/sys/net/netfilter/nf_conntrack_acct")
+	acct = acct and acct:gsub("%s", "") == "1" or false
+	HTTP.prepare_content("text/plain")
+	HTTP.header("Cache-Control", "no-store")
+	HTTP.header("X-Accel-Buffering", "no")
+	if not acct then
+		HTTP.write("#acct=0\n")
+		return
+	end
+	HTTP.write("#acct=1\n")
+
+	local file = io.open("/proc/net/nf_conntrack", "r")
+	if not file then return end
+
+	-- flows started by the router itself map to no device, dropping them keeps the payload small
+	local _, own = clients_local_nets()
+	local skip = {}
+	for ip in pairs(own or {}) do skip[#skip + 1] = "src=" .. ip .. " " end
+
+	-- written in batches: the table never sits in one Lua string and the browser starts parsing
+	-- while the rest is still streaming
+	local chunk = {}
+	for line in file:lines() do
+		local drop = false
+		for i = 1, #skip do
+			if line:find(skip[i], 1, true) then
+				drop = true
+				break
+			end
+		end
+		if not drop then
+			chunk[#chunk + 1] = line
+			if #chunk >= 256 then
+				HTTP.write(table.concat(chunk, "\n") .. "\n")
+				chunk = {}
+			end
+		end
+	end
+	file:close()
+	if #chunk > 0 then
+		HTTP.write(table.concat(chunk, "\n") .. "\n")
+	end
+end
+
+function action_clients_set()
+	if clients_need_fix() then
+		return clients_json({ ok = false, need_fix = true })
+	end
+	-- the lists live in uci, so they can be prepared while the core is stopped
+	local running = is_running()
+
+	local action = HTTP.formvalue("action")
+	local scope = HTTP.formvalue("scope") or "item"
+	if action ~= "proxy" and action ~= "direct" then
+		return clients_json({ ok = false, err = "invalid_action" })
+	end
+	if scope ~= "all" and scope ~= "item" then
+		return clients_json({ ok = false, err = "invalid_scope" })
+	end
+
+	local ac_mode = clients_ac_mode()
+	local color, script_args, flush_color = nil, nil, nil
+
+	if scope == "all" then
+		local target_mode = action == "direct" and 1 or 0
+		uci:set("openclash", "config", "lan_ac_mode", tostring(target_mode))
+		if target_mode == 1 then
+			clients_apply_list("lan_ac_white_ips", {})
+			clients_apply_list("lan_ac_white_macs", {})
+			flush_color = "white"
+		else
+			clients_apply_list("lan_ac_black_ips", {})
+			clients_apply_list("lan_ac_black_macs", {})
+			flush_color = "black"
+		end
+		ac_mode = target_mode
+	else
+		local ip = UTIL.trim(HTTP.formvalue("ip") or "")
+		local mac = UTIL.trim(HTTP.formvalue("mac") or ""):lower()
+		if (ip ~= "" and not ip4_to_int(ip)) or (mac ~= "" and not mac:match("^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x$")) then
+			return clients_json({ ok = false, err = "invalid_device" })
+		end
+		if ip == "" and mac == "" then
+			return clients_json({ ok = false, err = "invalid_device" })
+		end
+
+		-- exceptions always live in the list matching the current default policy
+		if ac_mode == 1 then
+			color = "white"
+		else
+			color = "black"
+		end
+		local list_ips = color == "white" and "lan_ac_white_ips" or "lan_ac_black_ips"
+		local list_macs = color == "white" and "lan_ac_white_macs" or "lan_ac_black_macs"
+		local other_ips = color == "white" and "lan_ac_black_ips" or "lan_ac_white_ips"
+		local other_macs = color == "white" and "lan_ac_black_macs" or "lan_ac_white_macs"
+
+		-- add = make this device an exception of the current default policy
+		local add = (ac_mode == 1 and action == "proxy") or (ac_mode == 0 and action == "direct")
+		if add then
+			local ips = clients_list_values(list_ips)
+			if ip ~= "" then
+				local dup = false
+				for _, v in ipairs(ips) do if v == ip then dup = true end end
+				if not dup then ips[#ips + 1] = ip end
+			end
+			clients_apply_list(list_ips, ips)
+			local macs = clients_list_values(list_macs)
+			if mac ~= "" then
+				local dup = false
+				for _, v in ipairs(macs) do if v:lower() == mac then dup = true end end
+				if not dup then macs[#macs + 1] = mac end
+			end
+			clients_apply_list(list_macs, macs)
+			-- drop the same device from the opposite list so the new direction wins
+			if ip ~= "" then
+				local others = {}
+				for _, v in ipairs(clients_list_values(other_ips)) do
+					if v ~= ip then others[#others + 1] = v end
+				end
+				clients_apply_list(other_ips, others)
+			end
+			if mac ~= "" then
+				local others = {}
+				for _, v in ipairs(clients_list_values(other_macs)) do
+					if v:lower() ~= mac then others[#others + 1] = v end
+				end
+				clients_apply_list(other_macs, others)
+			end
+			script_args = { color, "add", ip, mac }
+		else
+			-- an IPv4 range around the device keeps the entry effective even after
+			-- the exact address is removed; surface it instead of a silent no-op
+			if ip ~= "" and clients_range_cover(clients_list_values(list_ips), ip) then
+				return clients_json({ ok = false, err = "range_covered" })
+			end
+			local ips = {}
+			for _, v in ipairs(clients_list_values(list_ips)) do
+				if not (ip ~= "" and v == ip) then ips[#ips + 1] = v end
+			end
+			clients_apply_list(list_ips, ips)
+			local macs = {}
+			for _, v in ipairs(clients_list_values(list_macs)) do
+				if not (mac ~= "" and v:lower() == mac) then macs[#macs + 1] = v end
+			end
+			clients_apply_list(list_macs, macs)
+			script_args = { color, "del", ip, mac }
+		end
+	end
+	uci:commit("openclash")
+
+	local applying = false
+	if running then
+		if flush_color then
+			SYS.call(string.format("sh /usr/share/openclash/openclash_client_ac.sh %s flush >/dev/null 2>&1", flush_color))
+			-- a mode flip swaps the sets the firewall rules point at, so the rules must be rebuilt
+			applying = true
+			SYS.call("/etc/init.d/openclash reload 'manual' >/dev/null 2>&1 &")
+		elseif script_args then
+			local quoted = {}
+			for i = 1, 4 do quoted[i] = UTIL.shellquote(script_args[i] or "") end
+			local rc = SYS.call(string.format("sh /usr/share/openclash/openclash_client_ac.sh %s %s %s %s >/dev/null 2>&1", quoted[1], quoted[2], quoted[3], quoted[4]))
+			if rc == 3 then
+				applying = true
+				SYS.call("/etc/init.d/openclash reload 'manual' >/dev/null 2>&1 &")
+			end
+		end
+
+		-- drop existing connections so the change applies to them immediately
+		if applying then
+			SYS.call("(sleep 3; sh /usr/share/openclash/openclash_history_get.sh close_all_conection) >/dev/null 2>&1 &")
+		else
+			SYS.call("sh /usr/share/openclash/openclash_history_get.sh close_all_conection >/dev/null 2>&1 &")
+		end
+	end
+
+	clients_json({
+		ok = true,
+		applying = applying,
+		core_running = running,
+		ac_mode = ac_mode,
+		default_dir = ac_mode == 1 and "direct" or "proxy"
+	})
+end
+
+function action_clients_meta()
+	local mac = UTIL.trim(HTTP.formvalue("mac") or ""):lower()
+	if not mac:match("^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x$") then
+		return clients_json({ ok = false, err = "invalid_mac" })
+	end
+
+	local name = HTTP.formvalue("name")
+	local icon = HTTP.formvalue("icon")
+	if icon ~= nil then
+		icon = UTIL.trim(icon)
+		if icon ~= "" and not clients_icon_ok(icon) then
+			return clients_json({ ok = false, err = "invalid_icon" })
+		end
+	end
+
+	local meta = clients_meta_read()
+	local entry = meta[mac] or {}
+	if name ~= nil then
+		name = clients_utf8_cut(UTIL.trim(name), 20)
+		entry.name = name ~= "" and name or nil
+	end
+	if icon ~= nil then
+		entry.icon = icon ~= "" and icon or nil
+	end
+	if entry.name or entry.icon then
+		meta[mac] = entry
+	else
+		meta[mac] = nil
+	end
+	clients_meta_write(meta)
+
+	clients_json({ ok = true })
+end
+
+function action_clients_dns_switch()
+	local redirect_dns = tonumber(fs.uci_get_config("config", "enable_redirect_dns") or "0") or 0
+	if redirect_dns == 2 then
+		return clients_json({ ok = true, already = true })
+	end
+	uci:set("openclash", "config", "enable_redirect_dns", "2")
+	uci:commit("openclash")
+	-- a stopped core applies the value at its next start
+	if not is_running() then
+		return clients_json({ ok = true, reloaded = false, core_running = false })
+	end
+	-- blocks until the rules are applied so the caller can show the real progress
+	local ok = SYS.call("/etc/init.d/openclash reload 'dns-switch' >/dev/null 2>&1") == 0
+	clients_json({ ok = ok, reloaded = ok, core_running = true })
 end

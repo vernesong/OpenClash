@@ -73,7 +73,7 @@ function switch_log_level(value)
     if (!coreWebSocket || coreWebSocket.readyState !== WebSocket.OPEN) {
         XHR.get('<%=url("admin", "services", "openclash", "switch_log")%>', {log_level: value}, function(x, status) {
             if (!x || x.status != 200) {
-                ocToast(' <%:Log Level%>: ' + value + ' <%:switching failed!%>', 'error');
+                ocToast('<%:Switch failed%>', 'error');
                 return
             }
         });

@@ -84,6 +84,7 @@
   - **白名单模式**: 只有列表中的设备/主机走代理
 - **依赖**: `enable_redirect_dns=2` (仅防火墙重定向模式) + Redir-Host 系列模式（LuCI 界面中 `lan_ac_mode` 及其 IP 列表同时要求 `en_mode` 为 redir-host 系列；MAC 列表仅要求 `lan_ac_mode` 匹配）
 - **实现细节**: fw4 通过 `nft` 的 `ether saddr`（MAC）与 `ip saddr`（IP）在 `inet fw4` 各代理链中匹配；fw3 通过 `ipset hash:mac` / `hash:ip` 配合 `-m set --match-set` 匹配。黑白名单决定规则的 return 行为取反（黑名单=匹配到则 return 直连，白名单=不匹配则 return 直连）。
+- **集合维护**: 六个 `lan_ac_*` 集合在启动时无条件创建（与列表是否为空无关），运行状态页的逐设备分流通过 `openclash_client_ac.sh` 热更新集合内容，不重建防火墙；仅在切换默认策略（`lan_ac_mode`）时才重建规则。
 
 #### 9.2.2 lan_ac_black_ips — 不走代理的局域网设备 IP (LAN Bypassed Host List)
 - **UCI 选项**: `openclash.@openclash[0].lan_ac_black_ips` (DynamicList)

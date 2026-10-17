@@ -317,8 +317,11 @@
                         <!-- Row 4: Statistics -->
                         <div class="stats-section">
                             <div class="stats-card-header">
-                                <div class="stats-title"><%:Statistics%></div>
+                                <div class="stats-title" id="stats-section-title"><%:Statistics%></div>
                                 <div class="icon-pill stats-view-toggle" id="stats-view-toggle" role="group" aria-label="<%:View Mode%>">
+                                    <button type="button" class="icon-pill-opt" id="stats-ac-btn" title="<%:Access Control%>" data-view="ac">
+                                        <svg width="13" height="13"><use href="#oc-icon-users"/></svg>
+                                    </button>
                                     <button type="button" class="icon-pill-opt" id="stats-cards-btn" title="<%:Cards%>" data-view="cards">
                                         <svg width="13" height="13"><use href="#oc-icon-grid"/></svg>
                                     </button>
@@ -327,34 +330,109 @@
                                     </button>
                                 </div>
                             </div>
-                            <div class="card-row stats-grid" id="stats-view-cards">
-                                <div class="sub-card stat-item"><span class="stat-label"><%:Upload%></span><span id="upload_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB/s</span></span></div>
-                                <div class="sub-card stat-item"><span class="stat-label"><%:Download%></span><span id="download_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB/s</span></span></div>
-                                <div class="sub-card stat-item"><span class="stat-label"><%:Up Total%></span><span id="uploadtotal_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB</span></span></div>
-                                <div class="sub-card stat-item"><span class="stat-label"><%:Down Total%></span><span id="downloadtotal_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB</span></span></div>
-                                <div class="sub-card stat-item"><span class="stat-label"><%:Connect%></span><span id="connect_t" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span></span></div>
-                                <div class="sub-card stat-item"><span class="stat-label"><%:Ram%></span><span id="mem_t" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB</span></span></div>
-                                <div class="sub-card stat-item"><span class="stat-label"><%:CPU%></span><span id="cpu_t" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">%</span></span></div>
-                                <div class="sub-card stat-item"><span class="stat-label"><%:Load Avg%></span><span id="load_a" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">%</span></span></div>
-                            </div>
-
-                            <div class="stats-chart-card oc-hidden" id="stats-view-chart">
-                                <div class="stats-chart-header">
-                                    <div class="stats-legend" id="stats-legend"></div>
+                            <div class="stats-views">
+                                <div class="card-row stats-grid" id="stats-view-cards">
+                                    <div class="sub-card stat-item"><span class="stat-label"><%:Upload%></span><span id="upload_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB/s</span></span></div>
+                                    <div class="sub-card stat-item"><span class="stat-label"><%:Download%></span><span id="download_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB/s</span></span></div>
+                                    <div class="sub-card stat-item"><span class="stat-label"><%:Up Total%></span><span id="uploadtotal_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB</span></span></div>
+                                    <div class="sub-card stat-item"><span class="stat-label"><%:Down Total%></span><span id="downloadtotal_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB</span></span></div>
+                                    <div class="sub-card stat-item"><span class="stat-label"><%:Connect%></span><span id="connect_t" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span></span></div>
+                                    <div class="sub-card stat-item"><span class="stat-label"><%:Ram%></span><span id="mem_t" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB</span></span></div>
+                                    <div class="sub-card stat-item"><span class="stat-label"><%:CPU%></span><span id="cpu_t" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">%</span></span></div>
+                                    <div class="sub-card stat-item"><span class="stat-label"><%:Load Avg%></span><span id="load_a" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">%</span></span></div>
                                 </div>
-                                <div class="stats-chart-wrap"><canvas id="stats-chart"></canvas></div>
-                            </div>
-                            <div class="cbi-button-group stats-tabs oc-hidden" id="stats-tabs">
-                                <input type="radio" id="stats-metric-traffic" name="stats-metric" value="traffic" checked/>
-                                <label for="stats-metric-traffic" class="cbi-button-option"><%:Traffic%></label>
-                                <input type="radio" id="stats-metric-connections" name="stats-metric" value="connections"/>
-                                <label for="stats-metric-connections" class="cbi-button-option"><%:Connect%></label>
-                                <input type="radio" id="stats-metric-memory" name="stats-metric" value="memory"/>
-                                <label for="stats-metric-memory" class="cbi-button-option"><%:Ram%></label>
-                                <input type="radio" id="stats-metric-cpu" name="stats-metric" value="cpu"/>
-                                <label for="stats-metric-cpu" class="cbi-button-option"><%:CPU%></label>
-                                <input type="radio" id="stats-metric-load" name="stats-metric" value="load"/>
-                                <label for="stats-metric-load" class="cbi-button-option"><%:Load Avg%></label>
+
+                                <div class="stats-chart-card oc-hidden" id="stats-view-chart">
+                                    <div class="stats-chart-header">
+                                        <div class="stats-legend" id="stats-legend"></div>
+                                    </div>
+                                    <div class="stats-chart-wrap"><canvas id="stats-chart"></canvas></div>
+                                </div>
+                                <div class="cbi-button-group stats-tabs oc-hidden" id="stats-tabs">
+                                    <input type="radio" id="stats-metric-traffic" name="stats-metric" value="traffic" checked/>
+                                    <label for="stats-metric-traffic" class="cbi-button-option"><%:Traffic%></label>
+                                    <input type="radio" id="stats-metric-connections" name="stats-metric" value="connections"/>
+                                    <label for="stats-metric-connections" class="cbi-button-option"><%:Connect%></label>
+                                    <input type="radio" id="stats-metric-memory" name="stats-metric" value="memory"/>
+                                    <label for="stats-metric-memory" class="cbi-button-option"><%:Ram%></label>
+                                    <input type="radio" id="stats-metric-cpu" name="stats-metric" value="cpu"/>
+                                    <label for="stats-metric-cpu" class="cbi-button-option"><%:CPU%></label>
+                                    <input type="radio" id="stats-metric-load" name="stats-metric" value="load"/>
+                                    <label for="stats-metric-load" class="cbi-button-option"><%:Load Avg%></label>
+                                </div>
+
+                                <!-- Row 4b: Access Control view -->
+                                <div id="stats-view-ac" class="oc-hidden">
+                                    <div class="ac-card">
+                                        <div class="ac-head">
+                                            <div class="ac-sum">
+                                                <svg><use href="#oc-icon-users"/></svg>
+                                                <span><b id="ac-count-all">0</b> <%:Devices%><span class="ac-sum-extra"> · <b id="ac-count-proxy">0</b> <%:Proxy%> · <b id="ac-count-direct">0</b> <%:Direct%></span></span>
+                                                <span class="ac-def-pill" id="ac-def-pill" title="<%:Default policy for devices without individual settings; new devices inherit it%>"></span>
+                                            </div>
+                                            <div class="ac-tools">
+                                                <button type="button" class="ac-key-btn" id="ac-all-proxy" title="<%:All devices default to proxy%>">
+                                                    <svg><use href="#oc-icon-globe"/></svg><span class="ac-key-text"><%:Proxy All%></span>
+                                                </button>
+                                                <button type="button" class="ac-key-btn" id="ac-all-direct" title="<%:All devices default to direct%>">
+                                                    <svg><use href="#oc-icon-home"/></svg><span class="ac-key-text"><%:Direct All%></span>
+                                                </button>
+                                                <span class="ac-sep-v"></span>
+                                                <button type="button" class="ac-key-btn" id="ac-refresh" title="<%:Rescan the LAN for devices%>" aria-label="<%:Rescan the LAN for devices%>">
+                                                    <svg><use href="#oc-icon-refresh"/></svg>
+                                                </button>
+                                                <button type="button" class="ac-key-btn" id="ac-search-btn" title="<%:Search devices%>" aria-label="<%:Search devices%>" aria-expanded="false">
+                                                    <svg><use href="#oc-icon-search"/></svg>
+                                                </button>
+                                                <button type="button" class="ac-key-btn ac-sort-btn" id="ac-sort-btn" title="<%:Sort%>" aria-haspopup="menu">
+                                                    <svg><use href="#oc-icon-arrows-sort"/></svg><span class="ac-key-text"><%:Sort%></span><span class="ac-sort-ind"></span>
+                                                </button>
+                                                <span class="help-link" tabindex="0" title="<%:Auto-discovered devices; rates refresh every 2 s (direct traffic included); click a name to rename; switching closes existing connections%>">
+                                                    <svg width="12" height="12"><use href="#oc-icon-help"/></svg>
+                                                </span>
+                                                <div class="ac-sort-menu oc-hidden" id="ac-sort-menu" role="menu">
+                                                    <button type="button" data-key="name"><%:Device Name%> <span class="ac-sort-ind"></span></button>
+                                                    <button type="button" data-key="dir"><%:Route%> <span class="ac-sort-ind"></span></button>
+                                                    <button type="button" data-key="conns"><%:Connections%> <span class="ac-sort-ind"></span></button>
+                                                    <button type="button" data-key="up"><%:Upload Rate%> <span class="ac-sort-ind"></span></button>
+                                                    <button type="button" data-key="down"><%:Download Rate%> <span class="ac-sort-ind"></span></button>
+                                                    <button type="button" data-key="reset"><%:Default Order%> <span class="ac-sort-ind"></span></button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="ac-search oc-hidden" id="ac-search-bar">
+                                            <svg width="12" height="12"><use href="#oc-icon-search"/></svg>
+                                            <input type="search" id="ac-search" autocomplete="off" spellcheck="false" placeholder="<%:Search name, IP, MAC or vendor%>">
+                                            <button type="button" class="ac-search-clear oc-hidden" id="ac-search-clear" title="<%:Clear%>">
+                                                <svg width="10" height="10"><use href="#oc-icon-close"/></svg>
+                                            </button>
+                                        </div>
+
+                                        <div class="ac-warn oc-hidden" id="ac-warn-fix">
+                                            <svg><use href="#oc-icon-alert-circle"/></svg>
+                                            <span><%:Fake-IP requires DNS hijack set to Firewall Forwarding%></span>
+                                            <button type="button" class="ac-warn-btn" id="ac-warn-fix-btn"><%:Switch%></button>
+                                        </div>
+
+                                        <div class="ac-th">
+                                            <span class="ac-col-dev"><button type="button" class="ac-th-cell" data-key="name"><%:Device%> <span class="ac-sort-ind"></span></button></span>
+                                            <span class="ac-col-ctrl"><button type="button" class="ac-th-cell" data-key="dir"><%:Route%> <span class="ac-sort-ind"></span></button></span>
+                                            <span class="ac-col-conns"><button type="button" class="ac-th-cell" data-key="conns"><%:Connect%> <span class="ac-sort-ind"></span></button></span>
+                                            <span class="ac-col-up"><button type="button" class="ac-th-cell" data-key="up"><%:Upload%> <span class="ac-sort-ind"></span></button></span>
+                                            <span class="ac-col-down"><button type="button" class="ac-th-cell" data-key="down"><%:Download%> <span class="ac-sort-ind"></span></button></span>
+                                        </div>
+
+                                        <div class="ac-list" id="ac-list"></div>
+
+                                        <div class="ac-empty oc-hidden" id="ac-empty">
+                                            <svg><use href="#oc-icon-users"/></svg>
+                                            <div class="ac-empty-main" id="ac-empty-main"><%:No LAN devices found%></div>
+                                            <div class="ac-empty-sub" id="ac-empty-sub"><%:Devices appear here automatically once they join the network%></div>
+                                            <button type="button" id="ac-empty-refresh"><%:Rescan%></button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -381,6 +459,36 @@
                         <div class="config-upload-buttons">
                             <button type="button" class="btn cancel-btn" onclick="UsageHelpManager.hide()"><%:Cancel%></button>
                             <button type="button" class="btn upload-btn" onclick="UsageHelpManager.copyAndHide()"><%:Copy%></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Device name & icon Model -->
+            <div class="config-upload-model-overlay" id="ac-rename-overlay">
+                <div class="config-upload-model ac-rename-model">
+                    <div class="config-upload-header">
+                        <div class="config-upload-title"><%:Device Name & Icon%></div>
+                        <button type="button" class="icon-btn" id="ac-rename-close" aria-label="<%:Close%>">
+                            <svg width="14" height="14"><use href="#oc-icon-close"/></svg>
+                        </button>
+                    </div>
+                    <div class="config-upload-content">
+                        <div class="form-group">
+                            <label class="ac-rename-label" for="ac-rename-input"><%:Name%></label>
+                            <input type="text" class="ac-rename-input" id="ac-rename-input" maxlength="20" placeholder="<%:Leave empty to use the detected name%>" autocomplete="off">
+                            <div class="ac-rename-hint" id="ac-rename-hint"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="ac-rename-label"><%:Icon%></label>
+                            <div class="ac-icon-grid" id="ac-icon-grid"></div>
+                        </div>
+                    </div>
+                    <div class="config-upload-footer">
+                        <div class="config-upload-status"><button type="button" class="ac-link-btn oc-hidden" id="ac-rename-auto"><%:Restore Auto Detect%></button></div>
+                        <div class="config-upload-buttons">
+                            <button type="button" class="btn cancel-btn" id="ac-rename-cancel"><%:Cancel%></button>
+                            <button type="button" class="btn upload-btn" id="ac-rename-save"><%:Save%></button>
                         </div>
                     </div>
                 </div>

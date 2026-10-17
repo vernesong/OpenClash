@@ -260,14 +260,16 @@ fi
 
 ## 防火墙检查
    if [ "$FIREWALL_RELOAD" -le "$MAX_FIREWALL_RELOAD" ]; then
+      # dnsmasq restarts re-append their port-53 redirect at the tail (a platform
+      # init rule), DNS lines never carry the proxy jump order and are ignored here
       if [ -z "$FW4" ]; then
-         nat_last_line=$(iptables -t nat -nL PREROUTING --line-number 2>/dev/null | awk 'END {print $1}')
-         man_last_line=$(iptables -t mangle -nL PREROUTING --line-number 2>/dev/null | awk 'END {print $1}')
+         nat_last_line=$(iptables -t nat -nL PREROUTING --line-number 2>/dev/null | grep -Ev "DNS|dns" | awk 'END {print $1}')
+         man_last_line=$(iptables -t mangle -nL PREROUTING --line-number 2>/dev/null | grep -Ev "DNS|dns" | awk 'END {print $1}')
          nat_op_line=$(iptables -t nat -nL PREROUTING --line-number 2>/dev/null | grep -E "openclash|OpenClash" | grep -Ev "DNS|dns" | awk '{print $1}' | tail -1)
          man_op_line=$(iptables -t mangle -nL PREROUTING --line-number 2>/dev/null | grep -E "openclash|OpenClash" | grep -Ev "DNS|dns" | awk '{print $1}' | tail -1)
       else
-         nat_last_line=$(nft -a list chain inet fw4 dstnat 2>/dev/null | grep "# handle" | awk -F '# handle ' '{print $2}' | tail -1)
-         man_last_line=$(nft -a list chain inet fw4 mangle_prerouting 2>/dev/null | grep "# handle" | awk -F '# handle ' '{print $2}' | tail -1)
+         nat_last_line=$(nft -a list chain inet fw4 dstnat 2>/dev/null | grep "# handle" | grep -Ev "DNS|dns" | awk -F '# handle ' '{print $2}' | tail -1)
+         man_last_line=$(nft -a list chain inet fw4 mangle_prerouting 2>/dev/null | grep "# handle" | grep -Ev "DNS|dns" | awk -F '# handle ' '{print $2}' | tail -1)
          nat_op_line=$(nft -a list chain inet fw4 dstnat 2>/dev/null | grep -E "openclash|OpenClash" | grep -Ev "DNS|dns" | grep "# handle" | awk -F '# handle ' '{print $2}' | tail -1)
          man_op_line=$(nft -a list chain inet fw4 mangle_prerouting 2>/dev/null | grep -E "openclash|OpenClash" | grep -Ev "DNS|dns" | grep "# handle" | awk -F '# handle ' '{print $2}' | tail -1)
       fi

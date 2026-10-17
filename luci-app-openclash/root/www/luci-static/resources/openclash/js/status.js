@@ -2025,6 +2025,8 @@ var ocLang = window.ocLang || '';
         retryCount: 0,
         maxRetries: 3,
         isEnabled: false,
+        cpuTicks: 0,
+        cpuTime: 0,
 
         ZERO_SYS_STATS: [
             {id: "cpu_t", html: ocStatHtml("0 %")},
@@ -2061,8 +2063,21 @@ var ocLang = window.ocLang || '';
             StateManager.cachedXHRGet('<%=url("admin", "services", "openclash", "toolbar_show_sys")%>', function(x, status) {
                 if (x && x.status == 200 && x.responseText != "" && status) {
                     self.retryCount = 0;
-                    var cpuValueNumber = Number(status.cpu);
-                    if (!isFinite(cpuValueNumber) || cpuValueNumber < 0) cpuValueNumber = 0;
+                    // two cumulative tick samples give the usage; USER_HZ is 100, so ticks/s is percent
+                    var ticks = Number(status.cpu_ticks);
+                    var now = Date.now();
+                    var cpuValueNumber = 0;
+                    if (isFinite(ticks) && ticks > 0) {
+                        if (self.cpuTicks && ticks >= self.cpuTicks && now > self.cpuTime) {
+                            cpuValueNumber = (ticks - self.cpuTicks) / ((now - self.cpuTime) / 1000);
+                            if (!isFinite(cpuValueNumber) || cpuValueNumber < 0) cpuValueNumber = 0;
+                            if (cpuValueNumber > 100) cpuValueNumber = 100;
+                        }
+                        self.cpuTicks = ticks;
+                        self.cpuTime = now;
+                    } else {
+                        self.cpuTicks = 0;
+                    }
                     var cpuColor = cpuValueNumber <= 50 ? "var(--success-color)" : (cpuValueNumber <= 80 ? "var(--tip-color)" : "var(--error-color)");
                     var cpuValue = ocFormatOneDecimal(cpuValueNumber) + " %";
                     document.getElementById("cpu_t").innerHTML = ocStatHtml(cpuValue, cpuColor);
@@ -2088,6 +2103,8 @@ var ocLang = window.ocLang || '';
 
         handleError: function() {
             this.retryCount = 0;
+            this.cpuTicks = 0;
+            this.cpuTime = 0;
             this.resetSysStats();
             StatsChart.feed("cpu", 0);
             StatsChart.feed("load", 0);
@@ -2104,6 +2121,8 @@ var ocLang = window.ocLang || '';
         retryCount: 0,
         maxRetries: 3,
         isEnabled: false,
+        lastTotals: null,
+        lastTime: 0,
 
         ZERO_STATS: [
             {id: "upload_", html: ocStatHtml("0 B/s")},
@@ -2158,18 +2177,26 @@ var ocLang = window.ocLang || '';
         },
 
         updateNetworkStats: function(status) {
-            var up = Number(status && status.up);
-            var down = Number(status && status.down);
             var upTotal = Number(status && status.up_total);
             var downTotal = Number(status && status.down_total);
             var mem = Number(status && status.mem);
             var connections = Number(status && status.connections);
-            if (!isFinite(up)) up = 0;
-            if (!isFinite(down)) down = 0;
             if (!isFinite(upTotal)) upTotal = 0;
             if (!isFinite(downTotal)) downTotal = 0;
             if (!isFinite(mem)) mem = 0;
             if (!isFinite(connections)) connections = 0;
+            // the totals are cumulative, two samples give the average rate since the last poll
+            var now = Date.now();
+            var up = 0, down = 0;
+            if (this.lastTotals && upTotal >= this.lastTotals.up && downTotal >= this.lastTotals.down && now > this.lastTime) {
+                var dt = (now - this.lastTime) / 1000;
+                if (dt > 0.2) {
+                    up = (upTotal - this.lastTotals.up) / dt;
+                    down = (downTotal - this.lastTotals.down) / dt;
+                }
+            }
+            this.lastTotals = { up: upTotal, down: downTotal };
+            this.lastTime = now;
             var updates = [
                 {element: document.getElementById("upload_"), content: ocStatHtml(bytesToSize(up) + "/s")},
                 {element: document.getElementById("download_"), content: ocStatHtml(bytesToSize(down) + "/s")},
@@ -2188,6 +2215,8 @@ var ocLang = window.ocLang || '';
 
         handleError: function() {
             this.retryCount = 0;
+            this.lastTotals = null;
+            this.lastTime = 0;
             this.resetStats();
             StatsChart.feed("up", 0);
             StatsChart.feed("down", 0);
@@ -2633,7 +2662,7 @@ var ocLang = window.ocLang || '';
         N: 60,
         rightLeadMs: 1000,
         metric: 'traffic',
-        view: 'cards',
+        view: 'ac',
         chart: null,
         chartLoadPending: false,
         latest: { up: 0, down: 0, mem: 0, cpu: 0, load: 0, conn: 0 },
@@ -2668,6 +2697,9 @@ var ocLang = window.ocLang || '';
         requiredSources: function() {
             var ws = [];
             var sys = false;
+            if (this.view === 'ac') {
+                return { ws: [], sys: false };
+            }
             if (this.view === 'cards') {
                 ws = ['traffic', 'connections', 'memory'];
                 sys = true;
@@ -2689,7 +2721,7 @@ var ocLang = window.ocLang || '';
 
         init: function() {
             var savedView = localStorage.getItem('oc-stats-view');
-            if (savedView === 'chart' || savedView === 'cards') {
+            if (savedView === 'chart' || savedView === 'cards' || savedView === 'ac') {
                 this.view = savedView;
             }
             this.resetBuffer(Date.now());
@@ -2718,12 +2750,19 @@ var ocLang = window.ocLang || '';
         applyView: function() {
             document.getElementById('stats-view-cards').classList.toggle('oc-hidden', this.view !== 'cards');
             document.getElementById('stats-view-chart').classList.toggle('oc-hidden', this.view !== 'chart');
+            var acEl = document.getElementById('stats-view-ac');
+            if (acEl) acEl.classList.toggle('oc-hidden', this.view !== 'ac');
             var statsTabs = document.getElementById('stats-tabs');
             if (statsTabs) statsTabs.classList.toggle('oc-hidden', this.view !== 'chart');
             var cardsBtn = document.getElementById('stats-cards-btn');
             var chartBtn = document.getElementById('stats-chart-btn');
+            var acBtn = document.getElementById('stats-ac-btn');
             if (cardsBtn) cardsBtn.classList.toggle('active', this.view === 'cards');
             if (chartBtn) chartBtn.classList.toggle('active', this.view === 'chart');
+            if (acBtn) acBtn.classList.toggle('active', this.view === 'ac');
+            var sectionTitle = document.getElementById('stats-section-title');
+            if (sectionTitle) sectionTitle.textContent = this.view === 'ac' ? '<%:Access Control%>' : '<%:Statistics%>';
+            if (typeof ClientsAC !== 'undefined') ClientsAC.setActive(this.view === 'ac');
         },
 
         initCardDots: function() {
@@ -2850,11 +2889,15 @@ var ocLang = window.ocLang || '';
             var self = this;
             var cardsBtn = document.getElementById('stats-cards-btn');
             var chartBtn = document.getElementById('stats-chart-btn');
+            var acBtn = document.getElementById('stats-ac-btn');
             if (cardsBtn) {
                 cardsBtn.addEventListener('click', function() { self.setView('cards'); });
             }
             if (chartBtn) {
                 chartBtn.addEventListener('click', function() { self.setView('chart'); });
+            }
+            if (acBtn) {
+                acBtn.addEventListener('click', function() { self.setView('ac'); });
             }
             var tabs = document.getElementById('stats-tabs');
             if (tabs) {
@@ -2895,7 +2938,7 @@ var ocLang = window.ocLang || '';
         },
 
         setView: function(view) {
-            if (view !== 'cards' && view !== 'chart') return;
+            if (view !== 'cards' && view !== 'chart' && view !== 'ac') return;
             if (this.view === view) return;
             this.view = view;
             this.applyView();
@@ -3235,7 +3278,1109 @@ var ocLang = window.ocLang || '';
         }
     };
 
+    function acFmtRate(b) {
+        if (b >= 1048576) return (b / 1048576).toFixed(1) + ' MB/s';
+        if (b >= 1024) return Math.round(b / 1024) + ' KB/s';
+        return Math.round(b) + ' B/s';
+    }
+
+    function acEscape(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    /* wordmarks render as wide, short ink; sizing by ink height keeps their visual weight even,
+       while the box cap keeps a gap between the wordmark and the badge edge */
+    var AC_LOGO_BOX = 30, AC_LOGO_INK = 11, AC_PICK_BOX = 38, AC_PICK_INK = 11;
+
+    var AC_INK_BOOST = { "LG": 11.5, "Signify": 11.8 };
+
+    function acWordmarkSize(vendor, boxPx, inkPx, boost) {
+        var ink = window.ocBrandInk && window.ocBrandInk[vendor];
+        if (!ink) return boxPx;
+        var target = (boost && boost[vendor]) || inkPx;
+        return Math.round(Math.min(boxPx, 24 * target / ink) * 10) / 10;
+    }
+
+    function acVendorOfBrandId(id) {
+        var slug = String(id).replace(/^brand_/, '');
+        for (var v in window.ocBrandLogos) {
+            if (v.toLowerCase().replace(/[^a-z0-9]+/g, '_') === slug) return v;
+        }
+        return '';
+    }
+
+    var ClientsAC = {
+        active: false,
+        bound: false,
+        query: '',
+        busy: 0,
+        running: false,
+        env: null,
+        devices: [],
+        stats: {},
+        hist: {},
+        sortKey: null,
+        sortDir: 0,
+        statsIdle: 0,
+        lastSig: null,
+        lastHtml: null,
+        lastUnknownRefresh: 0,
+        envTimer: null,
+        statsTimer: null,
+        envFails: 0,
+        envRetryTimer: null,
+        probeTimer: null,
+        statsTs: 0,
+        prevFlows: null,
+        statsAbort: null,
+        statsCur: null,
+        statsUnknown: false,
+        ipmap: {},
+        v6map: {},
+        lanPrefixes: {},
+        renaming: null,
+        iconPick: null,
+
+        endpoints: {
+            ac: '<%=url("admin", "services", "openclash", "clients_ac")%>',
+            stats: '<%=url("admin", "services", "openclash", "clients_stats")%>',
+            set: '<%=url("admin", "services", "openclash", "clients_set")%>',
+            meta: '<%=url("admin", "services", "openclash", "clients_meta")%>',
+            dns: '<%=url("admin", "services", "openclash", "clients_dns_switch")%>'
+        },
+
+        icons: {
+            phone: 'oc-icon-device-mobile',
+            tablet: 'oc-icon-device-tablet',
+            laptop: 'oc-icon-device-laptop',
+            desktop: 'oc-icon-device-desktop',
+            tv: 'oc-icon-device-tv',
+            game: 'oc-icon-device-gamepad',
+            speaker: 'oc-icon-device-speaker',
+            nas: 'oc-icon-device-server',
+            camera: 'oc-icon-device-cctv',
+            iot: 'oc-icon-cpu',
+            printer: 'oc-icon-device-printer',
+            router: 'oc-icon-device-router',
+            unknown: 'oc-icon-device-unknown'
+        },
+
+        iconSet: [
+            { id: 'phone', label: '<%:Phone%>' },
+            { id: 'tablet', label: '<%:Tablet%>' },
+            { id: 'laptop', label: '<%:Laptop%>' },
+            { id: 'desktop', label: '<%:Desktop%>' },
+            { id: 'tv', label: '<%:TV%>' },
+            { id: 'game', label: '<%:Game Console%>' },
+            { id: 'speaker', label: '<%:Speaker%>' },
+            { id: 'nas', label: '<%:Server / NAS%>' },
+            { id: 'camera', label: '<%:Camera%>' },
+            { id: 'iot', label: '<%:Smart Device%>' },
+            { id: 'printer', label: '<%:Printer%>' },
+            { id: 'router', label: '<%:Router%>' },
+            { id: 'unknown', label: '<%:Unknown%>' }
+        ],
+
+        nameRules: [
+            [/tv|bravia|mitv|skyworth|chromecast|firestick|appletv|shield|电视/i, 'tv'],
+            [/switch[-_]|xbox|playstation|ps[45]/i, 'game'],
+            [/ipad|tablet|matepad|pad[-_ ]/i, 'tablet'],
+            [/iphone|android|redmi|huawei|honor|oppo|vivo|oneplus|pixel|手机/i, 'phone'],
+            [/macbook|imac|thinkpad|notebook|laptop|ideapad|笔记本/i, 'laptop'],
+            [/desktop|电脑|台式/i, 'desktop'],
+            [/speaker|sound|echo|homepod|音箱/i, 'speaker'],
+            [/nas|synology|qnap|raspberry|rpi|server|服务器/i, 'nas'],
+            [/cam|ipc|doorbell|摄像/i, 'camera'],
+            [/print|epson|canon|brother|ricoh|xerox|kyocera|打印/i, 'printer'],
+            [/router|gateway|openwrt|linksys|netgear|dlink|d-link|ubnt|ubiquiti|路由/i, 'router'],
+            [/esp|tuya|shelly|sonoff|smart|iot|智能/i, 'iot']
+        ],
+
+        ouiFind: function(mac) {
+            var d = window.ocOui;
+            var hex = String(mac || '').replace(/[^0-9a-f]/gi, '').toUpperCase();
+            if (!d || hex.length < 6) return null;
+            // locally administered bit: phones randomize the MAC, no vendor exists
+            if (parseInt(hex.slice(0, 2), 16) & 2) return null;
+            var key = hex.slice(0, 6), p = d.p, lo = 0, hi = p.length / 6 - 1;
+            while (lo <= hi) {
+                var mid = (lo + hi) >> 1, cur = p.substr(mid * 6, 6);
+                if (cur === key) {
+                    var i = d.v.charCodeAt(mid) - 33;
+                    return { vendor: d.n[i] || '', type: d.t[i] || '' };
+                }
+                if (cur < key) lo = mid + 1; else hi = mid - 1;
+            }
+            return null;
+        },
+
+        ensureOui: function() {
+            var self = this;
+            if (this.ouiLoading || (window.ocOui && window.ocBrandLogos)) return;
+            this.ouiLoading = true;
+            var ver = window.ocPluginVer || '';
+            var finish = function() {
+                self.ouiLoading = false;
+                self.bindBrandIcons();
+                if (self.raw) self.rebuildDevices(self.raw);
+                if (self.active) self.renderList();
+            };
+            var loadBrands = function() {
+                if (window.ocBrandLogos) { finish(); return; }
+                ocRequireScript('/luci-static/resources/openclash/js/brand-logos.js?v=' + ver, finish);
+            };
+            if (window.ocOui) { loadBrands(); return; }
+            ocRequireScript('/luci-static/resources/openclash/js/oui-data.js?v=' + ver, loadBrands);
+        },
+
+        init: function() {
+            this.bind();
+            this.bindBrandIcons();
+            this.setActive(StatsChart.view === 'ac');
+        },
+
+        bindBrandIcons: function() {
+            if (!window.ocBrandLogos || this.brandIconsBound) return;
+            this.brandIconsBound = true;
+            for (var vendor in window.ocBrandLogos) {
+                var id = 'brand_' + vendor.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+                this.icons[id] = window.ocBrandLogos[vendor];
+                this.iconSet.push({ id: id, label: vendor });
+            }
+        },
+
+        setActive: function(on) {
+            this.active = on;
+            if (on) this.ensureOui();
+            this.syncTimers();
+        },
+
+        syncTimers: function() {
+            var run = this.active && document.visibilityState === 'visible';
+            if (this.running === run) return;
+            this.running = run;
+            this.stopTimers();
+            if (!run) return;
+            var self = this;
+            this.statsIdle = 0;
+            this.refreshEnv();
+            this.refreshStats();
+            this.envTimer = setInterval(function() { self.refreshEnv(); }, 15000);
+        },
+
+        stopTimers: function() {
+            if (this.envTimer) { clearInterval(this.envTimer); this.envTimer = null; }
+            if (this.statsTimer) { clearInterval(this.statsTimer); this.statsTimer = null; }
+            if (this.envRetryTimer) { clearTimeout(this.envRetryTimer); this.envRetryTimer = null; }
+            if (this.probeTimer) { clearTimeout(this.probeTimer); this.probeTimer = null; }
+            if (this.statsAbort) { this.statsAbort.abort(); this.statsAbort = null; }
+            this.prevFlows = null;
+            this.statsTs = 0;
+        },
+
+        scheduleStats: function(delay) {
+            var self = this;
+            if (this.statsTimer) { clearInterval(this.statsTimer); this.statsTimer = null; }
+            if (!this.running) return;
+            this.statsTimer = setTimeout(function() { self.refreshStats(); }, delay);
+        },
+
+        kickStats: function() {
+            this.statsIdle = 0;
+            this.scheduleStats(2000);
+        },
+
+        refreshEnv: function(cb) {
+            var self = this;
+            XHR.get(this.endpoints.ac, null, function(x, data) {
+                var ok = !!(x && x.status == 200 && data && data.ok);
+                if (ok) {
+                    self.envFails = 0;
+                    if (self.envRetryTimer) { clearTimeout(self.envRetryTimer); self.envRetryTimer = null; }
+                    self.env = data;
+                    self.rebuildDevices(data.devices || []);
+                    self.applyEnvUI();
+                    if (!self.busy) self.renderList();
+                    if (data.probing) {
+                        // the ping batch writes the neighbour state back within a couple of seconds
+                        if (self.probeTimer) clearTimeout(self.probeTimer);
+                        self.probeTimer = setTimeout(function() { self.probeTimer = null; self.refreshEnv(); }, 3000);
+                    }
+                } else if (self.running) {
+                    // a failed poll retries sooner than the regular 15 s tick
+                    self.envFails = (self.envFails || 0) + 1;
+                    if (self.envRetryTimer) clearTimeout(self.envRetryTimer);
+                    self.envRetryTimer = setTimeout(function() { self.refreshEnv(); }, Math.min(3000 * self.envFails, 12000));
+                }
+                if (cb) cb(ok);
+            });
+        },
+
+        refreshStats: function() {
+            if (!this.running) return;
+            if (document.visibilityState === 'hidden') return;
+            var self = this;
+            var finish = function() {
+                self.scheduleStats(self.statsIdle >= 5 ? 5000 : 2000);
+            };
+            if (window.fetch && window.ReadableStream && window.TextDecoder && window.AbortController) {
+                if (this.statsAbort) this.statsAbort.abort();
+                var ctl = new AbortController();
+                this.statsAbort = ctl;
+                // lines are consumed while they arrive, so the parse overlaps the transfer
+                fetch(this.endpoints.stats, { cache: 'no-store', signal: ctl.signal }).then(function(res) {
+                    if (!res.ok || !res.body) throw new Error('http ' + res.status);
+                    var reader = res.body.getReader();
+                    var dec = new TextDecoder('utf-8');
+                    var pend = '';
+                    var started = false;
+                    var onLine = function(line) {
+                        if (!started) {
+                            started = true;
+                            self.statsBegin(line === '#acct=1');
+                        } else if (line) {
+                            self.statsLine(line);
+                        }
+                    };
+                    var pump = function() {
+                        return reader.read().then(function(step) {
+                            if (ctl !== self.statsAbort) return;
+                            if (step.done) {
+                                pend += dec.decode();
+                                if (pend) onLine(pend);
+                                self.statsEnd();
+                                self.statsAbort = null;
+                                finish();
+                                return;
+                            }
+                            pend += dec.decode(step.value, { stream: true });
+                            var lines = pend.split('\n');
+                            pend = lines.pop();
+                            for (var i = 0; i < lines.length; i++) onLine(lines[i]);
+                            return pump();
+                        });
+                    };
+                    return pump();
+                }).catch(function() {
+                    if (ctl === self.statsAbort) { self.statsAbort = null; finish(); }
+                });
+                return;
+            }
+            var req = new XMLHttpRequest();
+            req.open('GET', this.endpoints.stats, true);
+            req.onload = function() {
+                if (req.status != 200) {
+                    self.scheduleStats(2000);
+                    return;
+                }
+                self.consumeConntrack(req.responseText || '');
+                self.scheduleStats(self.statsIdle >= 5 ? 5000 : 2000);
+            };
+            req.onerror = function() { self.scheduleStats(2000); };
+            req.send();
+        },
+
+        // the router only dumps raw conntrack lines; flow diffing and per-device aggregation
+        // run here so the weak router CPU stays out of the 2 s hot path
+        consumeConntrack: function(text) {
+            var lines = text.split('\n');
+            this.statsBegin(lines[0] === '#acct=1');
+            for (var i = 1; i < lines.length; i++) {
+                if (lines[i]) this.statsLine(lines[i]);
+            }
+            this.statsEnd();
+        },
+
+        statsBegin: function(acct) {
+            this.statsCur = acct ? {} : null;
+            this.statsUnknown = false;
+        },
+
+        statsLine: function(line) {
+            var cur = this.statsCur;
+            if (!cur) return;
+            var pos = line.indexOf('src=');
+            if (pos < 0) return;
+            var m = line.slice(pos).match(/^src=(\S+) dst=(\S+) sport=(\d+) dport=(\d+).*?bytes=(\d+).*?bytes=(\d+)/);
+            if (!m) return;
+            var src = m[1];
+            var key;
+            if (src.indexOf(':') >= 0) {
+                key = this.v6map[this.v6Canon(src)];
+            } else {
+                key = this.ipmap[src];
+                if (!key && this.lanPrefixes[src.replace(/\.\d+$/, '.')]) this.statsUnknown = true;
+            }
+            if (!key) return;
+            cur[src + '|' + m[2] + '|' + m[3] + '|' + m[4]] = [+m[5], +m[6], key];
+        },
+
+        statsEnd: function() {
+            var cur = this.statsCur;
+            var unknown = this.statsUnknown;
+            this.statsCur = null;
+            var now = Date.now();
+            var up = {}, down = {}, counts = {};
+            if (cur) {
+                var prev = this.prevFlows;
+                for (var fk in cur) {
+                    var f = cur[fk];
+                    var k2 = f[2];
+                    var du = 0, dd = 0;
+                    if (prev && prev[fk]) {
+                        du = f[0] - prev[fk][0];
+                        dd = f[1] - prev[fk][1];
+                        if (du < 0) du = 0;
+                        if (dd < 0) dd = 0;
+                    }
+                    up[k2] = (up[k2] || 0) + du;
+                    down[k2] = (down[k2] || 0) + dd;
+                    counts[k2] = (counts[k2] || 0) + 1;
+                }
+            }
+            this.prevFlows = cur;
+            var dt = (now - this.statsTs) / 1000;
+            var rateDt = (dt >= 1 && dt <= 15) ? dt : 0;
+            this.statsTs = now;
+            var stats = {};
+            for (var key2 in counts) {
+                stats[key2] = {
+                    ur: rateDt ? Math.floor(up[key2] / rateDt) : 0,
+                    dr: rateDt ? Math.floor(down[key2] / rateDt) : 0,
+                    c: counts[key2]
+                };
+            }
+            this.stats = stats;
+            var decaying = false;
+            for (var i2 = 0; i2 < this.devices.length; i2++) {
+                var d = this.devices[i2];
+                var st = this.statOf(d);
+                var tot = st ? (st.ur || 0) + (st.dr || 0) : 0;
+                if (d.ema === undefined) d.ema = tot;
+                else if (tot > 0) d.ema = Math.round(d.ema * 0.65 + tot * 0.35);
+                else d.ema = Math.round(d.ema * 0.5);
+                if (d.ema < 1024) d.ema = 0;
+                else if (tot === 0) decaying = true;
+                if (!st) continue;
+                var h = this.hist[d.key];
+                if (!h) continue;
+                h.up.push(st.ur);
+                h.down.push(st.dr);
+                if (h.up.length > 20) h.up.shift();
+                if (h.down.length > 20) h.down.shift();
+            }
+            var sig = 0, k3;
+            for (k3 in stats) sig += stats[k3].ur + stats[k3].dr + stats[k3].c * 7;
+            if (sig === this.lastSig && !decaying) this.statsIdle++;
+            else { this.statsIdle = 0; this.lastSig = sig; }
+            if (unknown && now - this.lastUnknownRefresh > 10000) {
+                this.lastUnknownRefresh = now;
+                this.refreshEnv();
+            }
+            if (!this.busy) this.renderList();
+        },
+
+        rebuildDevices: function(list) {
+            this.raw = list || [];
+            var prev = {};
+            for (var i = 0; i < this.devices.length; i++) {
+                prev[this.devices[i].key] = this.devices[i];
+            }
+            var out = [];
+            for (var j = 0; j < list.length; j++) {
+                var s = list[j];
+                var key = s.mac || s.ip || ('idx' + j);
+                var d = prev[key] || { key: key };
+                d.mac = s.mac || '';
+                d.ip = s.ip || '';
+                d.ip6 = s.ip6 || '';
+                d.hostname = s.hostname || '';
+                d.name = s.name || '';
+                d.icon = s.icon || '';
+                d.online = !!s.online;
+                d.dir = s.dir === 'direct' ? 'direct' : 'proxy';
+                d.listed = !!s.listed;
+                var oui = this.ouiFind(d.mac);
+                d.vendor = oui ? oui.vendor : '';
+                d.ouiType = oui ? oui.type : '';
+                d.autoType = this.classify(d);
+                if (!this.hist[key]) this.hist[key] = { up: [], down: [] };
+                out.push(d);
+            }
+            this.devices = out;
+            this.rebuildStatMaps();
+        },
+
+        rebuildStatMaps: function() {
+            var ipmap = {}, v6map = {}, lan = {};
+            for (var i = 0; i < this.devices.length; i++) {
+                var d = this.devices[i];
+                if (d.ip) {
+                    ipmap[d.ip] = d.key;
+                    lan[d.ip.replace(/\.\d+$/, '.')] = true;
+                }
+                if (d.ip6) v6map[this.v6Canon(d.ip6)] = d.key;
+            }
+            this.ipmap = ipmap;
+            this.v6map = v6map;
+            this.lanPrefixes = lan;
+        },
+
+        v6Canon: function(addr) {
+            addr = String(addr || '').replace(/%.*$/, '');
+            var groups;
+            var idx = addr.indexOf('::');
+            if (idx >= 0) {
+                var left = addr.slice(0, idx), right = addr.slice(idx + 2);
+                var lh = left ? left.split(':') : [];
+                var rh = right ? right.split(':') : [];
+                groups = lh.slice();
+                for (var z = 8 - lh.length - rh.length; z > 0; z--) groups.push('0');
+                groups = groups.concat(rh);
+            } else {
+                groups = addr.split(':');
+            }
+            var out = [];
+            for (var i = 0; i < 8; i++) out.push(('0000' + (parseInt(groups[i], 16) || 0).toString(16)).slice(-4));
+            return out.join(':');
+        },
+
+        classify: function(d) {
+            var host = d.hostname || '';
+            for (var i = 0; i < this.nameRules.length; i++) {
+                if (this.nameRules[i][0].test(host)) return this.nameRules[i][1];
+            }
+            return d.ouiType || 'unknown';
+        },
+
+        displayName: function(d) {
+            return d.name || d.hostname || d.ip || d.ip6 || d.mac || '<%:Unknown Device%>';
+        },
+
+        deviceIcon: function(d) {
+            return this.icons[d.icon || d.autoType] || this.icons.unknown;
+        },
+
+        deviceByKey: function(key) {
+            for (var i = 0; i < this.devices.length; i++) {
+                if (this.devices[i].key === key) return this.devices[i];
+            }
+            return null;
+        },
+
+        canControl: function() {
+            if (!this.env || this.env.need_fix) {
+                ocToast('<%:Switch DNS forwarding first%>', 'info');
+                return false;
+            }
+            return true;
+        },
+
+        acErrorToast: function(x, data) {
+            if (data && data.need_fix) {
+                ocToast('<%:Switch DNS forwarding first%>', 'info');
+                this.refreshEnv();
+            } else if (data && data.err === 'range_covered') {
+                ocToast('<%:Device is covered by a range entry; adjust it on the settings page%>', 'info');
+                this.refreshEnv();
+            } else {
+                ocToast('<%:Operation failed%>', 'error');
+            }
+        },
+
+        rescan: function(btn) {
+            var self = this;
+            if (btn) btn.classList.add('ac-working');
+            this.kickStats();
+            this.refreshEnv(function(ok) {
+                if (btn) btn.classList.remove('ac-working');
+                if (ok) ocToast('<%:Rescanned%>', 'success');
+                else ocToast('<%:Rescan failed%>', 'error');
+            });
+        },
+
+        lockSwitches: function() {
+            var listEl = document.getElementById('ac-list');
+            if (!listEl) return;
+            // direct DOM edits bypass the render cache, so the next render must rewrite
+            this.lastHtml = null;
+            var sws = listEl.querySelectorAll('.ac-switch');
+            for (var i = 0; i < sws.length; i++) {
+                sws[i].classList.add('ac-disabled');
+                var btns = sws[i].querySelectorAll('button');
+                for (var j = 0; j < btns.length; j++) btns[j].disabled = true;
+            }
+        },
+
+        setDevice: function(key, dir) {
+            if (!this.canControl()) return;
+            var d = this.deviceByKey(key);
+            if (!d || d.dir === dir) return;
+            var self = this;
+            this.busy++;
+            this.kickStats();
+            this.lastHtml = null;
+            var listEl = document.getElementById('ac-list');
+            var row = listEl ? listEl.querySelector('[data-dev="' + key + '"]') : null;
+            if (row) {
+                var sw = row.querySelector('.ac-switch');
+                if (sw) sw.classList.add('ac-disabled');
+                var btns = row.querySelectorAll('.ac-switch button');
+                for (var i = 0; i < btns.length; i++) {
+                    btns[i].disabled = true;
+                }
+            }
+            XHR.get(this.endpoints.set, { action: dir, scope: 'item', ip: d.ip || '', mac: d.mac || '' }, function(x, data) {
+                self.busy--;
+                if (x && x.status == 200 && data && data.ok) {
+                    d.dir = dir;
+                    ocToast(!data.core_running ? '<%:Saved; applies at the next start%>'
+                        : (dir === 'direct' ? '<%:Set as Direct%>' : '<%:Set as Proxy%>'), 'success');
+                } else {
+                    self.acErrorToast(x, data);
+                }
+                self.renderList();
+                setTimeout(function() { self.refreshEnv(); }, 800);
+            });
+        },
+
+        setAll: function(dir) {
+            if (!this.canControl()) return;
+            var self = this;
+            var btn = document.getElementById(dir === 'proxy' ? 'ac-all-proxy' : 'ac-all-direct');
+            var other = document.getElementById(dir === 'proxy' ? 'ac-all-direct' : 'ac-all-proxy');
+            this.busy++;
+            this.kickStats();
+            if (btn) { btn.classList.add('ac-working'); btn.disabled = true; }
+            if (other) other.disabled = true;
+            this.lockSwitches();
+            XHR.get(this.endpoints.set, { action: dir, scope: 'all' }, function(x, data) {
+                self.busy--;
+                if (btn) { btn.classList.remove('ac-working'); }
+                if (x && x.status == 200 && data && data.ok) {
+                    for (var i = 0; i < self.devices.length; i++) self.devices[i].dir = dir;
+                    if (self.env) {
+                        self.env.default_dir = dir;
+                        self.env.ac_mode = dir === 'proxy' ? 0 : 1;
+                    }
+                    ocToast(!data.core_running ? '<%:Saved; applies at the next start%>'
+                        : (dir === 'proxy' ? '<%:All set to Proxy%>' : '<%:All set to Direct%>'), 'success');
+                } else {
+                    self.acErrorToast(x, data);
+                }
+                self.renderList();
+                setTimeout(function() { self.refreshEnv(); }, 800);
+            });
+        },
+
+        switchDns: function() {
+            var self = this;
+            var btn = document.getElementById('ac-warn-fix-btn');
+            if (!btn || btn.classList.contains('ac-working')) return;
+            this.busy++;
+            btn.classList.add('ac-working');
+            XHR.get(this.endpoints.dns, null, function(x, data) {
+                btn.classList.remove('ac-working');
+                if (!(x && x.status == 200 && data && (data.ok || data.already))) {
+                    self.busy--;
+                    self.acErrorToast(x, data);
+                    return;
+                }
+                self.refreshEnv(function() {
+                    self.busy--;
+                    var fixed = self.env && !self.env.need_fix;
+                    ocToast(fixed ? '<%:DNS forwarding switched%>' : '<%:Operation timeout%>', fixed ? 'success' : 'error');
+                    self.renderList();
+                });
+            });
+        },
+
+        applyEnvUI: function() {
+            var env = this.env;
+            if (!env) return;
+            var fixEl = document.getElementById('ac-warn-fix');
+            if (fixEl) fixEl.classList.toggle('oc-hidden', !env.need_fix);
+        },
+
+        syncCounts: function() {
+            var proxy = 0, direct = 0;
+            for (var i = 0; i < this.devices.length; i++) {
+                if (this.devices[i].dir === 'proxy') proxy++;
+                else direct++;
+            }
+            var allEl = document.getElementById('ac-count-all');
+            var proxyEl = document.getElementById('ac-count-proxy');
+            var directEl = document.getElementById('ac-count-direct');
+            if (allEl) allEl.textContent = this.devices.length;
+            if (proxyEl) proxyEl.textContent = proxy;
+            if (directEl) directEl.textContent = direct;
+
+            var env = this.env || {};
+            var defaultDir = env.default_dir === 'direct' ? 'direct' : 'proxy';
+            var pill = document.getElementById('ac-def-pill');
+            if (pill) pill.textContent = '<%:Default%> ' + (defaultDir === 'proxy' ? '<%:Proxy%>' : '<%:Direct%>');
+
+            var locked = !!env.need_fix;
+            var allProxy = this.devices.length > 0 && direct === 0 && defaultDir === 'proxy';
+            var allDirect = this.devices.length > 0 && proxy === 0 && defaultDir === 'direct';
+            var btnProxy = document.getElementById('ac-all-proxy');
+            var btnDirect = document.getElementById('ac-all-direct');
+            if (btnProxy) {
+                btnProxy.disabled = locked || this.devices.length === 0 || allProxy;
+                btnProxy.title = defaultDir === 'proxy' ? '<%:Current default is proxy mode%>' : '<%:All devices default to proxy%>';
+            }
+            if (btnDirect) {
+                btnDirect.disabled = locked || this.devices.length === 0 || allDirect;
+                btnDirect.title = defaultDir === 'direct' ? '<%:Current default is direct mode%>' : '<%:All devices default to direct%>';
+            }
+        },
+
+        sortDevices: function() {
+            var arr = this.devices.slice();
+            var key = this.sortKey, dir = this.sortDir;
+            var q = this.query;
+            if (q) {
+                arr = arr.filter(function(d) {
+                    return (d.name || '').toLowerCase().indexOf(q) >= 0
+                        || (d.hostname || '').toLowerCase().indexOf(q) >= 0
+                        || (d.vendor || '').toLowerCase().indexOf(q) >= 0
+                        || (d.ip || '').indexOf(q) >= 0
+                        || (d.ip6 || '').indexOf(q) >= 0
+                        || (d.mac || '').indexOf(q) >= 0;
+                });
+            }
+            var self = this;
+            if (!key || !dir) {
+                arr.sort(function(a, b) {
+                    if (a.online !== b.online) return a.online ? -1 : 1;
+                    var ea = a.ema || 0, eb = b.ema || 0;
+                    if (eb !== ea) return eb - ea;
+                    var ra = self.rateOf(a), rb = self.rateOf(b);
+                    if (rb !== ra) return rb - ra;
+                    return self.displayName(a).localeCompare(self.displayName(b));
+                });
+                return arr;
+            }
+            arr.sort(function(a, b) {
+                if (key === 'name' || key === 'dir') {
+                    var sa = key === 'name' ? self.displayName(a) : a.dir;
+                    var sb = key === 'name' ? self.displayName(b) : b.dir;
+                    return sa.localeCompare(sb) * dir;
+                }
+                var va, vb;
+                if (key === 'conns') { va = self.connsOf(a); vb = self.connsOf(b); }
+                else if (key === 'up') { va = self.rateOf(a, 'up'); vb = self.rateOf(b, 'up'); }
+                else { va = self.rateOf(a, 'down'); vb = self.rateOf(b, 'down'); }
+                if (va === vb) return self.displayName(a).localeCompare(self.displayName(b));
+                return (va - vb) * dir;
+            });
+            return arr;
+        },
+
+        statOf: function(d) {
+            if (!d.online) return null;
+            var k = d.mac || d.ip;
+            if (!k) return null;
+            return this.stats[k] || (d.ip ? this.stats[d.ip] : null) || null;
+        },
+
+        rateOf: function(d, kind) {
+            var st = this.statOf(d);
+            if (!st) return 0;
+            if (kind === 'up') return st.ur || 0;
+            if (kind === 'down') return st.dr || 0;
+            return (st.ur || 0) + (st.dr || 0);
+        },
+
+        connsOf: function(d) {
+            var st = this.statOf(d);
+            return st ? (st.c || 0) : 0;
+        },
+
+        sparkSVG: function(buf) {
+            var W = 104, H = 12, N = 20;
+            if (!buf || buf.length < 2) return '';
+            var max = 1;
+            for (var i = 0; i < buf.length; i++) max = Math.max(max, buf[i] || 0);
+            var pts = [];
+            for (var j = 0; j < buf.length; j++) {
+                var x = (j * (W - 2) / (N - 1) + 1).toFixed(1);
+                var y = (H - 2 - (buf[j] || 0) / max * (H - 4)).toFixed(1);
+                pts.push(x + ',' + y);
+            }
+            return '<svg class="ac-spark" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true"><polyline points="' + pts.join(' ') + '" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        },
+
+        rowHTML: function(d) {
+            var st = this.statOf(d);
+            var conns = st ? (st.c || 0) : 0;
+            var up = st ? (st.ur || 0) : 0;
+            var down = st ? (st.dr || 0) : 0;
+            var hasTraffic = d.online && conns > 0;
+            var cls = 'ac-row' + (d.online ? ' ac-live' : ' ac-offline');
+            var env = this.env || {};
+            var locked = !!env.need_fix;
+            var ctlTitle = env.need_fix ? '<%:Switch DNS forwarding first%>' : '';
+
+            var name = this.displayName(d);
+            var ipLine = [d.ip, d.ip6].filter(Boolean).join(' · ');
+            var h = this.hist[d.key] || { up: [], down: [] };
+            var tipParts = [name];
+            if (d.vendor) tipParts.push(d.vendor);
+            if (d.ip) tipParts.push(d.ip);
+            if (d.ip6) tipParts.push(d.ip6);
+            if (d.mac) tipParts.push(d.mac);
+
+            var out = '<div class="' + cls + '" data-dev="' + acEscape(d.key) + '" title="' + acEscape(tipParts.join('\n')) + '">';
+            out += '<div class="ac-dev">';
+            var brandLogo = '', brandVendor = d.vendor;
+            if (!d.icon) {
+                brandLogo = (window.ocBrandLogos && window.ocBrandLogos[d.vendor]) || '';
+            } else if (d.icon.indexOf('brand_') === 0) {
+                brandLogo = this.icons[d.icon] || '';
+                brandVendor = acVendorOfBrandId(d.icon) || d.vendor;
+            }
+            var brandWordmark = brandLogo && window.ocBrandWordmark && window.ocBrandWordmark[brandVendor];
+            var brandVar = brandWordmark ? ' style="--wm:' + acWordmarkSize(brandVendor, AC_LOGO_BOX, AC_LOGO_INK, AC_INK_BOOST) + 'px"' : '';
+            var avatarInner;
+            if (brandLogo) {
+                avatarInner = '<svg class="ac-brand-logo' + (brandWordmark ? ' wordmark' : '') + '"' + brandVar + '><use href="#' + brandLogo + '"/></svg>';
+            } else if (d.vendor && !d.icon && (!d.autoType || d.autoType === 'unknown')) {
+                // known vendor without a legible mark keeps an identity without a coloured tile
+                avatarInner = '<span class="ac-brand-mark">' + acEscape(d.vendor.charAt(0).toUpperCase()) + '</span>';
+            } else {
+                avatarInner = '<svg><use href="#' + this.deviceIcon(d) + '"/></svg>';
+            }
+            out += '<span class="ac-avatar' + (brandWordmark ? ' wordmark' : '') + '">' + avatarInner + '<span class="ac-status"></span></span>';
+            out += '<div class="ac-id"><span class="ac-name" title="<%:Click to set name and icon%>"><span class="ac-name-text">' + acEscape(name) + '</span>';
+            if (!d.online) out += '<span class="ac-off-tag"><%:Offline%></span>';
+            if (d.vendor) out += '<span class="ac-vendor"><span class="ac-vendor-name">' + acEscape(d.vendor) + '</span></span>';
+            out += '<svg class="ac-name-edit" width="13" height="13"><use href="#oc-icon-edit"/></svg>';
+            out += '</span>'
+                + '<span class="ac-addr">' + (ipLine ? acEscape(ipLine) : '—') + '</span>'
+                + '<span class="ac-addr ac-mac">' + (d.mac ? acEscape(d.mac) : '—') + '</span>'
+                + '</div>';
+            out += '</div>';
+            out += '<div class="ac-ctrl"><span class="ac-switch' + (locked ? ' ac-disabled' : '') + '" role="group"' + (ctlTitle ? ' title="' + ctlTitle + '"' : '') + '>';
+            out += '<button type="button" class="' + (d.dir === 'proxy' ? 'on ac-on-proxy' : '') + '" data-dir="proxy"' + (locked ? ' disabled' : '') + ' aria-pressed="' + (d.dir === 'proxy') + '"><%:Proxy%></button>';
+            out += '<button type="button" class="' + (d.dir === 'direct' ? 'on ac-on-direct' : '') + '" data-dir="direct"' + (locked ? ' disabled' : '') + ' aria-pressed="' + (d.dir === 'direct') + '"><%:Direct%></button>';
+            out += '</span></div>';
+            out += '<div class="ac-metrics">';
+            out += '<div class="ac-conns' + (hasTraffic ? '' : ' ac-zero') + '">' + (d.online ? conns : '—') + '<span class="ac-conns-label"><%:Connect%></span></div>';
+            out += '<div class="ac-rc ac-up' + (d.online ? (Math.round(up) > 0 ? '' : ' ac-idle-val') : ' ac-off') + '">';
+            out += '<span class="ac-rate-v">' + (d.online ? acEscape(acFmtRate(up)) : '—') + '</span>';
+            if (d.online) out += this.sparkSVG(h.up);
+            out += '</div>';
+            out += '<div class="ac-rc ac-down' + (d.online ? (Math.round(down) > 0 ? '' : ' ac-idle-val') : ' ac-off') + '">';
+            out += '<span class="ac-rate-v">' + (d.online ? acEscape(acFmtRate(down)) : '—') + '</span>';
+            if (d.online) out += this.sparkSVG(h.down);
+            out += '</div>';
+            out += '</div>';
+            out += '</div>';
+            return out;
+        },
+
+        renderList: function() {
+            var listEl = document.getElementById('ac-list');
+            var emptyEl = document.getElementById('ac-empty');
+            if (!listEl || !emptyEl) return;
+            var arr = this.sortDevices();
+            var hasDevices = arr.length > 0;
+            emptyEl.classList.toggle('oc-hidden', hasDevices);
+            listEl.classList.toggle('oc-hidden', !hasDevices);
+            var thEl = document.querySelector('#stats-view-ac .ac-th');
+            if (thEl) thEl.classList.toggle('oc-hidden', !hasDevices);
+            var filtered = !!this.query && this.devices.length > 0;
+            var mainEl = document.getElementById('ac-empty-main');
+            if (mainEl) {
+                mainEl.textContent = filtered ? '<%:No matching devices%>' : '<%:No LAN devices found%>';
+                var subEl = document.getElementById('ac-empty-sub');
+                if (subEl) subEl.classList.toggle('oc-hidden', filtered);
+                var rfEl = document.getElementById('ac-empty-refresh');
+                if (rfEl) rfEl.classList.toggle('oc-hidden', filtered);
+            }
+            if (!hasDevices) {
+                if (this.lastHtml !== '') {
+                    this.lastHtml = '';
+                    listEl.innerHTML = '';
+                }
+                this.syncCounts();
+                return;
+            }
+            var st = listEl.scrollTop;
+            var html = '';
+            for (var i = 0; i < arr.length; i++) html += this.rowHTML(arr[i]);
+            if (html === this.lastHtml) {
+                this.syncCounts();
+                return;
+            }
+            this.lastHtml = html;
+            listEl.innerHTML = html;
+            listEl.scrollTop = st;
+            // the list scrollbar shrinks the rows but not the header; pad the header to match
+            var sbw = listEl.offsetWidth - listEl.clientWidth;
+            if (thEl) thEl.style.paddingRight = (8 + (sbw > 0 ? sbw : 0)) + 'px';
+            this.syncCounts();
+        },
+
+        syncSortUI: function() {
+            var self = this;
+            var ths = document.querySelectorAll('#stats-view-ac .ac-th-cell');
+            for (var i = 0; i < ths.length; i++) {
+                var key = ths[i].getAttribute('data-key');
+                var ind = ths[i].querySelector('.ac-sort-ind');
+                if (ind) ind.textContent = (key === self.sortKey && self.sortDir !== 0) ? (self.sortDir === 1 ? '▲' : '▼') : '';
+            }
+            var items = document.querySelectorAll('#ac-sort-menu button');
+            for (var j = 0; j < items.length; j++) {
+                var k2 = items[j].getAttribute('data-key');
+                var ind2 = items[j].querySelector('.ac-sort-ind');
+                var on = (k2 === self.sortKey && self.sortDir !== 0);
+                if (ind2) ind2.textContent = on ? (self.sortDir === 1 ? '▲' : '▼') : '';
+                items[j].classList.toggle('on', on);
+            }
+            var sortBtn = document.getElementById('ac-sort-btn');
+            if (sortBtn) {
+                var onBtn = !!self.sortKey && self.sortDir !== 0;
+                sortBtn.classList.toggle('on', onBtn);
+                var btnInd = sortBtn.querySelector('.ac-sort-ind');
+                if (btnInd) btnInd.textContent = onBtn ? (self.sortDir === 1 ? '▲' : '▼') : '';
+            }
+        },
+
+        cycleSort: function(key) {
+            if (key === 'reset') {
+                this.sortKey = null;
+                this.sortDir = 0;
+            } else if (key === this.sortKey) {
+                // cycle the natural direction, its reverse, then the default order
+                if (key === 'name' || key === 'dir') {
+                    this.sortDir = this.sortDir === 1 ? -1 : (this.sortDir === -1 ? 0 : 1);
+                } else {
+                    this.sortDir = this.sortDir === -1 ? 1 : (this.sortDir === 1 ? 0 : -1);
+                }
+            } else {
+                this.sortKey = key;
+                this.sortDir = (key === 'name' || key === 'dir') ? 1 : -1;
+            }
+            this.syncSortUI();
+            this.renderList();
+        },
+
+        openRename: function(d) {
+            if (!d) return;
+            this.renaming = d;
+            this.iconPick = d.icon || null;
+            var input = document.getElementById('ac-rename-input');
+            var hint = document.getElementById('ac-rename-hint');
+            var auto = document.getElementById('ac-rename-auto');
+            var overlay = document.getElementById('ac-rename-overlay');
+            if (!input || !overlay) return;
+            input.value = d.name || '';
+            if (hint) hint.textContent = d.hostname ? ('<%:Detected name%>: ' + d.hostname) : '<%:No hostname detected; you can set a custom name%>';
+            if (auto) auto.classList.toggle('oc-hidden', !d.name && !d.icon);
+            this.renderIconGrid();
+            overlay.classList.add('show');
+            setTimeout(function() { input.focus(); }, 60);
+        },
+
+        closeRename: function() {
+            var overlay = document.getElementById('ac-rename-overlay');
+            if (overlay) overlay.classList.remove('show');
+            this.renaming = null;
+            this.iconPick = null;
+        },
+
+        defaultIconOf: function(d) {
+            if (!d) return 'unknown';
+            if (window.ocBrandLogos && window.ocBrandLogos[d.vendor]) {
+                return 'brand_' + d.vendor.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+            }
+            return d.autoType || 'unknown';
+        },
+
+        renderIconGrid: function() {
+            var grid = document.getElementById('ac-icon-grid');
+            if (!grid) return;
+            var cur = this.iconPick || (this.renaming ? this.defaultIconOf(this.renaming) : 'unknown');
+            var html = '';
+            for (var i = 0; i < this.iconSet.length; i++) {
+                var it = this.iconSet[i];
+                var brandCls = '', brandVar = '';
+                if (it.id.indexOf('brand_') === 0) {
+                    brandCls = ' class="brand' + (window.ocBrandWordmark && window.ocBrandWordmark[it.label] ? ' wordmark' : '') + '"';
+                    if (window.ocBrandWordmark && window.ocBrandWordmark[it.label]) brandVar = ' style="--wm:' + acWordmarkSize(it.label, AC_PICK_BOX, AC_PICK_INK) + 'px"';
+                }
+                html += '<button type="button" class="ac-icon-opt' + (it.id === cur ? ' on' : '') + '" data-icon="' + it.id + '" title="' + it.label + '"><svg' + brandCls + brandVar + '><use href="#' + (this.icons[it.id] || this.icons.unknown) + '"/></svg></button>';
+            }
+            grid.innerHTML = html;
+        },
+
+        saveRename: function() {
+            var d = this.renaming;
+            if (!d) return;
+            var self = this;
+            var input = document.getElementById('ac-rename-input');
+            var name = input ? input.value.trim() : '';
+            var icon = this.iconPick || '';
+            XHR.get(this.endpoints.meta, { mac: d.mac || '', name: name, icon: icon }, function(x, data) {
+                if (x && x.status == 200 && data && data.ok) {
+                    d.name = name;
+                    d.icon = icon;
+                    self.closeRename();
+                    ocToast('<%:Saved%>', 'success');
+                    self.renderList();
+                } else {
+                    self.acErrorToast(x, data);
+                }
+            });
+        },
+
+        restoreAuto: function() {
+            var d = this.renaming;
+            if (!d) return;
+            var self = this;
+            XHR.get(this.endpoints.meta, { mac: d.mac || '', name: '', icon: '' }, function(x, data) {
+                if (x && x.status == 200 && data && data.ok) {
+                    d.name = '';
+                    d.icon = '';
+                    self.closeRename();
+                    ocToast('<%:Auto detect restored%>', 'success');
+                    self.renderList();
+                } else {
+                    self.acErrorToast(x, data);
+                }
+            });
+        },
+
+        bind: function() {
+            if (this.bound) return;
+            this.bound = true;
+            var self = this;
+
+            var listEl = document.getElementById('ac-list');
+            if (listEl) {
+                listEl.addEventListener('click', function(e) {
+                    var t = e.target;
+                    var nameEl = t.closest ? t.closest('.ac-name') : null;
+                    if (nameEl) {
+                        var row = nameEl.closest('.ac-row');
+                        if (row) self.openRename(self.deviceByKey(row.getAttribute('data-dev')));
+                        return;
+                    }
+                    var dirBtn = t.closest ? t.closest('.ac-switch button') : null;
+                    if (dirBtn) {
+                        var row2 = dirBtn.closest('.ac-row');
+                        if (row2) self.setDevice(row2.getAttribute('data-dev'), dirBtn.getAttribute('data-dir'));
+                    }
+                });
+            }
+
+            var bindBtn = function(id, handler) {
+                var el = document.getElementById(id);
+                if (el) el.addEventListener('click', handler);
+            };
+            bindBtn('ac-all-proxy', function() { self.setAll('proxy'); });
+            bindBtn('ac-all-direct', function() { self.setAll('direct'); });
+            bindBtn('ac-refresh', function() { self.rescan(document.getElementById('ac-refresh')); });
+            bindBtn('ac-empty-refresh', function() { self.rescan(document.getElementById('ac-empty-refresh')); });
+
+            var searchEl = document.getElementById('ac-search');
+            var clearEl = document.getElementById('ac-search-clear');
+            var applyQuery = function(value) {
+                var q = String(value || '').trim().toLowerCase();
+                if (q === self.query) return;
+                self.query = q;
+                self.lastHtml = null;
+                if (clearEl) clearEl.classList.toggle('oc-hidden', !q);
+                self.renderList();
+            };
+            if (searchEl) {
+                var searchTimer = null;
+                searchEl.addEventListener('input', function() {
+                    if (searchTimer) clearTimeout(searchTimer);
+                    var val = this.value;
+                    searchTimer = setTimeout(function() { searchTimer = null; applyQuery(val); }, 120);
+                });
+                searchEl.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') { this.value = ''; applyQuery(''); }
+                });
+            }
+            if (clearEl) {
+                clearEl.addEventListener('click', function() {
+                    if (searchEl) { searchEl.value = ''; searchEl.focus(); }
+                    applyQuery('');
+                });
+            }
+            var searchBar = document.getElementById('ac-search-bar');
+            var searchBtn = document.getElementById('ac-search-btn');
+            var toggleSearch = function(show) {
+                if (!searchBar) return;
+                var open = (show === undefined) ? searchBar.classList.contains('oc-hidden') : !!show;
+                searchBar.classList.toggle('oc-hidden', !open);
+                if (searchBtn) searchBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                if (open) {
+                    if (searchEl) setTimeout(function() { searchEl.focus(); }, 30);
+                } else {
+                    if (searchEl) searchEl.value = '';
+                    applyQuery('');
+                }
+            };
+            if (searchBtn) searchBtn.addEventListener('click', function() { toggleSearch(); });
+            bindBtn('ac-warn-fix-btn', function() { self.switchDns(); });
+            document.addEventListener('visibilitychange', function() { self.syncTimers(); });
+
+            var sortBtn = document.getElementById('ac-sort-btn');
+            var sortMenu = document.getElementById('ac-sort-menu');
+            if (sortBtn && sortMenu) {
+                sortBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    self.syncSortUI();
+                    sortMenu.classList.toggle('oc-hidden');
+                });
+                sortMenu.addEventListener('click', function(e) {
+                    var item = e.target.closest('button');
+                    if (!item) return;
+                    self.cycleSort(item.getAttribute('data-key'));
+                    sortMenu.classList.add('oc-hidden');
+                });
+                document.addEventListener('click', function() {
+                    sortMenu.classList.add('oc-hidden');
+                });
+            }
+
+            var thCells = document.querySelectorAll('#stats-view-ac .ac-th-cell');
+            for (var i = 0; i < thCells.length; i++) {
+                thCells[i].addEventListener('click', function() {
+                    self.cycleSort(this.getAttribute('data-key'));
+                });
+            }
+
+            var grid = document.getElementById('ac-icon-grid');
+            if (grid) {
+                grid.addEventListener('click', function(e) {
+                    var opt = e.target.closest('.ac-icon-opt');
+                    if (!opt) return;
+                    self.iconPick = opt.getAttribute('data-icon');
+                    self.renderIconGrid();
+                });
+            }
+            bindBtn('ac-rename-close', function() { self.closeRename(); });
+            bindBtn('ac-rename-cancel', function() { self.closeRename(); });
+            bindBtn('ac-rename-save', function() { self.saveRename(); });
+            bindBtn('ac-rename-auto', function() { self.restoreAuto(); });
+            var overlay = document.getElementById('ac-rename-overlay');
+            if (overlay) {
+                overlay.addEventListener('click', function(e) {
+                    if (e.target === overlay) self.closeRename();
+                });
+            }
+        }
+    };
+
     StatsChart.init();
+
+    ClientsAC.init();
 
     var pluginToggleUserAction = false;
     var coreMissing = null;

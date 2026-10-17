@@ -97,9 +97,33 @@
 | **清空 DNS 缓存** | 刷新 Fake-IP 和 DNS 缓存 | POST `/cache/fakeip/flush` + `/cache/dns/flush` |
 | **检查更新 (Check Update)** | 检查并更新插件 + 内核（订阅靠「配置订阅」、GEO 靠 GEO 更新入口） | `openclash_update.sh 'one_key_update'` |
 
-### 7.10 统计信息
+### 7.10 统计信息 / 访问控制
 
-页面底部显示 8 项实时统计指标，通过 WebSocket 和 XHR 轮询更新。数据源为 `/toolbar_show`（返回原始数值，见 `15-api.md`）与各 WebSocket。统计卡片标题栏右侧提供 **卡片 / 图表** 视图切换按钮（`stats-view-toggle`），图表视图用 `chart.umd.min.js` 绘制实时曲线：
+底部数据区有三个视图，由标题栏右侧的三个图标切换（`stats-view-toggle`），**默认是访问控制**；区域标题随视图显示「访问控制」或「运行数据」：
+
+| 图标 | 视图 | 说明 |
+|------|------|------|
+| 用户 | 访问控制 | 列出局域网设备，逐台设置代理/直连（默认视图） |
+| 宫格 | 卡片 | 8 项实时统计指标 |
+| 曲线 | 图表 | 用 `chart.umd.min.js` 绘制单个指标的实时曲线 |
+
+**访问控制视图**（后端 `clients_ac` / `clients_stats` / `clients_set` / `clients_meta` / `clients_dns_switch`，见 `15-api.md` §15.1.1）：
+
+| 控件 | 作用 | 后端操作 |
+|------|------|----------|
+| 全部代理 / 全部直连 | 设置新设备的默认策略 | `lan_ac_mode` 置 0/1 并清空对应例外列表，随后重建防火墙规则 |
+| 重新扫描 | 重新读取邻居表与 DHCP 租约 | `clients_ac` |
+| 排序 | 按设备名 / 分流 / 连接数 / 上行 / 下行排序，或恢复默认顺序 | 前端本地排序 |
+| 设备行：代理 / 直连 | 把设备加入当前默认策略的例外列表（IP + MAC） | `clients_set` + `openclash_client_ac.sh` 热更新 ipset/nft 集合，不重建防火墙；仅对新连接生效 |
+| 设备行：连接 / 上传 / 下行 | 该设备的连接数与实时速率（内核 conntrack 记账，含直连流量） | `clients_stats` 输出 conntrack 原文，浏览器解析与聚合 |
+| 设备名（点击） | 自定义名称与图标 | `clients_meta`（保存到 `/etc/openclash/history/clients.json`） |
+| 离线标签 | 邻居表中无法确认的设备显示为离线 | 后台 ping 结果写回内核邻居表，随下一次轮询读取 |
+
+> 设备加入网络后自动出现；速率每 2 秒刷新，无流量时降为 5 秒。逐设备统计依赖 `nf_conntrack_acct=1`（`start_run_core()` 写入）。
+>
+> 内核未启动时上述分流仍可编辑：写入的是 `lan_ac_*` UCI 列表，下次启动由 `start_run_core()` 生成集合并生效。
+
+**卡片视图的 8 项指标**（通过 WebSocket 与 XHR 轮询更新，数据源见 `15-api.md` §15.1.1）：
 
 | 指标 | 说明 |
 |------|------|

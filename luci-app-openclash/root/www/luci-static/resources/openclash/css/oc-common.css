@@ -1248,7 +1248,7 @@ html[data-darkmode="true"] .oc svg {
     color: var(--text-secondary);
     font-size: 14px;
     font-weight: 500;
-    line-height: 1;
+    line-height: normal;
     cursor: pointer;
     transition: all var(--transition-fast);
 }
@@ -1273,7 +1273,7 @@ html[data-darkmode="true"] .oc svg {
 
 .oc .mode-tab span,
 .oc .add-row-btn span {
-    line-height: 1;
+    line-height: normal;
 }
 
 .oc .form-group {
@@ -2002,7 +2002,7 @@ ul {
     transition: all var(--transition-fast);
     white-space: nowrap;
     box-sizing: border-box;
-    line-height: 1;
+    line-height: normal;
 }
 
 .oc .footer-btn:hover:not(:disabled) {
@@ -2128,7 +2128,7 @@ ul {
     margin: 0 auto !important;
     /* fixed height: the UA only centres the label while the content box fits the line */
     height: 35px !important;
-    padding: 10px 14px;
+    padding: 0 14px;
     border: 1px solid var(--primary-color) !important;
     border-radius: var(--radius-sm);
     background: var(--primary-color) !important;
@@ -2139,7 +2139,7 @@ ul {
     transition: all var(--transition-fast);
     white-space: nowrap;
     box-sizing: border-box;
-    line-height: 1;
+    line-height: normal;
 }
 
 .oc.cbi-button.cbi-button:hover:not(:disabled) {
@@ -2156,11 +2156,11 @@ ul {
 }
 
 @media (max-width: 768px) {
-    .oc.cbi-button.cbi-button { font-size: 12px; padding: 6px 10px; height: 32px !important; }
+    .oc.cbi-button.cbi-button { font-size: 12px; padding: 0 10px; height: 32px !important; }
 }
 
 @media (max-width: 480px) {
-    .oc.cbi-button.cbi-button { font-size: 11px; padding: 5px 8px; gap: 4px; height: 30px !important; }
+    .oc.cbi-button.cbi-button { font-size: 11px; padding: 0 8px; gap: 4px; height: 30px !important; }
 }
 
 /* ==========================================================================

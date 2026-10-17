@@ -18,7 +18,7 @@
     border: 1px solid var(--border-light);
     border-radius: var(--radius-sm);
     font-size: 14px;
-    line-height: 1;
+    line-height: normal;
     cursor: pointer;
     transition: all var(--transition-fast);
 }

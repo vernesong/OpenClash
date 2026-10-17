@@ -284,7 +284,7 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
     color: transparent;
     background: var(--bg-white);
     font-size: 12px;
-    line-height: 1;
+    line-height: normal;
 }
 
 .oc .overwrite-config-option.selected .overwrite-config-option-state {
@@ -541,7 +541,7 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
     background: var(--bg-gray);
     color: var(--text-secondary);
     font-size: 12px;
-    line-height: 1;
+    line-height: normal;
     font-weight: 600;
     text-transform: uppercase;
 }

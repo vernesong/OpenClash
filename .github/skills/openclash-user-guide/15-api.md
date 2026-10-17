@@ -23,7 +23,7 @@ curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/rule_mode
 # 当前运行模式 (redir-host/fake-ip/redir-host-tun 等)
 curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/get_run_mode
 
-# 实时流量统计（上下行速率、连接数、CPU、内存）
+# 实时流量统计（连接数、累计流量、内存、CPU 原始刻度；速率与占用率由前端两次采样计算）
 curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/toolbar_show
 
 # 本机配置与已装版本（编译版本 corever、发布分支 release_branch、Smart 状态 smart_enable、oix/pkg_type、CPU 架构 coremodel、已安装插件/内核版本 opcv/coremetacv；不含远程最新）
@@ -53,6 +53,21 @@ curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/check_core
 # 多源出口 IP 查询（PConline/IPIP/IP.SB/IPIFY 并行）
 curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/myip_check
 
+# 局域网设备列表（在线状态、分流方向、自定义名称/图标）
+curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/clients_ac
+
+# 逐设备流量原始数据（/proc/net/nf_conntrack 原文，浏览器负责解析与聚合）
+curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/clients_stats
+
+# 设置设备分流（action=proxy|direct，scope=item|all；item 时 ip/mac 至少给一个）
+curl -s 'http://127.0.0.1/cgi-bin/luci/admin/services/openclash/clients_set?action=direct&scope=item&ip=192.168.1.10&mac=aa:bb:cc:dd:ee:ff'
+
+# 保存设备名称与图标（name/icon 留空即恢复自动识别）
+curl -s 'http://127.0.0.1/cgi-bin/luci/admin/services/openclash/clients_meta?mac=aa:bb:cc:dd:ee:ff&name=TV&icon=tv'
+
+# Fake-IP 下把 DNS 劫持切换为防火墙转发（同步重建规则）
+curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/clients_dns_switch
+
 # 网站可达性检测（替换域名，返回延迟 ms）
 curl -s 'http://127.0.0.1/cgi-bin/luci/admin/services/openclash/website_check?domain=www.google.com'
 ```
@@ -74,14 +89,13 @@ curl -s 'http://127.0.0.1/cgi-bin/luci/admin/services/openclash/website_check?do
 | `db_foward_domain` / `db_foward_port` / `db_forward_ssl` | 公网访问设置 | — | 前端构造公网仪表盘 URL（域名可含内嵌端口，ssl 决定协议） |
 | `dashboard_custom_url` / `dashboard_custom_clash_compatible` | 自定义外部仪表盘 | 空 / `"0"` | 前端显示 **External Dashboard** 按钮，并优先用于复制地址 |
 
-`/toolbar_show` 返回的 JSON（**原始数值**，前端再格式化/绘图）：
+`/toolbar_show` 返回的 JSON（**原始数值**，前端再格式化/绘图；浏览器能直连核心 WebSocket 时该接口仅作回退）：
 | 字段 | 含义 | 异常判断 |
 |------|------|----------|
 | `connections` | 活跃连接数 | `0` → 无流量经过核心，可能规则全 RETURN |
-| `up` / `down` | 实时速率 | 持续 `0` → 无数据流动；单位为字节/秒（B/s），前端换算 KB/MB |
-| `up_total` / `down_total` | 上行/下行累计流量 | 单位为字节 |
+| `up_total` / `down_total` | 上行/下行累计流量（字节），前端用两次采样差值算速率 | 持续不增长 → 无数据流动 |
 | `mem` | 核心内存占用 | 单位为字节；持续增长 → 可能存在内存泄漏 |
-| `cpu` | 核心 CPU 占用 | 持续 > 80% → 节点过多或规则复杂 |
+| `cpu_ticks` / `cpu_count` | 核心累计 CPU tick（USER_HZ=100）与核数，前端两次采样换算占用率 | 占用率持续 > 80% → 节点过多或规则复杂 |
 
 `/update` 返回的 JSON：
 | 字段 | 来源 | 含义 |

@@ -366,7 +366,7 @@ html[data-darkmode="true"] .oc .text_show {
 
 html[data-darkmode="true"] .oc .progress_bar_bg {
     border: 1px solid var(--scrollbar-thumb-hover);
-    background-color: var(--bg-white, #333333);
+    background-color: var(--bg-gray);
 }
 
 html[data-darkmode="true"] .oc .progress_bar_high {
@@ -527,7 +527,7 @@ html[data-darkmode="true"] .oc .sub-info-url-cancel-btn:hover {
 }
 
 html[data-darkmode="true"] .oc .sub_provider_item {
-    background-color: var(--bg-white, #333333);
+    background-color: var(--bg-gray);
     border-color: var(--scrollbar-thumb-hover);
 }
 
