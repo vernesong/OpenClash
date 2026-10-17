@@ -8,13 +8,14 @@ GET_ETAG_TIMESTAMP_BY_PATH() {
     local path=$1
     [ ! -f "$ETAG_CACHE" ] && return 1
 
-    local path_hash=$(echo -n "$path" | md5sum | cut -d' ' -f1)
+    local path_hash=$(echo -n "$path" | md5sum)
+    path_hash=${path_hash%% *}
 
-    awk -v hash="$path_hash" '
-        $0 ~ "^\\[" hash "\\]" { found=1; next }
+    awk -v key="[$path_hash]" '
+        index($0, key) == 1 { found=1; next }
         /^\[/ { found=0 }
-        found && /^time=/ { print $0; exit }
-    ' "$ETAG_CACHE" | cut -d'=' -f2- | sed 's/^"//;s/"$//'
+        found && /^time=/ { value=$0; sub(/^time=/, "", value); gsub(/^"|"$/, "", value); print value; exit }
+    ' "$ETAG_CACHE"
 }
 
 # 根据 path 读取 ETag
@@ -22,13 +23,14 @@ GET_ETAG_BY_PATH() {
     local path=$1
     [ ! -f "$ETAG_CACHE" ] && return 1
 
-    local path_hash=$(echo -n "$path" | md5sum | cut -d' ' -f1)
+    local path_hash=$(echo -n "$path" | md5sum)
+    path_hash=${path_hash%% *}
 
-    awk -v hash="$path_hash" '
-        $0 ~ "^\\[" hash "\\]" { found=1; next }
+    awk -v key="[$path_hash]" '
+        index($0, key) == 1 { found=1; next }
         /^\[/ { found=0 }
-        found && /^etag=/ { print $0; exit }
-    ' "$ETAG_CACHE" | cut -d'=' -f2- | sed 's/^"//;s/"$//'
+        found && /^etag=/ { value=$0; sub(/^etag=/, "", value); gsub(/^"|"$/, "", value); print value; exit }
+    ' "$ETAG_CACHE"
 }
 
 # 保存或更新 ETag
@@ -37,7 +39,8 @@ SAVE_ETAG_TO_CACHE() {
     local etag="\"$2\""
     local path="\"$3\""
     local time="\"$(date '+%Y-%m-%d %H:%M:%S')\""
-    local path_hash=$(echo -n "$3" | md5sum | cut -d' ' -f1)
+    local path_hash=$(echo -n "$3" | md5sum)
+    path_hash=${path_hash%% *}
 
     mkdir -p "$(dirname "$ETAG_CACHE")"
 
@@ -45,17 +48,18 @@ SAVE_ETAG_TO_CACHE() {
 
     if grep -q "^\[$path_hash\]" "$ETAG_CACHE"; then
         local temp_file="${ETAG_CACHE}.tmp"
-        awk -v hash="$path_hash" \
+        awk -v key="[$path_hash]" \
             -v new_url="$url" \
             -v new_etag="$etag" \
             -v new_path="$path" \
             -v new_time="$time" '
-            $0 ~ "^\\[" hash "\\]" {
+            index($0, key) == 1 {
                 print;
                 found=1;
                 next
             }
             /^\[/ { found=0 }
+            NF == 0 { next }
             found && /^url=/ {
                 print "url=" new_url;
                 next
@@ -75,14 +79,7 @@ SAVE_ETAG_TO_CACHE() {
             { print }
         ' "$ETAG_CACHE" > "$temp_file" && mv "$temp_file" "$ETAG_CACHE"
     else
-        cat >> "$ETAG_CACHE" << EOF
-
-[$path_hash]
-url=$url
-path=$path
-etag=$etag
-time=$time
-EOF
+        printf '[%s]\nurl=%s\npath=%s\netag=%s\ntime=%s\n' "$path_hash" "$url" "$path" "$etag" "$time" >> "$ETAG_CACHE"
     fi
 }
 
