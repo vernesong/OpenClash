@@ -275,7 +275,7 @@ verify_sha256_checksum() {
 
     local expected_hash
     expected_hash=$(curl -sL -m 15 --connect-timeout 5 -H "User-Agent: $ua" "$checksum_url" 2>/dev/null \
-        | awk -v n="$expected_name" '$2 ~ n {print $1; exit} $0 ~ n {print $1; exit}')
+        | awk -v n="$expected_name" 'index($2, n) {print $1; exit} index($0, n) {print $1; exit}')
 
     if [ -z "$expected_hash" ]; then
         LOG_WARN "Checksum file unavailable or entry not found, skip verification for【$expected_name】"
