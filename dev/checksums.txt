@@ -1,2 +1,2 @@
-58b2a98a46414cca6790a6c13d18a01134d29ec498650ffd2e43603d4448711e  ./luci-app-openclash-0.48.006.apk
-5b3680de35128d91b268ff10d98fa298e20cb9c38c051503fcce193db139b784  ./luci-app-openclash_0.48.006_all.ipk
+073e12f8ea28c33438ee4d28ec0578c33d8f5e21f1a9e427cbaa5172dcf49db8  ./luci-app-openclash-0.48.007.apk
+8744f38bf5ea6b6e9b7fa8af7b354ee1af6efe653f645223f3e476c76290ed91  ./luci-app-openclash_0.48.007_all.ipk
