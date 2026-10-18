@@ -7263,19 +7263,32 @@ local function clients_meta_write(meta)
 	end
 end
 
-local function clients_lease_names()
+-- device names come from the LAN's DHCP server: dnsmasq leases, then static host entries,
+-- then the addn-hosts files it publishes for the same records
+local function clients_device_names()
 	local by_mac, by_ip = {}, {}
 	local data = fs.readfile("/tmp/dhcp.leases")
 	if data then
 		for line in data:gmatch("[^\n]+") do
 			local mac, ip, name = line:match("^%d+ (%S+) (%S+) (%S+)")
-			if mac and mac ~= "*" and ip and ip ~= "*" then
-				if name and name ~= "*" then
-					by_mac[mac:lower()] = name
-					by_ip[ip] = name
-				end
+			if mac and mac ~= "*" and ip and ip ~= "*" and name and name ~= "*" then
+				by_mac[mac:lower()] = name
+				by_ip[ip] = name
 			end
 		end
+	end
+	uci:foreach("dhcp", "host", function(s)
+		local name = s.name
+		if not name or name == "" then return end
+		local macs = type(s.mac) == "table" and s.mac or { s.mac }
+		for _, mac in ipairs(macs) do
+			if mac and mac:match("^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x$") then by_mac[mac:lower()] = name end
+		end
+		if s.ip and s.ip:match("^%d+%.%d+%.%d+%.%d+$") then by_ip[s.ip] = name end
+	end)
+	local hosts = SYS.exec("cat /tmp/hosts/* 2>/dev/null")
+	for ip, name in (hosts or ""):gmatch("(%d+%.%d+%.%d+%.%d+)%s+([%w%-%._]+)") do
+		if not by_ip[ip] then by_ip[ip] = name end
 	end
 	return by_mac, by_ip
 end
@@ -7366,7 +7379,7 @@ function action_clients_ac()
 	local ip6_by_mac, v4_state, v4_mac, v4_dev = clients_neighbors(own_macs)
 	local ac_mode = clients_ac_mode()
 	local meta = clients_meta_read()
-	local lease_by_mac, lease_by_ip = clients_lease_names()
+	local lease_by_mac, lease_by_ip = clients_device_names()
 
 	local black_ips = clients_list_values("lan_ac_black_ips")
 	local white_ips = clients_list_values("lan_ac_white_ips")
@@ -7513,26 +7526,21 @@ function action_clients_stats()
 	end
 	HTTP.write("#acct=1\n")
 
+	local t0 = os.clock()
 	local file = io.open("/proc/net/nf_conntrack", "r")
 	if not file then return end
 
-	-- flows started by the router itself map to no device, dropping them keeps the payload small
+	-- flows opened by the router itself map to no device; only the original tuple counts,
+	-- a proxied flow carries a router address in its reply tuple as well
 	local _, own = clients_local_nets()
-	local skip = {}
-	for ip in pairs(own or {}) do skip[#skip + 1] = "src=" .. ip .. " " end
+	local skip = own or {}
 
 	-- written in batches: the table never sits in one Lua string and the browser starts parsing
 	-- while the rest is still streaming
 	local chunk = {}
 	for line in file:lines() do
-		local drop = false
-		for i = 1, #skip do
-			if line:find(skip[i], 1, true) then
-				drop = true
-				break
-			end
-		end
-		if not drop then
+		local src = line:match("src=(%S+)")
+		if not (src and skip[src]) then
 			chunk[#chunk + 1] = line
 			if #chunk >= 256 then
 				HTTP.write(table.concat(chunk, "\n") .. "\n")
@@ -7544,6 +7552,8 @@ function action_clients_stats()
 	if #chunk > 0 then
 		HTTP.write(table.concat(chunk, "\n") .. "\n")
 	end
+	-- the dump cost follows the flow count, so the browser tunes its poll interval by it
+	HTTP.write(string.format("#cost=%d\n", math.floor((os.clock() - t0) * 1000)))
 end
 
 function action_clients_set()

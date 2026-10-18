@@ -3471,6 +3471,10 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
 .oc .oc-float-stack .oc-usage-help-bubble {
     bottom: 10px;
     right: calc(100% + 10px);
+    /* translated hints are longer than the Chinese one: keep the natural width, cap it and wrap */
+    width: max-content;
+    max-width: calc(100vw - 88px);
+    white-space: normal;
 }
 
 .oc .oc-float-stack .oc-usage-help-bubble::after {
@@ -3707,7 +3711,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     .oc .developer-avatar-container { --oc-dev-size: 35px; }
     .oc .developer-label { font-size: 7px; padding: 1px 3px; margin-top: 3px; }
     .oc .developer-avatar.developer-more { font-size: 17px; }
-    .oc .oc-float-stack { right: 16px; bottom: 16px; }
+    .oc .oc-float-stack { right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
 }
 
 @media (max-width: 320px) {
@@ -3872,10 +3876,10 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
 .oc .ac-th-cell:not(:disabled):hover { color: var(--primary-color); }
 .oc .ac-th-cell .ac-sort-ind { font-size: 8px; line-height: normal; }
 .oc .ac-col-dev, .oc .ac-col-ctrl, .oc .ac-col-conns, .oc .ac-col-up, .oc .ac-col-down { display: flex; align-items: center; }
-.oc .ac-col-dev { flex: 1 1 auto; min-width: 0; justify-content: flex-start; }
+.oc .ac-col-dev { flex: 1 1 auto; min-width: 0; justify-content: center; }
 .oc .ac-col-ctrl { width: 92px; flex: 0 0 auto; justify-content: center; }
 .oc .ac-col-conns { width: 52px; flex: 0 0 auto; justify-content: center; }
-.oc .ac-col-up, .oc .ac-col-down { width: 106px; flex: 0 0 auto; justify-content: flex-start; }
+.oc .ac-col-up, .oc .ac-col-down { width: 106px; flex: 0 0 auto; justify-content: center; }
 
 .oc .ac-list {
     flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden;
@@ -3904,7 +3908,7 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
     position: relative; width: 40px; height: 40px; border-radius: 12px; flex: 0 0 auto;
     display: flex; align-items: center; justify-content: center;
     background: var(--bg-light); border: 1px solid var(--border-light);
-    color: var(--text-secondary);
+    color: var(--text-secondary); cursor: pointer;
 }
 .oc .ac-avatar > svg { width: 21px; height: 21px; }
 .oc .ac-avatar .ac-brand-logo { width: 21px; height: 21px; display: block; fill: currentColor; }
@@ -3975,6 +3979,7 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
 .oc .ac-switch.ac-disabled { opacity: .55; }
 
 .oc .ac-metrics { display: contents; }
+.oc .ac-rates { display: contents; }
 .oc .ac-conns {
     width: 52px; flex: 0 0 auto; display: flex; align-items: center; justify-content: center;
     font-size: 13px; font-weight: 700; color: var(--text-primary);
@@ -3982,6 +3987,7 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
 }
 .oc .ac-conns.ac-zero { color: var(--text-secondary); font-weight: 600; }
 .oc .ac-conns .ac-conns-label { display: none; }
+.oc .ac-conns .ac-conns-off-label { display: none; }
 .oc .ac-rc {
     width: 106px; flex: 0 0 auto; display: flex; flex-direction: column;
     justify-content: center; gap: 2px; min-width: 0;
@@ -3990,10 +3996,20 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
     font-size: 10.5px; font-weight: 700; line-height: 13px;
     white-space: nowrap; font-variant-numeric: tabular-nums;
 }
+.oc .ac-rc .ac-rate-v::before {
+    content: ''; display: inline-block; width: 0; height: 0; margin-right: .35em;
+    border-left: .48em solid transparent; border-right: .48em solid transparent;
+}
+.oc .ac-rc.ac-up .ac-rate-v::before { border-bottom: .78em solid currentColor; }
+.oc .ac-rc.ac-down .ac-rate-v::before { border-top: .78em solid currentColor; }
+.oc .ac-rc.ac-off .ac-rate-v::before { display: none; }
 .oc .ac-rc.ac-up .ac-rate-v { color: var(--violet); }
 .oc .ac-rc.ac-down .ac-rate-v { color: var(--info-color); }
 .oc .ac-rc.ac-idle-val .ac-rate-v, .oc .ac-rc.ac-off .ac-rate-v { color: var(--text-secondary); font-weight: 500; }
+.oc .ac-rc.ac-off .ac-rate-v { text-align: center; }
 .oc .ac-spark { display: block; width: 100%; height: 13px; }
+/* chart.js writes inline canvas sizes, the slot owns the box */
+.oc .ac-spark canvas { display: block; width: 100% !important; height: 100% !important; }
 .oc .ac-rc.ac-up .ac-spark { color: var(--violet); }
 .oc .ac-rc.ac-down .ac-spark { color: var(--info-color); }
 
@@ -4036,20 +4052,34 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
     .oc .ac-ctrl { width: 70px; }
     .oc .ac-switch button { min-width: 32px; padding: 0 5px; font-size: 10px; }
     .oc .ac-off-tag { display: none; }
-    .oc .ac-vendor { max-width: 52px; padding: 0 4px; font-size: 9px; }
+    /* the avatar already carries the brand mark, the chip only squeezes the device name */
+    .oc .ac-vendor { display: none; }
     .oc .ac-addr.ac-mac { font-size: 10px; }
-    .oc .ac-metrics { display: flex; align-items: center; flex: 1 1 100%; order: 10; gap: 10px; padding-left: 44px; }
-    .oc .ac-conns { width: auto; padding-left: 0; }
-    .oc .ac-conns .ac-conns-label { display: inline; margin-left: 3px; font-size: 10px; font-weight: 500; color: var(--text-secondary); }
-    .oc .ac-rc { width: auto; }
-    .oc .ac-rc.ac-up { margin-left: auto; }
+    .oc .ac-metrics { display: flex; align-items: center; flex: 1 1 100%; order: 10; gap: 10px; padding-left: 44px; flex-wrap: wrap; row-gap: 2px; }
+    .oc .ac-conns { width: auto; padding-left: 0; align-items: baseline; min-width: 0; }
+    .oc .ac-conns .ac-conns-label { display: inline; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-left: 3px; font-size: 10px; font-weight: 500; color: var(--text-secondary); }
+    .oc .ac-conns .ac-conns-off-label { display: inline; font-size: 10px; font-weight: 500; color: var(--text-secondary); }
+    .oc .ac-conns-off .ac-conns-dash { display: none; }
+    .oc .ac-rc { width: auto; flex: 0 0 auto; }
+    /* the two rates stay one block, so a wrap keeps them together on the right */
+    .oc .ac-rates { display: flex; align-items: center; gap: 10px; margin-left: auto; flex: 0 0 auto; }
     .oc .ac-key-btn .ac-key-text { display: none; }
     .oc .ac-key-btn { padding: 0 5px; }
     .oc .ac-tools { gap: 4px; }
 }
 
 /* Rename dialog reuses the config-upload-modal skeleton. */
-.oc .ac-rename-model { max-width: 420px; min-width: 320px; }
+.oc #ac-rename-overlay { align-items: flex-start; overflow-y: auto; overscroll-behavior: contain; padding: 12px; }
+.oc #ac-rename-overlay .ac-rename-model {
+    width: min(420px, 100%);
+    max-width: 420px; min-width: 0;
+    box-sizing: border-box;
+    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
+    margin: auto;
+}
+.oc #ac-rename-overlay .config-upload-footer { gap: 10px; }
+.oc #ac-rename-overlay .config-upload-status { min-width: 0; text-align: left; }
 .oc .ac-rename-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
 .oc .ac-rename-input {
     width: 100%; box-sizing: border-box; height: 32px; padding: 0 10px;
@@ -4058,8 +4088,19 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
     border-radius: var(--radius-sm); outline: none;
 }
 .oc .ac-rename-input:focus { border-color: var(--primary-color); box-shadow: 0 0 0 2px var(--primary-a20); }
-.oc .ac-rename-hint { margin-top: 6px; font-size: 11px; color: var(--text-secondary); }
+.oc .ac-rename-hint { margin-top: 6px; display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-secondary); }
+.oc .ac-rename-hint svg { flex: 0 0 auto; }
 .oc .ac-rename-model .form-group + .form-group { margin-top: 16px; }
+
+@media (max-width: 480px) {
+    /* narrower viewports keep a margin on both sides and scroll inside instead of going full screen */
+    .oc #ac-rename-overlay { padding: 16px; }
+    .oc #ac-rename-overlay .ac-rename-model {
+        max-height: calc(100vh - 32px);
+        max-height: calc(100dvh - 32px);
+    }
+    .oc #ac-rename-overlay .config-upload-footer { padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
+}
 .oc .ac-icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 8px; }
 .oc .ac-icon-opt {
     display: flex; align-items: center; justify-content: center; height: 40px;

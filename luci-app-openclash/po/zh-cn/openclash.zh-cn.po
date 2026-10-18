@@ -1946,6 +1946,9 @@ msgstr "上传总量"
 msgid "Down Total"
 msgstr "下载总量"
 
+msgid "Conn."
+msgstr "连接"
+
 msgid "Connect"
 msgstr "连接"
 
@@ -5543,9 +5546,6 @@ msgstr "未单独设置设备的默认策略，新接入设备自动继承"
 msgid "Desktop"
 msgstr "台式机"
 
-msgid "Detected name"
-msgstr "自动识别名称"
-
 msgid "Device"
 msgstr "设备"
 
@@ -5567,8 +5567,8 @@ msgstr "全部直连"
 msgid "Download Rate"
 msgstr "下载速率"
 
-msgid "Fake-IP requires DNS hijack set to Firewall Forwarding"
-msgstr "Fake-IP 模式下需要将 DNS 劫持方式切换为防火墙转发"
+msgid "Using access control in Fake-IP mode requires DNS hijack set to Firewall Forwarding"
+msgstr "Fake-IP 模式下使用访问控制需要将 DNS 劫持方式切换为防火墙转发"
 
 msgid "Game Console"
 msgstr "游戏机"
@@ -5587,9 +5587,6 @@ msgstr "名称"
 
 msgid "No LAN devices found"
 msgstr "未发现局域网设备"
-
-msgid "No hostname detected; you can set a custom name"
-msgstr "未获取到主机名，可自定义名称"
 
 msgid "Offline"
 msgstr "离线"
@@ -5690,11 +5687,17 @@ msgstr "当前为默认代理模式"
 msgid "Current default is direct mode"
 msgstr "当前为默认直连模式"
 
-msgid "Auto-discovered devices; rates refresh every 2 s (direct traffic included); click a name to rename; switching closes existing connections"
-msgstr "自动发现设备；速率每 2 秒刷新（含直连流量）；点击名称可重命名；切换时会关闭旧连接"
+msgid "Note: routing switches close existing connections"
+msgstr "注意：分流切换时会关闭旧连接"
+
+msgid "Current name:"
+msgstr "当前名称："
 
 msgid "Search name, IP, MAC or vendor"
 msgstr "搜索名称、IP、MAC 或厂商"
+
+msgid "No connections"
+msgstr "无连接"
 
 msgid "No matching devices"
 msgstr "没有匹配的设备"

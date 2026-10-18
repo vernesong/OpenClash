@@ -1937,6 +1937,9 @@ msgstr "Total subido"
 msgid "Down Total"
 msgstr "Total descargado"
 
+msgid "Conn."
+msgstr "Conex."
+
 msgid "Connect"
 msgstr "Conexiones"
 
@@ -5544,9 +5547,6 @@ msgstr "Política predeterminada para dispositivos sin ajuste individual; los nu
 msgid "Desktop"
 msgstr "Escritorio"
 
-msgid "Detected name"
-msgstr "Nombre detectado"
-
 msgid "Device"
 msgstr "Dispositivo"
 
@@ -5568,8 +5568,8 @@ msgstr "Todo directo"
 msgid "Download Rate"
 msgstr "Velocidad de descarga"
 
-msgid "Fake-IP requires DNS hijack set to Firewall Forwarding"
-msgstr "Fake-IP requiere que el secuestro DNS se ajuste a Reenvío por cortafuegos"
+msgid "Using access control in Fake-IP mode requires DNS hijack set to Firewall Forwarding"
+msgstr "Usar el control de acceso en modo Fake-IP requiere que el secuestro DNS se ajuste a Reenvío por cortafuegos"
 
 msgid "Game Console"
 msgstr "Consola de juegos"
@@ -5588,9 +5588,6 @@ msgstr "Nombre"
 
 msgid "No LAN devices found"
 msgstr "No se encontraron dispositivos en la LAN"
-
-msgid "No hostname detected; you can set a custom name"
-msgstr "No se detectó nombre de host; puede definir uno personalizado"
 
 msgid "Offline"
 msgstr "Sin conexión"
@@ -5691,11 +5688,17 @@ msgstr "El modo predeterminado actual es proxy"
 msgid "Current default is direct mode"
 msgstr "El modo predeterminado actual es conexión directa"
 
-msgid "Auto-discovered devices; rates refresh every 2 s (direct traffic included); click a name to rename; switching closes existing connections"
-msgstr "Dispositivos detectados automáticamente; las tasas se actualizan cada 2 s (incluido el tráfico directo); haz clic en un nombre para renombrarlo; al cambiar se cierran las conexiones existentes"
+msgid "Note: routing switches close existing connections"
+msgstr "Nota: al cambiar de ruta se cierran las conexiones existentes"
+
+msgid "Current name:"
+msgstr "Nombre actual:"
 
 msgid "Search name, IP, MAC or vendor"
 msgstr "Buscar nombre, IP, MAC o fabricante"
+
+msgid "No connections"
+msgstr "Sin conexiones"
 
 msgid "No matching devices"
 msgstr "No hay dispositivos coincidentes"

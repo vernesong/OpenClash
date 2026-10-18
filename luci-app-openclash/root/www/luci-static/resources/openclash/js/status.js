@@ -3294,6 +3294,8 @@ var ocLang = window.ocLang || '';
 
     var AC_INK_BOOST = { "LG": 11.5, "Signify": 11.8 };
 
+    var AC_SORT_KEY = 'oc-ac-sort';
+
     function acWordmarkSize(vendor, boxPx, inkPx, boost) {
         var ink = window.ocBrandInk && window.ocBrandInk[vendor];
         if (!ink) return boxPx;
@@ -3319,11 +3321,14 @@ var ocLang = window.ocLang || '';
         devices: [],
         stats: {},
         hist: {},
+        histLen: 20,
         sortKey: null,
         sortDir: 0,
         statsIdle: 0,
         lastSig: null,
-        lastHtml: null,
+        lastStruct: null,
+        sparks: {},
+        chartLoading: false,
         lastUnknownRefresh: 0,
         envTimer: null,
         statsTimer: null,
@@ -3331,6 +3336,8 @@ var ocLang = window.ocLang || '';
         envRetryTimer: null,
         probeTimer: null,
         statsTs: 0,
+        lastCost: 0,
+        pollSeq: 0,
         prevFlows: null,
         statsAbort: null,
         statsCur: null,
@@ -3366,6 +3373,7 @@ var ocLang = window.ocLang || '';
         },
 
         iconSet: [
+            { id: 'unknown', label: '<%:Unknown%>' },
             { id: 'phone', label: '<%:Phone%>' },
             { id: 'tablet', label: '<%:Tablet%>' },
             { id: 'laptop', label: '<%:Laptop%>' },
@@ -3377,8 +3385,7 @@ var ocLang = window.ocLang || '';
             { id: 'camera', label: '<%:Camera%>' },
             { id: 'iot', label: '<%:Smart Device%>' },
             { id: 'printer', label: '<%:Printer%>' },
-            { id: 'router', label: '<%:Router%>' },
-            { id: 'unknown', label: '<%:Unknown%>' }
+            { id: 'router', label: '<%:Router%>' }
         ],
 
         nameRules: [
@@ -3434,9 +3441,46 @@ var ocLang = window.ocLang || '';
         },
 
         init: function() {
+            this.portal();
+            this.loadSort();
             this.bind();
             this.bindBrandIcons();
+            this.syncSortUI();
             this.setActive(StatsChart.view === 'ac');
+        },
+
+        // the page wrapper carries position:relative + z-index:50, which caps every fixed child
+        // inside it, so the dialog and the floating buttons must live directly under body
+        portal: function() {
+            var host = document.getElementById('oc-portal');
+            if (!host) {
+                host = document.createElement('div');
+                host.id = 'oc-portal';
+                host.className = 'oc';
+                document.body.appendChild(host);
+            }
+            var ids = ['ac-rename-overlay', 'oc-float-stack'];
+            for (var i = 0; i < ids.length; i++) {
+                var el = document.getElementById(ids[i]);
+                if (el && el.parentNode !== host) host.appendChild(el);
+            }
+        },
+
+        loadSort: function() {
+            try {
+                var v = JSON.parse(localStorage.getItem(AC_SORT_KEY) || 'null');
+                if (v && v.key && v.dir) {
+                    this.sortKey = v.key;
+                    this.sortDir = v.dir;
+                }
+            } catch (e) { }
+        },
+
+        saveSort: function() {
+            try {
+                if (!this.sortKey || !this.sortDir) localStorage.removeItem(AC_SORT_KEY);
+                else localStorage.setItem(AC_SORT_KEY, JSON.stringify({ key: this.sortKey, dir: this.sortDir }));
+            } catch (e) { }
         },
 
         bindBrandIcons: function() {
@@ -3487,7 +3531,24 @@ var ocLang = window.ocLang || '';
 
         kickStats: function() {
             this.statsIdle = 0;
-            this.scheduleStats(2000);
+            this.scheduleStats(this.statsDelay());
+        },
+
+        cardVisible: function() {
+            var el = document.getElementById('stats-view-ac');
+            if (!el) return false;
+            var r = el.getBoundingClientRect();
+            var h = window.innerHeight || document.documentElement.clientHeight || 0;
+            return r.width > 0 && r.bottom > 0 && r.top < h;
+        },
+
+        // the router reports how long one conntrack dump took; that cost grows with the flow
+        // count, so a heavy table falls back to 2 s instead of paying 1 s every time
+        statsDelay: function() {
+            if (!this.cardVisible()) return 5000;
+            if (this.statsIdle >= 5) return 5000;
+            if (this.statsIdle >= 2 || this.lastCost > 50) return 2000;
+            return 1000;
         },
 
         refreshEnv: function(cb) {
@@ -3521,7 +3582,7 @@ var ocLang = window.ocLang || '';
             if (document.visibilityState === 'hidden') return;
             var self = this;
             var finish = function() {
-                self.scheduleStats(self.statsIdle >= 5 ? 5000 : 2000);
+                self.scheduleStats(self.statsDelay());
             };
             if (window.fetch && window.ReadableStream && window.TextDecoder && window.AbortController) {
                 if (this.statsAbort) this.statsAbort.abort();
@@ -3570,13 +3631,13 @@ var ocLang = window.ocLang || '';
             req.open('GET', this.endpoints.stats, true);
             req.onload = function() {
                 if (req.status != 200) {
-                    self.scheduleStats(2000);
+                    self.scheduleStats(self.statsDelay());
                     return;
                 }
                 self.consumeConntrack(req.responseText || '');
-                self.scheduleStats(self.statsIdle >= 5 ? 5000 : 2000);
+                self.scheduleStats(self.statsDelay());
             };
-            req.onerror = function() { self.scheduleStats(2000); };
+            req.onerror = function() { self.scheduleStats(self.statsDelay()); };
             req.send();
         },
 
@@ -3597,6 +3658,11 @@ var ocLang = window.ocLang || '';
         },
 
         statsLine: function(line) {
+            if (line.charAt(0) === '#') {
+                var m0 = line.match(/^#cost=(\d+)/);
+                if (m0) this.lastCost = +m0[1];
+                return;
+            }
             var cur = this.statsCur;
             if (!cur) return;
             var pos = line.indexOf('src=');
@@ -3640,7 +3706,7 @@ var ocLang = window.ocLang || '';
             }
             this.prevFlows = cur;
             var dt = (now - this.statsTs) / 1000;
-            var rateDt = (dt >= 1 && dt <= 15) ? dt : 0;
+            var rateDt = (dt >= 0.5 && dt <= 15) ? dt : 0;
             this.statsTs = now;
             var stats = {};
             for (var key2 in counts) {
@@ -3666,8 +3732,8 @@ var ocLang = window.ocLang || '';
                 if (!h) continue;
                 h.up.push(st.ur);
                 h.down.push(st.dr);
-                if (h.up.length > 20) h.up.shift();
-                if (h.down.length > 20) h.down.shift();
+                if (h.up.length > this.histLen) h.up.shift();
+                if (h.down.length > this.histLen) h.down.shift();
             }
             var sig = 0, k3;
             for (k3 in stats) sig += stats[k3].ur + stats[k3].dr + stats[k3].c * 7;
@@ -3677,6 +3743,7 @@ var ocLang = window.ocLang || '';
                 this.lastUnknownRefresh = now;
                 this.refreshEnv();
             }
+            this.pollSeq++;
             if (!this.busy) this.renderList();
         },
 
@@ -3803,7 +3870,7 @@ var ocLang = window.ocLang || '';
             var listEl = document.getElementById('ac-list');
             if (!listEl) return;
             // direct DOM edits bypass the render cache, so the next render must rewrite
-            this.lastHtml = null;
+            this.lastStruct = null;
             var sws = listEl.querySelectorAll('.ac-switch');
             for (var i = 0; i < sws.length; i++) {
                 sws[i].classList.add('ac-disabled');
@@ -3819,7 +3886,7 @@ var ocLang = window.ocLang || '';
             var self = this;
             this.busy++;
             this.kickStats();
-            this.lastHtml = null;
+            this.lastStruct = null;
             var listEl = document.getElementById('ac-list');
             var row = listEl ? listEl.querySelector('[data-dev="' + key + '"]') : null;
             if (row) {
@@ -3951,12 +4018,21 @@ var ocLang = window.ocLang || '';
             }
             var self = this;
             if (!key || !dir) {
+                // activity first: devices with live traffic or open flows float to the top,
+                // idle ones stay in name order so the list does not reshuffle on its own
+                var bucket = function(v) { return v > 0 ? Math.round(Math.log(v)) : 0; };
                 arr.sort(function(a, b) {
                     if (a.online !== b.online) return a.online ? -1 : 1;
-                    var ea = a.ema || 0, eb = b.ema || 0;
-                    if (eb !== ea) return eb - ea;
-                    var ra = self.rateOf(a), rb = self.rateOf(b);
-                    if (rb !== ra) return rb - ra;
+                    var aa = self.isActive(a) ? 1 : 0, ab = self.isActive(b) ? 1 : 0;
+                    if (aa !== ab) return ab - aa;
+                    if (aa) {
+                        var ra = bucket(self.rateOf(a)), rb = bucket(self.rateOf(b));
+                        if (rb !== ra) return rb - ra;
+                        var ca = self.connsOf(a), cb = self.connsOf(b);
+                        if (cb !== ca) return cb - ca;
+                        var ea = a.ema || 0, eb = b.ema || 0;
+                        if (eb !== ea) return eb - ea;
+                    }
                     return self.displayName(a).localeCompare(self.displayName(b));
                 });
                 return arr;
@@ -3992,23 +4068,158 @@ var ocLang = window.ocLang || '';
             return (st.ur || 0) + (st.dr || 0);
         },
 
+        isActive: function(d) {
+            return this.rateOf(d) > 0 || this.connsOf(d) > 0;
+        },
+
         connsOf: function(d) {
             var st = this.statOf(d);
             return st ? (st.c || 0) : 0;
         },
 
-        sparkSVG: function(buf) {
-            var W = 104, H = 12, N = 20;
-            if (!buf || buf.length < 2) return '';
-            var max = 1;
-            for (var i = 0; i < buf.length; i++) max = Math.max(max, buf[i] || 0);
-            var pts = [];
-            for (var j = 0; j < buf.length; j++) {
-                var x = (j * (W - 2) / (N - 1) + 1).toFixed(1);
-                var y = (H - 2 - (buf[j] || 0) / max * (H - 4)).toFixed(1);
-                pts.push(x + ',' + y);
+        rowSig: function(arr) {
+            var parts = [];
+            for (var i = 0; i < arr.length; i++) {
+                var d = arr[i];
+                parts.push([d.key, d.name, d.hostname, d.ip, d.ip6, d.mac, d.vendor, d.autoType, d.dir, d.icon, d.online ? 1 : 0].join('~'));
             }
-            return '<svg class="ac-spark" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true"><polyline points="' + pts.join(' ') + '" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            return parts.join('|') + '#' + ((this.env && this.env.need_fix) ? 1 : 0) + '#' + this.query;
+        },
+
+        destroySparks: function() {
+            for (var key in this.sparks) {
+                var pair = this.sparks[key];
+                if (pair.up) pair.up.destroy();
+                if (pair.down) pair.down.destroy();
+            }
+            this.sparks = {};
+        },
+
+        loadChartLib: function() {
+            if (this.chartLoading || typeof Chart !== 'undefined' || !window.ocChartUrl) return;
+            this.chartLoading = true;
+            var self = this;
+            ocRequireScript(window.ocChartUrl, function() {
+                self.chartLoading = false;
+                self.lastStruct = null;
+                if (self.active) self.renderList();
+            });
+        },
+
+        alphaColor: function(color, alpha) {
+            var m = String(color || '').match(/rgba?\(([^)]+)\)/);
+            if (!m) return 'rgba(128,128,128,' + alpha + ')';
+            var p = m[1].split(',');
+            return 'rgba(' + p[0].trim() + ',' + p[1].trim() + ',' + p[2].trim() + ',' + alpha + ')';
+        },
+
+        createSpark: function(slot, kind, d) {
+            if (typeof Chart === 'undefined') { this.loadChartLib(); return null; }
+            var rate = slot.parentNode ? slot.parentNode.querySelector('.ac-rate-v') : null;
+            var color = rate ? getComputedStyle(rate).color : 'rgb(128,128,128)';
+            var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            var canvas = document.createElement('canvas');
+            slot.appendChild(canvas);
+            var chart = new Chart(canvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        data: [],
+                        borderColor: color,
+                        backgroundColor: this.alphaColor(color, 0.16),
+                        borderWidth: 1.3,
+                        pointRadius: 0,
+                        pointHitRadius: 0,
+                        fill: true,
+                        tension: 0.35
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: reduce ? false : { duration: 260, easing: 'easeOutQuad' },
+                    devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+                    events: [],
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                    layout: { padding: { top: 1, right: 0, bottom: 1, left: 0 } },
+                    scales: {
+                        x: { type: 'linear', display: false, min: 0, max: this.histLen - 1 },
+                        y: { display: false, beginAtZero: true, min: 0 }
+                    },
+                    elements: { line: { borderCapStyle: 'round', borderJoinStyle: 'round' } }
+                }
+            });
+            var pair = this.sparks[d.key];
+            if (!pair) {
+                pair = { up: null, down: null };
+                this.sparks[d.key] = pair;
+            }
+            pair[kind] = chart;
+            return chart;
+        },
+
+        syncSpark: function(d, row, kind, shown) {
+            var slot = row.querySelector('.ac-spark-slot[data-kind="' + kind + '"]');
+            if (!slot) return;
+            var pair = this.sparks[d.key];
+            if (!shown || !slot.offsetWidth) {
+                if (pair && pair[kind]) {
+                    pair[kind].destroy();
+                    pair[kind] = null;
+                }
+                return;
+            }
+            var h = this.hist[d.key];
+            var data = h ? h[kind] : null;
+            if (!data || data.length < 2) return;
+            var chart = pair && pair[kind];
+            if (!chart) {
+                chart = this.createSpark(slot, kind, d);
+                if (!chart) return;
+            } else if (chart.pollSeq === this.pollSeq) {
+                return;
+            }
+            chart.pollSeq = this.pollSeq;
+            var pts = [];
+            for (var i = 0; i < data.length; i++) pts.push({ x: i, y: data[i] });
+            chart.data.datasets[0].data = pts;
+            // a freshly built chart has nothing to interpolate from, only later samples animate
+            chart.update(chart.hasPoints ? undefined : 'none');
+            chart.hasPoints = true;
+        },
+
+        setRate: function(cell, val) {
+            // offline cells keep the dash rendered by rowHTML
+            if (!cell || cell.classList.contains('ac-off')) return;
+            var span = cell.querySelector('.ac-rate-v');
+            if (!span) return;
+            var txt = acFmtRate(val);
+            if (span.textContent !== txt) span.textContent = txt;
+            cell.classList.toggle('ac-idle-val', Math.round(val) <= 0);
+        },
+
+        updateMetrics: function(arr, listEl) {
+            var rows = listEl.children;
+            var n = Math.min(arr.length, rows.length);
+            var box = listEl.getBoundingClientRect();
+            var rects = [];
+            for (var i = 0; i < n; i++) rects.push(rows[i].getBoundingClientRect());
+            for (var j = 0; j < n; j++) {
+                var d = arr[j], row = rows[j];
+                var st = this.statOf(d);
+                var conns = st ? (st.c || 0) : 0;
+                var cell = row.querySelector('.ac-conns');
+                if (cell) {
+                    cell.classList.toggle('ac-zero', conns <= 0);
+                    var v = cell.querySelector('.ac-conns-v');
+                    if (v && v.textContent !== String(conns)) v.textContent = conns;
+                }
+                this.setRate(row.querySelector('.ac-rc.ac-up'), st ? (st.ur || 0) : 0);
+                this.setRate(row.querySelector('.ac-rc.ac-down'), st ? (st.dr || 0) : 0);
+                var shown = rects[j].bottom > box.top && rects[j].top < box.bottom;
+                this.syncSpark(d, row, 'up', shown);
+                this.syncSpark(d, row, 'down', shown);
+            }
         },
 
         rowHTML: function(d) {
@@ -4024,7 +4235,6 @@ var ocLang = window.ocLang || '';
 
             var name = this.displayName(d);
             var ipLine = [d.ip, d.ip6].filter(Boolean).join(' · ');
-            var h = this.hist[d.key] || { up: [], down: [] };
             var tipParts = [name];
             if (d.vendor) tipParts.push(d.vendor);
             if (d.ip) tipParts.push(d.ip);
@@ -4066,14 +4276,22 @@ var ocLang = window.ocLang || '';
             out += '<button type="button" class="' + (d.dir === 'direct' ? 'on ac-on-direct' : '') + '" data-dir="direct"' + (locked ? ' disabled' : '') + ' aria-pressed="' + (d.dir === 'direct') + '"><%:Direct%></button>';
             out += '</span></div>';
             out += '<div class="ac-metrics">';
-            out += '<div class="ac-conns' + (hasTraffic ? '' : ' ac-zero') + '">' + (d.online ? conns : '—') + '<span class="ac-conns-label"><%:Connect%></span></div>';
+            out += '<div class="ac-conns' + (d.online ? (hasTraffic ? '' : ' ac-zero') : ' ac-zero ac-conns-off') + '">';
+            if (d.online) {
+                out += '<span class="ac-conns-v">' + conns + '</span><span class="ac-conns-label"><%:Conn.%></span>';
+            } else {
+                out += '<span class="ac-conns-dash">—</span><span class="ac-conns-off-label"><%:No connections%></span>';
+            }
+            out += '</div>';
+            out += '<div class="ac-rates">';
             out += '<div class="ac-rc ac-up' + (d.online ? (Math.round(up) > 0 ? '' : ' ac-idle-val') : ' ac-off') + '">';
             out += '<span class="ac-rate-v">' + (d.online ? acEscape(acFmtRate(up)) : '—') + '</span>';
-            if (d.online) out += this.sparkSVG(h.up);
+            if (d.online) out += '<span class="ac-spark ac-spark-slot" data-kind="up"></span>';
             out += '</div>';
             out += '<div class="ac-rc ac-down' + (d.online ? (Math.round(down) > 0 ? '' : ' ac-idle-val') : ' ac-off') + '">';
             out += '<span class="ac-rate-v">' + (d.online ? acEscape(acFmtRate(down)) : '—') + '</span>';
-            if (d.online) out += this.sparkSVG(h.down);
+            if (d.online) out += '<span class="ac-spark ac-spark-slot" data-kind="down"></span>';
+            out += '</div>';
             out += '</div>';
             out += '</div>';
             out += '</div>';
@@ -4100,26 +4318,28 @@ var ocLang = window.ocLang || '';
                 if (rfEl) rfEl.classList.toggle('oc-hidden', filtered);
             }
             if (!hasDevices) {
-                if (this.lastHtml !== '') {
-                    this.lastHtml = '';
+                if (this.lastStruct !== '') {
+                    this.lastStruct = '';
+                    this.destroySparks();
                     listEl.innerHTML = '';
                 }
                 this.syncCounts();
                 return;
             }
-            var st = listEl.scrollTop;
-            var html = '';
-            for (var i = 0; i < arr.length; i++) html += this.rowHTML(arr[i]);
-            if (html === this.lastHtml) {
-                this.syncCounts();
-                return;
+            var sig = this.rowSig(arr);
+            if (sig !== this.lastStruct) {
+                this.lastStruct = sig;
+                var st = listEl.scrollTop;
+                var html = '';
+                for (var i = 0; i < arr.length; i++) html += this.rowHTML(arr[i]);
+                this.destroySparks();
+                listEl.innerHTML = html;
+                listEl.scrollTop = st;
+                // the list scrollbar shrinks the rows but not the header; pad the header to match
+                var sbw = listEl.offsetWidth - listEl.clientWidth;
+                if (thEl) thEl.style.paddingRight = (8 + (sbw > 0 ? sbw : 0)) + 'px';
             }
-            this.lastHtml = html;
-            listEl.innerHTML = html;
-            listEl.scrollTop = st;
-            // the list scrollbar shrinks the rows but not the header; pad the header to match
-            var sbw = listEl.offsetWidth - listEl.clientWidth;
-            if (thEl) thEl.style.paddingRight = (8 + (sbw > 0 ? sbw : 0)) + 'px';
+            this.updateMetrics(arr, listEl);
             this.syncCounts();
         },
 
@@ -4164,6 +4384,7 @@ var ocLang = window.ocLang || '';
                 this.sortDir = (key === 'name' || key === 'dir') ? 1 : -1;
             }
             this.syncSortUI();
+            this.saveSort();
             this.renderList();
         },
 
@@ -4177,7 +4398,7 @@ var ocLang = window.ocLang || '';
             var overlay = document.getElementById('ac-rename-overlay');
             if (!input || !overlay) return;
             input.value = d.name || '';
-            if (hint) hint.textContent = d.hostname ? ('<%:Detected name%>: ' + d.hostname) : '<%:No hostname detected; you can set a custom name%>';
+            if (hint) hint.textContent = '<%:Current name:%> ' + this.displayName(d);
             if (auto) auto.classList.toggle('oc-hidden', !d.name && !d.icon);
             this.renderIconGrid();
             overlay.classList.add('show');
@@ -4262,9 +4483,9 @@ var ocLang = window.ocLang || '';
             if (listEl) {
                 listEl.addEventListener('click', function(e) {
                     var t = e.target;
-                    var nameEl = t.closest ? t.closest('.ac-name') : null;
-                    if (nameEl) {
-                        var row = nameEl.closest('.ac-row');
+                    var hit = t.closest ? t.closest('.ac-name, .ac-avatar') : null;
+                    if (hit) {
+                        var row = hit.closest('.ac-row');
                         if (row) self.openRename(self.deviceByKey(row.getAttribute('data-dev')));
                         return;
                     }
@@ -4291,7 +4512,7 @@ var ocLang = window.ocLang || '';
                 var q = String(value || '').trim().toLowerCase();
                 if (q === self.query) return;
                 self.query = q;
-                self.lastHtml = null;
+                self.lastStruct = null;
                 if (clearEl) clearEl.classList.toggle('oc-hidden', !q);
                 self.renderList();
             };

@@ -387,7 +387,7 @@
                                                 <button type="button" class="ac-key-btn ac-sort-btn" id="ac-sort-btn" title="<%:Sort%>" aria-haspopup="menu">
                                                     <svg><use href="#oc-icon-arrows-sort"/></svg><span class="ac-key-text"><%:Sort%></span><span class="ac-sort-ind"></span>
                                                 </button>
-                                                <span class="help-link" tabindex="0" title="<%:Auto-discovered devices; rates refresh every 2 s (direct traffic included); click a name to rename; switching closes existing connections%>">
+                                                <span class="help-link" tabindex="0" title="<%:Note: routing switches close existing connections%>">
                                                     <svg width="12" height="12"><use href="#oc-icon-help"/></svg>
                                                 </span>
                                                 <div class="ac-sort-menu oc-hidden" id="ac-sort-menu" role="menu">
@@ -411,7 +411,7 @@
 
                                         <div class="ac-warn oc-hidden" id="ac-warn-fix">
                                             <svg><use href="#oc-icon-alert-circle"/></svg>
-                                            <span><%:Fake-IP requires DNS hijack set to Firewall Forwarding%></span>
+                                            <span><%:Using access control in Fake-IP mode requires DNS hijack set to Firewall Forwarding%></span>
                                             <button type="button" class="ac-warn-btn" id="ac-warn-fix-btn"><%:Switch%></button>
                                         </div>
 
@@ -477,7 +477,7 @@
                         <div class="form-group">
                             <label class="ac-rename-label" for="ac-rename-input"><%:Name%></label>
                             <input type="text" class="ac-rename-input" id="ac-rename-input" maxlength="20" placeholder="<%:Leave empty to use the detected name%>" autocomplete="off">
-                            <div class="ac-rename-hint" id="ac-rename-hint"></div>
+                            <div class="ac-rename-hint"><svg width="12" height="12" aria-hidden="true"><use href="#oc-icon-help"/></svg><span id="ac-rename-hint"></span></div>
                         </div>
                         <div class="form-group">
                             <label class="ac-rename-label"><%:Icon%></label>
