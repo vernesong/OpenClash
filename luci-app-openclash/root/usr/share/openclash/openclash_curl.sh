@@ -270,14 +270,19 @@ verify_sha256_checksum() {
     local checksum_url="$3"
     local ua="${4:-$DEFAULT_UA}"
 
-    [ -z "$file" ] || [ -z "$checksum_url" ] && return 0
+    [ -z "$file" ] || [ -z "$checksum_url" ] || [ -z "$expected_name" ] && return 0
     [ -s "$file" ] || return 0
 
     local expected_hash
     expected_hash=$(curl -sL -m 15 --connect-timeout 5 -H "User-Agent: $ua" "$checksum_url" 2>/dev/null \
-        | awk -v n="$expected_name" 'index($2, n) {print $1; exit} index($0, n) {print $1; exit}')
+        | tr -d '\r' \
+        | awk -v n="$expected_name" '{ f = $2; sub(/^\*/, "", f); sub(/^.*\//, "", f); if (f == n) { print tolower($1); exit } }')
 
-    if [ -z "$expected_hash" ]; then
+    case "$expected_hash" in
+        *[!0-9a-fA-F]*) expected_hash="" ;;
+    esac
+
+    if [ "${#expected_hash}" -ne 64 ]; then
         LOG_WARN "Checksum file unavailable or entry not found, skip verification for【$expected_name】"
         return 0
     fi
