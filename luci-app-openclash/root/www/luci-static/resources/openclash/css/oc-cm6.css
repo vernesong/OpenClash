@@ -67,6 +67,38 @@ html[data-darkmode="true"] .oc .cm-editor {
 
 .oc .cm-editor.cm-focused .cm-cursor { transform: translateX(2px); }
 
+/* ---- Search highlights ---- */
+.oc .cm-editor .cm-searchMatch {
+    background-color: var(--primary-a20);
+    color: inherit;
+    outline: 1px solid var(--primary-a40);
+    border-radius: 2px;
+}
+
+.oc .cm-editor .cm-searchMatch.cm-searchMatch-selected {
+    background-color: var(--primary-a40);
+    color: var(--text-primary);
+    outline: 2px solid var(--primary-color);
+}
+
+.oc .cm-editor .cm-selectionMatch {
+    background-color: var(--primary-a10);
+    color: inherit;
+    outline: 1px solid var(--primary-a30);
+    border-radius: 2px;
+}
+
+/* MergeView panes are auto-height and never scroll themselves, so the search panel
+ * has to stick to the outer .cm-mergeView scrollport instead. */
+.oc .cm-mergeView .cm-editor,
+.oc .cm-mergeView .cm-mergeViewEditor {
+    overflow: visible !important;
+}
+
+.oc .cm-mergeView .cm-panels-top {
+    top: 0 !important;
+}
+
 /* ---- Hide diff highlights when F10 toggles differences off ---- */
 .oc-diff-hidden .cm-insertedLine,
 .oc-diff-hidden ins.cm-insertedLine,

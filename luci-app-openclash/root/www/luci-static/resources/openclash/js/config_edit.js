@@ -73,6 +73,25 @@ var ConfigEditor = {
 
         this.bindEvents();
         this.restoreOverwriteSide();
+        this.watchEditorWidth();
+    },
+
+    watchEditorWidth: function() {
+        var body = document.querySelector('.config-editor-body');
+        if (!body) return;
+        var apply = function() {
+            var w = body.getBoundingClientRect().width;
+            body.classList.toggle('oc-ce-w1', w > 0 && w <= 1040);
+            body.classList.toggle('oc-ce-w2', w > 0 && w <= 860);
+            body.classList.toggle('oc-ce-w3', w > 0 && w <= 700);
+        };
+        apply();
+        if (typeof ResizeObserver === 'function') {
+            this.bodyObserver = new ResizeObserver(apply);
+            this.bodyObserver.observe(body);
+        } else {
+            window.addEventListener('resize', apply);
+        }
     },
 
     bindEvents: function() {

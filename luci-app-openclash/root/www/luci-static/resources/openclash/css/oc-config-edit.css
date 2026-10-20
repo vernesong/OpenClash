@@ -81,7 +81,6 @@ html[data-darkmode="true"] .oc .overwrite-banner svg circle {
     flex: 1;
     min-width: 0;
     min-height: 0;
-    container-type: inline-size;
 }
 
 .oc .config-editor-content {
@@ -350,22 +349,16 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
     width: 46px;
 }
 
-@container (max-width: 1040px) {
-    .oc .overwrite-side {
-        width: 208px;
-    }
+.oc .config-editor-body.oc-ce-w1 .overwrite-side {
+    width: 208px;
 }
 
-@container (max-width: 860px) {
-    .oc .overwrite-side {
-        width: 184px;
-    }
+.oc .config-editor-body.oc-ce-w2 .overwrite-side {
+    width: 184px;
 }
 
-@container (max-width: 700px) {
-    .oc .overwrite-side {
-        width: 164px;
-    }
+.oc .config-editor-body.oc-ce-w3 .overwrite-side {
+    width: 164px;
 }
 
 .oc .overwrite-side-head,

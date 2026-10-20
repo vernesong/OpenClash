@@ -59,7 +59,7 @@ import { properties } from "@codemirror/legacy-modes/mode/properties"
 import { linter, lintGutter } from "@codemirror/lint"
 
 // ---- Search ----
-import { search, searchKeymap, highlightSelectionMatches } from "@codemirror/search"
+import { search, searchKeymap, highlightSelectionMatches, searchPanelOpen, setSearchQuery, getSearchQuery } from "@codemirror/search"
 
 // ---- Autocomplete ----
 import {
@@ -1035,8 +1035,153 @@ function indentMarkerExtension({ highlightActiveBlock = true, hideFirstIndent = 
     ]
 }
 
+// Far jumps rely on estimated line heights, so the match is re-centred once layout settles.
+function searchScrollFix() {
+    return ViewPlugin.fromClass(class {
+        constructor(view) {
+            this.view = view
+            this.rafId = null
+            this.timers = []
+            this.head = -1
+            this.panel = null
+            this.panelObserver = null
+        }
+        update(update) {
+            this.view = update.view
+            this.syncPanel(update.view)
+            if (!searchPanelOpen(update.state)) {
+                this.head = -1
+                this.clearTimers()
+                return
+            }
+            var nav = false
+            for (var i = 0; i < update.transactions.length; i++) {
+                var tr = update.transactions[i]
+                if (tr.isUserEvent && tr.isUserEvent('select.search')) nav = true
+            }
+            if (!update.selectionSet && !nav) return
+            var head = update.state.selection.main.head
+            if (!nav && head === this.head) return
+            this.head = head
+            this.schedule(nav)
+        }
+        // MergeView editors are auto-height and do not scroll; keep the panel floating
+        // over the outer scroller so it neither scrolls away nor shifts diff alignment.
+        syncPanel(view) {
+            if (!view.dom.closest('.cm-mergeView')) return
+            var panel = view.dom.querySelector('.cm-panels-top')
+            if (panel === this.panel) return
+            if (this.panelObserver) {
+                this.panelObserver.disconnect()
+                this.panelObserver = null
+            }
+            this.panel = panel
+            if (!panel) return
+            var apply = function() {
+                var h = panel.offsetHeight
+                panel.style.marginBottom = h ? (-h + 'px') : ''
+            }
+            apply()
+            if (typeof ResizeObserver === 'function') {
+                this.panelObserver = new ResizeObserver(apply)
+                this.panelObserver.observe(panel)
+            }
+        }
+        clearTimers() {
+            if (this.rafId !== null) {
+                cancelAnimationFrame(this.rafId)
+                this.rafId = null
+            }
+            for (var i = 0; i < this.timers.length; i++) clearTimeout(this.timers[i])
+            this.timers = []
+        }
+        // the target line is only measured after the first scroll, so navigation verifies again later
+        schedule(retry) {
+            this.clearTimers()
+            var self = this
+            var run = function() { self.correct() }
+            this.rafId = requestAnimationFrame(function() {
+                self.rafId = requestAnimationFrame(function() {
+                    self.rafId = null
+                    run()
+                    if (!retry) return
+                    self.timers.push(setTimeout(run, 120))
+                    self.timers.push(setTimeout(run, 400))
+                })
+            })
+        }
+        correct() {
+            var view = this.view
+            if (!view || !searchPanelOpen(view.state)) return
+            var head = view.state.selection.main.head
+            var merge = view.dom.closest('.cm-mergeView')
+            var scroller = merge || view.scrollDOM
+            var box = scroller.getBoundingClientRect()
+            var top = box.top
+            var panel = view.dom.querySelector('.cm-panels-top')
+            if (merge && panel) {
+                var pr = panel.getBoundingClientRect()
+                if (pr.height) top = Math.max(top, pr.bottom)
+            }
+            var match = view.dom.querySelector('.cm-searchMatch-selected')
+            var rect = null
+            if (match) rect = match.getBoundingClientRect()
+            else if (merge) {
+                var block = view.lineBlockAt(head)
+                var blockTop = view.dom.getBoundingClientRect().top + block.top
+                rect = { top: blockTop, bottom: blockTop + block.height }
+            }
+            // a missing mark means the target is outside the viewport, whatever the estimate says
+            if (rect && rect.top >= top - 2 && rect.bottom <= box.bottom + 2) return
+            if (merge) {
+                if (rect) merge.scrollTop += (rect.top + rect.bottom) / 2 - (top + box.bottom) / 2
+            } else {
+                view.dispatch({ effects: EditorView.scrollIntoView(head, { y: 'center' }) })
+                // scroll targets are applied in the measure pass, which an unfocused editor never runs
+                view.requestMeasure()
+            }
+        }
+        destroy() {
+            this.clearTimers()
+            if (this.panelObserver) this.panelObserver.disconnect()
+            this.panelObserver = null
+            this.panel = null
+            this.view = null
+        }
+    })
+}
+
+// Typing only re-highlights, so keep the selection (and thus the view) following the query.
+function searchLiveJump() {
+    return EditorView.updateListener.of(function(update) {
+        var queryChanged = false
+        for (var i = 0; i < update.transactions.length && !queryChanged; i++) {
+            var effects = update.transactions[i].effects
+            for (var j = 0; j < effects.length; j++) {
+                if (effects[j].is(setSearchQuery)) { queryChanged = true; break }
+            }
+        }
+        if (!queryChanged) return
+        var view = update.view
+        Promise.resolve().then(function() {
+            if (view.destroyed || !searchPanelOpen(view.state)) return
+            var spec = getSearchQuery(view.state)
+            if (!spec.search) return
+            var query = spec.create()
+            if (!query.spec.valid) return
+            var sel = view.state.selection.main
+            var match = query.nextMatch(view.state, sel.from, sel.from)
+            if (!match || (match.from === sel.from && match.to === sel.to)) return
+            view.dispatch({
+                selection: { anchor: match.from, head: match.to },
+                userEvent: 'select.search'
+            })
+        })
+    })
+}
+
 function topSearchExtension() {
-    return search({ top: true })
+    return [search({ top: true }), searchScrollFix(), searchLiveJump()]
 }
 
 function placeholderExtension(text) {

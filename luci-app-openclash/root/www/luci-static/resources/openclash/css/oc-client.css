@@ -167,11 +167,6 @@ html[data-darkmode="true"] .oc .config-select:focus {
     box-sizing: border-box;
 }
 
-.oc .sub-card:has(.card-title),
-.oc .mode-row .sub-card:has(.stats-card-header) {
-    container-type: inline-size;
-}
-
 .oc .sub-card:hover {
     background: var(--hover-bg, #f3f4f6);
     border-color: var(--primary-color, #3b82f6);
@@ -214,37 +209,15 @@ html[data-darkmode="true"] .oc .config-select:focus {
     min-width: 0;
 }
 
-@container (max-width: 110px) {
-    .oc .card-title {
-        gap: 2px;
-    }
-}
-
+/* Size containers are avoided here: Chromium drops content inside a
+ * container-type element when its subtree updates (crbug 379030050). */
 .oc .stats-grid .sub-card .card-title {
     font-size: var(--card-title-size-sm);
+    gap: 2px;
 }
 
-/* Card titles step down with the card width, capped by the viewport step. */
-@container (max-width: 200px) {
-    .oc .card-title {
-        font-size: min(var(--card-title-size), 14px);
-    }
-
-    .oc .stats-grid .sub-card .card-title {
-        font-size: min(var(--card-title-size-sm), 12px);
-    }
-}
-
-@container (max-width: 150px) {
-    .oc .card-title {
-        font-size: min(var(--card-title-size), 13px);
-    }
-}
-
-@container (max-width: 110px) {
-    .oc .card-title {
-        font-size: min(var(--card-title-size), 12px);
-    }
+@media (min-width: 1025px) {
+    .oc .stats-grid .sub-card .card-title { font-size: 12px; }
 }
 
 /* Title + version chips keep one row; the chips shrink and ellipsize instead of covering the title. */
@@ -485,7 +458,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
 }
 
 /* Narrow running-mode card: shrink title & pill so they don't overlap */
-@container (max-width: 260px) {
+@media (max-width: 620px) {
     .oc .mode-pill .mode-pill-opt { width: 26px; height: 20px; }
     .oc .mode-pill .mode-pill-opt svg { width: 12px; height: 12px; }
 }
@@ -1720,7 +1693,6 @@ html[data-darkmode="true"] .oc .config-select:focus {
 .oc .stats-section .sub-card.stat-item {
     background: var(--bg-white);
     gap: 4px;
-    container-type: inline-size;
 }
 
 .oc .stats-section .stat-label {
@@ -1732,7 +1704,10 @@ html[data-darkmode="true"] .oc .config-select:focus {
     margin-top: 0;
     padding-bottom: 6px;
     font-size: var(--card-title-size-sm);
-    font-size: clamp(10.5px, 11.5cqw, var(--card-title-size-sm));
+}
+
+@media (min-width: 1025px) {
+    .oc .stats-section .stat-label { font-size: 12px; }
 }
 
 .oc .stats-section .stat-dot {
@@ -1763,16 +1738,13 @@ html[data-darkmode="true"] .oc .config-select:focus {
     min-height: auto;
 }
 
-/* number, label and unit scale with the card width to fit narrow cards and keep proportions */
 .oc .stats-section .stat-num {
     font-size: 16px;
-    font-size: clamp(12px, 14.5cqw, 16px);
     font-weight: 700;
 }
 
 .oc .stats-section .stat-unit {
     font-size: 11px;
-    font-size: clamp(9.5px, 10.5cqw, 11px);
     font-weight: 500;
     color: var(--text-secondary);
     margin-left: 3px;
@@ -3739,14 +3711,12 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     flex: 1 1 auto; min-height: 0; min-width: 0;
 }
 .oc .ac-card {
-    container-type: inline-size;
-    container-name: accard;
     background: var(--bg-white);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-sm);
     box-shadow: var(--shadow-sm);
     display: flex; flex-direction: column;
-    padding: 4px 9px 4px;
+    padding: 4px 9px 0;
     gap: 3px;
     flex: 1 1 auto; min-height: 0; min-width: 0;
     box-sizing: border-box; overflow: hidden;
@@ -3755,7 +3725,19 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
 }
 .oc .ac-card:hover { border-color: var(--primary-color); box-shadow: var(--shadow-md); }
 
-.oc .ac-head { position: relative; display: flex; align-items: center; gap: 8px; flex: 0 0 auto; min-width: 0; padding: 0 2px; }
+.oc .ac-head { position: relative; display: flex; align-items: center; gap: 8px; flex: 0 0 auto; min-width: 0; padding: 0 2px 4px; }
+/* full-bleed header strip: it reaches the card edges and only the bottom border splits it from the list */
+.oc .ac-head::before {
+    content: ''; position: absolute; left: -9px; right: -9px; top: -4px; bottom: 0;
+    background: var(--bg-light); border-bottom: 1px solid var(--border-light);
+    pointer-events: none;
+}
+.oc .ac-head > * { position: relative; z-index: 1; }
+@media (max-width: 1024px) {
+    /* the stacked layout stretches the card, so it can afford roomier spacing */
+    .oc .ac-card { gap: 4px; }
+    .oc .ac-head { padding: 4px 2px 8px; }
+}
 .oc .ac-sum { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); white-space: nowrap; min-width: 0; }
 .oc .ac-sum > span:not(.ac-def-pill) { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .oc .ac-sum > svg { width: 13px; height: 13px; color: var(--primary-color); flex: 0 0 auto; }
@@ -3866,7 +3848,7 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
 
 .oc .ac-th {
     display: flex; align-items: center; gap: 8px; flex: 0 0 auto;
-    height: 18px; padding: 0 8px;
+    height: 20px; padding: 0 8px 3px;
     border-bottom: 1px solid var(--border-light);
     color: var(--text-secondary); font-size: 10.5px; font-weight: 600;
     white-space: nowrap;
@@ -4029,47 +4011,48 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
 }
 .oc .ac-empty button:hover { background: var(--primary-a20); }
 
-@container accard (max-width: 560px) {
-    .oc .ac-col-up, .oc .ac-col-down, .oc .ac-rc { width: 62px; }
-    .oc .ac-col-ctrl, .oc .ac-ctrl { width: 86px; }
-    .oc .ac-spark { display: none; }
-    .oc .ac-sum .ac-sum-extra { display: none; }
-}
-@container accard (max-width: 430px) {
-    .oc .ac-col-conns, .oc .ac-conns { width: 44px; }
-    .oc .ac-th { display: none; }
-    .oc .ac-sort-btn { display: inline-flex; }
-    .oc .ac-head { flex-wrap: nowrap; }
-    .oc .ac-sum { flex: 1 1 auto; }
-    .oc .ac-def-pill { display: none; }
-    .oc .ac-tools { margin-left: auto; }
-    .oc .ac-row { flex-wrap: wrap; row-gap: 2px; min-height: 0; padding: 6px 8px 7px; }
-    .oc .ac-dev { flex: 1 1 0; min-width: 0; }
-    .oc .ac-id { padding-left: 44px; }
-    .oc .ac-avatar { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 11px; }
-    .oc .ac-avatar > svg, .oc .ac-avatar .ac-brand-logo { width: 19px; height: 19px; }
-    .oc .ac-avatar .ac-brand-logo.wordmark { max-width: 28px; max-height: 28px; }
-    .oc .ac-ctrl { width: 70px; }
-    .oc .ac-switch button { min-width: 32px; padding: 0 5px; font-size: 10px; }
-    .oc .ac-off-tag { display: none; }
-    /* the avatar already carries the brand mark, the chip only squeezes the device name */
-    .oc .ac-vendor { display: none; }
-    .oc .ac-addr.ac-mac { font-size: 10px; }
-    .oc .ac-metrics { display: flex; align-items: center; flex: 1 1 100%; order: 10; gap: 10px; padding-left: 44px; flex-wrap: wrap; row-gap: 2px; }
-    .oc .ac-conns { width: auto; padding-left: 0; align-items: baseline; min-width: 0; }
-    .oc .ac-conns .ac-conns-label { display: inline; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-left: 3px; font-size: 10px; font-weight: 500; color: var(--text-secondary); }
-    .oc .ac-conns .ac-conns-off-label { display: inline; font-size: 10px; font-weight: 500; color: var(--text-secondary); }
-    .oc .ac-conns-off .ac-conns-dash { display: none; }
-    .oc .ac-rc { width: auto; flex: 0 0 auto; }
-    /* the two rates stay one block, so a wrap keeps them together on the right */
-    .oc .ac-rates { display: flex; align-items: center; gap: 10px; margin-left: auto; flex: 0 0 auto; }
-    .oc .ac-key-btn .ac-key-text { display: none; }
-    .oc .ac-key-btn { padding: 0 5px; }
-    .oc .ac-tools { gap: 4px; }
-}
+.oc .ac-card.ac-w-sm .ac-col-up,
+.oc .ac-card.ac-w-sm .ac-col-down,
+.oc .ac-card.ac-w-sm .ac-rc { width: 62px; }
+.oc .ac-card.ac-w-sm .ac-col-ctrl,
+.oc .ac-card.ac-w-sm .ac-ctrl { width: 86px; }
+.oc .ac-card.ac-w-sm .ac-spark { display: none; }
+.oc .ac-card.ac-w-sm .ac-sum .ac-sum-extra { display: none; }
+.oc .ac-card.ac-w-xs .ac-col-conns,
+.oc .ac-card.ac-w-xs .ac-conns { width: 44px; }
+.oc .ac-card.ac-w-xs .ac-th { display: none; }
+.oc .ac-card.ac-w-xs .ac-sort-btn { display: inline-flex; }
+.oc .ac-card.ac-w-xs .ac-head { flex-wrap: nowrap; }
+.oc .ac-card.ac-w-xs .ac-sum { flex: 1 1 auto; }
+.oc .ac-card.ac-w-xs .ac-def-pill { display: none; }
+.oc .ac-card.ac-w-xs .ac-tools { margin-left: auto; }
+.oc .ac-card.ac-w-xs .ac-row { flex-wrap: wrap; row-gap: 2px; min-height: 0; padding: 6px 8px 7px; }
+.oc .ac-card.ac-w-xs .ac-dev { flex: 1 1 0; min-width: 0; }
+.oc .ac-card.ac-w-xs .ac-id { padding-left: 44px; }
+.oc .ac-card.ac-w-xs .ac-avatar { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 11px; }
+.oc .ac-card.ac-w-xs .ac-avatar > svg,
+.oc .ac-card.ac-w-xs .ac-avatar .ac-brand-logo { width: 19px; height: 19px; }
+.oc .ac-card.ac-w-xs .ac-avatar .ac-brand-logo.wordmark { max-width: 28px; max-height: 28px; }
+.oc .ac-card.ac-w-xs .ac-ctrl { width: 70px; }
+.oc .ac-card.ac-w-xs .ac-switch button { min-width: 32px; padding: 0 5px; font-size: 10px; }
+.oc .ac-card.ac-w-xs .ac-off-tag { display: none; }
+/* the avatar already carries the brand mark, the chip only squeezes the device name */
+.oc .ac-card.ac-w-xs .ac-vendor { display: none; }
+.oc .ac-card.ac-w-xs .ac-addr.ac-mac { font-size: 10px; }
+.oc .ac-card.ac-w-xs .ac-metrics { display: flex; align-items: center; flex: 1 1 100%; order: 10; gap: 10px; padding-left: 44px; flex-wrap: wrap; row-gap: 2px; }
+.oc .ac-card.ac-w-xs .ac-conns { width: auto; padding-left: 0; align-items: baseline; min-width: 0; }
+.oc .ac-card.ac-w-xs .ac-conns .ac-conns-label { display: inline; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-left: 3px; font-size: 10px; font-weight: 500; color: var(--text-secondary); }
+.oc .ac-card.ac-w-xs .ac-conns .ac-conns-off-label { display: inline; font-size: 10px; font-weight: 500; color: var(--text-secondary); }
+.oc .ac-card.ac-w-xs .ac-conns-off .ac-conns-dash { display: none; }
+.oc .ac-card.ac-w-xs .ac-rc { width: auto; flex: 0 0 auto; }
+/* the two rates stay one block, so a wrap keeps them together on the right */
+.oc .ac-card.ac-w-xs .ac-rates { display: flex; align-items: center; gap: 10px; margin-left: auto; flex: 0 0 auto; }
+.oc .ac-card.ac-w-xs .ac-key-btn .ac-key-text { display: none; }
+.oc .ac-card.ac-w-xs .ac-key-btn { padding: 0 5px; }
+.oc .ac-card.ac-w-xs .ac-tools { gap: 4px; }
 
 /* Rename dialog reuses the config-upload-modal skeleton. */
-.oc #ac-rename-overlay { align-items: flex-start; overflow-y: auto; overscroll-behavior: contain; padding: 12px; }
+.oc #ac-rename-overlay { z-index: 10010; align-items: flex-start; overflow-y: auto; overscroll-behavior: contain; padding: 12px; }
 .oc #ac-rename-overlay .ac-rename-model {
     width: min(420px, 100%);
     max-width: 420px; min-width: 0;
@@ -4115,3 +4098,35 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
 .oc .ac-icon-opt.on { border-color: var(--primary-color); background: var(--primary-a10); color: var(--primary-color); }
 .oc .ac-link-btn { border: none; background: none; padding: 0; font-size: 12px; font-family: inherit; color: var(--primary-color); cursor: pointer; }
 .oc .ac-link-btn:hover { text-decoration: underline; }
+
+/* Maximize dialog reuses the config-upload-modal skeleton and hosts the live card. */
+.oc #ac-max-overlay .ac-max-model {
+    width: min(920px, 94vw);
+    max-width: 94vw; min-width: 0;
+    height: min(820px, 80vh);
+    max-height: min(820px, calc(100vh - 48px));
+    max-height: min(820px, calc(100dvh - 48px));
+    box-sizing: border-box;
+}
+.oc #ac-max-overlay .config-upload-header { padding: 14px 18px; }
+.oc .config-upload-content.ac-max-content {
+    display: flex; flex-direction: column;
+    min-height: 0; padding: 12px 14px 14px;
+    overflow: hidden;
+}
+.oc .ac-max-content .ac-card {
+    flex: 1 1 auto; height: auto; min-height: 0;
+    margin-bottom: 0;
+}
+.oc .ac-max-content .ac-list { max-height: none; }
+.oc .ac-max-content .ac-empty { min-height: 0; }
+
+@media (max-width: 480px) {
+    .oc #ac-max-overlay .ac-max-model {
+        width: 94vw;
+        height: calc(100vh - 48px);
+        height: calc(100dvh - 48px);
+        max-height: calc(100vh - 48px);
+        max-height: calc(100dvh - 48px);
+    }
+}

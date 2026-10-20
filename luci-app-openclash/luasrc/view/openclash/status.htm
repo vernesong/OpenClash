@@ -384,6 +384,9 @@
                                                 <button type="button" class="ac-key-btn" id="ac-search-btn" title="<%:Search devices%>" aria-label="<%:Search devices%>" aria-expanded="false">
                                                     <svg><use href="#oc-icon-search"/></svg>
                                                 </button>
+                                                <button type="button" class="ac-key-btn" id="ac-max-btn" title="<%:Expand%>" aria-label="<%:Expand%>" aria-haspopup="dialog" aria-expanded="false">
+                                                    <svg><use href="#oc-icon-expand"/></svg>
+                                                </button>
                                                 <button type="button" class="ac-key-btn ac-sort-btn" id="ac-sort-btn" title="<%:Sort%>" aria-haspopup="menu">
                                                     <svg><use href="#oc-icon-arrows-sort"/></svg><span class="ac-key-text"><%:Sort%></span><span class="ac-sort-ind"></span>
                                                 </button>
@@ -491,6 +494,19 @@
                             <button type="button" class="btn upload-btn" id="ac-rename-save"><%:Save%></button>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Access Control maximize Model -->
+            <div class="config-upload-model-overlay" id="ac-max-overlay">
+                <div class="config-upload-model ac-max-model" role="dialog" aria-modal="true" aria-labelledby="ac-max-title">
+                    <div class="config-upload-header">
+                        <div class="config-upload-title" id="ac-max-title"><%:Access Control%></div>
+                        <button type="button" class="icon-btn" id="ac-max-close" aria-label="<%:Close%>">
+                            <svg width="14" height="14"><use href="#oc-icon-close"/></svg>
+                        </button>
+                    </div>
+                    <div class="config-upload-content ac-max-content" id="ac-max-host"></div>
                 </div>
             </div>
 

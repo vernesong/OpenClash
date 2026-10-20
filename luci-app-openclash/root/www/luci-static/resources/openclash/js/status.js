@@ -3446,7 +3446,25 @@ var ocLang = window.ocLang || '';
             this.bind();
             this.bindBrandIcons();
             this.syncSortUI();
+            this.observeCardWidth();
             this.setActive(StatsChart.view === 'ac');
+        },
+
+        observeCardWidth: function() {
+            var card = document.querySelector('.ac-card');
+            if (!card) return;
+            var apply = function() {
+                var w = card.getBoundingClientRect().width;
+                card.classList.toggle('ac-w-sm', w > 0 && w <= 560);
+                card.classList.toggle('ac-w-xs', w > 0 && w <= 430);
+            };
+            apply();
+            if (typeof ResizeObserver === 'function') {
+                this.cardObserver = new ResizeObserver(apply);
+                this.cardObserver.observe(card);
+            } else {
+                window.addEventListener('resize', apply);
+            }
         },
 
         // the page wrapper carries position:relative + z-index:50, which caps every fixed child
@@ -3459,7 +3477,7 @@ var ocLang = window.ocLang || '';
                 host.className = 'oc';
                 document.body.appendChild(host);
             }
-            var ids = ['ac-rename-overlay', 'oc-float-stack'];
+            var ids = ['ac-rename-overlay', 'ac-max-overlay', 'oc-float-stack'];
             for (var i = 0; i < ids.length; i++) {
                 var el = document.getElementById(ids[i]);
                 if (el && el.parentNode !== host) host.appendChild(el);
@@ -4412,6 +4430,43 @@ var ocLang = window.ocLang || '';
             this.iconPick = null;
         },
 
+        // moves the live card into the dialog so search, sorting and switches keep working there
+        openMax: function() {
+            if (this.maxOpen) return;
+            var overlay = document.getElementById('ac-max-overlay');
+            var host = document.getElementById('ac-max-host');
+            var card = document.querySelector('.ac-card');
+            if (!overlay || !host || !card) return;
+            this.maxParent = card.parentNode;
+            this.maxNext = card.nextSibling;
+            host.appendChild(card);
+            overlay.classList.add('show');
+            this.maxOpen = true;
+            var maxBtn = document.getElementById('ac-max-btn');
+            if (maxBtn) maxBtn.setAttribute('aria-expanded', 'true');
+            var close = document.getElementById('ac-max-close');
+            if (close) setTimeout(function() { close.focus(); }, 60);
+        },
+
+        closeMax: function() {
+            if (!this.maxOpen) return;
+            var overlay = document.getElementById('ac-max-overlay');
+            var card = document.querySelector('.ac-card');
+            if (overlay) overlay.classList.remove('show');
+            if (card && this.maxParent) {
+                if (this.maxNext && this.maxNext.parentNode === this.maxParent) this.maxParent.insertBefore(card, this.maxNext);
+                else this.maxParent.appendChild(card);
+            }
+            this.maxParent = null;
+            this.maxNext = null;
+            this.maxOpen = false;
+            var btn = document.getElementById('ac-max-btn');
+            if (btn) {
+                btn.setAttribute('aria-expanded', 'false');
+                btn.focus();
+            }
+        },
+
         defaultIconOf: function(d) {
             if (!d) return 'unknown';
             if (window.ocBrandLogos && window.ocBrandLogos[d.vendor]) {
@@ -4596,6 +4651,24 @@ var ocLang = window.ocLang || '';
                     if (e.target === overlay) self.closeRename();
                 });
             }
+
+            bindBtn('ac-max-btn', function() { if (self.maxOpen) self.closeMax(); else self.openMax(); });
+            bindBtn('ac-max-close', function() { self.closeMax(); });
+            var maxOverlay = document.getElementById('ac-max-overlay');
+            if (maxOverlay) {
+                maxOverlay.addEventListener('click', function(e) {
+                    if (e.target === maxOverlay) self.closeMax();
+                });
+            }
+            document.addEventListener('keydown', function(e) {
+                if (e.key !== 'Escape') return;
+                var rename = document.getElementById('ac-rename-overlay');
+                if (rename && rename.classList.contains('show')) { self.closeRename(); return; }
+                if (!self.maxOpen) return;
+                var tag = e.target && e.target.tagName;
+                if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+                self.closeMax();
+            });
         }
     };
 
@@ -4612,6 +4685,7 @@ var ocLang = window.ocLang || '';
 
     XHR.poll(5, '<%=url("admin", "services", "openclash", "status")%>', null, function(x, status) {
         if (x && x.status == 200) {
+            StateManager.current_status = status;
             var updates = [];
 
             if (!pluginToggleUserAction) {
@@ -4705,8 +4779,6 @@ var ocLang = window.ocLang || '';
             }
 
             DOMCache.web_external.classList.toggle('hidden', !ocGetCustomDashboardURL(status));
-
-            StateManager.current_status = status;
 
             if (status.daip) {
                 var daipContent, dapoContent;
