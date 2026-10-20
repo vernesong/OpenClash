@@ -588,3 +588,34 @@ html[data-darkmode="true"] .oc .sub_provider_percent {
     .sub_provider_name { font-size: 8px; }
     .sub_provider_percent { font-size: 8px; }
 }
+
+/* ---- Config file list (model/cbi/openclash/config.lua) ---- */
+#cbi-config_file_list th,
+#cbi-config_file_list td:first-child,
+#cbi-config_file_list td:nth-child(5) {
+    white-space: nowrap;
+}
+
+#cbi-config_file_list .oc-actions-menu {
+    position: relative;
+    display: inline-block;
+}
+
+#cbi-config_file_list .oc-actions-menu .cbi-input-select {
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    width: calc(100% + 2px) !important;
+    height: calc(100% + 2px);
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+#cbi-config_file_list .oc-actions-menu-btn:focus-visible {
+    outline: 2px solid var(--primary-color, #3b82f6);
+    outline-offset: 2px;
+}

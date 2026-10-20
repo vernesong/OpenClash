@@ -208,6 +208,8 @@ btnapply.render = function(self, section, scope)
 	scope.config_name = e[section].name
 	scope.is_yaml = fs.IsYamlExt(e[section].name)
 	scope.has_running = NXFS.access("/etc/openclash/" .. e[section].name)
+	scope.config_script = not self.script_rendered
+	self.script_rendered = true
 	Button.render(self, section, scope)
 end
 btnapply.inputstyle = "apply"
