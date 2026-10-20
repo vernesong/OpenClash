@@ -200,78 +200,29 @@ sz=tb:option(DummyValue,"size",translate("Size"))
 st.template="openclash/cfg_check"
 sb.template="openclash/sub_info_show"
 
-btnis=tb:option(Button,"switch",translate("SwiTch"))
-btnis.render=function(o,t,a)
-	if not e[t] then return false end
-	if fs.IsYamlExt(e[t].name) then
-		a.display=""
-	else
-		a.display="none"
-	end
-	o.inputstyle="apply"
-	Button.render(o,t,a)
+local btnapply = tb:option(Button, "apply", translate("Actions"))
+btnapply.template = "openclash/config_actions"
+btnapply.render = function(self, section, scope)
+	if not e[section] then return end
+	scope = scope or {}
+	scope.config_name = e[section].name
+	scope.is_yaml = fs.IsYamlExt(e[section].name)
+	scope.has_running = NXFS.access("/etc/openclash/" .. e[section].name)
+	Button.render(self, section, scope)
 end
-btnis.write=function(a,t)
-	uci:set("openclash", "config", "config_path", "/etc/openclash/config/"..e[t].name)
-	uci:commit("openclash")
-	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "config"))
-end
-
-btned=tb:option(Button,"edit",translate("Edit"))
-btned.inputstyle="apply"
-btned.write=function(a,t)
-	local file_path = "/etc/openclash/config/" .. fs.basename(e[t].name)
-	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "other-file-edit", "config") .. "?file=" .. HTTP.urlencode(file_path))
-end
-
-btnrn=tb:option(DummyValue,"/etc/openclash/config/",translate("Rename"))
-btnrn.template="openclash/input_rename"
-btnrn.rawhtml = true
-btnrn.render=function(c,t,a)
-	if not e[t] then return end
-	c.value = e[t].name
-	DummyValue.render(c,t,a)
-end
-
-local actions = tb:option(ListValue, "actions", translate("Other"))
-actions.render = function(self, t, a)
-	if not e[t] then return end
-	self.keylist = {}
-	self.vallist = {}
-	-- Servers manage
-	table.insert(self.keylist, "servers_manage")
-	table.insert(self.vallist, translate("Servers Manage"))
-
-	-- Copy
-	if fs.IsYamlExt(e[t].name) then
-		table.insert(self.keylist, "copy")
-		table.insert(self.vallist, translate("Copy Config"))
-	end
-
-	-- Download
-	table.insert(self.keylist, "download")
-	table.insert(self.vallist, translate("Download Config"))
-
-	-- Download Running
-	if NXFS.access("/etc/openclash/"..e[t].name) then
-		table.insert(self.keylist, "download_run")
-		table.insert(self.vallist, translate("Download Running Config"))
-	end
-
-	-- Remove
-	table.insert(self.keylist, "remove")
-	table.insert(self.vallist, translate("Remove"))
-
-	ListValue.render(self, t, a)
-end
-
-local btnapply = tb:option(Button, "apply", translate("Apply"))
 btnapply.inputstyle = "apply"
 btnapply.write = function(self, t)
 	if not e[t] then return end
 	local action = self.map:formvalue("cbid." .. self.map.config .. "." .. t .. ".actions")
 
-	if action == "servers_manage" then
+	if action == "switch" and fs.IsYamlExt(e[t].name) then
+		uci:set("openclash", "config", "config_path", "/etc/openclash/config/" .. e[t].name)
+		uci:commit("openclash")
+		HTTP.redirect(DISP.build_url("admin", "services", "openclash", "config"))
+	elseif action == "edit" then
+		local file_path = "/etc/openclash/config/" .. fs.basename(e[t].name)
+		HTTP.redirect(DISP.build_url("admin", "services", "openclash", "other-file-edit", "config") .. "?file=" .. HTTP.urlencode(file_path))
+	elseif action == "servers_manage" then
 		local file_path = "/etc/openclash/config/" .. fs.basename(e[t].name)
 		HTTP.redirect(DISP.build_url("admin", "services", "openclash", "servers") .. "?file=" .. HTTP.urlencode(file_path))
 	elseif action == "copy" then
