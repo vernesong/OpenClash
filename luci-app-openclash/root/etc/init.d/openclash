@@ -1022,6 +1022,125 @@ wan6_name_add()
    fi
 }
 
+wan_zone_chain_name()
+{
+   if [ -n "$FW4" ]; then
+      echo "${1#input_}"
+   else
+      echo "$1" |sed 's/^zone_//; s/_input$//'
+   fi
+}
+
+nft_input_iface_zones()
+{
+   nft list chain inet fw4 input 2>/dev/null |awk '
+      {
+         iface = ""
+         chain = ""
+         for (i = 1; i <= NF; i++) {
+            if ($i == "iifname") {
+               if ($(i + 1) == "{") {
+                  for (j = i + 2; j <= NF; j++) {
+                     if ($j ~ /}/) break
+                     v = $j
+                     gsub(/[",]/, "", v)
+                     if (v != "") iface = iface " " v
+                  }
+               } else {
+                  v = $(i + 1)
+                  gsub(/"/, "", v)
+                  iface = iface " " v
+               }
+            }
+            if ($i == "jump" && $(i + 1) ~ /^input_/) chain = $(i + 1)
+         }
+         n = split(iface, arr, " ")
+         for (k = 1; k <= n; k++) if (arr[k] != "" && chain != "") print arr[k] " " chain
+      }'
+}
+
+input_zone_chains()
+{
+   if [ -n "$FW4" ]; then
+      nft_input_iface_zones |awk '{print $2}' |sort -u
+   else
+      iptables-save -t filter 2>/dev/null |grep -o -- '-j zone_[A-Za-z0-9_]*_input' |awk '{print $2}' |sort -u
+   fi
+}
+
+iface_zone_chains()
+{
+   if [ -n "$FW4" ]; then
+      nft_input_iface_zones |awk -v i="$1" '$1 == i {print $2}'
+   else
+      iptables-save -t filter 2>/dev/null |grep -- "-i $1 " |grep -o -- '-j zone_[A-Za-z0-9_]*_input' |awk '{print $2}'
+   fi
+}
+
+get_wan_zone_info()
+{
+   wan_ints=""
+   wan_zone_chains=""
+   wan_guard_ints=""
+   if [ -n "$intranet_allowed_wan_name" ] && [ "$intranet_allowed_wan_name" != "0" ]; then
+      config_load "openclash"
+      config_list_foreach "config" "intranet_allowed_wan_name" wan_name_add
+      [ -z "$wan_ints" ] && wan_ints="$intranet_allowed_wan_name"
+   elif [ -n "$FW4" ]; then
+      wan_ints=$(nft list chain inet fw4 input 2>/dev/null |grep -e "jump input_wan" |awk '{for (i=1;i<=NF;i++){if ($i ~ /iifname/ && $(i+1) != "{") {print $(i+1)} if ($i ~ /iifname/ && $(i+1) == "{"){for (j=i+1;j<=NF;j++){if ($j~ /}/) {out="";for (k=i+1;k<=j;k++){out=out" "$k};print out}}}}}' 2>/dev/null |sed 's/"//g'|sed 's/{//g'|sed 's/}//g'|sed 's/,//g')
+   else
+      wan_ints=$(iptables-save -t filter 2>/dev/null |grep -e "-j zone_wan_input" |awk '{for (i=1;i<=NF;i++) {if ($i ~ /-i/) {print $(i+1)}}}' 2>/dev/null)
+   fi
+   if [ -n "$FW4" ]; then
+      [ -n "$(nft list chain inet fw4 input_wan 2>/dev/null)" ] && wan_zone_chains="input_wan"
+   else
+      [ -n "$(iptables -t filter -S zone_wan_input 2>/dev/null)" ] && wan_zone_chains="zone_wan_input"
+   fi
+   if [ -z "$wan_zone_chains" ] && [ -n "$wan_ints" ]; then
+      for wan_int in $wan_ints; do
+         for chain in $(iface_zone_chains "$wan_int"); do
+            case " $wan_zone_chains " in
+               *" $chain "*) ;;
+               *) wan_zone_chains="$wan_zone_chains $chain" ;;
+            esac
+         done
+      done
+   fi
+   for wan_int in $wan_ints; do
+      shared=""
+      for chain in $(iface_zone_chains "$wan_int"); do
+         case " $wan_zone_chains " in
+            *" $chain "*) ;;
+            *) shared="1" ;;
+         esac
+      done
+      [ -z "$shared" ] && wan_guard_ints="$wan_guard_ints $wan_int"
+   done
+}
+
+get_proxy_zones()
+{
+   proxy_zones=""
+   for chain in $(input_zone_chains); do
+      case " $wan_zone_chains " in
+         *" $chain "*) continue ;;
+      esac
+      proxy_zones="$proxy_zones $(wan_zone_chain_name "$chain")"
+   done
+}
+
+get_proxy_ports()
+{
+   proxy_ports="$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port"
+   accept_ports="$proxy_ports"
+   for p in ${DNSPORT:-53} 53; do
+      case ",$accept_ports," in
+         *",$p,"*) ;;
+         *) accept_ports="$accept_ports,$p" ;;
+      esac
+   done
+}
+
 upnp_exclude()
 {
    if [ -s "$upnp_lease_file" ]; then
@@ -1550,40 +1669,64 @@ if [ -n "$FW4" ]; then
       nft add rule inet fw4 srcnat meta nfproto {ipv4} counter jump openclash_post comment \"OpenClash Bypass Gateway Compatible\"
    fi
 
-   #intranet allowed
-   if [ "$intranet_allowed" -eq 1 ]; then
-      if [ -n "$intranet_allowed_wan_name" ] && [ "$intranet_allowed_wan_name" != "0" ]; then
-         config_load "openclash"
-         config_list_foreach "config" "intranet_allowed_wan_name" wan_name_add
-      else
-         wan_ints=$(nft list chain inet fw4 input |grep -e "jump input_wan" 2>/dev/null |awk '{for (i=1;i<=NF;i++){if ($i ~ /iifname/ && $(i+1) != "{") {print $(i+1)} if ($i ~ /iifname/ && $(i+1) == "{"){for (j=i+1;j<=NF;j++){if ($j~ /}/) {out="";for (k=i+1;k<=j;k++){out=out" "$k};print out}}}}}' 2>/dev/null |sed 's/"//g'|sed 's/{//g'|sed 's/}//g'|sed 's/,//g')
-      fi
-      if [ -n "$wan_ints" ]; then
-         nft 'add chain inet fw4 openclash_wan_input'
-         nft 'flush chain inet fw4 openclash_wan_input'
-         for wan_int in $wan_ints; do
-            #nft delete rule inet fw4 input $(nft -a list chain inet fw4 input |grep "@localnetwork" |awk -F '# ' '{print$2}')
-            nft insert rule inet fw4 input position 0 iifname "$wan_int" ip saddr != @localnetwork counter jump openclash_wan_input
-         done
-         nft add rule inet fw4 openclash_wan_input th dport {$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port} counter reject
-      else
-         LOG_WARN "Can't Settting Only Intranet Allowed Function, Get IPv4 WAN Interfaces error, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
-      fi
-   fi
-
    DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
    if [ -z "$DNSPORT" ]; then
       DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo 53)
+   fi
+
+   get_wan_zone_info
+   get_proxy_ports
+   wan_guard=""
+   if [ -n "$wan_guard_ints" ]; then
+      wan_guard="iifname != {"
+      for wan_int in $wan_guard_ints; do
+         case "$wan_guard" in
+            *"{" ) wan_guard="$wan_guard \"$wan_int\"" ;;
+            * ) wan_guard="$wan_guard, \"$wan_int\"" ;;
+         esac
+      done
+      wan_guard="$wan_guard }"
+   fi
+
+   #accept proxied traffic in each proxyable zone input chain
+   get_proxy_zones
+   for zone in $proxy_zones; do
+      nft list chain inet fw4 "input_$zone" >/dev/null 2>&1 || continue
+      for handle in $(nft -a list chain inet fw4 "input_$zone" 2>/dev/null |grep 'OpenClash Proxy Accept' |awk -F '# handle ' '{print$2}'); do
+         nft delete rule inet fw4 "input_$zone" handle "$handle"
+      done
+      nft insert rule inet fw4 "input_$zone" position 0 ct status dnat meta l4proto {tcp,udp} th dport {$accept_ports} counter accept comment \"OpenClash Proxy Accept\"
+      nft insert rule inet fw4 "input_$zone" position 0 meta mark "$PROXY_FWMARK" counter accept comment \"OpenClash Proxy Accept\"
+   done
+
+   #reject proxied traffic in wan zone input chain
+   if [ -n "$wan_zone_chains" ]; then
+      nft 'add chain inet fw4 openclash_wan_input'
+      nft 'flush chain inet fw4 openclash_wan_input'
+      nft add rule inet fw4 openclash_wan_input meta mark "$PROXY_FWMARK" counter reject
+      nft add rule inet fw4 openclash_wan_input ct status dnat meta l4proto {tcp,udp} th dport {$accept_ports} counter reject
+      if [ "$intranet_allowed" -eq 1 ]; then
+         nft add rule inet fw4 openclash_wan_input th dport {$proxy_ports} counter reject
+      fi
+      for chain in $wan_zone_chains; do
+         nft list chain inet fw4 "$chain" >/dev/null 2>&1 || continue
+         for handle in $(nft -a list chain inet fw4 "$chain" 2>/dev/null |grep 'OpenClash WAN Input' |awk -F '# handle ' '{print$2}'); do
+            nft delete rule inet fw4 "$chain" handle "$handle"
+         done
+         nft insert rule inet fw4 "$chain" position 0 counter jump openclash_wan_input comment \"OpenClash WAN Input\"
+      done
+   elif [ "$intranet_allowed" -eq 1 ]; then
+      LOG_WARN "Can't Settting Only Intranet Allowed Function, Get IPv4 WAN Interfaces error, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
    fi
 
    if [ "$enable_redirect_dns" -eq 1 ]; then
       if ! fw4_has_dns_hijack_rule dstnat ipv4; then
          if [ "$lan_ac_mode" != "1" ]; then
             ACBLACKDNSFILTER="ip saddr != @lan_ac_black_ips ether saddr != @lan_ac_black_macs"
-            nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 ${ACBLACKDNSFILTER} counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
+            nft insert rule inet fw4 dstnat position 0 $wan_guard meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 ${ACBLACKDNSFILTER} counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
          else
-            nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 ip saddr @lan_ac_white_ips counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
-            nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 ether saddr @lan_ac_white_macs counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
+            nft insert rule inet fw4 dstnat position 0 $wan_guard meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 ip saddr @lan_ac_white_ips counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
+            nft insert rule inet fw4 dstnat position 0 $wan_guard meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 ether saddr @lan_ac_white_macs counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
          fi
       fi
    elif [ "$enable_redirect_dns" -eq 2 ]; then
@@ -1596,7 +1739,7 @@ if [ -n "$FW4" ]; then
          nft add rule inet fw4 openclash_dns_redirect meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 ip saddr @lan_ac_white_ips counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
          nft add rule inet fw4 openclash_dns_redirect meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 ether saddr @lan_ac_white_macs counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
       fi
-      nft 'insert rule inet fw4 dstnat position 0 meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 counter jump openclash_dns_redirect'
+      nft "insert rule inet fw4 dstnat position 0 $wan_guard meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 counter jump openclash_dns_redirect"
    fi
 
    add_router_dns_hijack_nft ipv4
@@ -1630,12 +1773,7 @@ if [ -n "$FW4" ]; then
       fi
 
       nft add rule inet fw4 openclash ip protocol tcp counter redirect to "$proxy_port"
-      nft 'add rule inet fw4 dstnat meta nfproto {ipv4} ip protocol tcp counter jump openclash'
-
-      # Accept redirected traffic in input chain (needed when zone input policy is REJECT without DNAT rules)
-      if [ -z "$(nft list chain inet fw4 input 2>/dev/null | grep 'ct status dnat accept')" ]; then
-         nft insert rule inet fw4 input position 0 ct status dnat accept comment \"OpenClash Redirect Accept\"
-      fi
+      nft add rule inet fw4 dstnat meta nfproto {ipv4} $wan_guard ip protocol tcp counter jump openclash
 
       if [ -z "$en_mode_tun" ]; then
          #udp
@@ -1677,7 +1815,7 @@ if [ -n "$FW4" ]; then
 
             nft 'add rule inet fw4 openclash_mangle ip protocol udp counter jump openclash_upnp'
             nft add rule inet fw4 openclash_mangle meta l4proto { udp } mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept
-            nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv4} ip protocol udp counter jump openclash_mangle'
+            nft add rule inet fw4 mangle_prerouting meta nfproto {ipv4} $wan_guard ip protocol udp counter jump openclash_mangle
          fi
          if [ "$enable_udp_proxy" -ne 1 ] && [ "$en_mode" = "fake-ip" ]; then
             check_mod "nft_tproxy"
@@ -1687,7 +1825,7 @@ if [ -n "$FW4" ]; then
             nft 'add chain inet fw4 openclash_mangle'
             nft 'flush chain inet fw4 openclash_mangle'
             nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr { "$fakeip_range" } mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept
-            nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv4} ip protocol udp counter jump openclash_mangle'
+            nft add rule inet fw4 mangle_prerouting meta nfproto {ipv4} $wan_guard ip protocol udp counter jump openclash_mangle
          fi
 
          #router self proxy udp
@@ -1720,10 +1858,6 @@ if [ -n "$FW4" ]; then
             nft 'add rule inet fw4 mangle_output meta nfproto {ipv4} ip protocol udp counter jump openclash_mangle_output'
          fi
 
-         # Accept TPROXY traffic in input chain (needed when zone input policy is REJECT)
-         if [ -z "$(nft list chain inet fw4 input 2>/dev/null | grep 'OpenClash TPROXY Accept')" ]; then
-            nft insert rule inet fw4 input position 0 meta mark "$PROXY_FWMARK" accept comment \"OpenClash TPROXY Accept\"
-         fi
 
          #quic
          if [ "$disable_udp_quic" -eq 1 ]; then
@@ -1859,7 +1993,7 @@ if [ -n "$FW4" ]; then
          nft add rule inet fw4 openclash_mangle meta l4proto { udp } mark set "$PROXY_FWMARK" counter
       fi
 
-      nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv4} counter jump openclash_mangle'
+      nft add rule inet fw4 mangle_prerouting meta nfproto {ipv4} $wan_guard counter jump openclash_mangle
 
       #TUN FORWORD
       nft insert rule inet fw4 forward position 0 meta nfproto {ipv4} oifname utun counter accept comment \"OpenClash TUN Forward\"
@@ -1915,10 +2049,10 @@ if [ -n "$FW4" ]; then
          if [ "$enable_redirect_dns" -eq 1 ]; then
             if [ "$lan_ac_mode" != "1" ]; then
                ACBLACKDNSFILTER="ip6 saddr != @lan_ac_black_ipv6s ether saddr != @lan_ac_black_macs"
-               nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 ${ACBLACKDNSFILTER} counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
+               nft insert rule inet fw4 dstnat position 0 $wan_guard meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 ${ACBLACKDNSFILTER} counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
             else
-               nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 ip6 saddr @lan_ac_white_ipv6s counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
-               nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 ether saddr @lan_ac_white_macs counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
+               nft insert rule inet fw4 dstnat position 0 $wan_guard meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 ip6 saddr @lan_ac_white_ipv6s counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
+               nft insert rule inet fw4 dstnat position 0 $wan_guard meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 ether saddr @lan_ac_white_macs counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
             fi
          elif [ "$enable_redirect_dns" -eq 2 ]; then
             if [ "$lan_ac_mode" != "1" ]; then
@@ -1928,7 +2062,7 @@ if [ -n "$FW4" ]; then
                nft add rule inet fw4 openclash_dns_redirect meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 ip6 saddr @lan_ac_white_ipv6s counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
                nft add rule inet fw4 openclash_dns_redirect meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 ether saddr @lan_ac_white_macs counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
             fi
-            nft 'insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 counter jump openclash_dns_redirect'
+            nft "insert rule inet fw4 dstnat position 0 $wan_guard meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 counter jump openclash_dns_redirect"
          fi
       fi
 
@@ -1987,7 +2121,7 @@ if [ -n "$FW4" ]; then
             nft "add rule inet fw4 openclash_v6 $rule counter return"
          fi
          nft add rule inet fw4 openclash_v6 ip6 nexthdr {tcp} counter redirect to "$proxy_port"
-         nft 'add rule inet fw4 dstnat ip6 nexthdr {tcp} counter jump openclash_v6'
+         nft add rule inet fw4 dstnat $wan_guard ip6 nexthdr {tcp} counter jump openclash_v6
       fi
 
       #TProxy & TUN & Redirect udp
@@ -2056,7 +2190,7 @@ if [ -n "$FW4" ]; then
          fi
       fi
 
-      nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv6} counter jump openclash_mangle_v6'
+      nft add rule inet fw4 mangle_prerouting meta nfproto {ipv6} $wan_guard counter jump openclash_mangle_v6
 
       #router self proxy
       if [ "$router_self_proxy" = "1" ]; then
@@ -2186,27 +2320,6 @@ if [ -n "$FW4" ]; then
          nft 'add rule inet fw4 openclash_post_v6 ct direction reply counter return'
          nft 'add rule inet fw4 openclash_post_v6 fib saddr type != { local } counter masquerade'
          nft add rule inet fw4 srcnat meta nfproto {ipv6} counter jump openclash_post_v6 comment \"OpenClash Bypass Gateway Compatible\"
-      fi
-
-      #intranet allowed
-      if [ "$intranet_allowed" -eq 1 ]; then
-         if [ -n "$intranet_allowed_wan_name" ] && [ "$intranet_allowed_wan_name" != "0" ]; then
-            config_load "openclash"
-            config_list_foreach "config" "intranet_allowed_wan_name" wan6_name_add
-         else
-            wan6_ints=$(nft list chain inet fw4 input |grep -e "jump input_wan" 2>/dev/null |awk '{for (i=1;i<=NF;i++){if ($i ~ /iifname/ && $(i+1) != "{") {print $(i+1)} if ($i ~ /iifname/ && $(i+1) == "{"){for (j=i+1;j<=NF;j++){if ($j~ /}/) {out="";for (k=i+1;k<=j;k++){out=out" "$k};print out}}}}}' 2>/dev/null |sed 's/"//g'|sed 's/{//g'|sed 's/}//g'|sed 's/,//g')
-         fi
-         if [ -n "$wan6_ints" ]; then
-            nft 'add chain inet fw4 openclash_wan6_input'
-            nft 'flush chain inet fw4 openclash_wan6_input'
-            for wan6_int in $wan6_ints; do
-               #nft delete rule inet fw4 input $(nft -a list chain inet fw4 input |grep "@localnetwork6" |awk -F '# ' '{print$2}')
-               nft insert rule inet fw4 input position 0 iifname "$wan6_int" ip6 saddr != @localnetwork6 counter jump openclash_wan6_input
-            done
-            nft add rule inet fw4 openclash_wan6_input ip6 nexthdr {tcp,udp} th dport {$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port} counter reject
-         else
-            LOG_WARN "Can't Settting Only Intranet Allowed Function, Get IPv6 WAN Interfaces error, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
-         fi
       fi
    fi
 
@@ -2350,30 +2463,45 @@ if [ -z "$FW4" ]; then
       iptables -t nat -A POSTROUTING -m comment --comment "OpenClash Bypass Gateway Compatible" -j openclash_post
    fi
 
-   #intranet allowed
-   if [ "$intranet_allowed" -eq 1 ]; then
-      if [ -n "$intranet_allowed_wan_name" ] && [ "$intranet_allowed_wan_name" != "0" ]; then
-         config_load "openclash"
-         config_list_foreach "config" "intranet_allowed_wan_name" wan_name_add
-      else
-         wan_ints=$(iptables-save -t filter |grep -e "-j zone_wan_input" 2>/dev/null |awk '{for (i=1;i<=NF;i++) {if ($i ~ /-i/) {print $(i+1)}}}' 2>/dev/null)
-      fi
-      if [ -n "$wan_ints" ]; then
-         iptables -t filter -N openclash_wan_input
-         iptables -t filter -F openclash_wan_input
-         for wan_int in $wan_ints; do
-            iptables -t filter -I INPUT -i "$wan_int" -m set ! --match-set localnetwork src -j openclash_wan_input
-         done
-         iptables -t filter -A openclash_wan_input -p udp -m multiport --dport "$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port" -j REJECT
-         iptables -t filter -A openclash_wan_input -p tcp -m multiport --dport "$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port" -j REJECT
-      else
-         LOG_WARN "Can't Settting Only Intranet Allowed Function, Get IPv4 WAN Interfaces error, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
-      fi
-   fi
-
    DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
    if [ -z "$DNSPORT" ]; then
       DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo 53)
+   fi
+
+   get_wan_zone_info
+   get_proxy_ports
+
+   #accept proxied traffic in each proxyable zone input chain
+   get_proxy_zones
+   for zone in $proxy_zones; do
+      chain="zone_${zone}_input"
+      iptables -t filter -S "$chain" >/dev/null 2>&1 || continue
+      while iptables -t filter -D "$chain" -p tcp -m conntrack --ctstate DNAT -m multiport --dports "$accept_ports" -j ACCEPT -m comment --comment "OpenClash Proxy Accept" 2>/dev/null; do :; done
+      while iptables -t filter -D "$chain" -p udp -m conntrack --ctstate DNAT -m multiport --dports "$accept_ports" -j ACCEPT -m comment --comment "OpenClash Proxy Accept" 2>/dev/null; do :; done
+      while iptables -t filter -D "$chain" -m mark --mark "$PROXY_FWMARK" -j ACCEPT -m comment --comment "OpenClash Proxy Accept" 2>/dev/null; do :; done
+      iptables -t filter -I "$chain" 1 -p tcp -m conntrack --ctstate DNAT -m multiport --dports "$accept_ports" -j ACCEPT -m comment --comment "OpenClash Proxy Accept"
+      iptables -t filter -I "$chain" 1 -p udp -m conntrack --ctstate DNAT -m multiport --dports "$accept_ports" -j ACCEPT -m comment --comment "OpenClash Proxy Accept"
+      iptables -t filter -I "$chain" 1 -m mark --mark "$PROXY_FWMARK" -j ACCEPT -m comment --comment "OpenClash Proxy Accept"
+   done
+
+   #reject proxied traffic in wan zone input chain
+   if [ -n "$wan_zone_chains" ]; then
+      iptables -t filter -N openclash_wan_input
+      iptables -t filter -F openclash_wan_input
+      iptables -t filter -A openclash_wan_input -m mark --mark "$PROXY_FWMARK" -j REJECT
+      iptables -t filter -A openclash_wan_input -p tcp -m conntrack --ctstate DNAT -m multiport --dports "$accept_ports" -j REJECT
+      iptables -t filter -A openclash_wan_input -p udp -m conntrack --ctstate DNAT -m multiport --dports "$accept_ports" -j REJECT
+      if [ "$intranet_allowed" -eq 1 ]; then
+         iptables -t filter -A openclash_wan_input -p udp -m multiport --dport "$proxy_ports" -j REJECT
+         iptables -t filter -A openclash_wan_input -p tcp -m multiport --dport "$proxy_ports" -j REJECT
+      fi
+      for chain in $wan_zone_chains; do
+         iptables -t filter -S "$chain" >/dev/null 2>&1 || continue
+         while iptables -t filter -D "$chain" -j openclash_wan_input -m comment --comment "OpenClash WAN Input" 2>/dev/null; do :; done
+         iptables -t filter -I "$chain" 1 -j openclash_wan_input -m comment --comment "OpenClash WAN Input"
+      done
+   elif [ "$intranet_allowed" -eq 1 ]; then
+      LOG_WARN "Can't Settting Only Intranet Allowed Function, Get IPv4 WAN Interfaces error, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
    fi
 
    if [ "$enable_redirect_dns" -eq 1 ]; then
@@ -2412,6 +2540,9 @@ if [ -z "$FW4" ]; then
       #tcp
       iptables -t nat -N openclash
       iptables -t nat -F openclash
+      for wan_int in $wan_guard_ints; do
+         iptables -t nat -A openclash -i "$wan_int" -j RETURN
+      done
       iptables -t nat -A openclash -m set --match-set localnetwork dst -j RETURN
       iptables -t nat -A openclash -m conntrack --ctdir REPLY -j RETURN
       iptables -t nat -A openclash -p tcp -d "$fakeip_range" -j REDIRECT --to-ports "$proxy_port"
@@ -2437,11 +2568,6 @@ if [ -z "$FW4" ]; then
       iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
       iptables -t nat -A PREROUTING -p tcp -j openclash
 
-      # Accept redirected traffic in input chain (needed when zone input policy is REJECT without DNAT rules)
-      if [ -z "$(iptables-save -t filter 2>/dev/null | grep 'OpenClash Redirect Accept')" ]; then
-         iptables -I INPUT -m conntrack --ctstate DNAT -j ACCEPT -m comment --comment "OpenClash Redirect Accept"
-      fi
-
       if [ -z "$en_mode_tun" ]; then
          #udp
          if [ "$enable_udp_proxy" -eq 1 ]; then
@@ -2454,6 +2580,9 @@ if [ -z "$FW4" ]; then
             iptables -t mangle -N openclash_upnp
             iptables -t mangle -F openclash_upnp
             upnp_exclude
+            for wan_int in $wan_guard_ints; do
+               iptables -t mangle -A openclash -i "$wan_int" -j RETURN
+            done
             iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN
             iptables -t mangle -A openclash -m conntrack --ctdir REPLY -j RETURN
             if [ "$en_mode" = "fake-ip" ]; then
@@ -2490,6 +2619,9 @@ if [ -z "$FW4" ]; then
             proxy_throw_route_add "$fakeip_range"
             iptables -t mangle -N openclash
             iptables -t mangle -F openclash
+            for wan_int in $wan_guard_ints; do
+               iptables -t mangle -A openclash -i "$wan_int" -j RETURN
+            done
             iptables -t mangle -A openclash -p udp -d "$fakeip_range" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
             iptables -t mangle -A PREROUTING -p udp -j openclash
          fi
@@ -2524,11 +2656,6 @@ if [ -z "$FW4" ]; then
             iptables -t mangle -A OUTPUT -p udp -j openclash_output
          fi
 
-      fi
-
-      # Accept TPROXY traffic in input chain (needed when zone input policy is REJECT)
-      if [ -z "$(iptables -nL INPUT 2>/dev/null | grep 'OpenClash TPROXY Accept')" ]; then
-         iptables -I INPUT -m mark --mark "$PROXY_FWMARK" -j ACCEPT -m comment --comment "OpenClash TPROXY Accept"
       fi
 
       if [ -z "$en_mode_tun" ]; then
@@ -2623,6 +2750,9 @@ if [ -z "$FW4" ]; then
       upnp_exclude
       #其他流量
       iptables -t mangle -A openclash -i utun -j RETURN
+      for wan_int in $wan_guard_ints; do
+         iptables -t mangle -A openclash -i "$wan_int" -j RETURN
+      done
       iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN
       iptables -t mangle -A openclash -m conntrack --ctdir REPLY -j RETURN
       if [ "$en_mode_tun" -eq 1 ]; then
@@ -2772,6 +2902,9 @@ if [ -z "$FW4" ]; then
          #tcp
          ip6tables -t nat -N openclash
          ip6tables -t nat -F openclash
+         for wan_int in $wan_guard_ints; do
+            ip6tables -t nat -A openclash -i "$wan_int" -j RETURN
+         done
          ip6tables -t nat -A openclash -p tcp -d "$fakeip_range6" -j REDIRECT --to-ports "$proxy_port"
          ip6tables -t nat -A openclash -m set --match-set localnetwork6 dst -j RETURN
          ip6tables -t nat -A openclash -m conntrack --ctdir REPLY -j RETURN
@@ -2798,15 +2931,13 @@ if [ -z "$FW4" ]; then
          ip6tables -t nat -A PREROUTING -p tcp -j openclash
       fi
 
-      # Accept redirected IPv6 traffic in input chain (needed when zone input policy is REJECT without DNAT rules)
-      if [ -z "$(ip6tables-save -t filter 2>/dev/null | grep 'OpenClash Redirect Accept')" ]; then
-         ip6tables -I INPUT -m conntrack --ctstate DNAT -j ACCEPT -m comment --comment "OpenClash Redirect Accept"
-      fi
-
       #TProxy & TUN & Redirect udp
       if [ "$enable_v6_udp_proxy" -eq 1 ] || [ "$ipv6_mode" -ne 1 ]; then
          ip6tables -t mangle -N openclash
          ip6tables -t mangle -F openclash
+         for wan_int in $wan_guard_ints; do
+            ip6tables -t mangle -A openclash -i "$wan_int" -j RETURN
+         done
          ip6tables -t mangle -A openclash -m set --match-set localnetwork6 dst -j RETURN
          ip6tables -t mangle -A openclash -m conntrack --ctdir REPLY -j RETURN
          if [ "$ipv6_mode" -ne 1 ] && [ "$ipv6_mode" -ne 3 ]; then
@@ -2870,11 +3001,6 @@ if [ -z "$FW4" ]; then
       fi
 
       ip6tables -t mangle -A PREROUTING -j openclash
-
-      # Accept TPROXY IPv6 traffic in input chain (needed when zone input policy is REJECT)
-      if [ -z "$(ip6tables-save -t filter 2>/dev/null | grep 'OpenClash TPROXY Accept')" ]; then
-         ip6tables -I INPUT -m mark --mark "$PROXY_FWMARK" -j ACCEPT -m comment --comment "OpenClash TPROXY Accept"
-      fi
 
       #router self proxy
       if [ "$router_self_proxy" = "1" ]; then
@@ -2998,25 +3124,36 @@ if [ -z "$FW4" ]; then
          ip6tables -t nat -A POSTROUTING -m comment --comment "OpenClash Bypass Gateway Compatible" -j openclash_post
       fi
 
-      #intranet allowed
-      if [ "$intranet_allowed" -eq 1 ]; then
-         if [ -n "$intranet_allowed_wan_name" ] && [ "$intranet_allowed_wan_name" != "0" ]; then
-            config_load "openclash"
-            config_list_foreach "config" "intranet_allowed_wan_name" wan6_name_add
-         else
-            wan6_ints=$(ip6tables-save -t filter |grep -e "-j zone_wan_input" 2>/dev/null |awk '{for (i=1;i<=NF;i++) {if ($i ~ /-i/) {print $(i+1)}}}' 2>/dev/null)
+      #accept proxied IPv6 traffic in each proxyable zone input chain
+      for zone in $proxy_zones; do
+         chain="zone_${zone}_input"
+         ip6tables -t filter -S "$chain" >/dev/null 2>&1 || continue
+         while ip6tables -t filter -D "$chain" -p tcp -m conntrack --ctstate DNAT -m multiport --dports "$accept_ports" -j ACCEPT -m comment --comment "OpenClash Proxy Accept" 2>/dev/null; do :; done
+         while ip6tables -t filter -D "$chain" -p udp -m conntrack --ctstate DNAT -m multiport --dports "$accept_ports" -j ACCEPT -m comment --comment "OpenClash Proxy Accept" 2>/dev/null; do :; done
+         while ip6tables -t filter -D "$chain" -m mark --mark "$PROXY_FWMARK" -j ACCEPT -m comment --comment "OpenClash Proxy Accept" 2>/dev/null; do :; done
+         ip6tables -t filter -I "$chain" 1 -p tcp -m conntrack --ctstate DNAT -m multiport --dports "$accept_ports" -j ACCEPT -m comment --comment "OpenClash Proxy Accept"
+         ip6tables -t filter -I "$chain" 1 -p udp -m conntrack --ctstate DNAT -m multiport --dports "$accept_ports" -j ACCEPT -m comment --comment "OpenClash Proxy Accept"
+         ip6tables -t filter -I "$chain" 1 -m mark --mark "$PROXY_FWMARK" -j ACCEPT -m comment --comment "OpenClash Proxy Accept"
+      done
+
+      #reject proxied IPv6 traffic in wan zone input chain
+      if [ -n "$wan_zone_chains" ]; then
+         ip6tables -t filter -N openclash_wan_input
+         ip6tables -t filter -F openclash_wan_input
+         ip6tables -t filter -A openclash_wan_input -m mark --mark "$PROXY_FWMARK" -j REJECT
+         ip6tables -t filter -A openclash_wan_input -p tcp -m conntrack --ctstate DNAT -m multiport --dports "$accept_ports" -j REJECT
+         ip6tables -t filter -A openclash_wan_input -p udp -m conntrack --ctstate DNAT -m multiport --dports "$accept_ports" -j REJECT
+         if [ "$intranet_allowed" -eq 1 ]; then
+            ip6tables -t filter -A openclash_wan_input -p udp -m multiport --dport "$proxy_ports" -j REJECT
+            ip6tables -t filter -A openclash_wan_input -p tcp -m multiport --dport "$proxy_ports" -j REJECT
          fi
-         if [ -n "$wan6_ints" ]; then
-            ip6tables -t filter -N openclash_wan_input
-            ip6tables -t filter -F openclash_wan_input
-            for wan6_int in $wan6_ints; do
-               ip6tables -t filter -I INPUT -i "$wan6_int" -m set ! --match-set localnetwork6 src -j openclash_wan_input
-            done
-            ip6tables -t filter -A openclash_wan_input -p udp -m multiport --dport "$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port" -j REJECT
-            ip6tables -t filter -A openclash_wan_input -p tcp -m multiport --dport "$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port" -j REJECT
-         else
-            LOG_WARN "Can't Settting Only Intranet Allowed Function, Get IPv6 WAN Interfaces error, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
-         fi
+         for chain in $wan_zone_chains; do
+            ip6tables -t filter -S "$chain" >/dev/null 2>&1 || continue
+            while ip6tables -t filter -D "$chain" -j openclash_wan_input -m comment --comment "OpenClash WAN Input" 2>/dev/null; do :; done
+            ip6tables -t filter -I "$chain" 1 -j openclash_wan_input -m comment --comment "OpenClash WAN Input"
+         done
+      elif [ "$intranet_allowed" -eq 1 ]; then
+         LOG_WARN "Can't Settting Only Intranet Allowed Function, Get IPv6 WAN Interfaces error, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
       fi
    fi
 
@@ -3076,6 +3213,13 @@ revert_firewall()
          done
       done
 
+      for chain in $(nft list chains 2>/dev/null |grep -o 'chain input_[A-Za-z0-9_]*' |awk '{print $2}' |sort -u); do
+         local handles=$(nft -a list chain inet fw4 "$chain" 2>/dev/null |grep -E "openclash|OpenClash" |awk -F '# handle ' '{print$2}')
+         for handle in $handles; do
+            nft delete rule inet fw4 "$chain" handle ${handle}
+         done
+      done
+
       for handle in $(nft -a list chains |grep -E "chain openclash|OpenClash" |awk -F '# handle ' '{print$2}'); do
          nft delete chain inet fw4 handle ${handle}
       done
@@ -3093,6 +3237,14 @@ revert_firewall()
                done
             fi
          done
+      done
+
+      for chain in $(iptables-save -t filter 2>/dev/null |grep -o -- '-j zone_[A-Za-z0-9_]*_input' |awk '{print $2}' |sort -u); do
+         iptables -t filter -S "$chain" 2>/dev/null |grep -e "OpenClash Proxy Accept" -e "OpenClash WAN Input" |sed 's/^-A /iptables -t filter -D /' >/tmp/openclash_zone_cleanup.sh
+         [ -s /tmp/openclash_zone_cleanup.sh ] && sh /tmp/openclash_zone_cleanup.sh
+         ip6tables -t filter -S "$chain" 2>/dev/null |grep -e "OpenClash Proxy Accept" -e "OpenClash WAN Input" |sed 's/^-A /ip6tables -t filter -D /' >/tmp/openclash_zone_cleanup.sh
+         [ -s /tmp/openclash_zone_cleanup.sh ] && sh /tmp/openclash_zone_cleanup.sh
+         rm -f /tmp/openclash_zone_cleanup.sh
       done
 
       for chain in "openclash" "openclash_output" "openclash_post" "openclash_wan_input" "openclash_dns_redirect" "openclash_upnp"; do

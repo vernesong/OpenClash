@@ -2,7 +2,7 @@
 
 > **用途**: 透明代理防火墙链结构（fw4/fw3）、模式解析与规则排序，理解流量如何被代理/绕过。
 
-> **小节索引**: §4.1 模式解析表 · §4.2 fw4 链结构（§4.2.1 DNS 劫持 / §4.2.2 非 TUN / §4.2.3 TUN / §4.2.4 IPv6）· §4.3 策略路由辅助规则 · §4.4 Docker 网桥与 UDP TPROXY
+> **小节索引**: §4.1 模式解析表 · §4.2 fw4 链结构（§4.2.1 DNS 劫持 / §4.2.2 非 TUN / §4.2.3 TUN / §4.2.4 IPv6）· §4.3 策略路由辅助规则 · §4.4 Docker 网桥与 UDP TPROXY · §4.5 WAN 入口防护与分区放行
 
 > OpenClash 同时支持 **fw3 (iptables/ipset)** 和 **fw4 (nftables)** 两种防火墙后端，通过 `command -v fw4` 自动检测：
 > - 存在 `fw4` → 使用 **nftables** (OpenWrt 22.03+)
@@ -148,10 +148,15 @@ nft add rule inet fw4 openclash th dport != @common_ports counter return
 nft add rule inet fw4 openclash ip protocol tcp counter redirect to $proxy_port
 
 # === 跳转规则 ===
-nft add rule inet fw4 dstnat meta nfproto {ipv4} ip protocol tcp counter jump openclash
+# wan_guard = "iifname != { \"<wan 接口>\" }"，WAN 入口流量不进入劫持链
+nft add rule inet fw4 dstnat meta nfproto {ipv4} $wan_guard ip protocol tcp counter jump openclash
 
-# === DNAT Accept (当 zone input 策略为 REJECT 时需要) ===
-nft insert rule inet fw4 input position 0 ct status dnat accept comment "OpenClash Redirect Accept"
+# === 分区放行（代替全局 DNAT Accept）===
+# 对每个可代理区域（除 WAN 区的 zone input 链）链首插入，端口限定为 OpenClash 端口 + DNS 端口 + 53
+nft insert rule inet fw4 input_<zone> position 0 ct status dnat meta l4proto {tcp,udp} \
+  th dport {<proxy_ports>,<DNSPORT>,53} counter accept comment "OpenClash Proxy Accept"
+nft insert rule inet fw4 input_<zone> position 0 meta mark $PROXY_FWMARK counter accept \
+  comment "OpenClash Proxy Accept"
 ```
 
 **`openclash_mangle` 链规则排序 (UDP TPROXY)** — 仅在 `enable_udp_proxy=1` 或 Fake-IP 模式时创建:
@@ -179,10 +184,10 @@ nft add rule inet fw4 openclash_mangle meta l4proto {udp} \
   mark set $PROXY_FWMARK tproxy ip to 127.0.0.1:$tproxy_port counter accept
 
 # === 跳转规则 ===
-nft add rule inet fw4 mangle_prerouting meta nfproto {ipv4} ip protocol udp counter jump openclash_mangle
+nft add rule inet fw4 mangle_prerouting meta nfproto {ipv4} $wan_guard ip protocol udp counter jump openclash_mangle
 
-# === TPROXY Accept (当 zone input 策略为 REJECT 时需要) ===
-nft insert rule inet fw4 input position 0 meta mark $PROXY_FWMARK accept comment "OpenClash TPROXY Accept"
+# === 分区放行 ===
+# 同 TCP：由各可代理区域的 input 链接受 mark 流量（不再使用全局 TPROXY Accept）
 ```
 
 > **注意**: 当 `enable_udp_proxy != 1` 但 `en_mode = fake-ip` 时，仍会创建简化的 `openclash_mangle` 链仅处理 Fake-IP UDP 流量（无 common_ports/china_ip_route/UPNP 检查）。`ip rule add fwmark $PROXY_FWMARK table $PROXY_ROUTE_TABLE` + `ip route add local 0.0.0.0/0 dev lo table $PROXY_ROUTE_TABLE` 在 UDP TPROXY 启用时创建策略路由。
@@ -247,7 +252,7 @@ nft add rule inet fw4 openclash_mangle ip protocol udp counter jump openclash_up
 nft add rule inet fw4 openclash_mangle mark set $PROXY_FWMARK counter
 
 # === 跳转规则 (meta nfproto {ipv4}) ===
-nft add rule inet fw4 mangle_prerouting meta nfproto {ipv4} counter jump openclash_mangle
+nft add rule inet fw4 mangle_prerouting meta nfproto {ipv4} $wan_guard counter jump openclash_mangle
 ```
 
 **TUN 转发规则** (utun 允许通过，同样使用 `meta nfproto {ipv4}`):
@@ -297,7 +302,7 @@ nft insert rule inet fw4 input position 0 udp dport 443 \
 | `openclash_output_v6` | 路由器自身 IPv6 TCP | `router_self_proxy=1` + (`ipv6_mode=1` 或 `3`) |
 | `openclash_mangle_output_v6` | 路由器自身 IPv6 fwmark | `router_self_proxy=1` |
 | `openclash_post_v6` | 旁路由 SNAT/MASQUERADE | `bypass_gateway_compatible=1` |
-| `openclash_wan6_input` | 仅内网 IPv6 WAN 防护 | `intranet_allowed=1` |
+| `openclash_wan_input` | WAN 区入口防护（v4/v6 共用） | WAN 区链存在即创建 |
 
 **IPv6 链规则结构** (以 `openclash_mangle_v6` 为例，包含 TProxy/TUN/Mix 所有模式的综合处理):
 
@@ -381,3 +386,16 @@ fe80::/10, ff00::/8
 IPv4：`docker0` 存在、`en_mode_tun` 为空且 `enable_udp_proxy=1` 时，先设 `nf_call_iptables=1`，成功后才把全局 `bridge-nf-call-iptables` 设为 `0`。IPv6：`ipv6_enable=1`、`enable_v6_udp_proxy=1` 且 `ipv6_mode=0/1` 时，同样处理 `nf_call_ip6tables` 与 `bridge-nf-call-ip6tables`。
 
 只处理 `docker0`；全局值影响所有网桥。停止 OpenClash 或切换模式不会恢复这些值。
+
+### 4.5 WAN 入口防护与分区放行
+
+劫持链（`dstnat → openclash`、`mangle_prerouting → openclash_mangle`、DNS 劫持）只对非 WAN 入口生效；放行与拒绝都落在**区域自己的 input 链**里，不再使用全局 `input` 链上的 accept：
+
+| 位置 | 规则 | 作用 |
+|------|------|------|
+| 各可代理区域 `input_<zone>` / `zone_<zone>_input` 链首 | `ct status dnat ... th dport {<proxy_ports>,<DNSPORT>,53} accept` + `meta mark 0x162 accept` | 替代旧的全局 Redirect/TPROXY Accept（#5164 场景） |
+| WAN 区 `input_wan` / `zone_wan_input` 链首 | `jump openclash_wan_input` | 不论 WAN 区 input 策略为何都先判 |
+| `openclash_wan_input` 链 | `mark 0x162 reject`、`ct status dnat th dport {...} reject`；`intranet_allowed=1` 时再加代理端口 reject | 拦住从 WAN 侧使用代理/被劫持的流量 |
+| TUN/混合模式的 `mangle_prerouting` 跳转 | `iifname != { <WAN 接口> }` | TUN 流量不进 INPUT，只能在此处排除 WAN 入口 |
+
+WAN 接口列表自动取自 `intranet_allowed_wan_name`（手动指定）或 fw4/fw3 的 WAN 区链跳转；同时属于其它区域的接口不会被排除（避免单网卡旁路由被误伤）。停止/重载时 `revert_firewall()` 会清理区域链里的 OpenClash 规则。
