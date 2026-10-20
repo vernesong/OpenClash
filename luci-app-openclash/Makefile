@@ -108,6 +108,7 @@ define Build/Compile
 		"https://raw.githubusercontent.com/vernesong/OpenClash/core/master/meta/clash-$$CORE_ARCH.tar.gz" && \
 	tar -xzf $(PKG_BUILD_DIR)/clash_meta.tar.gz -C $(PKG_BUILD_DIR) clash && \
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/clash $(PKG_BUILD_DIR)/root/etc/openclash/core/clash_meta
+	rm -f $(PKG_BUILD_DIR)/clash_meta.tar.gz $(PKG_BUILD_DIR)/clash
 endef
 endif
 
@@ -168,6 +169,10 @@ define Package/$(PKG_NAME)/postrm
 	rm -f /tmp/openclash_clients.json >/dev/null 2>&1
 	rm -rf /www/luci-static/resources/openclash >/dev/null 2>&1
 	rm -rf /tmp/oix* >/dev/null 2>&1
+	rm -rf /tmp/openclash_cfg_update_* >/dev/null 2>&1
+	rm -rf /tmp/lock/openclash_subs.lock >/dev/null 2>&1
+	rm -rf /tmp/openclash_jobs >/dev/null 2>&1
+	rm -rf /tmp/yaml_* >/dev/null 2>&1
 	sed -i 's/\(HTTP_MAX_CONTENT[[:space:]]*=[[:space:]]*\)[0-9][0-9]*\([[:space:]]*\*[[:space:]]*[0-9][0-9]*\)*/\11024*100/' /usr/lib/lua/luci/http.lua >/dev/null 2>&1
 	sed -i 's/\(HTTP_MAX_CONTENT[[:space:]]*=[[:space:]]*\)[0-9][0-9]*\([[:space:]]*\*[[:space:]]*[0-9][0-9]*\)*/\11024*100/' /usr/share/ucode/luci/http.uc >/dev/null 2>&1
 	rm -f /etc/nginx/conf.d/openclash.conf >/dev/null 2>&1

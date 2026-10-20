@@ -70,29 +70,119 @@ cron_append()
    printf '%s\n' "$1" >> "$CRON_FILE"
 }
 
+subscribe_cron_gcd()
+{
+   local a="$1" b="$2" t
+   while [ "$b" -ne 0 ]; do
+      t=$((a % b))
+      a="$b"
+      b="$t"
+   done
+   echo "$a"
+}
+
+subscribe_cron_interval_normalize()
+{
+   local interval="$1"
+   case "$interval" in
+      ''|*[!0-9]*) interval=60 ;;
+   esac
+   interval=$(printf '%s' "$interval" | sed 's/^0*//')
+   [ -n "$interval" ] || interval=0
+   [ "$interval" -ge 1 ] || interval=60
+   [ "$interval" -le 525600 ] || interval=525600
+   echo "$interval"
+}
+
+subscribe_cron_schedule()
+{
+   local interval="$1" period count hour_step k offset
+   if [ "$interval" -eq 1440 ]; then
+      echo "0 0 * * *"
+      return 0
+   fi
+   if [ "$interval" -eq 60 ]; then
+      echo "0 * * * *"
+      return 0
+   fi
+   if [ $((60 % interval)) -eq 0 ]; then
+      echo "*/$interval * * * *"
+      return 0
+   fi
+   if [ $((1440 % interval)) -ne 0 ]; then
+      return 1
+   fi
+   period=$(( interval * 60 / $(subscribe_cron_gcd "$interval" 60) ))
+   count=$(( period / interval ))
+   hour_step=$(( period / 60 ))
+   k=0
+   while [ "$k" -lt "$count" ]; do
+      offset=$(( k * interval ))
+      echo "$(( offset % 60 )) $(( offset / 60 ))-23/$hour_step * * *"
+      k=$(( k + 1 ))
+   done
+}
+
+add_subscribe_cron()
+{
+   local section="$1" enabled name address auto_update mode week hour interval schedule guard
+   config_get_bool "enabled" "$section" "enabled" "1"
+   [ "$enabled" -eq 1 ] || return 0
+   config_get "name" "$section" "name" ""
+   config_get "address" "$section" "address" ""
+   [ -n "$name" ] && [ -n "$address" ] || return 0
+   config_get_bool "auto_update" "$section" "auto_update" "$(uci_get_config "auto_update" || echo 0)"
+   [ "$auto_update" -eq 1 ] || return 0
+   config_get "mode" "$section" "config_auto_update_mode" "$(uci_get_config "config_auto_update_mode" || echo 0)"
+   guard=0
+   if [ "$mode" = "1" ]; then
+      config_get "interval" "$section" "config_update_interval" "$(uci_get_config "config_update_interval" || echo 60)"
+      interval=$(subscribe_cron_interval_normalize "$interval")
+      if ! schedule=$(subscribe_cron_schedule "$interval"); then
+         guard=1
+      fi
+   else
+      config_get "week" "$section" "config_update_week_time" "$(uci_get_config "config_update_week_time" || echo 0)"
+      config_get "hour" "$section" "auto_update_time" "$(uci_get_config "auto_update_time" || echo 1)"
+      case "$week" in
+         "*"|[0-6]) ;;
+         *) week=0 ;;
+      esac
+      case "$hour" in
+         ''|*[!0-9]*) hour=0 ;;
+      esac
+      [ "$hour" -le 23 ] || hour=0
+      schedule="0 $hour * * $week"
+   fi
+   if [ "$guard" -eq 1 ]; then
+      cron_append "* * * * * /usr/share/openclash/openclash.sh $(cron_quote "$name") loop $interval >/dev/null 2>&1 #openclash-cron-task"
+   else
+      echo "$schedule" | while IFS= read -r line; do
+         [ -n "$line" ] && cron_append "$line /usr/share/openclash/openclash.sh $(cron_quote "$name") #openclash-cron-task"
+      done
+   fi
+}
+
 add_cron()
 {
-   [ "$(tail -n1 /etc/crontabs/root | wc -l)" -eq 0 ] && [ -n "$(cat /etc/crontabs/root 2>/dev/null)" ] && echo >> /etc/crontabs/root
-   [ -z "$(grep "openclash.sh" "$CRON_FILE" 2>/dev/null)" ] && {
-      [ "$(uci_get_config "auto_update")" -eq 1 ] && [ "$(uci_get_config "config_auto_update_mode")" -ne 1 ] && echo "0 $(uci_get_config "auto_update_time" || 1) * * $(uci_get_config "config_update_week_time" || 0) /usr/share/openclash/openclash.sh #openclash-cron-task" >> $CRON_FILE
-   }
-   [ -z "$(grep "openclash_geo.sh" "$CRON_FILE" 2>/dev/null)" ] && {
-      [ "$(uci_get_config "geo_auto_update")" -eq 1 ] && echo "0 $(uci_get_config "geo_update_day_time" || 1) * * $(uci_get_config "geo_update_week_time" || 0) /usr/share/openclash/openclash_geo.sh ipdb #openclash-cron-task" >> $CRON_FILE
-      [ "$(uci_get_config "geosite_auto_update")" -eq 1 ] && echo "0 $(uci_get_config "geosite_update_day_time" || 1) * * $(uci_get_config "geosite_update_week_time" || 0) /usr/share/openclash/openclash_geo.sh geosite #openclash-cron-task" >> $CRON_FILE
-      [ "$(uci_get_config "geoip_auto_update")" -eq 1 ] && echo "0 $(uci_get_config "geoip_update_day_time" || 1) * * $(uci_get_config "geoip_update_week_time" || 0) /usr/share/openclash/openclash_geo.sh geoip #openclash-cron-task" >> $CRON_FILE
-      [ "$(uci_get_config "geoasn_auto_update")" -eq 1 ] && echo "0 $(uci_get_config "geoasn_update_day_time" || 1) * * $(uci_get_config "geoasn_update_week_time" || 0) /usr/share/openclash/openclash_geo.sh geoasn #openclash-cron-task" >> $CRON_FILE
-   }
-   [ -z "$(grep "openclash_chnroute.sh" "$CRON_FILE" 2>/dev/null)" ] && {
-      [ "$(uci_get_config "chnr_auto_update")" -eq 1 ] && echo "0 $(uci_get_config "chnr_update_day_time" || 1) * * $(uci_get_config "chnr_update_week_time" || 0) /usr/share/openclash/openclash_chnroute.sh #openclash-cron-task" >> $CRON_FILE
-   }
-   [ -z "$(grep -E "dispatch_restart #openclash-cron-task|/etc/init.d/openclash restart #openclash-cron-task" "$CRON_FILE" 2>/dev/null)" ] && {
-      [ "$(uci_get_config "auto_restart")" -eq 1 ] && echo "0 $(uci_get_config "auto_restart_day_time" || 1) * * $(uci_get_config "auto_restart_week_time" || 0) /etc/init.d/openclash restart #openclash-cron-task" >> $CRON_FILE
-   }
+   touch "$CRON_FILE"
+   sed -i '/#openclash-cron-task/d' "$CRON_FILE"
+   sed -i '/#openclash-overwrite-download/d' "$CRON_FILE"
+   [ "$(tail -n1 "$CRON_FILE" 2>/dev/null | wc -l)" -eq 0 ] && [ -n "$(cat "$CRON_FILE" 2>/dev/null)" ] && echo >> "$CRON_FILE"
 
    config_load "openclash"
+   config_foreach add_subscribe_cron "config_subscribe"
+
+   [ "$(uci_get_config "geo_auto_update")" -eq 1 ] && echo "0 $(uci_get_config "geo_update_day_time" || 1) * * $(uci_get_config "geo_update_week_time" || 0) /usr/share/openclash/openclash_geo.sh ipdb #openclash-cron-task" >> "$CRON_FILE"
+   [ "$(uci_get_config "geosite_auto_update")" -eq 1 ] && echo "0 $(uci_get_config "geosite_update_day_time" || 1) * * $(uci_get_config "geosite_update_week_time" || 0) /usr/share/openclash/openclash_geo.sh geosite #openclash-cron-task" >> "$CRON_FILE"
+   [ "$(uci_get_config "geoip_auto_update")" -eq 1 ] && echo "0 $(uci_get_config "geoip_update_day_time" || 1) * * $(uci_get_config "geoip_update_week_time" || 0) /usr/share/openclash/openclash_geo.sh geoip #openclash-cron-task" >> "$CRON_FILE"
+   [ "$(uci_get_config "geoasn_auto_update")" -eq 1 ] && echo "0 $(uci_get_config "geoasn_update_day_time" || 1) * * $(uci_get_config "geoasn_update_week_time" || 0) /usr/share/openclash/openclash_geo.sh geoasn #openclash-cron-task" >> "$CRON_FILE"
+   [ "$(uci_get_config "chnr_auto_update")" -eq 1 ] && echo "0 $(uci_get_config "chnr_update_day_time" || 1) * * $(uci_get_config "chnr_update_week_time" || 0) /usr/share/openclash/openclash_chnroute.sh #openclash-cron-task" >> "$CRON_FILE"
+   [ "$(uci_get_config "auto_restart")" -eq 1 ] && echo "0 $(uci_get_config "auto_restart_day_time" || 1) * * $(uci_get_config "auto_restart_week_time" || 0) /etc/init.d/openclash restart #openclash-cron-task" >> "$CRON_FILE"
+
    config_foreach add_overwrite_cron "config_overwrite"
 
-   crontab $CRON_FILE
+   crontab "$CRON_FILE"
 }
 
 del_cron()
@@ -3875,6 +3965,14 @@ start_service()
    echo "OpenClash Already Start!"
 }
 
+cleanup_subscribe_temp()
+{
+   local name
+   config_get "name" "$1" "name" ""
+   [ -n "$name" ] || return 0
+   rm -f "/tmp/$name.yaml"
+}
+
 stop_service()
 {
    get_config
@@ -3919,9 +4017,12 @@ stop_service()
                 /tmp/openclash_announcement \
                 /tmp/openclash_tpl_cache \
                 /tmp/openclash_clients.json \
+                /tmp/openclash_cfg_update_* \
                 ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf \
                 ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf \
                 ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf
+         config_load "openclash"
+         config_foreach cleanup_subscribe_temp "config_subscribe"
       fi
 
       del_cron
@@ -3962,6 +4063,10 @@ service_started()
 
 reload_service()
 {
+   if [ "$1" == "cron" ]; then
+      add_cron
+      exit 0
+   fi
    get_config
    MAX_RELOAD=10
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "firewall" ]; then

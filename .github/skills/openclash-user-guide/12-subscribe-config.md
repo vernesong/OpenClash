@@ -42,7 +42,9 @@
 **关键字匹配实现** (`server_key_match()`):
 将用户输入的关键字转换为 Ruby 正则表达式。`&` 分隔的转为正向预查链 `(?=.*kw1)(?=.*kw2)`，`|` 分隔的转为择一匹配 `(kw1|kw2)`。
 
-### 12.2 自动更新 (Auto Update)
+### 12.2 自动更新 (Auto Update，每条订阅单独设置)
+
+> 以下选项位于每条 `config_subscribe` 条目内（编辑订阅页），不再作为全局开关。
 
 | 选项 | UCI Key | 说明 |
 |------|---------|------|
@@ -50,7 +52,12 @@
 | 更新模式 | `config_auto_update_mode` | `0`=预约模式(指定周几几点), `1`=循环模式(每隔N分钟) |
 | 更新日 (Update Time Every Week) | `config_update_week_time` | `*`=每天 (Every Day), `1`=周一, …, `0`=周日 |
 | 更新时间 (Update time every day) | `auto_update_time` | 0-23 点 |
-| 更新间隔/分钟 (Update Interval min) | `config_update_interval` | 仅循环模式，默认 60 |
+| 更新间隔/分钟 (Update Interval min) | `config_update_interval` | 仅循环模式，默认 60，可填 1–525600 |
+
+- 调度由 `init.d/openclash` 的 `add_cron()` 为每条启用且有订阅地址的条目生成独立 cron 行（`/usr/share/openclash/openclash.sh '<name>'`），在服务启动或 `/etc/init.d/openclash reload cron` 时重建；看门狗不再负责订阅更新。
+- 旧版全局 `openclash.config.auto_update` 等键作为迁移回退：条目未写入自己的值时沿用全局值，编辑保存后写入条目；条目显式写入 `auto_update=0` 可覆盖全局开关。
+- 循环模式生成标准 cron 表达式：能整除 60 的间隔用 `*/N * * * *`，整小时用 `0 * * * *` / `0 0-23/H * * *`，45/90 等整除 1440 的跨小时间隔用多条 `分钟 起始-23/步长 * * *` 精确覆盖；其它任意分钟值由 cron 每分钟调用的 `openclash.sh '<name>' loop <interval>` 按 `/tmp/openclash_cfg_update_<md5>` 时间戳守卫触发。时间戳在刷新结束时写入，间隔从上一次完成开始计算；未到期直接退出，到期后阻塞等待全局锁，取锁后再检查一次时间戳，避免排队期间重复刷新。
+- 所有订阅刷新共用 `openclash.sh` 的全局锁串行执行（Ruby 解析、内核校验与防火墙/DNS 回退的峰值内存较高，且共享任务计数与重启逻辑）；不同文件同时发起时排队等待，不会跳过。
 
 ### 12.3 每条订阅 (`config_subscribe` TypedSection)
 
@@ -58,6 +65,7 @@
 |------|---------|------|
 | 订阅名称 (Config Alias) | `name` | 用于区分，请勿重名 |
 | 订阅地址 (Subscribe Address) | `address` | 订阅 URL |
+| **自动更新相关** | `auto_update` / `config_auto_update_mode` / `config_update_week_time` / `auto_update_time` / `config_update_interval` | 见 §12.2，每条订阅独立调度 |
 | **User-Agent** (UA) | `sub_ua` | 预设 clash-verge/clash.meta/clash |
 | **在线订阅转换 (Subscribe Convert Online)** | `sub_convert` | 订阅转换后端地址 |
 | **订阅转换模板 (Template Name)** | `sub_template` | 转换模板 URL |

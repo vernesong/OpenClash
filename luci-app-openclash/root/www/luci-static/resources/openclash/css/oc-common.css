@@ -1291,6 +1291,7 @@ html[data-darkmode="true"] .oc svg {
 
 .oc .form-select-wrapper {
     position: relative;
+    min-width: 0;
 }
 
 .oc .form-select-wrapper::after {
@@ -1312,6 +1313,7 @@ html[data-darkmode="true"] .oc svg {
     width: 100%;
     height: 40px;
     padding: 10px 12px;
+    min-width: 0;
     border: 1px solid var(--border-light);
     border-radius: var(--radius-sm);
     background: var(--bg-white) !important;

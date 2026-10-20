@@ -6,7 +6,6 @@
 
 LOG_FILE="/tmp/openclash.log"
 CLASH="/etc/openclash/clash"
-CFG_UPDATE_INT=0
 SKIP_PROXY_ADDRESS=1
 SKIP_PROXY_ADDRESS_INTERVAL=30
 UPNP_INT=1
@@ -200,9 +199,6 @@ do
    router_self_proxy=$(uci_get_config "router_self_proxy" || echo 1)
    skip_proxy_address=$(uci_get_config "skip_proxy_address" || echo 0)
 
-   cfg_update=$(uci_get_config "auto_update")
-   cfg_update_mode=$(uci_get_config "config_auto_update_mode")
-   cfg_update_interval=$(uci_get_config "config_update_interval" || echo 60)
    stream_auto_select=$(uci_get_config "stream_auto_select" || echo 0)
    stream_auto_select_interval=$(uci_get_config "stream_auto_select_interval" || echo 30)
    stream_auto_select_netflix=$(uci_get_config "stream_auto_select_netflix" || echo 0)
@@ -429,14 +425,6 @@ fi
 
 ##Dler Cloud Checkin
    /usr/share/openclash/openclash_oix_checkin.lua >/dev/null 2>&1
-
-## 配置文件循环更新
-   if [ "$cfg_update" -eq 1 ] && [ "$cfg_update_mode" -eq 1 ]; then
-      if [ "$CFG_UPDATE_INT" -ne 0 ]; then
-         [ "$(expr "$CFG_UPDATE_INT" % "$cfg_update_interval")" -eq 0 ] && /usr/share/openclash/openclash.sh
-      fi
-      CFG_UPDATE_INT=$(expr "$CFG_UPDATE_INT" + 1)
-   fi
 
 ##STREAMING_UNLOCK_CHECK
    if [ "$stream_auto_select" -eq 1 ] && [ "$router_self_proxy" -eq 1 ]; then

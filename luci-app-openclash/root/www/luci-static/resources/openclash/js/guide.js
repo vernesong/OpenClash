@@ -106,7 +106,7 @@ var Guide = {
                     + '<li><b><%:SwiTch%></b><span class="guide-sep"></span><%:applies the selected config and restarts OpenClash%></li>'
                     + '<li><b><%:Update%></b><span class="guide-sep"></span><%:downloads the subscription again%></li>'
                     + '<li><b><%:Edit%></b><span class="guide-sep"></span><%:opens this config in the editor%></li>'
-                    + '<li><b><%:Edit Subscription%></b><span class="guide-sep"></span><%:changes the link, the User-Agent or the conversion options%></li>'
+                    + '<li><b><%:Edit Subscription%></b><span class="guide-sep"></span><%:changes the link, the User-Agent, the schedule or the conversion options%></li>'
                     + '<li><b><%:Add%></b><span class="guide-sep"></span><%:adds a config file or a subscription%></li>'
                     + '</ul>';
             }
@@ -510,6 +510,23 @@ var Guide = {
             }
         },
         {
+            key: 'autoupdate',
+            title: '<%:Auto Update%>',
+            target: function () { return Guide.boxOf('#auto-update-enable'); },
+            tab: 'subscribe',
+            place: 'bottom',
+            wide: true,
+            prepare: function () { Guide.ensureChecked('#auto-update-enable'); },
+            holeTo: function () { return Guide.boxList(['#auto-update-mode', '#auto-update-week', '#auto-update-hour', '#auto-update-interval']); },
+            body: function () {
+                return '<p><%:This subscription keeps its own refresh schedule%><span class="guide-tag opt"><%:Optional%></span></p>'
+                    + '<ul>'
+                    + '<li><b><%:Appointment Mode%></b><span class="guide-sep"></span><%:refreshes on the chosen weekday and hour%></li>'
+                    + '<li><b><%:Loop Mode%></b><span class="guide-sep"></span><%:refreshes every N minutes, counted from the end of the previous refresh%></li>'
+                    + '</ul>';
+            }
+        },
+        {
             key: 'convert',
             title: '<%:Subscribe Convert Online%>',
             target: function () { return Guide.boxOf('#sub-convert-enable'); },
@@ -616,8 +633,7 @@ var Guide = {
             place: 'top',
             body: function () {
                 return '<p><%:A name is required before saving%></p>'
-                    + '<p><b><%:Config Name%></b><span class="guide-sep"></span><%:the name shown in the config list%><span class="guide-tag req"><%:Required%></span></p>'
-                    + '<p class="guide-info"><%:The refresh interval is set in Config Subscribe, not here%></p>';
+                    + '<p><b><%:Config Name%></b><span class="guide-sep"></span><%:the name shown in the config list%><span class="guide-tag req"><%:Required%></span></p>';
             }
         },
         {

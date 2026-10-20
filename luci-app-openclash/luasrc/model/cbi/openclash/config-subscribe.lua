@@ -17,50 +17,8 @@ bold_off = [[</strong>]]
 m = Map("openclash", translate("Config Subscribe"))
 m.pageaction = false
 
-s = m:section(TypedSection, "openclash")
-s.anonymous = true
-
----- update Settings
-o = s:option(Flag, "auto_update", translate("Auto Update"))
-o.description = translate("Auto Update Server subscription")
-o.default = 0
-
-o = s:option(ListValue, "config_auto_update_mode", translate("Update Mode"))
-o:depends("auto_update", "1")
-o:value("0", translate("Appointment Mode"))
-o:value("1", translate("Loop Mode"))
-o.default = "0"
-o.rmempty = true
-
-o = s:option(ListValue, "config_update_week_time", translate("Update Time (Every Week)"))
-o:depends("config_auto_update_mode", "0")
-o:value("*", translate("Every Day"))
-o:value("1", translate("Every Monday"))
-o:value("2", translate("Every Tuesday"))
-o:value("3", translate("Every Wednesday"))
-o:value("4", translate("Every Thursday"))
-o:value("5", translate("Every Friday"))
-o:value("6", translate("Every Saturday"))
-o:value("0", translate("Every Sunday"))
-o.default = "1"
-o.rmempty = true
-
-o = s:option(ListValue, "auto_update_time", translate("Update time (every day)"))
-o:depends("config_auto_update_mode", "0")
-for t = 0,23 do
-o:value(t, t..":00")
-end
-o.default = "0"
-o.rmempty = true
-
-o = s:option(Value, "config_update_interval", translate("Update Interval(min)"))
-o.default = "60"
-o.datatype = "integer"
-o:depends("config_auto_update_mode", "1")
-o.rmempty = true
-
 -- [[ Edit Server ]] --
-s = m:section(TypedSection, "config_subscribe", translate("Config Subscribe Edit"))
+s = m:section(TypedSection, "config_subscribe")
 s.anonymous = true
 s.addremove = true
 s.sortable = true
@@ -118,6 +76,38 @@ function o.cfgvalue(...)
 	end
 end
 
+---- auto update schedule
+o = s:option(DummyValue, "update_schedule", translate("Auto Update"))
+o.width = "14%"
+function o.cfgvalue(self, section)
+	local address = uci:get(openclash, section, "address")
+	if uci:get(openclash, section, "enabled") == "0" or not address or address == "" then
+		return translate("Disabled")
+	end
+	local schedule = fs.config_subscribe_schedule(section, uci)
+	if schedule.auto_update ~= "1" then
+		return translate("Disabled")
+	end
+	if schedule.mode == "1" then
+		return string.format("%s %s", translate("Update Interval(min)"), schedule.interval)
+	end
+	local hour = tonumber(schedule.hour) or 0
+	if hour < 0 or hour > 23 then hour = 0 end
+	local day
+	if schedule.week == "*" then
+		day = translate("Every Day")
+	else
+		local weekdays = {
+			"Every Sunday", "Every Monday", "Every Tuesday", "Every Wednesday",
+			"Every Thursday", "Every Friday", "Every Saturday"
+		}
+		local week = tonumber(schedule.week) or 0
+		if week < 0 or week > 6 then week = 0 end
+		day = translate(weekdays[week + 1])
+	end
+	return string.format("%s %02d:00", day, hour)
+end
+
 ---- update
 o = s:option(DummyValue, "name", translate("Update"))
 o.template = "openclash/update_config"
@@ -133,6 +123,8 @@ o.inputtitle = translate("Commit Settings")
 o.inputstyle = "apply"
 o.write = function()
 	m.uci:commit("openclash")
+	uci:load("openclash")
+	SYS.call("/etc/init.d/openclash reload cron >/dev/null 2>&1")
 end
 
 o = a:option(Button, "Apply", " ")
@@ -141,6 +133,7 @@ o.inputstyle = "apply"
 o.write = function()
 	m.uci:set("openclash", "config", "enable", 1)
 	m.uci:commit("openclash")
+	SYS.call("/etc/init.d/openclash reload cron >/dev/null 2>&1")
 	SYS.call("/usr/share/openclash/openclash.sh >/dev/null 2>&1 &")
 	HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end

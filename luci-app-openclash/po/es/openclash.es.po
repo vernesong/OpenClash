@@ -4422,8 +4422,14 @@ msgstr "Una configuración con el mismo nombre se reemplaza"
 msgid "Clicking an entry opens it in the editor"
 msgstr "Al pulsar una entrada se abre en el editor"
 
-msgid "The refresh interval is set in Config Subscribe, not here"
-msgstr "El intervalo de actualización se ajusta en Suscripciones, no aquí"
+msgid "This subscription keeps its own refresh schedule"
+msgstr "Esta suscripción mantiene su propio programa de actualización"
+
+msgid "refreshes on the chosen weekday and hour"
+msgstr "actualiza el día y la hora seleccionados"
+
+msgid "refreshes every N minutes, counted from the end of the previous refresh"
+msgstr "actualiza cada N minutos, contados desde el final de la actualización anterior"
 
 msgid "The name shown in the config list; keep it or type another"
 msgstr "El nombre que muestra la lista; consérvalo o escribe otro"
@@ -4527,8 +4533,8 @@ msgstr "latencia de conexión de este router con ese espejo"
 msgid "a subscription URL from the provider, refreshable later"
 msgstr "una URL de suscripción del proveedor, actualizable después"
 
-msgid "changes the link, the User-Agent or the conversion options"
-msgstr "cambia el enlace, el User-Agent o la conversión"
+msgid "changes the link, the User-Agent, the schedule or the conversion options"
+msgstr "cambia el enlace, el User-Agent, el programa o las opciones de conversión"
 
 msgid "counted since the core started"
 msgstr "contados desde que arrancó el núcleo"
@@ -5714,3 +5720,6 @@ msgstr "Router"
 
 msgid "Search devices"
 msgstr "Buscar dispositivos"
+
+msgid "Minutes"
+msgstr "minutos"

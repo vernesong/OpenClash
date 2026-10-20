@@ -83,6 +83,65 @@ o:value("clash.meta/1.19.20")
 o:value("Clash")
 o.rmempty = true
 
+---- auto update
+o = s:option(Flag, "auto_update", translate("Auto Update"))
+o.description = translate("Auto Update Server subscription")
+o.default = 0
+o.rmempty = false
+function o.cfgvalue(self, section)
+	return fs.config_subscribe_schedule(section, m.uci).auto_update
+end
+
+---- update mode
+o = s:option(ListValue, "config_auto_update_mode", translate("Update Mode"))
+o:depends("auto_update", "1")
+o:value("0", translate("Appointment Mode"))
+o:value("1", translate("Loop Mode"))
+o.default = "0"
+o.rmempty = true
+function o.cfgvalue(self, section)
+	return fs.config_subscribe_schedule(section, m.uci).mode
+end
+
+---- update week time
+o = s:option(ListValue, "config_update_week_time", translate("Update Time (Every Week)"))
+o:depends("config_auto_update_mode", "0")
+o:value("*", translate("Every Day"))
+o:value("1", translate("Every Monday"))
+o:value("2", translate("Every Tuesday"))
+o:value("3", translate("Every Wednesday"))
+o:value("4", translate("Every Thursday"))
+o:value("5", translate("Every Friday"))
+o:value("6", translate("Every Saturday"))
+o:value("0", translate("Every Sunday"))
+o.default = "1"
+o.rmempty = true
+function o.cfgvalue(self, section)
+	return fs.config_subscribe_schedule(section, m.uci).week
+end
+
+---- update day time
+o = s:option(ListValue, "auto_update_time", translate("Update time (every day)"))
+o:depends("config_auto_update_mode", "0")
+for t = 0,23 do
+o:value(t, t..":00")
+end
+o.default = "0"
+o.rmempty = true
+function o.cfgvalue(self, section)
+	return fs.config_subscribe_schedule(section, m.uci).hour
+end
+
+---- update interval
+o = s:option(Value, "config_update_interval", translate("Update Interval(min)"))
+o:depends("config_auto_update_mode", "1")
+o.default = "60"
+o.datatype = "and(uinteger, min(1), max(525600))"
+o.rmempty = true
+function o.cfgvalue(self, section)
+	return fs.config_subscribe_schedule(section, m.uci).interval
+end
+
 ---- subconverter
 o = s:option(Flag, "sub_convert", translate("Subscribe Convert Online"))
 o.description = translate("Convert Subscribe Online With Template")
@@ -394,6 +453,7 @@ o.write = function()
 		end
 	end
 	m.uci:commit(openclash)
+	sys.call("/etc/init.d/openclash reload cron >/dev/null 2>&1")
 	HTTP.redirect(m.redirect)
 end
 

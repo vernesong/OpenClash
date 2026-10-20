@@ -650,6 +650,32 @@ function config_refs(old_file_name, new_file_name)
 	uci:commit("openclash")
 end
 
+--- Effective auto update settings of a config_subscribe section; entries written
+-- by older versions inherit the former global options until they are saved once.
+-- @param section String config_subscribe section id
+-- @param cursor Optional uci cursor, pass the map cursor to see uncommitted values
+-- @return Table with the effective schedule
+function config_subscribe_schedule(section, cursor)
+	cursor = cursor or uci
+	local function read(option, default)
+		local value = cursor:get("openclash", section, option)
+		if value == nil or value == "" then
+			value = cursor:get("openclash", "config", option)
+		end
+		if value == nil or value == "" then
+			value = default
+		end
+		return tostring(value)
+	end
+	return {
+		auto_update = read("auto_update", "0"),
+		mode = read("config_auto_update_mode", "0"),
+		week = read("config_update_week_time", "0"),
+		hour = read("auto_update_time", "0"),
+		interval = read("config_update_interval", "60"),
+	}
+end
+
 --- Returns the appropriate ps command string for the system's ps implementation.
 -- Detects procps-ng (ps -efw) vs busybox (ps -w).
 -- @return String containing the ps command prefix

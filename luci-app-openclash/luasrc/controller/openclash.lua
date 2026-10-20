@@ -2374,6 +2374,7 @@ function rename_file()
 			end
 
 			fs.config_refs(old_file_name, new_file_name)
+			SYS.call("/etc/init.d/openclash reload cron >/dev/null 2>&1")
 		end
 		HTTP.status(200, "Rename File Successful")
 	else
@@ -5177,6 +5178,11 @@ function action_add_subscription()
 	local ex_keyword = HTTP.formvalue("ex_keyword") or ""
 	local de_ex_keyword = HTTP.formvalue("de_ex_keyword") or ""
 	local sub_headers = HTTP.formvalue("sub_headers") or ""
+	local auto_update = HTTP.formvalue("auto_update")
+	local update_mode = HTTP.formvalue("config_auto_update_mode")
+	local update_week = HTTP.formvalue("config_update_week_time")
+	local update_hour = HTTP.formvalue("auto_update_time")
+	local update_interval = HTTP.formvalue("config_update_interval")
 	HTTP.prepare_content("application/json")
 
 	if not name then
@@ -5385,7 +5391,24 @@ function action_add_subscription()
 
 		uci:set("openclash", section_id, "de_ex_keyword", de_ex_keyword)
 
+		if auto_update ~= nil then
+			uci:set("openclash", section_id, "auto_update", auto_update == "1" and "1" or "0")
+		end
+		if update_mode ~= nil then
+			uci:set("openclash", section_id, "config_auto_update_mode", update_mode == "1" and "1" or "0")
+		end
+		if update_week ~= nil and (update_week == "*" or update_week:match("^[0-6]$")) then
+			uci:set("openclash", section_id, "config_update_week_time", update_week)
+		end
+		if update_hour ~= nil and update_hour:match("^([01]?%d|2[0-3])$") then
+			uci:set("openclash", section_id, "auto_update_time", tostring(tonumber(update_hour)))
+		end
+		if update_interval ~= nil and tonumber(update_interval) and tonumber(update_interval) >= 1 and tonumber(update_interval) <= 525600 then
+			uci:set("openclash", section_id, "config_update_interval", tostring(tonumber(update_interval)))
+		end
+
 		uci:commit("openclash")
+		SYS.call("/etc/init.d/openclash reload cron >/dev/null 2>&1")
 
 		local action_msg = existing_section_id and "Subscription updated successfully" or "Subscription added successfully"
 		HTTP.write_json({
@@ -6476,6 +6499,18 @@ function action_get_subscribe_data()
 				local raw = uci:get_list("openclash", sid, field)
 				if raw then
 					data[field] = table.concat(raw, "\n")
+				end
+			end
+			local schedule = fs.config_subscribe_schedule(sid)
+			for option, value in pairs({
+				auto_update = schedule.auto_update,
+				config_auto_update_mode = schedule.mode,
+				config_update_week_time = schedule.week,
+				auto_update_time = schedule.hour,
+				config_update_interval = schedule.interval,
+			}) do
+				if data[option] == nil or data[option] == "" then
+					data[option] = value
 				end
 			end
 			return false

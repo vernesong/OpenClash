@@ -135,7 +135,8 @@ Dashboard: http://路由器LAN_IP:9090/ui/
 │
 └─ Step 6: 定时任务 + 守护进程 (Add Cron Rules, Start Daemons)
     ├─ add_cron()         → 注册 cron 任务
-    │   ├─ openclash.sh   → 定时更新订阅
+    │   ├─ add_subscribe_cron → 为每条 config_subscribe 生成 openclash.sh '<name>' 独立定时更新
+    │   │   └─ openclash.sh '<name>' loop <interval> → 非精确 cron 间隔的时间戳守卫
     │   ├─ openclash_geo.sh → 定时更新 GEO 数据 (ipdb/geosite/geoip/geoasn)
     │   ├─ openclash_chnroute.sh → 定时更新大陆路由
     │   ├─ /etc/init.d/openclash restart → 定时自动重启

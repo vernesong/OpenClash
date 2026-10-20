@@ -3,21 +3,50 @@
 . /usr/share/openclash/ruby.sh
 . /usr/share/openclash/openclash_ps.sh
 . /usr/share/openclash/log.sh
-. /lib/functions/procd.sh
 . /usr/share/openclash/openclash_curl.sh
 . /usr/share/openclash/uci.sh
 
+# One global lock: an update runs Ruby checks, core validation and the firewall/DNS
+# fallback, concurrent runs would multiply peak memory.
 set_lock() {
+   mkdir -p /tmp/lock
    exec 889>"/tmp/lock/openclash_subs.lock" 2>/dev/null
    flock -x 889 2>/dev/null
 }
 
 del_lock() {
    flock -u 889 2>/dev/null
-   rm -rf "/tmp/lock/openclash_subs.lock" 2>/dev/null
 }
 
-set_lock
+update_interval=0
+[ "$2" = "loop" ] && update_interval="$3"
+case "$update_interval" in
+   ''|*[!0-9]*) update_interval=0 ;;
+esac
+
+subscribe_update_due()
+{
+   local now last
+   now=$(date +%s)
+   last=$(cat "$update_state" 2>/dev/null)
+   case "$last" in
+      ''|*[!0-9]*) last=0 ;;
+   esac
+   [ $((now - last)) -ge $((update_interval * 60)) ]
+}
+if [ "$update_interval" -gt 0 ] && [ -n "$1" ]; then
+   update_state="/tmp/openclash_cfg_update_$(printf '%s' "$1" | md5sum | cut -c1-8)"
+   subscribe_update_due || exit 0
+   # loop jobs queue so a scheduled refresh is not dropped when another one runs
+   set_lock
+   # another job may have finished this subscription while this one was waiting
+   if ! subscribe_update_due; then
+      del_lock
+      exit 0
+   fi
+else
+   set_lock
+fi
 
 LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 LOG_FILE="/tmp/openclash.log"
@@ -242,11 +271,20 @@ config_error()
    exit_code=1
 }
 
+# procd.sh takes its own service lock when sourced, which breaks outside an init
+# script, so the watchdog is signalled through ubus directly.
+signal_watchdog()
+{
+   local signal
+   signal=$(kill -l "$1" 2>/dev/null) || return 1
+   ubus call service signal "{\"name\":\"openclash-watchdog\",\"signal\":$signal}" >/dev/null 2>&1
+}
+
 change_dns()
 {
    if pidof clash >/dev/null; then
       /etc/init.d/openclash reload "restore" >/dev/null 2>&1
-      procd_send_signal "openclash-watchdog" "" CONT
+      signal_watchdog CONT
    fi
 }
 
@@ -254,7 +292,7 @@ config_download_direct()
 {
    if pidof clash >/dev/null && [ "$router_self_proxy" = 1 ]; then
       kill_streaming_unlock
-      procd_send_signal "openclash-watchdog" "" STOP
+      signal_watchdog STOP
       /etc/init.d/openclash reload "revert" >/dev/null 2>&1
       sleep 3
 
@@ -480,6 +518,8 @@ sub_info_get()
 config_load "openclash"
 config_foreach sub_info_get "config_subscribe" "$1"
 dec_job_counter_and_restart "$restart"
+# the interval counts from the end of this update
+[ "$update_interval" -gt 0 ] && [ -n "$1" ] && date +%s > "$update_state"
 del_lock
 
 # the caller (luci) judges the update result by this exit code

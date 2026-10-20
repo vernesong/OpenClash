@@ -76,6 +76,60 @@
 
                         <div class="form-group">
                             <label class="form-checkbox">
+                                <input type="checkbox" id="auto-update-enable">
+                                <span class="checkmark"></span>
+                                <%:Auto Update%>
+                            </label>
+                            <div class="oc-fold-sum" id="sum-update"></div>
+                        </div>
+
+                        <div class="advanced-options-container oc-hidden" id="auto-update-options">
+                            <div class="sub-convert-options">
+                                <div class="form-group">
+                                    <label for="auto-update-mode"><%:Update Mode%>:</label>
+                                    <div class="form-select-wrapper">
+                                        <select id="auto-update-mode" class="form-select">
+                                            <option value="0"><%:Appointment Mode%></option>
+                                            <option value="1"><%:Loop Mode%></option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row" id="auto-update-appointment">
+                                    <div class="form-group form-half">
+                                        <label for="auto-update-week"><%:Update Time (Every Week)%>:</label>
+                                        <div class="form-select-wrapper">
+                                            <select id="auto-update-week" class="form-select">
+                                                <option value="*"><%:Every Day%></option>
+                                                <option value="1" selected><%:Every Monday%></option>
+                                                <option value="2"><%:Every Tuesday%></option>
+                                                <option value="3"><%:Every Wednesday%></option>
+                                                <option value="4"><%:Every Thursday%></option>
+                                                <option value="5"><%:Every Friday%></option>
+                                                <option value="6"><%:Every Saturday%></option>
+                                                <option value="0"><%:Every Sunday%></option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-half">
+                                        <label for="auto-update-hour"><%:Update time (every day)%>:</label>
+                                        <div class="form-select-wrapper">
+                                            <select id="auto-update-hour" class="form-select">
+                                                <% for t = 0, 23 do %>
+                                                <option value="<%=t%>"><%=t%>:00</option>
+                                                <% end %>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group oc-hidden" id="auto-update-loop">
+                                    <label for="auto-update-interval"><%:Update Interval(min)%>:</label>
+                                    <input type="number" id="auto-update-interval" class="form-input" min="1" max="525600" step="1" value="60" placeholder="60">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-checkbox">
                                 <input type="checkbox" id="sub-convert-enable">
                                 <span class="checkmark"></span>
                                 <%:Subscribe Convert Online%>

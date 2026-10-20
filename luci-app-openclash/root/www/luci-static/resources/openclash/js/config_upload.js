@@ -2611,6 +2611,24 @@ var ConfigUploader = {
             keywordOptionsContainer.classList.toggle('oc-hidden', !this.checked);
         });
 
+        var autoUpdateEnable = document.getElementById('auto-update-enable');
+        var autoUpdateOptions = document.getElementById('auto-update-options');
+        var autoUpdateMode = document.getElementById('auto-update-mode');
+        var autoUpdateAppointment = document.getElementById('auto-update-appointment');
+        var autoUpdateLoop = document.getElementById('auto-update-loop');
+        if (autoUpdateEnable) {
+            autoUpdateEnable.addEventListener('change', function() {
+                autoUpdateOptions.classList.toggle('oc-hidden', !this.checked);
+            });
+        }
+        if (autoUpdateMode) {
+            autoUpdateMode.addEventListener('change', function() {
+                var loop = this.value === '1';
+                autoUpdateAppointment.classList.toggle('oc-hidden', loop);
+                autoUpdateLoop.classList.toggle('oc-hidden', !loop);
+            });
+        }
+
         convertAddressSelect.addEventListener('change', function() {
             convertAddressCustom.classList.toggle('oc-hidden', this.value !== 'custom');
             self.updateSubconverterVersionStatus();
@@ -3010,6 +3028,24 @@ var ConfigUploader = {
         if (advFileEnable) advFileEnable.checked = false;
         var advFileContainer = document.getElementById('advanced-options-container-file');
         if (advFileContainer) advFileContainer.classList.add('oc-hidden');
+
+        var autoUpdateEnable = document.getElementById('auto-update-enable');
+        if (autoUpdateEnable) autoUpdateEnable.checked = false;
+        var autoUpdateOptions = document.getElementById('auto-update-options');
+        if (autoUpdateOptions) autoUpdateOptions.classList.add('oc-hidden');
+        var autoUpdateMode = document.getElementById('auto-update-mode');
+        if (autoUpdateMode) autoUpdateMode.value = '0';
+        var autoUpdateWeek = document.getElementById('auto-update-week');
+        if (autoUpdateWeek) autoUpdateWeek.value = '1';
+        var autoUpdateHour = document.getElementById('auto-update-hour');
+        if (autoUpdateHour) autoUpdateHour.value = '0';
+        var autoUpdateInterval = document.getElementById('auto-update-interval');
+        if (autoUpdateInterval) autoUpdateInterval.value = '60';
+        var autoUpdateAppointment = document.getElementById('auto-update-appointment');
+        if (autoUpdateAppointment) autoUpdateAppointment.classList.remove('oc-hidden');
+        var autoUpdateLoop = document.getElementById('auto-update-loop');
+        if (autoUpdateLoop) autoUpdateLoop.classList.add('oc-hidden');
+
         if (this.subconverterVersionChecker) this.subconverterVersionChecker.hide();
     },
 
@@ -3196,6 +3232,35 @@ var ConfigUploader = {
             if (algoSelect) {
                 try { algoSelect.value = data.config_age_algo; } catch (e) {}
             }
+        }
+
+        var autoUpdateEnableEl = document.getElementById('auto-update-enable');
+        var autoUpdateOptionsEl = document.getElementById('auto-update-options');
+        var autoUpdateModeEl = document.getElementById('auto-update-mode');
+        var autoUpdateWeekEl = document.getElementById('auto-update-week');
+        var autoUpdateHourEl = document.getElementById('auto-update-hour');
+        var autoUpdateIntervalEl = document.getElementById('auto-update-interval');
+        var autoUpdateAppointmentEl = document.getElementById('auto-update-appointment');
+        var autoUpdateLoopEl = document.getElementById('auto-update-loop');
+        if (autoUpdateEnableEl) {
+            var autoUpdateEnabled = data.auto_update === '1';
+            autoUpdateEnableEl.checked = autoUpdateEnabled;
+            if (autoUpdateOptionsEl) autoUpdateOptionsEl.classList.toggle('oc-hidden', !autoUpdateEnabled);
+        }
+        if (autoUpdateModeEl) {
+            var loopMode = data.config_auto_update_mode === '1';
+            autoUpdateModeEl.value = loopMode ? '1' : '0';
+            if (autoUpdateAppointmentEl) autoUpdateAppointmentEl.classList.toggle('oc-hidden', loopMode);
+            if (autoUpdateLoopEl) autoUpdateLoopEl.classList.toggle('oc-hidden', !loopMode);
+        }
+        if (autoUpdateWeekEl && data.config_update_week_time) {
+            autoUpdateWeekEl.value = data.config_update_week_time;
+        }
+        if (autoUpdateHourEl && data.auto_update_time !== undefined && data.auto_update_time !== '') {
+            autoUpdateHourEl.value = data.auto_update_time;
+        }
+        if (autoUpdateIntervalEl) {
+            autoUpdateIntervalEl.value = data.config_update_interval || '60';
         }
 
         this.updateSubconverterVersionStatus();
@@ -3424,6 +3489,22 @@ var ConfigUploader = {
             }
         }
 
+        var sumUpdate = document.getElementById('sum-update');
+        if (sumUpdate) {
+            if (!document.getElementById('auto-update-enable').checked) {
+                sumUpdate.textContent = '<%:Disabled%>';
+            } else if (document.getElementById('auto-update-mode').value === '1') {
+                var intervalMinutes = document.getElementById('auto-update-interval').value || '60';
+                sumUpdate.textContent = '<%:Loop Mode%>' + ' · ' + intervalMinutes + ' ' + '<%:Minutes%>';
+            } else {
+                var weekSelect = document.getElementById('auto-update-week');
+                var weekText = weekSelect.options[weekSelect.selectedIndex] ? weekSelect.options[weekSelect.selectedIndex].textContent : weekSelect.value;
+                var hourValue = document.getElementById('auto-update-hour').value || '0';
+                if (hourValue.length === 1) hourValue = '0' + hourValue;
+                sumUpdate.textContent = '<%:Appointment Mode%>' + ' · ' + weekText + ' ' + hourValue + ':00';
+            }
+        }
+
         var sumAdvanced = document.getElementById('sum-advanced');
         if (sumAdvanced) {
             var headerRows = document.querySelectorAll('#subscribe-headers-container .header-row');
@@ -3629,6 +3710,13 @@ var ConfigUploader = {
             if (document.getElementById('exclude-website').checked) excludeDefaults.push(document.getElementById('exclude-website').value);
         }
 
+        var autoUpdateEl = document.getElementById('auto-update-enable');
+        var autoUpdateModeEl = document.getElementById('auto-update-mode');
+        var autoUpdateWeekEl = document.getElementById('auto-update-week');
+        var autoUpdateHourEl = document.getElementById('auto-update-hour');
+        var autoUpdateIntervalEl = document.getElementById('auto-update-interval');
+        var autoUpdate = !!(autoUpdateEl && autoUpdateEl.checked);
+
         if (userAgent === 'custom') {
             userAgent = subscribeUaCustom.value.trim();
         }
@@ -3725,6 +3813,11 @@ var ConfigUploader = {
             ex_keyword: excludeKeywords,
             de_ex_keyword: excludeDefaults.join(' '),
             sub_headers: customHeaders,
+            auto_update: autoUpdate ? '1' : '0',
+            config_auto_update_mode: autoUpdateModeEl ? autoUpdateModeEl.value : '0',
+            config_update_week_time: autoUpdateWeekEl ? autoUpdateWeekEl.value : '0',
+            auto_update_time: autoUpdateHourEl ? autoUpdateHourEl.value : '0',
+            config_update_interval: autoUpdateIntervalEl ? autoUpdateIntervalEl.value : '60',
             template_label: templateLabel,
             age_secret: (ageSecret || agePublic) ? '1' : ''
         };
