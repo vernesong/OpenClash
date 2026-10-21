@@ -619,3 +619,10 @@ html[data-darkmode="true"] .oc .sub_provider_percent {
     outline: 2px solid var(--primary-color, #3b82f6);
     outline-offset: 2px;
 }
+
+/* ---- Config file list: theme responsive rules must not break the table ---- */
+#cbi-config_file_list table.cbi-section-table > tbody > tr > th,
+#cbi-config_file_list table.cbi-section-table > tbody > tr > td {
+    display: table-cell !important;
+    white-space: nowrap;
+}

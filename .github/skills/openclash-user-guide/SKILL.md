@@ -79,7 +79,8 @@ disable-model-invocation: false
 | 用户问题类型 | 子文档 | 内容（关键小节） |
 |------|--------|------|
 | 理解整体原理 / 启动流程 | `01-architecture.md` | 系统整体架构分层、UCI 配置根、开机启动链路、热生效与重启的差异 |
-| 启动失败 / 依赖缺失 | `02-dependencies.md` | §2.1–2.6 内核与依赖清单、启动前的依赖检查逻辑、启动失败故障速查表 |
+| 启动失败 / 依赖缺失 | `02-dependencies.md` | §2.1–2.7 内核与依赖清单、启动前的依赖检查逻辑、启动失败故障速查表、`install.sh` 命令行安装 |
+| 安装 / 重装插件与内核 | `02-dependencies.md` | §2.7 `install.sh` 一键安装命令 |
 | 用户报错 / 日志异常 | `03-errors.md` | §3.1–3.16 常见错误关键字定位与对应排查方法 |
 | 透明代理 / 防火墙链原理 / Docker 网桥与 UDP TPROXY | `04-firewall-chains.md` | §4.1 运行模式与防火墙行为对照表、§4.2 fw4 防火墙链结构、§4.4 Docker 网桥与 UDP TPROXY、§4.5 WAN 入口防护与分区放行 |
 | ping / ICMP / 高级流量控制 | `05-firewall-special.md` | §5.1 ICMP/Ping 转发处理规则、§5.2 高级流量控制（iptables）实现 |

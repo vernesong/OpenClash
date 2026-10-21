@@ -172,7 +172,7 @@ html[data-darkmode="true"] .oc .cm-editor {
 
 .cmt-log-bracket { color: var(--success-color) !important; font-weight: 600; }
 
-.cmt-log-string { color: var(--black) !important; font-weight: 500; }
+.cmt-log-string { color: var(--cm-log-text) !important; font-weight: 500; }
 
 .cmt-log-category { color: var(--orange) !important; font-weight: 500; background-color: var(--orange-a15); padding: 0 5px; margin: 2px 0; border-radius: 5px; display: inline-block; text-align: center; }
 

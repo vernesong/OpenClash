@@ -165,6 +165,7 @@
     --magenta-bright: #ff00bb;
     --magenta-bright-a15: rgba(255,0,187,0.15);
     --black: #000000;
+    --cm-log-text: #57606a;
     --orange: #FF6B00;
     --orange-a15: rgba(255,107,0,0.15);
     --blue: #0000FF;
@@ -344,6 +345,7 @@ html[data-darkmode="true"] .oc {
     --magenta: #c655ff;
     --magenta-a15: rgba(198,85,255,0.2);
     --black: #ffffff;
+    --cm-log-text: #ffffff;
     --orange: #ff6f00;
     --orange-a15: rgba(255,111,0,0.2);
     --blue: #82AAFF;
@@ -2157,6 +2159,11 @@ ul {
     box-shadow: none;
 }
 
+@media (max-width: 1152px) {
+    .oc.cbi-button.cbi-button { max-width: none; }
+    .oc .oc-merge-cell { padding: 0; }
+}
+
 @media (max-width: 768px) {
     .oc.cbi-button.cbi-button { font-size: 12px; padding: 0 10px; height: 32px !important; }
 }
@@ -2660,4 +2667,41 @@ html[data-darkmode="true"] .oc-warn-strip {
     line-height: 1.75;
     color: var(--text-secondary, #64748b);
     text-align: left;
+}
+
+/* ---- Stock CBI tables: theme responsive rules replace the table layout with flex rows ---- */
+/* no !important on rows/containers: LuCI hides helper rows with inline display:none */
+table.cbi-section-table {
+    display: table;
+}
+
+table.cbi-section-table > thead {
+    display: table-header-group;
+}
+
+table.cbi-section-table > tbody {
+    display: table-row-group;
+}
+
+table.cbi-section-table > tfoot {
+    display: table-footer-group;
+}
+
+table.cbi-section-table > tbody > tr {
+    display: table-row;
+}
+
+table.cbi-section-table > tbody > tr > th,
+table.cbi-section-table > tbody > tr > td {
+    display: table-cell !important;
+}
+
+table.cbi-section-table > tbody > tr > td::before {
+    content: none !important;
+    display: none !important;
+}
+
+/* the runtime-config column of the config merge table is a hidden data source, not a pane */
+tr.oc-merge-td > td.cbi-value:not(.oc-merge-value) {
+    display: none !important;
 }

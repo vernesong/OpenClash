@@ -371,12 +371,14 @@
                                                 <span class="ac-def-pill" id="ac-def-pill" title="<%:Default policy for devices without individual settings; new devices inherit it%>"></span>
                                             </div>
                                             <div class="ac-tools">
-                                                <button type="button" class="ac-key-btn" id="ac-all-proxy" title="<%:All devices default to proxy%>">
-                                                    <svg><use href="#oc-icon-globe"/></svg><span class="ac-key-text"><%:Proxy All%></span>
-                                                </button>
-                                                <button type="button" class="ac-key-btn" id="ac-all-direct" title="<%:All devices default to direct%>">
-                                                    <svg><use href="#oc-icon-home"/></svg><span class="ac-key-text"><%:Direct All%></span>
-                                                </button>
+                                                <div class="ac-dir-pill" role="group">
+                                                    <button type="button" class="ac-dir-opt" id="ac-all-proxy" aria-pressed="true" title="<%:All devices default to proxy%>">
+                                                        <svg><use href="#oc-icon-globe"/></svg><span class="ac-key-text"><%:Proxy All%></span>
+                                                    </button>
+                                                    <button type="button" class="ac-dir-opt" id="ac-all-direct" aria-pressed="false" title="<%:All devices default to direct%>">
+                                                        <svg><use href="#oc-icon-home"/></svg><span class="ac-key-text"><%:Direct All%></span>
+                                                    </button>
+                                                </div>
                                                 <span class="ac-sep-v"></span>
                                                 <button type="button" class="ac-key-btn" id="ac-refresh" title="<%:Rescan the LAN for devices%>" aria-label="<%:Rescan the LAN for devices%>">
                                                     <svg><use href="#oc-icon-refresh"/></svg>

@@ -707,6 +707,10 @@ html[data-darkmode="true"] .oc .config-select:focus {
     opacity: 1;
 }
 
+/* Busy groups stay locked until the backend settles; the checked option keeps its colour. */
+.oc .cbi-button-group input[type="radio"]:disabled + .cbi-button-option { cursor: default; }
+.oc .cbi-button-group input[type="radio"]:disabled:not(:checked) + .cbi-button-option { opacity: .55; }
+
 .oc .value-indicator {
     font-weight: 500;
     padding: 6px 6px;
@@ -3789,6 +3793,27 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
 .oc .ac-sort-ind:empty { display: none; }
 .oc .ac-key-btn:hover:not(:disabled):not(.ac-working) { border-color: var(--primary-color); color: var(--primary-color); background: var(--primary-a10); }
 .oc .ac-key-btn:disabled { opacity: .45; cursor: default; }
+/* Same segment look as the view-mode pill; ::after stays free for the .ac-working spinner. */
+.oc .ac-dir-pill {
+    display: inline-flex; align-items: center; flex: 0 0 auto;
+    padding: 2px; gap: 0; box-sizing: border-box;
+    background: var(--bg-light); border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+}
+.oc .ac-dir-opt {
+    display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+    height: 18px; padding: 0 8px;
+    font-size: 11px; font-weight: 600; font-family: inherit; line-height: 12px;
+    color: var(--text-secondary); background: transparent;
+    border: none; border-radius: calc(var(--radius-sm) - 2px);
+    cursor: pointer; user-select: none; white-space: nowrap;
+    transition: color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+}
+.oc .ac-dir-opt svg { width: 12px; height: 12px; flex: 0 0 auto; }
+.oc .ac-dir-opt:hover:not(:disabled):not(.active) { color: var(--text-primary); background: var(--primary-a10); }
+.oc .ac-dir-opt.active { color: var(--primary-color); background: var(--bg-white); box-shadow: var(--shadow-md); }
+.oc .ac-dir-opt:disabled { opacity: .45; cursor: default; }
+.oc .ac-dir-opt.active:disabled { opacity: 1; }
 .oc .ac-sep-v { width: 1px; height: 14px; background: var(--border-light); flex: 0 0 auto; }
 
 /* In-place spinner: hides the label instead of swapping the node, so the button box never shifts. */
@@ -4049,6 +4074,8 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
 .oc .ac-card.ac-w-xs .ac-rates { display: flex; align-items: center; gap: 10px; margin-left: auto; flex: 0 0 auto; }
 .oc .ac-card.ac-w-xs .ac-key-btn .ac-key-text { display: none; }
 .oc .ac-card.ac-w-xs .ac-key-btn { padding: 0 5px; }
+.oc .ac-card.ac-w-xs .ac-dir-opt .ac-key-text { display: none; }
+.oc .ac-card.ac-w-xs .ac-dir-opt { padding: 0 6px; }
 .oc .ac-card.ac-w-xs .ac-tools { gap: 4px; }
 
 /* Rename dialog reuses the config-upload-modal skeleton. */

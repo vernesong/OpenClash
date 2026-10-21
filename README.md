@@ -51,7 +51,16 @@ OpenClash 是一个面向 OpenWrt 的 LuCI 插件，用于管理 [Mihomo](https:
 2. 登录 OpenWrt 的 LuCI 后台，前往 **系统 → 软件包** 上传并安装；
 3. 刷新或者重新登录页面，在 **服务 → OpenClash** 中导入订阅或上传配置文件并启动。
 
-### 命令行安装
+### 一键安装
+
+在路由器上以 root 身份执行（需要 `curl` 与 `ca-bundle`）：
+
+```shell
+(curl -fsSL -o /tmp/install.sh https://raw.githubusercontent.com/vernesong/OpenClash/dev/install.sh || curl -fsSL -o /tmp/install.sh https://cdn.jsdelivr.net/gh/vernesong/OpenClash@dev/install.sh) && sh /tmp/install.sh
+```
+
+<details>
+<summary>手动安装（不使用脚本时）</summary>
 
 安装依赖并下载最新版（iptables 防火墙）：
 
@@ -89,7 +98,9 @@ curl -L --retry 2 https://api.github.com/repos/vernesong/OpenClash/releases/late
 [ -f "/tmp/openclash.apk" ] && apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk || echo "OpenClash download failed"
 ```
 
-> 首次使用需要下载内核，请提前确认网络环境
+</details>
+
+> 插件安装失败时安装包会保留在 `/tmp/`，可按脚本输出的命令手动安装；内核下载失败时可在插件安装完成后，通过 LuCI 的「版本更新」页重新下载。
 
 ## 使用手册
 
@@ -104,7 +115,7 @@ curl -L --retry 2 https://api.github.com/repos/vernesong/OpenClash/releases/late
 | `luci-app-openclash_*.ipk` | opkg 安装包 |
 | `luci-app-openclash-*.apk` | apk 安装包 |
 
-> 历史版本请前往 [全部 Releases](https://github.com/vernesong/OpenClash/releases) 查看。
+> 命令行一键安装（含内核）见 [快速开始 → 一键安装](#一键安装)。历史版本请前往 [全部 Releases](https://github.com/vernesong/OpenClash/releases) 查看。
 
 ## 依赖
 

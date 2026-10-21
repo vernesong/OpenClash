@@ -100,34 +100,31 @@ end
 
     #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl > tbody > tr > td,
     #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl > tbody > tr > th{
+        display: table-cell !important;
         padding: 8px;
         font-size: 11px;
         vertical-align: middle;
         text-align: center;
-        white-space: normal;
+        white-space: nowrap;
     }
 
     #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-head > th,
     #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-subhead > th{
         padding: 10px 8px;
-        background: var(--bg-gray, #f1f5f9);
         color: var(--text-secondary, #64748b);
         font-size: 11px;
         font-weight: 600;
         white-space: nowrap;
     }
 
+    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl > tbody > tr > td::before{
+        content: none !important;
+        display: none !important;
+    }
+
     #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-head > th,
     #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-subhead > th{
         border-top: none;
-    }
-
-    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-row{
-        background: var(--bg-white, #fff);
-    }
-
-    #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.cbi-rowstyle-2{
-        background: var(--bg-light, #f9f9f9);
     }
 
     #cbi-<%=self.config%>-<%=self.sectiontype%> table.oc-tbl tr.oc-tbl-row > td,

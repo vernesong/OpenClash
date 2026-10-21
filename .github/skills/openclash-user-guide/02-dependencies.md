@@ -1,6 +1,6 @@
 ## 完整依赖清单与故障排查
 
-> **用途**: 依赖包清单、内核模块加载机制（`check_mod()`）与依赖故障排查速查（§2.1–2.6）。
+> **用途**: 依赖包清单、内核模块加载机制（`check_mod()`）与依赖故障排查速查（§2.1–2.7）。
 
 > **AI 行为指引**: 当用户报告启动失败、功能异常时，AI 应**先让用户生成调试日志**（LuCI「运行日志 → 调试日志 → 生成日志」或 SSH `openclash_debug.sh`），然后对照日志中的 `## 依赖检查` 章节检查依赖完整性。对于缺失的依赖，指导用户在 LuCI 的「系统 → 软件包」中搜索安装。
 >
@@ -83,5 +83,13 @@ luci-compat kmod-inet-diag kmod-nft-tproxy kmod-ipt-nat iptables-mod-tproxy ipta
 | 更新插件后某些包丢失 | 更新过程中包被意外移除 | 更新脚本会自动修复，如仍未恢复，手动安装缺失包 |
 
 > **通用依赖诊断方法**: 在 LuCI 的「运行日志 → 调试日志」页点击「生成日志」，然后在日志的 `## 依赖检查` 章节查看所有依赖包的状态（已安装/未安装）。将此日志提供给技术支持时也包含完整的依赖信息。
+
+### 2.7 命令行安装 / 重装（`install.sh`）
+
+> 需要 `curl` 与 `ca-bundle`。
+
+```shell
+(curl -fsSL -o /tmp/install.sh https://raw.githubusercontent.com/vernesong/OpenClash/dev/install.sh || curl -fsSL -o /tmp/install.sh https://cdn.jsdelivr.net/gh/vernesong/OpenClash@dev/install.sh) && sh /tmp/install.sh
+```
 
 ---

@@ -2231,6 +2231,7 @@ var ocLang = window.ocLang || '';
 
     var SettingsManager = {
         pendingOperations: new Set(),
+        pendingSettings: new Set(),
         pausedPolls: new Set(),
 
         pausePoll: function(pollName, duration) {
@@ -2244,90 +2245,64 @@ var ocLang = window.ocLang || '';
             return this.pausedPolls.has(pollName);
         },
 
+        isPending: function(setting) {
+            return this.pendingSettings.has(setting);
+        },
+
+        elementsOf: function(setting) {
+            switch (setting) {
+                case 'meta_sniffer': return [DOMCache.meta_sniffer_on, DOMCache.meta_sniffer_off];
+                case 'respect_rules': return [DOMCache.respect_rules_on, DOMCache.respect_rules_off];
+                case 'oversea': return [DOMCache.oc_setting_oversea_0, DOMCache.oc_setting_oversea_1, DOMCache.oc_setting_oversea_2];
+                case 'stream_unlock': return [DOMCache.stream_unlock_on, DOMCache.stream_unlock_off];
+                case 'rule_mode': return DOMCache.radio;
+                case 'run_mode': return DOMCache.radio_ru;
+            }
+            return [];
+        },
+
+        currentValue: function(setting) {
+            var elements = this.elementsOf(setting);
+            for (var i = 0; i < elements.length; i++) {
+                if (elements[i] && elements[i].checked) return elements[i].value;
+            }
+            return null;
+        },
+
+        applyValue: function(setting, value) {
+            var elements = this.elementsOf(setting);
+            for (var i = 0; i < elements.length; i++) {
+                if (elements[i]) elements[i].checked = (elements[i].value === value);
+            }
+        },
+
+        setDisabled: function(setting, disabled) {
+            var elements = this.elementsOf(setting);
+            for (var i = 0; i < elements.length; i++) {
+                if (elements[i]) elements[i].disabled = disabled;
+            }
+        },
+
+        // Apply the new choice immediately and lock the group: status polling skips
+        // pending settings, so the old backend value cannot flip the controls back.
         updateUIState: function(setting, value) {
             setTimeout(() => {
-                function setCheckedAndDisabled(elements, checkedIndex) {
-                    for (let i = 0; i < elements.length; i++) {
-                        elements[i].checked = (i === checkedIndex);
-                        elements[i].disabled = true;
-                    }
-                }
-                switch(setting) {
-                    case 'meta_sniffer':
-                        var metaSnifferOn = document.getElementById('meta_sniffer_on');
-                        var metaSnifferOff = document.getElementById('meta_sniffer_off');
-                        if (metaSnifferOn && metaSnifferOff) {
-                            setCheckedAndDisabled([metaSnifferOn, metaSnifferOff], value === '1' ? 0 : 1);
-                            var changeEvent = new Event('change', { bubbles: true });
-                            (value === '1' ? metaSnifferOn : metaSnifferOff).dispatchEvent(changeEvent);
-                        }
-                        break;
-                    case 'respect_rules':
-                        var respectRulesOn = document.getElementById('respect_rules_on');
-                        var respectRulesOff = document.getElementById('respect_rules_off');
-                        if (respectRulesOn && respectRulesOff) {
-                            setCheckedAndDisabled([respectRulesOn, respectRulesOff], value === '1' ? 0 : 1);
-                            var changeEvent = new Event('change', { bubbles: true });
-                            (value === '1' ? respectRulesOn : respectRulesOff).dispatchEvent(changeEvent);
-                        }
-                        break;
-                    case 'oversea':
-                        var oversea0 = document.getElementById('oc_setting_oversea_0');
-                        var oversea1 = document.getElementById('oc_setting_oversea_1');
-                        var oversea2 = document.getElementById('oc_setting_oversea_2');
-                        if (oversea0 && oversea1 && oversea2) {
-                            setCheckedAndDisabled([oversea0, oversea1, oversea2], value === '0' ? 0 : (value === '1' ? 1 : 2));
-                            var changeEvent = new Event('change', { bubbles: true });
-                            [oversea0, oversea1, oversea2][value === '0' ? 0 : (value === '1' ? 1 : 2)].dispatchEvent(changeEvent);
-                        }
-                        break;
-                    case 'stream_unlock':
-                        var streamUnlockOn = document.getElementById('stream_unlock_on');
-                        var streamUnlockOff = document.getElementById('stream_unlock_off');
-                        if (streamUnlockOn && streamUnlockOff) {
-                            setCheckedAndDisabled([streamUnlockOn, streamUnlockOff], value === '1' ? 0 : 1);
-                            var changeEvent = new Event('change', { bubbles: true });
-                            (value === '1' ? streamUnlockOn : streamUnlockOff).dispatchEvent(changeEvent);
-                        }
-                        break;
-                    case 'rule_mode':
-                        var radioElements = document.getElementsByName("radios");
-                        if (radioElements && radioElements.length > 0) {
-                            for (var i = 0; i < radioElements.length; i++) {
-                                radioElements[i].checked = radioElements[i].value === value;
-                                radioElements[i].disabled = true;
-                                if (radioElements[i].checked) {
-                                    var changeEvent = new Event('change', { bubbles: true });
-                                    radioElements[i].dispatchEvent(changeEvent);
-                                }
-                            }
-                        }
-                        break;
-                    case 'run_mode':
-                        var radioRuElements = document.getElementsByName("radios-ru");
-                        if (radioRuElements && radioRuElements.length > 0) {
-                            for (var i = 0; i < radioRuElements.length; i++) {
-                                radioRuElements[i].checked = radioRuElements[i].value === value;
-                                radioRuElements[i].disabled = true;
-                                if (radioRuElements[i].checked) {
-                                    var changeEvent = new Event('change', { bubbles: true });
-                                    radioRuElements[i].dispatchEvent(changeEvent);
-                                }
-                            }
-                        }
-                        break;
-                }
+                this.applyValue(setting, value);
+                this.setDisabled(setting, true);
             }, 10);
         },
 
         switchSetting: function(setting, value, endpoint, additionalParams) {
             var operationKey = setting + '_' + value;
 
-            if (this.pendingOperations.has(operationKey)) {
+            if (this.pendingSettings.has(setting)) {
                 return false;
             }
 
+            this.pendingSettings.add(setting);
             this.pendingOperations.add(operationKey);
+
+            var previousValue = this.currentValue(setting);
 
             try {
                 this.updateUIState(setting, value);
@@ -2358,55 +2333,12 @@ var ocLang = window.ocLang || '';
             XHR.get(endpoint, params, function(x, status) {
                 setTimeout(function() {
                     self.pendingOperations.delete(operationKey);
-
-                    switch(setting) {
-                        case 'meta_sniffer':
-                            var metaSnifferOn = document.getElementById('meta_sniffer_on');
-                            var metaSnifferOff = document.getElementById('meta_sniffer_off');
-                            if (metaSnifferOn) metaSnifferOn.disabled = false;
-                            if (metaSnifferOff) metaSnifferOff.disabled = false;
-                            break;
-                        case 'respect_rules':
-                            var respectRulesOn = document.getElementById('respect_rules_on');
-                            var respectRulesOff = document.getElementById('respect_rules_off');
-                            if (respectRulesOn) respectRulesOn.disabled = false;
-                            if (respectRulesOff) respectRulesOff.disabled = false;
-                            break;
-                        case 'oversea':
-                            var oversea0 = document.getElementById('oc_setting_oversea_0');
-                            var oversea1 = document.getElementById('oc_setting_oversea_1');
-                            var oversea2 = document.getElementById('oc_setting_oversea_2');
-                            if (oversea0) oversea0.disabled = false;
-                            if (oversea1) oversea1.disabled = false;
-                            if (oversea2) oversea2.disabled = false;
-                            break;
-                        case 'stream_unlock':
-                            var streamUnlockOn = document.getElementById('stream_unlock_on');
-                            var streamUnlockOff = document.getElementById('stream_unlock_off');
-                            if (streamUnlockOn) streamUnlockOn.disabled = false;
-                            if (streamUnlockOff) streamUnlockOff.disabled = false;
-                            break;
-                        case 'rule_mode':
-                            var radioElements = document.getElementsByName("radios");
-                            if (radioElements && radioElements.length > 0) {
-                                for (var i = 0; i < radioElements.length; i++) {
-                                    radioElements[i].disabled = false;
-                                }
-                            }
-                            break;
-                        case 'run_mode':
-                            var radioRuElements = document.getElementsByName("radios-ru");
-                            if (radioRuElements && radioRuElements.length > 0) {
-                                for (var i = 0; i < radioRuElements.length; i++) {
-                                    radioRuElements[i].disabled = false;
-                                }
-                            }
-                            break;
-                    }
-
+                    self.pendingSettings.delete(setting);
                     self.pausedPolls.delete(pollName);
+                    self.setDisabled(setting, false);
 
                     if (!x || x.status !== 200) {
+                        if (previousValue !== null) self.applyValue(setting, previousValue);
                         ocAlert(self.getErrorMessage(setting));
                     } else if (window.ocToast) {
                         ocToast('<%:Switch Successful%>', 'success');
@@ -4013,10 +3945,14 @@ var ocLang = window.ocLang || '';
             if (btnProxy) {
                 btnProxy.disabled = locked || this.devices.length === 0 || allProxy;
                 btnProxy.title = defaultDir === 'proxy' ? '<%:Current default is proxy mode%>' : '<%:All devices default to proxy%>';
+                btnProxy.classList.toggle('active', defaultDir === 'proxy');
+                btnProxy.setAttribute('aria-pressed', defaultDir === 'proxy' ? 'true' : 'false');
             }
             if (btnDirect) {
                 btnDirect.disabled = locked || this.devices.length === 0 || allDirect;
                 btnDirect.title = defaultDir === 'direct' ? '<%:Current default is direct mode%>' : '<%:All devices default to direct%>';
+                btnDirect.classList.toggle('active', defaultDir === 'direct');
+                btnDirect.setAttribute('aria-pressed', defaultDir === 'direct' ? 'true' : 'false');
             }
         },
 
@@ -4697,7 +4633,7 @@ var ocLang = window.ocLang || '';
                 updatePluginToggleState(status.clash);
             }
 
-            if (status.run_mode && !SettingsManager.pendingOperations.has('run_mode_' + status.run_mode)) {
+            if (status.run_mode && !SettingsManager.isPending('run_mode')) {
                 var expectedValue = status.run_mode.split("-")[2] == undefined ? "" : ("-" + status.run_mode.split("-")[2]);
                 for (var i = 0; i < DOMCache.radio_ru.length; i++) {
                     if (DOMCache.radio_ru[i].value == expectedValue && !DOMCache.radio_ru[i].checked) {
@@ -4706,7 +4642,7 @@ var ocLang = window.ocLang || '';
                 }
             }
 
-            if (status.rule_mode && !SettingsManager.pendingOperations.has('rule_mode_' + status.rule_mode)) {
+            if (status.rule_mode && !SettingsManager.isPending('rule_mode')) {
                 for (var i = 0; i < DOMCache.radio.length; i++) {
                     if (DOMCache.radio[i].value == status.rule_mode && !DOMCache.radio[i].checked) {
                         DOMCache.radio[i].checked = true;
@@ -4715,20 +4651,20 @@ var ocLang = window.ocLang || '';
                 }
             }
 
-            if (!SettingsManager.pendingOperations.has('meta_sniffer_' + status.meta_sniffer)) {
+            if (!SettingsManager.isPending('meta_sniffer')) {
                 DOMCache.meta_sniffer_on.checked = status.meta_sniffer == "1";
                 DOMCache.meta_sniffer_off.checked = status.meta_sniffer != "1";
             }
-            if (!SettingsManager.pendingOperations.has('respect_rules_' + status.respect_rules)) {
+            if (!SettingsManager.isPending('respect_rules')) {
                 DOMCache.respect_rules_on.checked = status.respect_rules == "1";
                 DOMCache.respect_rules_off.checked = status.respect_rules != "1";
             }
-            if (!SettingsManager.pendingOperations.has('oversea_' + status.oversea)) {
+            if (!SettingsManager.isPending('oversea')) {
                 if (status.oversea == "0") DOMCache.oc_setting_oversea_0.checked = true;
                 else if (status.oversea == "1") DOMCache.oc_setting_oversea_1.checked = true;
                 else if (status.oversea == "2") DOMCache.oc_setting_oversea_2.checked = true;
             }
-            if (!SettingsManager.pendingOperations.has('stream_unlock_' + status.stream_unlock)) {
+            if (!SettingsManager.isPending('stream_unlock')) {
                 DOMCache.stream_unlock_on.checked = status.stream_unlock === '1';
                 DOMCache.stream_unlock_off.checked = status.stream_unlock !== '1';
             }
@@ -5243,9 +5179,10 @@ var ocLang = window.ocLang || '';
 
     function switch_dns_mode(value) {
         var opKey = 'dns_mode_' + value;
-        if (SettingsManager.pendingOperations.has(opKey) || value === currentDnsMode) {
+        if (SettingsManager.isPending('dns_mode') || value === currentDnsMode) {
             return false;
         }
+        SettingsManager.pendingSettings.add('dns_mode');
         SettingsManager.pendingOperations.add(opKey);
         SettingsManager.pausePoll('run_mode', 3000);
 
@@ -5271,6 +5208,7 @@ var ocLang = window.ocLang || '';
 
         function finish(success) {
             SettingsManager.pendingOperations.delete(opKey);
+            SettingsManager.pendingSettings.delete('dns_mode');
             if (DOMCache.dns_fakeip) DOMCache.dns_fakeip.disabled = false;
             if (DOMCache.dns_redirhost) DOMCache.dns_redirhost.disabled = false;
             for (var r = 0; r < DOMCache.radio_ru.length; r++) {

@@ -1629,6 +1629,15 @@ local function write_padded(data)
 	io.flush()
 end
 
+local function write_raw(data)
+	if L and L.http then
+		L.http:write(data)
+	else
+		HTTP.write(data)
+	end
+	io.flush()
+end
+
 function try_read(fd, maxlen)
 	local pfds = {
 		{ fd = fd, events = nixio.poll_flags("in", "hup", "err") }
@@ -5001,18 +5010,24 @@ function action_config_file_read()
 
 	HTTP.header("X-Oc-Size", stat and tostring(stat.size) or "0")
 	HTTP.header("X-Oc-Mtime", stat and tostring(stat.mtime) or "0")
+	HTTP.header("X-Accel-Buffering", "no")
 	HTTP.prepare_content("text/plain; charset=utf-8")
 
 	if not stat then
 		return
 	end
 
-	local reader = ltn12_popen("exec cat " .. UTIL.shellquote(config_file))
-	if not reader then
+	-- 64 KB chunks keep memory flat and avoid the cat subprocess per read
+	local file = io.open(config_file, "rb")
+	if not file then
 		return
 	end
-	luci.ltn12.pump.all(reader, HTTP.write)
-	reader.kill()
+	while true do
+		local chunk = file:read(65536)
+		if not chunk then break end
+		write_raw(chunk)
+	end
+	file:close()
 end
 
 function action_config_file_save()

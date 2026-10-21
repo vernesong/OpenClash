@@ -26,6 +26,7 @@ var coreLogAccumulator = '';
 var coreLogLines = [];
 var logMaxLines = 5000;
 var pollInterval = 1000;
+var logCascade = null;
 var debugRenderToken = 0;
 // LF-normalized copy of the source the debug view currently shows (textarea values drop CR)
 var debugRenderedSrc = '';
@@ -46,7 +47,7 @@ function accumulateCoreLog(linesArr) {
         coreLogLines.push('...');
     }
     coreLogAccumulator = coreLogLines.join('\n');
-    cl.value = coreLogAccumulator;
+    if (!editor_core) cl.value = coreLogAccumulator;
 }
 
 function setLogTab(log_level) {
@@ -517,6 +518,11 @@ function trimEditorLog(view) {
 }
 
 function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiveTab) {
+    if (logCascade && logCascade.target === target) {
+        for (var qi = 0; qi < newLines.length; qi++) logCascade.lines.push(newLines[qi]);
+        return;
+    }
+
     var scrollPosition = null;
     var isAtTop = false;
     var cursorPos = null;
@@ -549,6 +555,7 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
         isAtTop = (target.scrollTop < 20);
     }
 
+    // Small refreshes and background updates go in at once.
     if ((target === editor_oc && animatingOC) || (target === editor_core && animatingCore) || (target === editor_debug && animatingDebug) || !isActiveTab) {
         var lines = newLines.slice().reverse();
         var content = lines.join('\n') + (lines.length > 0 ? '\n' : '') + (currentContent || '');
@@ -591,7 +598,7 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
                 content = allLines.join("\n");
             }
             var oldScrollTop = scrollPosition;
-            target.innerHTML = content;
+            target.value = content;
             if (!isAtTop && oldScrollTop) {
                 target.scrollTop = oldScrollTop;
             }
@@ -608,133 +615,112 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
     }
 
     var totalLines = newLines.length;
-    var batchSize, interval;
-
+    // One frame of work per chunk: rAF pacing plus light prepends replace the
+    // old few heavy rewrites whose tail landed in one janky frame.
+    var batchSize;
     if (totalLines <= 10) {
         batchSize = 5;
-        interval = 80;
     } else if (totalLines <= 50) {
         batchSize = 25;
-        interval = 50;
     } else if (totalLines <= 200) {
         batchSize = 60;
-        interval = 30;
     } else if (totalLines <= 500) {
-        batchSize = 150;
-        interval = 20;
+        batchSize = 120;
     } else if (totalLines <= 1000) {
-        batchSize = 300;
-        interval = 12;
-    } else if (totalLines <= 1500) {
-        batchSize = 400;
-        interval = 8;
+        batchSize = 200;
+    } else if (totalLines <= 2000) {
+        batchSize = 250;
     } else {
-        batchSize = 500;
-        interval = 5;
+        batchSize = 300;
     }
 
     var displayedContent = currentContent || "";
     var logLines = newLines.slice();
     var currentBatchCount = 0;
     var accumulatedContent = "";
+    logCascade = { target: target, lines: logLines };
+
+    function stopAnimating() {
+        if (target === editor_oc || target === lv) {
+            animatingOC = false;
+        } else if (target === editor_debug) {
+            animatingDebug = false;
+        } else {
+            animatingCore = false;
+        }
+    }
+
+    function finishCascade() {
+        stopAnimating();
+        if (logCascade && logCascade.target === target) logCascade = null;
+
+        if (isEditor && !isAtTop && cursorPos) {
+            cursorPos.line += logLines.length;
+            target.setCursor(cursorPos);
+
+            if (selectionRange) {
+                selectionRange.from.line += logLines.length;
+                selectionRange.to.line += logLines.length;
+                target.setSelection(selectionRange.from, selectionRange.to);
+
+                target.scrollIntoView({
+                    from: selectionRange.from,
+                    to: selectionRange.to
+                }, 300);
+            } else {
+                target.scrollIntoView({line: cursorPos.line, ch: cursorPos.ch}, 300);
+            }
+        }
+        if (isEditor && !cursorPos) {
+            setCursorToFirstLineEnd(target);
+        }
+
+        if (isEditor && trimEditorLog(target) && !cursorPos) {
+            setCursorToFirstLineEnd(target);
+        }
+    }
 
     function displayNextBatch() {
         if (currentBatchCount >= logLines.length) {
-            if (target === editor_oc || target === lv) {
-                animatingOC = false;
-            } else if (target === editor_debug) {
-                animatingDebug = false;
-            } else {
-                animatingCore = false;
-            }
-
-            if (isEditor && !isAtTop && cursorPos) {
-                cursorPos.line += logLines.length;
-                target.setCursor(cursorPos);
-
-                if (selectionRange) {
-                    selectionRange.from.line += logLines.length;
-                    selectionRange.to.line += logLines.length;
-                    target.setSelection(selectionRange.from, selectionRange.to);
-
-                    target.scrollIntoView({
-                        from: selectionRange.from,
-                        to: selectionRange.to
-                    }, 300);
-                } else {
-                    target.scrollIntoView({line: cursorPos.line, ch: cursorPos.ch}, 300);
-                }
-            }
-            if (isEditor && !cursorPos) {
-                setCursorToFirstLineEnd(target);
-            }
+            finishCascade();
             return;
         }
 
         var nextBatchSize = Math.min(batchSize, logLines.length - currentBatchCount);
-
         var batchLines = logLines.slice(currentBatchCount, currentBatchCount + nextBatchSize).reverse();
         currentBatchCount += nextBatchSize;
-
-        if (accumulatedContent) {
-            accumulatedContent = batchLines.join("\n") + "\n" + accumulatedContent;
-        } else {
-            accumulatedContent = batchLines.join("\n");
-        }
-
-        var content = accumulatedContent + (displayedContent ? "\n" + displayedContent : "");
+        var batchText = batchLines.join('\n');
 
         if (isEditor) {
-            var currentScrollInfo = isAtTop ? null : target.getScrollInfo();
-            target.setValue(content);
-
-            if (!isAtTop && currentScrollInfo) {
-                target.scrollTo(currentScrollInfo.left, currentScrollInfo.top);
+            // Prepend only this chunk: rebuilding the whole document string per
+            // step was the expensive part of the old cascade.
+            var scrollInfo = isAtTop ? null : target.getScrollInfo();
+            target.dispatch({ changes: { from: 0, insert: batchText + '\n' } });
+            if (!isAtTop && scrollInfo) {
+                target.scrollTo(scrollInfo.left, scrollInfo.top);
+            } else {
+                target.scrollTo(0, 0);
             }
         } else {
+            accumulatedContent = accumulatedContent ? batchText + '\n' + accumulatedContent : batchText;
+            var content = accumulatedContent + (displayedContent ? '\n' + displayedContent : '');
             var currentScrollTop = isAtTop ? null : target.scrollTop;
-            target.innerHTML = content;
+            target.value = content;
             if (!isAtTop && currentScrollTop !== null) {
                 target.scrollTop = currentScrollTop;
             }
         }
 
         if (currentBatchCount < logLines.length) {
-            setTimeout(displayNextBatch, interval);
-        } else {
-            if (target === editor_oc || target === lv) {
-                animatingOC = false;
-            } else if (target === editor_debug) {
-                animatingDebug = false;
+            if (window.requestAnimationFrame) {
+                requestAnimationFrame(displayNextBatch);
             } else {
-                animatingCore = false;
+                setTimeout(displayNextBatch, 16);
             }
-
-            if (isEditor && !isAtTop && cursorPos) {
-                cursorPos.line += logLines.length;
-                target.setCursor(cursorPos);
-
-                if (selectionRange) {
-                    selectionRange.from.line += logLines.length;
-                    selectionRange.to.line += logLines.length;
-                    target.setSelection(selectionRange.from, selectionRange.to);
-
-                    target.scrollIntoView({
-                        from: selectionRange.from,
-                        to: selectionRange.to
-                    }, 300);
-                } else {
-                    target.scrollIntoView({line: cursorPos.line, ch: cursorPos.ch}, 300);
-                }
-            }
-            if (isEditor && !cursorPos) {
-                setCursorToFirstLineEnd(target);
-            }
-
-            if (isEditor && trimEditorLog(target) && !cursorPos) {
-                setCursorToFirstLineEnd(target);
-            }
+            return;
         }
+
+        finishCascade();
     }
 
     displayNextBatch();
@@ -811,7 +797,7 @@ function poll_log(){
                                 currentContent = editor_oc.getValue();
                                 smoothlyDisplayLogs(oc_logs, editor_oc, true, currentContent, activeTabId === 0);
                             } else if (lv) {
-                                currentContent = lv.innerHTML;
+                                currentContent = lv.value;
                                 smoothlyDisplayLogs(oc_logs, lv, false, currentContent, activeTabId === 0);
                             }
                         }
@@ -928,7 +914,13 @@ window.onload = function(){
     // Preload the debug log in the background (upstream behavior) so opening
     // the debug tab never starts the fetch and render at click time.
     ocRequireCM6(function() {
-        setTimeout(load_debug_log, 500);
+        setTimeout(function() {
+            if (window.requestIdleCallback) {
+                requestIdleCallback(function() { load_debug_log(); }, { timeout: 4000 });
+            } else {
+                load_debug_log();
+            }
+        }, 2500);
     });
 };
 
