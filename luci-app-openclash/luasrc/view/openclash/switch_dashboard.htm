@@ -23,12 +23,12 @@
     var defaultEl  = document.getElementById('default_dashboard_'  + name);
     var deleteEl   = document.getElementById('delete_dashboard_'   + name);
 
-    function setStatus(msg, ok) {
-        var el = document.getElementById('switch_dashboard_status_' + name);
+    window.ocDashboardStatus = window.ocDashboardStatus || function(n, msg, ok) {
+        var el = document.getElementById('switch_dashboard_status_' + n);
         if (!el) return;
         el.textContent = msg || '';
         el.className = 'oc-flush-status' + (msg && !ok ? ' err' : '');
-    }
+    };
 
     XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dashboard_type")%>', null, function(x, status) {
         if (!x || x.status != 200) return;
@@ -58,13 +58,13 @@
     });
 
     window.switch_dashboard = window.switch_dashboard || function(btn, n, type) {
-        setStatus('', true);
+        ocDashboardStatus(n, '', true);
         var origLabel = btn.value;
         btn.disabled = true;
         btn.value = '<%:Downloading File...%>';
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_dashboard")%>', {name: n, type: type}, function(x, status) {
             btn.disabled = false;
-            if (!x || x.status != 200) { btn.value = origLabel; setStatus('<%:Switch Failed%>', false); return; }
+            if (!x || x.status != 200) { btn.value = origLabel; ocDashboardStatus(n, '<%:Switch Failed%>', false); return; }
             if (status.download_state == "0") {
                 var isUpdate = (n == "Metacubexd" || n == "Zashboard");
                 var nextLabel, nextType;
@@ -78,10 +78,10 @@
                 document.getElementById('switch_dashboard_'  + n).innerHTML = makeBtn(nextLabel, 'switch_dashboard', [n, nextType]);
                 document.getElementById('default_dashboard_' + n).firstElementChild.disabled = false;
                 document.getElementById('delete_dashboard_'  + n).firstElementChild.disabled = false;
-                setStatus(isUpdate ? '<%:Update Successful%>' : '<%:Switch Successful%>', true);
+                ocDashboardStatus(n, isUpdate ? '<%:Update Successful%>' : '<%:Switch Successful%>', true);
             } else {
                 btn.value = origLabel;
-                setStatus(status.download_state == "2" ? '<%:Unzip Error%>'
+                ocDashboardStatus(n, status.download_state == "2" ? '<%:Unzip Error%>'
                           : (n == "Metacubexd" || n == "Zashboard") ? '<%:Update Failed%>' : '<%:Switch Failed%>', false);
             }
         });
@@ -98,7 +98,7 @@
             ]
         }).then(function(choice) {
             if (choice !== 'ok') return;
-            setStatus('', true);
+            ocDashboardStatus(n, '', true);
             btn.disabled = true;
             XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "delete_dashboard")%>', {name: n}, function(x, status) {
                 if (!x || x.status != 200) { btn.disabled = false; return; }
