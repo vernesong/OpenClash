@@ -28,7 +28,7 @@
 ```
 
 **核心流程** (`openclash.sh` 中的 `sub_info_get()`):
-1. 遍历所有启用的 `config_subscribe` 条目
+1. 遍历所有 `config_subscribe` 条目
 2. 对每条订阅构建下载 URL（添加 `custom_params`、设置 `sub_ua`）
 3. 如果设置了 `sub_convert`，将 URL 发到转换后端获取处理后的配置
 4. 如果设置了 `secret_key` (Age 加密)，先用 age 解密
@@ -54,7 +54,7 @@
 | 更新时间 (Update time every day) | `auto_update_time` | 0-23 点 |
 | 更新间隔/分钟 (Update Interval min) | `config_update_interval` | 仅循环模式，默认 60，可填 1–525600 |
 
-- 调度由 `init.d/openclash` 的 `add_cron()` 为每条启用且有订阅地址的条目生成独立 cron 行（`/usr/share/openclash/openclash.sh '<name>'`），在服务启动或 `/etc/init.d/openclash reload cron` 时重建；看门狗不再负责订阅更新。
+- 调度由 `init.d/openclash` 的 `add_cron()` 为每条有订阅地址且 `auto_update=1` 的条目生成独立 cron 行（`/usr/share/openclash/openclash.sh '<name>'`），在服务启动或 `/etc/init.d/openclash reload cron` 时重建。
 - 旧版全局 `openclash.config.auto_update` 等键作为迁移回退：条目未写入自己的值时沿用全局值，编辑保存后写入条目；条目显式写入 `auto_update=0` 可覆盖全局开关。
 - 循环模式生成标准 cron 表达式：能整除 60 的间隔用 `*/N * * * *`，整小时用 `0 * * * *` / `0 0-23/H * * *`，45/90 等整除 1440 的跨小时间隔用多条 `分钟 起始-23/步长 * * *` 精确覆盖；其它任意分钟值由 cron 每分钟调用的 `openclash.sh '<name>' loop <interval>` 按 `/tmp/openclash_cfg_update_<md5>` 时间戳守卫触发。时间戳在刷新结束时写入，间隔从上一次完成开始计算；未到期直接退出，到期后阻塞等待全局锁，取锁后再检查一次时间戳，避免排队期间重复刷新。
 - 所有订阅刷新共用 `openclash.sh` 的全局锁串行执行（Ruby 解析、内核校验与防火墙/DNS 回退的峰值内存较高，且共享任务计数与重启逻辑）；不同文件同时发起时排队等待，不会跳过。

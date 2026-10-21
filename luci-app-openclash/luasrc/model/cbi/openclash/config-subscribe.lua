@@ -38,14 +38,6 @@ s.render = function(self, ...)
 	end
 end
 
----- enable flag
-o = s:option(Flag, "enabled", translate("Enable"))
-o.rmempty = false
-o.default = o.enabled
-o.cfgvalue = function(...)
-	return Flag.cfgvalue(...) or "1"
-end
-
 ---- name
 o = s:option(DummyValue, "name", translate("Config Alias"))
 function o.cfgvalue(...)
@@ -81,7 +73,7 @@ o = s:option(DummyValue, "update_schedule", translate("Auto Update"))
 o.width = "14%"
 function o.cfgvalue(self, section)
 	local address = uci:get(openclash, section, "address")
-	if uci:get(openclash, section, "enabled") == "0" or not address or address == "" then
+	if not address or address == "" then
 		return translate("Disabled")
 	end
 	local schedule = fs.config_subscribe_schedule(section, uci)

@@ -384,7 +384,6 @@ $1"
 sub_info_get()
 {
    local section="$1" subscribe_url template_path subscribe_url_param template_path_encode key_match_param key_ex_match_param c_address de_ex_keyword sub_ua sub_headers append_custom_params SECRET_KEY DOWNLOAD_URL DOWNLOAD_PARAM
-   config_get_bool "enabled" "$section" "enabled" "1"
    config_get "name" "$section" "name" "config"
    config_get "sub_convert" "$section" "sub_convert" "0"
    config_get "address" "$section" "address" ""
@@ -409,16 +408,6 @@ sub_info_get()
 
    CONFIG_FILE="/etc/openclash/config/$name.yaml"
    CFG_FILE="/tmp/$name.yaml"
-
-   if [ "$enabled" -eq 0 ]; then
-      if [ -n "$2" ]; then
-         if [ "$2" != "$CONFIG_FILE" ] && [ "$2" != "$name" ]; then
-            return
-         fi
-      else
-         return
-      fi
-   fi
 
    if [ -z "$address" ]; then
       return

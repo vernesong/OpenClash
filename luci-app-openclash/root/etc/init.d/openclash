@@ -125,9 +125,7 @@ subscribe_cron_schedule()
 
 add_subscribe_cron()
 {
-   local section="$1" enabled name address auto_update mode week hour interval schedule guard
-   config_get_bool "enabled" "$section" "enabled" "1"
-   [ "$enabled" -eq 1 ] || return 0
+   local section="$1" name address auto_update mode week hour interval schedule guard
    config_get "name" "$section" "name" ""
    config_get "address" "$section" "address" ""
    [ -n "$name" ] && [ -n "$address" ] || return 0
@@ -494,16 +492,11 @@ sub_info_set()
 #获取订阅配置
 sub_info_get()
 {
-   local section="$1" address enabled name
-   config_get_bool "enabled" "$section" "enabled" "1"
+   local section="$1" address name
    config_get "address" "$section" "address" ""
    config_get "name" "$section" "name" ""
 
    if [ "$subscribe_enable" = "1" ]; then
-      return
-   fi
-
-   if [ "$enabled" -eq 0 ]; then
       return
    fi
 
