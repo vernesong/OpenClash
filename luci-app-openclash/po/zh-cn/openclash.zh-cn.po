@@ -794,6 +794,9 @@ msgstr "停止刷新"
 msgid "Start Refresh"
 msgstr "开始刷新"
 
+msgid "Config Files"
+msgstr "配置文件"
+
 msgid "Config File"
 msgstr "配置文件"
 
@@ -5722,3 +5725,78 @@ msgstr "搜索设备"
 
 msgid "Minutes"
 msgstr "分钟"
+
+msgid "Source"
+msgstr "来源"
+
+msgid "Remote"
+msgstr "远程"
+
+msgid "Local"
+msgstr "本地"
+
+msgid "Actions"
+msgstr "操作"
+
+msgid "Back to Config List"
+msgstr "返回配置列表"
+
+msgid "Running Config"
+msgstr "运行配置"
+
+msgid "Configuration has not been downloaded"
+msgstr "配置尚未下载"
+
+msgid "Disable automatic updates and save before editing this configuration"
+msgstr "请关闭自动更新并保存，再编辑此配置"
+
+msgid "Automatic updates overwrite local changes. Continue?"
+msgstr "自动更新将覆盖本地修改，是否继续？"
+
+msgid "Updating overwrites local changes. Continue?"
+msgstr "更新将覆盖本地修改，是否继续？"
+
+msgid "Backup / Restore"
+msgstr "备份/还原"
+
+msgid "Backup Scope"
+msgstr "备份范围"
+
+msgid "Note: Automatic updates overwrite configuration files. Disable automatic updates and save before editing locally. Saving does not restart OpenClash; applying does."
+msgstr "注意：自动更新会覆盖配置文件，本地编辑前请关闭自动更新并保存。保存不会重启 OpenClash，应用才会重启。"
+
+msgid "Note: Provider update URLs are defined in configuration files. Downloaded provider files may be overwritten; MRS files cannot be edited as text."
+msgstr "注意：代理集、规则集的更新地址由配置文件定义，下载的资源文件可能被更新覆盖；MRS 文件不支持文本编辑。"
+
+msgid "Note: Backups include OpenClash settings and all files under /etc/openclash. Restore accepts full backups or backups excluding cores."
+msgstr "注意：备份包含 OpenClash 设置及 /etc/openclash 下全部文件; 还原支持完整备份或不含内核的备份。"
+
+msgid "Create / Upload File"
+msgstr "新建/上传文件"
+
+msgid "Global Update Frequency"
+msgstr "全局更新频率"
+
+msgid "Default Auto Update"
+msgstr "默认自动更新"
+
+msgid "Subscriptions inherit these defaults unless they have explicit overrides. Per-subscription Auto Update and existing frequency overrides take precedence."
+msgstr "订阅未单独设置时使用此默认计划；订阅的自动更新开关及已有频率设置优先。"
+
+msgid "Existing subscription frequency overrides take precedence over the global frequency:"
+msgstr "此订阅已有频率设置，优先于全局频率："
+
+msgid "Rule Providers"
+msgstr "规则集"
+
+msgid "Yes"
+msgstr "是"
+
+msgid "No"
+msgstr "否"
+
+msgid "Add File"
+msgstr "添加文件"
+
+msgid "Restoring overwrites existing OpenClash files and settings. Continue?"
+msgstr "恢复将覆盖现有 OpenClash 文件和设置，是否继续？"

@@ -554,7 +554,7 @@ function decode64(data)
 	return table.concat(out)
 end
 
-function config_refs(old_file_name, new_file_name)
+function config_refs(old_file_name, new_file_name, preserve_subscription)
 	if not old_file_name or old_file_name == "" then return end
 	local old_name_no_ext = filename(basename(old_file_name))
 	local old_file_full = basename(old_file_name)
@@ -568,7 +568,7 @@ function config_refs(old_file_name, new_file_name)
 
 	uci:foreach("openclash", "config_subscribe",
 		function(s)
-			if s.name == old_name_no_ext then
+			if not preserve_subscription and s.name == old_name_no_ext then
 				if is_rename and new_name_no_ext ~= new_file_name then
 					uci:set("openclash", s[".name"], "name", new_name_no_ext)
 				else
@@ -580,7 +580,7 @@ function config_refs(old_file_name, new_file_name)
 
 	uci:foreach("openclash", "subscribe_info",
 		function(s)
-			if s.name == old_name_no_ext then
+			if not preserve_subscription and s.name == old_name_no_ext then
 				if is_rename and new_name_no_ext ~= new_file_name then
 					uci:set("openclash", s[".name"], "name", new_name_no_ext)
 				else
@@ -628,7 +628,7 @@ function config_refs(old_file_name, new_file_name)
 
 	uci:foreach("openclash", "config_age_secret",
 		function(s)
-			if s.name == old_name_no_ext then
+			if not preserve_subscription and s.name == old_name_no_ext then
 				if is_rename and new_name_no_ext ~= new_file_name then
 					uci:set("openclash", s[".name"], "name", new_name_no_ext)
 				else
@@ -638,7 +638,7 @@ function config_refs(old_file_name, new_file_name)
 		end
 	)
 
-	if is_rename then
+	if is_rename and not preserve_subscription then
 		-- Traffic history is stored per config name, keep it with the renamed config
 		local old_history = "/etc/openclash/history/" .. old_name_no_ext .. ".db"
 		local new_history = "/etc/openclash/history/" .. new_name_no_ext .. ".db"

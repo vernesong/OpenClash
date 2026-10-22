@@ -75,7 +75,9 @@ function index()
 	entry({"admin", "services", "openclash", "announcement"}, call("action_announcement"))
 	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Plugin Settings"), 30).leaf = true
 	entry({"admin", "services", "openclash", "config-overwrite"},cbi("openclash/config-overwrite"),_("Overwrite Settings"), 40).leaf = true
-	entry({"admin", "services", "openclash", "config-subscribe"},cbi("openclash/config-subscribe"),_("Config Subscribe"), 60).leaf = true
+	entry({"admin", "services", "openclash", "config-subscribe"},alias("admin", "services", "openclash", "config"), nil).leaf = true
+	entry({"admin", "services", "openclash", "config-edit"},cbi("openclash/config-subscribe-edit"), nil).leaf = true
+	entry({"admin", "services", "openclash", "config-backup"},form("openclash/config-backup"), nil).leaf = true
 	entry({"admin", "services", "openclash", "servers"},cbi("openclash/servers"),nil).leaf = true
 	entry({"admin", "services", "openclash", "other-rules-edit"},cbi("openclash/other-rules-edit"), nil).leaf = true
 	entry({"admin", "services", "openclash", "custom-dns-edit"},cbi("openclash/custom-dns-edit"), nil).leaf = true
@@ -2353,6 +2355,11 @@ function create_file()
 		return
 	end
 	local file_path = file_dir..file_name
+	if fs.access(file_path) then HTTP.status(409, "File already exists"); return end
+	if file_dir == "/etc/openclash/config/" then
+		local profile = require("luci.openclash_profiles").find(file_path, fs, uci)
+		if profile and not profile.editable then HTTP.status(409, "Configuration is managed by a subscription"); return end
+	end
 	fs.writefile(file_path, "")
 	if not fs.isfile(file_path) then
 		HTTP.status(500, "Create File Failed")
@@ -2369,7 +2376,25 @@ function rename_file()
 		return
 	end
 	local old_file_path = file_path .. old_file_name
+	if file_path == "/etc/openclash/config/" and not new_file_name:match("%.ya?ml$") then
+		HTTP.status(400, "Configuration file must have a .yaml or .yml extension")
+		return
+	end
+	if file_path == "/etc/openclash/config/" and require("luci.openclash_profiles").running_name(require("nixio.fs"), SYS) == old_file_name then
+		HTTP.status(409, "Switch and apply another configuration before renaming the running configuration")
+		return
+	end
 	local new_file_path = file_path .. new_file_name
+	local profile = file_path == "/etc/openclash/config/" and require("luci.openclash_profiles").find(old_file_path, fs, uci)
+	local target_profile = file_path == "/etc/openclash/config/" and require("luci.openclash_profiles").find(new_file_path, fs, uci)
+	if fs.access(new_file_path) or (target_profile and target_profile.remote) then
+		HTTP.status(409, "Target configuration already exists or belongs to a subscription")
+		return
+	end
+	if profile and profile.remote and not new_file_name:match("%.yaml$") then
+		HTTP.status(400, "Subscription configurations must use the updater's .yaml extension")
+		return
+	end
 	local old_run_file_path = "/etc/openclash/" .. old_file_name
 	local new_run_file_path = "/etc/openclash/" .. new_file_name
 	if fs.rename(old_file_path, new_file_path) then
@@ -2382,7 +2407,7 @@ function rename_file()
 				fs.rename(old_run_file_path, new_run_file_path)
 			end
 
-			fs.config_refs(old_file_name, new_file_name)
+			fs.config_refs(old_file_name, new_file_name, profile and profile.preserve_subscription)
 			SYS.call("/etc/init.d/openclash reload cron >/dev/null 2>&1")
 		end
 		HTTP.status(200, "Rename File Successful")
@@ -4777,10 +4802,15 @@ function action_config_file_list()
 end
 
 function action_upload_config()
-	local config_dir = "/etc/openclash/config/"
+	local kind = HTTP.formvalue("resource", true) or "config"
+	local directories = {config="/etc/openclash/config/", proxy="/etc/openclash/proxy_provider/", rule="/etc/openclash/rule_provider/"}
+	local config_dir = directories[kind]
+	if not config_dir then HTTP.status(400, "Invalid resource"); return end
 	local started, fp, filename, target_path, file_size, stream_err = false, nil, nil, nil, 0, nil
+	local staged_path
 
 	HTTP.setfilehandler(function(meta, chunk, eof)
+		if not meta or meta.name ~= "config_file" then return end
 		if stream_err then
 			return
 		end
@@ -4798,23 +4828,34 @@ function action_upload_config()
 				return
 			end
 
-			if not string.match(name, "%.ya?ml$") then
+			if kind ~= "config" and not (name:lower():match("%.ya?ml$") or name:lower():match("%.txt$") or name:lower():match("%.mrs$")) then
+				stream_err = "Invalid file extension"
+				return
+			end
+			if kind == "config" and not string.match(name, "%.ya?ml$") then
 				name = name .. ".yaml"
 			end
 
 			filename = name
+			local profiles = require "luci.openclash_profiles"
+			local profile = kind == "config" and profiles.find(config_dir .. name, fs, uci)
+			if profile and not profile.editable then
+				stream_err = "Disable automatic updates and save before editing this configuration"
+				return
+			end
 			target_path = config_dir .. name
 
 			SYS.call("mkdir -p " .. config_dir)
 
-			fp = io.open(target_path, "w")
+			staged_path = config_dir .. ".upload-" .. nixio.getpid() .. ".tmp"
+			fp = io.open(staged_path, "w")
 			if not fp then
 				stream_err = "Failed to save config file to disk"
 				return
 			end
 		end
 
-		if #chunk > 0 then
+		if chunk and #chunk > 0 then
 			if not fp:write(chunk) then
 				stream_err = "Failed to save config file to disk"
 				return
@@ -4833,8 +4874,9 @@ function action_upload_config()
 	HTTP.prepare_content("application/json")
 
 	if stream_err then
-		if target_path then
-			fs.unlink(target_path)
+		if fp then fp:close(); fp = nil end
+		if staged_path then
+			fs.unlink(staged_path)
 		end
 
 		HTTP.write_json({
@@ -4853,7 +4895,7 @@ function action_upload_config()
 	end
 
 	if file_size == 0 then
-		fs.unlink(target_path)
+		fs.unlink(staged_path)
 		HTTP.write_json({
 			status = "error",
 			message = "Uploaded file is empty"
@@ -4863,7 +4905,7 @@ function action_upload_config()
 
 	local yaml_valid = false
 	local content_start = ""
-	local rfp = io.open(target_path, "r")
+	local rfp = io.open(staged_path, "r")
 	if rfp then
 		content_start = rfp:read(5000) or ""
 		rfp:close()
@@ -4877,7 +4919,8 @@ function action_upload_config()
 		yaml_valid = true
 	end
 
-	if not yaml_valid then
+	if kind == "config" and not yaml_valid then
+		fs.unlink(staged_path)
 		HTTP.write_json({
 			status = "error",
 			message = "Invalid config file format - missing required YAML sections"
@@ -4885,6 +4928,11 @@ function action_upload_config()
 		return
 	end
 
+	if not fs.rename(staged_path, target_path) then
+		fs.unlink(staged_path)
+		HTTP.write_json({status="error", message="Failed to save config file to disk"})
+		return
+	end
 	SYS.call(string.format("chmod 644 '%s'", target_path))
 	SYS.call(string.format("chown root:root '%s'", target_path))
 
@@ -5055,6 +5103,10 @@ function action_config_file_save()
 			if not is_overwrite then
 				if not string.match(config_file, "^/etc/openclash/config/[^/]+%.ya?ml$") or string.find(config_file, "%.%.") then
 					stream_err = "Invalid config file path"
+					return
+				end
+				if not require("luci.openclash_profiles").writable(config_file, fs, uci) then
+					stream_err = "Disable automatic updates and save before editing this configuration"
 					return
 				end
 			else

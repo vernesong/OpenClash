@@ -1,0 +1,3 @@
+<div class="cbi-page-actions">
+    <button type="button" class="btn cbi-button cbi-input-add" onclick="ocRequireScript('<%=luci.dispatcher.build_url('admin', 'services', 'openclash', 'translate_js')%>?f=config_upload&amp;v=@OPENCLASH_VERSION@-global-schedule&amp;l=<%=luci.i18n.context.lang%>', function() { ConfigUploader.show('location.reload()', '<%=resource_kind or "config"%>'); });"><%=translate((resource_kind and resource_kind ~= "config") and "Add File" or "Add Config")%></button>
+</div>
