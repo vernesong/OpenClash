@@ -11,6 +11,10 @@ local sid = path_info:match("(cfg[0-9a-f]+)") or ""
 <script type="text/javascript">//<![CDATA[
 
 (function() {
+<% if self.form_action then %>
+var form = document.querySelector('form');
+if (form) form.action = <%=luci.util.serialize_json(self.form_action)%>;
+<% end %>
 var oc_log = document.getElementById("cbid.openclash.config.clog");
 if (oc_log) { log_editor(oc_log, 'oc', true, '100%', '540px'); }
 

@@ -1244,39 +1244,6 @@
         return false;
     }
 
-    function backup_file(btn) {
-        var endpoint = document.getElementById('BACKUP_SELECT').value;
-        var url = '<%=url("admin", "services", "openclash")%>/' + endpoint;
-        ocSetBtnBusy(btn, true, '<%:Backing up...%>');
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        xhr.responseType = 'blob';
-        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        xhr.onload = function() {
-            ocSetBtnBusy(btn, false);
-            if (xhr.status == 200 && xhr.response) {
-                var disposition = xhr.getResponseHeader('Content-Disposition') || '';
-                var match = disposition.match(/filename="?([^";]+)"?/);
-                var filename = match ? match[1] : endpoint + '.tar.gz';
-                var blobUrl = URL.createObjectURL(xhr.response);
-                var a = document.createElement('a');
-                a.href = blobUrl;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 1000);
-            } else {
-                showHint('<%:Backup failed!%>');
-            }
-        };
-        xhr.onerror = function() {
-            ocSetBtnBusy(btn, false);
-            showHint('<%:Backup failed!%>');
-        };
-        xhr.send();
-        return false;
-    }
 
     function restore_config(btn) {
         ocConfirm({

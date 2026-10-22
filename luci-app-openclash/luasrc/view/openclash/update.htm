@@ -184,19 +184,9 @@
                 </div>
             </div>
             <div class="select-popup-footer" id="select-popup-footer">
-                <div class="form-select-wrapper">
-                    <select class="select-class" id="BACKUP_SELECT">
-                        <option value="backup"><%:Backup File%></option>
-                        <option value="backup_ex_core"><%:Backup Exclude Cores%></option>
-                        <option value="backup_only_core"><%:Backup Core%></option>
-                        <option value="backup_only_config"><%:Backup Config%></option>
-                        <option value="backup_only_rule"><%:Backup Rule Provider%></option>
-                        <option value="backup_only_proxy"><%:Backup Proxy Provider%></option>
-                    </select>
-                </div>
-                <button type="button" class="footer-btn" onclick="return backup_file(this)">
+                <button type="button" class="footer-btn" onclick="location.href='<%=url('admin', 'services', 'openclash', 'config-backup')%>'">
                     <svg width="14" height="14"><use href="#oc-icon-download"/></svg>
-                    <span><%:Backup File%></span>
+                    <span><%:Backup / Restore%></span>
                 </button>
                 <button type="button" class="footer-btn" onclick="return restore_config(this)">
                     <svg width="14" height="14"><use href="#oc-icon-history"/></svg>

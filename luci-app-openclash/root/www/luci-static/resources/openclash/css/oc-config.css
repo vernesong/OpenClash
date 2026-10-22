@@ -592,8 +592,13 @@ html[data-darkmode="true"] .oc .sub_provider_percent {
 /* ---- Config file list (model/cbi/openclash/config.lua) ---- */
 #cbi-config_file_list th,
 #cbi-config_file_list td:first-child,
+#cbi-config_file_list td:nth-child(3),
 #cbi-config_file_list td:nth-child(5) {
     white-space: nowrap;
+}
+
+#cbi-config_file_list {
+    overflow-x: auto;
 }
 
 #cbi-config_file_list .oc-actions-menu {
@@ -625,4 +630,24 @@ html[data-darkmode="true"] .oc .sub_provider_percent {
 #cbi-config_file_list table.cbi-section-table > tbody > tr > td {
     display: table-cell !important;
     white-space: nowrap;
+}
+
+#cbi-config_file_list .sub_div {
+    min-width: 210px;
+    max-width: 250px;
+    width: 100%;
+}
+
+#cbi-config_file_list th.cbi-section-table-cell:nth-child(4),
+#cbi-config_file_list table.cbi-section-table > tbody > tr > td:nth-child(4) {
+    width: 4em;
+    max-width: 4em;
+    white-space: normal;
+}
+#cbi-config_file_list th.cbi-section-table-cell:nth-child(6),
+#cbi-config_file_list table.cbi-section-table > tbody > tr > td:nth-child(6) {
+    width: 7em;
+    max-width: 7em;
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
