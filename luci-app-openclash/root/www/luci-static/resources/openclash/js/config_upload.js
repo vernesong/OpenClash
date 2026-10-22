@@ -2464,6 +2464,7 @@ var ConfigUploader = {
     currentMode: 'file',
     onSuccess: '',
     subconverterVersionChecker: null,
+    subconverterSourceEditor: null,
 
     init: function() {
         this.overlay = document.getElementById('config-upload-overlay');
@@ -2530,6 +2531,8 @@ var ConfigUploader = {
         var keywordOptionsContainer = document.getElementById('keyword-options-container');
 
         ocRequireScript('/luci-static/resources/openclash/js/subconverter-version.js?v=' + (window.ocPluginVer || ''), function() {
+        ocRequireScript('<%=url("admin", "services", "openclash", "translate_js")%>?f=subconverter_source&v=' + (window.ocPluginVer || '') + '&l=' + (window.ocLang || ''), function() {
+        if (window.OpenClashSubconverterSource) self.subconverterSourceEditor = window.OpenClashSubconverterSource.init(subscribeUrlInput);
         if (window.OpenClashSubconverterVersion && subVersionStatus) {
             self.subconverterVersionChecker = window.OpenClashSubconverterVersion.init({
                 select: convertAddressSelect,
@@ -2544,9 +2547,16 @@ var ConfigUploader = {
                     invalid: '<%:Invalid backend URL%>',
                     unrecognized: '<%:Backend version information not detected%>',
                     failed: '<%:Unable to detect backend version%>'
+                },
+                onSelectionChange: function() {
+                    if (self.subconverterSourceEditor) self.subconverterSourceEditor.setBackend('unknown');
+                },
+                onResult: function(result) {
+                    if (self.subconverterSourceEditor) self.subconverterSourceEditor.setBackend(result.state === 'disabled' ? 'disabled' : result.family);
                 }
             });
         }
+        });
         });
 
         subscribeUrlInput.addEventListener('input', function() {
@@ -3062,6 +3072,7 @@ var ConfigUploader = {
         this.switchMode('file');
         document.getElementById('config-filename-input').value = '';
         document.getElementById('subscribe-url-input').value = '';
+        if (this.subconverterSourceEditor) this.subconverterSourceEditor.reset();
         document.getElementById('subscribe-ua-input').value = 'clash-verge/v2.4.5';
         document.getElementById('subscribe-ua-custom').classList.add('oc-hidden');
         var hdrContainer = document.getElementById('subscribe-headers-container');
@@ -3650,6 +3661,7 @@ var ConfigUploader = {
     },
 
     processSubscription: function() {
+        if (this.subconverterSourceEditor && !this.subconverterSourceEditor.validate()) return;
         var url = document.getElementById('subscribe-url-input').value.trim();
         var filename = document.getElementById('config-filename-input').value.trim();
         var userAgent = document.getElementById('subscribe-ua-input').value;

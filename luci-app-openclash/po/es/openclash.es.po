@@ -5747,3 +5747,72 @@ msgstr "Buscar dispositivos"
 
 msgid "Minutes"
 msgstr "minutos"
+
+msgid "Tag (Optional)"
+msgstr "Etiqueta (opcional)"
+
+msgid "Leave blank by default"
+msgstr "Vacío de forma predeterminada"
+
+msgid "Proxy Provider Name"
+msgstr "Nombre del proveedor de proxies"
+
+msgid "Automatic if blank"
+msgstr "Automático si se deja vacío"
+
+msgid "Update Interval (Seconds)"
+msgstr "Intervalo de actualización (segundos)"
+
+msgid "Default: 3600"
+msgstr "Predeterminado: 3600"
+
+msgid "Proxy Provider Download Method"
+msgstr "Método de descarga del proveedor de proxies"
+
+msgid "One subscription per line; vertical bars are also supported"
+msgstr "Una suscripción por línea; también se pueden separar con barras verticales"
+
+msgid "Subscription URL or Node URI"
+msgstr "URL de suscripción o URI de nodo"
+
+msgid "Parameters"
+msgstr "Parámetros"
+
+msgid "Follow Backend Settings"
+msgstr "Seguir la configuración del backend"
+
+msgid "Follow Rules"
+msgstr "Seguir las reglas"
+
+msgid "This address contains syntax that cannot be edited safely. Continue with the original text."
+msgstr "La dirección contiene una sintaxis que no se puede editar de forma segura. Continúa con el texto original."
+
+msgid "Raw Text"
+msgstr "Texto original"
+
+msgid "Form View"
+msgstr "Edición por campos"
+
+msgid "Add Subscription"
+msgstr "Añadir suscripción"
+
+msgid "Batch Import"
+msgstr "Importación por lotes"
+
+msgid "Import Subscriptions"
+msgstr "Importar suscripciones"
+
+msgid "The imported text contains an unsupported or invalid subscription."
+msgstr "El texto importado contiene una suscripción no compatible o no válida."
+
+msgid "Subscription {index} is not a valid subscription URL or node URI."
+msgstr "La suscripción {index} no es una URL de suscripción ni un URI de nodo válido."
+
+msgid "Subscription {index} contains an invalid prefix value."
+msgstr "La suscripción {index} contiene un valor de prefijo no válido."
+
+msgid "Subscription {index} has an invalid update interval."
+msgstr "La suscripción {index} tiene un intervalo de actualización no válido."
+
+msgid "The selected backend does not support these subscription parameters. Edit the original text or select a compatible backend."
+msgstr "El backend seleccionado no admite estos parámetros de suscripción. Edite el texto original o seleccione un backend compatible."
