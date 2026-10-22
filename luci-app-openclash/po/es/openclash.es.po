@@ -557,6 +557,30 @@ msgstr "Cada sábado"
 msgid "Every Sunday"
 msgstr "Cada domingo"
 
+msgid "Mon"
+msgstr "Lun"
+
+msgid "Tue"
+msgstr "Mar"
+
+msgid "Wed"
+msgstr "Mié"
+
+msgid "Thu"
+msgstr "Jue"
+
+msgid "Fri"
+msgstr "Vie"
+
+msgid "Sat"
+msgstr "Sáb"
+
+msgid "Sun"
+msgstr "Dom"
+
+msgid "Next Update"
+msgstr "Próxima actualización"
+
 msgid "Netflix"
 msgstr "Netflix"
 

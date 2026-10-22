@@ -676,7 +676,8 @@ var ocLang = window.ocLang || '';
                                     currentFileInfo = {
                                         mtime: file.mtime,
                                         size: file.size,
-                                        age: file.age
+                                        age: file.age,
+                                        schedule: file.schedule
                                     };
                                 }
                                 break;
@@ -862,7 +863,10 @@ var ocLang = window.ocLang || '';
                     var modifyTime = this.formatUnixTime(fileInfo.mtime);
                     var fileModifyTimeValue = document.getElementById('file-modify-time-value');
                     fileModifyTimeValue.textContent = modifyTime;
+                    fileModifyTimeElement.title = '<%:Modified%> · ' + modifyTime;
                 }
+
+                this.renderScheduleBadge(fileInfo.schedule, fileInfo);
 
                 if (detailsSection) {
                     detailsSection.style.display = 'flex';
@@ -885,6 +889,8 @@ var ocLang = window.ocLang || '';
                     fileModifyTimeValue.textContent = modifyTimeText;
                 }
 
+                this.renderScheduleBadge(null, null);
+
                 if (detailsSection) {
                     detailsSection.style.display = 'none';
                 }
@@ -897,6 +903,94 @@ var ocLang = window.ocLang || '';
         },
 
         formatUnixTime: ocFormatUnixTime,
+
+        renderScheduleBadge: function(schedule, fileInfo) {
+            var element = document.getElementById('file-next-update');
+            if (!element) return;
+
+            var badge = this.formatScheduleBadge(schedule, fileInfo);
+            if (!badge) {
+                element.title = '';
+                element.removeAttribute('aria-label');
+                element.classList.add('oc-hidden');
+                return;
+            }
+
+            var valueElement = document.getElementById('file-next-update-value');
+            var useElement = element.querySelector('use');
+            if (useElement) {
+                useElement.setAttribute('href', '#' + badge.icon);
+            }
+            if (valueElement) {
+                valueElement.textContent = badge.text;
+            }
+            element.title = badge.title;
+            element.setAttribute('aria-label', badge.title);
+            element.classList.remove('oc-hidden');
+        },
+
+        computeNextAppointment: function(week, hour) {
+            var now = new Date();
+            var next = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, 0, 0, 0);
+            if (next.getTime() <= now.getTime()) {
+                next.setDate(next.getDate() + 1);
+            }
+            var target = parseInt(week, 10);
+            if (!isNaN(target)) {
+                next.setDate(next.getDate() + (target - next.getDay() + 7) % 7);
+            }
+            return next;
+        },
+
+        formatScheduleBadge: function(schedule, fileInfo) {
+            if (!schedule) return null;
+
+            var icon = 'oc-icon-calendar';
+            var text, title;
+
+            if (String(schedule.mode) === '1') {
+                var interval = parseInt(schedule.interval, 10);
+                if (isNaN(interval) || interval < 1) interval = 60;
+                if (interval % 1440 === 0) {
+                    text = (interval / 1440) + 'd';
+                } else if (interval % 60 === 0) {
+                    text = (interval / 60) + 'h';
+                } else {
+                    text = interval + 'm';
+                }
+                icon = 'oc-icon-history';
+                title = '<%:Auto Update%> · <%:Loop Mode%> · ' + interval + ' <%:Minutes%>';
+                if (fileInfo && fileInfo.mtime) {
+                    title += '\n<%:Modified%> · ' + this.formatUnixTime(fileInfo.mtime);
+                    var nextLoop = fileInfo.mtime + interval * 60;
+                    if (nextLoop * 1000 > Date.now()) {
+                        title += '\n<%:Next Update%> · ' + this.formatUnixTime(nextLoop);
+                    }
+                }
+            } else {
+                var hour = parseInt(schedule.hour, 10);
+                if (isNaN(hour) || hour < 0 || hour > 23) hour = 0;
+                var time = (hour < 10 ? '0' : '') + hour + ':00';
+                var week = schedule.week == null ? '*' : String(schedule.week);
+                var nextTime = null;
+                if (week === '*') {
+                    text = time;
+                    title = '<%:Auto Update%> · <%:Appointment Mode%> · <%:Every Day%> ' + time;
+                    nextTime = this.computeNextAppointment('*', hour);
+                } else {
+                    var shortNames = {'0': '<%:Sun%>', '1': '<%:Mon%>', '2': '<%:Tue%>', '3': '<%:Wed%>', '4': '<%:Thu%>', '5': '<%:Fri%>', '6': '<%:Sat%>'};
+                    var longNames = {'0': '<%:Every Sunday%>', '1': '<%:Every Monday%>', '2': '<%:Every Tuesday%>', '3': '<%:Every Wednesday%>', '4': '<%:Every Thursday%>', '5': '<%:Every Friday%>', '6': '<%:Every Saturday%>'};
+                    text = ((shortNames[week] || '') + ' ' + time).trim();
+                    title = '<%:Auto Update%> · <%:Appointment Mode%> · ' + (longNames[week] || '') + ' ' + time;
+                    nextTime = this.computeNextAppointment(shortNames[week] ? week : '*', hour);
+                }
+                if (nextTime) {
+                    title += '\n<%:Next Update%> · ' + this.formatUnixTime(Math.floor(nextTime.getTime() / 1000));
+                }
+            }
+
+            return {icon: icon, text: text, title: title};
+        },
 
         formatFileSize: ocFormatFileSize,
 
@@ -962,7 +1056,8 @@ var ocLang = window.ocLang || '';
                         selectedFileInfo = {
                             mtime: file.mtime,
                             size: file.size,
-                            age: file.age
+                            age: file.age,
+                            schedule: file.schedule
                         };
                     }
                     break;

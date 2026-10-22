@@ -4699,6 +4699,21 @@ function action_config_file_list()
 		end
 	end)
 
+	local subscribe_schedules = {}
+	uci:foreach("openclash", "config_subscribe", function(s)
+		if s.name and s.address and s.address ~= "" then
+			local schedule = fs.config_subscribe_schedule(s[".name"])
+			if schedule.auto_update == "1" then
+				subscribe_schedules[s.name:gsub("%.ya?ml$", "")] = {
+					mode = schedule.mode,
+					week = schedule.week,
+					hour = schedule.hour,
+					interval = schedule.interval
+				}
+			end
+		end
+	end)
+
 	local config_dir = "/etc/openclash/config/"
 	local fingerprint_parts = {}
 	local cache_valid = false
@@ -4756,7 +4771,8 @@ function action_config_file_list()
 						path = full_path,
 						size = stat.size,
 						mtime = stat.mtime,
-						age = stat.age or false
+						age = stat.age or false,
+						schedule = name_no_ext and subscribe_schedules[name_no_ext] or nil
 					})
 				end
 			end
