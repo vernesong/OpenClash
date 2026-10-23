@@ -1993,6 +1993,7 @@ function action_refresh_log()
 	end
 
 	local exclude_pattern = "UDP%-Receive%-Buffer%-Size|^Sec%-Fetch%-Mode|^User%-Agent|^Access%-Control|^Accept|^Origin|^Referer|^Connection|^Pragma|^Cache%-"
+	local ts_pattern = "^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]"
 	local core_pattern = "level=|^time="
 	local limit = core_refresh and 2500 or 5000
 	local start_line = (log_len > 0 and total_lines > log_len) and (log_len + 1) or 1
@@ -2005,9 +2006,11 @@ function action_refresh_log()
 
 	local sed_range = string.format("sed -n '%d,%dp' '%s'", start_line, start_line + read_count - 1, logfile)
 
+	-- Only timestamped lines belong to the plugin log; everything else is core output
+	-- (the untimestamped panic dumps included) and goes to the core log tab.
 	local oc_cmd = string.format(
-		"%s | grep -v -E '%s' | grep -v -E '%s' | tail -n %d",
-		sed_range, exclude_pattern, core_pattern, limit + 1
+		"%s | grep -v -E '%s' | grep -E '%s' | tail -n %d",
+		sed_range, exclude_pattern, ts_pattern, limit + 1
 	)
 
 	oc_raw = SYS.exec(oc_cmd)
@@ -2017,9 +2020,6 @@ function action_refresh_log()
 		local oc_count = 0
 		for line in oc_raw:gmatch("[^\n]+") do
 			oc_count = oc_count + 1
-			if not string.match(string.sub(line, 1, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
-				line = os.date("%Y-%m-%d %H:%M:%S") .. ' [Fatal] ' .. line
-			end
 			oc_logs[#oc_logs + 1] = trans_line(line)
 		end
 
@@ -2034,26 +2034,34 @@ function action_refresh_log()
 		oc_log = #oc_logs > 0 and table.concat(oc_logs, "\n") or ""
 	end
 
+	-- With the log websocket running the timestamped core lines already reached the page,
+	-- so only the untimestamped output is appended from the log file.
+	local core_cmd
 	if core_refresh then
-		local core_cmd = string.format(
-			"%s | grep -v -E '%s' | grep -E '%s' | tail -n %d",
-			sed_range, exclude_pattern, core_pattern, limit + 1
+		core_cmd = string.format(
+			"%s | grep -v -E '%s' | grep -v -E '%s' | tail -n %d",
+			sed_range, exclude_pattern, ts_pattern, limit + 1
 		)
-		core_raw = SYS.exec(core_cmd)
+	else
+		core_cmd = string.format(
+			"%s | grep -v -E '%s' | grep -v -E '%s' | grep -v -E '%s' | tail -n %d",
+			sed_range, exclude_pattern, ts_pattern, core_pattern, limit + 1
+		)
+	end
+	core_raw = SYS.exec(core_cmd)
 
-		if core_raw and core_raw ~= "" then
-			local _, core_count = core_raw:gsub("\n", "")
-			if core_raw:sub(-1) ~= "\n" then
-				core_count = core_count + 1
-			end
+	if core_raw and core_raw ~= "" then
+		local _, core_count = core_raw:gsub("\n", "")
+		if core_raw:sub(-1) ~= "\n" then
+			core_count = core_count + 1
+		end
 
-			core_truncated = (core_count > limit)
-			if core_truncated then
-				core_log = core_raw:match("\n(.+)") or ""
-				core_log = core_log:gsub("\n$", "")
-			else
-				core_log = core_raw:gsub("\n$", "")
-			end
+		core_truncated = (core_count > limit)
+		if core_truncated then
+			core_log = core_raw:match("\n(.+)") or ""
+			core_log = core_log:gsub("\n$", "")
+		else
+			core_log = core_raw:gsub("\n$", "")
 		end
 	end
 
