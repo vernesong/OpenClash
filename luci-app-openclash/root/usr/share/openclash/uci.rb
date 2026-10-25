@@ -732,7 +732,9 @@ module UCI
       PROXY_FILE_KEYS.each do |key, path|
         begin
           if File.exist?(path)
-            value[key] = YAML.load_file(path)[key]
+            fragment = YAML.load_file(path)
+            fragment = {} unless fragment.is_a?(Hash)
+            value[key] = fragment[key]
           else
             value.delete(key)
           end

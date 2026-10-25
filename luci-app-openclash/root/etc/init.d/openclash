@@ -563,7 +563,9 @@ cp "$RAW_CONFIG_FILE" "$TMP_CONFIG_FILE"
 
 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
 begin
-   YAML.load_file('$RAW_CONFIG_FILE');
+   config = YAML.load_file('$RAW_CONFIG_FILE');
+   # A file without a document still needs a mapping for the overwrite stage
+   YAML.dump({}, '$TMP_CONFIG_FILE') if config == {};
 rescue Exception => e
    YAML.LOG_ERROR('Unable To Parse Config File,【' + e.message + '】');
    system 'rm -rf ${TMP_CONFIG_FILE}';
@@ -836,6 +838,22 @@ check_mod()
    LOG_ERROR "【$1】module not found, please check your system depends if something abnormal!"
 } >/dev/null 2>&1
 
+refresh_empty_providers()
+{
+   local api="http://${lan_ip}:${cn_port}" auth="Authorization: Bearer ${da_password}"
+   local names name count
+
+   names=$(curl -s -m 5 -H "$auth" "${api}/providers/proxies" 2>/dev/null | jsonfilter -e '@.providers.*.name' 2>/dev/null)
+   for name in $names; do
+      [ -n "$name" ] || continue
+      count=$(curl -s -m 5 -H "$auth" "${api}/providers/proxies/${name}" 2>/dev/null | jsonfilter -e '@.proxies[*].name' 2>/dev/null | wc -l)
+      if [ "$count" -eq 0 ]; then
+         LOG_WARN "Provider【${name}】Has No Proxies, Try to Refresh..."
+         curl -s -m 10 -X PUT -H "$auth" "${api}/providers/proxies/${name}" >/dev/null 2>&1
+      fi
+   done
+} >/dev/null 2>&1
+
 check_core_status()
 {
    TUN_WAIT=0
@@ -924,8 +942,9 @@ check_core_status()
       start_fail
    fi
 
-   # redirect dns setting after core started, prevent core dns lookup failure
+   # dns redirect is set after the core started to avoid its own lookup failure
    if [ "$1" == "start" ]; then
+      refresh_empty_providers
       change_dnsmasq "$enable_redirect_dns"
       set_firewall
       LOG_TIP "OpenClash Start Successful!"
@@ -4064,7 +4083,7 @@ start_service()
                Value = YAML.load_file('$TMP_CONFIG_FILE')
                provider_configs = {'proxy-providers' => 'proxy_provider', 'rule-providers' => 'rule_provider'}
                provider_configs.each do |provider_type, path_prefix|
-                  if Value.key?(provider_type) && Value[provider_type].is_a?(Hash)
+                  if Value.is_a?(Hash) && Value.key?(provider_type) && Value[provider_type].is_a?(Hash)
                      Value[provider_type].each do |name, config|
                         threads << YAML::Inline.new {
                            begin

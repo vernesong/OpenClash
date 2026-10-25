@@ -169,13 +169,9 @@ sys_dns_append()
 }
 
 PROXY_GROUPS=$(ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-   begin
-      Value = YAML.load_file_cached('$CONFIG_FILE', '/tmp/yaml_change_marshal')
-      if Value.key?('proxy-groups') && Value['proxy-groups'].is_a?(Array)
-         Value['proxy-groups'].each { |x| puts x['name'] if x.key?('name') }
-      end
-   rescue Exception => e
-      YAML.LOG_ERROR('proxy-groups Get Failed,【%s】' % [e.message])
+   Value = YAML.load_file_cached('$CONFIG_FILE', '/tmp/yaml_change_marshal') rescue nil
+   if Value.is_a?(Hash) && Value['proxy-groups'].is_a?(Array)
+      Value['proxy-groups'].each { |x| puts x['name'] if x.key?('name') }
    end
 " 2>/dev/null)
 
@@ -331,7 +327,19 @@ def merge_list_from_file(dns_hash, key, file_path)
    return unless File.exist?(file_path)
    lines = File.readlines(file_path).map { |l| l.gsub(/#.*$/, '').strip }.reject(&:empty?)
    return if lines.empty?
-   (dns_hash[key] ||= []).unshift(*lines).uniq!
+   if !dns_hash[key].nil? && !dns_hash[key].is_a?(Array)
+      YAML.LOG_WARN('Invalid Option Value, Replaced With The Custom Rule List:【%s】' % [key])
+      dns_hash[key] = lines
+   else
+      (dns_hash[key] ||= []).unshift(*lines).uniq!
+   end
+end
+
+def same_domain_tree?(filter_entry, domain)
+   a = filter_entry.to_s.strip.sub(/\A(?:\+\.|\*\.|\.|\*)/, '').downcase
+   b = domain.to_s.strip.sub(/\A(?:\+\.|\*\.|\.|\*)/, '').downcase
+   return false if a.empty? || b.empty? || a.include?(',')
+   a == b || a.end_with?('.' + b) || b.end_with?('.' + a)
 end
 
 def http_origin(raw_url)
@@ -733,7 +741,7 @@ begin
                if filter_mode == 'whitelist'
                   filters = Value.dig('dns', 'fake-ip-filter')
                   if filters.is_a?(Array)
-                     deleted_filters = filters.select { |f| pass_domains.any? { |d| f.to_s.include?(d) } }
+                     deleted_filters = filters.select { |f| pass_domains.any? { |d| same_domain_tree?(f, d) } }
                      if deleted_filters.any?
                         Value['dns']['fake-ip-filter'] -= deleted_filters
                         deleted_filters.each do |f|
@@ -756,7 +764,7 @@ begin
             end
             if filter_mode == 'whitelist'
                filters = Value.dig('dns', 'fake-ip-filter') || []
-               deleted_filters = filters.select { |f| f =~ /(geosite:?|rule-set:?).*(@cn|:cn|,cn|:china)/i }
+               deleted_filters = filters.select { |f| f =~ /(geosite:?|rule-set:?).*(?:@cn|:cn|,cn|(?<!non)(?<!no)-cn|@china|:china|,china)/i }
                if deleted_filters.any?
                   Value['dns']['fake-ip-filter'] -= deleted_filters
                   deleted_filters.each do |f|

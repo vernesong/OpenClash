@@ -25,6 +25,7 @@ module YAML
 		return 'EMPTY' if File.zero?(filename)
 
 		value = load_file(filename, key_names: key_names)
+		return 'EMPTY' if value == {}
 		return 'INVALID' unless value.is_a?(Hash)
 
 		proxies = value['proxies']
@@ -45,8 +46,12 @@ module YAML
 		if kwargs.key?(:secret)
 			secret = kwargs.delete(:secret)
 		end
+		# unsafe_load falls back to false, an empty document has to read as nil
+		kwargs[:fallback] = nil unless kwargs.key?(:fallback)
 
 		header = File.binread(filename, 512).to_s
+		# A file without a document is an empty mapping, only a real document keeps its type
+		return {} if header.empty?
 
 		if header.include?("BEGIN AGE ENCRYPTED FILE")
 			yaml_content = File.read(filename, mode: "r:bom|utf-8")
@@ -96,7 +101,8 @@ module YAML
 			if result.nil? || result == false
 				result = fix_and_load(File.read(filename, mode: "r:bom|utf-8"), *args, **kwargs)
 			end
-			result
+			# comments or '---' carry no document either
+			result.nil? ? {} : result
 		end
 	end
 
@@ -129,17 +135,12 @@ module YAML
 		end
 	end
 
+	# Writing nil/false would blank the file, a failed load must never reach that path
 	def self.dump(obj, io = nil, **options)
 		if obj.nil? || obj == false
-			target = ""
-			if io.is_a?(String)
-				target = " [#{io}]"
-			elsif io && io.respond_to?(:path)
-				target = " [#{io.path}]"
-			elsif options.key?(:filename)
-				target = " [#{options[:filename]}]"
-			end
-			raise "YAML.dump: refusing to write nil/false config content#{target} (previous load may have failed)"
+			target = io.is_a?(String) ? io : (io.respond_to?(:path) ? io.path : options[:filename])
+			LOG_WARN('Skip Writing Empty Config Content' + (target ? "【#{target}】" : ''))
+			return nil
 		end
 
 		if io.is_a?(String)
@@ -1242,9 +1243,10 @@ module YAML
 
 		begin
 			yaml_data = load(File.read(yaml_file))
+			# An empty module file is a valid empty block, a non mapping body is invalid
 			if yaml_data.is_a?(Hash)
 				value = overwrite(value, yaml_data)
-			else
+			elsif yaml_data
 				LOG_WARN('Invalid YAML Override format, skipped...')
 			end
 		rescue ::Exception => e
@@ -1400,6 +1402,12 @@ module YAML
 		overwrite_eval(value, statement)
 	end
 
+	# An empty module file means nothing to apply, it must not clear the keys it points at
+	def self.overwrite_load(path)
+		value = load_file(path)
+		value.is_a?(Hash) && !value.empty? ? value : nil
+	end
+
 	def self.overwrite_statement(fn, args)
 		path = args[1]
 		a3 = args[2]
@@ -1410,17 +1418,17 @@ module YAML
 		when 'ruby_edit'
 			"Value#{path} = #{a3}"
 		when 'ruby_cover'
-			"if File.exist?(#{a3.inspect}) then value_1 = YAML.load_file(#{a3.inspect}); if not #{a4.inspect}.empty? then Value#{path} = value_1[#{a4.inspect}] else Value#{path} = value_1 end else if not #{a4.inspect}.empty? then Value.delete(#{a4.inspect}); end; end"
+			"if File.exist?(#{a3.inspect}) then value_1 = YAML.overwrite_load(#{a3.inspect}); if value_1 then if not #{a4.inspect}.empty? then Value#{path} = value_1[#{a4.inspect}] else Value#{path} = value_1 end end else if not #{a4.inspect}.empty? then Value.delete(#{a4.inspect}); end; end"
 		when 'ruby_merge'
-			"if File.exist?(#{a3.inspect}) then value_1 = YAML.load_file(#{a3.inspect}); if not Value#{path} then Value#{path} = {}; end; if value_1#{a4} && value_1#{a4}.is_a?(Hash) then Value#{path}.merge!(value_1#{a4}) end end"
+			"if File.exist?(#{a3.inspect}) then value_1 = YAML.overwrite_load(#{a3.inspect}); if value_1 then if not Value#{path} then Value#{path} = {}; end; if value_1#{a4} && value_1#{a4}.is_a?(Hash) then Value#{path}.merge!(value_1#{a4}) end end end"
 		when 'ruby_uniq'
 			"if Value#{path} then Value#{path} = Value#{path}.uniq; end"
 		when 'ruby_merge_hash'
 			"if not Value#{path} then Value#{path} = {}; end; Value#{path}.merge!({#{a3}})"
 		when 'ruby_arr_add_file'
-			"if File.exist?(#{a4.inspect}) then value_1 = YAML.load_file(#{a4.inspect}); if not Value#{path} or Value#{path}.nil? then Value#{path} = []; end; if value_1#{a5} && value_1#{a5}.is_a?(Array) then idx = [#{a3}.to_i, 0].max; idx = [idx, Value#{path}.length].min; value_1#{a5}.reverse.each{|x| Value#{path}.insert(idx,x); idx += 1}; Value#{path} = Value#{path}.uniq end end"
+			"if File.exist?(#{a4.inspect}) then value_1 = YAML.overwrite_load(#{a4.inspect}); if value_1 then if not Value#{path} or Value#{path}.nil? then Value#{path} = []; end; if value_1#{a5} && value_1#{a5}.is_a?(Array) then idx = [#{a3}.to_i, 0].max; idx = [idx, Value#{path}.length].min; value_1#{a5}.reverse.each{|x| Value#{path}.insert(idx,x); idx += 1}; Value#{path} = Value#{path}.uniq end end end"
 		when 'ruby_arr_head_add_file'
-			"if File.exist?(#{a3.inspect}) then value_1 = YAML.load_file(#{a3.inspect}); if not Value#{path} or Value#{path}.nil? then Value#{path} = []; end; if value_1#{a4} && value_1#{a4}.is_a?(Array) then Value#{path} = (value_1#{a4} + Value#{path}).uniq else Value#{path} = Value#{path}.uniq end end"
+			"if File.exist?(#{a3.inspect}) then value_1 = YAML.overwrite_load(#{a3.inspect}); if value_1 then if not Value#{path} or Value#{path}.nil? then Value#{path} = []; end; if value_1#{a4} && value_1#{a4}.is_a?(Array) then Value#{path} = (value_1#{a4} + Value#{path}).uniq else Value#{path} = Value#{path}.uniq end end end"
 		when 'ruby_arr_insert'
 			"if not Value#{path} or Value#{path}.nil? then Value#{path} = []; end; idx = [#{a3}.to_i, 0].max; idx = [idx, Value#{path}.length].min; Value#{path} = Value#{path}.insert(idx, #{a4.inspect}).uniq"
 		when 'ruby_arr_insert_hash'

@@ -983,6 +983,9 @@ msgstr "Puertos comunes por defecto"
 msgid "Provider File Manage"
 msgstr "Gestión de archivos de proveedores"
 
+msgid "Has No Proxies, Try to Refresh..."
+msgstr "Sin proxies disponibles, intentando actualizar..."
+
 msgid "Config File Edit"
 msgstr "Editar archivo de configuración"
 
@@ -1912,6 +1915,9 @@ msgstr "Fallo al modificar los Hosts integrados,"
 
 msgid "Set Fake-IP-Filter Failed,"
 msgstr "Fallo al modificar Fake-IP-Filter,"
+
+msgid "Invalid Option Value, Replaced With The Custom Rule List:"
+msgstr "Valor de opción no válido, reemplazado por la lista de reglas personalizadas:"
 
 msgid "Set Nameserver-Policy Failed,"
 msgstr "Fallo al modificar Nameserver-Policy,"
@@ -3029,6 +3035,12 @@ msgstr "No se pudo obtener la IP LAN. Revisa la interfaz LAN o selecciona la cor
 
 msgid "Skiped The Custom Rule Because Group & Proxy Not Found:"
 msgstr "Regla personalizada omitida por no encontrar grupo o proxy asociado:"
+
+msgid "Skiped The Priority Custom Rules File Because The Content Is Not YAML"
+msgstr "Archivo de reglas personalizadas prioritarias omitido porque el contenido no es YAML."
+
+msgid "Skiped The Extended Custom Rules File Because The Content Is Not YAML"
+msgstr "Archivo de reglas personalizadas ampliadas omitido porque el contenido no es YAML."
 
 msgid "Disable quic-go GSO Support"
 msgstr "Desactivar soporte GSO para quic-go"

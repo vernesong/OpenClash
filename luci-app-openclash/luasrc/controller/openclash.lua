@@ -4038,7 +4038,6 @@ function action_switch_oc_setting()
 						config_path = '%s'
 
 						config = File.exist?(config_path) ? YAML.load_file(config_path) : {}
-						config ||= {}
 
 						if config['sniffer']&.dig('enable') == true &&
 						   config['sniffer']&.dig('parse-pure-ip') == true &&

@@ -68,18 +68,66 @@ run_with_timeout() {
    shift
    "$@" &
    local _pid=$!
+   # Watchdog must not inherit stdout/stderr, otherwise $(...) blocks until its sleep ends
    (
       sleep "$timeout_sec"
       kill $_pid 2>/dev/null
       sleep 1
       kill -9 $_pid 2>/dev/null
-   ) &
+   ) >/dev/null 2>&1 &
    local _watchdog=$!
    wait $_pid 2>/dev/null
    local _ret=$?
    kill $_watchdog 2>/dev/null
    wait $_watchdog 2>/dev/null
    return $_ret
+}
+
+pre_test_package() {
+   local test_err=""
+
+   pre_test_err=""
+   if [ "$PKG_TYPE" = "opkg" ]; then
+      rm -f /var/lock/opkg.lock
+      test_err=$(opkg --force-downgrade install "$DOWNLOAD_PATH" --noaction 2>&1)
+      if echo "$test_err" | grep -qE '(Upgrading|Downgrading) luci-app-openclash on root'; then
+         return 0
+      fi
+   else
+      rm -f /lib/apk/db/lock
+      test_err=$(apk add -s -q --force-overwrite --clean-protected --allow-untrusted "$DOWNLOAD_PATH" 2>&1)
+      if [ $? -eq 0 ]; then
+         return 0
+      fi
+   fi
+   pre_test_err="$test_err"
+   return 1
+}
+
+refresh_pkg_index() {
+   local ret=1 update_err="" update_retry=0
+   local max_update_retry=2
+
+   while [ $update_retry -lt $max_update_retry ]; do
+      update_retry=$((update_retry + 1))
+      if [ "$PKG_TYPE" = "opkg" ]; then
+         rm -f /var/lock/opkg.lock
+         update_err=$(run_with_timeout 30 opkg update 2>&1)
+      else
+         rm -f /lib/apk/db/lock
+         update_err=$(run_with_timeout 30 apk update 2>&1)
+      fi
+      ret=$?
+      rm -f /var/lock/opkg.lock /lib/apk/db/lock
+      [ $ret -eq 0 ] && return 0
+      if [ $update_retry -lt $max_update_retry ]; then
+         LOG_ERROR "【$update_retry/$max_update_retry】【OpenClash - v$LAST_VER】${PKG_TYPE} update failed or timed out:【$(echo "$update_err" | tr '\n' ' ' | head -c 300)】, retrying..."
+         sleep 2
+      else
+         LOG_ERROR "【$update_retry/$max_update_retry】【OpenClash - v$LAST_VER】${PKG_TYPE} update failed:【$(echo "$update_err" | tr '\n' ' ' | head -c 300)】, trying pre update test..."
+      fi
+   done
+   return 1
 }
 
 LAST_VER=$(echo "$PLUGIN_LATEST" |sed "s/^v//g" |tr -d "\n")
@@ -182,6 +230,7 @@ if [ -n "$DOWNLOAD_URL" ]; then
 
    retry_count=0
    max_retries=3
+   pkg_index_updated=false
 
    while [ "$retry_count" -lt "$max_retries" ]; do
       retry_count=$((retry_count + 1))
@@ -200,57 +249,12 @@ if [ -n "$DOWNLOAD_URL" ]; then
 
          pre_test_success=false
 
-         if [ "$PKG_TYPE" = "opkg" ]; then
-            update_retry=0
-            max_update_retry=2
-            while [ $update_retry -lt $max_update_retry ]; do
-               update_retry=$((update_retry + 1))
-               opkg_update_err=$(run_with_timeout 30 opkg update 2>&1)
-               opkg_ret=$?
-               rm -f /var/lock/opkg.lock
-               if [ $opkg_ret -eq 0 ]; then
-                  break
-               fi
-               if [ $update_retry -lt $max_update_retry ]; then
-                  LOG_ERROR "【$update_retry/$max_update_retry】【OpenClash - v$LAST_VER】opkg update failed or timed out:【$(echo "$opkg_update_err" | tr '\n' ' ' | head -c 300)】, retrying..."
-                  sleep 2
-               else
-                  LOG_ERROR "【$update_retry/$max_update_retry】【OpenClash - v$LAST_VER】opkg update failed:【$(echo "$opkg_update_err" | tr '\n' ' ' | head -c 300)】, trying pre update test..."
-               fi
-            done
-            if [ -s "/tmp/openclash.ipk" ]; then
-               opkg_test_err=$(opkg --force-downgrade install /tmp/openclash.ipk --noaction 2>&1)
-               if [ -n "$(echo "$opkg_test_err" | grep -E '(Upgrading|Downgrading) luci-app-openclash on root')" ]; then
-                  pre_test_success=true
-               else
-                  LOG_ERROR "【$retry_count/$max_retries】【OpenClash - v$LAST_VER】Pre update test failed:【$(echo "$opkg_test_err" | tr '\n' ' ' | head -c 500)】..."
-               fi
-            fi
-         else
-            update_retry=0
-            max_update_retry=2
-            while [ $update_retry -lt $max_update_retry ]; do
-               update_retry=$((update_retry + 1))
-               apk_update_err=$(run_with_timeout 30 apk update 2>&1)
-               apk_ret=$?
-               rm -f /lib/apk/db/lock
-               if [ $apk_ret -eq 0 ]; then
-                  break
-               fi
-               if [ $update_retry -lt $max_update_retry ]; then
-                  LOG_ERROR "【$update_retry/$max_update_retry】【OpenClash - v$LAST_VER】apk update failed or timed out:【$(echo "$apk_update_err" | tr '\n' ' ' | head -c 300)】, retrying..."
-                  sleep 2
-               else
-                  LOG_ERROR "【$update_retry/$max_update_retry】【OpenClash - v$LAST_VER】apk update failed:【$(echo "$apk_update_err" | tr '\n' ' ' | head -c 300)】, trying pre update test..."
-               fi
-            done
-            if [ -s "/tmp/openclash.apk" ]; then
-               apk_test_err=$(apk add -s -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk 2>&1)
-               if [ $? -eq 0 ]; then
-                  pre_test_success=true
-               else
-                  LOG_ERROR "【$retry_count/$max_retries】【OpenClash - v$LAST_VER】Pre update test failed:【$(echo "$apk_test_err" | tr '\n' ' ' | head -c 500)】..."
-               fi
+         if pre_test_package; then
+            pre_test_success=true
+         elif [ "$pkg_index_updated" != "true" ]; then
+            refresh_pkg_index && pkg_index_updated=true
+            if pre_test_package; then
+               pre_test_success=true
             fi
          fi
 
@@ -259,7 +263,7 @@ if [ -n "$DOWNLOAD_URL" ]; then
             break
          else
             if [ "$retry_count" -lt "$max_retries" ]; then
-               LOG_ERROR "【$retry_count/$max_retries】【OpenClash - v$LAST_VER】Pre update test failed..."
+               LOG_ERROR "【$retry_count/$max_retries】【OpenClash - v$LAST_VER】Pre update test failed:【$(echo "$pre_test_err" | tr '\n' ' ' | head -c 500)】..."
                sleep 2
                continue
             else
@@ -349,6 +353,70 @@ stop_openclash_before_install() {
    done
 }
 
+pkg_index_refreshed=false
+
+run_with_timeout() {
+   local timeout_sec="$1"
+   shift
+   "$@" &
+   local _pid=$!
+   # Watchdog must not inherit stdout/stderr, otherwise $(...) blocks until its sleep ends
+   (
+      sleep "$timeout_sec"
+      kill $_pid 2>/dev/null
+      sleep 1
+      kill -9 $_pid 2>/dev/null
+   ) >/dev/null 2>&1 &
+   local _watchdog=$!
+   wait $_pid 2>/dev/null
+   local _ret=$?
+   kill $_watchdog 2>/dev/null
+   wait $_watchdog 2>/dev/null
+   return $_ret
+}
+
+pkg_index_available() {
+   local dir=""
+
+   if [ "$PKG_TYPE" = "opkg" ]; then
+      for dir in $(awk '$1=="lists_dir"{print $NF}' /etc/opkg.conf 2>/dev/null) /var/lib/opkg/lists /var/opkg-lists /tmp/opkg-lists; do
+         [ -n "$(ls -A "$dir" 2>/dev/null)" ] && return 0
+      done
+      return 1
+   fi
+   [ -n "$(ls /var/cache/apk/*.adb /var/cache/apk/APKINDEX* 2>/dev/null)" ] && return 0
+   [ -n "$(apk search -x -q busybox 2>/dev/null | head -n 1)" ]
+}
+
+refresh_pkg_index() {
+   local ret=0
+
+   if [ "$pkg_index_refreshed" = "true" ]; then
+      return 0
+   fi
+   if [ "$PKG_TYPE" = "opkg" ]; then
+      rm -f /var/lock/opkg.lock
+      run_with_timeout 30 opkg update >/dev/null 2>&1
+      ret=$?
+      rm -f /var/lock/opkg.lock
+   else
+      rm -f /lib/apk/db/lock
+      run_with_timeout 30 apk update >/dev/null 2>&1
+      ret=$?
+      rm -f /lib/apk/db/lock
+   fi
+   [ $ret -eq 0 ] && pkg_index_refreshed=true
+   return $ret
+}
+
+ensure_pkg_index() {
+   if [ "$pkg_index_refreshed" = "true" ]; then
+      return 0
+   fi
+   pkg_index_available && return 0
+   refresh_pkg_index
+}
+
 install_missing_packages() {
    local installed_before="$1"
 
@@ -367,6 +435,7 @@ install_missing_packages() {
          fi
 
          LOG_TIP "【$pkg】depended package reinstalling..."
+         ensure_pkg_index
 
          while [ $retry_count -lt $max_retries ]; do
             retry_count=$((retry_count + 1))

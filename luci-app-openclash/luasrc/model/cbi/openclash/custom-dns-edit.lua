@@ -135,7 +135,7 @@ o:depends("group", "fallback")
 local groupnames,filename
 filename = m.uci:get(openclash, "config", "config_path")
 if filename then
-	groupnames = SYS.exec(string.format('ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "YAML.load_file(\'%s\')[\'proxy-groups\'].each do |i| puts i[\'name\']+\'##\' end" 2>/dev/null',filename))
+	groupnames = SYS.exec(string.format('ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "YAML.load_file(\'%s\')[\'proxy-groups\'].to_a.each do |i| puts i[\'name\']+\'##\' end" 2>/dev/null',filename))
 	if groupnames then
 		for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
 			if groupname ~= nil and groupname ~= "" then

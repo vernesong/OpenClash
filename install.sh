@@ -180,6 +180,7 @@ pkg_install() {
 
 pkg_update() {
 	local i=1 err rc
+	info "updating package index"
 	while [ "$i" -le 3 ]; do
 		if [ "$PKG_TYPE" = "apk" ]; then
 			err=$(run_with_timeout 180 apk update 2>&1)
@@ -203,6 +204,26 @@ pkg_update() {
 	[ -n "$err" ] || err="no output (timed out or network unavailable)"
 	warn "package index update failed: $(printf '%s' "$err" | tr '\n' ' ' | head -c 300)"
 	return 1
+}
+
+pkg_index_available() {
+	local dir=""
+
+	if [ "$PKG_TYPE" = "apk" ]; then
+		[ -n "$(ls /var/cache/apk/*.adb /var/cache/apk/APKINDEX* 2>/dev/null)" ] && return 0
+		[ -n "$(apk search -x -q busybox 2>/dev/null | head -n 1)" ]
+		return 1
+	fi
+	for dir in $(awk '$1=="lists_dir"{print $NF}' /etc/opkg.conf 2>/dev/null) /var/lib/opkg/lists /var/opkg-lists /tmp/opkg-lists; do
+		[ -n "$(ls -A "$dir" 2>/dev/null)" ] && return 0
+	done
+	return 1
+}
+
+ensure_pkg_index() {
+	[ "$PKG_INDEX_UPDATED" = "1" ] && return 0
+	pkg_index_available && return 0
+	pkg_update
 }
 
 free_space_kb() {
@@ -1012,8 +1033,7 @@ main() {
 		section "preparing curl and ca-bundle"
 		warn "curl or ca-bundle is missing"
 		ensure_install_dns
-		info "updating package index"
-		if ! pkg_update; then
+		if ! ensure_pkg_index; then
 			error "failed to update the package index"
 			error "install curl and ca-bundle manually, then rerun this script"
 			exit 1
@@ -1091,12 +1111,9 @@ main() {
 	if [ "$need_plugin" = "1" ] || [ "$need_deps" = "1" ]; then
 		stage "install the dependencies"
 		ensure_install_dns
-		if [ "$PKG_INDEX_UPDATED" != "1" ]; then
-			info "updating package index"
-			if ! pkg_update; then
-				error "failed to update the package index"
-				exit 1
-			fi
+		if ! ensure_pkg_index; then
+			error "failed to update the package index"
+			exit 1
 		fi
 		if ! ensure_dnsmasq_full; then
 			error "failed to install dnsmasq-full"

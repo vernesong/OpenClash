@@ -41,11 +41,13 @@ var ocLang = window.ocLang || '';
     }
 
     function ocFormatBytes(bytes) {
-        if (bytes == null || bytes === 0) return '0 B';
+        var num = Number(bytes);
+        if (!isFinite(num) || num <= 0) return '0 B';
         var sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
-        var i = Math.floor(Math.log(bytes) / Math.log(1024));
+        var i = Math.floor(Math.log(num) / Math.log(1024));
+        if (i < 0) i = 0; // sub-byte rates would index sizes[-1]
         if (i >= sizes.length) i = sizes.length - 1;
-        return (i === 0 ? bytes : (bytes / Math.pow(1024, i)).toFixed(1)) + ' ' + sizes[i];
+        return (i === 0 ? Math.round(num * 10) / 10 : (num / Math.pow(1024, i)).toFixed(1)) + ' ' + sizes[i];
     }
 
     function ocFormatFileSize(bytes) {
