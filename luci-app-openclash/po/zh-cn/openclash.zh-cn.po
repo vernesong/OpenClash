@@ -992,6 +992,9 @@ msgstr "代理（规则）集文件管理"
 msgid "Has No Proxies, Try to Refresh..."
 msgstr "没有可用节点，正在尝试刷新..."
 
+msgid "Refresh Failed..."
+msgstr "刷新失败..."
+
 msgid "Config File Edit"
 msgstr "配置文件编辑"
 

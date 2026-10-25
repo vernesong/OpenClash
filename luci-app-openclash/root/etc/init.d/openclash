@@ -841,16 +841,35 @@ check_mod()
 refresh_empty_providers()
 {
    local api="http://${lan_ip}:${cn_port}" auth="Authorization: Bearer ${da_password}"
-   local names name count
+   local body name vtype count path cache tries max_tries=3
 
-   names=$(curl -s -m 5 -H "$auth" "${api}/providers/proxies" 2>/dev/null | jsonfilter -e '@.providers.*.name' 2>/dev/null)
-   for name in $names; do
+   body=$(curl -s -m 5 -H "$auth" "${api}/providers/proxies" 2>/dev/null)
+   [ -n "$body" ] || return 0
+
+   printf '%s\n' "$body" | jsonfilter -e '@.providers.*.name' 2>/dev/null | while IFS= read -r name; do
       [ -n "$name" ] || continue
-      count=$(curl -s -m 5 -H "$auth" "${api}/providers/proxies/${name}" 2>/dev/null | jsonfilter -e '@.proxies[*].name' 2>/dev/null | wc -l)
-      if [ "$count" -eq 0 ]; then
-         LOG_WARN "Provider【${name}】Has No Proxies, Try to Refresh..."
-         curl -s -m 10 -X PUT -H "$auth" "${api}/providers/proxies/${name}" >/dev/null 2>&1
-      fi
+      vtype=$(printf '%s\n' "$body" | jsonfilter -e "@.providers[\"${name}\"].vehicleType" 2>/dev/null)
+      [ "$vtype" = "HTTP" ] || continue
+      count=$(printf '%s\n' "$body" | jsonfilter -e "@.providers[\"${name}\"].proxies[*].name" 2>/dev/null | wc -l)
+      [ "$count" -eq 0 ] || continue
+      path=$(ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e '
+         v = YAML.load_file(ARGV[0]) rescue nil
+         p = (v.is_a?(Hash) && v["proxy-providers"].is_a?(Hash)) ? v["proxy-providers"][ARGV[1]] : nil
+         puts(p.is_a?(Hash) ? p["path"].to_s : "")
+      ' "$CONFIG_FILE" "$name" 2>/dev/null)
+      [ -n "$path" ] || continue
+      cache="/etc/openclash/${path#./}"
+      [ -s "$cache" ] && continue
+      tries=0
+      while [ "$tries" -lt "$max_tries" ]; do
+         tries=$((tries + 1))
+         LOG_WARN "【${tries}/${max_tries}】Provider【${name}】Has No Proxies, Try to Refresh..."
+         curl -s -m 20 -X PUT -H "$auth" "${api}/providers/proxies/${name}" >/dev/null 2>&1
+         count=$(curl -s -m 5 -H "$auth" "${api}/providers/proxies/${name}" 2>/dev/null | jsonfilter -e '@.proxies[*].name' 2>/dev/null | wc -l)
+         [ "$count" -gt 0 ] && break
+         [ "$tries" -lt "$max_tries" ] && sleep 5
+      done
+      [ "$count" -eq 0 ] && LOG_ERROR "【${tries}/${max_tries}】Provider【${name}】Refresh Failed..."
    done
 } >/dev/null 2>&1
 

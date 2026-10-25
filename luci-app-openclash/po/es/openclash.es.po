@@ -986,6 +986,9 @@ msgstr "Gestión de archivos de proveedores"
 msgid "Has No Proxies, Try to Refresh..."
 msgstr "Sin proxies disponibles, intentando actualizar..."
 
+msgid "Refresh Failed..."
+msgstr "Error al actualizar..."
+
 msgid "Config File Edit"
 msgstr "Editar archivo de configuración"
 
