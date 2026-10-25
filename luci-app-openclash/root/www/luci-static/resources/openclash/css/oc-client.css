@@ -479,6 +479,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
     text-overflow: ellipsis;
     white-space: nowrap;
     height: 20px;
+    cursor: pointer;
 }
 
 .oc .version-display .version-text {
@@ -517,6 +518,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
 .oc .version-display:hover {
     background: var(--bg-light);
     color: var(--text-primary);
+    border-color: var(--primary-color);
 }
 
 .oc .config-selector {
@@ -3438,7 +3440,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     position: fixed;
     right: 24px;
     bottom: 24px;
-    z-index: 9999;
+    z-index: 900;
     display: flex;
     flex-direction: column;
     align-items: flex-end;

@@ -2116,6 +2116,16 @@ var ocLang = window.ocLang || '';
         DOMCache.oclog.addEventListener('click', function() { ocOpenCoreStartFlow(); });
     }
 
+    [DOMCache.plugin_version_display, DOMCache.core_version_display].forEach(function(tag) {
+        if (!tag) return;
+        tag.addEventListener('click', function() { ocShowUpdatePopup(); });
+        tag.addEventListener('keydown', function(e) {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            e.preventDefault();
+            ocShowUpdatePopup();
+        });
+    });
+
     var SystemStatusManager = {
         pollTimer: null,
         pollInterval: 5000,
@@ -2591,13 +2601,7 @@ var ocLang = window.ocLang || '';
         show: function() {
             this.init();
             if (!this.overlay || !this.textarea) return;
-            if (!this.portal) {
-                this.portal = document.createElement('div');
-                this.portal.className = 'oc';
-                this.portal.style.overflow = 'visible';
-                document.body.appendChild(this.portal);
-                this.portal.appendChild(this.overlay);
-            }
+            ocPortalize(this.overlay);
             this.overlay.classList.add('show');
             if (this.statusEl) {
                 this.statusEl.textContent = '';
@@ -3470,7 +3474,9 @@ var ocLang = window.ocLang || '';
         },
 
         init: function() {
-            this.portal();
+            var host = ocPortalize();
+            var stack = document.getElementById('oc-float-stack');
+            if (stack && stack.parentNode !== host) host.appendChild(stack);
             this.loadSort();
             this.bind();
             this.bindBrandIcons();
@@ -3493,23 +3499,6 @@ var ocLang = window.ocLang || '';
                 this.cardObserver.observe(card);
             } else {
                 window.addEventListener('resize', apply);
-            }
-        },
-
-        // the page wrapper carries position:relative + z-index:50, which caps every fixed child
-        // inside it, so the dialog and the floating buttons must live directly under body
-        portal: function() {
-            var host = document.getElementById('oc-portal');
-            if (!host) {
-                host = document.createElement('div');
-                host.id = 'oc-portal';
-                host.className = 'oc';
-                document.body.appendChild(host);
-            }
-            var ids = ['ac-rename-overlay', 'ac-max-overlay', 'oc-float-stack'];
-            for (var i = 0; i < ids.length; i++) {
-                var el = document.getElementById(ids[i]);
-                if (el && el.parentNode !== host) host.appendChild(el);
             }
         },
 
@@ -5400,20 +5389,26 @@ var ocLang = window.ocLang || '';
         StatsChart.feed("mem", data.inuse ? (data.inuse / 1048576) : 0);
     }
 
-    var all_one_key_update = debounceButton(function(btn) {
-        function checkUpdate() {
-            btn.value = '<%:Checking...%>';
-            update();
-            btn.value = '<%:Check Update%>';
-            btn.disabled = false;
+    // The update popup is rendered by update.htm; its bundle is fetched on first open
+    function ocShowUpdatePopup(done) {
+        function open() {
+            if (typeof update === 'function') update();
+            if (done) done();
         }
         if (typeof update === 'function') {
-            checkUpdate();
+            open();
         } else {
             ocLoadCss(ocCssUrl('oc-update.css'));
-            ocRequireScript(ocJsUrl('update.js'), checkUpdate);
+            ocRequireScript(ocJsUrl('update.js'), open);
         }
-        return false;
+    }
+
+    var all_one_key_update = debounceButton(function(btn) {
+        btn.value = '<%:Checking...%>';
+        ocShowUpdatePopup(function() {
+            btn.value = '<%:Check Update%>';
+            btn.disabled = false;
+        });
     });
 
     var b_flush_dns_cache = debounceButton(function(btn) {
@@ -5563,7 +5558,7 @@ var ocLang = window.ocLang || '';
                 if (existingDot) {
                     existingDot.remove();
                 }
-                DOMCache.core_version_display.title = '';
+                DOMCache.core_version_display.title = '<%:Check Update%>';
             }
         }
 
@@ -5589,7 +5584,7 @@ var ocLang = window.ocLang || '';
                 if (existingDot) {
                     existingDot.remove();
                 }
-                DOMCache.plugin_version_display.title = '';
+                DOMCache.plugin_version_display.title = '<%:Check Update%>';
             }
         }
 
