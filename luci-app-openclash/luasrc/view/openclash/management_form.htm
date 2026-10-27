@@ -1,0 +1,10 @@
+<form method="post" enctype="multipart/form-data" action="<%=REQUEST_URI%>">
+    <script src="<%=resource%>/cbi.js"></script>
+    <input type="hidden" name="token" value="<%=token%>" />
+    <input type="hidden" name="cbi.submit" value="1" />
+    <div class="cbi-map" id="cbi-<%=self.config%>">
+        <% if self.title and #self.title > 0 then %><h2 name="content"><%=self.title%></h2><% end %>
+        <% self:render_children() %>
+    </div>
+</form>
+<script>cbi_init();</script>

@@ -1,0 +1,55 @@
+<fieldset class="cbi-section">
+    <legend><%:Backup / Restore%></legend>
+    <div class="cbi-section-node">
+    <div class="cbi-value">
+        <label class="cbi-value-title" for="backup-kind"><%:Backup Scope%>:</label>
+        <div class="cbi-value-field">
+            <select class="cbi-input-select" id="backup-kind">
+                <% for _, item in ipairs({{'backup','Backup File'}, {'backup_ex_core','Backup Exclude Cores'}, {'backup_only_core','Backup Core'}, {'backup_only_config','Backup Config'}, {'backup_only_rule','Backup Rule Provider'}, {'backup_only_proxy','Backup Proxy Provider'}}) do %>
+                <option value="<%=url('admin', 'services', 'openclash', item[1])%>"><%=translate(item[2])%></option>
+                <% end %>
+            </select>
+        </div>
+    </div>
+    <div class="cbi-value cbi-value-last">
+        <label class="cbi-value-title"><%:Download backup%>:</label>
+        <div class="cbi-value-field">
+            <input type="button" class="cbi-button cbi-button-apply" id="download-backup" value="<%:Generate archive%>" onclick="location.href=document.getElementById('backup-kind').value" />
+        </div>
+    </div>
+    </div>
+    <br />
+    <div class="cbi-section-node">
+    <div class="cbi-value cbi-value-last">
+        <label class="cbi-value-title" for="restore-backup-file"><%:Restore backup%>:</label>
+        <div class="cbi-value-field">
+            <input type="file" id="restore-backup-file" accept=".tar.gz" />
+            <input type="button" class="cbi-button cbi-input-apply" id="restore-backup-button" value="<%:Upload archive...%>" />
+            <div class="cbi-value-description" id="restore-backup-status" role="status"></div>
+        </div>
+    </div>
+    </div>
+</fieldset>
+<script>
+(function() {
+    var button = document.getElementById('restore-backup-button');
+    button.onclick = function() {
+        var file = document.getElementById('restore-backup-file').files[0];
+        if (!file || !window.confirm('<%:Restoring overwrites existing OpenClash files and settings. Continue?%>')) return;
+        var data = new FormData();
+        data.append('token', '<%=token%>');
+        data.append('backup_file', file);
+        var status = document.getElementById('restore-backup-status');
+        button.disabled = true;
+        status.textContent = '<%:Uploading...%>';
+        fetch('<%=url("admin", "services", "openclash", "restore_backup")%>', {method:'POST', body:data})
+            .then(function(response) { if (!response.ok) throw new Error('HTTP ' + response.status); return response.json(); })
+            .then(function(result) {
+                if (result.status !== 'success') throw new Error(result.message);
+                status.textContent = '<%:Backup File Restore Successful!%>';
+            })
+            .catch(function(error) { status.textContent = error.message; })
+            .then(function() { button.disabled = false; });
+    };
+})();
+</script>

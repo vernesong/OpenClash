@@ -1,32 +1,74 @@
 <%+cbi/valueheader%>
-<% local action_id = self:cbid(section) .. ".action" %>
+<% local action_id = self:cbid(section) .. ".action"
+local actions = row_actions or {}
+if not row_actions then
+    if is_yaml and has_file ~= false and not is_current then actions[#actions+1] = {"switch", "SwiTch"} end
+    actions[#actions+1] = {"edit", "Edit"}
+    if has_subscription then actions[#actions+1] = {"update", "UpDate"} end
+    if has_file ~= false then actions[#actions+1] = {"download", "Download"} end
+    if has_file ~= false then
+        if source_editable ~= false then actions[#actions+1] = {"servers_manage", "Servers Manage"} end
+        if not is_running then actions[#actions+1] = {"rename", "Rename"} end
+        if is_yaml then actions[#actions+1] = {"copy", "Copy Config"} end
+        if has_running then actions[#actions+1] = {"download_run", "Download Running Config"} end
+    end
+    if not is_running then actions[#actions+1] = {"remove", "Remove"} end
+end
+local function direct(index, action)
+    if unified_config then return action[1] == "edit" end
+    return index <= 3
+end
+local overflow = false
+for index, action in ipairs(actions) do if not direct(index, action) then overflow = true end end
+%>
 <div style="white-space: nowrap">
     <input type="hidden" id="<%=pcdata(action_id)%>" name="cbid.<%=self.map.config%>.<%=section%>.actions" />
     <button type="submit" hidden name="<%=self:cbid(section)%>" value="1" tabindex="-1" aria-hidden="true"></button>
-    <% if is_yaml then %>
-    <input type="submit" class="btn cbi-button cbi-input-apply" name="<%=self:cbid(section)%>" value="<%:SwiTch%>" onclick="document.getElementById('<%=action_id%>').value='switch'" />
-    <% end %>
-    <input type="submit" class="btn cbi-button cbi-input-apply" name="<%=self:cbid(section)%>" value="<%:Edit%>" onclick="document.getElementById('<%=action_id%>').value='edit'" />
-    <input type="submit" class="btn cbi-button cbi-input-apply" name="<%=self:cbid(section)%>" value="<%:Download%>" onclick="document.getElementById('<%=action_id%>').value='download'" />
+    <% for i, action in ipairs(actions) do if direct(i, action) then %>
+    <input type="<%=action[1] == 'update' and 'button' or 'submit'%>" class="btn cbi-button cbi-input-<%=action[1] == 'remove' and 'remove' or (action[1] == 'update' and 'reload' or 'apply')%>" name="<%=self:cbid(section)%>" data-file="<%=pcdata(config_name)%>" value="<%=translate(action[2])%>" onclick="return configRowSubmit(this, '<%=action_id%>', '<%=action[1]%>')" />
+    <% end end %>
+    <% if overflow then %>
     <span class="oc-actions-menu">
         <button type="button" class="btn cbi-button oc-actions-menu-btn" title="<%:Other%>" aria-label="<%:Other%>" aria-haspopup="true" onclick="return configRowMenu(this)">&#8943;</button>
         <select class="cbi-input-select" tabindex="-1" aria-hidden="true" title="<%:Other%>" data-file="<%=pcdata(config_name)%>" onchange="return configRowAction(this, '<%=action_id%>')">
             <option value="" selected disabled hidden></option>
-            <option value="servers_manage"><%:Servers Manage%></option>
-            <option value="rename"><%:Rename%></option>
-            <% if is_yaml then %><option value="copy"><%:Copy Config%></option><% end %>
-            <% if has_running then %><option value="download_run"><%:Download Running Config%></option><% end %>
-            <option value="remove"><%:Remove%></option>
+            <% for i, action in ipairs(actions) do if not direct(i, action) then %>
+            <option value="<%=action[1]%>"><%=translate(action[2])%></option>
+            <% end end %>
         </select>
     </span>
+    <% end %>
 </div>
 <% if config_script then %>
 <script>
+window.configRowSubmit = function(button, id, action) {
+    if (action === 'update') {
+        if (!window.confirm('<%:Updating overwrites local changes. Continue?%>')) return false;
+        var original = button.value;
+        button.disabled = true;
+        button.value = '<%:Updating Config...%>';
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_config")%>', {filename:button.dataset.file.replace(/\.ya?ml$/i, ''), no_restart:'1'}, function(response, result) {
+            if (response && response.status === 200 && result && result.status === 'success') {
+                location.reload();
+            } else {
+                button.value = '<%:Update Failed%>';
+                setTimeout(function() { button.value = original; button.disabled = false; }, 2000);
+            }
+        });
+        return false;
+    }
+    if (action === 'remove' && !window.confirm('<%:Remove%>?')) return false;
+    document.getElementById(id).value = action;
+    return true;
+};
 window.configRowAction = function(select, id) {
     var action = select.value;
     var file = select.dataset.file;
     select.value = '';
     if (!action) return false;
+    if (action === 'update') {
+        return configRowSubmit(select, id, action);
+    }
     if (action === 'rename') {
         ocPrompt('<%:Paste the new file name (including the extension) here:%>', file, function(value, setError, close) {
             if (!value) return;

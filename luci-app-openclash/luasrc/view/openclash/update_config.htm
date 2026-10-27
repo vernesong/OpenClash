@@ -8,13 +8,17 @@
 <script type="text/javascript">//<![CDATA[
 	function act_update_config_<%=idname%>(btn)
 	{
+		<% if self.confirm_overwrite then %>
+		if (!window.confirm('<%:Updating overwrites local changes. Continue?%>')) return false;
+		<% end %>
 		var originalValue = btn.value;
 		btn.disabled = true;
 		btn.value = '<%:Updating Config...%>';
 
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash","update_config")%>',{filename: "<%=filename%>"}, function(x,status){
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash","update_config")%>',{filename: "<%=filename%>"<% if self.no_restart then %>, no_restart: "1"<% end %>}, function(x,status){
 			if (x && x.status == 200 && status && status.status === 'success') {
 				btn.value = '<%:Update Successful%>';
+				<% if self.reload_after_update then %>location.reload();<% end %>
 			} else {
 				btn.value = '<%:Update Failed%>';
 			}

@@ -1,0 +1,32 @@
+<link rel="stylesheet" href="/luci-static/resources/openclash/css/oc-config.css?v=@OPENCLASH_VERSION@-compact-actions">
+<%
+local cbi = require "luci.cbi"
+local navigation = cbi.SimpleForm("openclash_resources")
+local section = navigation:section(cbi.SimpleSection)
+local resources = {{"config", "Config Files"}, {"proxy-providers-file-manage", "Proxy Providers"}, {"rule-providers-file-manage", "Rule Providers"}, {"config-backup", "Backup / Restore"}}
+for _, item in ipairs(resources) do
+    section:tab(item[1], translate(item[2]))
+    section:taboption(item[1], cbi.DummyValue, "_" .. item[1])
+end
+%>
+<div class="cbi-map-descr">
+<%:Note: Automatic updates overwrite configuration files. Disable automatic updates and save before editing locally. Saving does not restart OpenClash; applying does.%><br />
+<%:Note: Provider update URLs are defined in configuration files. Downloaded provider files may be overwritten; MRS files cannot be edited as text.%><br />
+<%:Note: Backups include OpenClash settings and all files under /etc/openclash. Restore accepts full backups or backups excluding cores.%>
+</div>
+<fieldset class="cbi-section">
+<% luci.template.render("cbi/tabmenu", {self = section, section = "navigation"}) %>
+</fieldset>
+<script>
+(function() {
+    <% for _, item in ipairs(resources) do %>
+    var tab = document.getElementById('tab.openclash_resources.navigation.<%=item[1]%>');
+    if (tab) {
+        if (tab.classList.contains('cbi-tab')) tab.classList.add('active');
+        var link = tab.querySelector('a');
+        link.href = '<%=luci.dispatcher.build_url("admin", "services", "openclash", item[1])%>?tab.openclash_resources.navigation=<%=item[1]%>';
+        link.onclick = function() { this.blur(); };
+    }
+    <% end %>
+})();
+</script>
