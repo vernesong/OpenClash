@@ -54,11 +54,12 @@ rescue Exception => e
    exit;
 end;
 
-begin
-   if not (Value.key?('proxies') or Value.key?('proxy-providers')) then
-      exit;
-   end
+# outside the rescue above, an exit inside a rescued block reports itself as an error
+if not Value.is_a?(Hash) or not (Value.key?('proxies') or Value.key?('proxy-providers')) then
+   exit;
+end;
 
+begin
    servers_to_process = Array.new
 
    # Servers from proxies

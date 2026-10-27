@@ -151,7 +151,7 @@ config_cus_up()
          begin
             threads = [];
             Value = YAML.load_file('$CFG_FILE');
-            if Value.has_key?('proxies') and not Value['proxies'].to_a.empty? then
+            if Value.is_a?(Hash) and Value.has_key?('proxies') and not Value['proxies'].to_a.empty? then
                Value['proxies'].reverse.each{
                |x|
                   if not '$key_match_param'.empty? then
@@ -190,7 +190,7 @@ config_cus_up()
                   end;
                };
             end;
-            if Value.key?('proxy-providers') and not Value['proxy-providers'].nil? then
+            if Value.is_a?(Hash) and Value.key?('proxy-providers') and not Value['proxy-providers'].nil? then
                Value['proxy-providers'].values.each do
                   |i|
                   threads << YAML::Inline.new {

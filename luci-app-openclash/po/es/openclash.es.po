@@ -557,6 +557,30 @@ msgstr "Cada sábado"
 msgid "Every Sunday"
 msgstr "Cada domingo"
 
+msgid "Mon"
+msgstr "Lun"
+
+msgid "Tue"
+msgstr "Mar"
+
+msgid "Wed"
+msgstr "Mié"
+
+msgid "Thu"
+msgstr "Jue"
+
+msgid "Fri"
+msgstr "Vie"
+
+msgid "Sat"
+msgstr "Sáb"
+
+msgid "Sun"
+msgstr "Dom"
+
+msgid "Next Update"
+msgstr "Próxima actualización"
+
 msgid "Netflix"
 msgstr "Netflix"
 
@@ -958,6 +982,12 @@ msgstr "Puertos comunes por defecto"
 
 msgid "Provider File Manage"
 msgstr "Gestión de archivos de proveedores"
+
+msgid "Has No Proxies, Try to Refresh..."
+msgstr "Sin proxies disponibles, intentando actualizar..."
+
+msgid "Refresh Failed..."
+msgstr "Error al actualizar..."
 
 msgid "Config File Edit"
 msgstr "Editar archivo de configuración"
@@ -1888,6 +1918,9 @@ msgstr "Fallo al modificar los Hosts integrados,"
 
 msgid "Set Fake-IP-Filter Failed,"
 msgstr "Fallo al modificar Fake-IP-Filter,"
+
+msgid "Invalid Option Value, Replaced With The Custom Rule List:"
+msgstr "Valor de opción no válido, reemplazado por la lista de reglas personalizadas:"
 
 msgid "Set Nameserver-Policy Failed,"
 msgstr "Fallo al modificar Nameserver-Policy,"
@@ -3005,6 +3038,12 @@ msgstr "No se pudo obtener la IP LAN. Revisa la interfaz LAN o selecciona la cor
 
 msgid "Skiped The Custom Rule Because Group & Proxy Not Found:"
 msgstr "Regla personalizada omitida por no encontrar grupo o proxy asociado:"
+
+msgid "Skiped The Priority Custom Rules File Because The Content Is Not YAML"
+msgstr "Archivo de reglas personalizadas prioritarias omitido porque el contenido no es YAML."
+
+msgid "Skiped The Extended Custom Rules File Because The Content Is Not YAML"
+msgstr "Archivo de reglas personalizadas ampliadas omitido porque el contenido no es YAML."
 
 msgid "Disable quic-go GSO Support"
 msgstr "Desactivar soporte GSO para quic-go"
@@ -5723,3 +5762,6 @@ msgstr "Buscar dispositivos"
 
 msgid "Minutes"
 msgstr "minutos"
+
+msgid "For a manually created Access Token, bind the current token to a non-primary subscription URL in Access Token Management on the website, then edit the node filter for that URL"
+msgstr "Si usa un Access Token creado manualmente, vincule el token actual a una URL de suscripción no principal en Access Token Management del sitio web y edite el filtro de nodos de esa URL"

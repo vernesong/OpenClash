@@ -959,6 +959,29 @@ function ocRequireScript(url, cb) {
     document.head.appendChild(s);
 }
 
+// The theme wraps page content in a z-index stacking context, so every fixed overlay rendered
+// inside it stays below the sidebar; re-host them directly under body (same host the AC dialogs use).
+function ocPortalize(target) {
+    var host = document.getElementById('oc-portal');
+    if (!host) {
+        host = document.createElement('div');
+        host.id = 'oc-portal';
+        host.className = 'oc';
+        document.body.appendChild(host);
+    }
+    var list = target ? [target] : document.querySelectorAll('.config-upload-model-overlay, .select-popup:not(.select-popup-tab)');
+    for (var i = 0; i < list.length; i++) {
+        if (list[i] && list[i].parentNode !== host) host.appendChild(list[i]);
+    }
+    return host;
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { ocPortalize(); });
+} else {
+    ocPortalize();
+}
+
 // Helpers shared by the config upload dialog and the overwrite module wizard.
 
 function ocFormatSize(bytes) {

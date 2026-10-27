@@ -41,11 +41,13 @@ var ocLang = window.ocLang || '';
     }
 
     function ocFormatBytes(bytes) {
-        if (bytes == null || bytes === 0) return '0 B';
+        var num = Number(bytes);
+        if (!isFinite(num) || num <= 0) return '0 B';
         var sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
-        var i = Math.floor(Math.log(bytes) / Math.log(1024));
+        var i = Math.floor(Math.log(num) / Math.log(1024));
+        if (i < 0) i = 0; // sub-byte rates would index sizes[-1]
         if (i >= sizes.length) i = sizes.length - 1;
-        return (i === 0 ? bytes : (bytes / Math.pow(1024, i)).toFixed(1)) + ' ' + sizes[i];
+        return (i === 0 ? Math.round(num * 10) / 10 : (num / Math.pow(1024, i)).toFixed(1)) + ' ' + sizes[i];
     }
 
     function ocFormatFileSize(bytes) {
@@ -676,7 +678,8 @@ var ocLang = window.ocLang || '';
                                     currentFileInfo = {
                                         mtime: file.mtime,
                                         size: file.size,
-                                        age: file.age
+                                        age: file.age,
+                                        schedule: file.schedule
                                     };
                                 }
                                 break;
@@ -862,7 +865,10 @@ var ocLang = window.ocLang || '';
                     var modifyTime = this.formatUnixTime(fileInfo.mtime);
                     var fileModifyTimeValue = document.getElementById('file-modify-time-value');
                     fileModifyTimeValue.textContent = modifyTime;
+                    fileModifyTimeElement.title = '<%:Modified%> · ' + modifyTime;
                 }
+
+                this.renderScheduleBadge(fileInfo.schedule, fileInfo);
 
                 if (detailsSection) {
                     detailsSection.style.display = 'flex';
@@ -885,6 +891,8 @@ var ocLang = window.ocLang || '';
                     fileModifyTimeValue.textContent = modifyTimeText;
                 }
 
+                this.renderScheduleBadge(null, null);
+
                 if (detailsSection) {
                     detailsSection.style.display = 'none';
                 }
@@ -897,6 +905,94 @@ var ocLang = window.ocLang || '';
         },
 
         formatUnixTime: ocFormatUnixTime,
+
+        renderScheduleBadge: function(schedule, fileInfo) {
+            var element = document.getElementById('file-next-update');
+            if (!element) return;
+
+            var badge = this.formatScheduleBadge(schedule, fileInfo);
+            if (!badge) {
+                element.title = '';
+                element.removeAttribute('aria-label');
+                element.classList.add('oc-hidden');
+                return;
+            }
+
+            var valueElement = document.getElementById('file-next-update-value');
+            var useElement = element.querySelector('use');
+            if (useElement) {
+                useElement.setAttribute('href', '#' + badge.icon);
+            }
+            if (valueElement) {
+                valueElement.textContent = badge.text;
+            }
+            element.title = badge.title;
+            element.setAttribute('aria-label', badge.title);
+            element.classList.remove('oc-hidden');
+        },
+
+        computeNextAppointment: function(week, hour) {
+            var now = new Date();
+            var next = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, 0, 0, 0);
+            if (next.getTime() <= now.getTime()) {
+                next.setDate(next.getDate() + 1);
+            }
+            var target = parseInt(week, 10);
+            if (!isNaN(target)) {
+                next.setDate(next.getDate() + (target - next.getDay() + 7) % 7);
+            }
+            return next;
+        },
+
+        formatScheduleBadge: function(schedule, fileInfo) {
+            if (!schedule) return null;
+
+            var icon = 'oc-icon-calendar';
+            var text, title;
+
+            if (String(schedule.mode) === '1') {
+                var interval = parseInt(schedule.interval, 10);
+                if (isNaN(interval) || interval < 1) interval = 60;
+                if (interval % 1440 === 0) {
+                    text = (interval / 1440) + 'd';
+                } else if (interval % 60 === 0) {
+                    text = (interval / 60) + 'h';
+                } else {
+                    text = interval + 'm';
+                }
+                icon = 'oc-icon-history';
+                title = '<%:Auto Update%> · <%:Loop Mode%> · ' + interval + ' <%:Minutes%>';
+                if (fileInfo && fileInfo.mtime) {
+                    title += '\n<%:Modified%> · ' + this.formatUnixTime(fileInfo.mtime);
+                    var nextLoop = fileInfo.mtime + interval * 60;
+                    if (nextLoop * 1000 > Date.now()) {
+                        title += '\n<%:Next Update%> · ' + this.formatUnixTime(nextLoop);
+                    }
+                }
+            } else {
+                var hour = parseInt(schedule.hour, 10);
+                if (isNaN(hour) || hour < 0 || hour > 23) hour = 0;
+                var time = (hour < 10 ? '0' : '') + hour + ':00';
+                var week = schedule.week == null ? '*' : String(schedule.week);
+                var nextTime = null;
+                if (week === '*') {
+                    text = time;
+                    title = '<%:Auto Update%> · <%:Appointment Mode%> · <%:Every Day%> ' + time;
+                    nextTime = this.computeNextAppointment('*', hour);
+                } else {
+                    var shortNames = {'0': '<%:Sun%>', '1': '<%:Mon%>', '2': '<%:Tue%>', '3': '<%:Wed%>', '4': '<%:Thu%>', '5': '<%:Fri%>', '6': '<%:Sat%>'};
+                    var longNames = {'0': '<%:Every Sunday%>', '1': '<%:Every Monday%>', '2': '<%:Every Tuesday%>', '3': '<%:Every Wednesday%>', '4': '<%:Every Thursday%>', '5': '<%:Every Friday%>', '6': '<%:Every Saturday%>'};
+                    text = ((shortNames[week] || '') + ' ' + time).trim();
+                    title = '<%:Auto Update%> · <%:Appointment Mode%> · ' + (longNames[week] || '') + ' ' + time;
+                    nextTime = this.computeNextAppointment(shortNames[week] ? week : '*', hour);
+                }
+                if (nextTime) {
+                    title += '\n<%:Next Update%> · ' + this.formatUnixTime(Math.floor(nextTime.getTime() / 1000));
+                }
+            }
+
+            return {icon: icon, text: text, title: title};
+        },
 
         formatFileSize: ocFormatFileSize,
 
@@ -962,7 +1058,8 @@ var ocLang = window.ocLang || '';
                         selectedFileInfo = {
                             mtime: file.mtime,
                             size: file.size,
-                            age: file.age
+                            age: file.age,
+                            schedule: file.schedule
                         };
                     }
                     break;
@@ -2019,6 +2116,16 @@ var ocLang = window.ocLang || '';
         DOMCache.oclog.addEventListener('click', function() { ocOpenCoreStartFlow(); });
     }
 
+    [DOMCache.plugin_version_display, DOMCache.core_version_display].forEach(function(tag) {
+        if (!tag) return;
+        tag.addEventListener('click', function() { ocShowUpdatePopup(); });
+        tag.addEventListener('keydown', function(e) {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            e.preventDefault();
+            ocShowUpdatePopup();
+        });
+    });
+
     var SystemStatusManager = {
         pollTimer: null,
         pollInterval: 5000,
@@ -2494,13 +2601,7 @@ var ocLang = window.ocLang || '';
         show: function() {
             this.init();
             if (!this.overlay || !this.textarea) return;
-            if (!this.portal) {
-                this.portal = document.createElement('div');
-                this.portal.className = 'oc';
-                this.portal.style.overflow = 'visible';
-                document.body.appendChild(this.portal);
-                this.portal.appendChild(this.overlay);
-            }
+            ocPortalize(this.overlay);
             this.overlay.classList.add('show');
             if (this.statusEl) {
                 this.statusEl.textContent = '';
@@ -3373,7 +3474,9 @@ var ocLang = window.ocLang || '';
         },
 
         init: function() {
-            this.portal();
+            var host = ocPortalize();
+            var stack = document.getElementById('oc-float-stack');
+            if (stack && stack.parentNode !== host) host.appendChild(stack);
             this.loadSort();
             this.bind();
             this.bindBrandIcons();
@@ -3396,23 +3499,6 @@ var ocLang = window.ocLang || '';
                 this.cardObserver.observe(card);
             } else {
                 window.addEventListener('resize', apply);
-            }
-        },
-
-        // the page wrapper carries position:relative + z-index:50, which caps every fixed child
-        // inside it, so the dialog and the floating buttons must live directly under body
-        portal: function() {
-            var host = document.getElementById('oc-portal');
-            if (!host) {
-                host = document.createElement('div');
-                host.id = 'oc-portal';
-                host.className = 'oc';
-                document.body.appendChild(host);
-            }
-            var ids = ['ac-rename-overlay', 'ac-max-overlay', 'oc-float-stack'];
-            for (var i = 0; i < ids.length; i++) {
-                var el = document.getElementById(ids[i]);
-                if (el && el.parentNode !== host) host.appendChild(el);
             }
         },
 
@@ -5303,20 +5389,26 @@ var ocLang = window.ocLang || '';
         StatsChart.feed("mem", data.inuse ? (data.inuse / 1048576) : 0);
     }
 
-    var all_one_key_update = debounceButton(function(btn) {
-        function checkUpdate() {
-            btn.value = '<%:Checking...%>';
-            update();
-            btn.value = '<%:Check Update%>';
-            btn.disabled = false;
+    // The update popup is rendered by update.htm; its bundle is fetched on first open
+    function ocShowUpdatePopup(done) {
+        function open() {
+            if (typeof update === 'function') update();
+            if (done) done();
         }
         if (typeof update === 'function') {
-            checkUpdate();
+            open();
         } else {
             ocLoadCss(ocCssUrl('oc-update.css'));
-            ocRequireScript(ocJsUrl('update.js'), checkUpdate);
+            ocRequireScript(ocJsUrl('update.js'), open);
         }
-        return false;
+    }
+
+    var all_one_key_update = debounceButton(function(btn) {
+        btn.value = '<%:Checking...%>';
+        ocShowUpdatePopup(function() {
+            btn.value = '<%:Check Update%>';
+            btn.disabled = false;
+        });
     });
 
     var b_flush_dns_cache = debounceButton(function(btn) {
@@ -5466,7 +5558,7 @@ var ocLang = window.ocLang || '';
                 if (existingDot) {
                     existingDot.remove();
                 }
-                DOMCache.core_version_display.title = '';
+                DOMCache.core_version_display.title = '<%:Check Update%>';
             }
         }
 
@@ -5492,7 +5584,7 @@ var ocLang = window.ocLang || '';
                 if (existingDot) {
                     existingDot.remove();
                 }
-                DOMCache.plugin_version_display.title = '';
+                DOMCache.plugin_version_display.title = '<%:Check Update%>';
             }
         }
 
