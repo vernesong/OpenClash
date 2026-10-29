@@ -27,9 +27,6 @@ local config_cache = {}
 local unlock_cache_file = "/etc/openclash/history/streaming_unlock_cache"
 local unlock_cache_info = {}
 
--- MSG holds every fixed log fragment. Fragments outside the 【】 markers are
--- translated through exact msgid matches by luci-app-openclash trans_line, so
--- wording and spacing must stay byte-identical with the po files.
 local MSG = {
 	info = " [Info] ",
 	error = " [Error] ",
@@ -169,7 +166,7 @@ end
 local streams = {
 	["Netflix"] = { group_key = "stream_auto_select_group_key_netflix", group_default = "netflix|奈飞", region_key = "stream_auto_select_region_key_netflix", node_key = "stream_auto_select_node_key_netflix", site = "https://www.netflix.com", host = "www%.netflix%.com" },
 	["Disney Plus"] = { group_key = "stream_auto_select_group_key_disney", group_default = "disney|迪士尼", region_key = "stream_auto_select_region_key_disney", node_key = "stream_auto_select_node_key_disney", site = "https://www.disneyplus.com", host = "www%.disneyplus%.com" },
-	["HBO Max"] = { group_key = "stream_auto_select_group_key_hbo_max", group_default = "hbo|hbomax|hbo max", region_key = "stream_auto_select_region_key_hbo_max", node_key = "stream_auto_select_node_key_hbo_max", site = "https://www.max.com", host = "www%.max%.com" },
+	["HBO Max"] = { group_key = "stream_auto_select_group_key_hbo_max", group_default = "hbo|hbomax|hbo max", region_key = "stream_auto_select_region_key_hbo_max", node_key = "stream_auto_select_node_key_hbo_max", site = "https://www.hbomax.com/", host = "hbomax%.com" },
 	["YouTube Premium"] = { group_key = "stream_auto_select_group_key_ytb", group_default = "youtube|油管", region_key = "stream_auto_select_region_key_ytb", node_key = "stream_auto_select_node_key_ytb", site = "https://m.youtube.com/premium", host = "m%.youtube%.com" },
 	["TVB Anywhere+"] = { group_key = "stream_auto_select_group_key_tvb_anywhere", group_default = "tvb", region_key = "stream_auto_select_region_key_tvb_anywhere", node_key = "stream_auto_select_node_key_tvb_anywhere", site = "https://www.tvbanywhere.com/img/tvb/vip_purchase.png", host = "www%.tvbanywhere%.com" },
 	["Amazon Prime Video"] = { group_key = "stream_auto_select_group_key_prime_video", group_default = "prime video|amazon", region_key = "stream_auto_select_region_key_prime_video", node_key = "stream_auto_select_node_key_prime_video", site = "https://www.primevideo.com", host = "www%.primevideo%.com" },
@@ -199,8 +196,18 @@ local function get_node_regex()
 	return get_config(stream_config("node_key")) or ""
 end
 
--- Pattern fast path: ASCII-only case folding matches ruby /i exactly, and CJK/symbol
--- code points (>= U+3000) are case-invariant, so those patterns can be matched literally.
+-- Pattern fast path: ASCII case folding matches ruby /i exactly, and the whitelisted
+-- code points below carry no case mapping, so those patterns can be matched literally.
+local function caseless(code)
+	return (code >= 0x3000 and code <= 0x30FF)
+		or (code >= 0x3400 and code <= 0x4DBF)
+		or (code >= 0x4E00 and code <= 0x9FFF)
+		or (code >= 0xAC00 and code <= 0xD7AF)
+		or (code >= 0xF900 and code <= 0xFAFF)
+		or (code >= 0xFE00 and code <= 0xFE0F)
+		or (code >= 0x1F000 and code <= 0x1FAFF)
+end
+
 local function has_case_mapping(text)
 	local i = 1
 	while i <= #text do
@@ -233,7 +240,7 @@ local function has_case_mapping(text)
 		else
 			return true
 		end
-		if code >= 0x80 and (code < 0x3000 or (code >= 0xFF00 and code <= 0xFFEF)) then
+		if code >= 0x80 and not caseless(code) then
 			return true
 		end
 	end
@@ -242,41 +249,45 @@ end
 
 local regex_meta = { ".", "^", "$", "*", "+", "?", "(", ")", "[", "]", "{", "}", "\\" }
 
-local function build_plain_pattern(regex)
-	local first = regex:sub(1, 1)
-	local last = regex:sub(-1)
-	if first == "^" and last == "$" and #regex > 2 then
-		local inner = regex:sub(2, -2)
-		if inner ~= "" and not inner:find("|", 1, true) then
-			local ok = true
-			for _, meta in ipairs(regex_meta) do
-				if inner:find(meta, 1, true) then
-					ok = false
-					break
-				end
-			end
-			if ok and not has_case_mapping(inner) then
-				return { exact = string.lower(inner) }
-			end
-		end
-		return nil
-	end
-	if first == "|" or last == "|" or regex:find("||", 1, true) then
+local function plain_literal(text)
+	if text == "" then
 		return nil
 	end
 	for _, meta in ipairs(regex_meta) do
-		if regex:find(meta, 1, true) then
+		if text:find(meta, 1, true) then
 			return nil
 		end
 	end
-	if has_case_mapping(regex) then
+	if has_case_mapping(text) then
 		return nil
 	end
+	return string.lower(text)
+end
+
+local function build_plain_pattern(regex)
+	local first = regex:sub(1, 1)
+	local last = regex:sub(-1)
 	local parts = {}
-	for part in regex:gmatch("[^|]+") do
-		parts[#parts + 1] = string.lower(part)
+	local exact = {}
+	if first == "|" or last == "|" or regex:find("||", 1, true) then
+		return nil
 	end
-	return { parts = parts }
+	if first == "^" and last == "$" and #regex > 2 and not regex:find("|", 1, true) then
+		local literal = plain_literal(regex:sub(2, -2))
+		if literal then
+			return { parts = parts, exact = { literal } }
+		end
+		return nil
+	end
+	for part in regex:gmatch("[^|]+") do
+		local anchored = part:match("^%^(.-)%$$") or nil
+		local literal = plain_literal(anchored or part)
+		if not literal then
+			return nil
+		end
+		table.insert(anchored and exact or parts, literal)
+	end
+	return { parts = parts, exact = exact }
 end
 
 local pattern_cache = {}
@@ -298,18 +309,19 @@ local function datamatch(data, regex)
 		pattern_cache[regex] = pattern
 	end
 	if pattern then
-		if pattern.exact then
-			for line in (string.lower(data) .. "\n"):gmatch("([^\n]*)\n") do
-				if line == pattern.exact then
-					return true
-				end
-			end
-			return false
-		end
 		local target = string.lower(data)
 		for i = 1, #pattern.parts do
 			if target:find(pattern.parts[i], 1, true) then
 				return true
+			end
+		end
+		if #pattern.exact > 0 then
+			for line in (target .. "\n"):gmatch("([^\n]*)\n") do
+				for i = 1, #pattern.exact do
+					if line == pattern.exact[i] then
+						return true
+					end
+				end
 			end
 		end
 		return false
@@ -732,12 +744,18 @@ local function get_sniffed_chains(host)
 	if not con or not con.connections then
 		return nil
 	end
+	local chains, started
 	for i = 1, #(con.connections) do
-		local metadata = con.connections[i].metadata
+		local item = con.connections[i]
+		local metadata = item.metadata
 		if metadata and metadata.host and string.match(metadata.host, host) then
-			return con.connections[i].chains
+			if not chains or (item.start or "") > (started or "") then
+				chains = item.chains
+				started = item.start
+			end
 		end
 	end
+	return chains
 end
 
 -- The probes resolve through the OpenClash DNS: the router's own resolver may bypass
@@ -1464,20 +1482,16 @@ end
 
 function hbo_max_unlock_test()
 	status = 0
-	local url = "https://www.max.com/"
-	local data = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -w '_TAG_%%{http_code}_TAG_' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+	local url = "https://www.hbomax.com/"
+	local headers = SYS.exec(string.format("curl -s --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 -o /dev/null -D - -H 'Range: bytes=0-0' -H 'Accept-Language: en' -H 'User-Agent: %s' '%s'", UA, url))
 	local region = ""
-	local outofregion
+	local code = tonumber(string.match(headers or "", "^HTTP/%d%.?%d? (%d%d%d)"))
 	local regex, old_region, old_regex = probe_context()
-	if response_code(data) == 200 then
+	if code == 200 or code == 206 then
 		status = 1
-		if string.match(data, "\"isUserOutOfRegion\":%a+") then
-			outofregion = string.lower(string.sub(string.match(data, "\"isUserOutOfRegion\":%a+"), 21, -1))
-		end
-		if string.match(data, "\"userCountry\":\"%a+\"") then
-			region = string.upper(string.sub(string.match(data, "\"userCountry\":\"%a+\""), 16, -2))
-		end
-		if region ~= "" and outofregion == "false" then
+		local country = string.match(headers, "[Cc]ountry[Cc]ode=(%a%a)")
+		if country then
+			region = string.upper(country)
 			status = 2
 			finish_region_test(region, regex, old_region, old_regex)
 		end
