@@ -927,15 +927,15 @@ check_core_status()
          done
          if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
             ip -6 route add default dev utun table "$PROXY_ROUTE_TABLE"
-            ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 1888
+            ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 999
             # the router's own fake-ip6 packets need a route before the output marking, forwarded packets still use the main table
             if [ "$fake_ip_range6_enable" = "1" ] && { [ "$router_self_proxy" = "1" ] || ([ "$enable_redirect_dns" != "2" ] && [ "$en_mode" = "fake-ip" ]); }; then
-               ip -6 rule add iif lo to "$fakeip_range6" lookup "$PROXY_ROUTE_TABLE" pref 1887
+               ip -6 rule add iif lo to "$fakeip_range6" lookup "$PROXY_ROUTE_TABLE" pref 998
             fi
          fi
          if [ -n "$en_mode_tun" ]; then
             ip route add default dev utun table "$PROXY_ROUTE_TABLE"
-            ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 1888
+            ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 999
             proxy_throw_route_add "$fakeip_range"
          fi
       fi
@@ -1868,7 +1868,8 @@ if [ -n "$FW4" ]; then
          #udp
          if [ "$enable_udp_proxy" -eq 1 ]; then
             check_mod "nft_tproxy"
-            ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
+            # keep the proxy mark routable ahead of mwan3 policy rules and below its 1000-3999 cleanup range
+            ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 999
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
             proxy_throw_route_add "$fakeip_range"
             nft 'add chain inet fw4 openclash_mangle'
@@ -1908,7 +1909,7 @@ if [ -n "$FW4" ]; then
          fi
          if [ "$enable_udp_proxy" -ne 1 ] && [ "$en_mode" = "fake-ip" ]; then
             check_mod "nft_tproxy"
-            ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
+            ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 999
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
             proxy_throw_route_add "$fakeip_range"
             nft 'add chain inet fw4 openclash_mangle'
@@ -2370,7 +2371,7 @@ if [ -n "$FW4" ]; then
       if [ "$ipv6_mode" -ne 2 ] && [ "$ipv6_mode" -ne 3 ]; then
          if [ "$enable_v6_udp_proxy" -eq 1 ] || [ "$ipv6_mode" -eq 0 ]; then
             check_mod "nft_tproxy"
-            ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
+            ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 999
             ip -6 route add local ::/0 dev lo table "$PROXY_ROUTE_TABLE"
          fi
       fi
@@ -2661,7 +2662,8 @@ if [ -z "$FW4" ]; then
          #udp
          if [ "$enable_udp_proxy" -eq 1 ]; then
             check_mod "xt_TPROXY"
-            ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
+            # keep the proxy mark routable ahead of mwan3 policy rules and below its 1000-3999 cleanup range
+            ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 999
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
             proxy_throw_route_add "$fakeip_range"
             iptables -t mangle -N openclash
@@ -2703,7 +2705,7 @@ if [ -z "$FW4" ]; then
 
          if [ "$enable_udp_proxy" -ne 1 ] && [ "$en_mode" = "fake-ip" ]; then
             check_mod "xt_TPROXY"
-            ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
+            ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 999
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
             proxy_throw_route_add "$fakeip_range"
             iptables -t mangle -N openclash
@@ -3173,7 +3175,7 @@ if [ -z "$FW4" ]; then
       if [ "$ipv6_mode" -ne 2 ] && [ "$ipv6_mode" -ne 3 ]; then
          if [ "$enable_v6_udp_proxy" -eq 1 ] || [ "$ipv6_mode" -eq 0 ]; then
             check_mod "xt_TPROXY"
-            ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
+            ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 999
             ip -6 route add local ::/0 dev lo table "$PROXY_ROUTE_TABLE"
          fi
       fi
@@ -3292,7 +3294,7 @@ revert_firewall()
    ip route del default dev utun table "$PROXY_ROUTE_TABLE"
    ip -6 rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
    ip -6 route del default dev utun table "$PROXY_ROUTE_TABLE"
-   ip -6 rule del iif lo to "$fakeip_range6" lookup "$PROXY_ROUTE_TABLE" pref 1887
+   ip -6 rule del iif lo to "$fakeip_range6" lookup "$PROXY_ROUTE_TABLE" pref 998
 
    if [ -n "$FW4" ]; then
       for nft in "input" "forward" "output" "dstnat" "srcnat" "nat_output" "mangle_prerouting" "mangle_output"; do
