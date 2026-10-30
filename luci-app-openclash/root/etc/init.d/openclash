@@ -1232,11 +1232,11 @@ fw4_has_dns_hijack_rule()
    esac
 }
 
-# Keep the router's own DNS traffic on OpenClash for local and Tailscale private targets,
-# including the Tailscale DNS stub, whose names are answered back by the ts.net nameserver-policy.
+# Keep the router's own DNS traffic on OpenClash for local and Tailscale private targets.
+# In dnsmasq redirect mode, the forwarder's own private DNS is left direct (uid 0 stays hijacked).
 add_router_dns_hijack_nft()
 {
-   local family="$1" dnsport dnsproto daddr_match router_dns_rules handle
+   local family="$1" dnsport dnsproto daddr_match local_match router_dns_rules handle dnsmasq_uid
 
    if [ "$router_self_proxy" != 1 ]; then
       return
@@ -1249,6 +1249,12 @@ add_router_dns_hijack_nft()
       return
    fi
 
+   dnsmasq_uid=""
+   if [ "$enable_redirect_dns" -eq 1 ]; then
+      dnsmasq_uid=$(id -u dnsmasq 2>/dev/null)
+      [ "$dnsmasq_uid" = "0" ] && dnsmasq_uid=""
+   fi
+
    if [ "$family" = "ipv6" ]; then
       dnsproto="meta nfproto {ipv6} ip6 nexthdr {tcp,udp}"
       daddr_match="ip6 daddr fd7a:115c:a1e0::/48"
@@ -1259,19 +1265,39 @@ add_router_dns_hijack_nft()
       router_dns_rules=$(nft -a list chain inet fw4 nat_output 2>/dev/null |grep 'OpenClash Router DNS Hijack' |grep -v 'ip6 nexthdr')
    fi
 
+   local_match="fib daddr type local"
+   if [ -n "$dnsmasq_uid" ]; then
+      local_match="$local_match meta skuid != $dnsmasq_uid"
+      daddr_match="$daddr_match meta skuid != $dnsmasq_uid"
+   fi
+
+   if [ "$family" = "ipv6" ]; then
+      for handle in $(nft -a list chain inet fw4 input 2>/dev/null |grep 'OpenClash Tailscale Stub Accept' |grep 'ip6 saddr' |awk -F '# handle ' '{print$2}'); do
+         nft delete rule inet fw4 input handle "$handle"
+      done
+      nft insert rule inet fw4 input position 0 iifname \"lo\" ip6 saddr fd7a:115c:a1e0::53 udp sport 53 counter accept comment \"OpenClash Tailscale Stub Accept\"
+      nft insert rule inet fw4 input position 0 iifname \"lo\" ip6 saddr fd7a:115c:a1e0::53 tcp sport 53 counter accept comment \"OpenClash Tailscale Stub Accept\"
+   else
+      for handle in $(nft -a list chain inet fw4 input 2>/dev/null |grep 'OpenClash Tailscale Stub Accept' |grep -v 'ip6 saddr' |awk -F '# handle ' '{print$2}'); do
+         nft delete rule inet fw4 input handle "$handle"
+      done
+      nft insert rule inet fw4 input position 0 iifname \"lo\" ip saddr 100.100.100.100 udp sport 53 counter accept comment \"OpenClash Tailscale Stub Accept\"
+      nft insert rule inet fw4 input position 0 iifname \"lo\" ip saddr 100.100.100.100 tcp sport 53 counter accept comment \"OpenClash Tailscale Stub Accept\"
+   fi
+
    nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
 
    for handle in $(echo "$router_dns_rules" |awk -F '# handle ' '{print$2}'); do
       nft delete rule inet fw4 nat_output handle "$handle"
    done
 
-   nft insert rule inet fw4 nat_output position 0 $dnsproto th dport 53 fib daddr type local meta skgid != 65534 counter redirect to "$dnsport" comment \"OpenClash Router DNS Hijack\"
+   nft insert rule inet fw4 nat_output position 0 $dnsproto th dport 53 $local_match meta skgid != 65534 counter redirect to "$dnsport" comment \"OpenClash Router DNS Hijack\"
    nft insert rule inet fw4 nat_output position 0 $dnsproto th dport 53 $daddr_match meta skgid != 65534 counter redirect to "$dnsport" comment \"OpenClash Router DNS Hijack\"
 } >/dev/null 2>&1
 
 add_router_dns_hijack_iptables()
 {
-   local command="$1" dnsport daddr_target stub_addr proto target
+   local command="$1" dnsport daddr_target stub_addr proto target dnsmasq_uid private_owner
 
    if [ "$router_self_proxy" != 1 ]; then
       return
@@ -1293,9 +1319,29 @@ add_router_dns_hijack_iptables()
    fi
 
    for proto in udp tcp; do
+      while $command -t filter -C INPUT -i lo -s "$stub_addr" -p "$proto" --sport 53 -j ACCEPT -m comment --comment "OpenClash Tailscale Stub Accept" 2>/dev/null; do
+         $command -t filter -D INPUT -i lo -s "$stub_addr" -p "$proto" --sport 53 -j ACCEPT -m comment --comment "OpenClash Tailscale Stub Accept"
+      done
+      $command -t filter -I INPUT 1 -i lo -s "$stub_addr" -p "$proto" --sport 53 -j ACCEPT -m comment --comment "OpenClash Tailscale Stub Accept"
+   done
+
+   dnsmasq_uid=""
+   private_owner=""
+   # iptables_compat builds have no owner match, a uid condition would make the whole
+   # rule fail to load and drop the local/private hijack, so probe before using it.
+   if [ "$enable_redirect_dns" -eq 1 ] && $command -m owner -h 2>/dev/null | grep -q 'uid-owner'; then
+      dnsmasq_uid=$(id -u dnsmasq 2>/dev/null)
+      if [ -n "$dnsmasq_uid" ] && [ "$dnsmasq_uid" != "0" ]; then
+         private_owner="-m owner ! --uid-owner $dnsmasq_uid"
+      fi
+   fi
+
+   $command -t nat -S OUTPUT 2>/dev/null |grep 'OpenClash Router DNS Hijack' |grep -F -e "$daddr_target" |sed "s|^-A |$command -t nat -D |" |sh
+
+   for proto in udp tcp; do
       for target in "$daddr_target" "-m addrtype --dst-type LOCAL"; do
-         if ! $command -t nat -C OUTPUT -p "$proto" $target --dport 53 $noowner -j REDIRECT --to-ports "$dnsport" -m comment --comment "OpenClash Router DNS Hijack" 2>/dev/null; then
-            $command -t nat -I OUTPUT -p "$proto" $target --dport 53 $noowner -j REDIRECT --to-ports "$dnsport" -m comment --comment "OpenClash Router DNS Hijack"
+         if ! $command -t nat -C OUTPUT -p "$proto" $target --dport 53 $noowner $private_owner -j REDIRECT --to-ports "$dnsport" -m comment --comment "OpenClash Router DNS Hijack" 2>/dev/null; then
+            $command -t nat -I OUTPUT -p "$proto" $target --dport 53 $noowner $private_owner -j REDIRECT --to-ports "$dnsport" -m comment --comment "OpenClash Router DNS Hijack"
          fi
       done
    done
@@ -1309,7 +1355,7 @@ add_router_dns_hijack_iptables()
 
 firewall_lan_ac_traffic()
 {
-   local src_port sport_rule dscp_rule sport_ipt dscp_ipt src_ip src_ip_v6 proto target target_ enabled family dscp rule output_rule comment
+   local src_port sport_rule dscp_rule sport_ipt dscp_ipt src_ip src_ip_v6 proto target target_ enabled family dscp rule output_rule comment user_owner_probe
    config_get "src_port" "$section" "src_port" "0-65535"
    config_get "src_ip" "$section" "src_ip" ""
    config_get "proto" "$section" "proto" "both"
@@ -1443,7 +1489,19 @@ firewall_lan_ac_traffic()
       fi
 
       if [ -n "${user}" ]; then
-         user_rule="-m owner --uid-owner ${user}"
+         if [ "${family}" == "ipv6" ]; then
+            user_owner_probe="ip6tables"
+         else
+            user_owner_probe="iptables"
+         fi
+         # iptables_compat builds have no owner match, dropping the uid condition would
+         # apply the rule to every user, so skip it instead.
+         if $user_owner_probe -m owner -h 2>/dev/null | grep -q 'uid-owner'; then
+            user_rule="-m owner --uid-owner ${user}"
+         else
+            LOG_WARN "iptables owner match is not available, skip the【${comment}】rule"
+            return
+         fi
       fi
 
       if [ -n "${dscp}" ]; then

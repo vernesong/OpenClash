@@ -37,8 +37,10 @@
 
 #### 4.2.1 DNS 劫持链
 
-> DNS 劫持规则使用 `meta nfproto {ipv4}` 限制仅匹配 IPv4 流量；IPv6 DNS 劫持在 IPv6 段独立处理。
+> DNS 劫持规则使用 `meta nfproto {ipv4}` 限制仅匹配 IPv4 流量；IPv6 使用 `ip6 daddr fd7a:115c:a1e0::/48` 独立处理。
 > `fw4_has_dns_hijack_rule()` 函数在插入前检查 dstnat 链是否已有 OpenClash DNS Hijack 规则，避免重复。
+> 本机 DNS 劫持用 `nat_output` 链（注释 `OpenClash Router DNS Hijack`），仅在 `router_self_proxy=1` 且 `enable_redirect_dns=1/2` 时创建。
+> Tailscale 专项（stub、进程豁免、回包放行、客户端/出口节点）见 `05-firewall-special.md` §5.3。
 
 **`enable_redirect_dns=1` (Dnsmasq 转发模式)** — DNS 53 端口 → dnsmasq 端口:
 
@@ -59,10 +61,21 @@ nft insert rule inet fw4 dstnat position 0 \
   ether saddr @lan_ac_white_macs counter redirect to <dnsmasq_port> comment "OpenClash DNS Hijack"
 
 # === OUTPUT (仅 router_self_proxy=1): 路由器自身 DNS ===
+# 目标 = 本机地址:53（fib daddr type local）与私网段（100.64.0.0/10 / fd7a:115c:a1e0::/48），两条都豁免 dnsmasq 进程（uid 非 0），避免其转发查询被劫持回自己
 nft add chain inet fw4 nat_output { type nat hook output priority -1; }
 nft insert rule inet fw4 nat_output position 0 \
-  skgid != 65534 meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 \
-  ip daddr {127.0.0.1} counter redirect to <dnsmasq_port> comment "OpenClash DNS Hijack"
+  meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 fib daddr type local \
+  meta skuid != <dnsmasq_uid> meta skgid != 65534 counter redirect to <dnsmasq_port> comment "OpenClash Router DNS Hijack"
+nft insert rule inet fw4 nat_output position 0 \
+  meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 ip daddr 100.64.0.0/10 \
+  meta skuid != <dnsmasq_uid> meta skgid != 65534 counter redirect to <dnsmasq_port> comment "OpenClash Router DNS Hijack"
+
+# === INPUT: 放行被劫持查询经反向 NAT 回到 lo 的 Tailscale stub 回包 ===
+# ts-input 会 DROP 该回包（"! -i tailscale0 -s 100.64.0.0/10"），不放行则 v4 stub 冷解析超时 5s
+nft insert rule inet fw4 input position 0 \
+  iifname "lo" ip saddr 100.100.100.100 udp sport 53 counter accept comment "OpenClash Tailscale Stub Accept"
+nft insert rule inet fw4 input position 0 \
+  iifname "lo" ip saddr 100.100.100.100 tcp sport 53 counter accept comment "OpenClash Tailscale Stub Accept"
 ```
 
 **`enable_redirect_dns=2` (防火墙重定向模式)** — DNS 53 端口 → Mihomo DNS 端口 (7874):
@@ -89,13 +102,18 @@ nft insert rule inet fw4 dstnat position 0 \
   meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 counter jump openclash_dns_redirect
 
 # === OUTPUT (仅 router_self_proxy=1): 路由器自身 DNS 直接到 dns_port ===
+# 目标同模式 1（本机地址 + Tailscale 私网段），但不豁免 dnsmasq（目标是 core，无自转发问题）
 nft add chain inet fw4 nat_output { type nat hook output priority -1; }
 nft insert rule inet fw4 nat_output position 0 \
-  meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 \
-  ip daddr {127.0.0.1} meta skgid != 65534 counter redirect to <dns_port> comment "OpenClash DNS Hijack"
+  meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 fib daddr type local \
+  meta skgid != 65534 counter redirect to <dns_port> comment "OpenClash Router DNS Hijack"
+nft insert rule inet fw4 nat_output position 0 \
+  meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 ip daddr 100.64.0.0/10 \
+  meta skgid != 65534 counter redirect to <dns_port> comment "OpenClash Router DNS Hijack"
+# INPUT 放行同模式 1（Tailscale stub 回包）
 ```
 
-> **DNS 劫持模式对比**: 模式 1 (Dnsmasq) 将 DNS 先转到 dnsmasq 再转发到 Mihomo DNS，支持 chnroute_pass 的 dnsmasq ipset/nftset 集成；模式 2 (防火墙) 直接将 DNS 流量 DNAT 到 Mihomo DNS 端口，绕过 dnsmasq，性能更高但失去 chnroute_pass 的 dnsmasq 集成。两种模式均可配合 AC 黑白名单进行设备级 DNS 劫持控制。选项的 UCI 配置与完整实现见 `09-settings-dns-ac-ipv6.md` §9.1.1。
+> **DNS 劫持模式对比**: 模式 1 (Dnsmasq) 将 DNS 先转到 dnsmasq 再转发到 Mihomo DNS，支持 chnroute_pass 的 dnsmasq ipset/nftset 集成；模式 2 (防火墙) 直接将 DNS 流量 DNAT 到 Mihomo DNS 端口，绕过 dnsmasq，性能更高但失去 chnroute_pass 的 dnsmasq 集成。两种模式均可配合 AC 黑白名单进行设备级 DNS 劫持控制。模式 1 的私网规则豁免 dnsmasq 进程，模式 2 不豁免；两种模式都在 INPUT 链首放行 Tailscale stub 回包（`OpenClash Tailscale Stub Accept`）。选项的 UCI 配置与完整实现见 `09-settings-dns-ac-ipv6.md` §9.1.1。
 
 #### 4.2.2 非 TUN 模式链 (`en_mode_tun` 为空或 `2`)
 
