@@ -1,6 +1,8 @@
-## ICMP/Ping 处理、高级流量控制与 Tailscale
+## 功能行为：ICMP、高级流量控制、Tailscale 与特殊场景
 
-> **用途**: ICMP/Ping 在各运行模式下的处理机制，按设备/协议/端口/DSCP 的高级流量控制（§5.1–5.2），以及 Tailscale（MagicDNS/`ts.net`/accept-dns）与 DNS 劫持、代理/出口节点的联动（§5.3）。
+> **用途**: ICMP/Ping 的处理机制、高级流量控制、Tailscale/overlay 联动，以及 mwan3 多 WAN 分流与 Docker 网桥（§5.1–5.5）；链结构与规则顺序见 `04-firewall-chains.md`。
+
+> **小节索引**: §5.1 ICMP/Ping 处理 · §5.2 高级流量控制（`firewall_lan_ac_traffic`）· §5.3 Tailscale（MagicDNS/`ts.net`/accept-dns）· §5.4 与 mwan3 共存 · §5.5 Docker 网桥与 UDP TPROXY
 
 ### 5.1 ICMP/Ping 处理详解
 
@@ -187,6 +189,25 @@ nft insert rule inet fw4 openclash_output position 0 tcp \
 - INPUT 放行原因：`ts-input` 含 `! -i tailscale0 -s 100.64.0.0/10 -j DROP`，会丢掉回包 → v4 冷解析卡 5s（v6 无此 DROP）。
 - uid 豁免会被跳过的情况：`iptables_compat`（无 owner match）、dnsmasq 以 root 运行。此时 mode 1 自环仍存在，改用 mode 2。
 
+`nat_output` 劫持规则的通用形态见 `04-firewall-chains.md` §4.2.1；Tailscale 专属的是 INPUT 回包放行：
+
+```bash
+# nft (fw4)；v6 把 ip/100.100.100.100 换成 ip6/fd7a:115c:a1e0::53
+nft insert rule inet fw4 input position 0 iifname "lo" \
+  ip saddr 100.100.100.100 udp sport 53 counter accept comment "OpenClash Tailscale Stub Accept"
+nft insert rule inet fw4 input position 0 iifname "lo" \
+  ip saddr 100.100.100.100 tcp sport 53 counter accept comment "OpenClash Tailscale Stub Accept"
+
+# iptables (fw3)；v6 用 ip6tables + -s fd7a:115c:a1e0::53
+while iptables -t filter -C INPUT -i lo -s 100.100.100.100 -p udp --sport 53 \
+  -j ACCEPT -m comment --comment "OpenClash Tailscale Stub Accept" 2>/dev/null; do
+  iptables -t filter -D INPUT -i lo -s 100.100.100.100 -p udp --sport 53 \
+    -j ACCEPT -m comment --comment "OpenClash Tailscale Stub Accept"
+done
+iptables -t filter -I INPUT 1 -i lo -s 100.100.100.100 -p udp --sport 53 \
+  -j ACCEPT -m comment --comment "OpenClash Tailscale Stub Accept"
+```
+
 #### 5.3.3 `ts.net` 解析路径与内置覆写模块
 
 | 场景 | core 收到 `ts.net` 查询 | 需要的配置 |
@@ -252,5 +273,47 @@ nft insert rule inet fw4 openclash_output position 0 tcp \
 - `root/etc/init.d/openclash`：`add_router_dns_hijack_nft()` / `add_router_dns_hijack_iptables()`
 - `root/etc/openclash/overwrite/Tailscale`；`root/etc/config/openclash`（`config_overwrite` 的 Tailscale 条目）
 - 相关选项：`router_self_proxy`、`enable_redirect_dns`、`intranet_allowed`、`bypass_gateway_compatible`、`lan_ac_mode`、`enable_custom_domain_dns_server`
+
+### 5.4 与 mwan3 共存（多 WAN 分流）
+
+> 关联：`04-firewall-chains.md` §4.3（策略路由辅助规则）。
+
+代理标记规则由 init.d 固定为 `pref 999`（fake-ip6 的 `iif lo` 为 `pref 998`），不要改回默认值或 1888。
+
+**各模式覆盖**
+
+| 模式 | mihomo 出站能否被 mwan3 分流 |
+|---|---|
+| `fake-ip` / `redir-host` × 非 TUN / TUN / Mix | 能。出站是 OUTPUT，走 mwan3 的 `mangle OUTPUT → mwan3_hook` |
+| IPv6（`ipv6_mode` 0/1/2/3） | 能。需在 mwan3 里也配置 v6 接口/成员 |
+| `iptables_compat`（fw3 且无 `xt_owner`） | **不能**。mihomo 被写入 `routing-mark: 6666`，`0x1a0a & 0x3f00 ≠ 0` → mwan3 跳过分类，且无匹配的 `ip rule` → 走 main 表 |
+
+**mwan3 侧需要的设置**
+
+1. 至少两个接口，各自有独立网关（`config interface` + `option interface <netifd 接口名>`），并开启 tracking（`track_ip`）。
+2. 每个 WAN 一个 `config member`；`weight` 决定分流比例（模板里 `wan_m1_w3` 权重 3，新加的 weight 1 就是 3:1）。
+3. `config policy` 引用这些 member，`config rule` 的 `dest_ip 0.0.0.0/0` 指向该 policy（默认已有 `default_rule_v4`）。
+4. 要真正均衡，rule 的 `sticky` 必须为 `0`：`sticky 1` 按**源 IP** 粘滞，而 mihomo 出站源是路由器本身 → 会全部固定在一个 WAN。
+5. 不要把代理节点 IP 放进 mwan3 的 connected / custom 集合，否则被判为直连、走 main 表。
+
+**生效范围**
+
+- 分流只发生在「mihomo 出站」这一层：客户端 → OpenClash 的流在本地终结，mwan3 按客户端源 IP/入接口的策略对它无效；按客户端分流请用 OpenClash 的策略组。
+- 被 `return` 掉、不进内核的转发流量（绕过大陆、黑名单等）仍由 mwan3 正常分流。
+
+**故障对照**
+
+| 现象 | 原因 |
+|---|---|
+| 开 mwan3 后 UDP/QUIC 不通，TCP/DNS 正常；`openclash_mangle` 的 tproxy 计数在涨但 mihomo 无 `[UDP]` 日志 | mwan3 的 `fwmark 0x100/0x3f00 lookup N`（`pref 2001+`）会命中 OpenClash 的 `0x162`（`0x162 & 0x3f00 = 0x100`）；不写 `pref` 时本规则落在 32765，被抢走 |
+| mwan3 执行 stop/restart 后问题复现 | `mwan3_delete_iface_rules` 会删掉 `1000 < pref < 4000` 的规则（条件 `pref % 1000 == iface id`），1888 正好在区间内 |
+
+### 5.5 Docker 网桥与 UDP TPROXY
+
+IPv4：`docker0` 存在、`en_mode_tun` 为空且 `enable_udp_proxy=1` 时，先设 `nf_call_iptables=1`，成功后才把全局 `bridge-nf-call-iptables` 设为 `0`。IPv6：`ipv6_enable=1`、`enable_v6_udp_proxy=1` 且 `ipv6_mode=0/1` 时，同样处理 `nf_call_ip6tables` 与 `bridge-nf-call-ip6tables`。
+
+只处理 `docker0`；全局值影响所有网桥。停止 OpenClash 或切换模式不会恢复这些值。
+
+> 让某个接口（如 `docker0`）的流量完全绕过内核，用「来源流量控制」规则：见 `10-settings-geo-misc-src.md` §10.3。
 
 

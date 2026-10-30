@@ -121,7 +121,7 @@ Dashboard: http://路由器LAN_IP:9090/ui/
 │
 ├─ Step 5: 核心状态检查 + 防火墙规则 (check_core_status "start" &)
 │   ├─ 等待核心进程       → 最多 10s
-│   ├─ TUN 模式:         → check_mod tun + 等待 utun 接口(≤300s，失败重启≤3 次) + 策略路由(fwmark 0x162→table 0x162, pref 1888)
+│   ├─ TUN 模式:         → check_mod tun + 等待 utun 接口(≤300s，失败重启≤3 次) + 策略路由(fwmark 0x162→table 0x162, pref 999)
 │   ├─ 非 TUN 模式:      → 轮询 http://<lan_ip>:<cn_port>/group 返回 200 (≤300s)
 │   └─ 核心就绪后 (start):
 │       ├─ change_dnsmasq() → DNS 劫持 (dnsmasq → Mihomo DNS，防止核心 DNS 查询失败)

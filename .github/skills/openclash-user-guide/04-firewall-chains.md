@@ -1,8 +1,8 @@
 ## 防火墙与 DNS 规则详解（iptables + nftables 双后端）
 
-> **用途**: 透明代理防火墙链结构（fw4/fw3）、模式解析与规则排序，理解流量如何被代理/绕过。
+> **用途**: 透明代理防火墙链结构（fw4/fw3）、模式解析与规则排序（§4.1–4.4）；功能行为与特殊场景（ICMP、Tailscale、mwan3、Docker）见 `05-firewall-special.md`。
 
-> **小节索引**: §4.1 模式解析表 · §4.2 fw4 链结构（§4.2.1 DNS 劫持 / §4.2.2 非 TUN / §4.2.3 TUN / §4.2.4 IPv6）· §4.3 策略路由辅助规则 · §4.4 Docker 网桥与 UDP TPROXY · §4.5 WAN 入口防护与分区放行
+> **小节索引**: §4.1 模式解析表 · §4.2 fw4 链结构（§4.2.1 DNS 劫持 / §4.2.2 非 TUN / §4.2.3 TUN / §4.2.4 IPv6）· §4.3 策略路由辅助规则 · §4.4 WAN 入口防护与分区放行
 
 > OpenClash 同时支持 **fw3 (iptables/ipset)** 和 **fw4 (nftables)** 两种防火墙后端，通过 `command -v fw4` 自动检测：
 > - 存在 `fw4` → 使用 **nftables** (OpenWrt 22.03+)
@@ -40,7 +40,6 @@
 > DNS 劫持规则使用 `meta nfproto {ipv4}` 限制仅匹配 IPv4 流量；IPv6 使用 `ip6 daddr fd7a:115c:a1e0::/48` 独立处理。
 > `fw4_has_dns_hijack_rule()` 函数在插入前检查 dstnat 链是否已有 OpenClash DNS Hijack 规则，避免重复。
 > 本机 DNS 劫持用 `nat_output` 链（注释 `OpenClash Router DNS Hijack`），仅在 `router_self_proxy=1` 且 `enable_redirect_dns=1/2` 时创建。
-> Tailscale 专项（stub、进程豁免、回包放行、客户端/出口节点）见 `05-firewall-special.md` §5.3。
 
 **`enable_redirect_dns=1` (Dnsmasq 转发模式)** — DNS 53 端口 → dnsmasq 端口:
 
@@ -61,22 +60,18 @@ nft insert rule inet fw4 dstnat position 0 \
   ether saddr @lan_ac_white_macs counter redirect to <dnsmasq_port> comment "OpenClash DNS Hijack"
 
 # === OUTPUT (仅 router_self_proxy=1): 路由器自身 DNS ===
-# 目标 = 本机地址:53（fib daddr type local）与私网段（100.64.0.0/10 / fd7a:115c:a1e0::/48），两条都豁免 dnsmasq 进程（uid 非 0），避免其转发查询被劫持回自己
+# 目标两类：本机地址:53（fib daddr type local）与私网段（100.64.0.0/10 / fd7a:115c:a1e0::/48）
+# mode 1 下两条规则额外带转发守护进程豁免（uid 非 0），避免它把转发查询劫持回自己
 nft add chain inet fw4 nat_output { type nat hook output priority -1; }
 nft insert rule inet fw4 nat_output position 0 \
   meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 fib daddr type local \
-  meta skuid != <dnsmasq_uid> meta skgid != 65534 counter redirect to <dnsmasq_port> comment "OpenClash Router DNS Hijack"
+  meta skuid != <daemon_uid> meta skgid != 65534 counter redirect to <dnsmasq_port> comment "OpenClash Router DNS Hijack"
 nft insert rule inet fw4 nat_output position 0 \
   meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 ip daddr 100.64.0.0/10 \
-  meta skuid != <dnsmasq_uid> meta skgid != 65534 counter redirect to <dnsmasq_port> comment "OpenClash Router DNS Hijack"
-
-# === INPUT: 放行被劫持查询经反向 NAT 回到 lo 的 Tailscale stub 回包 ===
-# ts-input 会 DROP 该回包（"! -i tailscale0 -s 100.64.0.0/10"），不放行则 v4 stub 冷解析超时 5s
-nft insert rule inet fw4 input position 0 \
-  iifname "lo" ip saddr 100.100.100.100 udp sport 53 counter accept comment "OpenClash Tailscale Stub Accept"
-nft insert rule inet fw4 input position 0 \
-  iifname "lo" ip saddr 100.100.100.100 tcp sport 53 counter accept comment "OpenClash Tailscale Stub Accept"
+  meta skuid != <daemon_uid> meta skgid != 65534 counter redirect to <dnsmasq_port> comment "OpenClash Router DNS Hijack"
 ```
+
+> 需要时还会向 `input` 链首插入回包放行规则（注释 `OpenClash <daemon> Accept`，放行被劫持查询的反向 NAT 回包）；触发条件与具体规则见 `05-firewall-special.md` §5.3.2。
 
 **`enable_redirect_dns=2` (防火墙重定向模式)** — DNS 53 端口 → Mihomo DNS 端口 (7874):
 
@@ -102,7 +97,7 @@ nft insert rule inet fw4 dstnat position 0 \
   meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 counter jump openclash_dns_redirect
 
 # === OUTPUT (仅 router_self_proxy=1): 路由器自身 DNS 直接到 dns_port ===
-# 目标同模式 1（本机地址 + Tailscale 私网段），但不豁免 dnsmasq（目标是 core，无自转发问题）
+# 目标同模式 1（本机地址 + 私网段），但不豁免转发进程（目标是 core，无自转发问题）
 nft add chain inet fw4 nat_output { type nat hook output priority -1; }
 nft insert rule inet fw4 nat_output position 0 \
   meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 fib daddr type local \
@@ -110,10 +105,9 @@ nft insert rule inet fw4 nat_output position 0 \
 nft insert rule inet fw4 nat_output position 0 \
   meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 ip daddr 100.64.0.0/10 \
   meta skgid != 65534 counter redirect to <dns_port> comment "OpenClash Router DNS Hijack"
-# INPUT 放行同模式 1（Tailscale stub 回包）
 ```
 
-> **DNS 劫持模式对比**: 模式 1 (Dnsmasq) 将 DNS 先转到 dnsmasq 再转发到 Mihomo DNS，支持 chnroute_pass 的 dnsmasq ipset/nftset 集成；模式 2 (防火墙) 直接将 DNS 流量 DNAT 到 Mihomo DNS 端口，绕过 dnsmasq，性能更高但失去 chnroute_pass 的 dnsmasq 集成。两种模式均可配合 AC 黑白名单进行设备级 DNS 劫持控制。模式 1 的私网规则豁免 dnsmasq 进程，模式 2 不豁免；两种模式都在 INPUT 链首放行 Tailscale stub 回包（`OpenClash Tailscale Stub Accept`）。选项的 UCI 配置与完整实现见 `09-settings-dns-ac-ipv6.md` §9.1.1。
+> **DNS 劫持模式对比**: 模式 1 (Dnsmasq) 将 DNS 先转到 dnsmasq 再转发到 Mihomo DNS，支持 chnroute_pass 的 dnsmasq ipset/nftset 集成；模式 2 (防火墙) 直接将 DNS 流量 DNAT 到 Mihomo DNS 端口，绕过 dnsmasq，性能更高但失去 chnroute_pass 的 dnsmasq 集成。两种模式均可配合 AC 黑白名单进行设备级 DNS 劫持控制。模式 1 的私网规则豁免转发进程，模式 2 不豁免。选项的 UCI 配置与完整实现见 `09-settings-dns-ac-ipv6.md` §9.1.1。
 
 #### 4.2.2 非 TUN 模式链 (`en_mode_tun` 为空或 `2`)
 
@@ -208,7 +202,7 @@ nft add rule inet fw4 mangle_prerouting meta nfproto {ipv4} $wan_guard ip protoc
 # 同 TCP：由各可代理区域的 input 链接受 mark 流量（不再使用全局 TPROXY Accept）
 ```
 
-> **注意**: 当 `enable_udp_proxy != 1` 但 `en_mode = fake-ip` 时，仍会创建简化的 `openclash_mangle` 链仅处理 Fake-IP UDP 流量（无 common_ports/china_ip_route/UPNP 检查）。`ip rule add fwmark $PROXY_FWMARK table $PROXY_ROUTE_TABLE` + `ip route add local 0.0.0.0/0 dev lo table $PROXY_ROUTE_TABLE` 在 UDP TPROXY 启用时创建策略路由。
+> **注意**: 当 `enable_udp_proxy != 1` 但 `en_mode = fake-ip` 时，仍会创建简化的 `openclash_mangle` 链仅处理 Fake-IP UDP 流量（无 common_ports/china_ip_route/UPNP 检查）。`ip rule add fwmark $PROXY_FWMARK table $PROXY_ROUTE_TABLE pref 999` + `ip route add local 0.0.0.0/0 dev lo table $PROXY_ROUTE_TABLE` 在 UDP TPROXY 启用时创建策略路由。
 
 #### 4.2.3 TUN 模式链 (`en_mode_tun=1` 或 `2`)
 
@@ -395,17 +389,12 @@ fe80::/10, ff00::/8
 | 场景 | 命令 | 作用 |
 |------|------|------|
 | 源地址校验（TUN 模式） | `ip route replace throw <cidr> table 0x162`，对 `PROXY_THROW_NETS`（`0.0.0.0/8`、`10/8`、`100.64/10`、`127/8`、`169.254/16`、`172.16/12`、`192.168/16`；与 fake-ip 前缀重叠的跳过） | 当 `net.ipv4.conf.all.src_valid_mark=1`（Tailscale 等策略路由会设置）时，`fib_validate_source()` 带 mark 查源地址，命中代理表中唯一路由 `local default dev lo` → 被判 martian 源并**静默丢包**（无日志、无计数）；throw 路由让该查找回落到 main 表 |
-| 路由器自身 fake-ip6（`ipv6_mode=2/3`，且 `router_self_proxy=1` 或 fake-ip 未走防火墙 DNS） | `ip -6 rule add iif lo to <fakeip_range6> lookup 0x162 pref 1887` | 本机发出的 fake-ip6 目标包在 output 打标前先命中该规则进代理表，转发流量仍走 main 表 |
+| 路由器自身 fake-ip6（`ipv6_mode=2/3`，且 `router_self_proxy=1` 或 fake-ip 未走防火墙 DNS） | `ip -6 rule add iif lo to <fakeip_range6> lookup 0x162 pref 998` | 本机发出的 fake-ip6 目标包在 output 打标前先命中该规则进代理表，转发流量仍走 main 表 |
+| 策略路由共存（mwan3 等多 WAN） | `ip rule add fwmark 0x162 table 0x162 pref 999` | 取值原因与 mwan3 侧设置见 `05-firewall-special.md` §5.4 |
 
 > 症状对照：TUN 模式「能连但部分目标不通、日志无异常」→ 先查 `sysctl net.ipv4.conf.all.src_valid_mark`；「路由器自身访问 fake-ip6 目标失败而内网客户端正常」。两者均在 `revert_firewall()` 中回滚。
 
-### 4.4 Docker 网桥与 UDP TPROXY
-
-IPv4：`docker0` 存在、`en_mode_tun` 为空且 `enable_udp_proxy=1` 时，先设 `nf_call_iptables=1`，成功后才把全局 `bridge-nf-call-iptables` 设为 `0`。IPv6：`ipv6_enable=1`、`enable_v6_udp_proxy=1` 且 `ipv6_mode=0/1` 时，同样处理 `nf_call_ip6tables` 与 `bridge-nf-call-ip6tables`。
-
-只处理 `docker0`；全局值影响所有网桥。停止 OpenClash 或切换模式不会恢复这些值。
-
-### 4.5 WAN 入口防护与分区放行
+### 4.4 WAN 入口防护与分区放行
 
 劫持链（`dstnat → openclash`、`mangle_prerouting → openclash_mangle`、DNS 劫持）只对非 WAN 入口生效；放行与拒绝都落在**区域自己的 input 链**里，不再使用全局 `input` 链上的 accept：
 

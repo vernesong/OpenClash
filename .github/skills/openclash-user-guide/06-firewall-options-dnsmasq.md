@@ -1,6 +1,6 @@
 ## 防火墙选项影响、fw3 等效链与 Dnsmasq 修改
 
-> **用途**: 各选项对防火墙规则的影响速查表、fw3 等效链与 Dnsmasq 劫持实现（§6.1–6.4）。
+> **用途**: 各选项对防火墙规则的影响速查表、fw3 等效链与 Dnsmasq 劫持实现（§6.1–6.4）；完整链结构与顺序见 `04-firewall-chains.md`。
 
 > **AI 行为指引**: 当用户询问「改哪个 UCI 选项会生成什么防火墙规则」「fw3 与 fw4 后端差异」「DNS 劫持的 dnsmasq 实现」时，AI 应结合本文件（§6.2 选项→规则映射、§6.3 Dnsmasq）与 `04-firewall-chains.md`（§4.2 链结构）回答，说明选项如何影响 `set_firewall()` 生成的规则链，而非仅给出选项说明。涉及实现细节时查阅 [OpenClash 源码](https://github.com/vernesong/OpenClash/tree/dev) 中 `init.d/openclash` 的 `set_firewall()` 与 `change_dnsmasq()` 函数。
 
