@@ -290,7 +290,10 @@ local function sync_group_name(section, old_name, new_name)
 	end)
 
 	-- Keep rule updates pending until Apply writes the new groups to the YAML file.
-	local config = uci:get(openclash, section, "config") or "all"
+	local config = uci:get(openclash, section, "config") or ""
+	if config == "" or config == "all" then
+		config = "all"
+	end
 	local files = config == "all" and fs.glob("/etc/openclash/config/*") or {"/etc/openclash/config/" .. config}
 	for _, path in ipairs(files) do
 		local name = fs.basename(path)

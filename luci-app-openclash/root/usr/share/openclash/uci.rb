@@ -747,7 +747,7 @@ module UCI
           YAML.LOG_ERROR('Merge Failed,【' + key + ' - ' + error.message + '】')
         end
       end
-      rename_rule_targets(value, renames) unless renames.empty?
+      rename_targets(value, renames) unless renames.empty?
       YAML.dump(value, config_file)
     rescue ::Exception => error
       failed = true
@@ -759,12 +759,19 @@ module UCI
     PROXY_FILE_KEYS.each { |_, path| File.delete(path) if File.exist?(path) }
   end
 
-  # Follow the core's ParseRulePayload fields, leaving provider names and rule payloads
-  # intact. SUB-RULE points to a sub-rule rather than a proxy group.
-  def rename_rule_targets(value, renames)
-    lists = [value['rules']] + (value['sub-rules'] || {}).values
-    lists.compact.each do |rules|
+  # Follow the core's ParseRulePayload fields, leaving provider names and payloads intact.
+  # SUB-RULE points to a sub-rule, the listener and tunnel proxy fields are group references.
+  def rename_targets(value, renames)
+    target_of = lambda do |name|
+      renames.reduce(name) { |current, rename| current == rename['old_name'] ? rename['new_name'] : current }
+    end
+    lists = [value['rules']]
+    sub_rules = value['sub-rules']
+    lists.concat(sub_rules.values) if sub_rules.is_a?(Hash)
+    lists.each do |rules|
+      next unless rules.is_a?(Array)
       rules.map! do |rule|
+        next rule unless rule.is_a?(String)
         parts = rule.split(',', -1)
         type = parts.first.to_s.strip.upcase
         next rule if type == 'SUB-RULE'
@@ -778,11 +785,17 @@ module UCI
                 end
         next rule unless index > 0 && index < parts.length
         original = parts[index].strip
-        target = renames.reduce(original) do |name, rename|
-          name == rename['old_name'] ? rename['new_name'] : name
-        end
+        target = target_of.call(original)
         parts[index] = parts[index].sub(original) { target } if target != original
         parts.join(',')
+      end
+    end
+    %w[listeners tunnels].each do |key|
+      next unless value[key].is_a?(Array)
+      value[key].each do |item|
+        next unless item.is_a?(Hash) && item['proxy'].is_a?(String)
+        target = target_of.call(item['proxy'])
+        item['proxy'] = target if target != item['proxy']
       end
     end
   end
