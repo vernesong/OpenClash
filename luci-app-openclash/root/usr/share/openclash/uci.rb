@@ -380,7 +380,7 @@ module UCI
 
   def member_lines(group, groups, nodes, name, config_name)
     members = []
-    (group['other_group'] || []).each do |pattern|
+    each_item(group, 'other_group').each do |pattern|
       builtin = GROUP_KEYWORDS.find { |word| plain_pattern(pattern) == word }
       if builtin
         members << "      - #{builtin}"
@@ -395,7 +395,7 @@ module UCI
     end
     nodes.each do |node|
       next if !enabled?(node) || !own_section?(node, config_name)
-      next unless (node['groups'] || []).any? { |pattern| matched?(pattern, name) }
+      next unless each_item(node, 'groups').any? { |pattern| matched?(pattern, name) }
       members << "      - \"#{node['name']}\""
     end
     members
@@ -407,7 +407,7 @@ module UCI
       provider_name = provider['name'].to_s
       next if provider_name.empty?
       next if !enabled?(provider) || !own_section?(provider, config_name)
-      next unless (provider['groups'] || []).any? { |pattern| matched?(pattern, name) }
+      next unless each_item(provider, 'groups').any? { |pattern| matched?(pattern, name) }
       uses << "      - #{provider_name}"
     end
     uses
@@ -685,6 +685,7 @@ module UCI
   # the uci directory config_load would have read (UCI_CONFIG_DIR).
   def write_proxies(config_file, config_name, dir = storage_dir)
     package = read_package_rows(dir)
+    renames = (package['group_rename'] || []).select { |row| row['config'] == config_name }
     log_line("Start Writing【#{config_name}】Proxy-providers Setting...")
     providers = provider_fragment(config_name, dir, package['proxy_providers'])
     log_line("Start Writing【#{config_name}】Proxies Setting...")
@@ -698,7 +699,10 @@ module UCI
     servers = nil
     log_line("Proxies, Proxy-providers, Groups Edited Successful, Updating Config File【#{config_name}】...")
     GC.start
-    merge_fragments(config_file)
+    if merge_fragments(config_file, renames) && !renames.empty?
+      error = replace(dir, STORAGE_PACKAGE, 'group_rename', config_name, '', false)
+      YAML.LOG_ERROR('Clear Group Renames Failed,【' + error + '】') if error
+    end
     log_line("Config File【#{config_name}】Write Successful!")
   end
 
@@ -725,7 +729,7 @@ module UCI
   # The fragments replace the matching keys of the target file, a key without fragment is
   # dropped. `failed` picks the fallback of the caller, so an unparsable fragment ends up
   # here instead of aborting the run.
-  def merge_fragments(config_file)
+  def merge_fragments(config_file, renames = [])
     failed = false
     begin
       value = YAML.load_file(config_file)
@@ -743,14 +747,57 @@ module UCI
           YAML.LOG_ERROR('Merge Failed,【' + key + ' - ' + error.message + '】')
         end
       end
+      rename_targets(value, renames) unless renames.empty?
       YAML.dump(value, config_file)
     rescue ::Exception => error
       failed = true
       YAML.LOG_ERROR('Update Config File Failed,【' + error.message + '】')
     end
     concatenate_fragments(config_file) if failed
+    !failed
   ensure
     PROXY_FILE_KEYS.each { |_, path| File.delete(path) if File.exist?(path) }
+  end
+
+  # Follow the core's ParseRulePayload fields, leaving provider names and payloads intact.
+  # SUB-RULE points to a sub-rule, the listener and tunnel proxy fields are group references.
+  def rename_targets(value, renames)
+    target_of = lambda do |name|
+      renames.reduce(name) { |current, rename| current == rename['old_name'] ? rename['new_name'] : current }
+    end
+    lists = [value['rules']]
+    sub_rules = value['sub-rules']
+    lists.concat(sub_rules.values) if sub_rules.is_a?(Hash)
+    lists.each do |rules|
+      next unless rules.is_a?(Array)
+      rules.map! do |rule|
+        next rule unless rule.is_a?(String)
+        parts = rule.split(',', -1)
+        type = parts.first.to_s.strip.upcase
+        next rule if type == 'SUB-RULE'
+        index = case type
+                when 'MATCH', 'FINAL'
+                  1
+                when 'AND', 'OR', 'NOT', 'DOMAIN-REGEX', 'PROCESS-NAME-REGEX', 'PROCESS-PATH-REGEX'
+                  parts.length - 1
+                else
+                  2
+                end
+        next rule unless index > 0 && index < parts.length
+        original = parts[index].strip
+        target = target_of.call(original)
+        parts[index] = parts[index].sub(original) { target } if target != original
+        parts.join(',')
+      end
+    end
+    %w[listeners tunnels].each do |key|
+      next unless value[key].is_a?(Array)
+      value[key].each do |item|
+        next unless item.is_a?(Hash) && item['proxy'].is_a?(String)
+        target = target_of.call(item['proxy'])
+        item['proxy'] = target if target != item['proxy']
+      end
+    end
   end
 
   # `cat $SERVER_FILE $PROXY_PROVIDER_FILE /tmp/yaml_groups.yaml > $CONFIG_FILE`
@@ -1542,7 +1589,12 @@ module UCI
       next unless group.is_a?(Hash) && group['name'] && group['type']
       lines.concat(group_lines(group, config_name, names))
     end
-    replace_stream(config_name, lines.join("\n"), MAIN_TARGETS, true, ['proxy_groups'])
+    failures = replace_stream(config_name, lines.join("\n"), MAIN_TARGETS, true, ['proxy_groups'])
+    if failures.empty?
+      error = replace(STORAGE, STORAGE_PACKAGE, 'group_rename', config_name, '', false)
+      failures['group_rename'] = error if error
+    end
+    failures
   end
 
   # Imports the proxies and proxy-providers blocks of `config_file` into the uci package.
