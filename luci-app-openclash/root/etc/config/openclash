@@ -328,3 +328,14 @@ config config_overwrite
 	option type 'http'
 	option order '4'
 	list config 'all'
+
+config config_overwrite
+	option name 'BT_PT_Download'
+	option official '1'
+	option enable '0'
+	option url 'https://raw.githubusercontent.com/vernesong/OpenClash/refs/heads/dev/luci-app-openclash/root/etc/openclash/overwrite/BT_PT_Download'
+	option update_days 'off'
+	option update_hour 'off'
+	option type 'http'
+	option order '5'
+	list config 'all'

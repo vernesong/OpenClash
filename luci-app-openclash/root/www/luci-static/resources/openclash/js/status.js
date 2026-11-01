@@ -1950,19 +1950,24 @@ var ocLang = window.ocLang || '';
                 var moduleItem = enabledModules[i];
                 var tag = document.createElement('span');
                 tag.className = 'subscription-overwrite-tag ' + this.getTypeClass(moduleItem.type);
-                tag.title = moduleItem.desc ? moduleItem.name + '\n' + moduleItem.desc : moduleItem.name;
                 tag.textContent = moduleItem.name;
                 tag.setAttribute('data-module', moduleItem.name);
+
+                var typeLabel = '<%:Unknown%>';
+                if (moduleItem.type == 'http') {
+                    typeLabel = '<%:HTTP Module%>';
+                } else if (moduleItem.type == 'file') {
+                    typeLabel = '<%:File Module%>';
+                }
+                var titleLines = [moduleItem.name + ' [' + typeLabel + ']'];
+                if (moduleItem.desc) {
+                    titleLines.push(moduleItem.desc);
+                }
+                tag.title = titleLines.join('\n');
+
                 tag.addEventListener('click', function(e) {
                     self.handleTagClick(this, e);
                 });
-                if (moduleItem.type == 'http') {
-                    tag.title += ' [<%:HTTP Module%>]';
-                } else if (moduleItem.type == 'file') {
-                    tag.title += ' [<%:File Module%>]';
-                } else {
-                    tag.title += ' [<%:Unknown%>]';
-                }
                 this.container.appendChild(tag);
             }
 
@@ -3321,6 +3326,10 @@ var ocLang = window.ocLang || '';
         return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
+    function acRateBucket(v) {
+        return v > 0 ? Math.round(Math.log(v)) : 0;
+    }
+
     /* wordmarks render as wide, short ink; sizing by ink height keeps their visual weight even,
        while the box cap keeps a gap between the wordmark and the badge edge */
     var AC_LOGO_BOX = 30, AC_LOGO_INK = 11, AC_PICK_BOX = 38, AC_PICK_INK = 11;
@@ -4042,6 +4051,23 @@ var ocLang = window.ocLang || '';
             }
         },
 
+        // activity first: devices with live traffic or open flows float to the top,
+        // idle ones stay in name order so the list does not reshuffle on its own
+        liveOrder: function(a, b) {
+            if (a.online !== b.online) return a.online ? -1 : 1;
+            var aa = this.isActive(a) ? 1 : 0, ab = this.isActive(b) ? 1 : 0;
+            if (aa !== ab) return ab - aa;
+            if (aa) {
+                var ra = acRateBucket(this.rateOf(a)), rb = acRateBucket(this.rateOf(b));
+                if (rb !== ra) return rb - ra;
+                var ca = this.connsOf(a), cb = this.connsOf(b);
+                if (cb !== ca) return cb - ca;
+                var ea = a.ema || 0, eb = b.ema || 0;
+                if (eb !== ea) return eb - ea;
+            }
+            return this.displayName(a).localeCompare(this.displayName(b));
+        },
+
         sortDevices: function() {
             var arr = this.devices.slice();
             var key = this.sortKey, dir = this.sortDir;
@@ -4058,30 +4084,16 @@ var ocLang = window.ocLang || '';
             }
             var self = this;
             if (!key || !dir) {
-                // activity first: devices with live traffic or open flows float to the top,
-                // idle ones stay in name order so the list does not reshuffle on its own
-                var bucket = function(v) { return v > 0 ? Math.round(Math.log(v)) : 0; };
-                arr.sort(function(a, b) {
-                    if (a.online !== b.online) return a.online ? -1 : 1;
-                    var aa = self.isActive(a) ? 1 : 0, ab = self.isActive(b) ? 1 : 0;
-                    if (aa !== ab) return ab - aa;
-                    if (aa) {
-                        var ra = bucket(self.rateOf(a)), rb = bucket(self.rateOf(b));
-                        if (rb !== ra) return rb - ra;
-                        var ca = self.connsOf(a), cb = self.connsOf(b);
-                        if (cb !== ca) return cb - ca;
-                        var ea = a.ema || 0, eb = b.ema || 0;
-                        if (eb !== ea) return eb - ea;
-                    }
-                    return self.displayName(a).localeCompare(self.displayName(b));
-                });
+                arr.sort(function(a, b) { return self.liveOrder(a, b); });
                 return arr;
             }
             arr.sort(function(a, b) {
-                if (key === 'name' || key === 'dir') {
-                    var sa = key === 'name' ? self.displayName(a) : a.dir;
-                    var sb = key === 'name' ? self.displayName(b) : b.dir;
-                    return sa.localeCompare(sb) * dir;
+                if (key === 'name') {
+                    return self.displayName(a).localeCompare(self.displayName(b)) * dir;
+                }
+                if (key === 'dir') {
+                    var sign = a.dir === b.dir ? 0 : (a.dir < b.dir ? -1 : 1);
+                    return sign ? sign * dir : self.liveOrder(a, b);
                 }
                 var va, vb;
                 if (key === 'conns') { va = self.connsOf(a); vb = self.connsOf(b); }

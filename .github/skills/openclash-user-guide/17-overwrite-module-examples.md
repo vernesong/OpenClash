@@ -17,7 +17,7 @@
 
 > 模块文件内的 `#!NAME` / `#!DESC` / `#!CONFIG` / `#!CRON` / `#!ENV` 注释行声明元信息，添加模块时自动回填第二步表单（格式见 `16-overwrite-module-format.md` §16.2.5，示例见 §17.3.9）。
 
-> 插件内置四个订阅型模块（`type=http`、`update_days=off`、`config=all`、`enable=0`）：`default`（`order=1`）、`Google_Play`（`order=2`）、`Tailscale`（`order=3`）与 `WiFi_Calling`（`order=4`），都可在「覆写模块」窗口启用。`WiFi_Calling` 代理运营商 ePDG 的 IKE/NAT-T 流量；启用前须把 `WIFI_CALLING_PROXY` 设为现有 UDP 代理目标，留空不会跳过规则。
+> 插件内置五个订阅型模块（`type=http`、`update_days=off`、`config=all`、`enable=0`）：`default`（`order=1`）、`Google_Play`（`order=2`）、`Tailscale`（`order=3`）、`WiFi_Calling`（`order=4`）与 `BT_PT_Download`（`order=5`），都可在「覆写模块」窗口启用。`WiFi_Calling` 代理运营商 ePDG 的 IKE/NAT-T 流量；启用前须把 `WIFI_CALLING_PROXY` 设为现有 UDP 代理目标，留空不会跳过规则。`BT_PT_Download` 切 `redir-host`、仅代理常用端口，tracker 直连且兜底 `MATCH,DIRECT`。
 
 ### 17.2 覆写与配置文件的匹配
 
@@ -161,7 +161,7 @@ fi
 | `url` | string | *(空)* | `type=http` 时的下载地址 |
 | `config` | ListValue | *(空)* | 目标配置文件列表。`all`=应用到所有配置；或指定具体路径如 `/etc/openclash/config/xx.yaml`。**为空则永不匹配，覆写不生效** |
 | `param` | string | *(空)* | 传给覆写文件的额外键值对，格式 `KEY1=VALUE1;KEY2=VALUE2` |
-| `desc` | string | *(空)* | 模块描述，仅界面展示（模块列表/状态页模块标签的悬停提示）；由添加窗口的 `Description` 字段或文件内 `#!DESC` 回填，编辑窗口可改 |
+| `desc` | string | *(空)* | 模块描述，仅界面展示（悬停时首行「名称 [模块类型]」+ 次行描述）；由添加窗口或文件内 `#!DESC` 回填，编辑窗口可改；UCI 为空时回退文件内 `#!DESC` |
 | `order` | int | `0` | 排序权重。**值越大越先执行**，新条目自动取 `max_order+1` |
 | `update_days` | string | *(空)* | `type=http` 时 cron 星期 (0-7, `*`=每天, `off`=不自动更新) |
 | `update_hour` | string | *(空)* | `type=http` 时 cron 小时 (0-23, `off`=不自动更新) |

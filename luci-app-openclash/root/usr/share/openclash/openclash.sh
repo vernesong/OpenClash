@@ -88,7 +88,7 @@ config_test()
       for i in $test_info; do
          if [ -n "$(echo "$i" |grep "configuration file")" ]; then
             local info=$(echo "$i" |sed "s# ${CFG_FILE} #【${name}】#g")
-            LOG_OUT "$info"
+            LOG_OUT "$info..."
          else
             echo "$i" >> "$LOG_FILE"
          fi

@@ -2808,11 +2808,11 @@ msgstr "Archivo de configuración descargado correctamente. Probando si hay erro
 msgid "configuration file"
 msgstr "archivo de configuración"
 
-msgid "test failed"
-msgstr "prueba fallida"
+msgid "test failed..."
+msgstr "prueba fallida..."
 
-msgid "test is successful"
-msgstr "prueba exitosa"
+msgid "test is successful..."
+msgstr "prueba exitosa..."
 
 msgid "Config File Tested Failed, Please Check The Log Infos!"
 msgstr "La prueba del archivo de configuración ha fallado. Consulta el registro del núcleo."

@@ -71,7 +71,7 @@
 - 订阅来源固定 `type=http`，本地来源 `type=file`；**表单没有 order 字段**，新建模块的 `order` 自动取「现有最大 order + 1」（排在列表最后）。
   - **匹配配置文件（config）**：只能填 `all` 或**完整路径**（如 `/etc/openclash/config/config.yaml`）；**只写文件名（不带目录）不会被内核匹配，模块将永不生效**。
 - **`#!` 元信息自动回填**：模块文件带 `#!` 标识时（见 §16.2.5）自动回填表单字段，**只填留空或自动填入的字段，不覆盖手动输入**。
-- **仓库内置模块共五个**：`default`、`Google_Play`、`Tailscale`、`WiFi_Calling`、`openclash_custom_overwrite.sh`（前四个随包安装到 `/etc/openclash/overwrite/`，第五个存于 `/etc/openclash/custom/` 且文件名固定不可改名）。这五个条目的第二行会显示**内联蓝底标签「内建 / Built-in」**（位置在类型文字之前，如 `内建 本地模块`）；用户自己新增的模块不显示该标签。
+- **仓库内置模块共六个**：`default`、`Google_Play`、`Tailscale`、`WiFi_Calling`、`BT_PT_Download`、`openclash_custom_overwrite.sh`（前五个随包安装到 `/etc/openclash/overwrite/`，第六个存于 `/etc/openclash/custom/` 且文件名固定不可改名）。这六个条目的第二行会显示**内联蓝底标签「内建 / Built-in」**（位置在类型文字之前，如 `内建 本地模块`）；用户自己新增的模块不显示该标签。
 - 类型文字用简写（中文：本地模块 / 订阅模块；英文：`Local Mod` / `Sub Mod`；西文：`Local` / `Sub`），新建窗口页签为 `Local Module` / `Subscribe Link`，列表栏标题为 `Modules`、底部按钮为 `New Module`。
 - **模块相关文案**（只在覆写模块界面出现，配置文件相关页面仍用「文件」字样）：表单字段 `Module Name`（模块名称）、占位/校验 `Please enter a module name`（请输入模块名称）、新增窗口状态 `Ready to add module`（准备添加模块）、删除确认 `Are you sure you want to delete this module and its subscription info?`（确定要删除此模块及其订阅信息吗？）；上传区的「点击选择文件或拖放」「支持 txt,conf 文件」等仍用「文件」（描述真实上传的物理文件）。
 - 新建后条目支持：启用/停用开关（第一行最右侧）、刷新（Subscribe 远程拉取）、齿轮（编辑参数）、删除（`delete_overwrite_file`）、拖拽排序（调整 order）。**新建的模块默认是「关」**（注册时 `enable=0`，与内建 `default`/`Google_Play` 一致）⇒ 需要手动打开开关，并**重启插件**才生效。
@@ -416,7 +416,7 @@ dns:
 | 标识 | 回填目标 | 取值格式 |
 |------|----------|----------|
 | `NAME` | 模块名称 | 合法文件名（字母/数字/`._-`，不以 `.` 开头，非 `openclash_custom_overwrite.sh`，≤128 字符）；优先于上传文件名 |
-| `DESC` | 模块描述（UCI `desc`） | 单行文本，超长截断至 200 字符；仅界面展示（模块列表/状态页标签悬停提示、编辑窗口可改） |
+| `DESC` | 模块描述（UCI `desc`） | 单行文本，超长截断至 200 字符；仅界面展示（模块列表/状态页标签悬停提示、编辑窗口可改）；UCI 为空时回退文件内 `#!DESC` |
 | `CONFIG` | 匹配配置文件（`config` 列表） | `all` 或逗号分隔的文件名/完整路径；文件名自动补全为 `/etc/openclash/config/<名称>` |
 | `CRON` | 更新时间（`update_days`/`update_hour`，仅订阅模块生效） | `off`；`<星期> <小时>`（如 `3 4`=每周三 4 点、`* 4`=每天 4 点）；或 5/6 段 cron（分钟须 `0`/`00`、日/月为 `*`、星期可用 0-6、7=周日或英文名 SUN…SAT，6 段首段秒须为 0）；其他形态（非零分钟、多时段、区间、多星期等）被忽略 |
 | `ENV` | 环境变量（`param`） | `KEY[=默认值]` 分号分隔（如 `EN_KEY1;EN_KEY2=foo`）；`KEY` 须匹配 `[A-Za-z_][A-Za-z0-9_]*`；多个 ENV 行累加、重复键取最先出现者 |

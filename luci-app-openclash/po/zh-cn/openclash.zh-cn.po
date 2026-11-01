@@ -2816,11 +2816,11 @@ msgstr "配置文件下载成功，使用内核测试是否有错误..."
 msgid "configuration file"
 msgstr "配置文件"
 
-msgid "test failed"
-msgstr "测试失败"
+msgid "test failed..."
+msgstr "测试失败..."
 
-msgid "test is successful"
-msgstr "测试成功"
+msgid "test is successful..."
+msgstr "测试成功..."
 
 msgid "Config File Tested Failed, Please Check The Log Infos!"
 msgstr "配置文件测试失败，请查看《内核日志》排查失败原因！"

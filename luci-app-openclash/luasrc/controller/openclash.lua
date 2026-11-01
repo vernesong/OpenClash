@@ -6164,6 +6164,27 @@ local function stream_curl_download(url, tmp_file, max_filesize, emit_progress)
 	return code
 end
 
+-- Shipped modules describe themselves in the #!DESC info line, UCI desc is only set by the add dialog
+local function overwrite_module_desc(name, uci_desc)
+	if uci_desc and uci_desc ~= "" then
+		return uci_desc
+	end
+	if not name or name == "" or name:find("[/\\]") or name:find("%.%.") then
+		return ""
+	end
+	local file = io.open("/etc/openclash/overwrite/" .. name, "r")
+	if not file then
+		return ""
+	end
+	local head = file:read(8192) or ""
+	file:close()
+	local desc = head:match("#![ \t]*[Dd][Ee][Ss][Cc][ \t]*[=:][ \t]*([^\r\n]*)")
+	if not desc then
+		return ""
+	end
+	return (desc:gsub("[ \t]+$", ""):sub(1, 200))
+end
+
 function action_overwrite_subscribe_info()
 	local method = HTTP.getenv("REQUEST_METHOD")
 	local filename = HTTP.formvalue("filename")
@@ -6211,7 +6232,7 @@ function action_overwrite_subscribe_info()
 					order = tonumber(s.order) or 0,
 					type = s.type or "file",
 					param = s.param or "",
-					desc = s.desc or "",
+					desc = overwrite_module_desc(s.name, s.desc),
 					official = tonumber(s.official) or 0,
 					enable = tonumber(s.enable) or 0
 				}
