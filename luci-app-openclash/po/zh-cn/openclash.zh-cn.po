@@ -5764,3 +5764,30 @@ msgstr "分钟"
 
 msgid "For a manually created Access Token, bind the current token to a non-primary subscription URL in Access Token Management on the website, then edit the node filter for that URL"
 msgstr "使用手动创建的 Access Token 时，请先到网页「Access Token 管理」将当前 Token 绑定到非主订阅地址，再编辑该地址的节点筛选"
+
+msgid "Sign in with Google"
+msgstr "使用 Google 登录"
+
+msgid "Only accounts already registered with oixCloud can sign in with Google"
+msgstr "仅限已注册 oixCloud 的账号使用 Google 登录"
+
+msgid "Complete Google sign-in in the pop-up window"
+msgstr "请在弹出窗口中完成 Google 登录"
+
+msgid "Allow pop-up windows for this page to sign in with Google"
+msgstr "请允许此页面打开弹出窗口以使用 Google 登录"
+
+msgid "This browser does not support Google sign-in"
+msgstr "当前浏览器不支持 Google 登录"
+
+msgid "Unable to start Google sign-in"
+msgstr "无法发起 Google 登录"
+
+msgid "Google sign-in is only available when OpenClash is opened from a local network address"
+msgstr "仅在通过局域网地址访问 OpenClash 时可使用 Google 登录"
+
+msgid "Google sign-in timed out, please try again"
+msgstr "Google 登录已超时，请重试"
+
+msgid "Google sign-in expired or could not be verified, please try again"
+msgstr "Google 登录已过期或无法验证，请重试"

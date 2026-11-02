@@ -4,6 +4,7 @@
 var OIX_URLS = {
     info: '<%=url("admin", "services", "openclash", "oix_info")%>',
     login: '<%=url("admin", "services", "openclash", "oix_login")%>',
+    googleBegin: '<%=url("admin", "services", "openclash", "oix_google_begin")%>',
     logout: '<%=url("admin", "services", "openclash", "oix_logout")%>',
     save: '<%=url("admin", "services", "openclash", "oix_login_info_save")%>',
     checkin: '<%=url("admin", "services", "openclash", "oix_checkin")%>',
@@ -14,6 +15,9 @@ var OixCloud = {
     loggedIn: window.ocOixBoot.loggedIn,
     activeTab: 'account',
     pollTimer: null,
+    googlePopup: null,
+    googleChannel: null,
+    googleTimer: null,
     origCheckinInterval: window.ocOixBoot.checkinInterval,
     origCheckinMultiple: window.ocOixBoot.checkinMultiple,
 
@@ -32,6 +36,8 @@ var OixCloud = {
 
     doLogin: function() {
         OixMsg.clearAll();
+        // A Google sign-in finished later must not sign in a second time
+        this.stopGoogleWait();
         var isToken = this.activeTab === 'token', data = {};
         if (isToken) {
             var token = document.getElementById('oix-token').value.trim();
@@ -45,7 +51,59 @@ var OixCloud = {
             if (!passwd) { OixMsg.field('oix-passwd', '<%:Please enter password%>'); return; }
             data.email = email; data.passwd = passwd;
         }
-        var self = this, btns = document.querySelectorAll('#oix-login-section .oix-btn-primary');
+        this.streamLogin(data, document.querySelectorAll('#oix-login-section .oix-btn-primary'));
+    },
+
+    googleLogin: function() {
+        OixMsg.clearAll();
+        if (!window.BroadcastChannel) { OixMsg.show('<%:This browser does not support Google sign-in%>', 'error'); return; }
+        this.stopGoogleWait();
+        // Open the window inside the click so pop-up blockers allow it, then point it at the sign-in page
+        // The opener is kept: without it this page could not close the window once it shows oixcloud.com
+        var popup = this.googlePopup = window.open('', '_blank', 'width=520,height=680');
+        if (!popup) { OixMsg.show('<%:Allow pop-up windows for this page to sign in with Google%>', 'error'); return; }
+        var self = this;
+        XHR.get(OIX_URLS.googleBegin, {origin: window.location.origin}, function(x, flow) {
+            if (popup !== self.googlePopup) return;
+            if (!x || x.status != 200 || !flow || !flow.url || !flow.state) {
+                self.stopGoogleWait();
+                OixMsg.show('<%:oixCloud Login Failed:%> ' + ((flow && flow.error) || '<%:Unable to start Google sign-in%>'), 'error');
+                return;
+            }
+            // Closed while the router prepared the sign-in; some browsers throw on navigating it
+            try {
+                if (popup.closed) throw new Error('closed');
+                popup.location.replace(flow.url);
+            } catch (e) {
+                self.stopGoogleWait();
+                return;
+            }
+            // The callback page on this router relays the one-time code back over this channel
+            self.googleChannel = new BroadcastChannel('openclash-oix-google');
+            self.googleChannel.onmessage = function(event) {
+                var data = event.data || {};
+                if (data.state !== flow.state || typeof data.code !== 'string') return;
+                self.stopGoogleWait();
+                self.streamLogin({google_code: data.code, google_state: data.state}, document.querySelectorAll('#oix-login-section .oix-btn-google'));
+            };
+            self.googleTimer = setTimeout(function() {
+                self.stopGoogleWait();
+                OixMsg.show('<%:Google sign-in timed out, please try again%>', 'error');
+            }, 600000);
+            OixMsg.show('<%:Complete Google sign-in in the pop-up window%>', 'info', 0);
+        });
+    },
+
+    stopGoogleWait: function() {
+        if (this.googleChannel) { this.googleChannel.close(); this.googleChannel = null; }
+        if (this.googlePopup) { this.googlePopup.close(); this.googlePopup = null; }
+        clearTimeout(this.googleTimer);
+        this.googleTimer = null;
+    },
+
+    streamLogin: function(data, btns) {
+        var self = this;
+        OixMsg.hide();
         btns.forEach(function(b){ ocSetBtnBusy(b, true, '<%:Login...%>'); });
 
         var updateBtnText = function(text) {

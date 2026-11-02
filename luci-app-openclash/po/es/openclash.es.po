@@ -5765,3 +5765,30 @@ msgstr "minutos"
 
 msgid "For a manually created Access Token, bind the current token to a non-primary subscription URL in Access Token Management on the website, then edit the node filter for that URL"
 msgstr "Si usa un Access Token creado manualmente, vincule el token actual a una URL de suscripción no principal en Access Token Management del sitio web y edite el filtro de nodos de esa URL"
+
+msgid "Sign in with Google"
+msgstr "Iniciar sesión con Google"
+
+msgid "Only accounts already registered with oixCloud can sign in with Google"
+msgstr "Solo las cuentas ya registradas en oixCloud pueden iniciar sesión con Google"
+
+msgid "Complete Google sign-in in the pop-up window"
+msgstr "Completa el inicio de sesión con Google en la ventana emergente"
+
+msgid "Allow pop-up windows for this page to sign in with Google"
+msgstr "Permite las ventanas emergentes de esta página para iniciar sesión con Google"
+
+msgid "This browser does not support Google sign-in"
+msgstr "Este navegador no admite el inicio de sesión con Google"
+
+msgid "Unable to start Google sign-in"
+msgstr "No se pudo iniciar el inicio de sesión con Google"
+
+msgid "Google sign-in is only available when OpenClash is opened from a local network address"
+msgstr "El inicio de sesión con Google solo está disponible al abrir OpenClash desde una dirección de red local"
+
+msgid "Google sign-in timed out, please try again"
+msgstr "Se agotó el tiempo para iniciar sesión con Google, inténtalo de nuevo"
+
+msgid "Google sign-in expired or could not be verified, please try again"
+msgstr "El inicio de sesión con Google ha caducado o no se pudo verificar, inténtalo de nuevo"
