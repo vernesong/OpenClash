@@ -2,7 +2,7 @@
 
 > **用途**: 覆写模块实战示例、获取/匹配方式与 UCI 覆写条目结构、[General] Key 速查（§17.1–17.5）；格式定义见 `16-overwrite-module-format.md`。
 
-> **小节索引**: §17.1 获取方式 · §17.2 匹配规则 · §17.3 实战示例（§17.3.1–17.3.9）· §17.4 自定义脚本 · §17.5 UCI 结构（§17.5.1 字段详解 / §17.5.2 Key 速查）
+> **小节索引**: §17.1 获取方式 · §17.2 匹配规则 · §17.3 实战示例（§17.3.1–17.3.10）· §17.4 自定义脚本 · §17.5 UCI 结构（§17.5.1 字段详解 / §17.5.2 Key 速查）
 
 > **AI 行为指引**: 当用户询问「覆写模块怎么写/怎么用」「给个示例」时，AI 应先确认用户需求（追加还是替换？改插件设置还是运行 YAML？），再按本文件 §17.3 示例给出带段头的可运行配置。格式与操作符细节见 `16-overwrite-module-format.md` §16.2；`[General]` 允许的 Key 见 §16.2.1 与 §17.5.2。
 
@@ -132,6 +132,21 @@ rules+:
   - DOMAIN-SUFFIX,example.com,${PROXY_GROUP}
 ```
 
+#### 17.3.10 内置 DDNS 模块（探测/服务商 API 直连 + STUN 端口绕过）
+> 仓库内置模块 `overwrite/DDNS`。IP 探测若经代理出口会拿到代理 IP（DDNS 写错地址）；STUN 需要路由器自身的 UDP 映射（走代理则拿不到）。`DDNS_DOMAIN` 留空时 fake-ip-filter 用占位域名，不影响解析；完整域名清单以模块文件为准。
+```ini
+[General]
+WAN_AC_BLACK_PORTS=3478,5349
+
+[YAML]
++rules:
+  - DOMAIN,myip.ipip.net,DIRECT
+  - DOMAIN,4.ipw.cn,DIRECT
+dns:
+  fake-ip-filter+:
+    - "+.${DDNS_DOMAIN:-example.invalid}"
+```
+
 ### 17.4 自定义覆写脚本（兼容保留）
 
 **文件**: `/etc/openclash/custom/openclash_custom_overwrite.sh`
@@ -233,6 +248,14 @@ fi
 | `STACK_TYPE` | string | `stack_type` | TUN 堆栈类型 |
 | `DELAY_START` | int | `delay_start` | 延迟启动（秒） |
 | `ROUTER_SELF_PROXY` | int_bool | `router_self_proxy` | 本机代理 |
+| **访问控制类** | | | |
+| `LAN_AC_MODE` | int_bool | `lan_ac_mode` | 来源流量控制模式 |
+| `LAN_AC_BLACK_IPS` | string | `lan_ac_black_ips` | 来源黑名单 IP（逗号分隔） |
+| `LAN_AC_BLACK_MACS` | string | `lan_ac_black_macs` | 来源黑名单 MAC |
+| `LAN_AC_WHITE_IPS` | string | `lan_ac_white_ips` | 来源白名单 IP |
+| `LAN_AC_WHITE_MACS` | string | `lan_ac_white_macs` | 来源白名单 MAC |
+| `WAN_AC_BLACK_IPS` | string | `wan_ac_black_ips` | WAN 入站黑名单 IP |
+| `WAN_AC_BLACK_PORTS` | string | `wan_ac_black_ports` | WAN/本机出站免代理端口（在 output 链也生效，常用于 STUN/TURN `3478,5349`） |
 | `CHINA_IP_ROUTE` | int | `china_ip_route` | 区域绕行 |
 | `CHINA_IP_ROUTE_DOMAIN_SOURCE` | string | `china_ip_route_domain_source` | Fake-IP 中国大陆域名数据源（`mrs`/`geosite`） |
 | `CHINA_IP6_ROUTE` | int | `china_ip6_route` | IPv6 区域绕行 |

@@ -134,7 +134,7 @@
 
 每行格式: `KEY = VALUE`（大小写不敏感，会自动转大写）
 
-**允许的所有 Key** (共 102 个，由 `overwrite_file()` 函数中的 `allowed_keys_types` 定义):
+**允许的所有 Key** (共 109 个，由 `overwrite_file()` 函数中的 `allowed_keys_types` 定义):
 
 | 类别 | Key 示例 | 类型 | 说明 |
 |------|----------|------|------|
@@ -144,6 +144,7 @@
 | Fake-IP | `FAKEIP_RANGE`, `FAKEIP_RANGE6`, `STORE_FAKEIP`, `CUSTOM_FAKEIP_FILTER`, `CUSTOM_FAKEIP_FILTER_MODE` | string/int_bool | Fake-IP 相关 |
 | Meta | `ENABLE_TCP_CONCURRENT`, `ENABLE_UNIFIED_DELAY`, `ENABLE_META_SNIFFER`, `ENABLE_META_SNIFFER_PURE_IP`, `ENABLE_GEOIP_DAT` | int_bool | Meta 内核 |
 | 流量 | `ROUTER_SELF_PROXY`, `DISABLE_UDP_QUIC`, `SKIP_PROXY_ADDRESS`, `COMMON_PORTS`, `CHINA_IP_ROUTE`, `CHINA_IP_ROUTE_DOMAIN_SOURCE` | int_bool/int/string | 流量控制 |
+| 访问控制 | `LAN_AC_MODE`, `LAN_AC_BLACK_IPS`, `LAN_AC_BLACK_MACS`, `LAN_AC_WHITE_IPS`, `LAN_AC_WHITE_MACS`, `WAN_AC_BLACK_IPS`, `WAN_AC_BLACK_PORTS` | int_bool/string | 来源/WAN 访问控制的 IP、MAC、端口（与界面配置**取并集**，见下注） |
 | IPv6 | `IPV6_ENABLE`, `IPV6_MODE`, `IPV6_DNS` | int_bool/int | IPv6 |
 | GEO | `GEO_AUTO_UPDATE`, `GEOIP_AUTO_UPDATE`, `GEOSITE_AUTO_UPDATE`, `GEOASN_AUTO_UPDATE` | int_bool | GEO 更新 |
 | 自定义 | `ENABLE_CUSTOM_CLASH_RULES`, `ENABLE_RULE_PROXY` | int_bool | 规则 |
@@ -157,6 +158,8 @@
 | 特殊 | `RESTART` | bool | 覆写变更后是否重启 |
 
 **类型说明**: `int`=整数, `int_bool`=0/1, `bool`=true/false, `string`=任意字符串
+
+> **⚠️ 访问控制类（`LAN_AC_*` / `WAN_AC_*`）的合并语义**：写进模块是**追加**到界面配置而非替换（`init.d` 的 `ac_combined_values()` 对 `openclash.config.<key>` 与 `openclash.@overwrite[0].<key>` 取并集，逗号或空格分隔均可）。`LAN_AC_*` 只作用于转发流量（`openclash`/`openclash_mangle`），路由器自身出站需用 `WAN_AC_BLACK_PORTS`（output 链也生成规则）或 `ROUTER_SELF_PROXY`。
 
 > **⚠️ `CONFIG_FILE` 路径限制**：只接受 `/etc/openclash/` 下的普通文件——路径含 `..`、以 `/` 结尾、文件名以 `.` 开头，或落在 `/etc/openclash/` 之外，整条都会被跳过并记录 `skip config file outside /etc/openclash` / `skip config file with unsafe path` / `skip hidden config file`（日志末尾是 `【General Key => 模块名: 路径】`）。合法写法如 `/etc/openclash/config/Custom_Clash.yaml`。
 

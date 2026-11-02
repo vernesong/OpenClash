@@ -134,6 +134,9 @@
 > 并结合下方字段表和防火墙逻辑给出具体配置方案。涉及底层实现时查阅
 > [OpenClash 源码](https://github.com/vernesong/OpenClash/tree/dev) 中
 > `init.d/openclash` 的 `firewall_lan_ac_traffic()` 函数。
+>
+> **与覆写模块的关系**：本页的黑/白名单（`lan_ac_black_ips`、`lan_ac_black_macs`、`lan_ac_white_ips`、`lan_ac_white_macs`、`wan_ac_black_ips`、`wan_ac_black_ports`、`lan_ac_mode`）都可从覆写模块 `[General]` 段设置，具体见 `16-overwrite-module-format.md` §16.2.1。模块里的值与界面配置 **取并集而非覆盖**（init.d `ac_combined_values()` 合并两处来源，逗号或空格分隔均可）。
+> **注意覆盖范围**：这些名单生成在 `openclash` / `openclash_mangle`（转发流量）链，**不含** `openclash_output` / `openclash_mangle_output`——路由器自身发出的流量不受其影响；要让路由器自身（如 DDNS/STUN/证书校验）绕过代理，需用 `WAN_AC_BLACK_PORTS`（它在 output 链也生成规则）或 `ROUTER_SELF_PROXY=0`。
 
 #### 10.3.1 lan_ac_traffic TypedSection
 

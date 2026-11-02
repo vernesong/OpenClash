@@ -1017,6 +1017,14 @@ nft_ac_add()
    [ -n "$3" ] && nft add element inet fw4 "$3" { "$1" }
 } >/dev/null 2>&1
 
+# Merge AC list values from the UCI config and the overwrite module (@overwrite[0]).
+ac_combined_values()
+{
+   for ac_value in $(uci -q get openclash.config."$1" 2>/dev/null) $(uci -q get openclash.@overwrite[0]."$1" 2>/dev/null); do
+      printf '%s\n' "$ac_value"
+   done | tr ',' '\n' | sed '/^[[:space:]]*$/d' | sort -u
+}
+
 ac_add()
 {
    if [ -z "$1" ]; then
@@ -1680,37 +1688,35 @@ if [ -n "$FW4" ]; then
    nft 'add set inet fw4 lan_ac_white_ipv6s { type ipv6_addr; flags interval; auto-merge; }'
    nft 'add set inet fw4 lan_ac_white_macs { type ether_addr; }'
    if [ "$lan_ac_mode" = "0" ]; then
-      if [ -n "$(uci_get_config "lan_ac_black_ips")" ]; then
-         config_load "openclash"
-         config_list_foreach "config" "lan_ac_black_ips" nft_ac_add "lan_ac_black_ips" "lan_ac_black_ipv6s"
-      fi
-      if [ -n "$(uci_get_config "lan_ac_black_macs")" ]; then
-         config_load "openclash"
-         config_list_foreach "config" "lan_ac_black_macs" nft_ac_add "lan_ac_black_macs"
-      fi
+      for lan_ac_value in $(ac_combined_values "lan_ac_black_ips"); do
+         nft_ac_add "$lan_ac_value" "lan_ac_black_ips" "lan_ac_black_ipv6s"
+      done
+      for lan_ac_value in $(ac_combined_values "lan_ac_black_macs"); do
+         nft_ac_add "$lan_ac_value" "lan_ac_black_macs"
+      done
    elif [ "$lan_ac_mode" = "1" ]; then
-      if [ -n "$(uci_get_config "lan_ac_white_ips")" ]; then
-         config_load "openclash"
-         config_list_foreach "config" "lan_ac_white_ips" nft_ac_add "lan_ac_white_ips" "lan_ac_white_ipv6s"
-      fi
-      if [ -n "$(uci_get_config "lan_ac_white_macs")" ]; then
-         config_load "openclash"
-         config_list_foreach "config" "lan_ac_white_macs" nft_ac_add "lan_ac_white_macs"
-      fi
+      for lan_ac_value in $(ac_combined_values "lan_ac_white_ips"); do
+         nft_ac_add "$lan_ac_value" "lan_ac_white_ips" "lan_ac_white_ipv6s"
+      done
+      for lan_ac_value in $(ac_combined_values "lan_ac_white_macs"); do
+         nft_ac_add "$lan_ac_value" "lan_ac_white_macs"
+      done
    fi
 
    #wan ac
-   if [ -n "$(uci_get_config "wan_ac_black_ips")" ]; then
+   if [ -n "$(ac_combined_values "wan_ac_black_ips")" ]; then
       nft 'add set inet fw4 wan_ac_black_ips { type ipv4_addr; flags interval; auto-merge; }'
       nft 'add set inet fw4 wan_ac_black_ipv6s { type ipv6_addr; flags interval; auto-merge; }'
-      config_load "openclash"
-      config_list_foreach "config" "wan_ac_black_ips" nft_ac_add "wan_ac_black_ips" "wan_ac_black_ipv6s"
+      for wan_ac_value in $(ac_combined_values "wan_ac_black_ips"); do
+         nft_ac_add "$wan_ac_value" "wan_ac_black_ips" "wan_ac_black_ipv6s"
+      done
    fi
 
-   if [ -n "$(uci_get_config "wan_ac_black_ports")" ]; then
+   if [ -n "$(ac_combined_values "wan_ac_black_ports")" ]; then
       nft 'add set inet fw4 wan_ac_black_ports { type inet_service; flags interval; }'
-      config_load "openclash"
-      config_list_foreach "config" "wan_ac_black_ports" nft_ac_add "wan_ac_black_ports"
+      for wan_ac_value in $(ac_combined_values "wan_ac_black_ports"); do
+         nft_ac_add "$wan_ac_value" "wan_ac_black_ports"
+      done
    fi
 
    #local
@@ -2469,37 +2475,35 @@ if [ -z "$FW4" ]; then
    ipset create lan_ac_white_ipv6s hash:net family inet6
    ipset create lan_ac_white_macs hash:mac
    if [ "$lan_ac_mode" = "0" ]; then
-      if [ -n "$(uci_get_config "lan_ac_black_ips")" ]; then
-         config_load "openclash"
-         config_list_foreach "config" "lan_ac_black_ips" ac_add "lan_ac_black_ips" "lan_ac_black_ipv6s"
-      fi
-      if [ -n "$(uci_get_config "lan_ac_black_macs")" ]; then
-         config_load "openclash"
-         config_list_foreach "config" "lan_ac_black_macs" ac_add "lan_ac_black_macs"
-      fi
+      for lan_ac_value in $(ac_combined_values "lan_ac_black_ips"); do
+         ac_add "$lan_ac_value" "lan_ac_black_ips" "lan_ac_black_ipv6s"
+      done
+      for lan_ac_value in $(ac_combined_values "lan_ac_black_macs"); do
+         ac_add "$lan_ac_value" "lan_ac_black_macs"
+      done
    elif [ "$lan_ac_mode" = "1" ]; then
-      if [ -n "$(uci_get_config "lan_ac_white_ips")" ]; then
-         config_load "openclash"
-         config_list_foreach "config" "lan_ac_white_ips" ac_add "lan_ac_white_ips" "lan_ac_white_ipv6s"
-      fi
-      if [ -n "$(uci_get_config "lan_ac_white_macs")" ]; then
-         config_load "openclash"
-         config_list_foreach "config" "lan_ac_white_macs" ac_add "lan_ac_white_macs"
-      fi
+      for lan_ac_value in $(ac_combined_values "lan_ac_white_ips"); do
+         ac_add "$lan_ac_value" "lan_ac_white_ips" "lan_ac_white_ipv6s"
+      done
+      for lan_ac_value in $(ac_combined_values "lan_ac_white_macs"); do
+         ac_add "$lan_ac_value" "lan_ac_white_macs"
+      done
    fi
 
    #wan ac
-   if [ -n "$(uci_get_config "wan_ac_black_ips")" ]; then
+   if [ -n "$(ac_combined_values "wan_ac_black_ips")" ]; then
       ipset create wan_ac_black_ips hash:net
       ipset create wan_ac_black_ipv6s hash:net family inet6
-      config_load "openclash"
-      config_list_foreach "config" "wan_ac_black_ips" ac_add "wan_ac_black_ips" "wan_ac_black_ipv6s"
+      for wan_ac_value in $(ac_combined_values "wan_ac_black_ips"); do
+         ac_add "$wan_ac_value" "wan_ac_black_ips" "wan_ac_black_ipv6s"
+      done
    fi
 
-   if [ -n "$(uci_get_config "wan_ac_black_ports")" ]; then
+   if [ -n "$(ac_combined_values "wan_ac_black_ports")" ]; then
       ipset create wan_ac_black_ports bitmap:port range 0-65535
-      config_load "openclash"
-      config_list_foreach "config" "wan_ac_black_ports" ac_add "wan_ac_black_ports"
+      for wan_ac_value in $(ac_combined_values "wan_ac_black_ports"); do
+         ac_add "$wan_ac_value" "wan_ac_black_ports"
+      done
    fi
 
    #local
@@ -3620,6 +3624,11 @@ overwrite_file()
       IPV6_DNS:int_bool \
       IPV6_ENABLE:int_bool \
       IPV6_MODE:int \
+      LAN_AC_BLACK_IPS:string \
+      LAN_AC_BLACK_MACS:string \
+      LAN_AC_MODE:int_bool \
+      LAN_AC_WHITE_IPS:string \
+      LAN_AC_WHITE_MACS:string \
       LAN_INTERFACE_NAME:string \
       LGBM_AUTO_UPDATE:int_bool \
       LGBM_CUSTOM_URL:string \
@@ -3646,6 +3655,8 @@ overwrite_file()
       TPROXY_PORT:int \
       URLTEST_ADDRESS_MOD:string \
       URLTEST_INTERVAL_MOD:int \
+      WAN_AC_BLACK_IPS:string \
+      WAN_AC_BLACK_PORTS:string \
       RESTART:bool \
    "
 

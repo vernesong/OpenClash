@@ -339,3 +339,14 @@ config config_overwrite
 	option type 'http'
 	option order '5'
 	list config 'all'
+
+config config_overwrite
+	option name 'DDNS'
+	option official '1'
+	option enable '0'
+	option url 'https://raw.githubusercontent.com/vernesong/OpenClash/refs/heads/dev/luci-app-openclash/root/etc/openclash/overwrite/DDNS'
+	option update_days 'off'
+	option update_hour 'off'
+	option type 'http'
+	option order '6'
+	list config 'all'
