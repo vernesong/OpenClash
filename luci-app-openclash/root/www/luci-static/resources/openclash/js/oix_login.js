@@ -325,7 +325,7 @@ var OixCloud = {
     },
 
     showNodeFilter: function(rank) {
-        var hidden = !(this.loggedIn && Number(rank) >= 20);
+        var hidden = !(this.loggedIn && Number(rank) > 0);
         ['oix-node-filter', 'oix-node-filter-help'].forEach(function(id) {
             var element = document.getElementById(id);
             if (element) element.classList.toggle('oc-hidden', hidden);
