@@ -1799,7 +1799,9 @@ if [ -n "$FW4" ]; then
       nft 'add chain inet fw4 openclash_wan_input'
       nft 'flush chain inet fw4 openclash_wan_input'
       nft add rule inet fw4 openclash_wan_input meta mark "$PROXY_FWMARK" counter reject
+      if [ "$intranet_allowed" -eq 1 ]; then
       nft add rule inet fw4 openclash_wan_input ct status dnat meta l4proto {tcp,udp} th dport {$accept_ports} counter reject
+fi
       if [ "$intranet_allowed" -eq 1 ]; then
          nft add rule inet fw4 openclash_wan_input th dport {$proxy_ports} counter reject
       fi
