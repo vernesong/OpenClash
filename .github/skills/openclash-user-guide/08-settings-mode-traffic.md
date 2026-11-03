@@ -327,7 +327,7 @@ tun:
 - **默认**: 1 (开启)
 - **说明**: 开启后控制面板和连接代理端口仅能从内网访问，不暴露到公网
 - **Mihomo 对应**: `allow-lan: true` + `bind-address: "*"`
-- **实现细节**: 双重保护——1) YAML 层面：`yml_change.sh` **无条件**设置 `allow-lan: true` + `bind-address: "*"` 使内核监听所有接口（该选项本身不控制 YAML）。2) 防火墙层面：创建 `openclash_wan_input` 链，REJECT 来自 WAN 口对全部服务端口的访问，关闭时删除该链。规则细节见 `06-firewall-options-dnsmasq.md` §6.2「各选项对防火墙规则的具体影响 → `intranet_allowed`」。
+- **实现细节**: 双重保护——1) YAML 层面：`yml_change.sh` **无条件**设置 `allow-lan: true` + `bind-address: "*"` 使内核监听所有接口（该选项本身不控制 YAML）。2) 防火墙层面：WAN 区存在时始终创建 `openclash_wan_input` 链，拒绝 `mark 0x162`（防 WAN 侧 TPROXY 流量）；开启时追加 `ct status dnat` 到代理端口与代理端口 dport 拒绝，关闭时保留链但允许端口转发/DNAT 到代理端口的入站连接。规则细节见 `06-firewall-options-dnsmasq.md` §6.2「各选项对防火墙规则的具体影响 → `intranet_allowed`」。
 
 #### 8.3.7 intranet_allowed_wan_name — WAN 接口名称 (WAN Interface Name)
 - **UCI 选项**: `openclash.@openclash[0].intranet_allowed_wan_name`

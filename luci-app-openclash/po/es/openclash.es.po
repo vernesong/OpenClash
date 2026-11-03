@@ -1832,11 +1832,17 @@ msgstr "Recargando reglas de firewall de OpenClash..."
 msgid "Manually Reload Firewall Rules..."
 msgstr "Recargar reglas de firewall manualmente..."
 
+msgid "Switching DNS Hijack Mode..."
+msgstr "Cambiando el modo de secuestro DNS..."
+
 msgid "OpenClash Now Disabled, Need Start From Luci Page, Exit..."
 msgstr "OpenClash está deshabilitado; inícialo desde LuCI."
 
 msgid "Log Size Limit, Clean Up All Log Records..."
 msgstr "Límite de tamaño alcanzado; limpiando registros..."
+
+msgid "Setting Firewall For Missing Rules..."
+msgstr "Reglas de firewall faltantes detectadas; recargando las reglas de OpenClash..."
 
 msgid "Setting Firewall For Rules Order..."
 msgstr "Corrigiendo el orden de las reglas del firewall..."

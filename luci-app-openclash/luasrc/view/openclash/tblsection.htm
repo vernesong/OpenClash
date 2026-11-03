@@ -440,8 +440,8 @@ end
                             -%>
                             <%- if self.sortable then -%>
                                 <td class="oc-cell">
-                                    <input class="cbi-button cbi-button-up" type="button" value="<%:∧%>"  onclick="return cbi_row_swap(this, true, 'cbi.sts.<%=self.config%>.<%=self.sectiontype%>')" alt="<%:Move up%>" title="<%:Move up%>" />
-                                    <input class="cbi-button cbi-button-down" type="button" value="<%:∨%>"  onclick="return cbi_row_swap(this, false, 'cbi.sts.<%=self.config%>.<%=self.sectiontype%>')" alt="<%:Move down%>" title="<%:Move down%>" />
+                                    <input class="cbi-button cbi-button-up" type="button" value="<%:∧%>"  onclick="return ocRowSwap(this, true, 'cbi.sts.<%=self.config%>.<%=self.sectiontype%>')" alt="<%:Move up%>" title="<%:Move up%>" />
+                                    <input class="cbi-button cbi-button-down" type="button" value="<%:∨%>"  onclick="return ocRowSwap(this, false, 'cbi.sts.<%=self.config%>.<%=self.sectiontype%>')" alt="<%:Move down%>" title="<%:Move down%>" />
                                 </td>
                             <%- end -%>
 
@@ -513,6 +513,57 @@ end
 <!-- /tblsection -->
 
 <script type="text/javascript">//<![CDATA[
+    if (typeof window.ocRowSwap !== 'function') {
+        window.ocRowSwap = function(elem, up, store){
+            var tr = elem.parentNode;
+            var rows = [];
+            var ids = [];
+            var input, node, pos, target, n, i;
+
+            while (tr && tr.nodeName.toLowerCase() !== 'tr')
+                tr = tr.parentNode;
+
+            if (!tr || !tr.parentNode) return false;
+
+            for (i = 0; i < tr.parentNode.childNodes.length; i++) {
+                node = tr.parentNode.childNodes[i];
+                if (node.nodeType === 1 && node.nodeName.toLowerCase() === 'tr' && node.id)
+                    rows.push(node);
+            }
+
+            pos = rows.indexOf(tr);
+            target = up ? pos - 1 : pos + 1;
+
+            if (pos < 0 || target < 0 || target >= rows.length) return false;
+
+            if (up)
+                tr.parentNode.insertBefore(tr, rows[target]);
+            else if (target + 1 < rows.length)
+                tr.parentNode.insertBefore(tr, rows[target + 1]);
+            else
+                tr.parentNode.appendChild(tr);
+
+            n = 0;
+            for (i = 0; i < tr.parentNode.childNodes.length; i++) {
+                node = tr.parentNode.childNodes[i];
+                if (node.nodeType === 1 && node.nodeName.toLowerCase() === 'tr' && node.id) {
+                    node.classList.remove('cbi-rowstyle-1');
+                    node.classList.remove('cbi-rowstyle-2');
+                    node.classList.add((n++ % 2) ? 'cbi-rowstyle-2' : 'cbi-rowstyle-1');
+
+                    if (/-([^-]+)$/.test(node.id))
+                        ids.push(RegExp.$1);
+                }
+            }
+
+            input = document.getElementById(store);
+            if (input)
+                input.value = ids.join(' ');
+
+            return false;
+        };
+    }
+
     window.addEventListener('load', onload<%=sectiontype%>, false);
 
     var titles<%=sectiontype%> = document.getElementsByName('tab-header-<%=self.config%>-<%=self.sectiontype%>');

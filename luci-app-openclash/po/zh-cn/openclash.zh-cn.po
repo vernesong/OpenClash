@@ -1841,11 +1841,17 @@ msgstr "重置 OpenClash 防火墙规则..."
 msgid "Manually Reload Firewall Rules..."
 msgstr "重置 OpenClash 防火墙规则..."
 
+msgid "Switching DNS Hijack Mode..."
+msgstr "正在切换 DNS 劫持模式..."
+
 msgid "OpenClash Now Disabled, Need Start From Luci Page, Exit..."
 msgstr "OpenClash 目前处于未启用状态，请从插件页面启动本插件，脚本退出..."
 
 msgid "Log Size Limit, Clean Up All Log Records..."
 msgstr "因日志大小限制，清理所有日志内容..."
+
+msgid "Setting Firewall For Missing Rules..."
+msgstr "检测到防火墙规则缺失，重置插件防火墙规则..."
 
 msgid "Setting Firewall For Rules Order..."
 msgstr "检测到防火墙规则顺序有误，修改插件防火墙规则..."

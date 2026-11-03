@@ -1799,8 +1799,8 @@ if [ -n "$FW4" ]; then
       nft 'add chain inet fw4 openclash_wan_input'
       nft 'flush chain inet fw4 openclash_wan_input'
       nft add rule inet fw4 openclash_wan_input meta mark "$PROXY_FWMARK" counter reject
-      nft add rule inet fw4 openclash_wan_input ct status dnat meta l4proto {tcp,udp} th dport {$accept_ports} counter reject
       if [ "$intranet_allowed" -eq 1 ]; then
+         nft add rule inet fw4 openclash_wan_input ct status dnat meta l4proto {tcp,udp} th dport {$accept_ports} counter reject
          nft add rule inet fw4 openclash_wan_input th dport {$proxy_ports} counter reject
       fi
       for chain in $wan_zone_chains; do
@@ -2583,9 +2583,9 @@ if [ -z "$FW4" ]; then
       iptables -t filter -N openclash_wan_input
       iptables -t filter -F openclash_wan_input
       iptables -t filter -A openclash_wan_input -m mark --mark "$PROXY_FWMARK" -j REJECT
-      iptables -t filter -A openclash_wan_input -p tcp -m conntrack --ctstate DNAT -m multiport --dports "$accept_ports" -j REJECT
-      iptables -t filter -A openclash_wan_input -p udp -m conntrack --ctstate DNAT -m multiport --dports "$accept_ports" -j REJECT
       if [ "$intranet_allowed" -eq 1 ]; then
+         iptables -t filter -A openclash_wan_input -p tcp -m conntrack --ctstate DNAT -m multiport --dports "$accept_ports" -j REJECT
+         iptables -t filter -A openclash_wan_input -p udp -m conntrack --ctstate DNAT -m multiport --dports "$accept_ports" -j REJECT
          iptables -t filter -A openclash_wan_input -p udp -m multiport --dport "$proxy_ports" -j REJECT
          iptables -t filter -A openclash_wan_input -p tcp -m multiport --dport "$proxy_ports" -j REJECT
       fi
@@ -3236,9 +3236,9 @@ if [ -z "$FW4" ]; then
          ip6tables -t filter -N openclash_wan_input
          ip6tables -t filter -F openclash_wan_input
          ip6tables -t filter -A openclash_wan_input -m mark --mark "$PROXY_FWMARK" -j REJECT
-         ip6tables -t filter -A openclash_wan_input -p tcp -m conntrack --ctstate DNAT -m multiport --dports "$accept_ports" -j REJECT
-         ip6tables -t filter -A openclash_wan_input -p udp -m conntrack --ctstate DNAT -m multiport --dports "$accept_ports" -j REJECT
          if [ "$intranet_allowed" -eq 1 ]; then
+            ip6tables -t filter -A openclash_wan_input -p tcp -m conntrack --ctstate DNAT -m multiport --dports "$accept_ports" -j REJECT
+            ip6tables -t filter -A openclash_wan_input -p udp -m conntrack --ctstate DNAT -m multiport --dports "$accept_ports" -j REJECT
             ip6tables -t filter -A openclash_wan_input -p udp -m multiport --dport "$proxy_ports" -j REJECT
             ip6tables -t filter -A openclash_wan_input -p tcp -m multiport --dport "$proxy_ports" -j REJECT
          fi
@@ -4357,7 +4357,7 @@ reload_service()
       check_core_status &
    fi
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "dns-switch" ]; then
-      LOG_OUT "Switching DNS Hijack Mode Without Restarting The Core..."
+      LOG_OUT "Switching DNS Hijack Mode..."
       revert_dnsmasq
       revert_firewall
       do_run_mode

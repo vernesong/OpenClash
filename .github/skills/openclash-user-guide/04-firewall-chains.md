@@ -402,7 +402,7 @@ fe80::/10, ff00::/8
 |------|------|------|
 | 各可代理区域 `input_<zone>` / `zone_<zone>_input` 链首 | `ct status dnat ... th dport {<proxy_ports>,<DNSPORT>,53} accept` + `meta mark 0x162 accept` | 替代旧的全局 Redirect/TPROXY Accept（#5164 场景） |
 | WAN 区 `input_wan` / `zone_wan_input` 链首 | `jump openclash_wan_input` | 不论 WAN 区 input 策略为何都先判 |
-| `openclash_wan_input` 链 | `mark 0x162 reject`、`ct status dnat th dport {...} reject`；`intranet_allowed=1` 时再加代理端口 reject | 拦住从 WAN 侧使用代理/被劫持的流量 |
+| `openclash_wan_input` 链 | `mark 0x162 reject`；`intranet_allowed=1` 时再加 `ct status dnat th dport {...} reject` 与代理端口 reject | 拦住从 WAN 侧使用代理/被劫持的流量；关闭时不影响用户端口转发 |
 | TUN/混合模式的 `mangle_prerouting` 跳转 | `iifname != { <WAN 接口> }` | TUN 流量不进 INPUT，只能在此处排除 WAN 入口 |
 
 WAN 接口列表自动取自 `intranet_allowed_wan_name`（手动指定）或 fw4/fw3 的 WAN 区链跳转；同时属于其它区域的接口不会被排除（避免单网卡旁路由被误伤）。停止/重载时 `revert_firewall()` 会清理区域链里的 OpenClash 规则。

@@ -199,6 +199,7 @@ do
    log_size=$(uci_get_config "log_size" || echo 1024)
    router_self_proxy=$(uci_get_config "router_self_proxy" || echo 1)
    skip_proxy_address=$(uci_get_config "skip_proxy_address" || echo 0)
+   en_mode=$(uci_get_config "en_mode")
 
    stream_auto_select=$(uci_get_config "stream_auto_select" || echo 0)
    stream_auto_select_interval=$(uci_get_config "stream_auto_select_interval" || echo 30)
@@ -258,20 +259,74 @@ fi
 ## 防火墙检查
    if [ "$FIREWALL_RELOAD" -le "$MAX_FIREWALL_RELOAD" ]; then
       # dnsmasq restarts re-append their port-53 redirect at the tail (a platform
-      # init rule), DNS lines never carry the proxy jump order and are ignored here
+      # init rule), DNS lines never carry the proxy jump order and are ignored here;
+      nat_rules=""
+      man_rules=""
+      man_chain=""
+      nat_jump=""
+      man_jump=""
+      case "$en_mode" in
+         *-tun)
+            if [ -z "$FW4" ]; then
+               man_save=$(iptables-save -t mangle 2>/dev/null)
+               man_rules=$(echo "$man_save" | grep '^-A PREROUTING')
+               man_chain=$(echo "$man_save" | grep -E '^:openclash |^-A openclash ')
+               man_jump=$(echo "$man_rules" | grep -E -- '-j openclash( |$)')
+            else
+               man_rules=$(nft -a list chain inet fw4 mangle_prerouting 2>/dev/null)
+               man_chain=$(nft list chain inet fw4 openclash_mangle 2>/dev/null)
+               man_jump=$(echo "$man_rules" | grep -E 'jump openclash_mangle( |$)')
+            fi
+            ;;
+         *)
+            if [ -z "$FW4" ]; then
+               nat_save=$(iptables-save -t nat 2>/dev/null)
+               man_save=$(iptables-save -t mangle 2>/dev/null)
+               nat_rules=$(echo "$nat_save" | grep '^-A PREROUTING')
+               man_rules=$(echo "$man_save" | grep '^-A PREROUTING')
+               man_chain=$(echo "$man_save" | grep -E '^:openclash |^-A openclash ')
+               nat_jump=$(echo "$nat_rules" | grep -E -- '-j openclash( |$)')
+               man_jump=$(echo "$man_rules" | grep -E -- '-j openclash( |$)')
+            else
+               nat_rules=$(nft -a list chain inet fw4 dstnat 2>/dev/null)
+               man_rules=$(nft -a list chain inet fw4 mangle_prerouting 2>/dev/null)
+               man_chain=$(nft list chain inet fw4 openclash_mangle 2>/dev/null)
+               nat_jump=$(echo "$nat_rules" | grep -E 'jump openclash( |$)')
+               man_jump=$(echo "$man_rules" | grep -E 'jump openclash_mangle( |$)')
+            fi
+            ;;
+      esac
+
       if [ -z "$FW4" ]; then
-         nat_last_line=$(iptables -t nat -nL PREROUTING --line-number 2>/dev/null | grep -Ev "DNS|dns" | awk 'END {print $1}')
-         man_last_line=$(iptables -t mangle -nL PREROUTING --line-number 2>/dev/null | grep -Ev "DNS|dns" | awk 'END {print $1}')
-         nat_op_line=$(iptables -t nat -nL PREROUTING --line-number 2>/dev/null | grep -E "openclash|OpenClash" | grep -Ev "DNS|dns" | awk '{print $1}' | tail -1)
-         man_op_line=$(iptables -t mangle -nL PREROUTING --line-number 2>/dev/null | grep -E "openclash|OpenClash" | grep -Ev "DNS|dns" | awk '{print $1}' | tail -1)
+         nat_last_line=$(echo "$nat_rules" | grep -Ev "DNS|dns" | awk 'END {print NR}')
+         man_last_line=$(echo "$man_rules" | grep -Ev "DNS|dns" | awk 'END {print NR}')
+         nat_op_line=$(echo "$nat_rules" | grep -Ev "DNS|dns" | grep -nE "openclash|OpenClash" | awk -F: 'END {print $1}')
+         man_op_line=$(echo "$man_rules" | grep -Ev "DNS|dns" | grep -nE "openclash|OpenClash" | awk -F: 'END {print $1}')
       else
-         nat_last_line=$(nft -a list chain inet fw4 dstnat 2>/dev/null | grep "# handle" | grep -Ev "DNS|dns" | awk -F '# handle ' '{print $2}' | tail -1)
-         man_last_line=$(nft -a list chain inet fw4 mangle_prerouting 2>/dev/null | grep "# handle" | grep -Ev "DNS|dns" | awk -F '# handle ' '{print $2}' | tail -1)
-         nat_op_line=$(nft -a list chain inet fw4 dstnat 2>/dev/null | grep -E "openclash|OpenClash" | grep -Ev "DNS|dns" | grep "# handle" | awk -F '# handle ' '{print $2}' | tail -1)
-         man_op_line=$(nft -a list chain inet fw4 mangle_prerouting 2>/dev/null | grep -E "openclash|OpenClash" | grep -Ev "DNS|dns" | grep "# handle" | awk -F '# handle ' '{print $2}' | tail -1)
+         nat_last_line=$(echo "$nat_rules" | grep "# handle" | grep -Ev "DNS|dns" | awk -F '# handle ' '{print $2}' | tail -1)
+         man_last_line=$(echo "$man_rules" | grep "# handle" | grep -Ev "DNS|dns" | awk -F '# handle ' '{print $2}' | tail -1)
+         nat_op_line=$(echo "$nat_rules" | grep -Ev "DNS|dns" | grep -E "openclash|OpenClash" | grep "# handle" | awk -F '# handle ' '{print $2}' | tail -1)
+         man_op_line=$(echo "$man_rules" | grep -Ev "DNS|dns" | grep -E "openclash|OpenClash" | grep "# handle" | awk -F '# handle ' '{print $2}' | tail -1)
       fi
 
-      if ([ "$nat_last_line" != "$nat_op_line" ] && [ -n "$nat_op_line" ]) || ([ "$man_last_line" != "$man_op_line" ] && [ -n "$man_op_line" ]); then
+      firewall_missing=0
+      case "$en_mode" in
+         *-tun) [ -n "$man_jump" ] || firewall_missing=1 ;;
+         "") [ -n "$nat_jump" ] || [ -n "$man_jump" ] || firewall_missing=1 ;;
+         *) [ -n "$nat_jump" ] || firewall_missing=1 ;;
+      esac
+      if [ -n "$man_chain" ]; then
+         if [ -n "$FW4" ]; then
+            [ -n "$(echo "$man_chain" | grep -E 'tproxy|mark set')" ] || firewall_missing=1
+         else
+            [ -n "$(echo "$man_chain" | grep -E 'TPROXY|MARK')" ] || firewall_missing=1
+         fi
+      fi
+      if [ "$firewall_missing" -eq 1 ]; then
+         LOG_WATCHDOG "Setting Firewall For Missing Rules..."
+         /etc/init.d/openclash reload "firewall"
+         let FIREWALL_RELOAD++
+      elif ([ "$nat_last_line" != "$nat_op_line" ] && [ -n "$nat_op_line" ]) || ([ "$man_last_line" != "$man_op_line" ] && [ -n "$man_op_line" ]); then
          ## 转发顺序检查
          LOG_WATCHDOG "Setting Firewall For Rules Order..."
          /etc/init.d/openclash reload "firewall"
