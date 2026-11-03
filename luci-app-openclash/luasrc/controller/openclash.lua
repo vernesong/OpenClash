@@ -125,6 +125,7 @@ function index()
 	entry({"admin", "services", "openclash", "oix_checkin"}, call("oix_checkin"))
 	entry({"admin", "services", "openclash", "oix_logout"}, call("oix_logout"))
 	entry({"admin", "services", "openclash", "oix_login"}, call("oix_login"))
+	entry({"admin", "services", "openclash", "oix_google_begin"}, call("oix_google_begin"))
 	entry({"admin", "services", "openclash", "oix_login_info_save"}, call("oix_login_info_save"))
 	entry({"admin", "services", "openclash", "theme_get"}, call("action_theme_get"))
 	entry({"admin", "services", "openclash", "theme_save"}, call("action_theme_save"))
@@ -6878,6 +6879,63 @@ local function oix_account_token(token)
 	return token
 end
 
+local OIX_GOOGLE_FLOW = "/tmp/oix_google_login"
+
+local function oix_b64url(bytes)
+	return (nixio.bin.b64encode(bytes):gsub("[+/=]", {["+"] = "-", ["/"] = "_", ["="] = ""}))
+end
+
+local function oix_random_b64url()
+	local file = io.open("/dev/urandom", "rb")
+	local bytes = file and file:read(32)
+	if file then file:close() end
+	return bytes and #bytes == 32 and oix_b64url(bytes) or nil
+end
+
+-- mirrors the panel, which only returns codes to local addresses; checking here gives a readable error
+local function oix_local_origin(origin)
+	local host, port = tostring(origin or ""):match("^https?://(%[[%x:]+%])(.*)$")
+	if not host then host, port = tostring(origin or ""):match("^https?://([%l%d%.%-]+)(.*)$") end
+	if not host or (port ~= "" and not port:match("^:%d+$")) then return false end
+	if host:sub(1, 1) == "[" then
+		return host == "[::1]" or host:match("^%[f[cd]%x%x:") ~= nil or host:match("^%[fe[89ab]%x:") ~= nil
+	end
+	local a, b = host:match("^(%d+)%.(%d+)%.%d+%.%d+$")
+	if a then
+		a, b = tonumber(a), tonumber(b)
+		return a == 10 or a == 127 or (a == 100 and b >= 64 and b <= 127)
+			or (a == 172 and b >= 16 and b <= 31) or (a == 192 and b == 168)
+	end
+	if not host:match("^%l[%l%d%-]*$") and not host:match("^[%l%d%-%.]+%.%l[%l%d%-]*$") or host:find("..", 1, true) then
+		return false
+	end
+	if not host:find(".", 1, true) then return true end
+	for _, suffix in ipairs({".lan", ".local", ".localhost", ".internal", ".home.arpa"}) do
+		if host:sub(-#suffix) == suffix then return true end
+	end
+	return false
+end
+
+local function oix_google_token(code, state)
+	local ok, flow = pcall(json.parse, fs.readfile(OIX_GOOGLE_FLOW) or "")
+	fs.unlink(OIX_GOOGLE_FLOW)
+	if not ok or type(flow) ~= "table" or type(flow.verifier) ~= "string" or flow.state ~= state
+		or (tonumber(flow.expires) or 0) <= os.time() or type(code) ~= "string" or #code ~= 64 or code:find("[^0-9a-f]") then
+		return nil, "Google sign-in expired or could not be verified, please try again"
+	end
+	-- the code is single-use, so the exchange is neither retried nor redirected
+	local out = SYS.exec(string.format("curl -s -m 30 --proto '=https' -H 'User-Agent: OpenClash for oixCloud' -H 'X-oixCloud-Client: openclash' --data-urlencode %s --data-urlencode %s -X POST https://oix-api.dler.io/api/v1/login/google",
+		oix_quote("code=" .. code), oix_quote("code_verifier=" .. flow.verifier)))
+	if not out or out == "" then
+		return nil, "Network request failed, please check your connection and try again"
+	end
+	local parsed, info = pcall(json.parse, out)
+	if not parsed or type(info) ~= "table" or info.ret ~= 200 or type(info.data) ~= "table" or not oix_valid_token(info.data.token) then
+		return nil, "Google sign-in expired or could not be verified, please try again"
+	end
+	return info.data.token
+end
+
 local function oix_core_api(method, path, timeout)
 	local cmd = string.format("curl -s -m %d --noproxy '*' -o - -w '\\n%%{http_code}' -H 'Content-Type: application/json'", timeout or 5)
 	local secret = dase()
@@ -7033,10 +7091,18 @@ function oix_login()
 	HTTP.prepare_content("text/plain; charset=utf-8")
 	HTTP.header("Cache-Control", "no-store")
 	local token, err
+	local google_code = HTTP.formvalue("google_code")
 	local input_token = HTTP.formvalue("token")
 	local email = HTTP.formvalue("email")
 	local passwd = HTTP.formvalue("passwd")
-	if input_token and input_token ~= "" then
+	if google_code and google_code ~= "" then
+		write_padded('{"stage":"logging_in","text":"' .. luci.i18n.translate("Logging in...") .. '"}')
+		token, err = oix_google_token(google_code, HTTP.formvalue("google_state"))
+		if not token then
+			write_padded('{"stage":"error","result":' .. json.stringify(luci.i18n.translate(err)) .. '}')
+			return
+		end
+	elseif input_token and input_token ~= "" then
 		write_padded('{"stage":"logging_in","text":"' .. luci.i18n.translate("Logging in...") .. '"}')
 		token, err = oix_account_token(input_token)
 		if not token then
@@ -7063,6 +7129,31 @@ function oix_login()
 	else
 		write_padded('{"stage":"error","result":' .. json.stringify(luci.i18n.translate(ferr or "login failed")) .. '}')
 	end
+end
+
+function oix_google_begin()
+	HTTP.prepare_content("application/json")
+	HTTP.header("Cache-Control", "no-store")
+	local origin = HTTP.formvalue("origin")
+	if not oix_local_origin(origin) then
+		HTTP.write_json({error = luci.i18n.translate("Google sign-in is only available when OpenClash is opened from a local network address")})
+		return
+	end
+	-- the verifier stays on the router; the browser only carries its challenge
+	local state, verifier = oix_random_b64url(), oix_random_b64url()
+	local digest = verifier and (SYS.exec("printf '%s' " .. oix_quote(verifier) .. " | sha256sum 2>/dev/null") or ""):match("^(%x+)")
+	if not state or not digest or #digest ~= 64
+		or not fs.writefile(OIX_GOOGLE_FLOW, json.stringify({state = state, verifier = verifier, expires = os.time() + 600})) then
+		HTTP.write_json({error = luci.i18n.translate("Unable to start Google sign-in")})
+		return
+	end
+	fs.chmod(OIX_GOOGLE_FLOW, "rw-------")
+	HTTP.write_json({
+		state = state,
+		url = "https://oixcloud.com/auth/client/google?client_id=openclash&state=" .. state
+			.. "&code_challenge=" .. oix_b64url(nixio.bin.unhexlify(digest)) .. "&code_challenge_method=S256"
+			.. "&redirect_uri=" .. HTTP.urlencode(origin .. "/luci-static/resources/openclash/oix_google_callback.html")
+	})
 end
 
 function oix_logout()

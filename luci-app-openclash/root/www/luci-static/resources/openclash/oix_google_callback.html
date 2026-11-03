@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="referrer" content="no-referrer">
+	<meta name="robots" content="noindex, nofollow">
+	<title>oixCloud</title>
+	<style>
+		:root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+		body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: Canvas; color: CanvasText; }
+		p { max-width: 30rem; padding: 2rem; line-height: 1.6; text-align: center; }
+	</style>
+</head>
+<body>
+	<p id="message"></p>
+	<script type="text/javascript">//<![CDATA[
+	// The oixCloud panel returns here with a one-time code. Static so it loads without a LuCI session;
+	// the OpenClash page that opened this window redeems the code with the verifier kept on the router.
+	(function() {
+		var params = window.URLSearchParams ? new URLSearchParams(window.location.search) : null;
+		var code = params ? params.getAll('code') : [], state = params ? params.getAll('state') : [], count = 0;
+		if (params) params.forEach(function() { count++; });
+		window.history.replaceState(null, '', window.location.pathname);
+		var valid = count === 2 && code.length === 1 && state.length === 1
+			&& /^[a-f0-9]{64}$/.test(code[0]) && /^[A-Za-z0-9_-]{43}$/.test(state[0]);
+		if (valid && window.BroadcastChannel) {
+			window.oixGoogleChannel = new BroadcastChannel('openclash-oix-google');
+			window.oixGoogleChannel.postMessage({code: code[0], state: state[0]});
+		}
+		var zh = /^zh/i.test(navigator.language || '');
+		document.getElementById('message').textContent = valid
+			? (zh ? 'Google 登录已完成，请返回 OpenClash 页面' : 'Google sign-in is complete. Return to the OpenClash page.')
+			: (zh ? '无法验证 Google 登录，请返回 OpenClash 页面重试' : 'Could not verify Google sign-in. Return to the OpenClash page and try again.');
+	})();
+	//]]></script>
+</body>
+</html>

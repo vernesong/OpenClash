@@ -302,12 +302,23 @@ html[data-darkmode=true] .oc .oix-panel::after {
 
 .oix-btn-ghost-subtle:hover { opacity: 0.85; }
 
+.oix-btn-google { background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); }
+
+.oix-btn-google:hover { background: var(--hover-bg); }
+
+.oix-btn-google:disabled { cursor: not-allowed; }
+
 .oix-btn-block { width: 100%; }
 
 .oix-btn-sm { padding: 5px 10px; font-size: 12px; }
 
 .oix-btn .loading-spinner.oc-btn-spinner {
     border-color: var(--text-on-primary);
+    border-right-color: transparent;
+}
+
+.oix-btn-google .loading-spinner.oc-btn-spinner {
+    border-color: var(--text-primary);
     border-right-color: transparent;
 }
 
