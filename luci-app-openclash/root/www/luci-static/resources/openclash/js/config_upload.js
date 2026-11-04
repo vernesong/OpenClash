@@ -303,7 +303,7 @@ var CHART_PROTO = {
     hysteria2: { name: 'Hysteria2', color: '#f97316' },
     tuic: { name: 'TUIC', color: '#25b5b8' },
     anytls: { name: 'AnyTLS', color: '#ec4899' },
-    snell: { name: 'Snell', color: '#8b5cf6' },
+    snell: { name: 'Hollow', color: '#8b5cf6' },
     wireguard: { name: 'WireGuard', color: '#64748b' },
     socks5: { name: 'SOCKS5', color: '#0ea5e9' },
     http: { name: 'HTTP', color: '#14b8a6' },
