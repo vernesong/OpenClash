@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 . /lib/functions.sh
 . /usr/share/openclash/uci.sh
 
@@ -21,6 +21,12 @@ mkdir -p /etc/openclash/rule_provider
 mkdir -p /etc/openclash/core
 mkdir -p /etc/openclash/history
 mkdir -p /usr/share/openclash/backup/overwrite
+
+#created by older builds without this file
+if [ ! -f "/etc/openclash/custom/openclash_custom_system_hosts.list" ]; then
+	mkdir -p /etc/openclash/custom
+	: > "/etc/openclash/custom/openclash_custom_system_hosts.list"
+fi
 
 #move the dynamic sections written by older builds (separate storage directory) into the
 #main configuration, and drop the section types that no longer exist
@@ -89,7 +95,7 @@ if [ -z "$(uci -q get openclash.@authentication[0])" ]; then
 fi
 
 #Set Core Model
-source "/etc/openwrt_release"
+. "/etc/openwrt_release"
 case "${DISTRIB_ARCH}" in
 	aarch64_*)
 		CORE_ARCH="linux-arm64"
@@ -164,6 +170,7 @@ cp -f "/etc/openclash/custom/openclash_custom_localnetwork_ipv4.list" "/usr/shar
 cp -f "/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list" "/usr/share/openclash/backup/openclash_custom_localnetwork_ipv6.list" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_custom_chnroute_pass.list" "/usr/share/openclash/backup/openclash_custom_chnroute_pass.list" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_custom_chnroute6_pass.list" "/usr/share/openclash/backup/openclash_custom_chnroute6_pass.list" >/dev/null 2>&1
+cp -f "/etc/openclash/custom/openclash_custom_system_hosts.list" "/usr/share/openclash/backup/openclash_custom_system_hosts.list" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_custom_firewall_rules.sh" "/usr/share/openclash/backup/openclash_custom_firewall_rules.sh" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_custom_overwrite.sh" "/usr/share/openclash/backup/openclash_custom_overwrite.sh" >/dev/null 2>&1
 cp -f "/etc/openclash/china_ip_route.ipset" "/usr/share/openclash/backup/china_ip_route.ipset" >/dev/null 2>&1

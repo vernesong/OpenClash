@@ -25,6 +25,7 @@ if (custom_firewall) {
 }
 
 var myEditor_hosts = document.getElementById("cbid.openclash.config.custom_hosts");
+var myEditor_system_hosts = document.getElementById("cbid.openclash.config.custom_system_hosts");
 var myEditor_fall_fil = document.getElementById("cbid.openclash.config.custom_fallback_fil");
 var myEditor_name_pol = document.getElementById("cbid.openclash.config.custom_domain_dns_core");
 var myEditor_name_cus_r1 = document.getElementById("cbid.openclash.config.custom_rules_2");
@@ -40,6 +41,7 @@ var myEditor_local_network6_pass = document.getElementById("cbid.openclash.confi
 var myEditor_chnroute6_pass = document.getElementById("cbid.openclash.config.chnroute6_pass");
 
 if (myEditor_hosts) { editor(myEditor_hosts, false, '100%', '300px'); }
+if (myEditor_system_hosts) { editor(myEditor_system_hosts, false, '100%', '300px'); }
 if (myEditor_edit_file) { editor(myEditor_edit_file, false, '100%', '700px'); ocStreamEditorOnSubmit(myEditor_edit_file); }
 if (myEditor_fall_fil) { editor(myEditor_fall_fil, false, '100%', '300px'); }
 if (myEditor_name_pol) { editor(myEditor_name_pol, false, '100%', '300px'); }

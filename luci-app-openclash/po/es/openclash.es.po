@@ -2880,8 +2880,8 @@ msgstr "Respetar reglas"
 msgid "Whether or not The Connection to the DNS Server Follow the Rules in Config"
 msgstr "La conexión al DNS sigue las reglas de la configuración."
 
-msgid "To Use in Fake-IP Mode, Please Switch The Dns Redirect Mode To Firewall Forwarding"
-msgstr "Para usar esta función en modo Fake-IP, cambia el redireccionamiento DNS a reenvío por firewall."
+msgid "In Fake-IP Mode, DNS Queries of Direct Devices Must Bypass The Core And Proxied Devices Must Go Through It"
+msgstr "En modo Fake-IP, las consultas DNS de los dispositivos directos deben evitar el núcleo y las de los proxy deben pasar por él"
 
 msgid "Skip Proxy Address"
 msgstr "Omitir direcciones de proxy"
@@ -5618,6 +5618,12 @@ msgstr "Todo directo"
 
 msgid "Download Rate"
 msgstr "Velocidad de descarga"
+
+msgid "Ensure DNS queries of direct devices bypass the core"
+msgstr "Asegúrese de que las consultas DNS de los dispositivos directos eviten el núcleo"
+
+msgid "Ensure DNS queries of proxy devices go through the core"
+msgstr "Asegúrese de que las consultas DNS de los dispositivos proxy pasen por el núcleo"
 
 msgid "Using access control in Fake-IP mode requires DNS hijack set to Firewall Forwarding"
 msgstr "Usar el control de acceso en modo Fake-IP requiere que el secuestro DNS se ajuste a Reenvío por cortafuegos"

@@ -1,435 +1,275 @@
 ## 覆写模块详解
 
-> **用途**: 覆写模块的入口与操作路径、INI 三段格式、[YAML] 操作符、DOWNLOAD_FILE 与 `#!` 元信息标识（§16.1–16.2）；示例与 UCI 结构见 `17-overwrite-module-examples.md`。
-
-> **小节索引**: §16.1 覆写模块是什么（§16.1.1 操作路径）· §16.2 覆写文件格式（§16.2.1 [General] / §16.2.2 [Overwrite] / §16.2.3 [YAML] / §16.2.4 DOWNLOAD_FILE / §16.2.5 `#!` 元信息标识）
-
-> 覆写模块 (Overwrite Module) 是 OpenClash 的高级自定义功能
-> **主入口（用户询问「怎么用」时优先讲这个）**: 运行状态页顶部**「覆写模块」按钮**（`id="edit_overwrite"`，与启动/停止开关并列，调用 `editOverwrite()`）——点击弹出覆写编辑器窗口，创建/编辑/删除/启停覆写模块都在这一个窗口内完成。
-> 次要入口: 菜单 `服务→OpenClash→覆写设置`（独立 CBI 页面，配置的是内置覆写选项，与「覆写模块」文件编辑是不同入口，见 `11-overwrite-settings.md`）
-> UCI Section: `openclash.config_overwrite` (支持多条，按 order 排序)
-> 覆写文件存储: `/etc/openclash/overwrite/<名称>` (本地) 或通过 HTTP 远程拉取；内置固定文件 `/etc/openclash/custom/openclash_custom_overwrite.sh`
+> **用途**: 覆写模块的入口与操作、INI 三段格式、`[YAML]` 操作符、`DOWNLOAD_FILE` 与 `#!` 元信息（§16.1–16.2）。示例与 UCI 结构见 `17-overwrite-module-examples.md`。
+> **UCI**: `openclash.config_overwrite`（多条，按 order 排序）
+> **存储**: `/etc/openclash/overwrite/<名称>`（本地）或 HTTP 远程拉取；内置固定文件 `/etc/openclash/custom/openclash_custom_overwrite.sh`
 
 ### 16.1 覆写模块是什么
 
-> **AI 行为指引**: 当用户询问覆写模块相关问题（如「覆写模块怎么用」「如何通过覆写添加配置」「[YAML] 操作符怎么用」、
-> 「如何覆盖订阅中的 DNS 设置」「覆写和 LuCI 设置哪个优先级高」），AI 应：
->
-> 0. **【铁律·操作优先】凡涉及「覆写模块怎么用 / 怎么创建 / 怎么编辑 / 怎么生效」，必须先按操作路径讲解，再谈格式细节**。固定顺序：**覆写模块按钮 → 窗口弹出 → 创建 → 编辑语法格式 → 原理**（详见 §16.1.1 节）：
->    ① 运行状态页顶部「覆写模块」按钮（`editOverwrite()`）——不是菜单「覆写设置」CBI 页，也不是改启动脚本；
->    ② 点击弹出覆写编辑器窗口（覆写警告横幅 + 左侧模块列表栏 + 右侧 CodeMirror 主编辑器）；
->    ③ 列表栏底部「+ 添加新模块」新建覆写模块（本地模块 / 订阅链接 两种方式），另有内置固定 `openclash_custom_overwrite.sh`；
->    ④ 选列表条目 → 主编辑器按 INI 三段格式编辑 → Save 落盘 `/etc/openclash/overwrite/<名称>`；
->    ⑤ 一句话讲清原理：`overwrite_file()` 只在**插件启动/重启**时解析（`/etc/init.d/openclash start_service`，即运行状态页的重启按钮）；`[General]` 提前写 UCI，`[YAML]`/`[Overwrite]` 在 `yml_change.sh` 之后合并生效。**改内容 / 改启用开关 / 新建模块后都必须重启插件**（`/etc/init.d/openclash reload` 只重载防火墙，不会重跑）。
->    **禁止**在用户尚未弄清入口时直接抛格式/操作符，或优先讲插件菜单「覆写设置」CBI 页与 `yml_change.sh` 内部逻辑。
->
-> 1. **【铁律】输出必须包含段头**——覆写文件**必须包含至少一个段头**（`[General]`、`[Overwrite]`、`[YAML]` 之一），否则整个文件被跳过、覆写不生效（详见 §16.2 节「强制要求」及 `overwrite_file()` 函数按段头解析的逻辑）。
->    **AI 输出任何覆写配置示例时，必须在代码块内以段头作为第一行**，**绝对禁止**输出不含段头的裸 YAML/Shell/INI 内容。
->    即使用户只问「某个字段怎么写」，代码块也必须形如：
->    ```ini
->    [YAML]
->    <具体配置>
->    ```
->    而非仅 `<具体配置>`。若用户反馈覆写不生效，优先排查：①段头是否存在；② `config` 字段是否匹配当前配置文件。
->
-> 2. **示例输出规范**：优先使用 `[YAML]` 段格式给出示例（语法清晰、不易出错）；仅当需要动态逻辑（条件判断、循环处理）时才推荐 `[Overwrite]` 段。
->    给出示例前应**先明确用户需求**（追加还是替换？键路径是什么？目标是数组还是哈希？匹配条件？），然后结合 [§16.2.3 节操作符]（`!` 强制覆盖 / `+` 数组追加 / `-` 数组删除 / `*` 批量条件更新等）给出精准的、可直接使用的配置片段。禁止给出不含段头的泛泛描述。
->
-> 3. **信息获取路径**：本章节未覆盖的细节按以下优先级查阅——
->    - 覆写文件格式/操作符/示例 → 本章节（§16.2 格式说明、§16.2.3 操作符、`17-overwrite-module-examples.md` §17.3 实战示例）
->    - Mihomo YAML 字段含义/用法 → [Mihomo 配置文档](https://wiki.metacubex.one/config/)
->    - 覆写执行机制/排序/脚本逻辑 → [OpenClash 源码](https://github.com/vernesong/OpenClash/tree/dev) 中 `init.d/openclash` 的 `overwrite_file()`（清单生成）与 `YAML.rb` 的 `overwrite_run()`/`overwrite_run_custom()`（解析执行）
->
-> 4. **覆写执行模型（理解即可，回答时按需引用）**：覆写分两阶段执行——
->    `[General]` 段在 `yml_change.sh` **之前**写入 UCI（可影响其行为）；
->    `[Overwrite]` 和 `[YAML]` 段在 `yml_change.sh` / `yml_rules_change.sh` **之后**执行，因此可覆盖这两个脚本的所有输出——包括硬编码项（如 `allow-lan`、`bind-address`、`sniffer.sniff` 等）。
->    LuCI「覆写设置」CBI 页面的选项同样会被 `[Overwrite]`/`[YAML]` 段覆盖。
->    **生效时机**：两个阶段都在**插件启动/重启**（`start_service`）时执行，编辑器 Save 只落盘 ⇒ 改内容、改启用开关、新建模块后都必须重启插件（`reload` 不会重跑）。
->    **警告：覆盖硬编码项可能导致 OpenClash 工作异常**（如 `allow-lan: false` 会使局域网设备无法使用代理端口），提醒用户谨慎操作。
+> **操作优先铁律**: 用户问「怎么用/怎么创建/怎么编辑/怎么生效」时，按 §16.1.1 的 ①→⑤ 讲，**先操作后格式**；不要一上来抛操作符，也不要先讲菜单「覆写设置」CBI 页或 `yml_change.sh` 内部逻辑。
+
+- **入口**: 运行状态页顶部 **Overwrite Module** 按钮（`id="edit_overwrite"`，与启动/停止并列，调 `editOverwrite()`）→ 弹出覆写编辑器（警告横幅 + 左侧模块列表 + 右侧 CodeMirror）
+- **次要入口**: 菜单 `服务→OpenClash→覆写设置`（这是内置覆写选项的 CBI 页，与模块文件编辑是两个入口，见 `11-overwrite-settings.md`）
+- **能做什么**: 给订阅配置追加/覆盖任意 Mihomo YAML 字段（DNS、Sniffer、TUN、规则等）、设置环境变量供后续脚本使用、下载外部文件、配置界面里没有的高级功能
+- **执行模型**（两阶段，均在 `start_service` 内）:
+  - **第一阶段** `overwrite_file()`（`yml_change.sh` 之前）：遍历 `config_overwrite` → 检查 `config` 是否匹配当前配置 → 读文件 → 解析 `[General]` 写 UCI → 处理 `DOWNLOAD_FILE` → 生成清单 `/tmp/yaml_openclash_overwrite_lines`（`M` 模块块 / `Y` 其 `[YAML]` 块路径 / `L` `[Overwrite]` 行）
+  - **第二阶段** `YAML.overwrite_run()`（单 Ruby 进程，在 `yml_change.sh` / `yml_rules_change.sh` 之后）：逐模块先合并 `[YAML]` 再执行 `[Overwrite]` 的 `ruby_*` 调用，全部完成后统一 dump 一次
+- **顺序含义**: `[General]` 在 `yml_change.sh` 之前生效（影响其行为）；`[Overwrite]`/`[YAML]` 在其之后执行，**可覆盖两个脚本的全部输出**，包括「插件强制覆盖/禁用的设置」里的硬编码项（`allow-lan`、`bind-address`、`sniffer.sniff` 等）。LuCI「覆写设置」页的选项同样会被覆盖
+- **生效时机**: 编辑器 Save 只落盘 ⇒ 改内容、切开关、新建模块后**都必须重启插件**（`/etc/init.d/openclash reload` 只重载防火墙，不会重跑）
+- **警告**: 覆盖硬编码项可能导致异常（如 `allow-lan: false` 会让局域网无法使用代理端口），改前提示用户
 
 #### 16.1.1 操作路径详解
 
-> **AI 行为指引**: 本节是「覆写模块怎么用」的标准回答骨架。用户问操作方式时按 ①→⑤ 逐条讲；用户只问某一环（如「怎么新建」）时讲对应一环并带上前置入口。
+| 步骤 | 操作 |
+|------|------|
+| ① 入口 | 运行状态页顶部 **Overwrite Module** 按钮（`editOverwrite()` → `ConfigEditor.showOverwrite()`，复用配置编辑器模态框，标题变 Overwrite Edit） |
+| ② 窗口 | 顶部覆写警告横幅（"You are editing the overwrite script..."）+ 左侧模块列表栏（标题 + 数量徽标 + 收起按钮 / 条目列表 / 底部「+ 添加新模块」）+ 右侧 CodeMirror 主编辑器；列表栏可收起为 46px 图标条（状态记 localStorage），窄屏首次默认收起；每项两行：文件名 + 启用开关 / 内联标签 + 类型 + 刷新·编辑·删除按钮 |
+| ③ 新建 | 底部「+ 添加新模块」→ 两步向导：**① 选择来源**（本地模块只放文件上传区，选中 txt/conf 自动读取进第二步；订阅链接只放 URL 输入框，点「下一步」才下载读取文件头）→ **② 填写模块信息**（名称必填、描述→`desc`、匹配配置、更新时间→`update_days`/`update_hour`、环境变量→`param`）。上传与下载都有百分比进度条；下载失败停在第一步，改链接或再点「下一步」即清除（链接未改时二次点击 = 跳过读取直接继续） |
+| ④ 编辑 | 选条目 → 按 INI 三段格式编辑 → Save（POST `/config_file_save`，后端只允许写 `/etc/openclash/overwrite/<名称>`、`custom/openclash_custom_overwrite.sh`、`/etc/openclash/config/*.ya?ml`）。**改完重启插件才生效** |
+| ⑤ 原理 | 见上方执行模型；列表按 order **升序**自上而下，内核按 order **降序**执行 ⇒ **越靠上的模块越晚合并、优先级越高** |
 
-**① 覆写模块按钮（入口）**
-- 位置：**运行状态页顶部**，与「启动/停止」「重启」按钮并列的 **Overwrite Module** 图标按钮（`id="edit_overwrite"`，`title="Overwrite Module"`）。
-- 触发：`editOverwrite()` → `ConfigEditor.showOverwrite()`（`config_edit.htm`），复用配置编辑器模态框。与菜单「服务→OpenClash→覆写设置」CBI 页面是**两个独立入口**。
+**新建模块的要点**:
 
-**② 窗口弹出**
-- 点击后弹出覆写编辑器窗口（覆盖层 `overlay`，`isOverwrite=true`），标题变为「Overwrite Edit」。
-- 顶部显示**覆写警告横幅**（`overwrite-banner`）：*"You are editing the overwrite script, please note that some settings may cause the abnormal, be careful with the modification!"*
-- 窗口结构：**左侧覆写模块列表栏**（`overwrite-side-panel`：顶部标题 + 数量徽标 + 收起按钮，中部条目列表，底部「+ 添加新模块」）+ **右侧 CodeMirror 主编辑器**（编辑当前选中文件的正文）；两者**同高、同起止**，且边框/圆角与编辑器一致（1px `--border-light` + 6px 圆角，中间共用一条分隔线，编辑区容器自身不再叠加边框）。列表栏可收起为 46px 图标条（首字母方块，激活项只高亮方块本身、行不加底色），收起状态记忆在浏览器 localStorage（窄屏首次打开默认收起）；展开宽度随模态框宽度自适应（>1040px 240px，≤1040/860/700px 依次 208/184/164px），宽度切换为瞬时（无过渡动画，避免展开过程中按钮文字溢出）。
-- 条目为**两行布局**：第一行「文件名 + 启用开关（最右侧）」，第二行「〔内联标签〕+ 模块类型（订阅模块 / 本地模块）+ 刷新/编辑/删除按钮（常显淡化，悬停或选中时加深；触摸设备放大）」。中文文件名的首字符缩写会自动用稍大字号居中显示。
-- 模式切换标签页（原始/运行时）、布局按钮在覆写模式被隐藏。
-
-**③ 创建（新建覆写模块，两步向导）**
-- 列表栏底部「**+ 添加新模块**」按钮 → **Add Overwrite Module** 窗口（`showAddOverwritemodel()`），顶部步骤条为「① 选择来源 → ② 填写模块信息」：
-  - **第一步 · 选择来源**（Select Source）：标签页只放来源入口——**本地模块**只有文件上传区，选中 txt/conf 文件后自动读取并进入第二步；**订阅链接**只有订阅 URL 输入框，点「下一步」才开始下载并读取文件头部，成功后进入第二步。
-  - **第二步 · 填写模块信息**（Fill Module Info）：模块名称（必填）、描述（→ UCI `desc`，显示在模块列表与状态页标签的悬停提示，编辑窗口可改）、匹配配置文件、更新时间（仅订阅来源，→ `update_days`/`update_hour`）、环境变量（→ `param`）。「下一步」在来源就绪后可用，名称通过校验后「添加」才可用；「上一步」返回第一步且已填内容保留。
-  - **进度反馈**：两处的下载与上传都显示与配置上传弹窗同款的百分比进度条，完成后到 100% 并自动收起；订阅下载按服务端流式回传的实际字节推进，总大小未知时显示已下载量。
-  - **下载失败**：停在第一步，底部状态栏与进度条显示「下载失败」；改链接、重试或二次点击「下一步」即清除，链接未改动时二次点击 = 跳过读取直接继续（提交时仍按 `url` 正式下载）。
-- 订阅来源固定 `type=http`，本地来源 `type=file`；**表单没有 order 字段**，新建模块的 `order` 自动取「现有最大 order + 1」（排在列表最后）。
-  - **匹配配置文件（config）**：只能填 `all` 或**完整路径**（如 `/etc/openclash/config/config.yaml`）；**只写文件名（不带目录）不会被内核匹配，模块将永不生效**。
-- **`#!` 元信息自动回填**：模块文件带 `#!` 标识时（见 §16.2.5）自动回填表单字段，**只填留空或自动填入的字段，不覆盖手动输入**。
-- **仓库内置模块共六个**：`default`、`Google_Play`、`Tailscale`、`WiFi_Calling`、`BT_PT_Download`、`openclash_custom_overwrite.sh`（前五个随包安装到 `/etc/openclash/overwrite/`，第六个存于 `/etc/openclash/custom/` 且文件名固定不可改名）。这六个条目的第二行会显示**内联蓝底标签「内建 / Built-in」**（位置在类型文字之前，如 `内建 本地模块`）；用户自己新增的模块不显示该标签。
-- 类型文字用简写（中文：本地模块 / 订阅模块；英文：`Local Mod` / `Sub Mod`；西文：`Local` / `Sub`），新建窗口页签为 `Local Module` / `Subscribe Link`，列表栏标题为 `Modules`、底部按钮为 `New Module`。
-- **模块相关文案**（只在覆写模块界面出现，配置文件相关页面仍用「文件」字样）：表单字段 `Module Name`（模块名称）、占位/校验 `Please enter a module name`（请输入模块名称）、新增窗口状态 `Ready to add module`（准备添加模块）、删除确认 `Are you sure you want to delete this module and its subscription info?`（确定要删除此模块及其订阅信息吗？）；上传区的「点击选择文件或拖放」「支持 txt,conf 文件」等仍用「文件」（描述真实上传的物理文件）。
-- 新建后条目支持：启用/停用开关（第一行最右侧）、刷新（Subscribe 远程拉取）、齿轮（编辑参数）、删除（`delete_overwrite_file`）、拖拽排序（调整 order）。**新建的模块默认是「关」**（注册时 `enable=0`，与内建 `default`/`Google_Play` 一致）⇒ 需要手动打开开关，并**重启插件**才生效。
-- **开关与拖拽排序只改 UCI，不会重新下载正文**；只有「刷新」按钮、修改订阅 URL、新建订阅模块时才会拉取远程内容（避免手工编辑的正文被覆盖）。下载失败时不会写入 UCI、也不会清空原文件；新建订阅模块下载失败则不会注册（不会留下一个空壳模块）。
-- **`openclash_custom_overwrite.sh` 恒为第一个条目且不可拖动**；没有 UCI 段的「游离文件」排在列表最后，第二行带「**未配置 / Unset**」内联标签且虚线头像、无开关、不可拖动（需先用齿轮配置匹配并保存，才会注册成模块）。
-
-**④ 编辑（语法格式与保存）**
-- 点选条目（或齿轮）→ 在主编辑器打开该覆写文件，按 **INI 三段格式**编辑：`[General]`（键值对/环境变量）、`[Overwrite]`（Shell 命令，可用 `ruby_*` 函数族）、`[YAML]`（原始 YAML + 操作符）。**必须包含至少一个段头**，否则不生效。详细格式/操作符见 §16.2。
-- 点 Save → POST `/config_file_save`（`config_file` + `content`），后端仅允许写入 `/etc/openclash/overwrite/<名称>`、`/etc/openclash/custom/openclash_custom_overwrite.sh` 与 `/etc/openclash/config/*.ya?ml`（其它路径拒绝）。
-- **改完必须重启插件才生效**：Save 只把内容落盘；`overwrite_file()` 只在 `start_service`（`/etc/init.d/openclash start/restart`）里执行，`/etc/init.d/openclash reload`（重置防火墙）不会重跑 ⇒ 改内容、切换启用开关、新建模块后都点运行状态页的**重启按钮**。
-
-**⑤ 原理（生效机制）**
-- 覆写文件落盘 `/etc/openclash/overwrite/<名称>`，并注册到 UCI `openclash.config_overwrite`（按 order 排序、config 匹配当前配置）。
-- **顺序语义**：列表栏按 order **升序**自上而下显示，内核按 order **降序**执行 ⇒ **列表越靠上的模块越晚合并、优先级越高**（可覆盖其下方模块的输出）。
-- **插件启动/重启**时 `overwrite_file()`（`init.d/openclash` 的 `start_service`，紧随 `check_run_quick` 之后）按段头解析：`[General]` 提前写入 UCI（影响 `yml_change.sh` 行为）；`[Overwrite]`/`[YAML]` 生成覆写清单 `/tmp/yaml_openclash_overwrite_lines`，随后由 `YAML.overwrite_run()`（单 Ruby 进程）在 `yml_change.sh`/`yml_rules_change.sh` **之后**统一执行 → 深度合并/覆盖订阅与 LuCI 输出（含硬编码项，覆盖需谨慎）。**`reload`（重置防火墙）不重跑这一步**，所以模块改动一律靠重启插件生效。
-
-> **注意**：以上是「覆写模块」（文件式自定义）的操作方式。菜单「覆写设置」CBI 页（`11-overwrite-settings.md`）配置的是内置覆写选项（DNS/规则/Smart 等 UCI 选项）；`yml_change.sh` 的覆写逻辑是实现细节——两者仅在用户追问时补充，不作为「怎么用」的主线。
-
-**核心机制**: OpenClash 的覆写模块分两个阶段执行（均在 `/etc/init.d/openclash start_service` 流程中）：
-
-**第一阶段 — UCI 预处理**（`overwrite_file()` 函数，在 `yml_change.sh` 之前执行）：
-1. 遍历 UCI 中所有 `config_overwrite` 条目（按 `order` 排序）
-2. 检查覆写是否匹配当前配置文件（`config` 字段只支持 `all` 或**完整配置文件路径**；为空或只写文件名都不会匹配，该模块直接跳过）
-3. 读取 `/etc/openclash/overwrite/<名称>` 文件内容
-4. 解析 `[General]` 段 → 将键值对写入 UCI `openclash.@overwrite[0]`（如 `EN_MODE`、`DNS_PORT` 等），供后续 `yml_change.sh` 读取
-5. 处理 `DOWNLOAD_FILE` 指令 → 下载外部文件
-6. 生成覆写清单 `/tmp/yaml_openclash_overwrite_lines`（`M`/`Y`/`L` 记录 = 模块块 / 其 `[YAML]` 块路径 / `[Overwrite]` 行，暂不执行）
-
-**第二阶段 — YAML 覆写**（`YAML.overwrite_run()` 单进程执行，在 `yml_change.sh` 和 `yml_rules_change.sh` 之后）：
-7. 按模块顺序处理：先合并该模块 `[YAML]` 块，再执行其 `[Overwrite]` 段的 `ruby_*` 调用
-8. 全部模块完成后统一 dump 一次运行配置
-
-> **执行顺序含义**：`[General]` 段在 `yml_change.sh` 之前生效（因为写入 UCI），因此可以影响 `yml_change.sh` 的行为；`[Overwrite]` 和 `[YAML]` 段在 `yml_change.sh` 和 `yml_rules_change.sh` 之后执行，因此**可以覆盖这两个脚本的所有输出**——包括「插件强制覆盖/禁用的设置」表格中的硬编码项（如 `allow-lan`、`bind-address`、`sniffer.sniff` 等）。
-
-**覆写模块能做什么**:
-- 给订阅配置**追加/覆盖**任意 Mihomo YAML 字段（如 DNS、Sniffer、TUN、规则等）
-- 设置环境变量供 `yml_change.sh` 等后续脚本使用
-- 下载外部文件（通过 `DOWNLOAD_FILE` 指令）
-- 配置 LuCI 页面里没有的高级功能
+- **`config`（匹配配置文件）**: 只能填 `all` 或**完整路径**（如 `/etc/openclash/config/config.yaml`）；只写文件名不会被匹配，模块永不生效
+- **`order`**: 表单里没有该字段，自动取「现有最大 order + 1」（排最后）
+- **`type`**: 订阅来源固定 `http`，本地来源 `file`
+- **默认关闭**: 新建模块注册时 `enable=0`（与内置 `default`/`Google_Play` 一致），需手动开开关并重启
+- **`#!` 元信息回填**: 文件带 `#!` 标识时（§16.2.5）自动填表单，**只填留空或自动填入的字段，不覆盖手动输入**
+- **内置模块六个**: `default`、`Google_Play`、`Tailscale`、`WiFi_Calling`、`BT_PT_Download`（随包安装）、`openclash_custom_overwrite.sh`（在 `custom/` 且不可改名）；这六项第二行带内联蓝底标签「内建 / Built-in」。`openclash_custom_overwrite.sh` **恒为第一个条目且不可拖动**
+- **开关与拖拽只改 UCI，不重新下载正文**；只有「刷新」、改订阅 URL、新建订阅模块才拉远程内容（避免手工编辑被覆盖）。下载失败不写 UCI、不清空原文件；新建订阅模块下载失败则不注册
+- **游离文件**（无 UCI 段的文件）排最后，第二行带「未配置 / Unset」标签、无开关、不可拖动，需先用齿轮配置匹配并保存
 
 ### 16.2 覆写文件的格式
 
-覆写文件使用 **INI 风格的分段格式**，支持三个段：
+INI 风格分段，支持三段：
 
 ```ini
 [General]
-# 键值对，将作为环境变量导出
-# 支持的 key 列表见下方
+# 键值对，作为环境变量导出
 
 [Overwrite]
-# Shell 命令，可使用 ruby_* 函数族操作 YAML
+# ruby_* 函数调用，操作 YAML
 
 [YAML]
-# 原始 YAML 片段，将合并到运行配置
+# 原始 YAML 片段，合并到运行配置
 ```
 
-> **⚠️ 强制要求**：覆写文件**必须包含至少一个段头**（`[General]`、`[Overwrite]`、`[YAML]` 之一），否则所有内容将被忽略，覆写模块不会生效。这是因为 `overwrite_file()` 函数（`/etc/init.d/openclash`）按段头解析文件内容——所有标志位 `in_general`/`in_overwrite`/`in_yaml` 初始为 `0`，仅在遇到对应段头时才设为 `1`。段头之前、之后无段头的内容均被跳过。空行和以 `#`/`;` 开头的注释行会被安全忽略，不影响段头解析。
+> **⚠️ 强制要求**: 文件**必须包含至少一个段头**，否则内容全部忽略。`overwrite_file()` 按段头解析——`in_general`/`in_overwrite`/`in_yaml` 初始为 `0`，只有遇到对应段头才置 `1`；段头前与无段头的内容都被跳过。空行与 `#`/`;` 开头的注释行安全忽略。
+> **AI 输出任何覆写示例时，代码块第一行必须是段头**，禁止输出不含段头的裸 YAML/Shell/INI。
 
 #### 16.2.1 `[General]` 段 — 键值对/环境变量
 
-每行格式: `KEY = VALUE`（大小写不敏感，会自动转大写）
+每行 `KEY = VALUE`（大小写不敏感，自动转大写）。允许的 Key 共 109 个（`allowed_keys_types`），按类分组：
 
-**允许的所有 Key** (共 109 个，由 `overwrite_file()` 函数中的 `allowed_keys_types` 定义):
+| 类别 | Key | 类型 |
+|------|-----|------|
+| 端口 | `DNS_PORT`、`PROXY_PORT`、`TPROXY_PORT`、`HTTP_PORT`、`SOCKS_PORT`、`MIXED_PORT` | int |
+| 模式 | `EN_MODE`、`PROXY_MODE`、`STACK_TYPE` | string |
+| DNS | `ENABLE_CUSTOM_DNS`、`ENABLE_RESPECT_RULES`、`APPEND_WAN_DNS`、`APPEND_DEFAULT_DNS` | int_bool |
+| Fake-IP | `FAKEIP_RANGE`、`FAKEIP_RANGE6`、`STORE_FAKEIP`、`CUSTOM_FAKEIP_FILTER`、`CUSTOM_FAKEIP_FILTER_MODE` | string/int_bool |
+| Meta | `ENABLE_TCP_CONCURRENT`、`ENABLE_UNIFIED_DELAY`、`ENABLE_META_SNIFFER`、`ENABLE_META_SNIFFER_PURE_IP`、`ENABLE_GEOIP_DAT` | int_bool |
+| 流量 | `ROUTER_SELF_PROXY`、`DISABLE_UDP_QUIC`、`SKIP_PROXY_ADDRESS`、`COMMON_PORTS`、`CHINA_IP_ROUTE`、`CHINA_IP_ROUTE_DOMAIN_SOURCE` | int_bool/int/string |
+| 访问控制 | `LAN_AC_MODE`、`LAN_AC_BLACK_IPS`、`LAN_AC_BLACK_MACS`、`LAN_AC_WHITE_IPS`、`LAN_AC_WHITE_MACS`、`WAN_AC_BLACK_IPS`、`WAN_AC_BLACK_PORTS` | int_bool/string |
+| IPv6 | `IPV6_ENABLE`、`IPV6_MODE`、`IPV6_DNS` | int_bool/int |
+| GEO | `GEO_AUTO_UPDATE`、`GEOIP_AUTO_UPDATE`、`GEOSITE_AUTO_UPDATE`、`GEOASN_AUTO_UPDATE` | int_bool |
+| 规则 | `ENABLE_CUSTOM_CLASH_RULES`、`ENABLE_RULE_PROXY` | int_bool |
+| Smart | `AUTO_SMART_SWITCH`、`SMART_ENABLE_LGBM`、`SMART_POLICY_PRIORITY` | int_bool/string |
+| 特殊 | `CONFIG_FILE` | 切换 `config_path`（仅 `/etc/openclash/` 下普通文件） |
+| 特殊 | `AGE_SECRET_KEY`、`AGE_PUBLIC_KEY` | Age 密钥 |
+| 特殊 | `SUB_INFO_URL` | 订阅信息 URL |
+| 特殊 | `SYSTEM_HOST` | 写入系统 `/etc/hosts`，逗号分隔（`1.2.3.4 a.com,5.6.7.8 b.com`），有值即生效，与界面列表合并 |
+| 特殊 | `DOWNLOAD_FILE` | 下载外部文件（§16.2.4） |
+| 特殊 | `DASHBOARD_PASSWORD`、`GLOBAL_UA`、`RESTART` | 密码 / UA / 覆写后是否重启 |
 
-| 类别 | Key 示例 | 类型 | 说明 |
-|------|----------|------|------|
-| 端口 | `DNS_PORT`, `PROXY_PORT`, `TPROXY_PORT`, `HTTP_PORT`, `SOCKS_PORT`, `MIXED_PORT` | int | 覆写端口号 |
-| 模式 | `EN_MODE`, `PROXY_MODE`, `STACK_TYPE` | string | 覆写运行/代理模式 |
-| DNS | `ENABLE_CUSTOM_DNS`, `ENABLE_RESPECT_RULES`, `APPEND_WAN_DNS`, `APPEND_DEFAULT_DNS` | int_bool | DNS 覆写 |
-| Fake-IP | `FAKEIP_RANGE`, `FAKEIP_RANGE6`, `STORE_FAKEIP`, `CUSTOM_FAKEIP_FILTER`, `CUSTOM_FAKEIP_FILTER_MODE` | string/int_bool | Fake-IP 相关 |
-| Meta | `ENABLE_TCP_CONCURRENT`, `ENABLE_UNIFIED_DELAY`, `ENABLE_META_SNIFFER`, `ENABLE_META_SNIFFER_PURE_IP`, `ENABLE_GEOIP_DAT` | int_bool | Meta 内核 |
-| 流量 | `ROUTER_SELF_PROXY`, `DISABLE_UDP_QUIC`, `SKIP_PROXY_ADDRESS`, `COMMON_PORTS`, `CHINA_IP_ROUTE`, `CHINA_IP_ROUTE_DOMAIN_SOURCE` | int_bool/int/string | 流量控制 |
-| 访问控制 | `LAN_AC_MODE`, `LAN_AC_BLACK_IPS`, `LAN_AC_BLACK_MACS`, `LAN_AC_WHITE_IPS`, `LAN_AC_WHITE_MACS`, `WAN_AC_BLACK_IPS`, `WAN_AC_BLACK_PORTS` | int_bool/string | 来源/WAN 访问控制的 IP、MAC、端口（与界面配置**取并集**，见下注） |
-| IPv6 | `IPV6_ENABLE`, `IPV6_MODE`, `IPV6_DNS` | int_bool/int | IPv6 |
-| GEO | `GEO_AUTO_UPDATE`, `GEOIP_AUTO_UPDATE`, `GEOSITE_AUTO_UPDATE`, `GEOASN_AUTO_UPDATE` | int_bool | GEO 更新 |
-| 自定义 | `ENABLE_CUSTOM_CLASH_RULES`, `ENABLE_RULE_PROXY` | int_bool | 规则 |
-| Smart | `AUTO_SMART_SWITCH`, `SMART_ENABLE_LGBM`, `SMART_POLICY_PRIORITY` | int_bool/string | Smart 策略 |
-| 特殊 | `CONFIG_FILE` | string | 覆写 config_path（切换配置，仅接受 `/etc/openclash/` 下的普通文件，见下注） |
-| 特殊 | `AGE_SECRET_KEY`, `AGE_PUBLIC_KEY` | string | Age 加密密钥 |
-| 特殊 | `SUB_INFO_URL` | string | 订阅信息 URL |
-| 特殊 | `DOWNLOAD_FILE` | string | 下载外部文件（见单独说明） |
-| 特殊 | `DASHBOARD_PASSWORD` | string | Dashboard 密码（写入 UCI `dashboard_password`） |
-| 特殊 | `GLOBAL_UA` | string | 全局 User-Agent |
-| 特殊 | `RESTART` | bool | 覆写变更后是否重启 |
+类型：`int` 整数、`int_bool` 0/1、`bool` true/false、`string` 任意字符串。完整 Key 与对应 UCI 见 `17-overwrite-module-examples.md` §17.5.2。
 
-**类型说明**: `int`=整数, `int_bool`=0/1, `bool`=true/false, `string`=任意字符串
+- **`[General]` 是唯一能改「插件设置」（UCI 层）的途径**：重启时写入 UCI（`openclash.@overwrite[0]`）供 `yml_change.sh`/`yml_rules_change.sh` 读取；`[YAML]`/`[Overwrite]` 只能改运行 YAML。凡修复涉及插件设置（模式/端口/DNS/Fake-IP/Meta/流量/IPv6/GEO/Smart 等）都要用 `[General]` 段，示例见 `17-overwrite-module-examples.md` §17.3（`EN_MODE = fake-ip-tun`）
+- **访问控制类取并集**: `LAN_AC_*`/`WAN_AC_*` 写进模块是**追加**而非替换（`ac_combined_values()` 对 `openclash.config.<key>` 与 `openclash.@overwrite[0].<key>` 取并集，逗号或空格分隔均可）。`LAN_AC_*` 只作用于转发流量，路由器自身出站需 `WAN_AC_BLACK_PORTS`（output 链也生成）或 `ROUTER_SELF_PROXY`
+- **`CONFIG_FILE` 路径限制**: 只接受 `/etc/openclash/` 下的普通文件；含 `..`、以 `/` 结尾、文件名以 `.` 开头或落在该目录外都会被跳过，记录 `skip config file outside /etc/openclash` / `skip config file with unsafe path` / `skip hidden config file`。合法示例 `/etc/openclash/config/Custom_Clash.yaml`
+- **值支持变量展开**: `$NAME` / `${NAME}` / `${NAME:-默认值}`（`NAME` 匹配 `[A-Za-z_][A-Za-z0-9_]*`；`:-` 在未设置或为空时取默认，默认值内可再引用变量）；其余 `$` 写法（`$1`、`$(cmd)`）原样保留、不执行命令替换。变量来源见 `17-overwrite-module-examples.md` §17.5.1
 
-> **⚠️ 访问控制类（`LAN_AC_*` / `WAN_AC_*`）的合并语义**：写进模块是**追加**到界面配置而非替换（`init.d` 的 `ac_combined_values()` 对 `openclash.config.<key>` 与 `openclash.@overwrite[0].<key>` 取并集，逗号或空格分隔均可）。`LAN_AC_*` 只作用于转发流量（`openclash`/`openclash_mangle`），路由器自身出站需用 `WAN_AC_BLACK_PORTS`（output 链也生成规则）或 `ROUTER_SELF_PROXY`。
-
-> **⚠️ `CONFIG_FILE` 路径限制**：只接受 `/etc/openclash/` 下的普通文件——路径含 `..`、以 `/` 结尾、文件名以 `.` 开头，或落在 `/etc/openclash/` 之外，整条都会被跳过并记录 `skip config file outside /etc/openclash` / `skip config file with unsafe path` / `skip hidden config file`（日志末尾是 `【General Key => 模块名: 路径】`）。合法写法如 `/etc/openclash/config/Custom_Clash.yaml`。
-
-> **值支持变量展开**：本段各值支持 `$NAME` / `${NAME}` / `${NAME:-默认值}`（`NAME` 须匹配 `[A-Za-z_][A-Za-z0-9_]*`；`:-` 在未设置或为空时取默认值，默认值内可再引用变量）；其余 `$` 写法（`$1`、`$(cmd)` 等）原样保留、不执行命令替换。变量来源见 `17-overwrite-module-examples.md` §17.5.1。
-
-> 这些环境变量在 `yml_change.sh`、`yml_rules_change.sh` 及自定义覆写脚本中可通过 `$KEY_NAME` 直接引用。
-> 本表按类别分组概览；**完整 Key 列表与对应 UCI** 见 `17-overwrite-module-examples.md` §17.5.2 速查表。
-
-> **⚠️ [General] 段 = 插件设置的修改来源**：`[General]` 是覆写模块中**唯一能修改「插件设置」（UCI 层选项）的途径**——重启时 `overwrite_file()` 将键值对写入 UCI（`openclash.@overwrite[0]`），供 `yml_change.sh`/`yml_rules_change.sh` 读取生效；`[YAML]`/`[Overwrite]` 段只能修改运行 YAML。凡修复涉及插件设置（运行/代理模式、端口、DNS、Fake-IP、Meta、流量控制、IPv6、GEO、Smart 等本表所列类别，对应 LuCI「覆写设置」CBI 页选项，见 `11-overwrite-settings.md`）时，必须在 `[General]` 段以 `KEY = VALUE` 覆写，而非用 `[YAML]`。示例见 `17-overwrite-module-examples.md` §17.3（`EN_MODE = fake-ip-tun`）。
+这些变量在 `yml_change.sh`、`yml_rules_change.sh` 与自定义覆写脚本里用 `$KEY_NAME` 引用。
 
 #### 16.2.2 `[Overwrite]` 段 — Ruby 函数调用
 
-此段每行是一次 `ruby_*` 函数的调用（均以目标 YAML 文件路径作为首个参数；编辑目标始终是当前运行配置），由 `YAML.rb` 的 `YAML.overwrite_run()` 以 root 权限统一解析执行（解析与安全规则见下方 ⚠️）：
-- `ruby_read <file> <key_path>` — 读取 YAML 值
-- `ruby_read_hash <var> <key_path>` — 读取 Ruby 变量中的哈希值
-- `ruby_read_hash_arr <file> <key_path> <sub_path>` — 遍历哈希数组并读取每个元素的子值
-- `ruby_edit <file> <key_path> <value>` — 修改 YAML 键值
-- `ruby_cover <file> <key_path> <src_file> <sub_path>` — 覆盖 YAML 键值：来源文件存在时取其同名键的值赋给键路径，来源文件不存在则删除该键
-- `ruby_merge <file> <key_path> <src_file> [<sub_path>]` — 从文件合并 YAML 哈希
-- `ruby_merge_hash <file> <key_path> <hash>` — 合并指定哈希到键路径
-- `ruby_uniq <file> <key_path>` — 数组去重
-- `ruby_arr_add_file <file> <key_path> <idx> <list_file> <sub_path>` — 从文件将数组元素插入到指定下标
-- `ruby_arr_head_add_file <file> <key_path> <list_file> <sub_path>` — 从文件将数组元素插入到数组开头
-- `ruby_arr_insert <file> <key_path> <idx> <value>` — 在数组指定下标插入单个元素
-- `ruby_arr_insert_hash <file> <key_path> <idx> <hash>` — 在数组指定下标插入哈希
-- `ruby_arr_insert_arr <file> <key_path> <idx> <array>` — 在数组指定下标插入一个数组
-- `ruby_arr_edit <file> <key_path> <sub_key> <match_value> <new_sub_key> <new_value>` — 按字段匹配编辑数组元素；末两参留空时退化为按值替换：`ruby_arr_edit <file> <key_path> "" <old_value> "" <new_value>`
-- `ruby_map_edit <file> <key_path> <map_key> <sub_path> <value>` — 编辑哈希内嵌套哈希的字段
-- `ruby_delete <file> <key_path> [<key>]` — 删除键/数组元素（省略键时删除键路径本身）
-- `uci_get_config <key>` — 读取 UCI 配置（覆写优先）
+每行一次 `ruby_*` 调用，首个参数都是目标 YAML 路径（始终是当前运行配置），由 `YAML.overwrite_run()` 以 root 统一执行。
 
-> **⚠️ 行级解析与安全（`YAML.rb` → `overwrite_parse_line()` + AST 白名单）**：整行必须是**单个白名单 `ruby_*` 函数调用**，且**每个参数整体被引号包裹**。① **双引号参数**：`$NAME`/`${NAME}`（`NAME` 匹配 `[A-Za-z_][A-Za-z0-9_]*`）展开为环境变量（含 `$CONFIG_FILE`，执行器自动把它指向当前运行配置），**其余一切字符一律按字面量处理**——`\`、`;`、反引号、`$( )` 都不会触发任何 shell 展开或命令替换（**不再需要转义**；`$1`、`$$`、`$(` 非变量名形式原样保留）。② **单引号参数**：完全不展开，原样传给后续 Ruby 求值。③ **代码参数过 AST 白名单**（fail-closed）：只放行 `Value` 读写与常见 String/Array/Hash 方法、`lambda`、条件/循环/插值等 YAML 编辑语法（名单见 `YAML.rb` 的 `OVERWRITE_NODES`/`OVERWRITE_METHODS`/`OVERWRITE_OPERATORS`/`OVERWRITE_CONSTANTS`），未列入的调用（`system`/`send`/`File.`/`ENV`/反引号/`%x` 等）一律拒绝；纯值参数与引号内的选项字不受影响。④ 语法违反（未加引号、引号不配对、行尾多余内容、非白名单函数）或未通过白名单 → 跳过并记录 `skip invalid Overwrite command【Ruby Script => 模块名: 行】`。⇒ 正则可直接写 `\.`（旧写法 `[.]` 仍有效）；值里有字面 `$` 仍建议用单引号参数（示例见 `17-overwrite-module-examples.md` §17.3.6）。
-> 自定义覆写脚本（§17.4）的 `ruby_*` 调用由 `ruby_record()`（`ruby.sh`）以 NUL 分隔的定长记录写入 `/tmp/yaml_openclash_custom_calls`，脚本运行完后由 `YAML.overwrite_run_custom()` 统一执行；代码参数未通过白名单时记录 `skip unsafe Overwrite command`。
+| 函数 | 作用 |
+|------|------|
+| `ruby_read <file> <key_path>` | 读 YAML 值 |
+| `ruby_read_hash <var> <key_path>` | 读 Ruby 变量中的哈希值 |
+| `ruby_read_hash_arr <file> <key_path> <sub_path>` | 遍历哈希数组读每个元素的子值 |
+| `ruby_edit <file> <key_path> <value>` | 修改键值 |
+| `ruby_cover <file> <key_path> <src_file> <sub_path>` | 覆盖：来源文件存在则取其同名键值，否则删除该键 |
+| `ruby_merge <file> <key_path> <src_file> [<sub_path>]` | 从文件合并哈希 |
+| `ruby_merge_hash <file> <key_path> <hash>` | 合并指定哈希到键路径 |
+| `ruby_uniq <file> <key_path>` | 数组去重 |
+| `ruby_arr_add_file <file> <key_path> <idx> <list_file> <sub_path>` | 从文件把元素插入指定下标 |
+| `ruby_arr_head_add_file <file> <key_path> <list_file> <sub_path>` | 从文件把元素插入数组开头 |
+| `ruby_arr_insert <file> <key_path> <idx> <value>` | 指定下标插入单元素 |
+| `ruby_arr_insert_hash <file> <key_path> <idx> <hash>` | 指定下标插入哈希 |
+| `ruby_arr_insert_arr <file> <key_path> <idx> <array>` | 指定下标插入数组 |
+| `ruby_arr_edit <file> <key_path> <sub_key> <match_value> <new_sub_key> <new_value>` | 按字段匹配编辑数组元素；末两参留空 = 按值替换 |
+| `ruby_map_edit <file> <key_path> <map_key> <sub_path> <value>` | 编辑哈希内嵌套哈希字段 |
+| `ruby_delete <file> <key_path> [<key>]` | 删除键/数组元素（省略 key 时删键路径本身） |
+| `uci_get_config <key>` | 读 UCI（覆写优先） |
+
+**行级解析与安全**（`overwrite_parse_line()` + AST 白名单）:
+
+1. 整行必须是**单个白名单 `ruby_*` 调用**，且**每个参数整体加引号**
+2. **双引号参数**: `$NAME`/`${NAME}` 展开为环境变量（含 `$CONFIG_FILE`，执行器自动指向当前运行配置），**其余字符一律字面量**——`\`、`;`、反引号、`$( )` 都不触发 shell 展开（**不再需要转义**）；`$1`、`$$`、`$(` 等非变量名形式原样保留
+3. **单引号参数**: 完全不展开，原样传给 Ruby
+4. **代码参数过 AST 白名单（fail-closed）**: 只放行 `Value` 读写与常见 String/Array/Hash 方法、`lambda`、条件/循环/插值等；`system`/`send`/`File.`/`ENV`/反引号/`%x` 一律拒绝；纯值参数与引号内选项字不受影响
+5. 违反语法或未过白名单 → 跳过并记录 `skip invalid Overwrite command【Ruby Script => 模块名: 行】`
+
+⇒ 正则可直接写 `\.`（旧写法 `[.]` 仍有效）；值里有字面 `$` 建议用单引号参数（示例见 `17-overwrite-module-examples.md` §17.3.6）。
+自定义覆写脚本（§17.4）的调用由 `ruby_record()` 以 NUL 分隔定长记录写入 `/tmp/yaml_openclash_custom_calls`，脚本跑完由 `overwrite_run_custom()` 执行；未过白名单记 `skip unsafe Overwrite command`。
 
 #### 16.2.3 `[YAML]` 段 — 原始 YAML 注入（含操作符）
 
-`[YAML]` 段使用 Ruby 将内容**深度合并**到运行配置文件。支持多种**操作符后缀**实现精细控制：
-
-**操作符速查表**：
+`[YAML]` 内容按 Ruby 深度合并进运行配置，支持操作符后缀：
 
 | 操作符 | 写法 | 行为 |
 |--------|------|------|
-| **默认合并** | `key` 或 `<key>` | Hash 递归合并，标量直接覆盖，键不存在则添加；**数组整体替换**（追加/插入须用 `key+` / `+key`） |
-| **强制覆盖** | `key!` 或 `<key>!` | 强制替换整个值（不做递归合并） |
-| **数组后置追加** | `key+` 或 `<key>+` | 将新元素追加到数组末尾 |
-| **数组前置插入** | `+key` 或 `+<key>` | 将新元素插入到数组开头 |
-| **数组差集删除** | `key-` 或 `<key>-` | 从数组中删除指定元素；非数组则删除整个键 |
-| **批量条件更新** | `key*` 或 `<key>*` | 按 `where` 条件匹配，用 `set` 子句更新（见下） |
+| 默认合并 | `key` / `<key>` | Hash 递归合并，标量覆盖，键不存在则新增；**数组整体替换**（追加/插入须用 `key+` / `+key`） |
+| 强制覆盖 | `key!` / `<key>!` | 强制替换整个值，不递归 |
+| 数组后置追加 | `key+` / `<key>+` | 追加到数组末尾 |
+| 数组前置插入 | `+key` / `+<key>` | 插入数组开头 |
+| 数组差集删除 | `key-` / `<key>-` | 从数组删除指定元素；非数组则删整个键 |
+| 批量条件更新 | `key*` / `<key>*` | 按 `where` 匹配、用 `set` 更新 |
 
 `<key>` 语法用于键名含特殊字符或与操作符冲突时。
 
-大白话：**默认合并**（`key`）= 只改你写的那几项，其余不动（**但数组是整体替换**：写 `proxy-groups:` 会丢掉全部已有策略组，追加请用 `proxy-groups+:`）；**强制覆盖**（`key!`）= 把这一整块整个换成你写的。
+**要点**: 默认合并只改你写的项（但**数组整体替换**——写 `proxy-groups:` 会丢掉全部已有组，追加请用 `proxy-groups+:`）；`key!` 把整块换成你写的。
 
-> **环境变量展开**：`${NAME}` / `$NAME` / `${NAME:-默认值}` 会展开为环境变量值（用于 `[General]` 的 Key、订阅 `param` 等）；其余 `$` 写法（`$1`、`$(cmd)`、反引号、其他 `${NAME:?}` 类操作符）原样保留且**不执行命令替换**，`$$` 两个 `$` 都原样保留（密码里的 `P@$$w0rd` 不会被吃掉）⇒ 正则里的 `$` 行尾锚、`(?=…)`、引号、反斜杠都可安全书写；目前没有保留字面量 `$名字` 的写法。
+**环境变量展开**: `${NAME}` / `$NAME` / `${NAME:-默认值}` 展开为环境变量（用于 `[General]` 的 Key、订阅 `param` 等）；`$1`、`$(cmd)`、反引号等原样保留且**不执行命令替换**，`$$` 两个 `$` 都保留（密码 `P@$$w0rd` 不会被吃掉）⇒ 正则 `$` 行尾锚、`(?=…)`、反斜杠都可安全书写。
 
-##### 操作符详解与示例
+**示例**:
 
-**1. 默认合并 (`key` / `<key>`)**
-
-Hash 值递归合并，键不存在则添加，标量直接覆盖。
 ```yaml
+# 默认合并
 dns:
-  enable: true           # 修改现有键
-  cache-algorithm: lru   # 添加新键
-mixed-port: 10802        # 直接覆盖标量
+  enable: true
+  cache-algorithm: lru
+mixed-port: 10802
 tun:
-  enable: true           # 合并 Hash（仅改指定字段，其余保留）
+  enable: true
   stack: mips
-```
 
-**2. 强制覆盖 (`key!` / `<key>!`)**
-
-强制替换整个值，不做递归合并。
-```yaml
+# 强制覆盖
 dns:
-  fake-ip-filter!:         # 替换整个 fake-ip-filter 数组
+  fake-ip-filter!:
     - '*.lan'
-    - 'new.domain.com'
-rules!:                    # 强制覆盖整个 rules 数组
+rules!:
   - DOMAIN-SUFFIX,example.com,DIRECT
   - MATCH,PROXY
-<dns>!:                    # <> 语法：强制覆盖整个 dns 配置
-  enable: false
-  nameserver:
-    - '114.114.114.114'
-```
 
-**3. 数组后置追加 (`key+` / `<key>+`)**
-
-将新元素追加到数组末尾。
-```yaml
+# 数组追加 / 前置插入
 dns:
   nameserver+:
     - '1.1.1.1'
-    - '8.8.8.8'
-rules+:
-  - DOMAIN-SUFFIX,example.com,REJECT
-<nameserver>+:
-  - '8.8.8.8'
-```
-
-**4. 数组前置插入 (`+key` / `+<key>`)**
-
-将新元素插入到数组开头（优先匹配）。
-```yaml
-dns:
   +nameserver:
     - '223.5.5.5'
 +rules:
   - DOMAIN-SUFFIX,priority.com,DIRECT
-+<nameserver>:
-  - '119.29.29.29'
-```
 
-**5. 数组删除/键删除 (`key-` / `<key>-`)**
-
-从数组中移除指定元素；对非数组删除整个键。值为空(null/~)时删除整个键。
-```yaml
+# 删除
 dns:
   nameserver-:
     - '8.8.8.8'
     - '8.8.4.4'
-rules-:
-  - DOMAIN-SUFFIX,old.com,REJECT
-  cache-algorithm-:         # 删除整个 cache-algorithm 键
+  cache-algorithm-:       # 删除整个键
 ```
 
-**6. 批量条件更新 (`key*` / `<key>*`)**
-
-按 `where` 条件匹配集合元素，用 `set` 子句更新指定字段。
-
-**支持的集合类型**: Hash 值数组 (如 proxy-groups)、字符串数组 (如 rules)
-**where 条件格式**: `字段名: 值`，支持正则 `/pattern/`
-
-**set 子句支持的操作符**: 同顶层（默认覆盖、`!`、`+`、`-`）
+**批量条件更新（`key*`）**: 支持 Hash 值数组（如 `proxy-groups`）与字符串数组（如 `rules`）；`where` 格式 `字段名: 值`（支持正则 `/pattern/`，数组可给列表表示"包含"）；`set` 支持与顶层相同的操作符。
 
 ```yaml
-# === 对 proxy-groups (Hash 数组) ===
-
-# 按 type 匹配，替换整个 proxies 列表
+# proxy-groups：按 type 匹配，替换整个 proxies
 proxy-groups*:
   where:
     type: select
   set:
-    proxies:
-      - 'new-proxy1'
-      - 'new-proxy2'
+    proxies: ['new-proxy1', 'new-proxy2']
 
-# 按 name 正则匹配，向 proxies 开头插入
+# name 正则匹配，向 proxies 开头插入
 proxy-groups*:
   where:
     name: '/^HK/'
   set:
-    +proxies:
-      - 'hk-new-proxy'
+    +proxies: ['hk-new-proxy']
 
-# 按 type 匹配，从 proxies 中移除指定节点
+# 从 proxies 移除指定节点
 proxy-groups*:
   where:
     type: select
   set:
-    proxies-:
-      - 'old-proxy1'
+    proxies-: ['old-proxy1']
 
-# 使用数组包含条件（proxies 须包含指定元素）
-proxy-groups*:
-  where:
-    type: select
-    proxies:
-      - 'old-proxy1'
-  set:
-    proxies:
-      - 'new-proxy1'
-
-# 修改 url-test 组的 interval
+# 改 url-test 组的 interval（<key> 语法）
 <proxy-groups>*:
   where:
     type: url-test
   set:
     interval: 300
 
-# === 对 proxies (节点数组) ===
-
-# 修改 socks5 节点端口
-proxies*:
-  where:
-    type: socks5
-  set:
-    port: 1080
-
-# === 对 rules (字符串数组) ===
-
-# 替换匹配的规则
-rules*:
-  where:
-    value: 'DOMAIN-SUFFIX,old.com,REJECT'
-  set:
-    value: 'DOMAIN-SUFFIX,new.com,DIRECT'
-
-# 正则匹配删除规则（set value 为空/不写）
+# rules：正则匹配删除
 rules*:
   where:
     value: '/,REJECT$/'
   set:
     value:
 
-# === 对 hosts (Hash 集合) ===
-
-# 更新指定 hosts 键
+# hosts：更新 / 删除键
 hosts*:
   where:
     key: '*.mihomo.dev'
   set:
     '*.mihomo.dev': '::1'
-
-# 删除指定 hosts 键
-hosts*:
-  where:
-    key: '*.old.dev'
-  set:
-    key-:
 ```
 
-**7. 组合操作**
+**组合操作**（同一块内可叠加，按书写顺序生效）:
 
-同一块内可同时使用多个操作符：
 ```yaml
 dns:
-  nameserver-:         # 先删除
+  nameserver-:
     - '8.8.8.8'
-  +nameserver:         # 再前置插入
+  +nameserver:
     - '223.5.5.5'
-  nameserver+:         # 再后置追加
+  nameserver+:
     - '1.0.0.1'
 ```
 
-#### 16.2.4 `DOWNLOAD_FILE` 特殊指令（`[General]` 段）
+#### 16.2.4 `DOWNLOAD_FILE` 指令（`[General]` 段）
 
-格式: `DOWNLOAD_FILE = url=..., path=..., cron=..., force=..., ua=..., restart=...`
+格式 `DOWNLOAD_FILE = url=..., path=..., cron=..., force=..., ua=..., restart=...`
 
-用于在覆写模块中下载外部文件。字段说明：
-- `url` — 下载地址 (必填)
-- `path` — 保存路径 (必填)
-- `cron` — cron 表达式，0 表示不添加定时任务
-- `force` — `true` 强制重新下载
-- `ua` — 自定义 User-Agent
-- `restart` — `true` 下载后重启核心
+| 字段 | 说明 |
+|------|------|
+| `url` | 下载地址（必填） |
+| `path` | 保存路径（必填） |
+| `cron` | cron 表达式，`0` = 不加定时任务 |
+| `force` | `true` 强制重新下载 |
+| `ua` | 自定义 User-Agent |
+| `restart` | `true` 下载后重启核心 |
 
-> **⚠️ 路径限制**：`path` 必须位于 `/etc/openclash/` 或 `/tmp/` 下且不含 `..`，否则跳过该下载任务并记录 `skip download file outside /etc/openclash or /tmp` 或 `skip download file with unsafe path`。
+- **路径限制**: `path` 必须在 `/etc/openclash/` 或 `/tmp/` 下且不含 `..`，否则跳过并记 `skip download file outside /etc/openclash or /tmp` / `skip download file with unsafe path`
+- **变量展开**: 各字段支持 `$NAME` / `${NAME}` / `${NAME:-默认值}`，如 `url=https://example.com/cfg/${EN_KEY2:-Custom_Clash}.yaml`
 
-> **变量展开**：`url`/`path`/`cron`/`force`/`ua`/`restart` 各字段支持 `$NAME` / `${NAME}` / `${NAME:-默认值}`（展开规则见 §16.2.1 注），例如 `url=https://example.com/cfg/${EN_KEY2:-Custom_Clash}.yaml`。
+#### 16.2.5 模块元信息标识（`#!` 指令）
 
-#### 16.2.5 模块元信息标识（`#!` 指令，添加模块时自动回填）
-
-模块文件任意位置的 **`#!KEY = VALUE`** 注释行声明元信息（等号可写冒号；同一 KEY 取最上方一条）。运行期解析器把整行当注释跳过（各段内 `#`/`;` 开头的行一律忽略，含 `[YAML]` 段），**不影响模块执行**；只有「添加新模块」窗口读取它们回填表单。
+文件任意位置的 **`#!KEY = VALUE`** 注释行声明元信息（等号可写冒号；同一 KEY 取最上方一条）。运行期整行按注释跳过（各段内 `#`/`;` 开头的行都忽略，含 `[YAML]` 段），只有「添加新模块」窗口读取回填表单。
 
 | 标识 | 回填目标 | 取值格式 |
 |------|----------|----------|
-| `NAME` | 模块名称 | 合法文件名（字母/数字/`._-`，不以 `.` 开头，非 `openclash_custom_overwrite.sh`，≤128 字符）；优先于上传文件名 |
-| `DESC` | 模块描述（UCI `desc`） | 单行文本，超长截断至 200 字符；仅界面展示（模块列表/状态页标签悬停提示、编辑窗口可改）；UCI 为空时回退文件内 `#!DESC` |
-| `CONFIG` | 匹配配置文件（`config` 列表） | `all` 或逗号分隔的文件名/完整路径；文件名自动补全为 `/etc/openclash/config/<名称>` |
-| `CRON` | 更新时间（`update_days`/`update_hour`，仅订阅模块生效） | `off`；`<星期> <小时>`（如 `3 4`=每周三 4 点、`* 4`=每天 4 点）；或 5/6 段 cron（分钟须 `0`/`00`、日/月为 `*`、星期可用 0-6、7=周日或英文名 SUN…SAT，6 段首段秒须为 0）；其他形态（非零分钟、多时段、区间、多星期等）被忽略 |
-| `ENV` | 环境变量（`param`） | `KEY[=默认值]` 分号分隔（如 `EN_KEY1;EN_KEY2=foo`）；`KEY` 须匹配 `[A-Za-z_][A-Za-z0-9_]*`；多个 ENV 行累加、重复键取最先出现者 |
+| `NAME` | 模块名称 | 合法文件名（字母数字 `._-`，不以 `.` 开头，非 `openclash_custom_overwrite.sh`，≤128 字符）；优先于上传文件名 |
+| `DESC` | 模块描述（UCI `desc`） | 单行，超长截断 200 字符；仅界面展示（列表/状态页悬停、编辑窗口可改）；UCI 为空时回退文件内值 |
+| `CONFIG` | 匹配配置文件（`config`） | `all` 或逗号分隔的文件名/完整路径；文件名自动补全为 `/etc/openclash/config/<名称>` |
+| `CRON` | 更新时间（`update_days`/`update_hour`，仅订阅模块） | `off`；`<星期> <小时>`（`3 4`=周三 4 点、`* 4`=每天 4 点）；或 5/6 段 cron（分钟须 `0`/`00`、日/月为 `*`、星期 0-6 / 7=周日 / SUN…SAT，6 段首段秒须为 0）；其它形态（非零分钟、多时段、区间、多星期）忽略 |
+| `ENV` | 环境变量（`param`） | `KEY[=默认值]` 分号分隔（`EN_KEY1;EN_KEY2=foo`）；`KEY` 匹配 `[A-Za-z_][A-Za-z0-9_]*`；多行累加、重复键取最先出现者 |
 
-读取与回填（配合两步向导，见 §16.1.1 ③）：
-- **读取时机**：本地模块在选中文件后读文件头部（≤256 KB）解析；订阅模块在点「下一步」时经 `overwrite_module_preview` 下载（上限 512 KB、读头部 128 KB）解析，成功后进入第二步。
-- **回填规则**：只填留空或自动填入的字段（名称/描述/匹配配置/更新时间/环境变量），环境变量按「缺则新增行、空值补默认值」合并；非法值（非法名称、无法表达的 CRON、非法 ENV 键）直接忽略；读取成功或无 `#!` 标识时不提示。
-- **失败处理**：下载失败时停在第一步、不执行回填，状态栏与进度条显示「下载失败」（交互细节见 §16.1.1 ③）。
-
-示例：
+- **读取时机**: 本地模块选中文件后读头部 ≤256 KB；订阅模块点「下一步」经 `overwrite_module_preview` 下载（上限 512 KB、读头部 128 KB）
+- **回填规则**: 只填留空或自动填入的字段，环境变量按「缺则新增行、空值补默认值」合并；非法值（非法名称、无法表达的 CRON、非法 ENV 键）忽略；读取成功或无标识时不提示
+- **失败处理**: 下载失败停在第一步、不回填，状态栏与进度条显示「下载失败」
 
 ```ini
 #!NAME = WiFi_Calling
@@ -443,5 +283,4 @@ ENABLE_UDP_PROXY = 1
 STACK_TYPE = mips
 ```
 
-> 内置模块头部均已声明相应标识可作参考：`WiFi_Calling`（`NAME`/`DESC`/`ENV`）、`Google_Play`/`Tailscale`（`NAME`/`DESC`）；`default` 头部带格式说明。注释里的示例不要写成行首 `#!KEY=VALUE`，否则会被当作真实标识读取。
-
+> 内置模块头部已声明可参考：`WiFi_Calling`（`NAME`/`DESC`/`ENV`）、`Google_Play`/`Tailscale`（`NAME`/`DESC`）、`default`（格式说明）。注释里的示例别写成行首 `#!KEY=VALUE`，否则会被当真实标识读取。

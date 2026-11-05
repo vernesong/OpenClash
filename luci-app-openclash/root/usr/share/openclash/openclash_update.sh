@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 . /usr/share/openclash/log.sh
 . /usr/share/openclash/uci.sh
 . /usr/share/openclash/openclash_curl.sh
@@ -191,7 +191,7 @@ if [ "$PLUGIN_DIRECT" -eq 1 ]; then
 elif [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && version_compare "$OP_CV" "$OP_LV" && [ -n "$PLUGIN_LATEST" ]; then
    LOG_TIP "Start downloading【OpenClash - v$LAST_VER】..."
    if [ "$github_address_mod" != "0" ]; then
-      if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
+      if [ "$github_address_mod" = "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" = "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" = "https://testingcf.jsdelivr.net/" ]; then
          if [ "$PKG_TYPE" = "opkg" ]; then
             DOWNLOAD_URL="${github_address_mod}gh/vernesong/OpenClash@package/${RELEASE_BRANCH}/luci-app-openclash_${LAST_VER}_all.ipk"
             DOWNLOAD_PATH="/tmp/openclash.ipk"

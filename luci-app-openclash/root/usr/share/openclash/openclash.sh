@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 . /lib/functions.sh
 . /usr/share/openclash/ruby.sh
 . /usr/share/openclash/openclash_ps.sh
@@ -259,7 +259,7 @@ config_su_check()
       uci -q set openclash.config.config_path="$CONFIG_FILE"
       uci commit openclash
    fi
-   if [ "$CONFIG_FILE" == "$CONFIG_PATH" ] && [ "$norestart" -eq 0 ]; then
+   if [ "$CONFIG_FILE" = "$CONFIG_PATH" ] && [ "$norestart" -eq 0 ]; then
       restart=1
    fi
 }
@@ -413,25 +413,25 @@ sub_info_get()
       return
    fi
 
-   if [ "$udp" == "true" ]; then
+   if [ "$udp" = "true" ]; then
       udp="&udp=true"
    else
       udp=""
    fi
 
-   if [ "$rule_provider" == "true" ]; then
+   if [ "$rule_provider" = "true" ]; then
       rule_provider="&expand=false&classic=true"
    else
       rule_provider=""
    fi
 
-   if [ "$tfo" == "true" ]; then
+   if [ "$tfo" = "true" ]; then
       tfo="&tfo=true"
    else
       tfo=""
    fi
 
-   if [ "$tls13" == "true" ]; then
+   if [ "$tls13" = "true" ]; then
       tls13="&tls13=true"
    else
       tls13=""
@@ -465,7 +465,9 @@ sub_info_get()
       while IFS= read -r line; do
          line=$(echo "$line" | tr -d '\r')
          subscribe_url=$([ -n "$subscribe_url" ] && echo "$subscribe_url|")$(urlencode "$line")
-      done < <(echo "$address")
+      done <<EOF
+$address
+EOF
       if [ "$template" != "0" ]; then
          template_path=$(grep "^$template," /usr/share/openclash/res/sub_ini.list |awk -F ',' '{print $3}' 2>/dev/null)
       else

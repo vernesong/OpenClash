@@ -58,7 +58,6 @@ if [ "$AC_ACTION" = "flush" ]; then
       ipset -! flush "lan_ac_${AC_COLOR}_ipv6s" 2>/dev/null
       ipset -! flush "lan_ac_${AC_COLOR}_macs" 2>/dev/null
    fi
-   echo "OK"
    exit 0
 fi
 
@@ -109,5 +108,4 @@ if [ "$AC_MISSING" = "1" ]; then
    exit 3
 fi
 
-echo "OK"
 exit 0

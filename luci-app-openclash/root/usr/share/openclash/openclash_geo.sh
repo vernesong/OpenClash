@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 . /usr/share/openclash/openclash_ps.sh
 . /usr/share/openclash/log.sh
 . /usr/share/openclash/openclash_curl.sh
@@ -42,7 +42,7 @@ update_one() {
       geoip)
          if [ -z "$custom_url" ]; then
             if [ "$github_address_mod" != "0" ]; then
-               if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
+               if [ "$github_address_mod" = "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" = "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" = "https://testingcf.jsdelivr.net/" ]; then
                   download_url="${github_address_mod}gh/Loyalsoldier/v2ray-rules-dat@release/geoip.dat"
                else
                   download_url="${github_address_mod}https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat"
@@ -57,7 +57,7 @@ update_one() {
       geosite)
          if [ -z "$custom_url" ]; then
             if [ "$github_address_mod" != "0" ]; then
-               if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
+               if [ "$github_address_mod" = "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" = "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" = "https://testingcf.jsdelivr.net/" ]; then
                   download_url="${github_address_mod}gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat"
                else
                   download_url="${github_address_mod}https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat"
@@ -72,7 +72,7 @@ update_one() {
       geoasn)
          if [ -z "$custom_url" ]; then
             if [ "$github_address_mod" != "0" ]; then
-               if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
+               if [ "$github_address_mod" = "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" = "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" = "https://testingcf.jsdelivr.net/" ]; then
                   download_url="${github_address_mod}gh/xishang0128/geoip@release/GeoLite2-ASN.mmdb"
                else
                   download_url="${github_address_mod}https://github.com/xishang0128/geoip/releases/latest/download/GeoLite2-ASN.mmdb"
@@ -87,7 +87,7 @@ update_one() {
       ipdb)
          if [ -z "$custom_url" ]; then
             if [ "$github_address_mod" != "0" ]; then
-               if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
+               if [ "$github_address_mod" = "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" = "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" = "https://testingcf.jsdelivr.net/" ]; then
                   download_url="${github_address_mod}gh/alecthw/mmdb_china_ip_list@release/lite/Country.mmdb"
                else
                   download_url="${github_address_mod}https://raw.githubusercontent.com/alecthw/mmdb_china_ip_list/release/lite/Country.mmdb"

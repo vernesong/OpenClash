@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 . /usr/share/openclash/log.sh
 . /lib/functions.sh
 . /usr/share/openclash/openclash_curl.sh
@@ -70,25 +70,25 @@ EOF
    DASH_FILE_DIR="/tmp/dash.zip"
    DASH_FILE_TMP="/tmp/dash/"
    github_address_mod=$(uci_get_config "github_address_mod" || echo 0)
-   if [ "$DASH_NAME" == "Dashboard" ]; then
+   if [ "$DASH_NAME" = "Dashboard" ]; then
       UNPACK_FILE_DIR="/usr/share/openclash/ui/dashboard/"
-      if [ "$DASH_TYPE" == "Official" ]; then
+      if [ "$DASH_TYPE" = "Official" ]; then
          DOWNLOAD_PATH="https://codeload.github.com/ayanamist/clash-dashboard/zip/refs/heads/gh-pages"
          FILE_PATH_INCLUDE="clash-dashboard-gh-pages"
       else
          DOWNLOAD_PATH="https://codeload.github.com/MetaCubeX/Razord-meta/zip/refs/heads/gh-pages"
          FILE_PATH_INCLUDE="Razord-meta-gh-pages"
       fi
-   elif [ "$DASH_NAME" == "Yacd" ]; then
+   elif [ "$DASH_NAME" = "Yacd" ]; then
       UNPACK_FILE_DIR="/usr/share/openclash/ui/yacd/"
-      if [ "$DASH_TYPE" == "Official" ]; then
+      if [ "$DASH_TYPE" = "Official" ]; then
          DOWNLOAD_PATH="https://codeload.github.com/haishanh/yacd/zip/refs/heads/gh-pages"
          FILE_PATH_INCLUDE="yacd-gh-pages"
       else
          DOWNLOAD_PATH="https://codeload.github.com/MetaCubeX/Yacd-meta/zip/refs/heads/gh-pages"
          FILE_PATH_INCLUDE="Yacd-meta-gh-pages"
       fi
-  elif [ "$DASH_NAME" == "Zashboard" ]; then
+  elif [ "$DASH_NAME" = "Zashboard" ]; then
       UNPACK_FILE_DIR="/usr/share/openclash/ui/zashboard/"
       DOWNLOAD_PATH="https://codeload.github.com/Zephyruso/zashboard/zip/refs/heads/gh-pages-cdn-fonts"
       FILE_PATH_INCLUDE="zashboard-gh-pages-cdn-fonts"

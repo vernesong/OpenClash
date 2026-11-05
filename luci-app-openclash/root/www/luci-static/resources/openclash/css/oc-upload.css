@@ -622,6 +622,7 @@ html[data-darkmode="true"] .oc .oc-sub-box { background: var(--primary-a5); }
 .oc #sub-view-result.oc-sub-age-missing #sub-check-note,
 .oc #sub-view-result.oc-sub-age-missing #sub-provider-note { display: none; }
 .oc #sub-result-footer .config-upload-buttons { flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
+.oc #core-start-footer .config-upload-buttons { margin-left: auto; }
 .oc .oc-sub-bar-top { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; min-width: 0; }
 .oc .oc-sub-bar-top b { flex: 0 1 auto; min-width: 0; font-size: 20px; font-weight: 700; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .oc #sub-view-result { padding-top: 16px; }

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 . /usr/share/openclash/log.sh
 . /usr/share/openclash/openclash_etag.sh
 

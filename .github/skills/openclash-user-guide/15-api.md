@@ -1,310 +1,132 @@
 ## LuCI 与 Mihomo HTTP API
 
-> **用途**: LuCI HTTP API 与 Mihomo 原生 API 的 curl 命令及返回值解读（§15.1–15.2）。
-
-> **小节索引**: §15.1 LuCI HTTP API（§15.1.1 状态查询 / §15.1.2 操作 / §15.1.3 诊断）· §15.2 Mihomo 原生 API
-
-> **AI 行为指引**: 当用户需要「用命令查询/修改 OpenClash 状态」「通过 HTTP API 操作核心」「编写自动化脚本调用」时，AI 应结合本文件给出可直接执行的 curl 命令。排障场景优先用 `14-diagnostics.md` §14.3 的安全查询命令；LuCI 后端接口（§15.1）与 Mihomo 原生 API（§15.2）的适用场景不同，按需选择。
+> **用途**: LuCI 后端接口（§15.1）与 Mihomo 原生 API（§15.2）的端点、参数与返回值解读。
+> **执行环境**: 路由器终端，`127.0.0.1` 本地访问无需认证；排障优先用 `14-diagnostics.md` §14.3 的安全查询命令。
+> **通用**: 返回 JSON，可用 `| jsonfilter -e '@.key'` 提取字段（OpenWrt 内置）。
 
 ### 15.1 LuCI HTTP API
 
-> 以下命令在路由器终端直接执行（本地 `127.0.0.1`，无需认证）。
-> 返回 JSON 格式，可追加 `| jsonfilter -e '@.key'` 提取特定字段（OpenWrt 内置工具）。
+前缀统一为 `http://127.0.0.1/cgi-bin/luci/admin/services/openclash`。
 
-#### 15.1.1 状态查询
+#### 15.1.1 状态查询（GET）
+
+| 端点 | 用途 |
+|------|------|
+| `/status` | 运行状态总览（核心状态、Dashboard 地址、端口、核心类型） |
+| `/rule_mode` | 当前代理模式（rule/global/direct） |
+| `/get_run_mode` | 当前运行模式（redir-host / fake-ip / *-tun 等） |
+| `/toolbar_show` | 实时流量原始数据（连接数、累计流量、内存、CPU ticks） |
+| `/update` | 本机配置与已装版本（`corever`/`release_branch`/`smart_enable`/`oix`/`pkg_type`/`coremodel`/`opcv`/`coremetacv`），**不含远程最新** |
+| `/last_version` | 远程最新版本（`corelv`/`oplv`，首次请求会同步拉缓存） |
+| `/config_name` | 配置列表与当前使用项 |
+| `/proxy_info` | 混合代理端口与认证信息 |
+| `/sub_info_get?filename=<配置名>` | 订阅流量/到期信息 |
+| `/oc_settings` | 快捷设置状态（sniffer / respected_rules / china_ip_route / stream_unlock） |
+| `/startlog` | 最后一行启动日志 |
+| `/check_core` | 核心文件是否存在 |
+| `/myip_check` | 多源出口 IP（PConline / IPIP / IP.SB / IPIFY 并行） |
+| `/clients_ac` | 局域网设备列表（在线状态、分流方向、自定义名称图标） |
+| `/clients_stats` | 逐设备流量原始数据（`/proc/net/nf_conntrack` 原文，浏览器解析聚合） |
+| `/clients_set?action=proxy\|direct&scope=item\|all[&ip=..][&mac=..]` | 设置设备分流（`scope=item` 时 ip/mac 至少给一个） |
+| `/clients_meta?mac=..&name=..&icon=..` | 保存设备名称与图标（留空恢复自动识别） |
+| `/clients_dns_switch` | Fake-IP 下把 DNS 劫持切成防火墙转发（同步重建规则） |
+| `/website_check?domain=..` | 网站可达性检测（返回延迟 ms） |
 
 ```bash
-# 运行状态总览（核心状态、Dashboard地址、端口、核心类型）
 curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/status
-
-# 当前代理模式 (rule/global/direct)
-curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/rule_mode
-
-# 当前运行模式 (redir-host/fake-ip/redir-host-tun 等)
-curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/get_run_mode
-
-# 实时流量统计（连接数、累计流量、内存、CPU 原始刻度；速率与占用率由前端两次采样计算）
-curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/toolbar_show
-
-# 本机配置与已装版本（编译版本 corever、发布分支 release_branch、Smart 状态 smart_enable、oix/pkg_type、CPU 架构 coremodel、已安装插件/内核版本 opcv/coremetacv；不含远程最新）
-curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/update
-
-# 远程最新版本（corelv 远程最新核心 / oplv 远程最新插件，首次请求会同步拉取缓存）
-curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/last_version
-
-# 配置文件列表及当前使用的配置
-curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/config_name
-
-# 混合代理端口和认证信息
-curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/proxy_info
-
-# 订阅流量/到期信息（替换 <配置名>）
-curl -s 'http://127.0.0.1/cgi-bin/luci/admin/services/openclash/sub_info_get?filename=<配置名>'
-
-# 快捷设置状态（sniffer/respected_rules/china_ip_route/stream_unlock）
-curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/oc_settings
-
-# 最后一行启动日志
-curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/startlog
-
-# 核心文件是否存在
-curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/check_core
-
-# 多源出口 IP 查询（PConline/IPIP/IP.SB/IPIFY 并行）
-curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/myip_check
-
-# 局域网设备列表（在线状态、分流方向、自定义名称/图标）
-curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/clients_ac
-
-# 逐设备流量原始数据（/proc/net/nf_conntrack 原文，浏览器负责解析与聚合）
-curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/clients_stats
-
-# 设置设备分流（action=proxy|direct，scope=item|all；item 时 ip/mac 至少给一个）
 curl -s 'http://127.0.0.1/cgi-bin/luci/admin/services/openclash/clients_set?action=direct&scope=item&ip=192.168.1.10&mac=aa:bb:cc:dd:ee:ff'
-
-# 保存设备名称与图标（name/icon 留空即恢复自动识别）
-curl -s 'http://127.0.0.1/cgi-bin/luci/admin/services/openclash/clients_meta?mac=aa:bb:cc:dd:ee:ff&name=TV&icon=tv'
-
-# Fake-IP 下把 DNS 劫持切换为防火墙转发（同步重建规则）
-curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/clients_dns_switch
-
-# 网站可达性检测（替换域名，返回延迟 ms）
-curl -s 'http://127.0.0.1/cgi-bin/luci/admin/services/openclash/website_check?domain=www.google.com'
 ```
 
-**关键返回值解读：**
+**`/status` 返回字段**:
 
-`/status` 返回的 JSON：
-| 字段 | 含义 | 正常值 | 异常含义 |
-|------|------|--------|----------|
-| `clash` | UCI enable 开关 | `true` | `false` → 插件被禁用，需在「运行状态」页开启 |
-| `run_mode` | 当前 en_mode | `redir-host`/`fake-ip`/`redir-host-tun`/`fake-ip-tun`/`redir-host-mix`/`fake-ip-mix` | — |
-| `rule_mode` | 代理模式 | `rule` | `direct` → 所有流量直连；`global` → 所有流量走 GLOBAL 组 |
-| `meta_sniffer` | 域名嗅探 | `"1"` | `"0"` → 嗅探关闭，域名规则可能失效 |
-| `oversea` | 区域绕行 | `"1"`(大陆)/`"2"`(海外)/`"0"`(关闭) | `"0"` → 未启用 IP 绕行 |
-| `cn_port` | API 端口 | `"9090"` | 非 9090 → 用户修改过端口 |
-| `core_type` | 核心类型 | `"Meta"` | `"Smart"`→Smart 内核；`"Oix"`→oixCloud 内核 |
-| `daip` | 局域网 IP | `"192.168.3.1"` | 前端构造仪表盘 URL 的基准 host |
-| `dase` | `dashboard_password` | 空/密钥 | 仪表盘登录 secret |
-| `db_foward_domain` / `db_foward_port` / `db_forward_ssl` | 公网访问设置 | — | 前端构造公网仪表盘 URL（域名可含内嵌端口，ssl 决定协议） |
-| `dashboard_custom_url` / `dashboard_custom_clash_compatible` | 自定义外部仪表盘 | 空 / `"0"` | 前端显示 **External Dashboard** 按钮，并优先用于复制地址 |
+| 字段 | 含义 | 正常 / 异常 |
+|------|------|-------------|
+| `clash` | UCI enable 开关 | `true`；`false` = 插件被禁用 |
+| `run_mode` | 当前 `en_mode` | 六种取值之一 |
+| `rule_mode` | 代理模式 | `rule`；`direct` = 全直连；`global` = 全走 GLOBAL 组 |
+| `meta_sniffer` | 域名嗅探 | `"1"`；`"0"` = 关闭，域名规则可能失效 |
+| `oversea` | 区域绕行 | `"1"` 大陆 / `"2"` 海外 / `"0"` 关闭 |
+| `cn_port` | API 端口 | `"9090"` |
+| `core_type` | 核心类型 | `"Meta"` / `"Smart"` / `"Oix"` |
+| `daip` | 局域网 IP | 前端构造仪表盘 URL 的基准 host |
+| `dase` | `dashboard_password` | 仪表盘 secret |
+| `db_foward_domain` / `db_foward_port` / `db_forward_ssl` | 公网访问设置 | 前端构造公网仪表盘 URL |
+| `dashboard_custom_url` / `dashboard_custom_clash_compatible` | 自定义外部仪表盘 | 非空时前端显示 External Dashboard 按钮 |
 
-`/toolbar_show` 返回的 JSON（**原始数值**，前端再格式化/绘图；浏览器能直连核心 WebSocket 时该接口仅作回退）：
-| 字段 | 含义 | 异常判断 |
-|------|------|----------|
-| `connections` | 活跃连接数 | `0` → 无流量经过核心，可能规则全 RETURN |
-| `up_total` / `down_total` | 上行/下行累计流量（字节），前端用两次采样差值算速率 | 持续不增长 → 无数据流动 |
-| `mem` | 核心内存占用 | 单位为字节；持续增长 → 可能存在内存泄漏 |
-| `cpu_ticks` / `cpu_count` | 核心累计 CPU tick（USER_HZ=100）与核数，前端两次采样换算占用率 | 占用率持续 > 80% → 节点过多或规则复杂 |
+**`/toolbar_show`**（前端再格式化；浏览器能直连核心 WebSocket 时仅作回退）：`connections`（0 = 无流量过核心，可能规则全 RETURN）、`up_total`/`down_total`（字节，两次采样算速率）、`mem`（字节，持续增长可能泄漏）、`cpu_ticks`/`cpu_count`（USER_HZ=100，算出占用率；>80% 说明节点过多或规则复杂）。
 
-`/update` 返回的 JSON：
-| 字段 | 来源 | 含义 |
-|------|------|------|
-| `coremodel` | opkg/apk `libc` 架构 | CPU 架构（只读展示） |
-| `corever` | UCI `core_version` | 编译版本选择，`"0"`=未设置 |
-| `release_branch` | UCI `release_branch` | 发布分支（master/dev） |
-| `smart_enable` | UCI `smart_enable` | Smart 内核启用状态 |
-| `oix_core` | UCI `oix_token` | 是否 oixCloud 内核 |
-| `pkg_type` | opkg/apk | 包管理器类型 |
-| `coremetacv` | `clash_meta -v` 解析 | 当前核心版本（已装），`"0"`=核心文件不存在 |
-| `opcv` | opkg/apk 包数据库 | 当前插件版本（已装），`"0"`=未安装 |
-| `github_address_mod` | UCI `config.github_address_mod` | GitHub CDN 地址（`"0"`=未设置） |
-| `cdn_list` | 读 `/usr/share/openclash/res/cdn.list` | CDN 地址列表（供前端探测）。该列表由 `openclash_version.lua` 从远程仓库自动更新（`cdn.list` 超过 7 天未更新且能连通时自动拉取最新版再返回缓存） |
+**`/update`**: `coremodel`（opkg/apk libc 架构）、`corever`（UCI `core_version`，`"0"` 未设置）、`release_branch`、`smart_enable`、`oix_core`（UCI `oix_token`）、`pkg_type`、`coremetacv`（`clash_meta -v`，`"0"` 不存在）、`opcv`（`"0"` 未安装）、`github_address_mod`、`cdn_list`（读 `res/share/openclash/res/cdn.list`，由 `openclash_version.lua` 自动更新，超 7 天且可连通时拉新）。
 
-`/last_version` 返回的 JSON（远程最新版本，status 页「新版本可用」红点判断依据）：
-| 字段 | 来源 | 含义 |
-|------|------|------|
-| `corelv` | Lua `fetch_version_history` 缓存 | 远程最新核心版本，`"loading..."`=尚未获取 |
-| `oplv` | Lua `fetch_version_history` 缓存 | 远程最新插件版本 |
-
-`/check_core` 返回 `{"core_status":"1"}`（核心文件存在）或 `{"core_status":"0"}`（不存在，需下载）。
-
-`/sub_info_get` 返回的 JSON (`providers[]`)：
-| 字段 | 含义 | 异常判断 |
-|------|------|----------|
-| `http_code` | HTTP 状态码 | 非 `"200"` → 订阅源不可达 |
-| `surplus` | 剩余流量 | `"null"` → 订阅不支持流量查询；接近 `"0 KB"` → 即将用尽 |
-| `day_left` | 剩余天数 | `0` → 已过期；`"null"` → 无法获取；`"∞"` → 长期有效 |
-| `percent` | 剩余百分比 | < 10% → 即将用尽 |
-
-`/website_check` 返回 `{"success":true/false, "response_time":<ms>, "error":"..."}`。`success=false` 且 `error="No response"` 表示完全不通。
+**`/last_version`**: `corelv` / `oplv`（`"loading..."` = 尚未获取）。
+**`/check_core`**: `{"core_status":"1"}` 存在 / `"0"` 不存在。
+**`/sub_info_get`**: `http_code`（非 `"200"` = 源不可达）、`surplus`（`"null"` = 不支持查询）、`day_left`（`0` = 过期、`"∞"` = 长期）、`percent`（<10% 即将用尽）。
+**`/website_check`**: `{"success":true|false,"response_time":<ms>,"error":"..."}`；`error="No response"` = 完全不通。
 
 #### 15.1.2 操作
 
+| 端点 | 方法 / 参数 | 用途 |
+|------|-------------|------|
+| `/action` | POST `action=start\|stop\|restart` | 服务控制 |
+| `/switch_rule_mode` | POST `rule_mode=rule\|global\|direct` | 热切换代理模式 |
+| `/switch_log` | POST `log_level=debug\|info\|warning` | 热切换日志级别 |
+| `/flush_dns_cache` | POST | 清 DNS + Fake-IP 缓存 |
+| `/flush_smart_cache` | POST | 清 Smart 缓存 |
+| `/reload_firewall` | POST | 重载防火墙规则 |
+| `/close_all_connection` | POST | 断开所有代理连接 |
+| `/switch_oc_setting` | POST `setting=meta_sniffer\|respect_rules\|oversea\|stream_unlock` + `value=` | 快捷设置（`oversea`：0 关 / 1 大陆 / 2 海外） |
+| `/switch_config` | POST `config_file=<文件名.yaml>` | 切换配置（自动重启核心） |
+| `/update_config` | POST `filename=<配置名>` | 更新指定订阅 |
+| `/coreupdate` | POST `core_type=Meta` | 更新核心（按 UCI 构建下载 URL） |
+| `/opupdate` | POST（无参） | 只升级插件 |
+| `/one_key_update` | POST | 一键更新（核心 + 插件 + 订阅 + GEO） |
+| `/generate_pac` | POST | 生成 PAC 文件 |
+
 ```bash
-# --- 服务控制 ---
-# 启动
-curl -s -X POST -d 'action=start' http://127.0.0.1/cgi-bin/luci/admin/services/openclash/action
-# 停止
-curl -s -X POST -d 'action=stop' http://127.0.0.1/cgi-bin/luci/admin/services/openclash/action
-# 重启
 curl -s -X POST -d 'action=restart' http://127.0.0.1/cgi-bin/luci/admin/services/openclash/action
-
-# --- 热切换（无需重启核心） ---
-# 切换代理模式为 rule
-curl -s -X POST -d 'rule_mode=rule' http://127.0.0.1/cgi-bin/luci/admin/services/openclash/switch_rule_mode
-# 切换代理模式为 global
-curl -s -X POST -d 'rule_mode=global' http://127.0.0.1/cgi-bin/luci/admin/services/openclash/switch_rule_mode
-# 切换代理模式为 direct
 curl -s -X POST -d 'rule_mode=direct' http://127.0.0.1/cgi-bin/luci/admin/services/openclash/switch_rule_mode
-
-# 切换日志级别
-curl -s -X POST -d 'log_level=debug' http://127.0.0.1/cgi-bin/luci/admin/services/openclash/switch_log
-curl -s -X POST -d 'log_level=info' http://127.0.0.1/cgi-bin/luci/admin/services/openclash/switch_log
-curl -s -X POST -d 'log_level=warning' http://127.0.0.1/cgi-bin/luci/admin/services/openclash/switch_log
-
-# --- 缓存操作 ---
-# 清空 DNS+Fake-IP 缓存
-curl -s -X POST http://127.0.0.1/cgi-bin/luci/admin/services/openclash/flush_dns_cache
-# 清空 Smart 缓存
-curl -s -X POST http://127.0.0.1/cgi-bin/luci/admin/services/openclash/flush_smart_cache
-
-# --- 防火墙与连接 ---
-# 重载防火墙规则
-curl -s -X POST http://127.0.0.1/cgi-bin/luci/admin/services/openclash/reload_firewall
-# 断开所有代理连接
-curl -s -X POST http://127.0.0.1/cgi-bin/luci/admin/services/openclash/close_all_connection
-
-# --- 快捷设置切换 ---
-# 启用域名嗅探
-curl -s -X POST -d 'setting=meta_sniffer&value=1' http://127.0.0.1/cgi-bin/luci/admin/services/openclash/switch_oc_setting
-# 启用 DNS 尊重规则
-curl -s -X POST -d 'setting=respect_rules&value=1' http://127.0.0.1/cgi-bin/luci/admin/services/openclash/switch_oc_setting
-# 切换区域绕行：0=关闭 1=绕过大陆 2=绕过海外
 curl -s -X POST -d 'setting=oversea&value=1' http://127.0.0.1/cgi-bin/luci/admin/services/openclash/switch_oc_setting
-# 启用流媒体解锁
-curl -s -X POST -d 'setting=stream_unlock&value=1' http://127.0.0.1/cgi-bin/luci/admin/services/openclash/switch_oc_setting
-
-# --- 配置与订阅 ---
-# 切换配置文件（替换 <文件名.yaml>，会自动重启核心）
-curl -s -X POST -d 'config_file=<文件名.yaml>' http://127.0.0.1/cgi-bin/luci/admin/services/openclash/switch_config
-# 更新指定订阅配置（替换 <配置名>）
-curl -s -X POST -d 'filename=<配置名>' http://127.0.0.1/cgi-bin/luci/admin/services/openclash/update_config
-
-# --- 更新操作 ---
-# 更新核心（按 uci 配置构建下载 URL，无完整 URL）
-curl -s -X POST -d 'core_type=Meta' http://127.0.0.1/cgi-bin/luci/admin/services/openclash/coreupdate
-# 更新插件（无参=只升级插件）
-curl -s -X POST http://127.0.0.1/cgi-bin/luci/admin/services/openclash/opupdate
-# 一键更新（核心+插件+订阅+GEO）
-curl -s -X POST http://127.0.0.1/cgi-bin/luci/admin/services/openclash/one_key_update
 ```
 
-> **sha256sum 校验**: `coreupdate`/`opupdate`/`one_key_update` 下载内核/插件包后，脚本用同目录的 `checksums.txt`（`openclash_curl.sh` 的 `verify_sha256_checksum()`）比对实际哈希；校验失败会中止更新，日志报 `Checksum Verification Failed` 等（见 `03-errors.md` §3.4）。
-
-# --- 生成 PAC 文件 ---
-curl -s -X POST http://127.0.0.1/cgi-bin/luci/admin/services/openclash/generate_pac
-```
+> `coreupdate` / `opupdate` / `one_key_update` 下载后会用同目录 `checksums.txt` 校验（`openclash_curl.sh` 的 `verify_sha256_checksum()`），失败则中止并报 `Checksum Verification Failed`（见 `03-errors.md` §3.4）。
 
 #### 15.1.3 诊断
 
-```bash
-# 连接诊断（测试指定域名/IP 可达性）
-curl -s 'http://127.0.0.1/cgi-bin/luci/admin/services/openclash/diag_connection?addr=www.google.com'
-
-# DNS 诊断（测试指定域名的 DNS 解析链路）
-curl -s 'http://127.0.0.1/cgi-bin/luci/admin/services/openclash/diag_dns?addr=www.google.com'
-
-# 生成并返回完整调试日志（等同于 openclash_debug.sh）
-curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/gen_debug_logs
-
-# 返回已有的调试日志（不重新生成）
-curl -s http://127.0.0.1/cgi-bin/luci/admin/services/openclash/get_debug_logs
-
-# 手动流媒体解锁测试（替换 <服务名>，如 netflix/disney/hbo_max 等）
-curl -s 'http://127.0.0.1/cgi-bin/luci/admin/services/openclash/manual_stream_unlock_test?type=<服务名>'
-```
+| 端点 | 用途 |
+|------|------|
+| `/diag_connection?addr=..` | 连接诊断（域名/IP 可达性） |
+| `/diag_dns?addr=..` | DNS 解析链路诊断 |
+| `/gen_debug_logs` | 生成并返回完整调试日志（等同 `openclash_debug.sh`） |
+| `/get_debug_logs` | 返回已有调试日志（不重新生成） |
+| `/manual_stream_unlock_test?type=<服务名>` | 手动流媒体解锁测试（netflix / disney / hbo_max 等） |
 
 ### 15.2 Mihomo 原生 API
 
-> 以下命令在路由器终端直接执行，核心必须运行中。
-> 如设置了 `dashboard_password`，所有命令需追加 `-H "Authorization: Bearer <password>"`。
+> 核心必须运行中；设置 `dashboard_password` 时所有请求加 `-H "Authorization: Bearer <password>"`。
+
+| 端点 | 方法 / 参数 | 用途 |
+|------|-------------|------|
+| `/configs` | GET | 完整运行时配置 |
+| `/configs` | PATCH `{"mode":"rule"}` / `{"log-level":"debug"}` | 热改配置 |
+| `/configs?force=true` | PUT `{"path":"/etc/openclash/<配置>.yaml"}` | 热重载配置文件 |
+| `/proxies` | GET | 所有节点及延迟 |
+| `/proxies/<组名>` | PUT `{"name":"<节点名>"}` | 切换策略组 |
+| `/connections` | GET | 活跃连接列表 |
+| `/connections` | DELETE | 关闭全部连接 |
+| `/connections/<连接ID>` | DELETE | 关闭指定连接 |
+| `/cache/fakeip/flush` · `/cache/dns/flush` · `/cache/smart/flush` | POST | 清 Fake-IP / DNS / Smart 缓存 |
+| `/traffic` | GET | 实时流量 |
+| `/version` | GET | 核心版本 |
 
 ```bash
-# --- 读取运行时配置 ---
-# 查看完整运行时 YAML 配置
-curl -s http://127.0.0.1:9090/configs
-
-# 仅查看代理模式
-curl -s http://127.0.0.1:9090/configs | grep '"mode"'
-
-# --- 热修改配置（无需重启核心） ---
-# 切换代理模式为 rule
-curl -s -X PATCH -H 'Content-Type: application/json' \
-  -d '{"mode":"rule"}' http://127.0.0.1:9090/configs
-# 切换代理模式为 global
-curl -s -X PATCH -H 'Content-Type: application/json' \
-  -d '{"mode":"global"}' http://127.0.0.1:9090/configs
-# 切换日志级别为 debug
-curl -s -X PATCH -H 'Content-Type: application/json' \
-  -d '{"log-level":"debug"}' http://127.0.0.1:9090/configs
-
-# 热重载配置文件（替换路径）
-curl -s -X PUT -H 'Content-Type: application/json' \
-  -d '{"path":"/etc/openclash/<配置文件名>.yaml"}' \
-  'http://127.0.0.1:9090/configs?force=true'
-
-# --- 代理节点查询与切换 ---
-# 查看所有代理节点及延迟
-curl -s http://127.0.0.1:9090/proxies
-
-# 切换策略组到指定节点（替换 <策略组名> 和 <节点名>）
-curl -s -X PUT -H 'Content-Type: application/json' \
-  -d '{"name":"<节点名>"}' http://127.0.0.1:9090/proxies/<策略组名>
-
-# --- 连接管理 ---
-# 查看活跃连接列表
-curl -s http://127.0.0.1:9090/connections
-
-# 关闭所有连接
-curl -s -X DELETE http://127.0.0.1:9090/connections
-
-# 关闭指定连接（替换 <连接ID>，ID 从 /connections 返回中获取）
-curl -s -X DELETE http://127.0.0.1:9090/connections/<连接ID>
-
-# --- 缓存操作 ---
-# 清空 Fake-IP 缓存
-curl -s -X POST http://127.0.0.1:9090/cache/fakeip/flush
-# 清空 DNS 缓存
-curl -s -X POST http://127.0.0.1:9090/cache/dns/flush
-# 清空 Smart 缓存
-curl -s -X POST http://127.0.0.1:9090/cache/smart/flush
-
-# --- 其他 ---
-# 实时流量数据
-curl -s http://127.0.0.1:9090/traffic
-# 核心版本
-curl -s http://127.0.0.1:9090/version
+curl -s http://127.0.0.1:9090/configs | jsonfilter -e '@.dns.enhanced-mode'
+curl -s -X PATCH -H 'Content-Type: application/json' -d '{"mode":"global"}' http://127.0.0.1:9090/configs
+curl -s -X PUT -H 'Content-Type: application/json' -d '{"name":"<节点名>"}' http://127.0.0.1:9090/proxies/<策略组名>
 ```
 
-**关键返回值解读：**
+**`/configs` 关注字段**: `.mode`、`.dns.enhanced-mode`、`.dns.nameserver`、`.tun.enable`、`.sniffer.enable`、`.log-level`。
 
-`/configs` (GET) 返回完整运行时 YAML 的 JSON 表示：
-| 关注字段 | 诊断用途 |
-|----------|----------|
-| `.mode` | `rule`/`global`/`direct` — 代理模式 |
-| `.dns.enhanced-mode` | `fake-ip`/`redir-host` — DNS 模式 |
-| `.dns.nameserver` | 上游 DNS 列表 |
-| `.tun.enable` | TUN 是否启用 |
-| `.sniffer.enable` | 域名嗅探是否开启 |
-| `.log-level` | 当前日志级别 |
+**`/proxies`**: `.proxies.<组名>.type`（select/url-test/fallback/load-balance/smart）、`.now`（当前节点）、`.history[]`（`{"delay":<ms>,"time":"..."}`，`delay=0` = 超时）、`.alive`。
+> `history` 全 `delay=0` → 节点不可达；`now` 为空或异常 → 手动切换失败或无可用节点。
 
-`/proxies` (GET) 返回所有代理节点：
-| 字段 | 含义 |
-|------|------|
-| `.proxies.<组名>.type` | 策略组类型 (select/url-test/fallback/load-balance/smart) |
-| `.proxies.<组名>.now` | 当前选中的节点名 |
-| `.proxies.<节点名>.history[]` | 最近延迟记录 (`{"delay":<ms>,"time":"..."}`)，`delay=0` 表示超时 |
-| `.proxies.<节点名>.alive` | 节点是否存活 |
-
-> 诊断提示：若某节点 `history` 全部 `delay=0` → 节点不可达；若某策略组 `now` 为空或指向异常节点 → 手动切换失败或无可用节点。
-
-`/connections` (GET) 返回活跃连接：
-| 字段 | 含义 |
-|------|------|
-| `.connections[].chains[]` | 代理链（如 `["Proxy","ss_node"]`），最后一个为出口节点 |
-| `.connections[].rule` | 匹配的规则类型 (如 `DOMAIN-SUFFIX,google.com`) |
-| `.connections[]. metadata.host` | 目标域名 |
-| `.uploadTotal` / `.downloadTotal` | 累计上下行流量（字节） |
-
-> 诊断提示：若连接列表为空但有网络活动 → 流量未进入核心（防火墙规则问题）；若 `chains` 全部为 `["DIRECT"]` → 规则匹配为直连。
+**`/connections`**: `.connections[].chains[]`（最后一个为出口节点）、`.rule`（命中的规则）、`.metadata.host`（目标域名）、`.uploadTotal` / `.downloadTotal`。
+> 列表为空但有网络活动 → 流量未进核心（防火墙问题）；`chains` 全为 `["DIRECT"]` → 全直连。

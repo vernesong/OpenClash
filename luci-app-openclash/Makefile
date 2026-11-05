@@ -53,7 +53,7 @@ define Package/$(PKG_NAME)
 	SUBMENU:=3. Applications
 	TITLE:=LuCI support for clash
 	PKGARCH:=$(if $(CONFIG_LUCI_APP_OPENCLASH_INCLUDE_CORE),$(ARCH_PACKAGES),all)
-	DEPENDS:=+dnsmasq-full +bash +curl +ca-bundle +ip-full \
+	DEPENDS:=+dnsmasq-full +curl +ca-bundle +ip-full \
 	+ruby +ruby-yaml +kmod-tun +unzip
 	MAINTAINER:=vernesong
 endef

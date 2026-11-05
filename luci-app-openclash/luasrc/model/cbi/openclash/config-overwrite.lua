@@ -302,6 +302,31 @@ function custom_hosts.write(self, section, value)
 	return true
 end
 
+o = s:taboption("dns", Flag, "custom_system_host", translate("System Hosts"))
+o.default = 0
+o.description = translate("Write The Entries Below To The System /etc/hosts While OpenClash Is Running")
+
+custom_system_hosts = s:taboption("dns", Value, "custom_system_hosts")
+custom_system_hosts.template = "cbi/tvalue"
+custom_system_hosts.description = translate("One IP Domain Pair Per Line, Invalid Lines Are Ignored")
+custom_system_hosts.rows = 10
+custom_system_hosts.wrap = "off"
+custom_system_hosts:depends("custom_system_host", "1")
+
+function custom_system_hosts.cfgvalue(self, section)
+	return fs.readfile("/etc/openclash/custom/openclash_custom_system_hosts.list") or ""
+end
+function custom_system_hosts.write(self, section, value)
+	if value then
+		value = value:gsub("\r\n?", "\n")
+		local old_value = fs.readfile("/etc/openclash/custom/openclash_custom_system_hosts.list")
+		if value ~= old_value then
+			fs.writefile("/etc/openclash/custom/openclash_custom_system_hosts.list", value)
+		end
+	end
+	return true
+end
+
 -- Meta
 o = s:taboption("meta", Flag, "enable_tcp_concurrent", font_red..bold_on..translate("Enable Tcp Concurrent")..bold_off..font_off)
 o.description = font_red..bold_on..translate("TCP Concurrent Request IPs, Choose The Lowest Latency One To Connection")..bold_off..font_off

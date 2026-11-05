@@ -4105,6 +4105,10 @@ var CoreStartFlow = {
         if (typeof window.ocStatusMarkCoreStart === 'function') window.ocStatusMarkCoreStart();
         var title = document.getElementById('core-start-title');
         if (title) title.textContent = '<%:Program starting...%>';
+        var stepper = SubPanel.el('sw-stepper');
+        if (stepper) stepper.classList.remove('oc-hidden');
+        var statusBox = SubPanel.el('sw-status-box');
+        if (statusBox) statusBox.classList.remove('oc-hidden');
         this.showOverlay();
     },
 
@@ -4129,7 +4133,6 @@ var CoreStartFlow = {
         this.shownLines = 0;
         this.lastMirrored = null;
         this.viewRestartSeen = false;
-        this.viewDone = false;
         this.downPolls = 0;
         this.sessionStart = 0;
         try {
@@ -4138,6 +4141,10 @@ var CoreStartFlow = {
             else if (started) sessionStorage.removeItem('ocCoreStartAt');
         } catch (e) {}
         this.showOverlay();
+        var stepper = SubPanel.el('sw-stepper');
+        if (stepper) stepper.classList.add('oc-hidden');
+        var statusBox = SubPanel.el('sw-status-box');
+        if (statusBox) statusBox.classList.add('oc-hidden');
         var self = this;
         var title = document.getElementById('core-start-title');
         if (title) title.textContent = '<%:Running Log%>';
@@ -4211,7 +4218,6 @@ var CoreStartFlow = {
                 if (SubPanel.swStage !== -1 || SubPanel.failed) SubPanel.resetSwitchStage(true);
                 if (status) status.textContent = '<%:Kernel service is not running%>';
             }
-            this.viewDone = false;
             this.downPolls = (this.downPolls || 0) + 1;
             if (this.sessionStart && scriptDone && this.downPolls >= 10) {
                 // the script is gone and the service stays down: end the session so the clock freezes
@@ -4228,26 +4234,19 @@ var CoreStartFlow = {
         this.downPolls = 0;
         if (!online) {
             SubPanel.setSwitchStage(2);
-            this.viewDone = false;
             return;
         }
         if (!fresh) {
             // the old core still answers: only the starting phase is certain
             SubPanel.setSwitchStage(1);
-            this.viewDone = false;
             return;
         }
         if (!scriptDone) {
             // the script still runs: done only comes with its exit, same rule as the run flow
             SubPanel.setSwitchStage(3);
-            this.viewDone = false;
             return;
         }
         SubPanel.setSwitchStage(4);
-        if (status && !this.viewDone) {
-            this.viewDone = true;
-            SubPanel.markStatusDone();
-        }
         if (this.sessionStart) {
             // the session carried over from another page ends here: freeze the elapsed time
             CoreStartFlow.lastElapsed = Math.max(0, Math.round((Date.now() - this.sessionStart) / 1000));

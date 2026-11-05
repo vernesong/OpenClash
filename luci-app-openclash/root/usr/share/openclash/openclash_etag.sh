@@ -8,7 +8,7 @@ GET_ETAG_TIMESTAMP_BY_PATH() {
     local path=$1
     [ ! -f "$ETAG_CACHE" ] && return 1
 
-    local path_hash=$(echo -n "$path" | md5sum)
+    local path_hash=$(printf '%s' "$path" | md5sum)
     path_hash=${path_hash%% *}
 
     awk -v key="[$path_hash]" '
@@ -23,7 +23,7 @@ GET_ETAG_BY_PATH() {
     local path=$1
     [ ! -f "$ETAG_CACHE" ] && return 1
 
-    local path_hash=$(echo -n "$path" | md5sum)
+    local path_hash=$(printf '%s' "$path" | md5sum)
     path_hash=${path_hash%% *}
 
     awk -v key="[$path_hash]" '
@@ -39,7 +39,7 @@ SAVE_ETAG_TO_CACHE() {
     local etag="\"$2\""
     local path="\"$3\""
     local time="\"$(date '+%Y-%m-%d %H:%M:%S')\""
-    local path_hash=$(echo -n "$3" | md5sum)
+    local path_hash=$(printf '%s' "$3" | md5sum)
     local lock_dir="${ETAG_CACHE}.lock"
     local temp_file="${ETAG_CACHE}.tmp.$$"
     local tries=0

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 . /lib/functions.sh
 . /usr/share/openclash/ruby.sh
 . /usr/share/openclash/uci.sh
@@ -188,7 +188,6 @@ cat >> "$DEBUG_LOG" <<-EOF
 | dnsmasq-full | $(ts_re "$(ipk_v "dnsmasq-full")") |
 | dnsmasq-full(ipset) | $(ts_re "$(dnsmasq --version |grep -v no-ipset |grep ipset)") |
 | dnsmasq-full(nftset) | $(ts_re "$(dnsmasq --version |grep nftset)") |
-| bash | $(ts_re "$(ipk_v "bash")") |
 | curl | $(ts_re "$(ipk_v "curl")") |
 | ca-bundle | $(ts_re "$(ipk_v "ca-bundle")") |
 | ipset | $(ts_re "$(ipk_v "ipset")") |

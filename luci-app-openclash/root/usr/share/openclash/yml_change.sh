@@ -23,6 +23,7 @@ enable_redirect_dns=$(uci_get_config "enable_redirect_dns" || echo 1)
 disable_tun_gso=$(uci_get_config "disable_tun_gso" || echo 0)
 fake_ip_filter_mode="${33}"
 [ -z "$fake_ip_filter_mode" ] && fake_ip_filter_mode="blacklist"
+system_hosts_enable="${49:-0}"
 default_dashboard=$(uci_get_config "default_dashboard" || echo "metacubexd")
 yacd_type=$(uci_get_config "yacd_type" || echo "Official")
 dashboard_type=$(uci_get_config "dashboard_type" || echo "Official")
@@ -210,7 +211,7 @@ yml_dns_get()
    config_get_bool "disable_reuse" "$section" "disable_reuse" "0"
    config_list_foreach "$section" "disable_qtype" set_disable_qtype
 
-   if [[ "$ip" =~ "$regex" ]] || [ -n "$(echo "${ip}" | grep -Eo "${regex}")" ]; then
+   if printf '%s' "${ip}" | grep -Eq -- "${regex}"; then
       ip="[${ip}]"
    fi
 
@@ -859,6 +860,10 @@ begin
       rescue Exception => e
          YAML.LOG_ERROR('Set Built-in Hosts Failed,【%s】' % [e.message])
       end
+
+      # Firewall redirect mode sends client queries straight to the core, which only
+      # answers from dns.hosts plus the system file, so the flag must be explicit here
+      Value['dns']['use-system-hosts'] = true if '$system_hosts_enable' == '1'
 
       # DNS Loop Check
       if enable_redirect_dns == '1'

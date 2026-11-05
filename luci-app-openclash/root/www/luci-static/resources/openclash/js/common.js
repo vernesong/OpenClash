@@ -1274,7 +1274,7 @@ function ocLazyScriptOnView(el, url, cssUrl) {
 // it is still running). A watch stream that ended without ##FINISHED## reconnects
 // after a second; the lines that were already shown are skipped by counting them
 // in skipLines / onSkipLines.
-// opts: { url, script, initialMessage, skipLines, onSkipLines, maxWaitMs,
+// opts: { url, script, probe, initialMessage, skipLines, onSkipLines, maxWaitMs,
 //         display(text), onFinish(), onTimeout() }
 function ocCreateLogStream(opts) {
     var xhr = null;
@@ -1284,7 +1284,10 @@ function ocCreateLogStream(opts) {
     var initialShown = false;
     var lastLineCount = opts.skipLines != null ? opts.skipLines : null;
     var watchMode = !!opts.script && opts.script !== 'view';
-    var streamUrl = opts.url + (watchMode ? '?script=' + encodeURIComponent(opts.script) : '');
+    var params = [];
+    if (watchMode) params.push('script=' + encodeURIComponent(opts.script));
+    if (opts.probe) params.push('probe=1');
+    var streamUrl = opts.url + (params.length ? '?' + params.join('&') : '');
 
     function openStream() {
         if (stopped) return;

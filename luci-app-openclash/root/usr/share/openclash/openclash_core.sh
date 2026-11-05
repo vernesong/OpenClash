@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 . /lib/functions.sh
 . /usr/share/openclash/log.sh
 . /usr/share/openclash/uci.sh
@@ -111,7 +111,7 @@ if [ -n "$DIRECT_CORE_URL" ] || [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" 
          fi
       else
          if [ "$github_address_mod" != "0" ]; then
-            if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
+            if [ "$github_address_mod" = "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" = "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" = "https://testingcf.jsdelivr.net/" ]; then
                DOWNLOAD_URL="${github_address_mod}gh/vernesong/OpenClash@core/${CORE_URL_PATH}/clash-${CPU_MODEL}.tar.gz"
             else
                DOWNLOAD_URL="${github_address_mod}https://raw.githubusercontent.com/vernesong/OpenClash/core/${CORE_URL_PATH}/clash-${CPU_MODEL}.tar.gz"
@@ -166,7 +166,7 @@ if [ -n "$DIRECT_CORE_URL" ] || [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" 
 
                mv_err=$(mv -f "$TMP_FILE" "$TARGET_CORE_PATH" 2>&1)
 
-               if [ "$?" == "0" ]; then
+               if [ "$?" = "0" ]; then
                   LOG_TIP "【"$CORE_TYPE"】Core Update Successful"
                   UPDATE_SUCCESS=1
                   restart=1

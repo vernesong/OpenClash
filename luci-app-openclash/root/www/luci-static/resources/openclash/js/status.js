@@ -1988,7 +1988,7 @@ var ocLang = window.ocLang || '';
         },
 
         // Clear the log before streaming so the operation API is served first and the stream does not block it
-        startLogDisplay: function(initialMessage, skipClearLog, scriptName) {
+        startLogDisplay: function(initialMessage, skipClearLog, scriptName, probe) {
             if (this.stream) {
                 if (initialMessage) {
                     this.stream.abort();
@@ -2012,6 +2012,7 @@ var ocLang = window.ocLang || '';
             var stream = ocCreateLogStream({
                 url: '<%=url("admin", "services", "openclash", "startlog")%>',
                 script: scriptName,
+                probe: probe,
                 initialMessage: initialMessage,
                 skipLines: this.lastLogLineCount,
                 onSkipLines: function(n) { self.lastLogLineCount = n; },
@@ -2561,7 +2562,6 @@ var ocLang = window.ocLang || '';
         textarea: null,
         statusEl: null,
         initialized: false,
-        bubbleTimer: null,
 
         init: function() {
             if (this.initialized) return;
@@ -2569,23 +2569,11 @@ var ocLang = window.ocLang || '';
             this.textarea = document.getElementById('usage-help-textarea');
             this.statusEl = document.getElementById('usage-help-status');
 
-            var floatBtn = document.getElementById('usage-help-float');
-            if (floatBtn) {
-                floatBtn.addEventListener('click', function() {
-                    UsageHelpManager.show();
-                });
-                floatBtn.addEventListener('mouseenter', function() {
-                    UsageHelpManager.dismissBubble();
-                });
-            }
-
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape' && UsageHelpManager.overlay && UsageHelpManager.overlay.style.display === 'flex') {
                     UsageHelpManager.hide();
                 }
             });
-
-            this.startBubbleTimer();
 
             this.initialized = true;
         },
@@ -2666,33 +2654,49 @@ var ocLang = window.ocLang || '';
                 if (btn) { btn.innerHTML = origHTML; btn.disabled = false; }
                 self.hide();
             }, 2000);
+        }
+    };
+
+    var FloatHintManager = {
+        bubbles: [],
+        timer: null,
+        started: false,
+
+        init: function() {
+            var stack = document.getElementById('oc-float-stack');
+            if (!stack || this.started) return;
+            this.started = true;
+            // the tour hint is noise for someone who already walked through it
+            var ids = ['usage-help-bubble'];
+            if (localStorage.getItem('oc_guide_done') !== '1') ids.unshift('guide-bubble');
+            for (var i = 0; i < ids.length; i++) {
+                var el = document.getElementById(ids[i]);
+                if (el) this.bubbles.push(el);
+            }
+            var self = this;
+            stack.addEventListener('mouseenter', function() { self.dismiss(); });
+            stack.addEventListener('click', function() { self.dismiss(); });
+            this.startTimer();
         },
 
-        startBubbleTimer: function() {
-            var bubble = document.getElementById('usage-help-bubble');
-            if (!bubble) return;
-
+        startTimer: function() {
+            if (!this.bubbles.length) return;
             var delay = Math.random() * 60000;
+            // skip most visits so the hint stays an occasional nudge
             if (delay > 20000) return;
-
             var self = this;
-            this.bubbleTimer = setTimeout(function() {
-                bubble.classList.add('show');
+            this.timer = setTimeout(function() {
+                self.timer = null;
+                for (var i = 0; i < self.bubbles.length; i++) self.bubbles[i].classList.add('show');
             }, Math.min(delay, 5000));
         },
 
-        dismissBubble: function() {
-            var bubble = document.getElementById('usage-help-bubble');
-            if (!bubble) return;
-            bubble.classList.remove('show');
-            if (this.bubbleAutoHide) {
-                clearTimeout(this.bubbleAutoHide);
-                this.bubbleAutoHide = null;
+        dismiss: function() {
+            if (this.timer) {
+                clearTimeout(this.timer);
+                this.timer = null;
             }
-            if (this.bubbleTimer) {
-                clearTimeout(this.bubbleTimer);
-                this.bubbleTimer = null;
-            }
+            for (var i = 0; i < this.bubbles.length; i++) this.bubbles[i].classList.remove('show');
         }
     };
 
@@ -3377,6 +3381,7 @@ var ocLang = window.ocLang || '';
         envFails: 0,
         envRetryTimer: null,
         probeTimer: null,
+        hintTimer: null,
         statsTs: 0,
         lastCost: 0,
         pollSeq: 0,
@@ -3558,10 +3563,14 @@ var ocLang = window.ocLang || '';
         },
 
         stopTimers: function() {
+            var hint;
             if (this.envTimer) { clearInterval(this.envTimer); this.envTimer = null; }
             if (this.statsTimer) { clearInterval(this.statsTimer); this.statsTimer = null; }
             if (this.envRetryTimer) { clearTimeout(this.envRetryTimer); this.envRetryTimer = null; }
             if (this.probeTimer) { clearTimeout(this.probeTimer); this.probeTimer = null; }
+            if (this.hintTimer) { clearTimeout(this.hintTimer); this.hintTimer = null; }
+            hint = document.getElementById('ac-dns-hint');
+            if (hint) hint.classList.add('oc-hidden');
             if (this.statsAbort) { this.statsAbort.abort(); this.statsAbort = null; }
             this.prevFlows = null;
             this.statsTs = 0;
@@ -3946,6 +3955,7 @@ var ocLang = window.ocLang || '';
                 self.busy--;
                 if (x && x.status == 200 && data && data.ok) {
                     d.dir = dir;
+                    self.showDnsHint(dir);
                     ocToast(!data.core_running ? '<%:Saved; applies at the next start%>'
                         : (dir === 'direct' ? '<%:Set as Direct%>' : '<%:Set as Proxy%>'), 'success');
                 } else {
@@ -3975,6 +3985,7 @@ var ocLang = window.ocLang || '';
                         self.env.default_dir = dir;
                         self.env.ac_mode = dir === 'proxy' ? 0 : 1;
                     }
+                    self.showDnsHint(dir);
                     ocToast(!data.core_running ? '<%:Saved; applies at the next start%>'
                         : (dir === 'proxy' ? '<%:All set to Proxy%>' : '<%:All set to Direct%>'), 'success');
                 } else {
@@ -4012,6 +4023,32 @@ var ocLang = window.ocLang || '';
             if (!env) return;
             var fixEl = document.getElementById('ac-warn-fix');
             if (fixEl) fixEl.classList.toggle('oc-hidden', !env.need_fix);
+        },
+
+        // with DNS hijack disabled the client DNS path is the user's own setup;
+        // redir-host keeps real addresses, so only fake-ip needs the direct-side reminder
+        showDnsHint: function(dir) {
+            var env = this.env, self = this, el, txt, show;
+            show = !!env && !env.need_fix && Number(env.redirect_dns) === 0
+                && (dir !== 'direct' || (!!env.en_mode && env.en_mode.indexOf('fake-ip') >= 0));
+            el = document.getElementById('ac-dns-hint');
+            if (!el) return;
+            if (!show) {
+                if (this.hintTimer) { clearTimeout(this.hintTimer); this.hintTimer = null; }
+                el.classList.add('oc-hidden');
+                return;
+            }
+            txt = document.getElementById('ac-dns-hint-text');
+            if (!txt) return;
+            txt.textContent = dir === 'direct'
+                ? '<%:Ensure DNS queries of direct devices bypass the core%>'
+                : '<%:Ensure DNS queries of proxy devices go through the core%>';
+            el.classList.remove('oc-hidden');
+            if (this.hintTimer) clearTimeout(this.hintTimer);
+            this.hintTimer = setTimeout(function() {
+                self.hintTimer = null;
+                el.classList.add('oc-hidden');
+            }, 6000);
         },
 
         syncCounts: function() {
@@ -4845,8 +4882,9 @@ var ocLang = window.ocLang || '';
             }
 
             if (status.clash && status.daip) {
+                // keep the start log so a page opened from another tab shows the run already in progress
                 if (!WSManager.hasActiveConnections()) {
-                    LogManager.startLogDisplay(null, false, 'view');
+                    LogManager.startLogDisplay(null, true, 'view', true);
                 }
                 initializeWebSocketConnections(status);
             } else {
@@ -4874,12 +4912,8 @@ var ocLang = window.ocLang || '';
         OverwriteSubscribeManager.init();
         SubscriptionManager.init();
         UsageHelpManager.init();
+        FloatHintManager.init();
         loadAnnouncement();
-        var guideBubble = document.getElementById('guide-bubble');
-        if (guideBubble && localStorage.getItem('oc_guide_done') !== '1') {
-            guideBubble.classList.add('show');
-            setTimeout(function() { guideBubble.classList.remove('show'); }, 6000);
-        }
     }, 300);
 
     setTimeout(function() { check_core(); }, 1000);

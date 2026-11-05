@@ -1,10 +1,12 @@
 #!NAME = Tailscale
-#!DESC = Tailscale MagicDNS: resolve ts.net names through the Tailscale DNS stub
-
-# Tailscale MagicDNS: resolve ts.net names through the Tailscale DNS stub, the public DNS does
-# not know them. Requires tailscaled to be running.
+#!DESC = Tailscale MagicDNS and DERP names bypass the fake-ip pool
+# tailscaled must be running: ts.net only resolves through its stub, and a fake-ip answer
+# makes the client dial a pool address it cannot reach
 [YAML]
 dns:
   nameserver-policy+:
     '+.ts.net':
       - 100.100.100.100#DIRECT
+  fake-ip-filter+:
+    - '+.tailscale.com'
+    - '+.ts.net'

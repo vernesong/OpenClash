@@ -1,48 +1,44 @@
 ## 覆写模块示例与 UCI 结构
 
-> **用途**: 覆写模块实战示例、获取/匹配方式与 UCI 覆写条目结构、[General] Key 速查（§17.1–17.5）；格式定义见 `16-overwrite-module-format.md`。
+> **用途**: 实战示例、获取/匹配方式、UCI 条目结构与 `[General]` Key 速查（§17.1–17.5）。格式定义见 `16-overwrite-module-format.md`。
+> **用法**: 用户要示例时先确认需求（追加还是替换？改插件设置还是运行 YAML？），再按 §17.3 给出带段头的可运行配置。格式与操作符细节见 `16-overwrite-module-format.md` §16.2。
 
-> **小节索引**: §17.1 获取方式 · §17.2 匹配规则 · §17.3 实战示例（§17.3.1–17.3.10）· §17.4 自定义脚本 · §17.5 UCI 结构（§17.5.1 字段详解 / §17.5.2 Key 速查）
+### 17.1 两种获取方式
 
-> **AI 行为指引**: 当用户询问「覆写模块怎么写/怎么用」「给个示例」时，AI 应先确认用户需求（追加还是替换？改插件设置还是运行 YAML？），再按本文件 §17.3 示例给出带段头的可运行配置。格式与操作符细节见 `16-overwrite-module-format.md` §16.2；`[General]` 允许的 Key 见 §16.2.1 与 §17.5.2。
+| 类型 | UCI `type` | 说明 |
+|------|-----------|------|
+| 本地模块 | `file` | 读 `/etc/openclash/overwrite/<名称>` |
+| 远程模块 | `http` | 从 URL 下载到同路径，可配 `update_days`/`update_hour` 定时拉取 |
 
-### 17.1 覆写模块的两种获取方式
+- 模块文件内的 `#!NAME`/`#!DESC`/`#!CONFIG`/`#!CRON`/`#!ENV` 注释声明元信息，添加时自动回填表单（格式见 `16-overwrite-module-format.md` §16.2.5，示例见 §17.3.9）
+- **内置订阅型模块五个**（`type=http`、`update_days=off`、`config=all`、`enable=0`）：`default`（order 1）、`Google_Play`（2）、`Tailscale`（3）、`WiFi_Calling`（4）、`BT_PT_Download`（5）
+  - `WiFi_Calling`：代理运营商 ePDG 的 IKE/NAT-T 流量；启用前须把 `WIFI_CALLING_PROXY` 设为现有 UDP 代理目标（留空不会跳过规则）
+  - `BT_PT_Download`：切 `redir-host`、仅代理常用端口，tracker 直连并兜底 `MATCH,DIRECT`
 
-| 类型 | UCI `type` 值 | 说明 |
-|------|--------------|------|
-| **本地模块** | `file` | 读取 `/etc/openclash/overwrite/<名称>` |
-| **远程模块** | `http` | 从 URL 下载到 `/etc/openclash/overwrite/<名称>`，支持 cron 定时更新 |
+### 17.2 与配置文件的匹配
 
-远程模块可设置 `update_days` 和 `update_hour` 实现定时自动拉取。
-
-> 模块文件内的 `#!NAME` / `#!DESC` / `#!CONFIG` / `#!CRON` / `#!ENV` 注释行声明元信息，添加模块时自动回填第二步表单（格式见 `16-overwrite-module-format.md` §16.2.5，示例见 §17.3.9）。
-
-> 插件内置五个订阅型模块（`type=http`、`update_days=off`、`config=all`、`enable=0`）：`default`（`order=1`）、`Google_Play`（`order=2`）、`Tailscale`（`order=3`）、`WiFi_Calling`（`order=4`）与 `BT_PT_Download`（`order=5`），都可在「覆写模块」窗口启用。`WiFi_Calling` 代理运营商 ePDG 的 IKE/NAT-T 流量；启用前须把 `WIFI_CALLING_PROXY` 设为现有 UDP 代理目标，留空不会跳过规则。`BT_PT_Download` 切 `redir-host`、仅代理常用端口，tracker 直连且兜底 `MATCH,DIRECT`。
-
-### 17.2 覆写与配置文件的匹配
-
-每个覆写条目可指定目标配置文件（`config` 字段，ListValue）:
-- `all` — 对所有配置文件生效
-- `/etc/openclash/config/xxx.yaml` — 仅对该配置文件生效
+`config` 字段（ListValue）：`all` = 所有配置；`/etc/openclash/config/xxx.yaml` = 仅该配置。
 
 ### 17.3 实战示例
 
-#### 17.3.1 强制启用 TUN 模式 + 设置 DNS
+#### 17.3.1 强制启用 TUN 模式 + 指定堆栈
+
 ```ini
 [General]
 EN_MODE = fake-ip-tun
 STACK_TYPE = mips
 ```
 
-#### 17.3.2 通过 [Overwrite] 段添加自定义代理组
+#### 17.3.2 用 `[Overwrite]` 添加自定义代理组
+
 ```ini
 [Overwrite]
-# 第 2 参是键路径，第 3 参是插入下标，第 4 参是 Ruby 哈希字面量（注意用 => 而非 JSON 的 :）
+# 参数：文件、键路径、插入下标、Ruby 哈希字面量（用 => 而非 JSON 的 :）
 ruby_arr_insert_hash "$CONFIG_FILE" "['proxy-groups']" "0" "{'name'=>'手动切换', 'type'=>'select', 'proxies'=>['DIRECT', 'Proxy']}"
 ```
 
-#### 17.3.3 通过 [YAML] 段覆写完整 DNS 配置（默认合并 `key`）
-> 操作符：**默认合并**（`key`）——`dns:` 哈希递归合并，`enable`/`enhanced-mode`/`nameserver`/`fallback`/`fallback-filter` 均为键级覆盖或新增，未列出的 `dns` 子键保留。
+#### 17.3.3 覆写完整 DNS 配置（默认合并）
+
 ```ini
 [YAML]
 dns:
@@ -59,8 +55,10 @@ dns:
     geoip-code: CN
 ```
 
-#### 17.3.4 通过 [YAML] 段覆写 Sniffer（默认合并 `key`）
-> 操作符：**默认合并**（`key`）——`sniffer:` 哈希递归合并，仅覆盖所列字段（`enable`/`force-dns-mapping`/`parse-pure-ip`/`sniff`），其余键保留。
+`dns:` 按 Hash 递归合并——`enable`/`enhanced-mode`/`nameserver`/`fallback`/`fallback-filter` 逐项覆盖或新增，未列出的 `dns` 子键保留。
+
+#### 17.3.4 覆写 Sniffer（默认合并）
+
 ```ini
 [YAML]
 sniffer:
@@ -74,8 +72,10 @@ sniffer:
       ports: [80, 8080-8880]
 ```
 
-#### 17.3.5 通过 [YAML] 段追加自定义规则（数组后置追加 `key+`）
-> 操作符：**数组后置追加**（`rules+`）——将下列规则追加到现有 `rules:` 数组末尾。注意：若改用默认合并（`rules:`）会**整体替换**整个规则数组，而非追加。
+只覆盖列出的字段，其余 `sniffer` 子键保留。
+
+#### 17.3.5 追加自定义规则（数组后置追加）
+
 ```ini
 [YAML]
 rules+:
@@ -86,26 +86,30 @@ rules+:
   - MATCH,Proxy
 ```
 
-#### 17.3.6 通过 [Overwrite] + ruby 函数动态修改（Shell 函数族，非 [YAML] 操作符）
+必须用 `rules+`；写成 `rules:` 会**整体替换**整个规则数组。操作符全表见 `16-overwrite-module-format.md` §16.2.3（含 `key!` 强制覆盖、`+key` 前置插入、`key-` 删除、`key*` 批量条件更新）。
+
+#### 17.3.6 用 `[Overwrite]` + ruby 函数动态修改
+
 ```ini
 [Overwrite]
-# 把规则文件的条目插到 rules 开头（第 2 参是键路径，第 4 参是列表文件内的取值路径）
+# 把规则文件条目插到 rules 开头
 ruby_arr_head_add_file "$CONFIG_FILE" "['rules']" "/etc/openclash/custom/openclash_custom_rules.list" "['rules']"
-# 删除 proxy-providers 下的指定条目
+# 删除 proxy-providers 下指定条目
 ruby_delete "$CONFIG_FILE" "['proxy-providers']" "provider1"
-# 用外部文件里的 nameserver 列表替换 dns.nameserver
+# 用外部文件的 nameserver 列表替换 dns.nameserver
 ruby_cover "$CONFIG_FILE" "['dns']['nameserver']" "/etc/openclash/custom/openclash_custom_dns.yaml" "nameserver"
 ruby_merge_hash "$CONFIG_FILE" "['tun']" "'stack' => 'mips'"
 ```
 
-> **⚠️ 写法限制**：每行必须是**单个白名单 `ruby_*` 函数调用**且参数整体加引号；参数内可含 `\`、`;`、`$( )`、引号内的反引号（**一律按字面量处理**，不会触发 shell 展开或命令替换，无需转义）；**代码参数过 AST 白名单**（`Value` 读写 + 常用 String/Array/Hash 方法 + `lambda`/条件/循环/插值等），未列入的调用（`system`/`send`/`File.`/`ENV`/反引号等）会被拒并记录 `skip invalid Overwrite command`（详见 `16-overwrite-module-format.md` §16.2.2）。**正则里的 `\.` 可直接书写**（旧写法 `[.]` 仍有效）；**字面 `$` 用单引号参数**避免被当环境变量展开：
+写法限制：每行**单个白名单 `ruby_*` 调用 + 参数整体加引号**；`\`、`;`、`$( )`、引号内反引号一律按字面量处理（无需转义）；**代码参数过 AST 白名单**，未列入的调用（`system`/`send`/`File.`/`ENV`/反引号）被拒并记 `skip invalid Overwrite command`（详见 `16-overwrite-module-format.md` §16.2.2）。正则可直接写 `\.`（`[.]` 仍有效）；字面 `$` 用单引号参数：
+
 ```ini
 [Overwrite]
 ruby_map_edit "$CONFIG_FILE" "['proxy-providers']" "provider1" "['filter']" '^abc\.com$x'
 ```
-> 被拦下的行不会执行，日志里是 `skip invalid Overwrite command【Ruby Script => 模块名: 行】`。
 
-#### 17.3.7 使用 CONFIG_FILE 切换配置 + 设置 Age 密钥
+#### 17.3.7 用 `CONFIG_FILE` 切换配置 + 设置 Age 密钥
+
 ```ini
 [General]
 CONFIG_FILE = /etc/openclash/config/my_custom.yaml
@@ -113,13 +117,14 @@ AGE_SECRET_KEY = AGE-SECRET-KEY-xxxxxxxxx
 ```
 
 #### 17.3.8 下载外部规则文件
+
 ```ini
 [General]
 DOWNLOAD_FILE = url=https://example.com/rules.yaml, path=/etc/openclash/rule_provider/custom_rules.yaml, ua=clash-verge/v2.4.5, cron=0 2 * * *
 ```
 
-#### 17.3.9 模块元信息标识（添加时自动回填表单）
-> `#!` 注释行对模块执行无影响，只在「添加新模块」时回填名称、描述、匹配配置、更新时间与环境变量（取值规则见 `16-overwrite-module-format.md` §16.2.5）。
+#### 17.3.9 模块元信息标识（添加时自动回填）
+
 ```ini
 #!NAME = My_Module
 #!DESC = 一句话说明这个模块做什么，会显示在模块提示里
@@ -132,8 +137,12 @@ rules+:
   - DOMAIN-SUFFIX,example.com,${PROXY_GROUP}
 ```
 
+`#!` 行对执行无影响，只在「添加新模块」时回填（取值规则见 `16-overwrite-module-format.md` §16.2.5）。
+
 #### 17.3.10 内置 DDNS 模块（探测/服务商 API 直连 + STUN 端口绕过）
-> 仓库内置模块 `overwrite/DDNS`。IP 探测若经代理出口会拿到代理 IP（DDNS 写错地址）；STUN 需要路由器自身的 UDP 映射（走代理则拿不到）。`DDNS_DOMAIN` 留空时 fake-ip-filter 用占位域名，不影响解析；完整域名清单以模块文件为准。
+
+> 仓库内置 `overwrite/DDNS`。IP 探测经代理出口会拿到代理 IP（DDNS 写错地址）；STUN 需要路由器自身的 UDP 映射（走代理则拿不到）。`DDNS_DOMAIN` 留空时 fake-ip-filter 用占位域名，不影响解析；完整域名清单以模块文件为准。
+
 ```ini
 [General]
 WAN_AC_BLACK_PORTS=3478,5349
@@ -150,12 +159,11 @@ dns:
 ### 17.4 自定义覆写脚本（兼容保留）
 
 **文件**: `/etc/openclash/custom/openclash_custom_overwrite.sh`
-**执行时机**: 在 `yml_change.sh` 和 `yml_rules_change.sh` 之间执行
-**特点**: 可以使用项目提供的 `ruby_*` 函数族
-**值写法限制**：同 `[Overwrite]` 段（见 §17.3.6 与 `16-overwrite-module-format.md` §16.2.2）——`\`、`;`、反引号、`$( )` 一律按字面量处理，不能出现 `eval`/`exec`/`Kernel` 等进程/反射 token；`ruby_*` 调用先由 `ruby_record()` 记录、脚本结束后由 `YAML.overwrite_run_custom()` 统一执行，命中 token 时跳过并记录 `skip unsafe Overwrite command`。
+**时机**: 在 `yml_change.sh` 与 `yml_rules_change.sh` 之间执行
+**写法限制**: 同 `[Overwrite]` 段（§17.3.6 与 `16-overwrite-module-format.md` §16.2.2）——`\`、`;`、反引号、`$( )` 按字面量处理，不能出现 `eval`/`exec`/`Kernel` 等进程或反射 token；`ruby_*` 调用先由 `ruby_record()` 记录，脚本结束后由 `YAML.overwrite_run_custom()` 统一执行，命中 token 记 `skip unsafe Overwrite command`。
 
 ```bash
-#!/bin/bash
+#!/bin/sh
 . /usr/share/openclash/ruby.sh
 
 CFG_FILE=$(uci_get_config "config_path")
@@ -166,170 +174,42 @@ fi
 
 ### 17.5 UCI 覆写条目结构速查
 
-每个 `config_overwrite` 条目（对应 `/etc/config/openclash` 中 `config config_overwrite` 段）的 UCI 字段：
-
 | UCI Key | 类型 | 默认 | 说明 |
 |---------|------|------|------|
-| `name` | string | *(必填)* | 唯一标识，对应 `/etc/openclash/overwrite/<name>` 覆写文件名 |
-| `enable` | bool | `0` | `1`=启用该覆写条目 |
-| `type` | string | `file` | `file`=本地模块；`http`=远程下载（需配置 `url`/`update_days`/`update_hour`） |
-| `url` | string | *(空)* | `type=http` 时的下载地址 |
-| `config` | ListValue | *(空)* | 目标配置文件列表。`all`=应用到所有配置；或指定具体路径如 `/etc/openclash/config/xx.yaml`。**为空则永不匹配，覆写不生效** |
-| `param` | string | *(空)* | 传给覆写文件的额外键值对，格式 `KEY1=VALUE1;KEY2=VALUE2` |
-| `desc` | string | *(空)* | 模块描述，仅界面展示（悬停时首行「名称 [模块类型]」+ 次行描述）；由添加窗口或文件内 `#!DESC` 回填，编辑窗口可改；UCI 为空时回退文件内 `#!DESC` |
-| `order` | int | `0` | 排序权重。**值越大越先执行**，新条目自动取 `max_order+1` |
-| `update_days` | string | *(空)* | `type=http` 时 cron 星期 (0-7, `*`=每天, `off`=不自动更新) |
-| `update_hour` | string | *(空)* | `type=http` 时 cron 小时 (0-23, `off`=不自动更新) |
+| `name` | string | 必填 | 唯一标识，对应 `/etc/openclash/overwrite/<name>` |
+| `enable` | bool | `0` | `1` = 启用 |
+| `type` | string | `file` | `file` 本地 / `http` 远程（需 `url`/`update_*`） |
+| `url` | string | 空 | `type=http` 的下载地址 |
+| `config` | ListValue | 空 | 目标配置列表：`all` 或具体路径。**为空则永不匹配** |
+| `param` | string | 空 | 额外键值对，`KEY1=VALUE1;KEY2=VALUE2` |
+| `desc` | string | 空 | 模块描述，仅界面展示；可由 `#!DESC` 回填，空时回退文件内值 |
+| `order` | int | `0` | 排序权重，**值越大越先执行**，新条目取 `max_order+1` |
+| `update_days` | string | 空 | `type=http` 时的 cron 星期（0-7、`*`、`off`） |
+| `update_hour` | string | 空 | `type=http` 时的 cron 小时（0-23、`off`） |
 
 #### 17.5.1 字段详解
 
-**`config` (目标配置)**:
-- 覆写条目**必须**通过此字段匹配当前运行的配置文件才会执行。匹配逻辑（`overwrite_config_match_check()`）：
-  - `config` 列表包含 `all` → 匹配所有配置
-  - `config` 列表包含当前 `config_path` UCI 值 → 匹配
-  - `config` 为空 → **永不匹配，覆写不生效**（常见配置错误）
-  - ⚠️ `config` 必须是 **UCI 列表**（LuCI 界面自动用 `set_list` 写入）
-- 支持同时匹配多个配置文件。
+- **`config`**: 由 `overwrite_config_match_check()` 判定——含 `all` 匹配全部；含当前 `config_path` 匹配；**为空则永不匹配**（最常见配置错误）。必须是 **UCI 列表**（LuCI 用 `set_list` 写入）。可同时匹配多个配置
+- **`type`+`url`+`update_*`**: `type=http` 时 `add_overwrite_cron()` 注册定时下载到 `/etc/openclash/overwrite/<name>`；模块 `[General]` 含 `RESTART:true` 时下载后自动重启核心；`update_days`/`update_hour` 任一为空或 `off` 则不注册 cron（仅手动触发）；`type=file` 不需要这些字段
+- **`param`**: 格式 `KEY1=VALUE1;KEY2=VALUE2`，分号分隔；导出为环境变量 `$KEY1`、`$KEY2`，可在 `[Overwrite]` 的双引号参数（单引号内原样保留）、`[General]` 值、`DOWNLOAD_FILE` 字段、`[YAML]` 行中用 `$KEY`/`${KEY}`/`${KEY:-默认值}`；添加模块时可由 `#!ENV` 自动生成（缺则新增、空值补默认）
+- **`order`**: 多条按 `sort -nr`（数值降序）执行；新条目自动 `max_order + 1`
 
-**`type` + `url` + `update_*` (远程覆写)**:
-- `type=http` 时，`init.d` 的 `add_overwrite_cron()` 注册 cron 任务定时从 `url` 下载覆写文件到 `/etc/openclash/overwrite/<name>`
-- 若覆写文件的 `[General]` 段包含 `RESTART:true`，下载后自动重启核心
-- `update_days`/`update_hour` 任一为空或为 `off` → 不注册 cron（仅手动触发下载）
-- `type=file` 时不需要 `url`/`update_*` 字段
+#### 17.5.2 `[General]` 允许的 Key 速查
 
-**`param` (额外参数)**:
-- 格式 `KEY1=VALUE1;KEY2=VALUE2`，分号分隔
-- 值以环境变量 `$KEY1`、`$KEY2` 导出，可在 `[Overwrite]` 行的双引号参数内直接引用（`$KEY1`/`${KEY1}` 会展开；单引号参数内原样保留）
-- 在 `[General]` 值 / `DOWNLOAD_FILE` 字段 / `[YAML]` 行中可用 `$KEY` / `${KEY}` / `${KEY:-默认值}`（未设置或为空时取默认值，见 `16-overwrite-module-format.md` §16.2.1/§16.2.3）
-- 添加模块时可由模块文件内的 `#!ENV` 标识自动生成参数行（缺则新增、空值补默认值，见 `16-overwrite-module-format.md` §16.2.5）
+> Key 大小写不敏感，写入 UCI `openclash.@overwrite[0]`。**下表 Key 名小写即对应 UCI 选项名**（如 `DNS_PORT` → `dns_port`）。来源：`overwrite_file()` 的 `allowed_keys_types`。不在表中的 key 会被 `check_type()` 拦截并输出 `skip General key not allowed`。
 
-**`order` (执行顺序)**:
-- 多条覆写按 `sort -nr`（数值降序）排列执行
-- 新上传的覆写条目自动获得 `max_order + 1`
+| 类别 | Key | 类型 |
+|------|-----|------|
+| 模式 / 字符串型 | `EN_MODE`、`PROXY_MODE`、`STACK_TYPE`、`FIND_PROCESS_MODE`、`GEODATA_LOADER`、`GLOBAL_UA`、`INTERFACE_NAME`、`LAN_INTERFACE_NAME`、`INTRANET_ALLOWED_WAN_NAME`、`CORE_TYPE`、`OIX_TOKEN`、`URLTEST_ADDRESS_MOD`、`GITHUB_ADDRESS_MOD`、`SMART_POLICY_PRIORITY`、`SMART_COLLECT_RATE`、`FAKEIP_RANGE`、`FAKEIP_RANGE6`、`COMMON_PORTS`、`CUSTOM_FAKEIP_FILTER_MODE`、`CHINA_IP_ROUTE_DOMAIN_SOURCE`、`DASHBOARD_PASSWORD` | string |
+| 端口 / 整型 | `DNS_PORT`、`PROXY_PORT`、`TPROXY_PORT`、`HTTP_PORT`、`SOCKS_PORT`、`MIXED_PORT`、`CN_PORT`、`TOLERANCE`、`URLTEST_INTERVAL_MOD`、`DELAY_START`、`CHINA_IP_ROUTE`、`CHINA_IP6_ROUTE`、`IPV6_MODE`、`SMART_TOLERANCE`、`SMART_COLLECT_SIZE`、`LGBM_UPDATE_INTERVAL`、`GEO_UPDATE_WEEK_TIME`、`GEOIP_UPDATE_WEEK_TIME`、`GEOSITE_UPDATE_WEEK_TIME`、`GEOASN_UPDATE_WEEK_TIME` | int |
+| 运行开关 | `ENABLE_REDIRECT_DNS`、`ENABLE_CUSTOM_DNS`、`ENABLE_RESPECT_RULES`、`ENABLE_UDP_PROXY`、`ENABLE_V6_UDP_PROXY`、`DISABLE_UDP_QUIC`、`DISABLE_QUIC_GO_GSO`、`ENABLE_TCP_CONCURRENT`、`ENABLE_UNIFIED_DELAY`、`ENABLE_GEOIP_DAT`、`ROUTER_SELF_PROXY`、`INTRANET_ALLOWED`、`SMALL_FLASH_MEMORY`、`BYPASS_GATEWAY_COMPATIBLE`、`SKIP_PROXY_ADDRESS`、`STORE_FAKEIP`、`IPV6_ENABLE`、`IPV6_DNS`、`APPEND_WAN_DNS`、`APPEND_DEFAULT_DNS`、`CUSTOM_FALLBACK_FILTER`、`CUSTOM_FAKEIP_FILTER`、`CUSTOM_HOST`、`CUSTOM_NAME_POLICY`、`ENABLE_CUSTOM_CLASH_RULES`、`ENABLE_RULE_PROXY` | int_bool |
+| 嗅探 | `ENABLE_META_SNIFFER`、`ENABLE_META_SNIFFER_PURE_IP`、`ENABLE_META_SNIFFER_CUSTOM` | int_bool |
+| 访问控制 | `LAN_AC_MODE`、`INTRANET_ALLOWED`（int_bool）；`LAN_AC_BLACK_IPS`、`LAN_AC_BLACK_MACS`、`LAN_AC_WHITE_IPS`、`LAN_AC_WHITE_MACS`、`WAN_AC_BLACK_IPS`、`WAN_AC_BLACK_PORTS`（string，逗号分隔） | 见左 |
+| GEO 订阅 | `GEO_AUTO_UPDATE`、`GEOIP_AUTO_UPDATE`、`GEOSITE_AUTO_UPDATE`、`GEOASN_AUTO_UPDATE`（int_bool）；`GEO_CUSTOM_URL`、`GEOIP_CUSTOM_URL`、`GEOSITE_CUSTOM_URL`、`GEOASN_CUSTOM_URL`、`GEO_UPDATE_DAY_TIME`、`GEOIP_UPDATE_DAY_TIME`、`GEOSITE_UPDATE_DAY_TIME`、`GEOASN_UPDATE_DAY_TIME` | 见左 |
+| 大陆路由 | `CHNR_AUTO_UPDATE`（int_bool）；`CHNR_CUSTOM_URL`、`CHNR6_CUSTOM_URL`、`CHNR_UPDATE_DAY_TIME`、`CHNR_UPDATE_WEEK_TIME`、`CHINA_IP_ROUTE_PASS`、`CHINA_IP6_ROUTE_PASS` | 见左 |
+| Smart / LGBM | `AUTO_SMART_SWITCH`、`SMART_ENABLE_LGBM`、`SMART_PREFER_ASN`、`SMART_COLLECT`、`LGBM_AUTO_UPDATE`（int_bool）；`LGBM_CUSTOM_URL` | 见左 |
+| 无对应 UCI | `SYSTEM_HOST`（系统 hosts 条目，逗号分隔如 `1.2.3.4 a.com,5.6.7.8 b.com`，有值即启用，与界面列表合并）、`AGE_SECRET_KEY`、`AGE_PUBLIC_KEY`、`CONFIG_FILE`（仅 `/etc/openclash/` 下普通文件）、`SUB_INFO_URL`、`DOWNLOAD_FILE`（§16.2.4）、`RESTART`（bool，`true` = 覆写后重启，仅 `type=http` cron 更新时） | — |
 
-#### 17.5.2 `[General]` 段允许的 Key 速查
+类型：`int_bool` = 0/1；`int` = 纯整数；`string` = 任意字符串；`bool` = true/false。
 
-> 覆写文件的 `[General]` 段中可设置以下 key（大小写不敏感），写入 UCI `openclash.@overwrite[0]`。
-> 来源：`init.d/openclash` → `overwrite_file()` → `allowed_keys_types` 列表。
-
-| Key | 类型 | 对应 UCI | 说明 |
-|-----|------|----------|------|
-| `EN_MODE` | string | `en_mode` | 运行模式 |
-| `PROXY_MODE` | string | `proxy_mode` | 代理模式 |
-| `DNS_PORT` | int | `dns_port` | DNS 端口 |
-| `PROXY_PORT` | int | `proxy_port` | 流量转发端口 |
-| `TPROXY_PORT` | int | `tproxy_port` | TProxy 端口 |
-| `HTTP_PORT` | int | `http_port` | HTTP 代理端口 |
-| `SOCKS_PORT` | int | `socks_port` | SOCKS5 端口 |
-| `MIXED_PORT` | int | `mixed_port` | 混合代理端口 |
-| `CN_PORT` | int | `cn_port` | API 端口 |
-| `DASHBOARD_PASSWORD` | string | `dashboard_password` | Dashboard 密钥 |
-| `TOLERANCE` | int | `tolerance` | URL-Test 容差 |
-| `URLTEST_ADDRESS_MOD` | string | `urltest_address_mod` | 测速地址 |
-| `URLTEST_INTERVAL_MOD` | int | `urltest_interval_mod` | 测速间隔 |
-| `GITHUB_ADDRESS_MOD` | string | `github_address_mod` | GitHub CDN 地址 |
-| `ENABLE_REDIRECT_DNS` | int_bool | `enable_redirect_dns` | DNS 劫持模式 |
-| `ENABLE_CUSTOM_DNS` | int_bool | `enable_custom_dns` | 自定义 DNS |
-| `ENABLE_RESPECT_RULES` | int_bool | `enable_respect_rules` | DNS 尊重规则 |
-| `ENABLE_META_SNIFFER` | int_bool | `enable_meta_sniffer` | 域名嗅探 |
-| `ENABLE_META_SNIFFER_PURE_IP` | int_bool | `enable_meta_sniffer_pure_ip` | 纯 IP 嗅探 |
-| `ENABLE_META_SNIFFER_CUSTOM` | int_bool | `enable_meta_sniffer_custom` | 自定义嗅探 |
-| `ENABLE_TCP_CONCURRENT` | int_bool | `enable_tcp_concurrent` | TCP 并发 |
-| `ENABLE_UNIFIED_DELAY` | int_bool | `enable_unified_delay` | 统一延迟 |
-| `ENABLE_UDP_PROXY` | int_bool | `enable_udp_proxy` | UDP 代理 |
-| `ENABLE_V6_UDP_PROXY` | int_bool | `enable_v6_udp_proxy` | IPv6 UDP 代理 |
-| `DISABLE_UDP_QUIC` | int_bool | `disable_udp_quic` | 禁用 QUIC |
-| `DISABLE_QUIC_GO_GSO` | int_bool | `disable_quic_go_gso` | 禁用 quic-go GSO |
-| `FIND_PROCESS_MODE` | string | `find_process_mode` | 进程匹配模式 |
-| `GEODATA_LOADER` | string | `geodata_loader` | GEO 加载方式 |
-| `ENABLE_GEOIP_DAT` | int_bool | `enable_geoip_dat` | 启用 GeoIP Dat |
-| `GLOBAL_UA` | string | `global_ua` | 全局 User-Agent |
-| `INTERFACE_NAME` | string | `interface_name` | 绑定网络接口 |
-| `STACK_TYPE` | string | `stack_type` | TUN 堆栈类型 |
-| `DELAY_START` | int | `delay_start` | 延迟启动（秒） |
-| `ROUTER_SELF_PROXY` | int_bool | `router_self_proxy` | 本机代理 |
-| **访问控制类** | | | |
-| `LAN_AC_MODE` | int_bool | `lan_ac_mode` | 来源流量控制模式 |
-| `LAN_AC_BLACK_IPS` | string | `lan_ac_black_ips` | 来源黑名单 IP（逗号分隔） |
-| `LAN_AC_BLACK_MACS` | string | `lan_ac_black_macs` | 来源黑名单 MAC |
-| `LAN_AC_WHITE_IPS` | string | `lan_ac_white_ips` | 来源白名单 IP |
-| `LAN_AC_WHITE_MACS` | string | `lan_ac_white_macs` | 来源白名单 MAC |
-| `WAN_AC_BLACK_IPS` | string | `wan_ac_black_ips` | WAN 入站黑名单 IP |
-| `WAN_AC_BLACK_PORTS` | string | `wan_ac_black_ports` | WAN/本机出站免代理端口（在 output 链也生效，常用于 STUN/TURN `3478,5349`） |
-| `CHINA_IP_ROUTE` | int | `china_ip_route` | 区域绕行 |
-| `CHINA_IP_ROUTE_DOMAIN_SOURCE` | string | `china_ip_route_domain_source` | Fake-IP 中国大陆域名数据源（`mrs`/`geosite`） |
-| `CHINA_IP6_ROUTE` | int | `china_ip6_route` | IPv6 区域绕行 |
-| `COMMON_PORTS` | string | `common_ports` | 常用端口 |
-| `INTRANET_ALLOWED` | int_bool | `intranet_allowed` | 仅内网 |
-| `SMALL_FLASH_MEMORY` | int_bool | `small_flash_memory` | 小闪存模式 |
-| `STORE_FAKEIP` | int_bool | `store_fakeip` | 持久化 Fake-IP |
-| `BYPASS_GATEWAY_COMPATIBLE` | int_bool | `bypass_gateway_compatible` | 旁路由兼容 |
-| `SKIP_PROXY_ADDRESS` | int_bool | `skip_proxy_address` | 绕过服务器地址 |
-| `IPV6_ENABLE` | int_bool | `ipv6_enable` | IPv6 代理 |
-| `IPV6_MODE` | int | `ipv6_mode` | IPv6 代理模式 |
-| `IPV6_DNS` | int_bool | `ipv6_dns` | IPv6 DNS 解析 |
-| `FAKEIP_RANGE` | string | `fakeip_range` | Fake-IP 范围 |
-| `FAKEIP_RANGE6` | string | `fakeip_range6` | IPv6 Fake-IP 范围 |
-| `CUSTOM_FALLBACK_FILTER` | int_bool | `custom_fallback_filter` | Fallback-Filter |
-| `CUSTOM_FAKEIP_FILTER` | int_bool | `custom_fakeip_filter` | Fake-IP-Filter |
-| `CUSTOM_FAKEIP_FILTER_MODE` | string | `custom_fakeip_filter_mode` | Filter 模式 |
-| `CUSTOM_HOST` | int_bool | `custom_host` | 自定义 Hosts |
-| `CUSTOM_NAME_POLICY` | int_bool | `custom_name_policy` | Nameserver-Policy |
-| `APPEND_WAN_DNS` | int_bool | `append_wan_dns` | 追加 WAN DNS |
-| `APPEND_DEFAULT_DNS` | int_bool | — | 追加默认 DNS |
-| `AGE_SECRET_KEY` | string | — | Age 加密私钥 |
-| `AGE_PUBLIC_KEY` | string | — | Age 加密公钥 |
-| `CONFIG_FILE` | string | — | 覆写指定配置文件路径（仅接受 `/etc/openclash/` 下的普通文件，含 `..`、以 `.` 开头或目录会被跳过） |
-| `SUB_INFO_URL` | string | — | 订阅信息查询 URL |
-| `DOWNLOAD_FILE` | string | — | 下载外部文件（格式见 `16-overwrite-module-format.md` §16.2.4） |
-| `RESTART` | bool | — | `true`=覆写后重启核心（仅 `type=http` cron 更新时） |
-| `LAN_INTERFACE_NAME` | string | `lan_interface_name` | LAN 接口名称 |
-| `INTRANET_ALLOWED_WAN_NAME` | string | `intranet_allowed_wan_name` | WAN 接口名称 |
-| `CORE_TYPE` | string | `core_type` | 核心类型 |
-| `OIX_TOKEN` | string | `oix_token` | oixCloud Token |
-| **GEO 订阅类** | | | |
-| `GEO_AUTO_UPDATE` | int_bool | `geo_auto_update` | 自动更新 GeoIP MMDB |
-| `GEO_CUSTOM_URL` | string | `geo_custom_url` | MMDB 自定义 URL |
-| `GEO_UPDATE_DAY_TIME` | string | `geo_update_day_time` | MMDB 更新时间 |
-| `GEO_UPDATE_WEEK_TIME` | int | `geo_update_week_time` | MMDB 更新星期 |
-| `GEOIP_AUTO_UPDATE` | int_bool | `geoip_auto_update` | 自动更新 GeoIP Dat |
-| `GEOIP_CUSTOM_URL` | string | `geoip_custom_url` | Dat 自定义 URL |
-| `GEOIP_UPDATE_DAY_TIME` | int | `geoip_update_day_time` | Dat 更新时间 |
-| `GEOIP_UPDATE_WEEK_TIME` | int | `geoip_update_week_time` | Dat 更新星期 |
-| `GEOSITE_AUTO_UPDATE` | int_bool | `geosite_auto_update` | 自动更新 GeoSite |
-| `GEOSITE_CUSTOM_URL` | string | `geosite_custom_url` | GeoSite 自定义 URL |
-| `GEOSITE_UPDATE_DAY_TIME` | string | `geosite_update_day_time` | GeoSite 更新时间 |
-| `GEOSITE_UPDATE_WEEK_TIME` | int | `geosite_update_week_time` | GeoSite 更新星期 |
-| `GEOASN_AUTO_UPDATE` | int_bool | `geoasn_auto_update` | 自动更新 GeoASN |
-| `GEOASN_CUSTOM_URL` | string | `geoasn_custom_url` | ASN 自定义 URL |
-| `GEOASN_UPDATE_DAY_TIME` | string | `geoasn_update_day_time` | ASN 更新时间 |
-| `GEOASN_UPDATE_WEEK_TIME` | int | `geoasn_update_week_time` | ASN 更新星期 |
-| **大陆路由类** | | | |
-| `CHNR_AUTO_UPDATE` | int_bool | `chnr_auto_update` | 大陆路由自动更新 |
-| `CHNR_CUSTOM_URL` | string | `chnr_custom_url` | 大陆 IPv4 URL |
-| `CHNR6_CUSTOM_URL` | string | `chnr6_custom_url` | 大陆 IPv6 URL |
-| `CHNR_UPDATE_DAY_TIME` | string | `chnr_update_day_time` | 路由更新时间 |
-| `CHNR_UPDATE_WEEK_TIME` | string | `chnr_update_week_time` | 路由更新星期 |
-| `CHINA_IP_ROUTE_PASS` | string | — | 大陆路由绕过列表 |
-| `CHINA_IP6_ROUTE_PASS` | string | — | 大陆 IPv6 路由绕过列表 |
-| **Smart 类** | | | |
-| `AUTO_SMART_SWITCH` | int_bool | `auto_smart_switch` | Smart 自动切换 |
-| `SMART_ENABLE_LGBM` | int_bool | `smart_enable_lgbm` | 启用 LightGBM |
-| `SMART_POLICY_PRIORITY` | string | `smart_policy_priority` | 策略优先级 |
-| `SMART_PREFER_ASN` | int_bool | `smart_prefer_asn` | 优先 ASN |
-| `SMART_TOLERANCE` | int | `smart_tolerance` | Smart 容差 |
-| `SMART_COLLECT` | int_bool | `smart_collect` | 收集训练数据 |
-| `SMART_COLLECT_RATE` | string | `smart_collect_rate` | 数据采样率 |
-| `SMART_COLLECT_SIZE` | int | `smart_collect_size` | 数据文件大小 |
-| `LGBM_AUTO_UPDATE` | int_bool | `lgbm_auto_update` | LGBM 自动更新 |
-| `LGBM_CUSTOM_URL` | string | `lgbm_custom_url` | LGBM 自定义 URL |
-| `LGBM_UPDATE_INTERVAL` | int | `lgbm_update_interval` | LGBM 更新间隔 |
-| **规则类** | | | |
-| `ENABLE_CUSTOM_CLASH_RULES` | int_bool | `enable_custom_clash_rules` | 自定义规则 |
-| `ENABLE_RULE_PROXY` | int_bool | `enable_rule_proxy` | 仅代理命中规则 |
-
-> **类型说明**: `int_bool`=值为 `0` 或 `1`；`bool`=值为 `true` 或 `false`；`int`=纯整数；`string`=任意字符串。
-> 所有 key **大小写不敏感**，写入 UCI 时自动转换为小写。不在上表中的 key 会被 `check_type()` 校验拦截并输出 `skip General key not allowed` 警告。
-> 按类别分组概览见 `16-overwrite-module-format.md` §16.2.1；本表为完整速查（含对应 UCI）。
-
----
+> `WAN_AC_BLACK_PORTS` 在 output 链也生效，常用于 STUN/TURN（`3478,5349`）；`LAN_AC_*` 只作用于转发流量。按类别概览见 `16-overwrite-module-format.md` §16.2.1。

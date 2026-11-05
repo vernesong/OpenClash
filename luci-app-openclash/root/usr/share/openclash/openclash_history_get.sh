@@ -40,7 +40,7 @@ HISTORY_PATH_OLD="/etc/openclash/history/${CONFIG_NAME%.*}"
 HISTORY_PATH="/etc/openclash/history/${CONFIG_NAME%.*}.db"
 core_version=$(uci_get_config "core_version" || echo 0)
 CACHE_PATH_OLD="/etc/openclash/.cache"
-source "/etc/openwrt_release"
+. "/etc/openwrt_release"
 
 if [ -z "$CONFIG_FILE" ] || [ ! -f "$CONFIG_FILE" ]; then
    CONFIG_FILE=$(uci_get_config "config_path")
@@ -50,7 +50,7 @@ if [ -z "$CONFIG_FILE" ] || [ ! -f "$CONFIG_FILE" ]; then
 fi
 
 if [ -n "$(pidof clash)" ] && [ -f "$CONFIG_FILE" ]; then
-   if [ "$small_flash_memory" == "1" ] || [ -n "$(echo $core_version |grep mips)" ] || [ -n "$(echo $DISTRIB_ARCH |grep mips)" ] || [ -n "$(rm -f /var/lock/opkg.lock && opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' |grep mips)" ] || [ -n "$(rm -f /lib/apk/db/lock && apk list libc 2>/dev/null |grep mips)" ]; then
+   if [ "$small_flash_memory" = "1" ] || [ -n "$(echo $core_version |grep mips)" ] || [ -n "$(echo $DISTRIB_ARCH |grep mips)" ] || [ -n "$(rm -f /var/lock/opkg.lock && opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' |grep mips)" ] || [ -n "$(rm -f /lib/apk/db/lock && apk list libc 2>/dev/null |grep mips)" ]; then
       CACHE_PATH="/tmp/etc/openclash/cache.db"
       if [ -f "$CACHE_PATH" ]; then
          cmp -s "$CACHE_PATH" "$HISTORY_PATH"
