@@ -2612,20 +2612,9 @@ var ConfigUploader = {
         });
 
         var autoUpdateEnable = document.getElementById('auto-update-enable');
-        var autoUpdateOptions = document.getElementById('auto-update-options');
-        var autoUpdateMode = document.getElementById('auto-update-mode');
-        var autoUpdateAppointment = document.getElementById('auto-update-appointment');
-        var autoUpdateLoop = document.getElementById('auto-update-loop');
         if (autoUpdateEnable) {
             autoUpdateEnable.addEventListener('change', function() {
-                autoUpdateOptions.classList.toggle('oc-hidden', !this.checked);
-            });
-        }
-        if (autoUpdateMode) {
-            autoUpdateMode.addEventListener('change', function() {
-                var loop = this.value === '1';
-                autoUpdateAppointment.classList.toggle('oc-hidden', loop);
-                autoUpdateLoop.classList.toggle('oc-hidden', !loop);
+                self.updateFoldSummaries();
             });
         }
 
@@ -2838,11 +2827,26 @@ var ConfigUploader = {
         });
     },
 
-    show: function(onSuccess) {
+    show: function(onSuccess, resourceKind) {
+        this.resourceKind = resourceKind || 'config';
         this.onSuccess = onSuccess || '';
         this.overlay.classList.add('show');
         document.getElementById('config-upload-title').textContent = '<%:Add Config%>';
         this.reset();
+        var provider = this.resourceKind !== 'config';
+        document.getElementById('upload-mode-file-label').textContent = provider ? '<%:Create / Upload File%>' : '<%:Upload File%>';
+        document.getElementById('upload-mode-subscribe').classList.toggle('oc-hidden', provider);
+        document.getElementById('config-file-input').accept = provider ? '.yaml,.yml,.txt,.mrs' : '.yaml,.yml';
+        document.querySelector('.filename-extension').classList.toggle('oc-hidden', provider);
+        document.querySelector('label[for="config-filename-input"]').firstChild.textContent = provider ? '<%:File Name%>:' : '<%:Config Name%>:';
+        document.getElementById('config-filename-input').placeholder = provider ? '<%:Paste the name of the new file (including the extension) here:%>' : '<%:Enter config name (without extension)%>';
+        document.getElementById('advanced-options-enable-file').closest('.form-group').classList.toggle('oc-hidden', provider);
+        if (provider) {
+            document.getElementById('config-upload-title').textContent = '<%:Add File%>';
+            document.getElementById('config-upload-submit').textContent = '<%:Add File%>';
+            document.querySelector('#upload-zone .upload-secondary').textContent = 'YAML / TXT / MRS';
+        }
+        this.updateSubmitButton();
         ConfigUploaderFocus.restoreTarget = document.activeElement;
         setTimeout(function() {
             var first = document.getElementById('config-filename-input');
@@ -3030,21 +3034,7 @@ var ConfigUploader = {
         if (advFileContainer) advFileContainer.classList.add('oc-hidden');
 
         var autoUpdateEnable = document.getElementById('auto-update-enable');
-        if (autoUpdateEnable) autoUpdateEnable.checked = false;
-        var autoUpdateOptions = document.getElementById('auto-update-options');
-        if (autoUpdateOptions) autoUpdateOptions.classList.add('oc-hidden');
-        var autoUpdateMode = document.getElementById('auto-update-mode');
-        if (autoUpdateMode) autoUpdateMode.value = '0';
-        var autoUpdateWeek = document.getElementById('auto-update-week');
-        if (autoUpdateWeek) autoUpdateWeek.value = '1';
-        var autoUpdateHour = document.getElementById('auto-update-hour');
-        if (autoUpdateHour) autoUpdateHour.value = '0';
-        var autoUpdateInterval = document.getElementById('auto-update-interval');
-        if (autoUpdateInterval) autoUpdateInterval.value = '60';
-        var autoUpdateAppointment = document.getElementById('auto-update-appointment');
-        if (autoUpdateAppointment) autoUpdateAppointment.classList.remove('oc-hidden');
-        var autoUpdateLoop = document.getElementById('auto-update-loop');
-        if (autoUpdateLoop) autoUpdateLoop.classList.add('oc-hidden');
+        if (autoUpdateEnable) autoUpdateEnable.value = '0';
 
         if (this.subconverterVersionChecker) this.subconverterVersionChecker.hide();
     },
@@ -3235,33 +3225,7 @@ var ConfigUploader = {
         }
 
         var autoUpdateEnableEl = document.getElementById('auto-update-enable');
-        var autoUpdateOptionsEl = document.getElementById('auto-update-options');
-        var autoUpdateModeEl = document.getElementById('auto-update-mode');
-        var autoUpdateWeekEl = document.getElementById('auto-update-week');
-        var autoUpdateHourEl = document.getElementById('auto-update-hour');
-        var autoUpdateIntervalEl = document.getElementById('auto-update-interval');
-        var autoUpdateAppointmentEl = document.getElementById('auto-update-appointment');
-        var autoUpdateLoopEl = document.getElementById('auto-update-loop');
-        if (autoUpdateEnableEl) {
-            var autoUpdateEnabled = data.auto_update === '1';
-            autoUpdateEnableEl.checked = autoUpdateEnabled;
-            if (autoUpdateOptionsEl) autoUpdateOptionsEl.classList.toggle('oc-hidden', !autoUpdateEnabled);
-        }
-        if (autoUpdateModeEl) {
-            var loopMode = data.config_auto_update_mode === '1';
-            autoUpdateModeEl.value = loopMode ? '1' : '0';
-            if (autoUpdateAppointmentEl) autoUpdateAppointmentEl.classList.toggle('oc-hidden', loopMode);
-            if (autoUpdateLoopEl) autoUpdateLoopEl.classList.toggle('oc-hidden', !loopMode);
-        }
-        if (autoUpdateWeekEl && data.config_update_week_time) {
-            autoUpdateWeekEl.value = data.config_update_week_time;
-        }
-        if (autoUpdateHourEl && data.auto_update_time !== undefined && data.auto_update_time !== '') {
-            autoUpdateHourEl.value = data.auto_update_time;
-        }
-        if (autoUpdateIntervalEl) {
-            autoUpdateIntervalEl.value = data.config_update_interval || '60';
-        }
+        if (autoUpdateEnableEl) autoUpdateEnableEl.value = data.auto_update === '1' ? '1' : '0';
 
         this.updateSubconverterVersionStatus();
         this.updateFoldSummaries();
@@ -3269,6 +3233,7 @@ var ConfigUploader = {
     },
 
     switchMode: function(mode) {
+        if (this.resourceKind && this.resourceKind !== 'config' && mode === 'subscribe') return;
         this.currentMode = mode;
 
         var modeFileTab = document.getElementById('upload-mode-file');
@@ -3341,7 +3306,7 @@ var ConfigUploader = {
             return;
         }
 
-        if (!file.name.match(/\.(yaml|yml)$/i)) {
+        if (!(this.resourceKind && this.resourceKind !== 'config' ? /\.(yaml|yml|txt|mrs)$/i : /\.(yaml|yml)$/i).test(file.name)) {
             this.selectedFile = null;
             ocSetUploadZoneFile(uploadZone, null, { empty: '<%:Support YAML file%>' });
             statusText.classList.add('is-error');
@@ -3352,7 +3317,7 @@ var ConfigUploader = {
 
         ocSetUploadZoneFile(uploadZone, file);
 
-        var defaultName = file.name.replace(/\.(yaml|yml)$/i, '');
+        var defaultName = this.resourceKind && this.resourceKind !== 'config' ? file.name : file.name.replace(/\.(yaml|yml)$/i, '');
         filenameInput.value = defaultName;
 
         this.updateSubmitButton();
@@ -3367,6 +3332,7 @@ var ConfigUploader = {
 
         if (this.currentMode === 'file') {
             isValidFormat = !!filename;
+            if (this.resourceKind && this.resourceKind !== 'config') submitBtn.textContent = this.selectedFile ? '<%:Upload%>' : '<%:Create File%>';
         } else if (this.currentMode === 'subscribe') {
             var url = document.getElementById('subscribe-url-input').value.trim();
             var agePublic = document.getElementById('age-public-input') ? document.getElementById('age-public-input').value.trim() : '';
@@ -3490,20 +3456,7 @@ var ConfigUploader = {
         }
 
         var sumUpdate = document.getElementById('sum-update');
-        if (sumUpdate) {
-            if (!document.getElementById('auto-update-enable').checked) {
-                sumUpdate.textContent = '<%:Disabled%>';
-            } else if (document.getElementById('auto-update-mode').value === '1') {
-                var intervalMinutes = document.getElementById('auto-update-interval').value || '60';
-                sumUpdate.textContent = '<%:Loop Mode%>' + ' · ' + intervalMinutes + ' ' + '<%:Minutes%>';
-            } else {
-                var weekSelect = document.getElementById('auto-update-week');
-                var weekText = weekSelect.options[weekSelect.selectedIndex] ? weekSelect.options[weekSelect.selectedIndex].textContent : weekSelect.value;
-                var hourValue = document.getElementById('auto-update-hour').value || '0';
-                if (hourValue.length === 1) hourValue = '0' + hourValue;
-                sumUpdate.textContent = '<%:Appointment Mode%>' + ' · ' + weekText + ' ' + hourValue + ':00';
-            }
-        }
+        if (sumUpdate) sumUpdate.textContent = document.getElementById('auto-update-enable').value === '1' ? '<%:Yes%>' : '<%:No%>';
 
         var sumAdvanced = document.getElementById('sum-advanced');
         if (sumAdvanced) {
@@ -3549,6 +3502,11 @@ var ConfigUploader = {
 
     finishUpload: function(filename) {
         this.isProcessing = false;
+        if (this.resourceKind && this.resourceKind !== 'config') {
+            this.hide();
+            if (this.onSuccess) setTimeout(this.onSuccess, 0);
+            return;
+        }
         this.lastParams = { name: filename, plain: true };
         SubPanel.clearError();
         SubPanel.setView('result');
@@ -3572,7 +3530,7 @@ var ConfigUploader = {
         }
         this.setFilenameError('');
 
-        if (this.editFilename || this.selectedFile) {
+        if ((!this.resourceKind || this.resourceKind === 'config') && (this.editFilename || this.selectedFile)) {
             var advFileEnableEl = document.getElementById('advanced-options-enable-file');
             var advFileChecked = advFileEnableEl ? advFileEnableEl.checked : false;
             var ageSecret = advFileChecked ? (document.getElementById('age-secret-input').value || '') : '';
@@ -3606,10 +3564,10 @@ var ConfigUploader = {
                 this.finishUpload(filename);
                 return;
             }
-            var targetName = /\.ya?ml$/i.test(filename) ? filename : filename + '.yaml';
+            var targetName = this.resourceKind && this.resourceKind !== 'config' ? filename : (/\.ya?ml$/i.test(filename) ? filename : filename + '.yaml');
             XHR.get('<%=url("admin", "services", "openclash", "create_file")%>', {
                 filename: targetName,
-                filepath: '/etc/openclash/config/'
+                filepath: '/etc/openclash/' + (this.resourceKind && this.resourceKind !== 'config' ? this.resourceKind + '_provider' : 'config') + '/'
             }, function(x, status) {
                 if (x && x.status == 200) {
                     self.finishUpload(targetName);
@@ -3625,7 +3583,7 @@ var ConfigUploader = {
         var formData = new FormData();
         formData.append('config_file', this.selectedFile, filename);
 
-        fetch('<%=url("admin", "services", "openclash", "upload_config")%>', {
+        fetch('<%=url("admin", "services", "openclash", "upload_config")%>?resource=' + encodeURIComponent(this.resourceKind || 'config'), {
             method: 'POST',
             body: formData
         })
@@ -3711,11 +3669,7 @@ var ConfigUploader = {
         }
 
         var autoUpdateEl = document.getElementById('auto-update-enable');
-        var autoUpdateModeEl = document.getElementById('auto-update-mode');
-        var autoUpdateWeekEl = document.getElementById('auto-update-week');
-        var autoUpdateHourEl = document.getElementById('auto-update-hour');
-        var autoUpdateIntervalEl = document.getElementById('auto-update-interval');
-        var autoUpdate = !!(autoUpdateEl && autoUpdateEl.checked);
+        var autoUpdate = !!(autoUpdateEl && autoUpdateEl.value === '1');
 
         if (userAgent === 'custom') {
             userAgent = subscribeUaCustom.value.trim();
@@ -3814,10 +3768,6 @@ var ConfigUploader = {
             de_ex_keyword: excludeDefaults.join(' '),
             sub_headers: customHeaders,
             auto_update: autoUpdate ? '1' : '0',
-            config_auto_update_mode: autoUpdateModeEl ? autoUpdateModeEl.value : '0',
-            config_update_week_time: autoUpdateWeekEl ? autoUpdateWeekEl.value : '0',
-            auto_update_time: autoUpdateHourEl ? autoUpdateHourEl.value : '0',
-            config_update_interval: autoUpdateIntervalEl ? autoUpdateIntervalEl.value : '60',
             template_label: templateLabel,
             age_secret: (ageSecret || agePublic) ? '1' : ''
         };

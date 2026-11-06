@@ -9,6 +9,26 @@ local HTTP = require "luci.http"
 local DISP = require "luci.dispatcher"
 local sid = arg[1]
 local age_section
+local profiles = require "luci.openclash_profiles"
+local file_path = HTTP.formvalue("file", true)
+local unified = file_path ~= nil
+local profile = unified and profiles.find(file_path, fs, uci)
+local source_content, stream, stream_error, commit_requested, apply_requested
+if unified then
+	if not profile or profile.ambiguous then
+		HTTP.status(409, "Conflicting or invalid configuration")
+		return
+	end
+	sid = profile.sid
+	HTTP.setfilehandler(function(meta, chunk, eof)
+		if not meta or meta.name ~= "oc_editor_content" then return end
+		if not profile.editable then stream_error = true; return end
+		if not stream and chunk then stream = io.tmpfile() end
+		if not stream then stream_error = true; return end
+		if chunk and not stream:write(chunk) then stream_error = true end
+		if eof then stream:flush() end
+	end)
+end
 
 local backend_version_status = [[
 <div class="oc">
@@ -20,37 +40,51 @@ local backend_version_status = [[
 </div>
 ]]
 
-font_red = [[<b class="oc-txt-bad">]]
-font_off = [[</b>]]
-bold_on = [[<strong>]]
-bold_off = [[</strong>]]
 
 
 m = Map(openclash, translate("Config Subscribe Edit"))
 m.pageaction = false
-m.description=translate("Convert Subscribe function of Online is Supported By subconverter Written By tindy X") ..
-"<br/>"..
-"<br/>"..translate("Subconverter external configuration (subscription conversion template) Description: https://github.com/tindy2013/subconverter#external-configuration-file")..
-"<br/>"..
-"<br/>"..translate("If you need to customize the external configuration file (subscription conversion template), please write it according to the instructions, upload it to the accessible location of the external network, and fill in the address correctly when using it")..
-"<br/>"..
-"<br/>"..translate("If you have a recommended external configuration file (subscription conversion template), you can modify by following The file format of /usr/share/openclash/res/sub_ini.list and pr")
-m.redirect = DISP.build_url("admin/services/openclash/config-subscribe")
-if m.uci:get(openclash, sid) ~= "config_subscribe" then
+m.redirect = DISP.build_url("admin/services/openclash/config")
+if unified then
+	m.title = profile.name
+	m.description = ""
+	m.redirect = DISP.build_url("admin/services/openclash/config-edit") .. "?file=" .. HTTP.urlencode(file_path)
+end
+if not unified and (not sid or m.uci:get(openclash, sid) ~= "config_subscribe") then
 	HTTP.redirect(m.redirect)
+	return
+end
+if not unified then
+	for _, row in ipairs(profiles.list(fs, m.uci)) do
+		for _, subscription in ipairs(row.subscriptions) do
+			if subscription == sid then
+				HTTP.redirect(DISP.build_url("admin", "services", "openclash", "config-edit") .. "?file=" .. HTTP.urlencode(row.path))
+				return
+			end
+		end
+	end
+	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "config"))
 	return
 end
 
 -- [[ Config Subscribe Setting ]]--
+if profile.remote then
 s = m:section(NamedSection, sid, "config_subscribe")
 s.anonymous = true
 s.addremove = false
 
 ---- name
 o = s:option(Value, "name", translate("Config Alias"))
-o.description = font_red..bold_on..translate("Name For Distinguishing")..bold_off..font_off
+o.description = translate("Name For Distinguishing")
 o.placeholder = translate("config")
 o.rmempty = true
+if unified then
+	o.readonly = true
+	o.cfgvalue = function() return profile.name end
+	o.description = nil
+	o.write = function() end
+	o.remove = function() end
+end
 function o.validate(self, value)
 	if value and value ~= "" and not fs.is_safe_filename(value) then
 		return nil
@@ -61,9 +95,10 @@ end
 ---- address
 o = s:option(Value, "address", translate("Subscribe Address"))
 o.template = "cbi/tvalue"
-o.rows = 10
+o.rows = 4
+o.size = nil
 o.wrap = "off"
-o.description = font_red..bold_on..translate("SS/SSR/Vmess or Other Link And Subscription Address is Supported When Online Subscription Conversion is Enabled, Multiple Links Should be One Per Line or Separated By |")..bold_off..font_off
+o.description = translate("SS/SSR/Vmess or Other Link And Subscription Address is Supported When Online Subscription Conversion is Enabled, Multiple Links Should be One Per Line or Separated By |")
 o.placeholder = translate("Not Null")
 o.rmempty = false
 function o.validate(self, value)
@@ -77,69 +112,26 @@ end
 ---- UA
 o = s:option(Value, "sub_ua", "User-Agent")
 o.default = "clash-verge/v2.4.5"
-o.description = font_red..bold_on..translate("Used for Downloading Subscriptions, Defaults to").." "..o.default..bold_off..font_off
+o.description = translate("Used for Downloading Subscriptions, Defaults to").." "..o.default
 o:value("clash-verge/v2.4.5")
 o:value("clash.meta/1.19.20")
 o:value("Clash")
 o.rmempty = true
 
----- auto update
-o = s:option(Flag, "auto_update", translate("Auto Update"))
-o.description = translate("Auto Update Server subscription")
-o.default = 0
-o.rmempty = false
-function o.cfgvalue(self, section)
-	return fs.config_subscribe_schedule(section, m.uci).auto_update
+---- automatic update participation
+o = s:option(ListValue, "auto_update", translate("Auto Update"))
+o:value("1", translate("Yes"))
+o:value("0", translate("No"))
+o.default, o.rmempty = "0", false
+o.cfgvalue = function() return profile.automatic and "1" or "0" end
+local schedule_keys = {"config_auto_update_mode", "config_update_week_time", "auto_update_time", "config_update_interval"}
+local overrides = {}
+for _, key in ipairs(schedule_keys) do
+	local value = m.uci:get(openclash, sid, key)
+	if value ~= nil and value ~= "" then overrides[#overrides + 1] = key .. "=" .. value end
 end
-
----- update mode
-o = s:option(ListValue, "config_auto_update_mode", translate("Update Mode"))
-o:depends("auto_update", "1")
-o:value("0", translate("Appointment Mode"))
-o:value("1", translate("Loop Mode"))
-o.default = "0"
-o.rmempty = true
-function o.cfgvalue(self, section)
-	return fs.config_subscribe_schedule(section, m.uci).mode
-end
-
----- update week time
-o = s:option(ListValue, "config_update_week_time", translate("Update Time (Every Week)"))
-o:depends("config_auto_update_mode", "0")
-o:value("*", translate("Every Day"))
-o:value("1", translate("Every Monday"))
-o:value("2", translate("Every Tuesday"))
-o:value("3", translate("Every Wednesday"))
-o:value("4", translate("Every Thursday"))
-o:value("5", translate("Every Friday"))
-o:value("6", translate("Every Saturday"))
-o:value("0", translate("Every Sunday"))
-o.default = "1"
-o.rmempty = true
-function o.cfgvalue(self, section)
-	return fs.config_subscribe_schedule(section, m.uci).week
-end
-
----- update day time
-o = s:option(ListValue, "auto_update_time", translate("Update time (every day)"))
-o:depends("config_auto_update_mode", "0")
-for t = 0,23 do
-o:value(t, t..":00")
-end
-o.default = "0"
-o.rmempty = true
-function o.cfgvalue(self, section)
-	return fs.config_subscribe_schedule(section, m.uci).hour
-end
-
----- update interval
-o = s:option(Value, "config_update_interval", translate("Update Interval(min)"))
-o:depends("config_auto_update_mode", "1")
-o.default = "60"
-o.datatype = "and(uinteger, min(1), max(525600))"
-o.rmempty = true
-function o.cfgvalue(self, section)
-	return fs.config_subscribe_schedule(section, m.uci).interval
+if #overrides > 0 then
+	o.description = translate("Existing subscription frequency overrides take precedence over the global frequency:") .. " " .. table.concat(overrides, ", ")
 end
 
 ---- subconverter
@@ -219,7 +211,7 @@ o:depends("sub_convert", "1")
 
 ---- rule provider
 o = s:option(ListValue, "rule_provider", translate("Use Rule Provider"))
-o.description = font_red..bold_on..translate("Note: Please Make Sure Backend Service Supports This Feature")..bold_off..font_off
+o.description = translate("Note: Please Make Sure Backend Service Supports This Feature")
 o.rmempty = false
 o:value("false", translate("Disable"))
 o:value("true", translate("Enable"))
@@ -228,7 +220,7 @@ o:depends("sub_convert", "1")
 
 ---- custom params
 o = s:option(DynamicList, "custom_params", translate("Custom Params"))
-o.description = font_red..bold_on..translate("eg: \"rename=match@replace\" , \"rename=\\s+([2-9])[xX]@ (HIGH:$1)\"")..bold_off..font_off
+o.description = translate("eg: \"rename=match@replace\" , \"rename=\\s+([2-9])[xX]@ (HIGH:$1)\"")
 o.rmempty = false
 o:depends("sub_convert", "1")
 
@@ -238,19 +230,19 @@ o.description = translate("Show node filter options")
 o.default = 0
 
 ---- key
-o = s:option(DynamicList, "keyword", font_red..bold_on..translate("Keyword Match")..bold_off..font_off)
-o.description = font_red..bold_on..translate("eg: hk or tw&bgp")..bold_off..font_off
+o = s:option(DynamicList, "keyword", translate("Keyword Match"))
+o.description = translate("eg: hk or tw&bgp")
 o.rmempty = true
 o:depends("keyword_option", "1")
 
 ---- exkey
-o = s:option(DynamicList, "ex_keyword", font_red..bold_on..translate("Exclude Keyword Match")..bold_off..font_off)
-o.description = font_red..bold_on..translate("eg: hk or tw&bgp")..bold_off..font_off
+o = s:option(DynamicList, "ex_keyword", translate("Exclude Keyword Match"))
+o.description = translate("eg: hk or tw&bgp")
 o.rmempty = true
 o:depends("keyword_option", "1")
 
 ---- de_exkey
-o = s:option(MultiValue, "de_ex_keyword", font_red..bold_on..translate("Exclude Keyword Match Default")..bold_off..font_off)
+o = s:option(MultiValue, "de_ex_keyword", translate("Exclude Keyword Match Default"))
 o.rmempty = true
 o:depends("keyword_option", "1")
 o:value(translate("Expire"))
@@ -266,14 +258,14 @@ o.default = 0
 
 ---- Custom Headers
 o = s:option(DynamicList, "sub_headers", translate("Custom Headers"))
-o.description = font_red..bold_on..translate("Custom HTTP request headers, one per line, format: Header-Name: value")..bold_off..font_off
+o.description = translate("Custom HTTP request headers, one per line, format: Header-Name: value")
 o.rmempty = true
 o.placeholder = "x-hwid: my-device-id"
 o:depends("ad_option", "1")
 
 o = s:option(ListValue, "config_age_algo", translate("Age Key Type"))
 o:depends("ad_option", "1")
-o.description = font_red..bold_on..translate("Age Encryption For Config, Click For More:")..bold_off..font_off.." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://wiki.metacubex.one/config/proxy-providers/?age-secret-key#age-secret-key\")'>"..translate("Age Encryption Introduce").."</a>"
+o.description = translate("Age Encryption For Config, Click For More:").." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://wiki.metacubex.one/config/proxy-providers/?age-secret-key#age-secret-key\")'>"..translate("Age Encryption Introduce").."</a>"
 o:value("keygen", "x25519")
 o:value("pq", "PQ (mlkem768-x25519)")
 o.rmempty = true
@@ -396,6 +388,38 @@ end
 o = s:option(DummyValue, "_generate_age_btn", "")
 o:depends("ad_option", "1")
 o.template = "openclash/generate_age"
+if unified then
+	o = s:option(DummyValue, "_update", translate("Update Config"))
+	o.cfgvalue = function() return profile.name end
+	o.template = "openclash/update_config"
+	o.confirm_overwrite = true
+	o.reload_after_update = true
+	o.no_restart = true
+end
+end
+
+if unified then
+	local section = m:section(NamedSection, "config", "openclash", translate("Config File Edit"))
+	section:tab("source", translate("Config File"))
+	local runtime_stat = fs.stat("/etc/openclash/" .. profile.name)
+	local has_running = profiles.running_name(fs, sys) == profile.name and runtime_stat and runtime_stat.type == "regular"
+	if has_running then section:tab("running", translate("Running Config")) end
+	o = section:taboption("source", profile.exists and TextValue or DummyValue, "_profile_source")
+	o.rows, o.wrap, o.readonly = 30, "off", not profile.editable
+	o.description = profile.automatic and profile.exists and translate("Disable automatic updates and save before editing this configuration") or ""
+	o.cfgvalue = function() return profile.exists and (fs.readfile(file_path) or "") or translate("Configuration has not been downloaded") end
+	o.write = function(self, section, value)
+		if profile.editable and value and value ~= "oc-editor-streamed" then source_content = value:gsub("\r\n?", "\n") end
+	end
+	o.remove = function() end
+	if has_running then
+	o = section:taboption("running", TextValue, "_profile_running")
+	o.rows, o.wrap, o.readonly = 30, "off", true
+	o.cfgvalue = function() return fs.readfile("/etc/openclash/" .. profile.name) or "" end
+	o.write = function() end
+	o.remove = function() end
+	end
+end
 
 local t = {
 	{Commit, Back}
@@ -406,10 +430,34 @@ o = a:option(Button,"Commit", " ")
 o.inputtitle = translate("Commit Settings")
 o.inputstyle = "apply"
 o.write = function()
+	commit_requested = true
+end
+
+m.commit_handler = function(self)
+	if not commit_requested then return end
+	if stream_error then
+		if stream then stream:close(); stream = nil end
+		self.message = translate("Failed to save config file to disk")
+		return
+	end
+	if unified and profile.editable and (stream or source_content) then
+		if stream then stream:seek("set"); source_content = stream:read("*a"); stream:close(); stream = nil end
+		local scheduled = sid and profiles.auto_update({auto_update=m.uci:get(openclash, sid, "auto_update")}, m.uci:get(openclash, "config", "auto_update"))
+		if source_content and not scheduled and source_content ~= fs.readfile(file_path) then
+			if not profiles.writable(file_path, fs, luci.model.uci.cursor()) then
+				self.message = translate("Disable automatic updates and save before editing this configuration")
+				return
+			end
+			if not fs.writefile(file_path, source_content) then
+				self.message = translate("Failed to save config file to disk")
+				return
+			end
+		end
+	end
 	local to_delete = {}
 	m.uci:foreach(openclash, "config_age_secret", function(s)
 		local sec = m.uci:get(openclash, s['.name'], "secret") or ""
-		if sec == "" or sec == nil then
+		if (not unified or s.name == fs.filename(profile.name)) and (sec == "" or sec == nil) then
 			table.insert(to_delete, { sid = s['.name'], name = s.name or "" })
 		end
 	end)
@@ -454,25 +502,45 @@ o.write = function()
 	end
 	m.uci:commit(openclash)
 	sys.call("/etc/init.d/openclash reload cron >/dev/null 2>&1")
+	if apply_requested and unified and profile.exists then
+		m.uci:set(openclash, "config", "config_path", file_path)
+		m.uci:set(openclash, "config", "enable", "1")
+		m.uci:commit(openclash)
+		sys.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
+	end
 	HTTP.redirect(m.redirect)
+end
+
+if unified and profile.exists then
+	o = a:option(Button, "Apply", " ")
+	o.inputtitle, o.inputstyle = translate("Apply Settings"), "apply"
+	o.write = function() commit_requested = true; apply_requested = true end
 end
 
 o = a:option(Button,"Back", " ")
 o.inputtitle = translate("Back Settings")
 o.inputstyle = "reset"
+if unified then o.template = "openclash/config_back" end
 o.write = function()
-	m.uci:revert(openclash, sid)
+	if sid then m.uci:revert(openclash, sid) end
 	if age_section then
 		m.uci:revert(openclash, age_section)
 	end
-	HTTP.redirect(m.redirect)
+	HTTP.redirect(DISP.build_url("admin/services/openclash/config"))
 end
 
 local render_children = m.render_children
 m.render_children = function(self, ...)
 	fs.render_page_head()
+	if unified then luci.template.render("openclash/config_resources") end
 	render_children(self, ...)
 end
 
+if unified then
+	local editor = Template("openclash/profile_editor")
+	editor.profile_name = profile.name
+	editor.profile_path = file_path
+	m:append(editor)
+end
 m:append(Template("openclash/subconverter_version"))
 return m

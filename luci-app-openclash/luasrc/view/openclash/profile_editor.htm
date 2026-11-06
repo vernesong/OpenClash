@@ -1,0 +1,24 @@
+<script src="/cgi-bin/luci/admin/services/openclash/translate_js?f=common&amp;v=@OPENCLASH_VERSION@&amp;l=<%=luci.i18n.context.lang%>"></script>
+<script src="/cgi-bin/luci/admin/services/openclash/translate_js?f=editors&amp;v=@OPENCLASH_VERSION@&amp;l=<%=luci.i18n.context.lang%>"></script>
+<script>
+(function() {
+    var form = document.querySelector('form');
+    if (form) form.action = '<%=luci.dispatcher.build_url("admin", "services", "openclash", "config-edit")%>?file=<%=luci.http.urlencode(self.profile_path)%>';
+    var source = document.getElementById('cbid.openclash.config._profile_source');
+    var running = document.getElementById('cbid.openclash.config._profile_running');
+    if (source && source.tagName === 'TEXTAREA') {
+        editor(source, source.readOnly, '100%', '650px');
+        if (!source.readOnly) ocStreamEditorOnSubmit(source);
+        else source.removeAttribute('name');
+    }
+    if (running) { editor(running, true, '100%', '650px'); running.removeAttribute('name'); }
+    document.querySelectorAll('input[name$=".Apply"]').forEach(function(button) {
+        button.onclick = function() { return window.confirm('<%:Apply Settings%> <%=self.profile_name%>?'); };
+    });
+    document.querySelectorAll('select[name$=".auto_update"]').forEach(function(input) {
+        input.addEventListener('change', function() {
+            if (input.value === '1' && !window.confirm('<%:Automatic updates overwrite local changes. Continue?%>')) input.value = '0';
+        });
+    });
+})();
+</script>

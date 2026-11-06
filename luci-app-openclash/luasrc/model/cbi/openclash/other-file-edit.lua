@@ -10,6 +10,21 @@ if not file_path then
 	return
 end
 
+file_path = NXFS.realpath(file_path)
+if not file_path then HTTP.status(404, "File not found"); return end
+if file_path:match("^/etc/openclash/config/") then
+	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "config-edit") .. "?file=" .. HTTP.urlencode(file_path))
+	return
+end
+if not (file_path:match("^/etc/openclash/proxy_provider/[^/]+$") or file_path:match("^/etc/openclash/rule_provider/[^/]+$")) then
+	HTTP.status(403, "Invalid provider file path")
+	return
+end
+if file_path:lower():match("%.mrs$") then
+	HTTP.status(403, "Binary rule providers cannot be edited as text")
+	return
+end
+
 local stream_fd
 HTTP.setfilehandler(
 	function(meta, chunk, eof)
@@ -78,5 +93,7 @@ o.write = function()
 	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "%s") % arg[1])
 end
 
-m:append(Template("openclash/config_editor"))
+local editor = Template("openclash/config_editor")
+editor.form_action = m.redirect
+m:append(editor)
 return m

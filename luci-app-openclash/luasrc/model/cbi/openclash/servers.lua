@@ -6,6 +6,7 @@ local fs = require "luci.openclash"
 local HTTP = require "luci.http"
 local DISP = require "luci.dispatcher"
 local file_path = fs.get_file_path_from_request()
+local profiles = require "luci.openclash_profiles"
 
 local function commit_all()
 	uci:commit("openclash")
@@ -15,6 +16,8 @@ if not file_path then
 	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "config"))
 	return
 end
+file_path = require("nixio.fs").realpath(file_path)
+if not profiles.find(file_path, fs, uci) then HTTP.status(403, "Invalid configuration path"); return end
 
 m = Map(openclash, translate("Servers & Groups manage"))
 m.uci = uci
@@ -250,6 +253,11 @@ o = a:option(Button, "Apply", " ")
 o.inputtitle = translate("Apply Settings")
 o.inputstyle = "apply"
 o.write = function()
+	if not profiles.writable(file_path, fs, luci.model.uci.cursor()) then
+		m.message = translate("Disable automatic updates and save before editing this configuration")
+		m.save = false
+		return
+	end
 	commit_all()
 	luci.sys.call("/usr/share/openclash/yml_groups_set.sh \"%s\" >/dev/null 2>&1 &" % file_path)
 	HTTP.redirect(m.redirect)
