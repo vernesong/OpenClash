@@ -1987,15 +1987,15 @@ var ConfigEditor = {
         return params.join(';');
     },
 
-    // ASCII stays limited to [A-Za-z0-9._- ] so the name is safe in shell, ruby and
-    // cron arguments; non-ASCII (CJK) names are allowed, capped by byte length.
+    // Mirrors is_safe_filename() on the backend: every name the filesystem accepts stays
+    // usable; leading dots are rejected because the module list hides them.
     isValidOverwriteModuleName: function(name) {
         if (!name || name.charAt(0) === '.') return false;
         if (name === OC_CUSTOM_OVERWRITE) return false;
-        if (/^ +$/.test(name)) return false;
-        if (/[^\u0080-\uffff]/.test(name.replace(/[A-Za-z0-9._\- ]/g, ''))) return false;
+        if (name.indexOf('/') !== -1) return false;
+        if (/[\u0000-\u001f\u007f]/.test(name)) return false;
         var bytes = (typeof TextEncoder !== 'undefined') ? new TextEncoder().encode(name).length : name.length;
-        return bytes <= 200;
+        return bytes <= 255;
     },
 
     // Weekday names and a 0/00 minute (or a leading 0 second) are tolerated; ranges,

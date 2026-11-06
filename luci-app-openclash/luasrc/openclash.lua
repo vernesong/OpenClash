@@ -49,6 +49,7 @@ local tostring = tostring
 local table = table
 local math = math
 local pcall = pcall
+local ipairs = ipairs
 local b64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 
 --- LuCI filesystem library.
@@ -202,6 +203,22 @@ function dir(...)
 	end
 end
 
+--- Entry names of the given directory, sorted case-insensitively and never nil.
+--- glob() returns nil for an empty directory, which broke callers that iterated the
+--- result with ipairs; hidden entries (leading dot) are skipped like a shell glob.
+--- @param path String containing the path of the directory to scan
+--- @return Table containing the entry names
+function listdir(path)
+	local names = {}
+	for _, name in ipairs(dir(path) or {}) do
+		if name:sub(1, 1) ~= "." then
+			names[#names + 1] = name
+		end
+	end
+	table.sort(names, function(a, b) return string.lower(a) < string.lower(b) end)
+	return names
+end
+
 --- Create a new directory, recursively on demand.
 -- @param path		String with the name or path of the directory to create
 -- @param recursive	Create multiple directory levels (optional, default is true)
@@ -300,22 +317,14 @@ function filename(str)
 	end
 end
 
---- ASCII stays limited to [A-Za-z0-9._- ] so the name is safe in shell, ruby and cron
---- arguments; non-ASCII (CJK) bytes are allowed, capped to fit the filesystem name limit.
+--- Every name a directory entry may use is accepted, so configs created by older versions
+--- or by the shell stay usable; only path separators, control bytes (they break crontab
+--- lines and shell arguments) and hidden names (leading dot, never listed) are rejected.
 function is_safe_filename(name)
-	if type(name) ~= "string" or name == "" or #name > 200 or name:sub(1, 1) == "." then
+	if type(name) ~= "string" or name == "" or #name > 255 or name:sub(1, 1) == "." then
 		return false
 	end
-	if name:match("^ +$") then
-		return false
-	end
-	for i = 1, #name do
-		local byte = name:byte(i)
-		if byte < 0x80 and not string.char(byte):match("[A-Za-z0-9._%- ]") then
-			return false
-		end
-	end
-	return true
+	return name:find("[/%z\1-\31\127]") == nil
 end
 
 function filesize(e)

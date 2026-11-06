@@ -256,7 +256,7 @@ html[data-darkmode=true] .oc .oix-panel::after {
     background: var(--bg-white) !important;
     color: var(--text-primary);
     font-size: 14px;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
     box-sizing: border-box;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -279,7 +279,7 @@ html[data-darkmode=true] .oc .oix-panel::after {
     display: inline-flex; align-items: center; justify-content: center;
     gap: var(--tight-gap); padding: 8px 18px; border: none; border-radius: var(--radius-sm);
     font-size: 13px; font-weight: 500; cursor: pointer;
-    transition: all 0.15s ease; line-height: 1.4;
+    transition: var(--transition-ui); line-height: 1.4;
 }
 
 .oix-btn-primary { background: var(--primary-color); color: var(--text-on-primary); }
@@ -357,7 +357,7 @@ html[data-darkmode=true] .oc .oix-panel::after {
     flex-wrap: wrap; gap: var(--content-gap); margin-bottom: 12px;
     background: var(--bg-gray); border: 1px solid var(--border-light);
     border-radius: var(--radius-md); padding: 8px 14px;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
 }
 
 .oix-header:hover {
@@ -382,7 +382,7 @@ html[data-darkmode=true] .oc .oix-panel::after {
     border-radius: var(--radius-md); font-size: 12px; line-height: 1.6;
     background: var(--bg-white); color: var(--text-primary);
     border: 1px solid var(--border-light);
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
 }
 
 .oix-announce:hover {
@@ -411,7 +411,7 @@ html[data-darkmode=true] .oc .oix-panel::after {
 }
 
 .oix-announce-arrow svg {
-    transition: transform 0.25s ease;
+    transition: transform 220ms var(--ease-standard);
     animation: oix-bounce 1.6s ease-in-out infinite;
 }
 
@@ -446,7 +446,7 @@ html[data-darkmode=true] .oc .oix-panel::after {
 .oix-card {
     background: var(--bg-gray); border: 1px solid var(--border-light);
     border-radius: var(--radius-md); padding: var(--card-padding);
-    text-align: center; transition: all var(--transition-fast);
+    text-align: center; transition: var(--transition-ui);
     box-shadow: var(--shadow-sm);
 }
 
@@ -484,7 +484,7 @@ html[data-darkmode=true] .oc .oix-panel::after {
     border-radius: var(--radius-md);
     padding: var(--card-padding);
     box-shadow: var(--shadow-sm);
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
 }
 
 .oix-setting-card:hover {
@@ -540,13 +540,13 @@ html[data-darkmode=true] .oc .oix-panel::after {
     position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
     background: var(--switch-off-bg); border-radius: 20px;
     border: 1px solid var(--border-light);
-    transition: all 0.2s ease;
+    transition: background-color 160ms var(--ease-standard), border-color 160ms var(--ease-standard);
 }
 
 .oix-toggle-slider::before {
     content: ''; position: absolute; height: 14px; width: 14px;
     left: 2px; top: 2px; background: var(--switch-knob-bg); border-radius: 50%;
-    transition: all 0.2s ease; box-shadow: var(--switch-knob-shadow);
+    transition: transform 160ms var(--ease-standard); box-shadow: var(--switch-knob-shadow);
 }
 
 .oix-toggle input:checked + .oix-toggle-slider { background: var(--primary-color); border-color: var(--primary-color); }

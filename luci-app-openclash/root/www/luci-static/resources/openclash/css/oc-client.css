@@ -26,10 +26,6 @@ html[data-darkmode="true"] .oc .announcement-banner {
     background: linear-gradient(135deg, var(--announcement-end), var(--primary-color));
 }
 
-html[data-darkmode="true"] .oc .announcement-banner::before {
-    background: linear-gradient(to right, var(--announcement-end) 80%, var(--announcement-end) 100%);
-}
-
 html[data-darkmode="true"] .oc #megaphone {
     filter: brightness(0) invert(1);
 }
@@ -86,7 +82,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
     border-radius: var(--radius-lg);
     padding: var(--card-outer-padding);
     box-shadow: var(--shadow-sm);
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
     display: grid;
     grid-template-rows: var(--row-1-height) var(--row-2-height) var(--row-3-height) var(--row-4-height);
     gap: var(--card-grid-gap);
@@ -162,7 +158,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
     position: relative;
     height: 100%;
     min-height: 0;
-    gap: 5px;
+    gap: var(--tight-gap);
     max-width: 100%;
     box-sizing: border-box;
 }
@@ -193,16 +189,16 @@ html[data-darkmode="true"] .oc .config-select:focus {
 
 .oc .card-title {
     font-size: var(--card-title-size);
-    font-weight: 600;
+    font-weight: 500;
     color: var(--text-title);
-    letter-spacing: 0.5px;
+    letter-spacing: normal;
     margin-bottom: 10px;
     display: flex;
     align-items: center;
     gap: 4px;
     height: 20px;
     flex-shrink: 0;
-    padding-left: 5px;
+    padding-left: 4px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -218,6 +214,15 @@ html[data-darkmode="true"] .oc .config-select:focus {
 
 @media (min-width: 1025px) {
     .oc .stats-grid .sub-card .card-title { font-size: 12px; }
+}
+
+/* the four-up settings row is the narrowest segmented control; tighter inline
+ * padding and 11px keep two-character labels on one line under every theme font */
+@media (min-width: 769px) {
+    .oc .stats-grid .cbi-button-option {
+        font-size: 11px;
+        padding: 4px 1px;
+    }
 }
 
 /* Title + version chips keep one row; the chips shrink and ellipsize instead of covering the title. */
@@ -287,7 +292,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
 
 .oc .card-value {
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--text-primary);
     line-height: 1.4;
     word-break: break-word;
@@ -541,7 +546,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
     font-size: 15px;
     appearance: none;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
     box-sizing: border-box;
     min-width: 0;
     margin: 0 auto;
@@ -834,7 +839,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
     border-radius: var(--radius-md) !important;
     border: none !important;
     background-color: var(--primary-color) !important;
-    transition: all var(--transition-fast) !important;
+    transition: var(--transition-ui) !important;
     white-space: normal !important;
     text-align: center !important;
     text-decoration: none !important;
@@ -865,7 +870,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
 
 .oc .stat-label {
     font-size: var(--card-title-size-sm);
-    font-weight: 600;
+    font-weight: 500;
     color: var(--text-title);
     text-align: center;
     position: relative;
@@ -888,6 +893,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
     font-size: clamp(9px, 2.2vw, 12px);
     font-weight: 600;
     color: var(--success-color);
+    font-variant-numeric: tabular-nums;
     text-align: center;
     white-space: normal;
     word-break: normal;
@@ -935,7 +941,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
     right: 0;
     bottom: 0;
     background-color: var(--switch-off-bg);
-    transition: 0.2s;
+    transition: background-color 160ms var(--ease-standard), border-color 160ms var(--ease-standard);
     border-radius: 22px;
     border: 1px solid var(--border-light);
 }
@@ -948,7 +954,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
     left: 2px;
     top: 2px;
     background-color: var(--switch-knob-bg);
-    transition: 0.2s;
+    transition: transform 160ms var(--ease-standard);
     border-radius: 50%;
     box-shadow: var(--switch-knob-shadow);
 }
@@ -1010,7 +1016,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
     min-height: 0;
     flex: 0 0 auto;
     box-shadow: var(--shadow-sm);
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
     position: relative;
 }
 
@@ -1071,7 +1077,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
 .oc .subscription-progress-fill {
     height: 100%;
     border-radius: 4px;
-    transition: width 0.3s ease;
+    transition: width 220ms var(--ease-standard);
     position: relative;
     overflow: hidden;
 }
@@ -1107,7 +1113,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
 
 .oc .subscription-info-title {
     font-size: var(--card-title-size-sm);
-    font-weight: 600;
+    font-weight: 500;
     color: var(--text-title);
     line-height: 1.4;
     text-overflow: ellipsis;
@@ -1168,7 +1174,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
     word-break: keep-all;
     line-height: normal;
     box-sizing: border-box;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
     box-shadow: var(--shadow-sm);
     cursor: pointer;
 }
@@ -1203,6 +1209,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
 .oc .subscription-info-text {
     font-size: 13px;
     color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
     line-height: 1.4;
     overflow-x: auto;
     overflow-y: hidden;
@@ -1261,7 +1268,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
 .oc .provider-card {
     background: transparent;
     padding: 0;
-    transition: all 0.2s ease;
+    transition: var(--transition-ui);
     min-width: calc(33.333% - 8px);
     flex: 0 0 calc(33.333% - 8px);
     box-sizing: border-box;
@@ -1307,7 +1314,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
     width: 0;
     height: 0;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
     z-index: 3;
     opacity: 0.6;
 }
@@ -1405,7 +1412,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: 14px;
+    gap: 16px;
 }
 
 .oc .config-file-content.empty-state .config-file-bottom {
@@ -1419,6 +1426,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
     gap: 2px;
     font-size: 13px;
     color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
     min-width: 0;
     max-width: 30vw;
     overflow: hidden;
@@ -1477,6 +1485,19 @@ html[data-darkmode="true"] .oc .config-select:focus {
     margin: 0 auto;
 }
 
+/* the marquee fades in and out over the same distance on both ends: the 40px fade start on the
+   left equals the megaphone strip, so no opaque cover is needed over the banner gradient */
+.oc .announcement-viewport {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, transparent 40px, #000 52px, #000 calc(100% - 52px), transparent calc(100% - 40px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, transparent 40px, #000 52px, #000 calc(100% - 52px), transparent calc(100% - 40px), transparent 100%);
+}
+
 .oc .announcement-content {
     position: absolute;
     white-space: nowrap;
@@ -1487,7 +1508,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
     z-index: 1;
     font-weight: 500;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 220ms var(--ease-standard);
     animation-fill-mode: forwards;
     animation-timing-function: linear;
 }
@@ -1517,26 +1538,12 @@ html[data-darkmode="true"] .oc .config-select:focus {
     top: 0;
     bottom: 0;
     width: 40px;
-    background: var(--announcement-icon-bg);
+    background: transparent;
     border-top-left-radius: var(--radius-lg);
     border-bottom-left-radius: var(--radius-lg);
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.oc .announcement-banner::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 45px;
-    border-top-left-radius: var(--radius-lg);
-    border-bottom-left-radius: var(--radius-lg);
-    background: linear-gradient(to right, var(--announcement-end) 80%, var(--announcement-end) 100%);
-    z-index: 3;
-    pointer-events: none;
 }
 
 .oc #megaphone {
@@ -1558,7 +1565,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
     box-shadow: var(--shadow-md);
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: var(--tight-gap);
     max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
@@ -1584,10 +1591,10 @@ html[data-darkmode="true"] .oc .config-select:focus {
 
 .oc .stats-title {
     font-size: var(--card-title-size);
-    font-weight: 600;
+    font-weight: 500;
     color: var(--text-title);
-    padding-left: 5px;
-    letter-spacing: 0.5px;
+    padding-left: 4px;
+    letter-spacing: normal;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -1747,14 +1754,14 @@ html[data-darkmode="true"] .oc .config-select:focus {
     align-items: baseline;
     justify-content: center;
     font-size: 15px;
-    font-weight: 700;
+    font-weight: 600;
     margin-top: 0;
     min-height: auto;
 }
 
 .oc .stats-section .stat-num {
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .oc .stats-section .stat-unit {
@@ -1782,7 +1789,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
     min-height: 0;
     position: relative;
     margin-bottom: 5px;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
 }
 
 .oc .stats-chart-card:hover {
@@ -1824,7 +1831,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
-    gap: 6px 14px;
+    gap: 6px 12px;
     flex: 0 0 auto;
     white-space: nowrap;
     min-width: 0;
@@ -1836,7 +1843,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
     gap: 6px;
     font-size: 12px;
     color: var(--text-secondary);
-    font-weight: 600;
+    font-weight: 500;
     white-space: nowrap;
 }
 
@@ -1854,7 +1861,8 @@ html[data-darkmode="true"] .oc .config-select:focus {
 
 .oc .stats-legend-val {
     color: var(--text-primary);
-    font-weight: 700;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
 }
 
 .oc .stats-chart-wrap {
@@ -1876,12 +1884,12 @@ html[data-darkmode="true"] .oc .config-select:focus {
     color: var(--bg-white, #fff);
     font-size: 12px;
     line-height: normal;
-    padding: 8px 14px;
+    padding: 8px 12px;
     border-radius: 6px;
     box-shadow: 0 2px 8px rgba(55, 65, 81, 0.25);
     opacity: 0;
     transform: translateY(4px);
-    transition: opacity 0.25s ease, transform 0.25s ease;
+    transition: opacity 220ms var(--ease-standard), transform 220ms var(--ease-standard);
     pointer-events: none;
     z-index: -1;
 }
@@ -1965,7 +1973,7 @@ html[data-darkmode="true"] .oc .myip-footer p {
     margin: 0 auto;
     width: 100%;
     min-width: 300px;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
 }
 
 .oc .myip-content-grid {
@@ -2001,7 +2009,7 @@ html[data-darkmode="true"] .oc .myip-footer p {
 
 .oc .myip-section-title {
     font-size: var(--card-title-size);
-    font-weight: bold;
+    font-weight: 500;
     color: var(--text-title) !important;
     margin: 8px 0;
     padding: 0;
@@ -2034,7 +2042,7 @@ html[data-darkmode="true"] .oc .myip-footer p {
     background: var(--bg-white);
     border: 1px solid var(--border-light, #e5e7eb);
     border-radius: var(--radius-md);
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
     min-height: var(--card-item-min-height);
     min-width: 0;
     max-width: 100%;
@@ -2050,7 +2058,7 @@ html[data-darkmode="true"] .oc .myip-footer p {
 .oc .myip-card-icon {
     width: 20px; height: 20px; flex-shrink: 0;
     color: var(--text-secondary);
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
 }
 
 .oc .myip-card-icon.ic-baidu { color: #2932E1; }
@@ -2370,7 +2378,7 @@ html[data-darkmode="true"] .oc .myip-gear-state {
 
 .oc .myip-card-label {
     display: flex; align-items: center; justify-content: center;
-    gap: var(--tight-gap); font-size: var(--card-title-size-sm); font-weight: 600;
+    gap: var(--tight-gap); font-size: var(--card-title-size-sm); font-weight: 500;
     color: var(--text-title);
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     max-width: 100%;
@@ -2465,13 +2473,13 @@ html[data-darkmode="true"] .oc .myip-gear-state {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 8px; font-weight: 700;
+    font-size: 8px; font-weight: 600;
     line-height: normal;
     letter-spacing: 0.02em;
     color: #64748b;
     background: #f1f5f9;
     border: 1px solid var(--border-light, #e5e7eb);
-    border-radius: 999px;
+    border-radius: var(--radius-xs);
     padding: 2px 4px;
     white-space: nowrap;
 }
@@ -2522,7 +2530,7 @@ html[data-darkmode="true"] .oc .myip-gear-state {
     font-size: 18px; font-weight: 600;
     font-variant-numeric: tabular-nums;
     color: var(--text-primary); line-height: 1;
-    transition: color 0.3s;
+    transition: color 220ms;
 }
 
 .oc .myip-latency-fast { color: var(--success-color) !important; }
@@ -2544,7 +2552,7 @@ html[data-darkmode="true"] .oc .myip-gear-state {
 .oc .myip-status-dot {
     width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
     margin-left: 4px;
-    transition: background 0.3s, box-shadow 0.3s;
+    transition: background 220ms, box-shadow 220ms;
 }
 
 .oc .myip-status-dot.ok,
@@ -2633,7 +2641,7 @@ html[data-darkmode="true"] .oc .myip-gear-state {
     position: absolute;
     top: 0;
     left: 0;
-    padding: 2px 7px;
+    padding: 2px 8px;
     font-size: 12px;
     font-weight: 500;
     line-height: 1.5;
@@ -2734,7 +2742,7 @@ html[data-darkmode="true"] .oc .myip-gear-state {
     box-shadow: var(--shadow-md);
     margin: 0;
     width: 100%;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
     overflow: hidden;
     position: relative;
 }
@@ -2742,7 +2750,7 @@ html[data-darkmode="true"] .oc .myip-gear-state {
 .oc .developer-grid {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px 30px;
+    gap: 8px 32px;
     padding: 0;
     justify-content: center;
     align-items: flex-start;
@@ -2750,7 +2758,7 @@ html[data-darkmode="true"] .oc .myip-gear-state {
     z-index: 1;
     min-height: auto;
     line-height: 1;
-    padding-top: 5px;
+    padding-top: 4px;
 }
 
 .oc .developer-avatar-container {
@@ -2759,7 +2767,7 @@ html[data-darkmode="true"] .oc .myip-gear-state {
     display: flex;
     flex-direction: column;
     align-items: center;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: var(--transition-ui);
     flex-shrink: 0;
     min-width: var(--oc-dev-size);
     width: var(--oc-dev-size);
@@ -2770,7 +2778,7 @@ html[data-darkmode="true"] .oc .myip-gear-state {
 }
 
 .oc .developer-avatar {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: var(--transition-ui);
     cursor: pointer;
     border-radius: 50%;
     width: var(--oc-dev-size);
@@ -2811,7 +2819,7 @@ html[data-darkmode="true"] .oc .myip-gear-state {
     );
     filter: blur(4px);
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 220ms var(--ease-standard);
     z-index: 0;
     pointer-events: none;
     animation: rotate 3s linear infinite;
@@ -2835,7 +2843,7 @@ html[data-darkmode="true"] .oc .myip-gear-state {
     align-items: center;
     justify-content: center;
     font-size: 24px;
-    font-weight: 700;
+    font-weight: 600;
     color: rgba(255, 255, 255, 0.92);
     user-select: none;
 }
@@ -2857,13 +2865,13 @@ html[data-darkmode="true"] .oc .myip-gear-state {
 
 .oc .developer-label {
     margin-top: 6px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 400;
     color: var(--text-secondary);
     text-align: center;
     opacity: 0;
     transform: translateY(6px);
-    transition: all 0.25s ease;
+    transition: var(--transition-ui);
     background: rgba(255, 255, 255, 0.9);
     padding: 2px 6px;
     border-radius: 6px;
@@ -2977,15 +2985,11 @@ html[data-darkmode="true"] .oc .oix-announcement {
       background: linear-gradient(135deg, var(--announcement-end), var(--primary-color));
 }
 
-html[data-darkmode="true"] .oc .oix-announcement::before {
-      background: linear-gradient(to right, var(--announcement-end) 80%, var(--announcement-end) 100%);
-}
-
 .oc .oix-main-container {
     background: var(--bg-white);
     margin: 0 auto;
     width: 100%;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
 }
 
 .oc .center {
@@ -2995,7 +2999,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
     padding: var(--card-outer-padding);
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
 }
 
 .oc .card {
@@ -3024,7 +3028,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     width: var(--oix-cover-width);
     height: 100%;
     background: linear-gradient(var(--card-accent), var(--bg-white));
-    transition: width 0.5s cubic-bezier(0.4, 0.0, 0.2, 1), border-radius 0.5s ease;
+    transition: width 500ms var(--ease-standard), border-radius 500ms var(--ease-standard);
     overflow: hidden;
     z-index: 2;
     display: flex;
@@ -3084,7 +3088,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     justify-content: center;
     padding: 1rem;
     text-align: center;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
+    transition: opacity 220ms var(--ease-standard), visibility 220ms var(--ease-standard);
     opacity: 0;
     visibility: hidden;
     overflow: visible;
@@ -3154,7 +3158,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     z-index: 1;
     overflow: hidden;
     padding: 0 10px;
-    transition: margin-left 0.5s ease, opacity 0.5s ease;
+    transition: margin-left 500ms var(--ease-standard), opacity 500ms var(--ease-standard);
     opacity: 1;
 }
 
@@ -3224,7 +3228,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
 }
 
 .oc .card .general .oix-title {
-    font-weight: bold;
+    font-weight: 500;
     color: var(--text-title) !important;
     font-size: var(--card-title-size);
     display: inline-block;
@@ -3284,7 +3288,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     -webkit-appearance: button;
     border: none !important;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
     text-shadow: none !important;
 }
 
@@ -3309,7 +3313,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     width: 100%;
     z-index: 10;
     padding-right: 16px;
-    padding-bottom: 5px;
+    padding-bottom: 4px;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
@@ -3376,18 +3380,16 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     margin: 10px auto;
 }
 
-.oc .oix-announcement::before {
-    content: '';
+/* same masked layer as the status page banner */
+.oc .oix-announcement-viewport {
     position: absolute;
-    left: 0;
     top: 0;
+    left: 0;
+    right: 0;
     bottom: 0;
-    width: 45px;
-    border-top-left-radius: var(--radius-lg);
-    border-bottom-left-radius: var(--radius-lg);
-    background: linear-gradient(to right, var(--announcement-end) 80%, var(--announcement-end) 100%);
-    z-index: 2;
-    pointer-events: none;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, transparent 40px, #000 52px, #000 calc(100% - 52px), transparent calc(100% - 40px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, transparent 40px, #000 52px, #000 calc(100% - 52px), transparent calc(100% - 40px), transparent 100%);
 }
 
 .oc .oix-announcement-content {
@@ -3400,7 +3402,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     z-index: 1;
     font-weight: 500;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 220ms var(--ease-standard);
     animation-fill-mode: forwards;
     animation-timing-function: linear;
 }
@@ -3503,7 +3505,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     /* status.htm - main cards */
     .oc .main-cards-container {
             grid-template-columns: 1fr;
-            gap: 11px;
+            gap: 12px;
             max-width: 100%;
             width: 100%;
         }
@@ -3562,7 +3564,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     .oc .announcement-content { font-size: 13px; }
     .oc .dashboard-btn { font-size: 10px !important; height: 40px !important; }
     .oc .card-value { font-size: 13px; }
-    .oc .value-indicator { font-size: 11px; padding: 5px 5px; }
+    .oc .value-indicator { font-size: 11px; padding: 4px; }
     .oc .cbi-button-option { padding: 6px 6px; font-size: 11px; }
     .oc .card-row:nth-child(1), .oc .card-row:nth-child(2),
         .oc .card-row:nth-child(3), .oc .card-row:nth-child(4) { min-height: auto; }
@@ -3575,7 +3577,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     .oc .subscription-info-container { padding: 8px; }
     .oc .subscription-info-header { gap: 8px; }
     .oc .config-file-bottom { flex-direction: row; align-items: stretch; gap: 8px; }
-    .oc .config-file-bottom .card-actions { justify-content: center; gap: 5px; }
+    .oc .config-file-bottom .card-actions { justify-content: center; gap: 4px; }
     .oc .subscription-info-text { font-size: 10px; }
     .oc .subscription-progress-bar { height: 10px; }
     .oc .file-info { font-size: 10px; max-width: 40vw; }
@@ -3616,7 +3618,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     .oc .card .general .more p { font-size: 13px; }
     .oc .oix-announcement { width: 85%; max-width: 98%; height: 36px; }
     .oc .oix-announcement-content { font-size: 13px; }
-    .oc .developer-grid { gap: 6px 25px; }
+    .oc .developer-grid { gap: 6px 24px; }
     .oc .developer-avatar-container { --oc-dev-size: 45px; }
     .oc .developer-avatar { border-width: 2px; }
     .oc .developer-label { font-size: 9px; padding: 2px 4px; margin-top: 6px; }
@@ -3647,7 +3649,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
         .oc .card-row:nth-child(3), .oc .card-row:nth-child(4) { min-height: auto; }
     .oc .config-selector { min-width: 110px; flex: 1; }
     .oc .config-select { min-width: 110px; font-size: 12px; padding: 0 8px; }
-    .oc .config-select option { font-size: 12px; padding: 5px 8px; }
+    .oc .config-select option { font-size: 12px; padding: 4px 8px; }
     .oc .config-selector::after { right: 8px; }
     .oc .card-value { font-size: 11px; min-height: 28px; }
     .oc .value-indicator { padding: 4px 4px; min-width: 50px; height: 28px; }
@@ -3669,7 +3671,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     .oc #file-next-update svg { margin-right: 0; }
     .oc #file-modify-time > span { display: none; }
     .oc #file-modify-time svg { margin-right: 0; }
-    .oc .config-file-empty-state { padding: 30px 15px; gap: 15px; }
+    .oc .config-file-empty-state { padding: 32px 16px; gap: 16px; }
     .oc .config-file-empty-message { font-size: 13px; }
     .oc .myip-main-card { --myip-label-h: 18px; }
     .oc .myip-ip-list, .oc .myip-check-list { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 1fr; }
@@ -3681,7 +3683,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     .oc .myip-sparkline-wrap svg.myip-sparkline-svg { height: 16px; }
     .oc .myip-main-card.oc-unlock-view { --myip-unlock-name-fs: 11.5px; }
     .oc .myip-unlock-ribbon { width: 22px; height: 22px; }
-    .oc .myip-unlock-ribbon svg { top: 2.5px; right: 2.5px; width: 8.5px; height: 8.5px; }
+    .oc .myip-unlock-ribbon svg { top: 2.5px; right: 2.5px; width: 8px; height: 8px; }
     .oc .myip-footer p { font-size: 11px !important; line-height: 16px !important; }
     /* oixcloud.htm */
     .oc .center { padding: 8px; }
@@ -3698,17 +3700,18 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     .oc .card .general .more p { font-size: 11px; }
     .oc .oix-announcement { width: 90%; max-width: 100%; height: 34px; }
     .oc .oix-announcement-content { font-size: 12px; }
-    .oc .developer-grid { gap: 3px 15px; }
+    .oc .developer-grid { gap: 4px 16px; }
     .oc .developer-avatar-container { --oc-dev-size: 35px; }
-    .oc .developer-label { font-size: 7px; padding: 1px 3px; margin-top: 3px; }
+    /* long handles are wider than the slot: clip them instead of letting the pills touch */
+    .oc .developer-label { font-size: 7px; padding: 1px 3px; margin-top: 3px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
     .oc .developer-avatar.developer-more { font-size: 17px; }
     .oc .oc-float-stack { right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
 }
 
 @media (max-width: 320px) {
     /* status.htm - Running Mode mode-pill */
-    .oc .mode-pill .mode-pill-opt { padding: 2px 5px; font-size: 8px; }
-    .oc .developer-grid { gap: 2px 10px; }
+    .oc .mode-pill .mode-pill-opt { padding: 2px 4px; font-size: 8px; }
+    .oc .developer-grid { gap: 2px 8px; }
     .oc .developer-avatar-container { --oc-dev-size: 30px; }
     .oc .developer-label { font-size: 6px; padding: 1px 2px; margin-top: 3px; }
     .oc .developer-avatar.developer-more { font-size: 14px; }
@@ -3717,7 +3720,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
 }
 
 @media (min-width: 1200px) {
-    .oc .developer-grid { gap: 10px 35px; }
+    .oc .developer-grid { gap: 12px 36px; }
     .oc .developer-avatar-container { --oc-dev-size: 60px; }
     .oc .developer-avatar { border-width: 3px; }
     .oc .developer-label { font-size: 11px; padding: 3px 8px; margin-top: 6px; }
@@ -3735,7 +3738,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     border-radius: var(--radius-sm);
     box-shadow: var(--shadow-sm);
     display: flex; flex-direction: column;
-    padding: 4px 9px 0;
+    padding: 4px 8px 0;
     gap: 3px;
     flex: 1 1 auto; min-height: 0; min-width: 0;
     box-sizing: border-box; overflow: hidden;
@@ -3747,7 +3750,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
 .oc .ac-head { position: relative; display: flex; align-items: center; gap: 8px; flex: 0 0 auto; min-width: 0; padding: 0 2px 4px; }
 /* full-bleed header strip: it reaches the card edges and only the bottom border splits it from the list */
 .oc .ac-head::before {
-    content: ''; position: absolute; left: -9px; right: -9px; top: -4px; bottom: 0;
+    content: ''; position: absolute; left: -8px; right: -8px; top: -4px; bottom: 0;
     background: var(--bg-light); border-bottom: 1px solid var(--border-light);
     pointer-events: none;
 }
@@ -3759,12 +3762,12 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
 }
 .oc .ac-sum { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); white-space: nowrap; min-width: 0; }
 .oc .ac-sum > span:not(.ac-def-pill) { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.oc .ac-sum > svg { width: 13px; height: 13px; color: var(--primary-color); flex: 0 0 auto; }
-.oc .ac-sum b { color: var(--text-primary); font-weight: 700; font-variant-numeric: tabular-nums; }
+.oc .ac-sum > svg { width: 12px; height: 12px; color: var(--primary-color); flex: 0 0 auto; }
+.oc .ac-sum b { color: var(--text-primary); font-weight: 600; font-variant-numeric: tabular-nums; }
 .oc .ac-def-pill {
     display: inline-flex; align-items: center; flex: 0 0 auto;
-    height: 16px; padding: 0 7px; border-radius: 999px;
-    font-size: 10px; font-weight: 700; line-height: normal; color: var(--text-secondary);
+    height: 16px; padding: 0 8px; border-radius: var(--radius-xs);
+    font-size: 10px; font-weight: 600; line-height: normal; color: var(--text-secondary);
     background: var(--bg-light); border: 1px solid var(--border-light);
 }
 .oc .ac-tools { margin-left: auto; display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
@@ -3795,7 +3798,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
 .oc .ac-search-clear:hover { background: var(--hover-bg); color: var(--text-primary); }
 .oc .ac-key-btn {
     display: inline-flex; align-items: center; gap: 4px;
-    height: 24px; padding: 0 9px;
+    height: 24px; padding: 0 8px;
     font-size: 11px; font-weight: 600; font-family: inherit;
     color: var(--text-primary);
     background: var(--bg-light);
@@ -3836,27 +3839,27 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
 .oc .ac-working > * { visibility: hidden; }
 .oc .ac-working::after {
     content: ''; position: absolute; inset: 0; margin: auto;
-    width: 15px; height: 15px; box-sizing: border-box; border-radius: 50%;
+    width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%;
     border: 2px solid var(--primary-a20); border-top-color: var(--primary-color);
     animation: ac-spin .7s linear infinite;
 }
 @keyframes ac-spin { to { transform: rotate(360deg); } }
 
 .oc .ac-warn {
-    display: flex; align-items: center; gap: 7px; flex: 0 0 auto;
+    display: flex; align-items: center; gap: 8px; flex: 0 0 auto;
     padding: 4px 8px; border-radius: var(--radius-sm);
     font-size: 11px; line-height: 16px; color: var(--text-primary);
     background: rgba(245, 158, 11, .1);
     border: 1px solid rgba(245, 158, 11, .4);
 }
-.oc .ac-warn > svg { width: 13px; height: 13px; color: #d97706; flex: 0 0 auto; }
+.oc .ac-warn > svg { width: 12px; height: 12px; color: #d97706; flex: 0 0 auto; }
 .oc .ac-warn .ac-warn-btn {
     margin-left: auto; flex: 0 0 auto;
     display: inline-flex; align-items: center; gap: 4px;
     height: 20px; padding: 0 8px; border-radius: 4px;
     border: 1px solid rgba(245, 158, 11, .55);
     background: rgba(245, 158, 11, .12);
-    color: #b45309; font-size: 10.5px; font-weight: 700; font-family: inherit;
+    color: #b45309; font-size: 10.5px; font-weight: 600; font-family: inherit;
     cursor: pointer; white-space: nowrap;
     transition: background var(--transition-fast);
 }
@@ -3883,7 +3886,7 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
     font-size: 11.5px; font-family: inherit; cursor: pointer; text-align: left;
 }
 .oc .ac-sort-menu button:hover { background: var(--primary-a10); color: var(--primary-color); }
-.oc .ac-sort-menu button.on { color: var(--primary-color); font-weight: 700; }
+.oc .ac-sort-menu button.on { color: var(--primary-color); font-weight: 600; }
 .oc .ac-sort-menu button .ac-sort-ind { margin-left: auto; font-size: 9px; }
 
 .oc .ac-th {
@@ -3912,7 +3915,7 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
 .oc .ac-row {
     position: relative;
     display: flex; align-items: center; gap: 8px; flex: 0 0 auto;
-    min-height: 48px; padding: 5px 8px; box-sizing: border-box;
+    min-height: 48px; padding: 4px 8px; box-sizing: border-box;
     border-radius: var(--radius-sm);
     transition: background var(--transition-fast);
 }
@@ -3935,14 +3938,14 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
 .oc .ac-avatar > svg { width: 21px; height: 21px; }
 .oc .ac-avatar .ac-brand-logo { width: 21px; height: 21px; display: block; fill: currentColor; }
 .oc .ac-avatar .ac-brand-logo.wordmark { width: var(--wm, 28px); height: var(--wm, 28px); }
-.oc .ac-avatar .ac-brand-mark { font-size: 17px; font-weight: 700; line-height: normal; }
+.oc .ac-avatar .ac-brand-mark { font-size: 17px; font-weight: 600; line-height: normal; }
 .oc .ac-status {
     position: absolute; right: -3px; bottom: -3px; width: 11px; height: 11px; border-radius: 50%;
     border: 2px solid var(--bg-white); background: var(--border-light); box-sizing: content-box;
 }
 .oc .ac-row.ac-live .ac-status { background: var(--success-color); }
 .oc .ac-id { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
-.oc .ac-name { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; line-height: 17px; color: var(--text-primary); min-width: 0; cursor: pointer; }
+.oc .ac-name { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; line-height: 17px; color: var(--text-primary); min-width: 0; cursor: pointer; }
 .oc .ac-name:hover { color: var(--primary-color); }
 .oc .ac-name .ac-name-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .oc .ac-name .ac-name-edit { flex: 0 0 auto; opacity: 0; color: var(--text-secondary); transition: opacity var(--transition-fast); }
@@ -3957,7 +3960,7 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
 }
 .oc .ac-vendor {
     flex: 0 0 auto; display: inline-flex; align-items: center;
-    height: 17px; box-sizing: border-box; padding: 0 5px;
+    height: 17px; box-sizing: border-box; padding: 0 6px;
     font-size: 10px; font-weight: 500; line-height: normal;
     border-radius: 4px; max-width: 104px; overflow: hidden; white-space: nowrap;
     color: var(--text-secondary); background: transparent;
@@ -4004,7 +4007,7 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
 .oc .ac-rates { display: contents; }
 .oc .ac-conns {
     width: 52px; flex: 0 0 auto; display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 700; color: var(--text-primary);
+    font-size: 13px; font-weight: 600; color: var(--text-primary);
     font-variant-numeric: tabular-nums;
 }
 .oc .ac-conns.ac-zero { color: var(--text-secondary); font-weight: 600; }
@@ -4015,7 +4018,7 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
     justify-content: center; gap: 2px; min-width: 0;
 }
 .oc .ac-rc .ac-rate-v {
-    font-size: 10.5px; font-weight: 700; line-height: 13px;
+    font-size: 10.5px; font-weight: 600; line-height: 13px;
     white-space: nowrap; font-variant-numeric: tabular-nums;
 }
 .oc .ac-rc .ac-rate-v::before {
@@ -4044,7 +4047,7 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
 .oc .ac-empty .ac-empty-main { font-size: 12.5px; font-weight: 600; color: var(--text-primary); }
 .oc .ac-empty .ac-empty-sub { font-size: 11px; }
 .oc .ac-empty button {
-    margin-top: 4px; height: 26px; padding: 0 14px;
+    margin-top: 4px; height: 26px; padding: 0 16px;
     font-size: 11px; font-weight: 600; font-family: inherit;
     color: var(--primary-color); background: var(--primary-a10);
     border: 1px solid var(--primary-a20); border-radius: var(--radius-sm); cursor: pointer;
@@ -4066,7 +4069,7 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
 .oc .ac-card.ac-w-xs .ac-sum { flex: 1 1 auto; }
 .oc .ac-card.ac-w-xs .ac-def-pill { display: none; }
 .oc .ac-card.ac-w-xs .ac-tools { margin-left: auto; }
-.oc .ac-card.ac-w-xs .ac-row { flex-wrap: wrap; row-gap: 2px; min-height: 0; padding: 6px 8px 7px; }
+.oc .ac-card.ac-w-xs .ac-row { flex-wrap: wrap; row-gap: 2px; min-height: 0; padding: 6px 8px; }
 .oc .ac-card.ac-w-xs .ac-dev { flex: 1 1 0; min-width: 0; }
 .oc .ac-card.ac-w-xs .ac-id { padding-left: 44px; }
 .oc .ac-card.ac-w-xs .ac-avatar { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 11px; }
@@ -4074,7 +4077,7 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
 .oc .ac-card.ac-w-xs .ac-avatar .ac-brand-logo { width: 19px; height: 19px; }
 .oc .ac-card.ac-w-xs .ac-avatar .ac-brand-logo.wordmark { max-width: 28px; max-height: 28px; }
 .oc .ac-card.ac-w-xs .ac-ctrl { width: 70px; }
-.oc .ac-card.ac-w-xs .ac-switch button { min-width: 32px; padding: 0 5px; font-size: 10px; }
+.oc .ac-card.ac-w-xs .ac-switch button { min-width: 32px; padding: 0 4px; font-size: 10px; }
 .oc .ac-card.ac-w-xs .ac-off-tag { display: none; }
 /* the avatar already carries the brand mark, the chip only squeezes the device name */
 .oc .ac-card.ac-w-xs .ac-vendor { display: none; }
@@ -4088,7 +4091,7 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
 /* the two rates stay one block, so a wrap keeps them together on the right */
 .oc .ac-card.ac-w-xs .ac-rates { display: flex; align-items: center; gap: 10px; margin-left: auto; flex: 0 0 auto; }
 .oc .ac-card.ac-w-xs .ac-key-btn .ac-key-text { display: none; }
-.oc .ac-card.ac-w-xs .ac-key-btn { padding: 0 5px; }
+.oc .ac-card.ac-w-xs .ac-key-btn { padding: 0 4px; }
 .oc .ac-card.ac-w-xs .ac-dir-opt .ac-key-text { display: none; }
 .oc .ac-card.ac-w-xs .ac-dir-opt { padding: 0 6px; }
 .oc .ac-card.ac-w-xs .ac-tools { gap: 4px; }
@@ -4150,10 +4153,10 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
     max-height: min(820px, calc(100dvh - 48px));
     box-sizing: border-box;
 }
-.oc #ac-max-overlay .config-upload-header { padding: 14px 18px; }
+.oc #ac-max-overlay .config-upload-header { padding: 16px; }
 .oc .config-upload-content.ac-max-content {
     display: flex; flex-direction: column;
-    min-height: 0; padding: 12px 14px 14px;
+    min-height: 0; padding: 12px 16px 16px;
     overflow: hidden;
 }
 .oc .ac-max-content .ac-card {

@@ -586,12 +586,14 @@ var ocLang = window.ocLang || '';
         loadConfigFileList: function(force) {
             this.updateSelectOptions([{value: '', text: '<%:Collecting data...%>', disabled: true}]);
 
+            // the fingerprint rides in the query string: a long one overflows the request line
+            // and takes the whole list down, so drop it above the cap (cache is an optimization)
             var params = {};
             var cached = localStorage.getItem('oc_config_fp');
             if (cached) {
                 try {
                     var c = JSON.parse(cached);
-                    if (c && c.fp) {
+                    if (c && c.fp && c.fp.length <= 1024) {
                         var ageCache = localStorage.getItem('oc_config_age');
                         if (ageCache) {
                             try {
@@ -612,19 +614,46 @@ var ocLang = window.ocLang || '';
             }, !!force);
         },
 
+        normalizeConfigEntry: function(entry) {
+            if (typeof entry === 'string') {
+                return {name: entry, path: entry};
+            }
+            if (!entry || typeof entry !== 'object') {
+                return null;
+            }
+            var name = entry.name || entry.filename || entry.path || entry.filepath;
+            if (!name) {
+                return null;
+            }
+            name = String(name);
+            return {
+                name: name,
+                path: String(entry.path || entry.filepath || name),
+                size: entry.size,
+                mtime: entry.mtime,
+                age: entry.age,
+                schedule: entry.schedule
+            };
+        },
+
         handleConfigListResponse: function(data, sentFp) {
+            if (!data || typeof data !== 'object') {
+                this.handleConfigListError();
+                return;
+            }
+
+            var configFiles = [];
+            var rawFiles = Array.isArray(data.config_files) ? data.config_files : [];
+            for (var n = 0; n < rawFiles.length; n++) {
+                var normalized = this.normalizeConfigEntry(rawFiles[n]);
+                if (normalized) {
+                    configFiles.push(normalized);
+                }
+            }
+
+            var currentConfigFile = typeof data.current_config === 'string' ? data.current_config : '';
+
             try {
-                var configFiles = [];
-                var currentConfigFile = '';
-
-                if (data.config_files && Array.isArray(data.config_files)) {
-                    configFiles = data.config_files;
-                }
-
-                if (data.current_config) {
-                    currentConfigFile = data.current_config;
-                }
-
                 var fp = data.fingerprint;
                 var ageFromCache = false;
                 if (fp && sentFp && fp === sentFp) {
@@ -656,28 +685,31 @@ var ocLang = window.ocLang || '';
                         localStorage.setItem('oc_config_age', JSON.stringify({fp: fp, ages: ages}));
                     });
                 }
+            } catch (e) {
+                console.warn('ConfigFileManager: config list cache update failed', e);
+            }
 
-                var currentFileInfo = null;
+            var currentFileInfo = null;
 
-                this.rawCurrentConfig = currentConfigFile;
-                this.configList = configFiles;
-                window.configFiles = configFiles;
-                this.currentConfig = currentConfigFile;
-                this.currentConfigIndex = -1;
+            this.rawCurrentConfig = currentConfigFile;
+            this.configList = configFiles;
+            window.configFiles = configFiles;
+            this.currentConfig = currentConfigFile;
+            this.currentConfigIndex = -1;
 
-                this.toggleEmptyState(configFiles.length === 0);
+            this.toggleEmptyState(configFiles.length === 0);
 
-                this.updateConfigSelect(configFiles, currentConfigFile);
+            this.updateConfigSelect(configFiles, currentConfigFile);
 
+            try {
                 if (configFiles.length > 0) {
                     if (currentConfigFile) {
                         for (var i = 0; i < configFiles.length; i++) {
                             var file = configFiles[i];
-                            var filePath = typeof file === 'string' ? file : (file.path || file.filepath || file);
 
-                            if (filePath === currentConfigFile) {
+                            if (file.path === currentConfigFile || file.name === currentConfigFile) {
                                 this.currentConfigIndex = i;
-                                if (typeof file === 'object' && file.mtime && file.size) {
+                                if (file.mtime && file.size) {
                                     currentFileInfo = {
                                         mtime: file.mtime,
                                         size: file.size,
@@ -702,27 +734,31 @@ var ocLang = window.ocLang || '';
                 }
 
                 this.updateNavigationArrows();
-
-                if (this.retryGetConfigList) {
-                    clearInterval(this.retryGetConfigList);
-                    this.retryGetConfigList = null;
-                }
-
-                this.configListLoaded = true;
-                autoOpenGuide();
-
             } catch (e) {
-                this.handleConfigListError();
+                console.warn('ConfigFileManager: config card render failed', e);
             }
+
+            if (this.retryGetConfigList) {
+                clearInterval(this.retryGetConfigList);
+                this.retryGetConfigList = null;
+            }
+
+            this.configListLoaded = true;
+            autoOpenGuide();
         },
 
         handleConfigListError: function() {
-            this.updateSelectOptions([
-                {value: '', text: '<%:Failed to load config files%>', disabled: true}
-            ]);
+            if (this.configList.length > 0) {
+                this.updateConfigSelect(this.configList, this.rawCurrentConfig);
+                this.toggleEmptyState(false);
+            } else {
+                this.updateSelectOptions([
+                    {value: '', text: '<%:Failed to load config files%>', disabled: true}
+                ]);
+                this.toggleEmptyState(true);
+                this.hideSubscriptionDisplay();
+            }
 
-            this.toggleEmptyState(true);
-            this.hideSubscriptionDisplay();
             this.configListLoaded = true;
             autoOpenGuide();
 
@@ -1625,16 +1661,10 @@ var ocLang = window.ocLang || '';
 
         extractFilename: function(path) {
             if (!path) return '';
-            var parts = path.split('/');
+            var parts = String(path).split('/');
             var filename = parts[parts.length - 1];
 
-            if (filename.endsWith('.yaml')) {
-                filename = filename.slice(0, -5);
-            } else if (filename.endsWith('.yml')) {
-                filename = filename.slice(0, -4);
-            }
-
-            return filename;
+            return filename.replace(/\.(yaml|yml)$/i, '');
         },
 
         startAutoUpdate: function() {
@@ -2674,12 +2704,21 @@ var ocLang = window.ocLang || '';
             if (localStorage.getItem('oc_guide_done') !== '1') ids.unshift('guide-bubble');
             for (var i = 0; i < ids.length; i++) {
                 var el = document.getElementById(ids[i]);
-                if (el) this.bubbles.push(el);
+                if (!el) continue;
+                this.bubbles.push(el);
+                this.bindOwner(el);
             }
-            var self = this;
-            stack.addEventListener('mouseenter', function() { self.dismiss(); });
-            stack.addEventListener('click', function() { self.dismiss(); });
             this.startTimer();
+        },
+
+        // a bubble sits inside its own button, so only that button hides it
+        bindOwner: function(bubble) {
+            var btn = bubble.parentNode;
+            if (!btn || !btn.addEventListener) return;
+            var self = this;
+            var hide = function() { self.dismiss(bubble); };
+            btn.addEventListener('mouseenter', hide);
+            btn.addEventListener('click', hide);
         },
 
         startTimer: function() {
@@ -2690,16 +2729,26 @@ var ocLang = window.ocLang || '';
             var self = this;
             this.timer = setTimeout(function() {
                 self.timer = null;
-                for (var i = 0; i < self.bubbles.length; i++) self.bubbles[i].classList.add('show');
+                for (var i = 0; i < self.bubbles.length; i++) {
+                    if (self.bubbles[i].dataset.dismissed !== '1') self.bubbles[i].classList.add('show');
+                }
             }, Math.min(delay, 5000));
         },
 
-        dismiss: function() {
+        dismiss: function(bubble) {
+            if (bubble) {
+                bubble.dataset.dismissed = '1';
+                bubble.classList.remove('show');
+                return;
+            }
             if (this.timer) {
                 clearTimeout(this.timer);
                 this.timer = null;
             }
-            for (var i = 0; i < this.bubbles.length; i++) this.bubbles[i].classList.remove('show');
+            for (var i = 0; i < this.bubbles.length; i++) {
+                this.bubbles[i].dataset.dismissed = '1';
+                this.bubbles[i].classList.remove('show');
+            }
         }
     };
 

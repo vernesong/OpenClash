@@ -10,16 +10,17 @@ local fs = require "luci.openclash"
 local uci = require "luci.model.uci".cursor()
 
 local p,r={}
-for x,y in ipairs(fs.glob("/etc/openclash/proxy_provider/*"))do
-r=fs.stat(y)
+for _,name in ipairs(fs.listdir("/etc/openclash/proxy_provider/")) do
+r=fs.stat("/etc/openclash/proxy_provider/" .. name)
 if r then
-p[x]={}
-p[x].num=string.format(x)
-p[x].name=fs.basename(y)
-p[x].mtime=os.date("%Y-%m-%d %H:%M:%S",r.mtime)
-p[x].size=fs.filesize(r.size)
-p[x].remove=0
-p[x].enable=false
+local row=#p+1
+p[row]={}
+p[row].num=string.format(row)
+p[row].name=name
+p[row].mtime=os.date("%Y-%m-%d %H:%M:%S",r.mtime)
+p[row].size=fs.filesize(r.size)
+p[row].remove=0
+p[row].enable=false
 end
 end
 

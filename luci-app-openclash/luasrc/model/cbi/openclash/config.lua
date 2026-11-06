@@ -21,13 +21,16 @@ function default_config_set(f)
 		if CHIF == "1" and cf == "/etc/openclash/config/"..f then
 			return
 		end
-		local fis = fs.glob("/etc/openclash/config/*")[1]
-		if fis ~= nil then
-			fcf = fs.basename(fis)
-			if fcf then
-				uci:set("openclash", "config", "config_path", "/etc/openclash/config/"..fcf)
-				uci:commit("openclash")
+		local fis
+		for _, name in ipairs(fs.listdir("/etc/openclash/config/")) do
+			if fs.IsYamlExt(name) and fs.isfile("/etc/openclash/config/" .. name) then
+				fis = name
+				break
 			end
+		end
+		if fis ~= nil then
+			uci:set("openclash", "config", "config_path", "/etc/openclash/config/" .. fis)
+			uci:commit("openclash")
 		else
 			uci:set("openclash", "config", "config_path", "/etc/openclash/config/config.yaml")
 			uci:commit("openclash")
@@ -171,20 +174,24 @@ if HTTP.formvalue("upload") then
 	end
 end
 
+-- listdir sorts the visible names and never returns nil; a failing stat only skips that row
 local e,a={}
-for t,o in ipairs(fs.glob("/etc/openclash/config/*"))do
-a=fs.stat(o)
+local current_config_path = fs.uci_get_config("config", "config_path")
+local row = 0
+for _,name in ipairs(fs.listdir("/etc/openclash/config/")) do
+a=fs.stat("/etc/openclash/config/"..name)
 if a then
-e[t]={}
-e[t].name=fs.basename(o)
-e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",a.mtime)
-if fs.uci_get_config("config", "config_path") and string.sub(fs.uci_get_config("config", "config_path"), 23, -1) == e[t].name then
-	e[t].state="Enabled"
+row = row + 1
+e[row]={}
+e[row].name=name
+e[row].mtime=os.date("%Y-%m-%d %H:%M:%S",a.mtime)
+if current_config_path and string.sub(current_config_path, 23, -1) == name then
+	e[row].state="Enabled"
 else
-	e[t].state="Disabled"
+	e[row].state="Disabled"
 end
-e[t].size=fs.filesize(a.size)
-e[t].remove=0
+e[row].size=fs.filesize(a.size)
+e[row].remove=0
 end
 end
 

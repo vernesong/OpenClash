@@ -535,7 +535,7 @@ function action_update_config()
 	local no_restart = HTTP.formvalue("no_restart")
 	local restart_arg = no_restart == "1" and " norestart" or ""
 
-	local update_result = SYS.call(string.format("/usr/share/openclash/openclash.sh '%s'%s >/dev/null 2>&1", filename, restart_arg))
+	local update_result = SYS.call(string.format("/usr/share/openclash/openclash.sh %s%s >/dev/null 2>&1", UTIL.shellquote(filename), restart_arg))
 
 	if update_result == 0 then
 		HTTP.write_json({
@@ -603,12 +603,10 @@ function action_one_key_update()
 end
 
 local function config_name()
-	local e,a={}
-	for t,o in ipairs(fs.glob("/etc/openclash/config/*"))do
-		a=fs.stat(o)
-		if a then
-			e[t]={}
-			e[t].name=fs.basename(o)
+	local e = {}
+	for _, name in ipairs(fs.listdir("/etc/openclash/config/")) do
+		if fs.stat("/etc/openclash/config/" .. name) then
+			e[#e + 1] = { name = name }
 		end
 	end
 	return e
@@ -632,6 +630,18 @@ function action_switch_config()
 		HTTP.write_json({
 			status = "error",
 			message = "No config file specified"
+		})
+		return
+	end
+
+	-- only the config directory may be selected; the name itself is not restricted,
+	-- so files the filesystem accepts stay switchable
+	local config_base = config_file:match("^/etc/openclash/config/([^/]+)$")
+	if not config_base or config_base == "." or config_base == ".." then
+		HTTP.prepare_content("application/json")
+		HTTP.write_json({
+			status = "error",
+			message = "Invalid config file path: " .. config_file
 		})
 		return
 	end
@@ -4755,22 +4765,19 @@ function action_config_file_list()
 	local cache_valid = false
 	local client_fp = HTTP.formvalue("fingerprint")
 
-	if fs.access(config_dir) then
-		local files = fs.dir(config_dir)
-		if files then
-			local yaml_files = {}
-			for _, f in ipairs(files) do
-				if string.match(f, "%.ya?ml$") then
-					local stat = fs.stat(config_dir .. f)
-					if stat and stat.type == "regular" then
-						yaml_files[#yaml_files + 1] = f .. ":" .. (stat.mtime or 0)
-					end
-				end
-			end
-			table.sort(yaml_files)
-			fingerprint_parts[#fingerprint_parts + 1] = table.concat(yaml_files, "|")
+	-- every visible entry is listed, a name the shell or an older version produced must
+	-- not hide the other configs; a failing stat only zeroes that entry's metadata
+	local dir_names = fs.listdir(config_dir)
+
+	local fingerprint_files = {}
+	for _, name in ipairs(dir_names) do
+		local ok, stat = pcall(fs.stat, config_dir .. name)
+		local st = ok and stat or nil
+		if not st or st.type == "regular" then
+			fingerprint_files[#fingerprint_files + 1] = name .. ":" .. ((st and st.mtime) or 0)
 		end
 	end
+	fingerprint_parts[#fingerprint_parts + 1] = table.concat(fingerprint_files, "|")
 	for _, a in ipairs(age_files) do
 		fingerprint_parts[#fingerprint_parts + 1] = "AGE:" .. a.name .. ":" .. (a.secret ~= "" and "1" or "0")
 	end
@@ -4780,44 +4787,43 @@ function action_config_file_list()
 		cache_valid = true
 	end
 
-	if fs.access(config_dir) then
-		local files = fs.dir(config_dir)
-		if files then
-			for _, file in ipairs(files) do
-				local full_path = config_dir .. file
-				local stat = fs.stat(full_path)
-				local name_no_ext = file:match("^(.*)%.ya?ml$")
-				if stat and stat.type == "regular" and string.match(file, "%.ya?ml$") then
-					if name_no_ext and #age_files > 0 and not cache_valid then
-						local cfile = io.open(full_path,"r")
-						if cfile then
-							local content = cfile:read(1024)
-							local age_symbol = content:find("BEGIN AGE ENCRYPTED FILE", 1, true)
-							for _, age in pairs(age_files) do
-								if age.name == name_no_ext and age.secret and age_symbol then
-									stat.age = true
-									break
-								end
+	for _, file in ipairs(dir_names) do
+		local full_path = config_dir .. file
+		local ok, stat = pcall(fs.stat, full_path)
+		local st = ok and stat or nil
+		if not st or st.type == "regular" then
+			local name_no_ext = file:match("^(.*)%.ya?ml$") or file
+			local is_age = false
+			if not cache_valid and #age_files > 0 then
+				local cok, cfile = pcall(io.open, full_path, "r")
+				if cok and cfile then
+					local rok, content = pcall(cfile.read, cfile, 1024)
+					cfile:close()
+					if rok and content and content:find("BEGIN AGE ENCRYPTED FILE", 1, true) then
+						for _, age in ipairs(age_files) do
+							if age.name == name_no_ext and age.secret then
+								is_age = true
+								break
 							end
-							cfile:close()
 						end
 					end
-					table.insert(config_files, {
-						name = file,
-						path = full_path,
-						size = stat.size,
-						mtime = stat.mtime,
-						age = stat.age or false,
-						schedule = name_no_ext and subscribe_schedules[name_no_ext] or nil
-					})
 				end
 			end
-		end
 
-		table.sort(config_files, function(a, b)
-			return string.lower(a.name) < string.lower(b.name)
-		end)
+			config_files[#config_files + 1] = {
+				name = file,
+				path = full_path,
+				size = (st and st.size) or 0,
+				mtime = (st and st.mtime) or 0,
+				age = is_age,
+				schedule = subscribe_schedules[name_no_ext] or nil
+			}
+		end
 	end
+
+	table.sort(config_files, function(a, b)
+		return string.lower(a.name) < string.lower(b.name)
+	end)
 
 	HTTP.prepare_content("application/json")
 	HTTP.write_json({
@@ -4937,8 +4943,8 @@ function action_upload_config()
 		return
 	end
 
-	SYS.call(string.format("chmod 644 '%s'", target_path))
-	SYS.call(string.format("chown root:root '%s'", target_path))
+	SYS.call(string.format("chmod 644 %s", UTIL.shellquote(target_path)))
+	SYS.call(string.format("chown root:root %s", UTIL.shellquote(target_path)))
 
 	HTTP.write_json({
 		status = "success",
@@ -5045,7 +5051,7 @@ function action_config_file_read()
 		allow = true
 	elseif config_file:match("^/etc/openclash/[^/]+%.ya?ml$") then
 		allow = true
-	elseif config_file:match("^/etc/openclash/config/[^/]+%.ya?ml$") and not string.find(config_file, "%.%.") then
+	elseif config_file:match("^/etc/openclash/config/[^/]+$") and not string.find(config_file, "%.%.") then
 		allow = true
 	end
 
@@ -5105,7 +5111,7 @@ function action_config_file_save()
 
 			local is_overwrite = (config_file == "/etc/openclash/custom/openclash_custom_overwrite.sh" or config_file:match("^/etc/openclash/overwrite/[^/]+$"))
 			if not is_overwrite then
-				if not string.match(config_file, "^/etc/openclash/config/[^/]+%.ya?ml$") or string.find(config_file, "%.%.") then
+				if not string.match(config_file, "^/etc/openclash/config/[^/]+$") or string.find(config_file, "%.%.") then
 					stream_err = "Invalid config file path"
 					return
 				end
@@ -5118,7 +5124,7 @@ function action_config_file_save()
 
 			if fs.access(config_file) then
 				backup_file = config_file .. ".backup." .. os.time()
-				if SYS.call(string.format("cp '%s' '%s'", config_file, backup_file)) ~= 0 then
+				if SYS.call(string.format("cp %s %s", UTIL.shellquote(config_file), UTIL.shellquote(backup_file))) ~= 0 then
 					backup_file = nil
 					stream_err = "Failed to create backup file"
 					return
@@ -5172,7 +5178,7 @@ function action_config_file_save()
 	if stream_err then
 		if opened then
 			if backup_file then
-				SYS.call(string.format("mv '%s' '%s'", backup_file, config_file))
+				SYS.call(string.format("mv %s %s", UTIL.shellquote(backup_file), UTIL.shellquote(config_file)))
 			else
 				fs.unlink(config_file)
 			end
@@ -5188,19 +5194,19 @@ function action_config_file_save()
 	local is_overwrite = (config_file == "/etc/openclash/custom/openclash_custom_overwrite.sh" or config_file:match("^/etc/openclash/overwrite/[^/]+$"))
 
 	if not is_overwrite then
-		SYS.call(string.format("chmod 644 '%s'", config_file))
+		SYS.call(string.format("chmod 644 %s", UTIL.shellquote(config_file)))
 	end
-	SYS.call(string.format("chown root:root '%s'", config_file))
+	SYS.call(string.format("chown root:root %s", UTIL.shellquote(config_file)))
 
 	if backup_file then
 		SYS.call(string.format([[
 			(
-				config_dir="$(dirname '%s')"
-				config_basename="$(basename '%s')"
+				config_dir="$(dirname %s)"
+				config_basename="$(basename %s)"
 				cd "$config_dir" 2>/dev/null || exit 0
 				rm -f "${config_basename}.backup."* 2>/dev/null
 			) &
-		]], config_file, config_file))
+		]], UTIL.shellquote(config_file), UTIL.shellquote(config_file)))
 	end
 
 	local stat = fs.stat(config_file)
@@ -6365,7 +6371,7 @@ function action_overwrite_subscribe_info()
 				respond_json({status="error", message="Download failed"})
 				return
 			end
-			SYS.call(string.format("mkdir -p /etc/openclash/overwrite && mv -f '%s' '%s' && chmod 644 '%s'", tmp_file, file_path, file_path))
+			SYS.call(string.format("mkdir -p /etc/openclash/overwrite && mv -f %s %s && chmod 644 %s", tmp_file, UTIL.shellquote(file_path), UTIL.shellquote(file_path)))
 			if not fs.access(file_path) then
 				respond_json({status="error", message="Failed to save downloaded file"})
 				return

@@ -37,14 +37,9 @@ s.addremove = false
 o = s:option(ListValue, "config", translate("Config File"))
 o:value("all", translate("Use For All Config File"))
 local e,a={}
-for t,f in ipairs(fs.glob("/etc/openclash/config/*"))do
-	a=fs.stat(f)
-	if a then
-		e[t]={}
-		e[t].name=fs.basename(f)
-		if fs.IsYamlExt(e[t].name) then
-			o:value(e[t].name)
-		end
+for _,name in ipairs(fs.listdir("/etc/openclash/config/")) do
+	if fs.IsYamlExt(name) and fs.isfile("/etc/openclash/config/" .. name) then
+		o:value(name)
 	end
 end
 
@@ -294,7 +289,14 @@ local function sync_group_name(section, old_name, new_name)
 	if config == "" or config == "all" then
 		config = "all"
 	end
-	local files = config == "all" and fs.glob("/etc/openclash/config/*") or {"/etc/openclash/config/" .. config}
+	local files = {}
+	if config == "all" then
+		for _, name in ipairs(fs.listdir("/etc/openclash/config/")) do
+			files[#files + 1] = "/etc/openclash/config/" .. name
+		end
+	else
+		files[1] = "/etc/openclash/config/" .. config
+	end
 	for _, path in ipairs(files) do
 		local name = fs.basename(path)
 		if fs.IsYamlExt(name) then

@@ -50,7 +50,7 @@ html[data-darkmode="true"] .oc .overwrite-banner svg circle {
     overflow: hidden;
     border: 1px solid var(--border-light);
     position: relative;
-    transition: all 0.3s ease;
+    transition: var(--transition-ui);
 }
 
 .oc .config-editor-model.maximized {
@@ -315,7 +315,7 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
 .oc #overwrite-add-step-info {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 16px;
 }
 
 .oc #overwrite-add-step-info .form-group label {
@@ -469,7 +469,7 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
     display: flex;
     align-items: center;
     gap: var(--tight-gap);
-    padding: 5px 6px;
+    padding: 4px 6px;
     border-radius: var(--radius-sm);
     cursor: pointer;
     transition: background var(--transition-fast);
@@ -664,7 +664,7 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
 
 .oc .overwrite-side.rail .overwrite-item {
     justify-content: center;
-    padding: 5px 0;
+    padding: 4px 0;
 }
 
 .oc .overwrite-side.rail .overwrite-item-grip {
@@ -718,7 +718,7 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
     top: 0; left: 0; right: 0; bottom: 0;
     background-color: var(--switch-off-bg);
     border-radius: 20px;
-    transition: .2s;
+    transition: background-color 160ms var(--ease-standard), border-color 160ms var(--ease-standard);
 }
 
 .oc .oc-switch-slider:before {
@@ -728,7 +728,7 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
     left: 2px; bottom: 2px;
     background-color: var(--switch-knob-bg);
     border-radius: 50%;
-    transition: .2s;
+    transition: transform 160ms var(--ease-standard);
 }
 
 .oc .oc-switch input:checked + .oc-switch-slider {

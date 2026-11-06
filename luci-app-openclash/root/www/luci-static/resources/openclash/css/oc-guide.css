@@ -9,7 +9,7 @@
     position: fixed;
     z-index: 20000;
     background: transparent;
-    transition: opacity 0.18s ease;
+    transition: opacity 180ms var(--ease-standard);
 }
 
 .oc.guide-tour.full-dim .guide-tour-mask {
@@ -22,7 +22,7 @@
     border-radius: 10px;
     box-shadow: 0 0 0 3px var(--primary-color), 0 0 0 9999px var(--overlay-bg, rgba(15, 23, 42, 0.5));
     pointer-events: none;
-    transition: top 0.22s ease, left 0.22s ease, width 0.22s ease, height 0.22s ease, opacity 0.18s ease;
+    transition: top 220ms var(--ease-standard), left 220ms var(--ease-standard), width 220ms var(--ease-standard), height 220ms var(--ease-standard), opacity 180ms var(--ease-standard);
 }
 
 .oc .guide-spot::after {
@@ -97,7 +97,7 @@
 .oc.guide-tour.closing .guide-spot,
 .oc.guide-tour.closing .guide-pop {
     opacity: 0;
-    transition: opacity 0.18s ease;
+    transition: opacity 180ms var(--ease-standard);
 }
 
 .oc .guide-pop {
@@ -105,12 +105,12 @@
     z-index: 20002;
     width: 390px;
     max-width: calc(100vw - 24px);
-    padding: 14px 16px;
+    padding: 16px;
     border: 1px solid var(--border-light);
     border-radius: var(--radius-lg);
     background: var(--bg-white);
     box-shadow: 0 18px 40px rgba(15, 23, 42, 0.34);
-    transition: opacity 0.18s ease;
+    transition: opacity 180ms var(--ease-standard);
 }
 
 /* the lead of a step is its first paragraph: a cover image, a heading or a list that opens a step
@@ -119,7 +119,7 @@
 .oc .guide-pop-body > p:first-of-type:not(.guide-sub):not(.guide-wait):not(.guide-tip):not(.guide-info):not(.guide-careful):not(.guide-note) {
     margin-top: 0;
     color: var(--text-secondary);
-    padding: 7px 10px;
+    padding: 8px 10px;
     border: 1px solid rgba(99, 102, 241, 0.24);
     border-left: 3px solid #4f46e5;
     border-right: 3px solid #4f46e5;
@@ -141,14 +141,14 @@
 /* a term row is one "name: explanation" pair; a heading over a list is not a term row */
 .oc .guide-pop-body > p:not(:first-of-type):not(.guide-sub):not(.guide-tip):not(.guide-info):not(.guide-careful):not(.guide-note):not(.guide-wait) {
     margin-top: 6px;
-    padding: 6px 9px;
+    padding: 6px 8px;
     border: 1px solid var(--border-light);
     border-radius: 5px;
     background: var(--bg-gray);
 }
 
 .oc .guide-pop-body .guide-sub {
-    margin: 11px 0 0;
+    margin: 12px 0 0;
     padding: 0 2px;
     border: 0;
     background: none;
@@ -178,7 +178,7 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
     display: block;
     width: 100%;
     height: auto;
-    margin: 0 0 11px;
+    margin: 0 0 12px;
     color: var(--primary-color);
 }
 
@@ -252,7 +252,7 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
 }
 
 .oc .guide-pop-body code {
-    padding: 1px 5px;
+    padding: 1px 6px;
     border-radius: 5px;
     background: var(--primary-a10);
     color: var(--primary-color);
@@ -264,7 +264,7 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
     margin-left: 5px;
     padding: 0 6px;
     border: 1px solid currentColor;
-    border-radius: 999px;
+    border-radius: var(--radius-xs);
     font-size: 10.5px;
     font-weight: 600;
     line-height: 15px;
@@ -310,7 +310,7 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
 
 .oc .guide-pop-body > .guide-note:not(.oc-hidden) {
     margin: 8px 0 0;
-    padding: 6px 9px;
+    padding: 6px 8px;
     border: 1px solid var(--border-light);
     border-left: 2px solid var(--border-light);
     border-radius: 5px;
@@ -330,7 +330,7 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
     border-radius: 50%;
     color: #fff;
     font-size: 9px;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 13px;
     text-align: center;
 }
@@ -400,7 +400,7 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
 
 .oc .guide-pop-body li {
     margin: 0;
-    padding: 5px 0;
+    padding: 4px 0;
 }
 
 .oc .guide-pop-body li + li {
@@ -466,12 +466,12 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
 /* compact only trades vertical room for the callout, the progress marks keep their size: the row
  * scrolls instead, and a shrunken mark reads as a different step count */
 .oc .guide-pop.compact .guide-pop-head {
-    margin-bottom: 3px;
+    margin-bottom: 4px;
 }
 
 .oc .guide-pop.compact .guide-pop-foot {
     margin-top: 4px;
-    padding-top: 5px;
+    padding-top: 4px;
     gap: 6px;
 }
 
@@ -485,7 +485,7 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
 
 .oc .guide-pop.compact .guide-note,
 .oc .guide-pop.compact .guide-wait {
-    margin-top: 5px;
+    margin-top: 4px;
 }
 
 .oc .guide-pop.compact .guide-pop-section {
@@ -501,7 +501,7 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
     gap: 4px;
     flex: 0 1 auto;
     min-width: 0;
-    padding: 3px;
+    padding: 4px;
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;
@@ -510,7 +510,7 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
 /* between two steps of the same group the callout follows the ring over, while the first
  * placement of a step stays instant (that is the no-anim state) */
 .oc.guide-tour:not(.no-anim) .guide-pop {
-    transition: top 0.22s ease, left 0.22s ease, opacity 0.18s ease;
+    transition: top 220ms var(--ease-standard), left 220ms var(--ease-standard), opacity 180ms var(--ease-standard);
 }
 
 .oc .guide-pop.wide {
@@ -569,7 +569,6 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
     font-size: 14px;
     font-weight: 600;
     color: var(--text-primary);
-    letter-spacing: 0.1px;
 }
 
 .oc .guide-pop-step {
@@ -581,8 +580,8 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
 }
 
 .oc .guide-pop-section {
-    padding: 1px 7px;
-    border-radius: 999px;
+    padding: 1px 8px;
+    border-radius: var(--radius-xs);
     background: var(--bg-gray);
     color: var(--text-secondary);
     font-size: 11px;
@@ -605,7 +604,7 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
 
 .oc .guide-pop-count {
     padding: 1px 8px;
-    border-radius: 999px;
+    border-radius: var(--radius-xs);
     background: var(--primary-a10, #eff6ff);
     color: var(--primary-color);
     font-size: 11.5px;
@@ -656,7 +655,7 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
     height: 6px;
     border-radius: 999px;
     background: var(--primary-a20);
-    transition: width 0.24s ease, background 0.2s ease, box-shadow 0.2s ease;
+    transition: width 220ms var(--ease-standard), background 160ms var(--ease-standard), box-shadow 160ms var(--ease-standard);
 }
 
 .oc .guide-dots i.done {
@@ -670,7 +669,7 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
 }
 
 .oc .guide-dots.dense {
-    gap: 3px;
+    gap: 4px;
 }
 
 .oc .guide-dots.dense i {
@@ -762,7 +761,7 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
     right: 16px;
     height: 3px;
     display: flex;
-    gap: 3px;
+    gap: 4px;
 }
 
 .oc .guide-pop .guide-progress i {
@@ -771,7 +770,7 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
     height: 100%;
     border-radius: 999px;
     background: var(--bg-gray);
-    transition: background-color 0.22s ease;
+    transition: background-color 220ms var(--ease-standard);
 }
 
 .oc .guide-pop .guide-progress i.done {
@@ -977,9 +976,9 @@ body.oc-guide-open .config-upload-model-overlay {
 .oc .guide-prefs {
     display: flex;
     align-items: flex-start;
-    gap: 6px 14px;
+    gap: 6px 12px;
     flex-wrap: wrap;
-    margin-top: 14px;
+    margin-top: 16px;
 }
 
 /* the hint takes a row of its own under the checkbox, its own top margin would push it out of line */
@@ -1004,8 +1003,8 @@ body.oc-guide-open .config-upload-model-overlay {
 .oc .guide-pop-body .guide-receipt li {
     display: flex;
     align-items: center;
-    gap: 7px;
-    padding: 3px 0;
+    gap: 8px;
+    padding: 4px 0;
     list-style: none;
     font-size: 12px;
     line-height: 1.6;
@@ -1015,7 +1014,7 @@ body.oc-guide-open .config-upload-model-overlay {
     content: '○';
     width: 13px;
     color: var(--text-secondary);
-    font-weight: 700;
+    font-weight: 600;
     text-align: center;
 }
 

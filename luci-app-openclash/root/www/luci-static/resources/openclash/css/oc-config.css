@@ -80,11 +80,7 @@ html[data-darkmode="true"] .oc .oc-merge-editor-bar {
     white-space: nowrap;
     font-size: 12px;
     margin: 0;
-    -webkit-transition: all 1s;
-    -moz-transition: all 1s;
-    -ms-transition: all 1s;
-    -o-transition: all 1s;
-    transition: all 1s;
+    transition: opacity 220ms var(--ease-standard), width 400ms var(--ease-standard);
     opacity: 1;
     width: 100%;
     max-width: 100%;
@@ -242,7 +238,7 @@ html[data-darkmode="true"] .oc .oc-merge-editor-bar {
     overflow: hidden;
     border: 1px solid var(--border-light, #e5e7eb);
     max-height: 85vh;
-    transition: all var(--transition-fast, 0.2s);
+    transition: var(--transition-ui);
 }
 
 .sub-info-url-header {
@@ -301,7 +297,7 @@ html[data-darkmode="true"] .oc .oc-merge-editor-bar {
     font-size: 14px;
     font-family: inherit;
     resize: vertical;
-    transition: all var(--transition-fast, 0.2s);
+    transition: var(--transition-ui);
     box-sizing: border-box;
 }
 
@@ -322,7 +318,7 @@ html[data-darkmode="true"] .oc .oc-merge-editor-bar {
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition: all var(--transition-fast, 0.2s);
+    transition: var(--transition-ui);
     white-space: nowrap;
 }
 
@@ -492,7 +488,7 @@ html[data-darkmode="true"] .oc .sub-info-url-cancel-btn:hover {
     left: 0;
     top: 0;
     bottom: 0;
-    transition: width 0.3s ease;
+    transition: width 220ms var(--ease-standard);
     border-radius: 5px;
 }
 

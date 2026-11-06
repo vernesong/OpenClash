@@ -116,7 +116,6 @@
 
     /* ── Announcement ── */
     --announcement-end: #1d4ed8;
-    --announcement-icon-bg: rgba(255, 255, 255, 0.1);
 
     /* ── Overlay & Editor ── */
     --overlay-bg: rgba(0, 0, 0, 0.5);
@@ -125,11 +124,14 @@
     /* ── Shadows · Radii · Transitions ── */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --radius-xs: 4px;
     --radius-sm: 6px;
     --radius-md: 6px;
     --radius-lg: 8px;
-    --transition-fast: 0.15s ease;
-    --transition-normal: 0.3s ease;
+    --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+    --transition-fast: 160ms var(--ease-standard);
+    --transition-normal: 220ms var(--ease-standard);
+    --transition-ui: color 160ms var(--ease-standard), background-color 160ms var(--ease-standard), border-color 160ms var(--ease-standard), box-shadow 160ms var(--ease-standard), opacity 160ms var(--ease-standard), transform 160ms var(--ease-standard);
 
     /* ── Layout & Spacing ── */
     --control-height: 32px;
@@ -150,8 +152,8 @@
 
     /* ── Row Heights (status page) ── */
     --row-1-height: 160px;
-    --row-2-height: 140px;
-    --row-3-height: 140px;
+    --row-2-height: 112px;
+    --row-3-height: 112px;
     --row-4-height: 280px;
 
     /* ── Stripe ── */
@@ -287,7 +289,6 @@ html[data-darkmode="true"] .oc {
 
     /* ── Announcement ── */
     --announcement-end: #3555bf;
-    --announcement-icon-bg: rgba(255, 255, 255, 0.1);
 
     /* ── Overlay & Editor ── */
     --overlay-bg: rgba(0, 0, 0, 0.5);
@@ -879,7 +880,7 @@ html[data-darkmode="true"][data-oc-theme="smoky"] .oc {
     flex-direction: column;
     align-items: center;
     gap: 4px;
-    padding: 7px 2px 6px;
+    padding: 8px 2px;
     border: 1px solid transparent;
     border-radius: 8px;
     background: none;
@@ -925,7 +926,7 @@ html[data-darkmode="true"][data-oc-theme="smoky"] .oc {
     display: flex;
     align-items: center;
     margin-top: 6px;
-    padding: 5px 6px;
+    padding: 4px 6px;
     border: 1px solid transparent;
     border-radius: 8px;
     transition: background-color var(--transition-fast), border-color var(--transition-fast);
@@ -958,7 +959,7 @@ html[data-darkmode="true"][data-oc-theme="smoky"] .oc {
 
 .oc-theme-panel .tp-custom .tp-custom-apply {
     height: 22px;
-    padding: 0 9px;
+    padding: 0 8px;
     margin-left: 6px;
     border: 0;
     border-radius: 6px;
@@ -1101,13 +1102,13 @@ html[data-darkmode="true"] .oc-txt-bad { color: #ff7070; }
     background: var(--bg-white);
     color: var(--text-secondary);
     font-size: 14px;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
     cursor: pointer;
 }
 
 .oc .form-file::file-selector-button {
     height: 100%;
-    padding: 0 14px;
+    padding: 0 16px;
     margin-right: 12px;
     border: none;
     border-right: 1px solid var(--border-light);
@@ -1117,7 +1118,7 @@ html[data-darkmode="true"] .oc-txt-bad { color: #ff7070; }
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
 }
 
 .oc .form-file::file-selector-button:hover {
@@ -1178,7 +1179,7 @@ html[data-darkmode="true"] .oc svg {
     background: var(--bg-white);
     color: var(--text-secondary);
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
     padding: 0;
     font-size: 0;
     overflow: hidden;
@@ -1252,7 +1253,7 @@ html[data-darkmode="true"] .oc svg {
     font-weight: 500;
     line-height: normal;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
 }
 
 .oc .mode-tab:hover {
@@ -1321,7 +1322,7 @@ html[data-darkmode="true"] .oc svg {
     background: var(--bg-white) !important;
     color: var(--text-primary);
     font-size: 14px;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -1356,7 +1357,7 @@ html[data-darkmode="true"] .oc svg {
     font-size: 14px;
     font-family: inherit;
     resize: vertical;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
 }
 
 .oc .form-textarea:focus {
@@ -1380,7 +1381,7 @@ html[data-darkmode="true"] .oc svg {
     cursor: pointer;
     z-index: 9999;
     box-shadow: 0 4px 12px var(--primary-a40);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 160ms var(--ease-standard), box-shadow 160ms var(--ease-standard);
     border: none;
     outline: none;
     will-change: transform;
@@ -1401,7 +1402,7 @@ html[data-darkmode="true"] .oc svg {
 .oc .form-row {
     display: flex;
     gap: 16px;
-    padding-top: 5px;
+    padding-top: 4px;
 }
 
 .oc .form-half {
@@ -1429,7 +1430,7 @@ html[data-darkmode="true"] .oc svg {
     border-radius: 3px;
     background: var(--bg-white);
     position: relative;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
     flex-shrink: 0;
 }
 
@@ -1488,7 +1489,7 @@ html[data-darkmode="true"] .oc svg {
     margin-left: 5px;
     padding: 0 6px;
     border: 1px solid currentColor;
-    border-radius: 999px;
+    border-radius: var(--radius-xs);
     font-size: 10.5px;
     font-weight: 600;
     line-height: 15px;
@@ -1662,7 +1663,7 @@ html[data-darkmode="true"] .oc #config-mode-tabs .mode-tab.active {
 
 .oc .config-editor-title {
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--text-primary);
     display: flex;
     align-items: center;
@@ -1684,13 +1685,13 @@ html[data-darkmode="true"] .oc #config-mode-tabs .mode-tab.active {
 
 .oc .config-editor-title .config-file-name {
     color: var(--primary-color);
-    font-weight: 700;
+    font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     display: inline-block;
     vertical-align: bottom;
-    padding: 3px 14px;
+    padding: 3px 16px;
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
@@ -1939,7 +1940,7 @@ ul {
 
 .oc .config-editor-title {
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--text-primary);
     display: flex;
     align-items: center;
@@ -1958,11 +1959,6 @@ ul {
     transition: opacity var(--transition-fast);
     margin-bottom: 2px;
     border-radius: var(--radius-sm);
-}
-
-.oc .help-link:hover {
-    opacity: 1;
-    background: var(--primary-a10);
 }
 
 .oc .select-popup-footer {
@@ -1995,7 +1991,7 @@ ul {
     justify-content: center;
     gap: 6px;
     width: 100%;
-    padding: 10px 14px;
+    padding: 10px 16px;
     border: 1px solid var(--primary-color);
     border-radius: var(--radius-sm);
     background: var(--primary-color);
@@ -2003,7 +1999,7 @@ ul {
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
     white-space: nowrap;
     box-sizing: border-box;
     line-height: normal;
@@ -2053,9 +2049,9 @@ ul {
         .oc #oc-merge-toggle-btn.oc-usage-help-float svg { width: 22px; height: 22px; }
     .oc .config-file-name { max-width: 100%; font-size: 18px; }
     /* config_upload.htm */
-    .oc .form-help { font-size: 11px; margin-bottom: 10px; gap: 5px; }
+    .oc .form-help { font-size: 11px; margin-bottom: 10px; gap: 6px; }
     .oc .form-help::before { width: 11px; height: 11px; margin-top: 1px; }
-    .oc .config-editor-actions { gap: 5px; }
+    .oc .config-editor-actions { gap: 6px; }
     .oc .config-editor-title #editTitle {
             flex: 0 1 auto;
             min-width: 0;
@@ -2132,7 +2128,7 @@ ul {
     margin: 0 auto !important;
     /* fixed height: the UA only centres the label while the content box fits the line */
     height: 35px !important;
-    padding: 0 14px;
+    padding: 0 16px;
     border: 1px solid var(--primary-color) !important;
     border-radius: var(--radius-sm);
     background: var(--primary-color) !important;
@@ -2140,7 +2136,7 @@ ul {
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
     white-space: nowrap;
     box-sizing: border-box;
     line-height: normal;
@@ -2196,7 +2192,7 @@ ul {
     gap: 10px;
     max-width: 320px;
     max-height: 140px;
-    padding: 10px 14px;
+    padding: 10px 16px;
     border: 1px solid var(--border-light, #e2e8f0);
     border-left-width: 3px;
     border-radius: 10px;
@@ -2270,9 +2266,9 @@ ul {
     border-top-width: 0;
     border-bottom-width: 0;
     margin-bottom: -8px;
-    transition: opacity 0.18s ease, transform 0.18s ease,
-        max-height 0.18s ease, padding 0.18s ease,
-        border-width 0.18s ease, margin 0.18s ease;
+    transition: opacity 180ms var(--ease-standard), transform 180ms var(--ease-standard),
+        max-height 180ms var(--ease-standard), padding 180ms var(--ease-standard),
+        border-width 180ms var(--ease-standard), margin 180ms var(--ease-standard);
 }
 
 @keyframes oc-toast-in {
@@ -2356,10 +2352,6 @@ html[data-darkmode="true"] .oc-status-err {
     color: #ff7070;
 }
 
-.oc-text-center {
-    text-align: center;
-}
-
 .oc .footer-btn.active {
     border-color: var(--tip-color, #f59e0b);
     color: var(--tip-color, #f59e0b);
@@ -2379,8 +2371,8 @@ html[data-darkmode="true"] .oc-status-err {
     width: min(92vw, 380px);
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding: 14px 16px;
+    gap: 12px;
+    padding: 16px;
     background: var(--bg-white, #ffffff);
     border: 1px solid var(--border-light, #e2e8f0);
     border-radius: var(--radius-lg, 8px);
@@ -2640,7 +2632,7 @@ html[data-darkmode="true"] .oc-warn-strip {
     margin-left: auto;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     font-size: 10.5px;
     letter-spacing: 0.04em;
 }

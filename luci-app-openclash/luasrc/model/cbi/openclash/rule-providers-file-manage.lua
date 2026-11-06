@@ -10,16 +10,17 @@ local fs = require "luci.openclash"
 local uci = require "luci.model.uci".cursor()
 
 local g,h={}
-for n,m in ipairs(fs.glob("/etc/openclash/rule_provider/*"))do
-h=fs.stat(m)
+for _,name in ipairs(fs.listdir("/etc/openclash/rule_provider/")) do
+h=fs.stat("/etc/openclash/rule_provider/" .. name)
 if h then
-g[n]={}
-g[n].num=string.format(n)
-g[n].name=fs.basename(m)
-g[n].mtime=os.date("%Y-%m-%d %H:%M:%S",h.mtime)
-g[n].size=fs.filesize(h.size)
-g[n].remove=0
-g[n].enable=false
+local row=#g+1
+g[row]={}
+g[row].num=string.format(row)
+g[row].name=name
+g[row].mtime=os.date("%Y-%m-%d %H:%M:%S",h.mtime)
+g[row].size=fs.filesize(h.size)
+g[row].remove=0
+g[row].enable=false
 end
 end
 

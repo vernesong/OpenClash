@@ -26,11 +26,9 @@ if self.sectiontype == "dns_servers" then
     table.insert(e, {name="fallback", title="fallback"})
     table.insert(e, {name="default", title="default-nameserver"})
 else
-    for t,o in ipairs(fs.glob("/etc/openclash/config/*"))do
-        a=fs.stat(o)
-        if a then
-            e[t]={}
-            e[t].name=fs.basename(o)
+    for _,name in ipairs(fs.listdir("/etc/openclash/config/")) do
+        if fs.stat("/etc/openclash/config/" .. name) then
+            e[#e + 1] = {name=name}
         end
     end
 
