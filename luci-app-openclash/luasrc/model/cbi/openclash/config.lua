@@ -172,13 +172,14 @@ if HTTP.formvalue("upload") then
 end
 
 local e,a={}
+conf = fs.uci_get_config("config", "config_path") or "/etc/openclash/config/config.yaml"
 for t,o in ipairs(fs.glob("/etc/openclash/config/*"))do
 a=fs.stat(o)
 if a then
 e[t]={}
 e[t].name=fs.basename(o)
 e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",a.mtime)
-if fs.uci_get_config("config", "config_path") and string.sub(fs.uci_get_config("config", "config_path"), 23, -1) == e[t].name then
+if conf and string.sub(conf, 23, -1) == e[t].name then
 	e[t].state="Enabled"
 else
 	e[t].state="Disabled"
@@ -338,10 +339,10 @@ sev = s:option(TextValue, "user")
 sev.rows = 40
 sev.wrap = "off"
 sev.cfgvalue = function(self, section)
-	return fs.readfile(conf) or fs.readfile(dconf) or ""
+	return ""
 end
 sev.write = function(self, section, value)
-if (CHIF == "0" and value and value ~= "oc-editor-streamed") then
+if (CHIF == "0" and value and value ~= "" and value ~= "oc-editor-streamed") then
 	value = value:gsub("\r\n?", "\n")
 	local old_value = fs.readfile(conf)
 	if value ~= old_value then
@@ -360,7 +361,7 @@ def.rows = 40
 def.wrap = "off"
 def.readonly = true
 def.cfgvalue = function(self, section)
-	return fs.readfile(sconf) or fs.readfile(dconf) or ""
+	return ""
 end
 def.write = function(self, section, value)
 end

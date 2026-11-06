@@ -1228,17 +1228,30 @@ function ocStreamEditorOnSubmit(id) {
     form.ocStreamEditor = true;
     form.enctype = 'multipart/form-data';
 
+    id.addEventListener('input', function() {
+        id.dataset.ocModified = '1';
+    });
+
     var input = document.createElement('input');
     input.type = 'file';
     input.name = 'oc_editor_content';
     input.style.display = 'none';
+    input.disabled = true;
     form.appendChild(input);
 
     form.addEventListener('submit', function() {
+        if (typeof id.ocBeforeSubmit === 'function') {
+            try { id.ocBeforeSubmit(); } catch (e) {}
+        }
+        if (id.dataset.ocModified !== '1') {
+            input.disabled = true;
+            return;
+        }
         try {
             var dt = new DataTransfer();
             dt.items.add(new File([id.value], 'content.yaml', { type: 'text/plain' }));
             input.files = dt.files;
+            input.disabled = false;
             id.value = OC_EDITOR_STREAM_MARKER;
         } catch (e) {
             input.parentNode.removeChild(input);

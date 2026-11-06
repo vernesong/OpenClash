@@ -48,7 +48,10 @@ function editor(id, readOnly, wid, height) {
         if (readOnly) exts.push(CM6.EditorState.readOnly.of(true));
 
         exts.push(CM6.EditorView.updateListener.of(function(update) {
-            if (update.docChanged) id.value = update.state.doc.toString();
+            if (update.docChanged) {
+                id.dataset.ocModified = '1';
+                id.value = update.state.doc.toString();
+            }
         }));
 
         var view = new CM6.EditorView({
@@ -77,7 +80,10 @@ function shell_editor(id, readOnly, wid, height) {
         if (readOnly) exts.push(CM6.EditorState.readOnly.of(true));
 
         exts.push(CM6.EditorView.updateListener.of(function(update) {
-            if (update.docChanged) id.value = update.state.doc.toString();
+            if (update.docChanged) {
+                id.dataset.ocModified = '1';
+                id.value = update.state.doc.toString();
+            }
         }));
 
         var view = new CM6.EditorView({
@@ -106,7 +112,10 @@ function other_editor(id, readOnly, wid, height) {
         if (readOnly) exts.push(CM6.EditorState.readOnly.of(true));
 
         exts.push(CM6.EditorView.updateListener.of(function(update) {
-            if (update.docChanged) id.value = update.state.doc.toString();
+            if (update.docChanged) {
+                id.dataset.ocModified = '1';
+                id.value = update.state.doc.toString();
+            }
         }));
 
         var view = new CM6.EditorView({
