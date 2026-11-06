@@ -300,9 +300,10 @@ var ocLang = window.ocLang || '';
             ERROR: 3
         },
         reconnectDelay: 5000,
+        maxReconnectAttempts: 5,
         heartbeatInterval: 30000,
         heartbeatTimers: {},
-        wsConnect: false,
+        reconnectAttempts: {},
         allowedCloseCodes: [1000, 1001, 1005, 1006],
 
         isSupported: function() {
@@ -416,7 +417,6 @@ var ocLang = window.ocLang || '';
             for (var i = 0; i < types.length; i++) {
                 this.closeConnection(types[i]);
             }
-            this.wsConnect = false;
         },
 
         handleMessage: function(type, event) {
@@ -443,22 +443,11 @@ var ocLang = window.ocLang || '';
                 connection.state = this.connectionStates.CONNECTED;
                 connection.lastActivity = Date.now();
             }
+            this.reconnectAttempts[type] = 0;
+            if (typeof StatsWSMeta !== 'undefined') StatsWSMeta.retryAfter = 0;
             this.startHeartbeat(type);
-
-            if (!this.wsConnect) {
-                var connectedCount = 0;
-                for (var t in this.connections) {
-                    if (this.connections[t].state === this.connectionStates.CONNECTED) {
-                        connectedCount++;
-                    }
-                }
-                if (connectedCount >= 1) {
-                    this.wsConnect = true;
-                    if (NetworkStatsManager.isEnabled) {
-                        NetworkStatsManager.stop();
-                    }
-                }
-            }
+            // polling is stopped inside syncDataSource, only once every needed socket is up
+            if (typeof syncDataSource === 'function') syncDataSource();
         },
 
         handleError: function(type, error) {
@@ -477,13 +466,11 @@ var ocLang = window.ocLang || '';
                 connection.state = this.connectionStates.DISCONNECTED;
                 this.stopHeartbeat(type);
 
-                if (typeof StatsChart !== 'undefined' && StatsChart.resetToZero) {
-                    StatsChart.resetToZero();
-                }
-
                 if (this.allowedCloseCodes.indexOf(event.code) === -1) {
                     this.scheduleReconnect(type);
                 }
+                // keep the last readings until polling or a reconnect refills them
+                if (typeof syncDataSource === 'function') syncDataSource();
             }
         },
 
@@ -501,6 +488,13 @@ var ocLang = window.ocLang || '';
             var connection = this.connections[type];
 
             if (!connection) {
+                // a sibling socket already tore the batch down; still count the failure
+                var failed = (this.reconnectAttempts[type] || 0) + 1;
+                this.reconnectAttempts[type] = failed;
+                if (failed > this.maxReconnectAttempts) {
+                    this.reconnectAttempts[type] = 0;
+                    if (typeof StatsWSMeta !== 'undefined') StatsWSMeta.retryAfter = Date.now() + 60000;
+                }
                 this.enableFallbackMode();
                 return;
             }
@@ -510,14 +504,23 @@ var ocLang = window.ocLang || '';
             var options = connection.options;
 
             this.pendingReconnect = this.pendingReconnect || {};
+            var attempts = (this.reconnectAttempts[type] || 0) + 1;
+            this.reconnectAttempts[type] = attempts;
+            if (attempts > this.maxReconnectAttempts) {
+                this.reconnectAttempts[type] = 0;
+                if (typeof StatsWSMeta !== 'undefined') StatsWSMeta.retryAfter = Date.now() + 60000;
+                if (typeof syncDataSource === 'function') syncDataSource();
+                return;
+            }
+            // exponential backoff so a dead endpoint stops retrying every few seconds
+            var delay = Math.min(this.reconnectDelay * Math.pow(2, attempts - 1), 60000);
             this.pendingReconnect[type] = setTimeout(function() {
                 delete self.pendingReconnect[type];
                 self.createConnection(type, url, handler, options);
-            }, this.reconnectDelay);
+            }, delay);
         },
 
         enableFallbackMode: function() {
-            this.wsConnect = false;
             var types = Object.keys(this.connections);
             for (var i = 0; i < types.length; i++) {
                 var connection = this.connections[types[i]];
@@ -529,10 +532,10 @@ var ocLang = window.ocLang || '';
                     delete this.connections[types[i]];
                 }
             }
-            NetworkStatsManager.resetStats();
-            if (typeof StatsChart !== 'undefined' && StatsChart.resetToZero) StatsChart.resetToZero();
+            // polling takes over and keeps the current values; no reset to zero here
             if (typeof StatsWSMeta !== 'undefined') StatsWSMeta.protocol = null;
-            if (typeof syncDataSource === 'function') syncDataSource();
+            // the pending backoff timer owns the next attempt, so do not reconnect here
+            if (typeof syncDataSource === 'function') syncDataSource(true);
         },
 
         getConnectionState: function(type) {
@@ -4893,6 +4896,9 @@ var ocLang = window.ocLang || '';
                 if (status.clash) {
                     syncDataSource();
                 } else {
+                    StatsWSMeta.probed = false;
+                    StatsWSMeta.available = null;
+                    StatsWSMeta.retryAfter = 0;
                     NetworkStatsManager.stop();
                     NetworkStatsManager.resetStats();
                 }
@@ -4933,6 +4939,9 @@ var ocLang = window.ocLang || '';
     var StatsWSMeta = {
         protocol: null,
         token: null,
+        available: null,
+        probed: false,
+        retryAfter: 0,
         endpoints: {
             traffic: '/traffic',
             connections: '/connections',
@@ -4945,11 +4954,10 @@ var ocLang = window.ocLang || '';
         }
     };
 
-    function syncDataSource() {
+    function syncDataSource(skipConnect) {
         var status = StateManager.current_status;
         var req = (typeof StatsChart !== 'undefined' && StatsChart.requiredSources) ? StatsChart.requiredSources() : { ws: [], sys: true };
-        var needsNetworkFallback = status && status.clash && status.daip && !StatsWSMeta.protocol &&
-            (StatsChart.view === 'cards' || req.ws.length > 0);
+        var wantsStats = !!(status && status.clash && status.daip && (StatsChart.view === 'cards' || req.ws.length > 0));
 
         if (status && status.clash && req.sys) {
             if (!SystemStatusManager.isEnabled) SystemStatusManager.start();
@@ -4957,13 +4965,24 @@ var ocLang = window.ocLang || '';
             SystemStatusManager.stop();
         }
 
-        if (needsNetworkFallback) {
+        // every required socket must be up, otherwise its card would stop updating
+        var wsActive = req.ws.length > 0;
+        for (var j = 0; j < req.ws.length; j++) {
+            var live = WSManager.connections[req.ws[j]];
+            if (!live || live.state !== WSManager.connectionStates.CONNECTED) {
+                wsActive = false;
+                break;
+            }
+        }
+
+        // polling is the baseline and only yields once a socket is really connected
+        if (wantsStats && !wsActive) {
             if (!NetworkStatsManager.isEnabled) NetworkStatsManager.start();
         } else {
             NetworkStatsManager.stop();
         }
 
-        if (!StatsWSMeta.protocol) return;
+        if (skipConnect || !StatsWSMeta.protocol || StatsWSMeta.available === false || Date.now() < (StatsWSMeta.retryAfter || 0)) return;
 
         var types = ['traffic', 'connections', 'memory'];
         for (var i = 0; i < types.length; i++) {
@@ -4971,8 +4990,10 @@ var ocLang = window.ocLang || '';
             if (req.ws.indexOf(t) >= 0) {
                 var conn = WSManager.connections[t];
                 var active = conn && (conn.state === WSManager.connectionStates.CONNECTED || conn.state === WSManager.connectionStates.CONNECTING);
-                if (!active) {
-                    var url = StatsWSMeta.protocol + StatsWSMeta.endpoints[t] + (StatsWSMeta.token ? '?token=' + StatsWSMeta.token : '');
+                // a pending backoff timer owns the next attempt; do not race it here
+                var pending = !!(WSManager.pendingReconnect && WSManager.pendingReconnect[t]);
+                if (!active && !pending) {
+                    var url = StatsWSMeta.protocol + StatsWSMeta.endpoints[t] + (StatsWSMeta.token ? '?token=' + encodeURIComponent(StatsWSMeta.token) : '');
                     WSManager.createConnection(t, url, StatsWSMeta.handlers[t]);
                 }
             } else {
@@ -4988,10 +5009,67 @@ var ocLang = window.ocLang || '';
             return false;
         }
 
+        if (StatsWSMeta.available === false) {
+            StatsWSMeta.protocol = null;
+            syncDataSource();
+            return false;
+        }
+
         StatsWSMeta.protocol = getDashboardWebSocketOrigin(status);
         StatsWSMeta.token = status.dase;
+        if (!StatsWSMeta.probed) {
+            var apiOrigin = ocGetDashboardApiOrigin(status);
+            // only the same-origin proxy needs the check; a direct core origin works as before
+            if (apiOrigin.indexOf('/oc-api') > 0) ocProbeStatsWs(apiOrigin, StatsWSMeta.token);
+        }
         syncDataSource();
         return true;
+    }
+
+    // The same-origin /oc-api only exists behind the nginx proxy; probe it once instead
+    // of retrying sockets that can only answer 404 (uHTTPd has no reverse proxy).
+    function ocProbeStatsWs(apiOrigin, token) {
+        var settled = false;
+        var finish = function(available) {
+            if (settled) return;
+            settled = true;
+            StatsWSMeta.probed = true;
+            if (available !== null) StatsWSMeta.available = available;
+            if (available === false) {
+                StatsWSMeta.protocol = null;
+                WSManager.closeAll();
+            }
+            if (typeof syncDataSource === 'function') syncDataSource();
+        };
+        if (typeof window.fetch !== 'function') {
+            finish(null);
+            return;
+        }
+        var headers = {};
+        if (token) headers.Authorization = 'Bearer ' + token;
+        var timer = setTimeout(function() { finish(null); }, 4000);
+        window.fetch(apiOrigin + '/version', {
+            method: 'GET',
+            redirect: 'manual',
+            cache: 'no-store',
+            credentials: 'omit',
+            headers: headers
+        }).then(function(res) {
+            clearTimeout(timer);
+            // only a 404 proves the proxy is missing; 502/503 and other codes stay unknown
+            if (res.status === 404) {
+                finish(false);
+                return;
+            }
+            if (res.status === 200 || res.status === 401) {
+                finish(true);
+                return;
+            }
+            finish(null);
+        }).catch(function() {
+            clearTimeout(timer);
+            finish(null);
+        });
     }
 
     function AnnouncementAnimator(config) {
