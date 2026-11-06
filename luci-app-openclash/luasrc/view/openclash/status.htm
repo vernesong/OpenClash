@@ -9,8 +9,10 @@
     <tr>
         <td colspan="4">
             <div class="oc">
-                <div class="main-cards-container">
-                    <div class="announcement-card">
+                <div class="oc-dashboard">
+
+                    <!-- 1. 顶部公告与帮助向导通栏 -->
+                    <div class="oc-notice">
                         <div id="announcement-banner" class="announcement-banner">
                             <div class="megaphone-container">
                                 <svg id="megaphone" width="15" height="15"><use href="#oc-icon-megaphone"/></svg>
@@ -19,69 +21,177 @@
                                 <div id="announcement-content" class="announcement-content"></div>
                             </div>
                         </div>
+                        <div class="oc-notice-actions">
+                            <button type="button" class="oc-notice-btn oc-notice-btn-guide" id="guide-float" title="<%:Quick Start%>" onclick="return openGuide(false)">
+                                <svg width="15" height="15"><use href="#oc-icon-lightbulb"/></svg>
+                                <span><%:Quick Start%></span>
+                                <div class="oc-usage-help-bubble" id="guide-bubble"><%:First time here? Let me give you a quick tour of the page features%></div>
+                            </button>
+                            <button type="button" class="oc-notice-btn oc-notice-btn-help" id="usage-help-float" title="<%:Usage Help%>" onclick="return UsageHelpManager.show()">
+                                <svg width="15" height="15"><use href="#oc-icon-bot"/></svg>
+                                <span><%:Usage Help%></span>
+                                <div class="oc-usage-help-bubble" id="usage-help-bubble"><%:Click to get usage help%></div>
+                            </button>
+                        </div>
                     </div>
-                    <div class="main-card">
-                        <!-- Row 1: Running Status -->
-                        <div class="card-row full-width core-status-row">
-                            <div class="sub-card">
-                                <div class="status-header-row">
-                                    <div class="card-title"><%:Running Status%></div>
-                                    <div class="version-display-container">
-                                        <div class="version-display oc-hidden" id="plugin-version-display" role="button" tabindex="0">
-                                            <svg width="12" height="12"><use href="#oc-icon-package"/></svg>
-                                            <span class="version-text" id="plugin-version-text">-</span>
-                                        </div>
-                                        <div class="version-display oc-hidden" id="core-version-display" role="button" tabindex="0">
-                                            <svg width="12" height="12"><use href="#oc-icon-cpu"/></svg>
-                                            <span class="version-text" id="core-version-text">-</span>
-                                        </div>
+
+                    <!-- 2. 核心状态与配置订阅一体卡 (.oc-hero-card) -->
+                    <div class="oc-hero-card">
+                        <!-- 第 1 行：核心运行状态与全局动作 -->
+                        <div class="hero-row hero-row-status">
+                            <div class="hero-status-left">
+                                <label class="plugin-toggle-switch" title="<%:Start/Stop OpenClash%>">
+                                    <input type="checkbox" id="plugin_toggle" onchange="togglePlugin(this)">
+                                    <span class="plugin-toggle-slider"></span>
+                                </label>
+                                <span class="value-indicator oc-clash-status-wrap" id="_clash" onclick="return ocOpenCoreStartFlow();" title="<%:Click to view runtime log%>"><span class="oc-status-pill is-loading"><span class="oc-status-dot"></span><span class="oc-status-text"><%:Collecting data...%></span></span></span>
+                                <div class="version-display-container">
+                                    <div class="version-display oc-hidden" id="plugin-version-display" role="button" tabindex="0">
+                                        <svg width="12" height="12"><use href="#oc-icon-package"/></svg>
+                                        <span class="version-text" id="plugin-version-text">-</span>
+                                    </div>
+                                    <div class="version-display oc-hidden" id="core-version-display" role="button" tabindex="0">
+                                        <svg width="12" height="12"><use href="#oc-icon-cpu"/></svg>
+                                        <span class="version-text" id="core-version-text">-</span>
                                     </div>
                                 </div>
-                                <div class="core-main-controls">
-                                    <div class="core-status-toggle">
-                                        <span id="_clash" class="value-indicator"><%:Collecting data...%></span>
-                                        <span id="_oclog" class="value-indicator oc-hidden"><b><%:Collecting data...%></b></span>
-                                        <div class="plugin-toggle-container">
-                                            <label class="plugin-toggle-switch">
-                                                <input type="checkbox" id="plugin_toggle" onchange="togglePlugin(this)">
-                                                <span class="plugin-toggle-slider"></span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="core-control-buttons">
-                                        <button type="button" class="icon-btn action-btn" id="restart_core" title="<%:Restart%>" onclick="return restartCore()">
-                                            <svg width="14" height="14"><use href="#oc-icon-refresh"/></svg>
-                                        </button>
-                                        <button type="button" class="icon-btn action-btn" id="edit_overwrite" title="<%:Overwrite Module%>" onclick="return editOverwrite()">
-                                            <svg width="32" height="32"><use href="#oc-icon-overwrite"/></svg>
-                                            <span class="btn-text"><%:Overwrite Module%></span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="card-actions">
-                                    <button type="button" class="icon-btn theme-toggle-btn" id="theme-toggle" title="<%:Switch Theme%>" aria-haspopup="dialog" aria-expanded="false" onclick="return openThemePanel(this)">
-                                        <svg id="sun-icon" width="14" height="14"><title><%:Light Mode%></title><use href="#oc-icon-sun"/></svg>
-                                        <svg id="moon-icon" width="14" height="14" class="oc-hidden"><title><%:Dark Mode%></title><use href="#oc-icon-moon"/></svg>
-                                        <svg id="auto-icon" width="14" height="14" class="oc-hidden"><title><%:Auto Mode%></title><use href="#oc-icon-auto-theme"/></svg>
+                                <span class="value-indicator oc-hidden" id="_oclog" onclick="LogManager.toggleLogPopup()" title="<%:Click to view full log%>"></span>
+                            </div>
+
+                            <div class="hero-status-right">
+                                <!-- 重启内核按钮 -->
+                                <button type="button" class="oc-hero-btn" id="restart_core" title="<%:Restart%>" onclick="return restartCore()">
+                                    <svg width="14" height="14"><use href="#oc-icon-refresh"/></svg>
+                                    <span><%:Restart%></span>
+                                </button>
+
+                                <!-- 打开面板下拉菜单 -->
+                                <div class="oc-dropdown-wrap" id="dashboard-dropdown-wrap">
+                                    <button type="button" class="oc-hero-btn" onclick="return ocToggleDropdown('dashboard-dropdown-wrap', event)">
+                                        <svg width="14" height="14"><use href="#oc-icon-external-link"/></svg>
+                                        <span><%:Control Panel%></span>
+                                        <svg width="13" height="13" class="oc-dd-caret"><use href="#oc-icon-chevron-down"/></svg>
                                     </button>
-                                    <button type="button" class="icon-btn action-btn" id="go_wiki" title="<%:Wiki%>" onclick="return wikipage()"><svg width="14" height="14"><use href="#oc-icon-wiki"/></svg></button>
-                                    <button type="button" class="icon-btn action-btn" id="go_tutorials" title="<%:Tutorials%>" onclick="return gitbookpage()"><svg width="14" height="14"><use href="#oc-icon-book"/></svg></button>
-                                    <button type="button" class="icon-btn action-btn" id="go_star" title="<%:Star%>" onclick="return homepage()"><svg width="14" height="14"><use href="#oc-icon-star"/></svg></button>
-                                    <button type="button" class="icon-btn action-btn" id="go_telegram" title="<%:Telegram%>" onclick="return telegrampage()"><svg width="14" height="14"><use href="#oc-icon-telegram"/></svg></button>
-                                    <button type="button" class="icon-btn action-btn" id="go_sponsor" title="<%:Sponsor%>" onclick="return sponsorpage()"><svg width="14" height="14"><use href="#oc-icon-heart"/></svg></button>
-                                    <button type="button" class="icon-btn action-btn" id="logo_btn" title="Mihomo" onclick="return winOpen('https://www.github.com/metacubex/mihomo');">
-                                        <img id="_logo" src="/luci-static/resources/openclash/img/logo.png?v=@OPENCLASH_VERSION@" loading="lazy" width="14px" height="14px" alt="Mihomo"/>
-                                        <span class="logo-text">Powered by <span class="mihomo-link">Mihomo</span></span>
+                                    <div class="quick-dropdown-layer" id="dashboard-menu-layer">
+                                        <div class="dropdown-header-info">
+                                            <div class="dropdown-info-row">
+                                                <span class="dropdown-info-label"><%:Control Panel%></span>
+                                                <span id="_daip" class="value-indicator"><%:Collecting data...%></span>
+                                                <button type="button" class="icon-btn copy-btn" id="copy_address" title="<%:Copy Address%>" onclick="return copyAddress()"><svg width="13" height="13"><use href="#oc-icon-copy"/></svg></button>
+                                                <button type="button" class="icon-btn copy-btn" id="copy_secret" title="<%:Copy Secret%>" onclick="return copySecret()"><svg width="13" height="13"><use href="#oc-icon-lock"/></svg></button>
+                                            </div>
+                                            <div class="dropdown-info-row">
+                                                <span class="dropdown-info-label"><%:Mix Proxy%></span>
+                                                <span id="_mix_proxy" class="value-indicator"><%:Collecting data...%></span>
+                                                <button type="button" class="icon-btn copy-btn" id="copy_mix_address" title="<%:Copy Address%>" onclick="return copyMixAddress()"><svg width="13" height="13"><use href="#oc-icon-copy"/></svg></button>
+                                                <button type="button" class="icon-btn copy-btn" id="copy_mix_secret" title="<%:Copy Auth Info%>" onclick="return copyMixAuth()"><svg width="13" height="13"><use href="#oc-icon-lock"/></svg></button>
+                                                <button type="button" class="icon-btn action-btn" id="copy_pac_config" title="<%:Get PAC Config%>" onclick="return generatePacConfig()"><svg width="13" height="13"><use href="#oc-icon-globe"/></svg></button>
+                                            </div>
+                                        </div>
+                                        <div class="dropdown-panel-buttons">
+                                            <span class="dashboard-btn-wrap" id="_webz"><button class="dashboard-btn"><%:Collecting data...%></button></span>
+                                            <span class="dashboard-btn-wrap" id="_webm"><button class="dashboard-btn"><%:Collecting data...%></button></span>
+                                            <span class="dashboard-btn-wrap" id="_web"><button class="dashboard-btn"><%:Collecting data...%></button></span>
+                                            <span class="dashboard-btn-wrap" id="_webo"><button class="dashboard-btn"><%:Collecting data...%></button></span>
+                                            <span class="dashboard-btn-wrap oc-hidden" id="_web_external"><button class="dashboard-btn"><%:Collecting data...%></button></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 快捷操作下拉菜单 -->
+                                <div class="oc-dropdown-wrap" id="quick-actions-dropdown-wrap">
+                                    <button type="button" class="oc-hero-btn" onclick="return ocToggleDropdown('quick-actions-dropdown-wrap', event)">
+                                        <svg width="14" height="14"><use href="#oc-icon-zap"/></svg>
+                                        <span><%:Quick Action%></span>
+                                        <svg width="13" height="13" class="oc-dd-caret"><use href="#oc-icon-chevron-down"/></svg>
+                                    </button>
+                                    <div class="quick-dropdown-layer" id="quick-menu-layer">
+                                        <div class="dropdown-item-slot" id="_close_all_connection_btn"><%:Collecting data...%></div>
+                                        <div class="dropdown-item-slot" id="_reload_firewall_btn"><%:Collecting data...%></div>
+                                        <div class="dropdown-item-slot" id="_flush_dns_cache_btn"><%:Collecting data...%></div>
+                                        <div class="dropdown-item-slot" id="_one_key_update_btn"><%:Collecting data...%></div>
+                                        <div class="dropdown-divider"></div>
+                                        <button type="button" class="dropdown-item-btn theme-toggle-btn" id="theme-toggle" title="<%:Switch Theme%>" aria-haspopup="dialog" aria-expanded="false" onclick="return openThemePanel(this)">
+                                            <svg id="sun-icon" width="14" height="14"><title><%:Light Mode%></title><use href="#oc-icon-sun"/></svg>
+                                            <svg id="moon-icon" width="14" height="14" class="oc-hidden"><title><%:Dark Mode%></title><use href="#oc-icon-moon"/></svg>
+                                            <svg id="auto-icon" width="14" height="14" class="oc-hidden"><title><%:Auto Mode%></title><use href="#oc-icon-auto-theme"/></svg>
+                                            <span><%:Switch Theme%></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 第 2 行：配置文件控制行 -->
+                        <div class="hero-row hero-row-config">
+                            <div class="config-file-content" id="config-file-content">
+                                <div class="hero-config-left">
+                                    <span class="hero-config-label"><%:Config File%></span>
+                                    <span id="subscription-info-title" class="subscription-info-title oc-hidden"></span>
+                                    <div class="config-file-name-wrapper oc-hidden"><div class="config-file-name" id="current-config-name"><%:No Config Selected%></div><span id="age-file-icon" class="age-file-icon oc-hidden"></span></div>
+                                    <select id="config_file_select" class="cbi-input-select config-select">
+                                        <option value=""><%:Loading config files...%></option>
+                                    </select>
+                                    <div class="file-info" id="file-info">
+                                        <span id="file-modify-time" class="file-info-item" title="<%:Modified%>"><svg class="file-modify-icon" width="13" height="13"><use href="#oc-icon-clock-edit"/></svg><span id="file-modify-time-value">--</span></span>
+                                        <span id="file-next-update" class="file-info-item oc-hidden" title=""><svg width="13" height="13"><use href="#oc-icon-calendar"/></svg><span id="file-next-update-value"></span></span>
+                                    </div>
+                                </div>
+
+                                <div class="hero-config-right">
+                                    <div class="config-action-icons">
+                                        <button type="button" class="oc-icon-btn oc-hidden" id="switch_config" title="<%:Switch Config%>" onclick="return switchConfig()"><svg width="14" height="14"><use href="#oc-icon-switch"/></svg></button>
+                                        <button type="button" class="oc-icon-btn" id="refresh-subscription" title="<%:Refresh%>" onclick="return refreshSubscriptionInfo()"><svg width="14" height="14"><use href="#oc-icon-refresh"/></svg></button>
+                                        <button type="button" class="oc-icon-btn" id="config-subscription-url" title="<%:Specify URL%>" onclick="return setSubscriptionUrl()"><svg width="14" height="14"><use href="#oc-icon-link"/></svg></button>
+                                        <button type="button" class="oc-icon-btn" id="config_summary" title="<%:Config Summary%>" onclick="return showConfigSummary()"><svg width="14" height="14"><use href="#oc-icon-list"/></svg></button>
+                                        <button type="button" class="oc-icon-btn" id="update_config" title="<%:Update Config%>" onclick="return updateConfig()"><svg width="14" height="14"><use href="#oc-icon-download"/></svg></button>
+                                        <button type="button" class="oc-icon-btn" id="edit_subscribe" title="<%:Edit Subscription%>" onclick="return editSubscribe()"><svg width="14" height="14"><use href="#oc-icon-settings-2"/></svg></button>
+                                        <button type="button" class="oc-icon-btn" id="edit_config" title="<%:Edit File%>" onclick="return editConfig()"><svg width="14" height="14"><use href="#oc-icon-edit"/></svg></button>
+                                        <button type="button" class="oc-icon-btn" id="upload_config" title="<%:Upload Config%>" onclick="return uploadConfig()"><svg width="14" height="14"><use href="#oc-icon-upload"/></svg></button>
+                                        <button type="button" class="oc-icon-btn" id="restore_backup" title="<%:Restore Backup%>" onclick="return restoreBackupFile()"><svg width="14" height="14"><use href="#oc-icon-history"/></svg></button>
+                                    </div>
+                                    <button type="button" class="oc-btn" id="edit_overwrite" title="<%:Overwrite Module%>" onclick="return editOverwrite()" style="gap:6px;">
+                                        <svg width="14" height="14"><use href="#oc-icon-gear"/></svg>
+                                        <span class="btn-text"><%:Overwrite%></span>
+                                        <span class="oc-overwrite-badge oc-hidden" id="overwrite-count-badge">0</span>
+                                    </button>
+                                    <div id="subscription-overwrite-tags" class="subscription-overwrite-tags oc-hidden"></div>
+                                </div>
+                            </div>
+
+                            <div id="config-file-empty-state" class="config-file-empty-state oc-hidden">
+                                <div class="config-file-empty-left">
+                                    <span class="hero-config-label"><%:Config File%></span>
+                                    <span class="config-file-empty-text"><%:No config file yet, Add one or restore a backup%></span>
+                                </div>
+                                <div class="config-file-empty-actions">
+                                    <button type="button" class="oc-hero-btn" onclick="return uploadConfig()">
+                                        <svg width="14" height="14"><use href="#oc-icon-upload"/></svg>
+                                        <span><%:Add Config%></span>
+                                    </button>
+                                    <button type="button" class="oc-hero-btn" onclick="return restoreBackupFile()">
+                                        <svg width="14" height="14"><use href="#oc-icon-history"/></svg>
+                                        <span><%:Restore Backup%></span>
+                                    </button>
+                                    <button type="button" class="oc-hero-btn" onclick="return editOverwrite()">
+                                        <svg width="14" height="14"><use href="#oc-icon-gear"/></svg>
+                                        <span><%:Overwrite%></span>
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Row 2: Running Mode & Proxy Mode -->
-                        <div class="card-row dual-cards mode-row">
-                            <div class="sub-card">
-                                <div class="stats-card-header">
-                                    <div class="stats-title"><%:Running Mode%></div>
+                        <!-- 第 3 行：多供应商订阅流量网格（由 SubscriptionManager 动态渲染并展开） -->
+                        <div class="hero-row hero-row-providers subscription-progress oc-hidden" id="subscription-progress-section" data-count="0"></div>
+                    </div>
+
+                    <!-- 3. 运行模式与策略控制双层扁平托盘 (.oc-control-tray) -->
+                    <div class="oc-control-tray">
+                        <!-- 第 1 层：运行模式与代理模式 -->
+                        <div class="tray-row tray-row-modes">
+                            <div class="tray-cell">
+                                <div class="tray-cell-head">
+                                    <span class="tray-label"><%:Running Mode%></span>
                                     <span class="mode-pill" id="mode-pill">
                                         <input type="radio" id="dns_fakeip" name="radios-dns" value="fake-ip" onclick="return switch_dns_mode(this.value)"/>
                                         <label for="dns_fakeip" class="mode-pill-opt" title="<%:Fake-IP%>">
@@ -93,166 +203,94 @@
                                         </label>
                                     </span>
                                 </div>
-                                <div class="card-content">
-                                    <div class="card-controls">
-                                        <div id="radio-ru-mode" class="cbi-button-group oc-inline-flex">
-                                            <input type="radio" id="normal" name="radios-ru" value="" onclick="return switch_run_mode(this.value)"/>
-                                            <label for="normal" id="run_normal" class="cbi-button-option"><%:Compat%></label>
-                                            <input type="radio" id="tun" name="radios-ru" value="-tun" onclick="return switch_run_mode(this.value)"/>
-                                            <label for="tun" class="cbi-button-option"><%:TUN%></label>
-                                            <input type="radio" id="mix" name="radios-ru" value="-mix" onclick="return switch_run_mode(this.value)"/>
-                                            <label for="mix" class="cbi-button-option"><%:Mix%></label>
-                                        </div>
-                                    </div>
+                                <div id="radio-ru-mode" class="tray-radios">
+                                    <label class="oc-native-radio">
+                                        <input type="radio" id="normal" name="radios-ru" value="" checked onclick="return switch_run_mode(this.value)"/>
+                                        <span id="run_normal"><%:Compat%></span>
+                                    </label>
+                                    <label class="oc-native-radio">
+                                        <input type="radio" id="tun" name="radios-ru" value="-tun" onclick="return switch_run_mode(this.value)"/>
+                                        <span><%:TUN%></span>
+                                    </label>
+                                    <label class="oc-native-radio">
+                                        <input type="radio" id="mix" name="radios-ru" value="-mix" onclick="return switch_run_mode(this.value)"/>
+                                        <span><%:Mix%></span>
+                                    </label>
                                 </div>
                             </div>
-                            <div class="sub-card">
-                                <div class="stats-card-header">
-                                    <div class="stats-title"><%:Proxy Mode%></div>
+
+                            <div class="tray-cell">
+                                <div class="tray-cell-head">
+                                    <span class="tray-label"><%:Proxy Mode%></span>
                                 </div>
-                                <div class="card-content">
-                                    <div class="card-controls">
-                                        <div id="radio-mode" class="cbi-button-group oc-inline-flex">
-                                            <input type="radio" id="rule" name="radios" value="rule" onclick="return switch_rule_mode(this.value)"/>
-                                            <label for="rule" class="cbi-button-option"><%:Rule%></label>
-                                            <input type="radio" id="global" name="radios" value="global" onclick="return switch_rule_mode(this.value)"/>
-                                            <label for="global" class="cbi-button-option"><%:Global%></label>
-                                            <input type="radio" id="direct" name="radios" value="direct" onclick="return switch_rule_mode(this.value)"/>
-                                            <label for="direct" class="cbi-button-option"><%:Direct%></label>
-                                        </div>
-                                    </div>
+                                <div id="radio-mode" class="tray-radios">
+                                    <label class="oc-native-radio">
+                                        <input type="radio" id="rule" name="radios" value="rule" checked onclick="return switch_rule_mode(this.value)"/>
+                                        <span><%:Rule%></span>
+                                    </label>
+                                    <label class="oc-native-radio">
+                                        <input type="radio" id="global" name="radios" value="global" onclick="return switch_rule_mode(this.value)"/>
+                                        <span><%:Global%></span>
+                                    </label>
+                                    <label class="oc-native-radio">
+                                        <input type="radio" id="direct" name="radios" value="direct" onclick="return switch_rule_mode(this.value)"/>
+                                        <span><%:Direct%></span>
+                                    </label>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Row 3: Settings -->
-                        <div class="card-row stats-grid">
-                            <div class="sub-card">
-                                <div class="card-title"><%:Area Bypass%><div class="help-link" title="<%:Bypass Specified Regions Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option%>"><svg width="12" height="12"><use href="#oc-icon-help"/></svg></div></div>
-                                <div class="card-content">
-                                    <div class="card-controls">
-                                        <div id="oc-setting-oversea" class="cbi-button-group oc-inline-flex">
-                                            <input type="radio" id="oc_setting_oversea_1" name="oc-setting-oversea" value="1" onclick="return switch_oc_setting_oversea('1')"/>
-                                            <label for="oc_setting_oversea_1" class="cbi-button-option" title="<%:Mainland%>" aria-label="<%:Mainland%>"><% if luci.i18n.translate("Mainland") == "Mainland" then %><span style="text-decoration: underline; text-underline-offset: 2px;">M</span><% else %><%:Mainland%><% end %></label>
-                                            <input type="radio" id="oc_setting_oversea_2" name="oc-setting-oversea" value="2" onclick="return switch_oc_setting_oversea('2')"/>
-                                            <label for="oc_setting_oversea_2" class="cbi-button-option" title="<%:Oversea%>" aria-label="<%:Oversea%>"><% if luci.i18n.translate("Oversea") == "Oversea" then %><span style="text-decoration: underline; text-underline-offset: 2px;">O</span><% else %><%:Oversea%><% end %></label>
-                                            <input type="radio" id="oc_setting_oversea_0" name="oc-setting-oversea" value="0" onclick="return switch_oc_setting_oversea('0')"/>
-                                            <label for="oc_setting_oversea_0" class="cbi-button-option"><%:Off%></label>
-                                        </div>
-                                    </div>
+                        <!-- 第 2 层：区域绕过与分流策略开关 -->
+                        <div class="tray-row tray-row-policies">
+                            <div class="tray-cell tray-cell-bypass" id="oc-setting-oversea">
+                                <span class="tray-label"><%:Area Bypass%></span>
+                                <select id="oc_setting_oversea_select" class="cbi-input-select oc-native-select" onchange="return onOverseaSelectChange(this.value)">
+                                    <option value="0"><%:Off%></option>
+                                    <option value="1"><%:Mainland%></option>
+                                    <option value="2"><%:Oversea%></option>
+                                </select>
+                                <div class="oc-hidden">
+                                    <input type="radio" id="oc_setting_oversea_1" name="oc-setting-oversea" value="1" onclick="return switch_oc_setting_oversea('1')"/>
+                                    <input type="radio" id="oc_setting_oversea_2" name="oc-setting-oversea" value="2" onclick="return switch_oc_setting_oversea('2')"/>
+                                    <input type="radio" id="oc_setting_oversea_0" name="oc-setting-oversea" value="0" onclick="return switch_oc_setting_oversea('0')"/>
                                 </div>
                             </div>
-                            <div class="sub-card">
-                                <div class="card-title"><%:Sniffer%><a href="javascript:void(0);" onclick="window.open('https://wiki.metacubex.one/config/sniff/?h=sniff#_1', '_blank');" class="help-link" title="<%:Sniff the domain name of the traffics to avoid rule-based proxy failure%>"><svg width="12" height="12"><use href="#oc-icon-help"/></svg></a></div>
-                                <div class="card-content">
-                                    <div class="card-controls">
-                                        <div id="dns-setting-sniffer" class="cbi-button-group oc-inline-flex">
+
+                            <div class="tray-cell tray-cell-switches">
+                                <div class="policy-switches-grid">
+                                    <div class="policy-switch-item" id="dns-setting-sniffer">
+                                        <span class="switch-label"><%:Sniffer%></span>
+                                        <label class="oc-switch" title="<%:Sniff the domain name of the traffics to avoid rule-based proxy failure%>">
+                                            <input type="checkbox" id="meta_sniffer_toggle" onchange="return onPolicyToggleChange('meta_sniffer', this.checked)"/>
+                                            <span class="oc-switch-slider"></span>
+                                        </label>
+                                        <div class="oc-hidden">
                                             <input type="radio" id="meta_sniffer_on" name="meta-sniffer-radios" value="1" onclick="return switch_meta_sniffer('1')"/>
-                                            <label for="meta_sniffer_on" class="cbi-button-option"><%:On%></label>
                                             <input type="radio" id="meta_sniffer_off" name="meta-sniffer-radios" value="0" onclick="return switch_meta_sniffer('0')"/>
-                                            <label for="meta_sniffer_off" class="cbi-button-option"><%:Off%></label>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="sub-card">
-                                <div class="card-title"><%:DNS Proxy%><a href="javascript:void(0);" onclick="window.open('https://wiki.metacubex.one/config/dns/?h=res#respect-rules', '_blank');" class="help-link" title="<%:DNS querys respect-rules to preventing access failure%>"><svg width="12" height="12"><use href="#oc-icon-help"/></svg></a></div>
-                                <div class="card-content">
-                                    <div class="card-controls">
-                                        <div id="dns-setting-respect" class="cbi-button-group oc-inline-flex">
+
+                                    <div class="policy-switch-item" id="dns-setting-respect">
+                                        <span class="switch-label"><%:DNS Proxy%></span>
+                                        <label class="oc-switch" title="<%:DNS querys respect-rules to preventing access failure%>">
+                                            <input type="checkbox" id="respect_rules_toggle" onchange="return onPolicyToggleChange('respect_rules', this.checked)"/>
+                                            <span class="oc-switch-slider"></span>
+                                        </label>
+                                        <div class="oc-hidden">
                                             <input type="radio" id="respect_rules_on" name="respect-rules-radios" value="1" onclick="return switch_respect_rules('1')"/>
-                                            <label for="respect_rules_on" class="cbi-button-option"><%:On%></label>
                                             <input type="radio" id="respect_rules_off" name="respect-rules-radios" value="0" onclick="return switch_respect_rules('0')"/>
-                                            <label for="respect_rules_off" class="cbi-button-option"><%:Off%></label>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="sub-card">
-                                <div class="card-title"><%:Stream Unlock%><div class="help-link" title="<%:Auto Select Proxy For Streaming Unlock, Support Netflix, Disney Plus, HBO And YouTube Premium, etc%>"><svg width="12" height="12"><use href="#oc-icon-help"/></svg></div></div>
-                                <div class="card-content">
-                                    <div class="card-controls">
-                                        <div id="stream-unlock-setting" class="cbi-button-group oc-inline-flex">
+
+                                    <div class="policy-switch-item" id="stream-unlock-setting">
+                                        <span class="switch-label"><%:Stream Unlock%></span>
+                                        <label class="oc-switch" title="<%:Auto Select Proxy For Streaming Unlock, Support Netflix, Disney Plus, HBO And YouTube Premium, etc%>">
+                                            <input type="checkbox" id="stream_unlock_toggle" onchange="return onPolicyToggleChange('stream_unlock', this.checked)"/>
+                                            <span class="oc-switch-slider"></span>
+                                        </label>
+                                        <div class="oc-hidden">
                                             <input type="radio" id="stream_unlock_on" name="stream-unlock-radios" value="1" onclick="return switch_stream_unlock('1')"/>
-                                            <label for="stream_unlock_on" class="cbi-button-option"><%:On%></label>
                                             <input type="radio" id="stream_unlock_off" name="stream-unlock-radios" value="0" onclick="return switch_stream_unlock('0')"/>
-                                            <label for="stream_unlock_off" class="cbi-button-option"><%:Off%></label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Row 4: Config File -->
-                        <div class="card-row full-width">
-                            <div class="sub-card">
-                                <div class="stats-card-header">
-                                    <div class="stats-title"><%:Config File%></div>
-                                </div>
-                                <div class="config-file-content">
-                                    <div id="subscription-info-display" class="subscription-info-container oc-hidden">
-                                        <div class="subscription-nav-arrow left" id="subscription-prev-arrow" onclick="switchToPreviousConfig()" title="<%:Previous%>"></div>
-                                        <div class="subscription-nav-arrow right" id="subscription-next-arrow" onclick="switchToNextConfig()" title="<%:Next%>"></div>
-                                        <div class="subscription-info-main">
-                                            <div class="subscription-info-header">
-                                                <div class="config-file-name-wrapper">
-                                                    <div class="config-file-name" id="current-config-name"><%:No Config Selected%></div>
-                                                    <span id="age-file-icon" class="age-file-icon oc-hidden"></span>
-                                                </div>
-                                                <div class="file-info" id="file-info-section">
-                                                    <span id="file-next-update" class="file-info-item oc-hidden" title=""><svg width="14" height="14"><use href="#oc-icon-calendar"/></svg><span id="file-next-update-value"></span></span>
-                                                    <span id="file-modify-time" class="file-info-item" title="<%:Modified%>"><svg class="file-modify-icon" width="14" height="14"><use href="#oc-icon-clock-edit"/></svg><span id="file-modify-time-value">--</span></span>
-                                                </div>
-                                            </div>
-                                            <div class="subscription-info-details">
-                                                <div class="subscription-progress oc-hidden" id="subscription-progress-section">
-                                                    <div class="subscription-progress-bar">
-                                                        <div id="subscription-progress-fill" class="subscription-progress-fill high" style="width: 0%"></div>
-                                                    </div>
-                                                    <div id="subscription-info-text" class="subscription-info-text"><%:Collecting data...%></div>
-                                                </div>
-                                                <div class="card-actions subscription-actions-row">
-                                                    <div id="subscription-overwrite-tags" class="subscription-overwrite-tags oc-hidden"></div>
-                                                    <div class="subscription-action-buttons">
-                                                        <button type="button" class="icon-btn action-btn" id="refresh-subscription" title="<%:Refresh%>" onclick="return refreshSubscriptionInfo()">
-                                                            <svg width="14" height="14"><use href="#oc-icon-refresh"/></svg>
-                                                        </button>
-                                                        <button type="button" class="icon-btn action-btn" id="config-subscription-url" title="<%:Specify URL%>" onclick="return setSubscriptionUrl()">
-                                                            <svg width="14" height="14"><use href="#oc-icon-link-tabler"/></svg>
-                                                        </button>
-                                                        <button type="button" class="icon-btn action-btn" id="config_summary" title="<%:Config Summary%>" onclick="return showConfigSummary()">
-                                                            <svg width="14" height="14"><use href="#oc-icon-list"/></svg>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div id="config-file-empty-state" class="config-file-empty-state oc-hidden">
-                                        <div class="config-file-empty-message"><%:No config file yet, Add one or restore a backup%></div>
-                                        <div class="config-file-empty-actions">
-                                            <button type="button" class="config-upload-btn-large" id="upload_config_large" onclick="return uploadConfig()">
-                                                <svg width="20" height="20"><use href="#oc-icon-upload"/></svg>
-                                                <span><%:Add Config%></span>
-                                            </button>
-                                            <button type="button" class="config-upload-btn-large" id="restore_backup_large" onclick="return restoreBackupFile()">
-                                                <svg width="20" height="20"><use href="#oc-icon-file-zip"/></svg>
-                                                <span><%:Restore Backup%></span>
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div class="config-file-bottom">
-                                        <div class="config-selector">
-                                            <select id="config_file_select" class="config-select"><option value=""><%:Collecting data...%></option></select>
-                                        </div>
-                                        <div class="card-actions">
-                                            <button type="button" class="icon-btn action-btn" id="switch_config" title="<%:SwiTch%>" onclick="return switchConfig()"><svg width="14" height="14"><use href="#oc-icon-switch"/></svg></button>
-                                            <button type="button" class="icon-btn action-btn" id="update_config" title="<%:Update%>" onclick="return updateConfig()"><svg width="14" height="14"><use href="#oc-icon-update"/></svg></button>
-                                            <button type="button" class="icon-btn action-btn" id="edit_config" title="<%:Edit%>" onclick="return editConfig()"><svg width="14" height="14"><use href="#oc-icon-edit"/></svg></button>
-                                            <button type="button" class="icon-btn action-btn" id="edit_subscribe" title="<%:Edit Subscription%>" onclick="return editSubscribe()"><svg width="14" height="14"><use href="#oc-icon-settings"/></svg></button>
-                                            <button type="button" class="icon-btn action-btn" id="upload_config" title="<%:Add%>" onclick="return uploadConfig()"><svg width="14" height="14"><use href="#oc-icon-add"/></svg></button>
                                         </div>
                                     </div>
                                 </div>
@@ -260,278 +298,214 @@
                         </div>
                     </div>
 
-                    <div class="main-card">
-                        <!-- Row 1: Control Panel & Mix Proxy -->
-                        <div class="card-row dual-cards">
-                            <div class="sub-card">
-                                <div class="card-title"><%:Control Panel%></div>
-                                <div class="card-content">
-                                    <div class="card-value">
-                                        <span id="_daip" class="value-indicator"><%:Collecting data...%></span>
+                    <!-- 4. 网络与系统遥测一体卡 (.oc-telemetry-card) -->
+                    <div class="oc-telemetry-card">
+                        <!-- 8 格扁平 KPI 指标条 -->
+                        <div class="telemetry-kpi-strip" id="stats-view-cards">
+                            <div class="stat-item"><span class="stat-label"><%:Upload%></span><span id="upload_" class="stat-value"><span class="stat-num">0</span><span class="stat-unit">KB/s</span></span></div>
+                            <div class="stat-item"><span class="stat-label"><%:Download%></span><span id="download_" class="stat-value"><span class="stat-num">0</span><span class="stat-unit">KB/s</span></span></div>
+                            <div class="stat-item"><span class="stat-label"><%:Up Total%></span><span id="uploadtotal_" class="stat-value"><span class="stat-num">0</span><span class="stat-unit">KB</span></span></div>
+                            <div class="stat-item"><span class="stat-label"><%:Down Total%></span><span id="downloadtotal_" class="stat-value"><span class="stat-num">0</span><span class="stat-unit">KB</span></span></div>
+                            <div class="stat-item"><span class="stat-label"><%:Connect%></span><span id="connect_t" class="stat-value"><span class="stat-num">0</span></span></div>
+                            <div class="stat-item"><span class="stat-label"><%:Ram%></span><span id="mem_t" class="stat-value"><span class="stat-num">0</span><span class="stat-unit">KB</span></span></div>
+                            <div class="stat-item"><span class="stat-label"><%:CPU%></span><span id="cpu_t" class="stat-value"><span class="stat-num">0</span><span class="stat-unit">%</span></span></div>
+                            <div class="stat-item"><span class="stat-label"><%:Load Avg%></span><span id="load_a" class="stat-value"><span class="stat-num">0</span><span class="stat-unit">%</span></span></div>
+                        </div>
+
+                        <!-- 实时折线图容器（顶部左图例、右指标切换按钮） -->
+                        <div class="telemetry-chart-box" id="stats-view-chart">
+                            <div class="chart-top">
+                                <div class="stats-legend" id="stats-legend"></div>
+                                <div class="chart-top-right">
+                                    <div class="cbi-button-group stats-tabs" id="stats-tabs">
+                                        <input type="radio" id="stats-metric-traffic" name="stats-metric" value="traffic" checked/>
+                                        <label for="stats-metric-traffic" class="cbi-button-option"><%:Traffic%></label>
+                                        <input type="radio" id="stats-metric-connections" name="stats-metric" value="connections"/>
+                                        <label for="stats-metric-connections" class="cbi-button-option"><%:Connect%></label>
+                                        <input type="radio" id="stats-metric-memory" name="stats-metric" value="memory"/>
+                                        <label for="stats-metric-memory" class="cbi-button-option"><%:Ram%></label>
+                                        <input type="radio" id="stats-metric-cpu" name="stats-metric" value="cpu"/>
+                                        <label for="stats-metric-cpu" class="cbi-button-option"><%:CPU%></label>
+                                        <input type="radio" id="stats-metric-load" name="stats-metric" value="load"/>
+                                        <label for="stats-metric-load" class="cbi-button-option"><%:Load Avg%></label>
+                                    </div>
+                                    <div class="oc-hidden" id="stats-section-title"></div>
+                                    <div class="icon-pill stats-view-toggle oc-hidden" id="stats-view-toggle" role="group" aria-label="<%:View Mode%>">
+                                        <button type="button" class="icon-pill-opt" id="stats-ac-btn" title="<%:Access Control%>" data-view="ac"></button>
+                                        <button type="button" class="icon-pill-opt" id="stats-cards-btn" title="<%:Cards%>" data-view="cards"></button>
+                                        <button type="button" class="icon-pill-opt" id="stats-chart-btn" title="<%:Chart%>" data-view="chart"></button>
                                     </div>
                                 </div>
-                                <div class="card-actions">
-                                    <button type="button" class="icon-btn copy-btn" id="copy_address" title="<%:Copy Address%>" onclick="return copyAddress()"><svg width="14" height="14"><use href="#oc-icon-copy"/></svg></button>
-                                    <button type="button" class="icon-btn copy-btn" id="copy_secret" title="<%:Copy Secret%>" onclick="return copySecret()"><svg width="14" height="14"><use href="#oc-icon-lock"/></svg></button>
-                                </div>
                             </div>
-                            <div class="sub-card">
-                                <div class="card-title"><%:Mix Proxy%></div>
-                                <div class="card-content">
-                                    <div class="card-value">
-                                        <span id="_mix_proxy" class="value-indicator"><%:Collecting data...%></span>
+                            <div class="stats-chart-wrap"><canvas id="stats-chart"></canvas></div>
+                        </div>
+                    </div>
+
+                    <!-- 5. 局域网客户端访问控制独立卡片 -->
+                    <div id="stats-view-ac" class="oc-telemetry-card oc-ac-card-section">
+                        <div class="ac-card">
+                            <div class="ac-head">
+                                <div class="ac-sum">
+                                    <svg width="15" height="15"><use href="#oc-icon-users"/></svg>
+                                    <span><b id="ac-count-all">0</b> <%:Devices%><span class="ac-sum-extra"> · <b id="ac-count-proxy">0</b> <%:Proxy%> · <b id="ac-count-direct">0</b> <%:Direct%></span></span>
+                                    <span class="ac-def-pill" id="ac-def-pill" title="<%:Default policy for devices without individual settings; new devices inherit it%>"></span>
+                                </div>
+                                <div class="ac-tools">
+                                    <div class="ac-dir-pill" role="group">
+                                        <button type="button" class="ac-dir-opt" id="ac-all-proxy" aria-pressed="true" title="<%:All devices default to proxy%>">
+                                            <svg width="14" height="14"><use href="#oc-icon-globe"/></svg><span class="ac-key-text"><%:Proxy All%></span>
+                                        </button>
+                                        <button type="button" class="ac-dir-opt" id="ac-all-direct" aria-pressed="false" title="<%:All devices default to direct%>">
+                                            <svg width="14" height="14"><use href="#oc-icon-home"/></svg><span class="ac-key-text"><%:Direct All%></span>
+                                        </button>
                                     </div>
-                                </div>
-                                <div class="card-actions">
-                                    <button type="button" class="icon-btn copy-btn" id="copy_mix_address" title="<%:Copy Address%>" onclick="return copyMixAddress()"><svg width="14" height="14"><use href="#oc-icon-copy"/></svg></button>
-                                    <button type="button" class="icon-btn action-btn" id="copy_pac_config" title="<%:Get PAC Config%>" onclick="return generatePacConfig()"><svg width="14" height="14"><use href="#oc-icon-globe"/></svg></button>
-                                    <button type="button" class="icon-btn copy-btn" id="copy_mix_secret" title="<%:Copy Auth Info%>" onclick="return copyMixAuth()"><svg width="14" height="14"><use href="#oc-icon-lock"/></svg></button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Row 2: Dashboards -->
-                        <div class="card-row full-width">
-                            <div class="sub-card dashboard-container">
-                                <div class="card-title"><%:Control Panel%><div class="help-link" title="<%:If the control panel does not open properly, please try going to Plugin Settings - Dashboard Settings to reset the panel%>"><svg width="12" height="12"><use href="#oc-icon-help"/></svg></div></div>
-                                <div class="dashboard-buttons">
-                                    <button class="dashboard-btn" id="_web"><%:Collecting data...%></button>
-                                    <button class="dashboard-btn" id="_webm"><%:Collecting data...%></button>
-                                    <button class="dashboard-btn" id="_webz"><%:Collecting data...%></button>
-                                    <button class="dashboard-btn" id="_webo"><%:Collecting data...%></button>
-                                    <button class="dashboard-btn hidden" id="_web_external"><%:Collecting data...%></button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Row 3: Quick Actions -->
-                        <div class="card-row full-width">
-                            <div class="sub-card quick-actions-container">
-                                <div class="card-title"><%:Quick Action%></div>
-                                <div class="quick-actions-buttons">
-                                    <button class="dashboard-btn" id="_close_all_connection_btn"><%:Collecting data...%></button>
-                                    <button class="dashboard-btn" id="_reload_firewall_btn"><%:Collecting data...%></button>
-                                    <button class="dashboard-btn" id="_flush_dns_cache_btn"><%:Collecting data...%></button>
-                                    <button class="dashboard-btn" id="_one_key_update_btn"><%:Collecting data...%></button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Row 4: Statistics -->
-                        <div class="stats-section">
-                            <div class="stats-card-header">
-                                <div class="stats-title" id="stats-section-title"><%:Statistics%></div>
-                                <div class="icon-pill stats-view-toggle" id="stats-view-toggle" role="group" aria-label="<%:View Mode%>">
-                                    <button type="button" class="icon-pill-opt" id="stats-ac-btn" title="<%:Access Control%>" data-view="ac">
-                                        <svg width="13" height="13"><use href="#oc-icon-users"/></svg>
+                                    <span class="ac-sep-v"></span>
+                                    <button type="button" class="ac-key-btn" id="ac-refresh" title="<%:Rescan the LAN for devices%>" aria-label="<%:Rescan the LAN for devices%>">
+                                        <svg width="14" height="14"><use href="#oc-icon-refresh"/></svg>
                                     </button>
-                                    <button type="button" class="icon-pill-opt" id="stats-cards-btn" title="<%:Cards%>" data-view="cards">
-                                        <svg width="13" height="13"><use href="#oc-icon-grid"/></svg>
+                                    <button type="button" class="ac-key-btn" id="ac-search-btn" title="<%:Search devices%>" aria-label="<%:Search devices%>" aria-expanded="false">
+                                        <svg width="14" height="14"><use href="#oc-icon-search"/></svg>
                                     </button>
-                                    <button type="button" class="icon-pill-opt" id="stats-chart-btn" title="<%:Chart%>" data-view="chart">
-                                        <svg width="13" height="13"><use href="#oc-icon-chart"/></svg>
+                                    <button type="button" class="ac-key-btn" id="ac-max-btn" title="<%:Expand%>" aria-label="<%:Expand%>" aria-haspopup="dialog" aria-expanded="false">
+                                        <svg width="14" height="14"><use href="#oc-icon-expand"/></svg>
                                     </button>
+                                    <button type="button" class="ac-key-btn ac-sort-btn" id="ac-sort-btn" title="<%:Sort%>" aria-haspopup="menu">
+                                        <svg width="14" height="14"><use href="#oc-icon-arrows-sort"/></svg><span class="ac-key-text"><%:Sort%></span><span class="ac-sort-ind"></span>
+                                    </button>
+                                    <span class="help-link" tabindex="0" title="<%:Note: routing switches close existing connections%>">
+                                        <svg width="12" height="12"><use href="#oc-icon-help"/></svg>
+                                    </span>
+                                    <div class="ac-sort-menu oc-hidden" id="ac-sort-menu" role="menu">
+                                        <button type="button" data-key="name"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg><span><%:Device Name%></span><span class="ac-sort-ind"></span></button>
+                                        <button type="button" data-key="dir"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg><span><%:Route%></span><span class="ac-sort-ind"></span></button>
+                                        <button type="button" data-key="conns"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span><%:Connections%></span><span class="ac-sort-ind"></span></button>
+                                        <button type="button" data-key="up"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg><span><%:Upload Rate%></span><span class="ac-sort-ind"></span></button>
+                                        <button type="button" data-key="down"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg><span><%:Download Rate%></span><span class="ac-sort-ind"></span></button>
+                                        <button type="button" data-key="reset"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg><span><%:Default Order%></span><span class="ac-sort-ind"></span></button>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="stats-views">
-                                <div class="card-row stats-grid" id="stats-view-cards">
-                                    <div class="sub-card stat-item"><span class="stat-label"><%:Upload%></span><span id="upload_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB/s</span></span></div>
-                                    <div class="sub-card stat-item"><span class="stat-label"><%:Download%></span><span id="download_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB/s</span></span></div>
-                                    <div class="sub-card stat-item"><span class="stat-label"><%:Up Total%></span><span id="uploadtotal_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB</span></span></div>
-                                    <div class="sub-card stat-item"><span class="stat-label"><%:Down Total%></span><span id="downloadtotal_" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB</span></span></div>
-                                    <div class="sub-card stat-item"><span class="stat-label"><%:Connect%></span><span id="connect_t" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span></span></div>
-                                    <div class="sub-card stat-item"><span class="stat-label"><%:Ram%></span><span id="mem_t" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">KB</span></span></div>
-                                    <div class="sub-card stat-item"><span class="stat-label"><%:CPU%></span><span id="cpu_t" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">%</span></span></div>
-                                    <div class="sub-card stat-item"><span class="stat-label"><%:Load Avg%></span><span id="load_a" class="stat-value"><span class="stat-num" style="color:var(--success-color)">0</span><span class="stat-unit">%</span></span></div>
-                                </div>
-
-                                <div class="stats-chart-card oc-hidden" id="stats-view-chart">
-                                    <div class="stats-chart-header">
-                                        <div class="stats-legend" id="stats-legend"></div>
+                            <div class="ac-search oc-hidden" id="ac-search-bar">
+                                <svg width="12" height="12"><use href="#oc-icon-search"/></svg>
+                                <input type="search" id="ac-search" class="ac-search-input" autocomplete="off" spellcheck="false" placeholder="<%:Search name, IP, MAC or vendor%>">
+                                <button type="button" class="ac-search-clear oc-hidden" id="ac-search-clear" title="<%:Clear%>">
+                                    <svg width="10" height="10"><use href="#oc-icon-close"/></svg>
+                                </button>
+                            </div>
+                            <div class="ac-warn oc-hidden" id="ac-warn-fix">
+                                <svg width="14" height="14"><use href="#oc-icon-alert-circle"/></svg>
+                                <span><%:Using access control in Fake-IP mode requires DNS hijack set to Firewall Forwarding%></span>
+                                <button type="button" class="ac-warn-btn" id="ac-warn-fix-btn"><%:Switch%></button>
+                            </div>
+                            <div class="ac-warn oc-hidden" id="ac-dns-hint" role="status">
+                                <svg width="14" height="14"><use href="#oc-icon-alert-circle"/></svg>
+                                <span id="ac-dns-hint-text"></span>
+                            </div>
+                            <div class="ac-warn oc-hidden" id="ac-warn"><%:Failed to reach OpenClash runtime. Device routing controls are disabled.%><span class="ac-warn-retry" id="ac-warn-retry"><%:Retry%></span></div>
+                            <div class="ac-body" id="ac-body">
+                                <div class="ac-table-wrap">
+                                    <div class="ac-th" role="row">
+                                        <span class="ac-col-dev"><button type="button" class="ac-th-cell" data-key="name"><%:Device%> <span class="ac-sort-ind"></span></button></span>
+                                        <span class="ac-col-ctrl"><button type="button" class="ac-th-cell" data-key="dir"><%:Route%> <span class="ac-sort-ind"></span></button></span>
+                                        <span class="ac-col-conns"><button type="button" class="ac-th-cell" data-key="conns"><%:Connect%> <span class="ac-sort-ind"></span></button></span>
+                                        <span class="ac-col-up"><button type="button" class="ac-th-cell" data-key="up"><%:Upload%> <span class="ac-sort-ind"></span></button></span>
+                                        <span class="ac-col-down"><button type="button" class="ac-th-cell" data-key="down"><%:Download%> <span class="ac-sort-ind"></span></button></span>
                                     </div>
-                                    <div class="stats-chart-wrap"><canvas id="stats-chart"></canvas></div>
-                                </div>
-                                <div class="cbi-button-group stats-tabs oc-hidden" id="stats-tabs">
-                                    <input type="radio" id="stats-metric-traffic" name="stats-metric" value="traffic" checked/>
-                                    <label for="stats-metric-traffic" class="cbi-button-option"><%:Traffic%></label>
-                                    <input type="radio" id="stats-metric-connections" name="stats-metric" value="connections"/>
-                                    <label for="stats-metric-connections" class="cbi-button-option"><%:Connect%></label>
-                                    <input type="radio" id="stats-metric-memory" name="stats-metric" value="memory"/>
-                                    <label for="stats-metric-memory" class="cbi-button-option"><%:Ram%></label>
-                                    <input type="radio" id="stats-metric-cpu" name="stats-metric" value="cpu"/>
-                                    <label for="stats-metric-cpu" class="cbi-button-option"><%:CPU%></label>
-                                    <input type="radio" id="stats-metric-load" name="stats-metric" value="load"/>
-                                    <label for="stats-metric-load" class="cbi-button-option"><%:Load Avg%></label>
-                                </div>
-
-                                <!-- Row 4b: Access Control view -->
-                                <div id="stats-view-ac" class="oc-hidden">
-                                    <div class="ac-card">
-                                        <div class="ac-head">
-                                            <div class="ac-sum">
-                                                <svg><use href="#oc-icon-users"/></svg>
-                                                <span><b id="ac-count-all">0</b> <%:Devices%><span class="ac-sum-extra"> · <b id="ac-count-proxy">0</b> <%:Proxy%> · <b id="ac-count-direct">0</b> <%:Direct%></span></span>
-                                                <span class="ac-def-pill" id="ac-def-pill" title="<%:Default policy for devices without individual settings; new devices inherit it%>"></span>
-                                            </div>
-                                            <div class="ac-tools">
-                                                <div class="ac-dir-pill" role="group">
-                                                    <button type="button" class="ac-dir-opt" id="ac-all-proxy" aria-pressed="true" title="<%:All devices default to proxy%>">
-                                                        <svg><use href="#oc-icon-globe"/></svg><span class="ac-key-text"><%:Proxy All%></span>
-                                                    </button>
-                                                    <button type="button" class="ac-dir-opt" id="ac-all-direct" aria-pressed="false" title="<%:All devices default to direct%>">
-                                                        <svg><use href="#oc-icon-home"/></svg><span class="ac-key-text"><%:Direct All%></span>
-                                                    </button>
-                                                </div>
-                                                <span class="ac-sep-v"></span>
-                                                <button type="button" class="ac-key-btn" id="ac-refresh" title="<%:Rescan the LAN for devices%>" aria-label="<%:Rescan the LAN for devices%>">
-                                                    <svg><use href="#oc-icon-refresh"/></svg>
-                                                </button>
-                                                <button type="button" class="ac-key-btn" id="ac-search-btn" title="<%:Search devices%>" aria-label="<%:Search devices%>" aria-expanded="false">
-                                                    <svg><use href="#oc-icon-search"/></svg>
-                                                </button>
-                                                <button type="button" class="ac-key-btn" id="ac-max-btn" title="<%:Expand%>" aria-label="<%:Expand%>" aria-haspopup="dialog" aria-expanded="false">
-                                                    <svg><use href="#oc-icon-expand"/></svg>
-                                                </button>
-                                                <button type="button" class="ac-key-btn ac-sort-btn" id="ac-sort-btn" title="<%:Sort%>" aria-haspopup="menu">
-                                                    <svg><use href="#oc-icon-arrows-sort"/></svg><span class="ac-key-text"><%:Sort%></span><span class="ac-sort-ind"></span>
-                                                </button>
-                                                <span class="help-link" tabindex="0" title="<%:Note: routing switches close existing connections%>">
-                                                    <svg width="12" height="12"><use href="#oc-icon-help"/></svg>
-                                                </span>
-                                                <div class="ac-sort-menu oc-hidden" id="ac-sort-menu" role="menu">
-                                                    <button type="button" data-key="name"><%:Device Name%> <span class="ac-sort-ind"></span></button>
-                                                    <button type="button" data-key="dir"><%:Route%> <span class="ac-sort-ind"></span></button>
-                                                    <button type="button" data-key="conns"><%:Connections%> <span class="ac-sort-ind"></span></button>
-                                                    <button type="button" data-key="up"><%:Upload Rate%> <span class="ac-sort-ind"></span></button>
-                                                    <button type="button" data-key="down"><%:Download Rate%> <span class="ac-sort-ind"></span></button>
-                                                    <button type="button" data-key="reset"><%:Default Order%> <span class="ac-sort-ind"></span></button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="ac-search oc-hidden" id="ac-search-bar">
-                                            <svg width="12" height="12"><use href="#oc-icon-search"/></svg>
-                                            <input type="search" id="ac-search" autocomplete="off" spellcheck="false" placeholder="<%:Search name, IP, MAC or vendor%>">
-                                            <button type="button" class="ac-search-clear oc-hidden" id="ac-search-clear" title="<%:Clear%>">
-                                                <svg width="10" height="10"><use href="#oc-icon-close"/></svg>
-                                            </button>
-                                        </div>
-
-                                        <div class="ac-warn oc-hidden" id="ac-warn-fix">
-                                            <svg><use href="#oc-icon-alert-circle"/></svg>
-                                            <span><%:Using access control in Fake-IP mode requires DNS hijack set to Firewall Forwarding%></span>
-                                            <button type="button" class="ac-warn-btn" id="ac-warn-fix-btn"><%:Switch%></button>
-                                        </div>
-
-                                        <div class="ac-warn oc-hidden" id="ac-dns-hint" role="status">
-                                            <svg><use href="#oc-icon-alert-circle"/></svg>
-                                            <span id="ac-dns-hint-text"></span>
-                                        </div>
-
-                                        <div class="ac-th">
-                                            <span class="ac-col-dev"><button type="button" class="ac-th-cell" data-key="name"><%:Device%> <span class="ac-sort-ind"></span></button></span>
-                                            <span class="ac-col-ctrl"><button type="button" class="ac-th-cell" data-key="dir"><%:Route%> <span class="ac-sort-ind"></span></button></span>
-                                            <span class="ac-col-conns"><button type="button" class="ac-th-cell" data-key="conns"><%:Connect%> <span class="ac-sort-ind"></span></button></span>
-                                            <span class="ac-col-up"><button type="button" class="ac-th-cell" data-key="up"><%:Upload%> <span class="ac-sort-ind"></span></button></span>
-                                            <span class="ac-col-down"><button type="button" class="ac-th-cell" data-key="down"><%:Download%> <span class="ac-sort-ind"></span></button></span>
-                                        </div>
-
-                                        <div class="ac-list" id="ac-list"></div>
-
-                                        <div class="ac-empty oc-hidden" id="ac-empty">
-                                            <svg><use href="#oc-icon-users"/></svg>
-                                            <div class="ac-empty-main" id="ac-empty-main"><%:No LAN devices found%></div>
-                                            <div class="ac-empty-sub" id="ac-empty-sub"><%:Devices appear here automatically once they join the network%></div>
-                                            <button type="button" id="ac-empty-refresh"><%:Rescan%></button>
-                                        </div>
+                                    <div class="ac-list" id="ac-list" role="rowgroup"></div>
+                                    <div class="ac-empty oc-hidden" id="ac-empty">
+                                        <svg width="24" height="24"><use href="#oc-icon-users"/></svg>
+                                        <div class="ac-empty-main" id="ac-empty-main"><%:No LAN devices found%></div>
+                                        <div class="ac-empty-sub" id="ac-empty-sub"><%:Devices appear here automatically once they join the network%></div>
+                                        <button type="button" id="ac-empty-refresh"><%:Rescan%></button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- 隐藏兼容外链按钮容器（防止旧脚本/扩展 query 为空） -->
+                    <div class="oc-hidden" aria-hidden="true" style="display:none;">
+                        <div id="subscription-info-display"><div id="subscription-info-details"></div></div>
+                        <button type="button" id="go_wiki" onclick="return wikipage()"></button>
+                        <button type="button" id="go_tutorials" onclick="return gitbookpage()"></button>
+                        <button type="button" id="go_star" onclick="return homepage()"></button>
+                        <button type="button" id="go_telegram" onclick="return telegrampage()"></button>
+                        <button type="button" id="go_sponsor" onclick="return sponsorpage()"></button>
+                    </div>
+
                 </div>
 
-            <!-- Usage Help Model -->
-            <div class="config-upload-model-overlay" id="usage-help-overlay">
-                <div class="config-upload-model usage-help-model" id="usage-help-model">
-                    <div class="config-upload-header">
-                        <div class="config-upload-title"><%:Usage Help%></div>
-                        <button type="button" class="icon-btn" onclick="UsageHelpManager.hide()">
-                            <svg width="14" height="14"><use href="#oc-icon-close"/></svg>
-                        </button>
-                    </div>
-                    <div class="config-upload-content">
-                        <div class="form-group">
-                            <label class="highlight-label"><%:Copy the following text to any AI (ChatGPT, DeepSeek, etc.) to get usage help for OpenClash:%></label>
-                            <textarea id="usage-help-textarea" class="form-textarea oc-hidden"></textarea>
-                            <div id="usage-help-editor"></div>
+                <!-- Overlays & Modals (must stay inside .oc so .oc .config-upload-model-overlay applies) -->
+                <!-- Usage Help Model -->
+                <div class="config-upload-model-overlay" id="usage-help-overlay">
+                    <div class="config-upload-model usage-help-model" id="usage-help-model">
+                        <div class="config-upload-header">
+                            <div class="config-upload-title"><%:Usage Help%></div>
+                            <button type="button" class="icon-btn" onclick="UsageHelpManager.hide()">
+                                <svg width="14" height="14"><use href="#oc-icon-close"/></svg>
+                            </button>
                         </div>
-                    </div>
-                    <div class="config-upload-footer">
-                        <div class="config-upload-status" id="usage-help-status"></div>
-                        <div class="config-upload-buttons">
-                            <button type="button" class="btn cancel-btn" onclick="UsageHelpManager.hide()"><%:Cancel%></button>
-                            <button type="button" class="btn upload-btn" onclick="UsageHelpManager.copyAndHide()"><%:Copy%></button>
+                        <div class="config-upload-content">
+                            <div class="form-group">
+                                <label class="highlight-label"><%:Copy the following text to any AI (ChatGPT, DeepSeek, etc.) to get usage help for OpenClash:%></label>
+                                <textarea id="usage-help-textarea" class="form-textarea oc-hidden"></textarea>
+                                <div id="usage-help-editor"></div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Device name & icon Model -->
-            <div class="config-upload-model-overlay" id="ac-rename-overlay">
-                <div class="config-upload-model ac-rename-model">
-                    <div class="config-upload-header">
-                        <div class="config-upload-title"><%:Device Name & Icon%></div>
-                        <button type="button" class="icon-btn" id="ac-rename-close" aria-label="<%:Close%>">
-                            <svg width="14" height="14"><use href="#oc-icon-close"/></svg>
-                        </button>
-                    </div>
-                    <div class="config-upload-content">
-                        <div class="form-group">
-                            <label class="ac-rename-label" for="ac-rename-input"><%:Name%></label>
-                            <input type="text" class="ac-rename-input" id="ac-rename-input" maxlength="20" placeholder="<%:Leave empty to use the detected name%>" autocomplete="off">
-                            <div class="ac-rename-hint"><svg width="12" height="12" aria-hidden="true"><use href="#oc-icon-help"/></svg><span id="ac-rename-hint"></span></div>
-                        </div>
-                        <div class="form-group">
-                            <label class="ac-rename-label"><%:Icon%></label>
-                            <div class="ac-icon-grid" id="ac-icon-grid"></div>
-                        </div>
-                    </div>
-                    <div class="config-upload-footer">
-                        <div class="config-upload-status"><button type="button" class="ac-link-btn oc-hidden" id="ac-rename-auto"><%:Restore Auto Detect%></button></div>
-                        <div class="config-upload-buttons">
-                            <button type="button" class="btn cancel-btn" id="ac-rename-cancel"><%:Cancel%></button>
-                            <button type="button" class="btn upload-btn" id="ac-rename-save"><%:Save%></button>
+                        <div class="config-upload-footer">
+                            <div class="config-upload-status" id="usage-help-status"></div>
+                            <div class="config-upload-buttons">
+                                <button type="button" class="btn cancel-btn" onclick="UsageHelpManager.hide()"><%:Cancel%></button>
+                                <button type="button" class="btn upload-btn" onclick="UsageHelpManager.copyAndHide()"><%:Copy%></button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Access Control maximize Model -->
-            <div class="config-upload-model-overlay" id="ac-max-overlay">
-                <div class="config-upload-model ac-max-model" role="dialog" aria-modal="true" aria-labelledby="ac-max-title">
-                    <div class="config-upload-header">
-                        <div class="config-upload-title" id="ac-max-title"><%:Access Control%></div>
-                        <button type="button" class="icon-btn" id="ac-max-close" aria-label="<%:Close%>">
-                            <svg width="14" height="14"><use href="#oc-icon-close"/></svg>
-                        </button>
+                <!-- Device name & icon Model -->
+                <div class="config-upload-model-overlay" id="ac-rename-overlay">
+                    <div class="config-upload-model ac-rename-model">
+                        <div class="config-upload-header">
+                            <div class="config-upload-title"><%:Device Name & Icon%></div>
+                            <button type="button" class="icon-btn" id="ac-rename-close" aria-label="<%:Close%>">
+                                <svg width="14" height="14"><use href="#oc-icon-close"/></svg>
+                            </button>
+                        </div>
+                        <div class="config-upload-content">
+                            <div class="form-group">
+                                <label class="ac-rename-label" for="ac-rename-input"><%:Name%></label>
+                                <input type="text" class="ac-rename-input" id="ac-rename-input" maxlength="20" placeholder="<%:Leave empty to use the detected name%>" autocomplete="off">
+                                <div class="ac-rename-hint"><svg width="12" height="12" aria-hidden="true"><use href="#oc-icon-help"/></svg><span id="ac-rename-hint"></span></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="ac-rename-label"><%:Icon%></label>
+                                <div class="ac-icon-grid" id="ac-icon-grid"></div>
+                            </div>
+                        </div>
+                        <div class="config-upload-footer">
+                            <div class="config-upload-status"><button type="button" class="ac-link-btn oc-hidden" id="ac-rename-auto"><%:Restore Auto Detect%></button></div>
+                            <div class="config-upload-buttons">
+                                <button type="button" class="btn cancel-btn" id="ac-rename-cancel"><%:Cancel%></button>
+                                <button type="button" class="btn upload-btn" id="ac-rename-save"><%:Save%></button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="config-upload-content ac-max-content" id="ac-max-host"></div>
+                </div>
+
+                <!-- Access Control maximize Model -->
+                <div class="config-upload-model-overlay" id="ac-max-overlay">
+                    <div class="config-upload-model ac-max-model" role="dialog" aria-modal="true" aria-labelledby="ac-max-title">
+                        <div class="config-upload-header">
+                            <div class="config-upload-title" id="ac-max-title"><%:Access Control%></div>
+                            <button type="button" class="icon-btn" id="ac-max-close" aria-label="<%:Close%>">
+                                <svg width="14" height="14"><use href="#oc-icon-close"/></svg>
+                            </button>
+                        </div>
+                        <div class="config-upload-content ac-max-content" id="ac-max-host"></div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Floating buttons: quick start guide + usage help -->
-            <div class="oc-float-stack" id="oc-float-stack">
-                <button type="button" class="oc-usage-help-float oc-guide-float" id="guide-float" title="<%:Quick Start%>" onclick="openGuide()">
-                    <svg width="24" height="24" aria-hidden="true"><use href="#oc-icon-bulb"/></svg>
-                    <span class="oc-usage-help-bubble" id="guide-bubble"><%:First time here? Let me give you a quick tour of the page features%></span>
-                </button>
-                <button type="button" class="oc-usage-help-float" id="usage-help-float" title="<%:Usage Help%>" onclick="UsageHelpManager.show()">
-                    <svg width="24" height="24"><use href="#oc-icon-usage-help"/></svg>
-                    <span class="oc-usage-help-bubble" id="usage-help-bubble"><%:Click to get usage help%></span>
-                </button>
-            </div>
-            </div>
         </td>
     </tr>
 </table>

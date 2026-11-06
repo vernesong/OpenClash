@@ -1062,6 +1062,9 @@ var ConfigEditor = {
                 customItem.classList.add('active');
             }
 
+            var customGrip = document.createElement('span');
+            customGrip.className = 'overwrite-item-grip dummy';
+            customItem.appendChild(customGrip);
             appendAvatar(customItem, customName);
             appendMain(customItem, customName, '<%:Local Mod%>', '<%:Builtin%>', 'builtin');
 
@@ -1098,6 +1101,24 @@ var ConfigEditor = {
                 item.classList.add('unconfigured');
             } else if (enable != 1) {
                 item.classList.add('off');
+            }
+
+            var touchPrimary = window.matchMedia && window.matchMedia('(hover: none)').matches;
+            if (registered) {
+                var grip = document.createElement('span');
+                grip.className = 'overwrite-item-grip';
+                grip.innerHTML = '<svg width="14" height="14"><use href="#oc-icon-grip-vertical"/></svg>';
+                item.appendChild(grip);
+                item.addEventListener('mousedown', function(e) {
+                    if (e.button !== 0) return;
+                    if (touchPrimary && !(e.target.closest && e.target.closest('.overwrite-item-grip'))) return;
+                    if (e.target.closest && e.target.closest('.overwrite-item-actions, .oc-switch')) return;
+                    self.beginOverwriteMouseDrag(item, e);
+                });
+            } else {
+                var dummyGrip = document.createElement('span');
+                dummyGrip.className = 'overwrite-item-grip dummy';
+                item.appendChild(dummyGrip);
             }
 
             appendAvatar(item, name);
@@ -1152,6 +1173,7 @@ var ConfigEditor = {
                         self.overwriteSubInfo[name] = self.overwriteSubInfo[name] || {};
                         self.overwriteSubInfo[name].enable = newEnable;
                         item.classList.toggle('off', newEnable != 1);
+                        window.dispatchEvent(new CustomEvent('oc-overwrite-updated'));
                     } else {
                         fail(data.message);
                     }
@@ -1172,14 +1194,8 @@ var ConfigEditor = {
             switchLabel.appendChild(switchInput);
             switchLabel.appendChild(switchSpan);
 
-            var extra = document.createElement('div');
-            extra.className = 'overwrite-item-extra';
-            extra.appendChild(switchLabel);
-            itemParts.line.appendChild(extra);
-
             var actions = document.createElement('div');
             actions.className = 'overwrite-item-actions';
-            itemParts.meta.appendChild(actions);
 
             if (sub.type === 'http') {
                 var refresh = document.createElement('button');
@@ -1242,7 +1258,7 @@ var ConfigEditor = {
             gear.className = 'icon-btn';
             gear.type = 'button';
             gear.title = '<%:Edit Module Info%>';
-            gear.innerHTML = '<svg width="14" height="14"><use href="#oc-icon-gear"/></svg>';
+            gear.innerHTML = '<svg width="14" height="14"><use href="#oc-icon-settings-2"/></svg>';
             gear.onclick = function(e) {
                 e.stopPropagation();
                 ConfigEditor.showOverwriteSubmodel(name, sub, file.path);
@@ -1274,6 +1290,7 @@ var ConfigEditor = {
                     .then(r => r.json())
                     .then(function(data) {
                         if (data.status === 'success') {
+                            window.dispatchEvent(new CustomEvent('oc-overwrite-updated'));
                             self.loadOverwriteFiles();
                             setTimeout(function() {
                                 var remaining = self.overwriteFiles.filter(function(f) {
@@ -1296,20 +1313,13 @@ var ConfigEditor = {
             };
             actions.appendChild(del);
 
-            var touchPrimary = window.matchMedia && window.matchMedia('(hover: none)').matches;
+            var extra = document.createElement('div');
+            extra.className = 'overwrite-item-extra';
+            extra.appendChild(actions);
+            extra.appendChild(switchLabel);
+            item.appendChild(extra);
 
-            if (registered) {
-                var grip = document.createElement('span');
-                grip.className = 'overwrite-item-grip';
-                grip.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>';
-                item.appendChild(grip);
-                item.addEventListener('mousedown', function(e) {
-                    if (e.button !== 0) return;
-                    if (touchPrimary && !(e.target.closest && e.target.closest('.overwrite-item-grip'))) return;
-                    if (e.target.closest && e.target.closest('.overwrite-item-actions, .oc-switch')) return;
-                    self.beginOverwriteMouseDrag(item, e);
-                });
-            }
+
 
             item.onclick = function(e) {
                 selectFile(file.path);
@@ -1763,7 +1773,7 @@ var ConfigEditor = {
                     <input type="checkbox" value="all"${allChecked ? ' checked' : ''}>
                     <span class="overwrite-config-option-name" title="${'<%:Use For All Config File%>'}">${'<%:Use For All Config File%>'}</span>
                 </span>
-                <span class="overwrite-config-option-state">${allChecked ? '✓' : ''}</span>
+                <span class="overwrite-config-option-state">${allChecked ? '<svg class="oc-icon" width="12" height="12" style="vertical-align:middle;"><use href="#oc-icon-check"/></svg>' : ''}</span>
             </label>
         `;
 
@@ -1776,7 +1786,7 @@ var ConfigEditor = {
                         <input type="checkbox" value="${self.escapeOverwriteHtml(file.path)}"${checked}${disabled ? ' disabled' : ''}>
                         <span class="overwrite-config-option-name" title="${self.escapeOverwriteHtml(file.name)}">${self.escapeOverwriteHtml(file.name)}</span>
                     </span>
-                    <span class="overwrite-config-option-state">${checked ? '✓' : ''}</span>
+                    <span class="overwrite-config-option-state">${checked ? '<svg class="oc-icon" width="12" height="12" style="vertical-align:middle;"><use href="#oc-icon-check"/></svg>' : ''}</span>
                 </label>
             `;
         }).join('');
@@ -1791,7 +1801,7 @@ var ConfigEditor = {
                         <input type="checkbox" value="${self.escapeOverwriteHtml(value)}"${checked}${disabled ? ' disabled' : ''}>
                         <span class="overwrite-config-option-name" title="${self.escapeOverwriteHtml(value)}">${self.escapeOverwriteHtml(label)}</span>
                     </span>
-                    <span class="overwrite-config-option-state">${checked ? '✓' : ''}</span>
+                    <span class="overwrite-config-option-state">${checked ? '<svg class="oc-icon" width="12" height="12" style="vertical-align:middle;"><use href="#oc-icon-check"/></svg>' : ''}</span>
                 </label>
             `;
         }).join('');
@@ -1847,7 +1857,7 @@ var ConfigEditor = {
                 allOption.classList.toggle('selected', allSelected);
             }
             if (allState) {
-                allState.textContent = allSelected ? '✓' : '';
+                allState.innerHTML = allSelected ? '<svg class="oc-icon" width="12" height="12" style="vertical-align:middle;"><use href="#oc-icon-check"/></svg>' : '';
             }
 
             container.querySelectorAll('.overwrite-config-option input[type="checkbox"]').forEach(function(input) {
@@ -1864,7 +1874,7 @@ var ConfigEditor = {
                     option.setAttribute('aria-disabled', allSelected ? 'true' : 'false');
                 }
                 if (state) {
-                    state.textContent = input.checked ? '✓' : '';
+                    state.innerHTML = input.checked ? '<svg class="oc-icon" width="12" height="12" style="vertical-align:middle;"><use href="#oc-icon-check"/></svg>' : '';
                 }
             });
         }
@@ -1901,7 +1911,7 @@ var ConfigEditor = {
                     option.classList.toggle('selected', input.checked);
                 }
                 if (state) {
-                    state.textContent = input.checked ? '✓' : '';
+                    state.innerHTML = input.checked ? '<svg class="oc-icon" width="12" height="12" style="vertical-align:middle;"><use href="#oc-icon-check"/></svg>' : '';
                 }
                 self.updateOverwriteConfigDropdownLabel(container);
             });
@@ -2112,7 +2122,7 @@ var ConfigEditor = {
                 var icon = node.querySelector('i');
                 if (icon) {
                     icon.classList.toggle('oc-icon-check', done);
-                    icon.textContent = done ? '✓' : String(idx + 1);
+                    icon.innerHTML = done ? '<svg class="oc-icon" width="12" height="12" style="vertical-align:middle;"><use href="#oc-icon-check"/></svg>' : String(idx + 1);
                 }
             });
         }

@@ -910,10 +910,8 @@ function get_sub_url(filename)
 				providers = []
 				if config && config["proxy-providers"]
 					config["proxy-providers"].each do |name, provider|
-						# Only include providers with non-empty URLs
-						if provider && provider["url"] && !provider["url"].to_s.empty?
-							providers << {"name" => name, "url" => provider["url"].to_s}
-						end
+						url = (provider && provider["url"]) ? provider["url"].to_s : ""
+						providers << {"name" => name.to_s, "url" => url}
 					end
 				end
 				# Manual JSON output (ruby-json is not a dependency)
@@ -1055,13 +1053,16 @@ function sub_info_get()
 
 				local providers = url_result.providers
 				local jobs = {}
+				local info_map = {}
 
 				for i, provider in ipairs(providers) do
-					local job = fork_provider_curl(provider.url)
-					if job then
-						job.idx = i
-						job.name = provider.name
-						jobs[#jobs + 1] = job
+					if provider.url and provider.url ~= "" then
+						local job = fork_provider_curl(provider.url)
+						if job then
+							job.idx = i
+							job.name = provider.name
+							jobs[#jobs + 1] = job
+						end
 					end
 				end
 
@@ -1101,20 +1102,55 @@ function sub_info_get()
 							local info = fetch_sub_info(providers[job.idx].url, sub_ua, sub_headers, job.buf)
 							if info then
 								info.provider_name = job.name
-								providers_data[#providers_data + 1] = info
+								info_map[job.idx] = info
 							end
 						end
 					end
 				end
-				-- Fallback: if all forks failed, try serial
-				if #providers_data == 0 then
+
+				-- Fallback: if all forks failed, try serial for valid URLs
+				if next(info_map) == nil then
 					for i, provider in ipairs(providers) do
-						local info = fetch_sub_info(provider.url, sub_ua, sub_headers)
-						if info then
-							info.provider_name = provider.name
-							providers_data[#providers_data + 1] = info
+						if provider.url and provider.url ~= "" then
+							local info = fetch_sub_info(provider.url, sub_ua, sub_headers)
+							if info then
+								info.provider_name = provider.name
+								info_map[i] = info
+							end
 						end
 					end
+				end
+
+				-- Assemble providers_data in original order, inserting placeholders for providers without info
+				for i, provider in ipairs(providers) do
+					local item = info_map[i]
+					if item then
+						providers_data[#providers_data + 1] = item
+					else
+						providers_data[#providers_data + 1] = {
+							provider_name = provider.name,
+							no_sub_info = true,
+							http_code = "200",
+							surplus = "null",
+							used = "null",
+							total = "null",
+							percent = 0,
+							day_left = "null",
+							expire = "null"
+						}
+					end
+				end
+
+				-- Only keep providers_data if at least 1 provider has real subscription information
+				local has_real_sub = false
+				for _, item in ipairs(providers_data) do
+					if not item.no_sub_info then
+						has_real_sub = true
+						break
+					end
+				end
+				if not has_real_sub then
+					providers_data = {}
 				end
 			end
 		end

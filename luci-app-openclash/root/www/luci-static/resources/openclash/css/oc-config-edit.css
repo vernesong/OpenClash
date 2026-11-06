@@ -764,3 +764,22 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
             height: 13px !important;
         }
 }
+
+.oc .overwrite-item-grip.dummy {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    cursor: default !important;
+}
+.oc .overwrite-item-extra {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+.oc .overwrite-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 0 0 auto;
+}

@@ -3540,8 +3540,7 @@ html[data-darkmode="true"] .oc .oix-announcement {
     .oc .stats-views > #stats-view-chart { display: flex !important; }
     .oc .stats-views > #stats-view-ac { display: flex !important; }
     .oc .stats-views > .oc-hidden { visibility: hidden; pointer-events: none; }
-    .oc .stats-views > .stats-chart-card { position: absolute; inset: 0 0 36px; height: auto; margin-bottom: 0; }
-    .oc .stats-views > #stats-view-ac { position: absolute; inset: 0; }
+    /* Absolute overlap rules removed for modern flat layout */
     .oc .stats-views > .stats-tabs { position: absolute; left: 0; right: 0; bottom: 0; }
     .oc .stats-views > #stats-view-ac .ac-card { margin-bottom: 0; }
     .oc .stats-views > #stats-view-ac .ac-list { max-height: none; }
@@ -3904,7 +3903,7 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
 .oc .ac-col-dev { flex: 1 1 auto; min-width: 0; justify-content: center; }
 .oc .ac-col-ctrl { width: 92px; flex: 0 0 auto; justify-content: center; }
 .oc .ac-col-conns { width: 52px; flex: 0 0 auto; justify-content: center; }
-.oc .ac-col-up, .oc .ac-col-down { width: 106px; flex: 0 0 auto; justify-content: center; }
+.oc .ac-col-up, .oc .ac-col-down { width: 136px; flex: 0 0 136px; justify-content: center; }
 
 .oc .ac-list {
     flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden;
@@ -4175,3 +4174,2409 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
         max-height: calc(100dvh - 48px);
     }
 }
+
+
+/* ==========================================================================
+ * OpenClash Modern Flat Grid System (Zero Box-in-Box)
+ * Covers: Dashboard, Notice, Hero Card, Control Tray, Telemetry, MyIP, Developer
+ * ========================================================================== */
+
+html:not([data-oc-theme]) .oc,
+html[data-oc-theme="classic"] .oc,
+.oc-ver-pills-top {
+    --primary-color: var(--primary-color-high, var(--primary, var(--main-color, #3b82f6)));
+    --bg-white: var(--s1, #ffffff);
+    --bg-light: var(--s3, #f8fafc);
+    --bg-gray: var(--s2, #f1f5f9);
+    --border-light: var(--line, #e2e8f0);
+    --border-color: var(--line-2, #cbd5e1);
+    --text-primary: var(--text, #1e293b);
+    --text-secondary: var(--text-2, #64748b);
+    --hover-bg: var(--s3, #f3f4f6);
+    --switch-off-bg: var(--s4, #cbd5e1);
+}
+
+html[data-darkmode="true"]:not([data-oc-theme]) .oc,
+html[data-darkmode="true"][data-oc-theme="classic"] .oc,
+html[data-darkmode="true"] .oc-ver-pills-top {
+    --primary-color: var(--primary-color-high, var(--primary, var(--main-color, #3b82f6)));
+    --bg-white: var(--s1, #18181b);
+    --bg-light: var(--s2, #22252a);
+    --bg-gray: var(--s3, #27272a);
+    --border-light: var(--line, #262a2f);
+    --border-color: var(--line-2, #353a41);
+    --text-primary: var(--text, #e8eaed);
+    --text-secondary: var(--text-2, #a9afb7);
+    --hover-bg: var(--s3, #22252a);
+    --switch-off-bg: var(--s4, #353a41);
+}
+
+/* 1. Global Dashboard Container & LuCI Fieldset Reset */
+fieldset.cbi-section:has(.oc),
+fieldset.cbi-section:has(.oc) > table,
+fieldset.cbi-section:has(.oc) > table > tbody > tr > td {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+.oc .oc-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* 2. Top Notice & Help Banner (Flat & Non-Gradient) */
+.oc .oc-notice {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    background: var(--bg-white, #ffffff);
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: var(--radius-lg, 8px);
+    padding: 6px 10px;
+    box-sizing: border-box;
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.04));
+}
+
+.oc .oc-notice .announcement-banner,
+html[data-darkmode="true"] .oc .oc-notice .announcement-banner {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    height: 32px !important;
+    padding: 0 8px 0 36px !important;
+    border-radius: var(--radius-md, 6px) !important;
+    background: transparent !important;
+    color: var(--text-secondary, #475569) !important;
+    box-shadow: none !important;
+    border: none !important;
+    display: flex;
+    align-items: center;
+}
+
+.oc .oc-notice .announcement-banner::before,
+html[data-darkmode="true"] .oc .oc-notice .announcement-banner::before {
+    display: none !important;
+}
+
+.oc .oc-notice .megaphone-container {
+    width: 26px !important;
+    height: 26px !important;
+    left: 2px !important;
+    top: 50% !important;
+    bottom: auto !important;
+    transform: translateY(-50%);
+    border-radius: 6px !important;
+    background: var(--primary-a10) !important;
+    color: var(--primary-color) !important;
+}
+
+.oc .oc-notice #megaphone,
+html[data-darkmode="true"] .oc .oc-notice #megaphone {
+    filter: none !important;
+    color: currentColor !important;
+}
+
+.oc .oc-notice .announcement-content {
+    color: var(--text-secondary) !important;
+    font-size: 12.5px !important;
+}
+
+.oc .oc-notice-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.oc .oc-notice-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: var(--radius-md, 6px);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all var(--transition-fast, 0.15s ease);
+    text-decoration: none;
+}
+
+.oc .oc-notice-btn-guide {
+    background: var(--primary-a10, rgba(94, 114, 228, 0.1));
+    color: var(--primary-color, #3b82f6);
+    border: 1px solid var(--primary-a20, rgba(94, 114, 228, 0.25));
+}
+
+.oc .oc-notice-btn-guide:hover {
+    background: var(--primary-a20, rgba(94, 114, 228, 0.2));
+}
+
+.oc .oc-notice-btn-help {
+    background: var(--primary-color, #3b82f6);
+    color: var(--text-on-primary, #ffffff);
+    border: 1px solid var(--primary-color, #3b82f6);
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
+}
+
+.oc .oc-notice-btn-help:hover {
+    background: var(--btn-primary-hover, #2563eb);
+}
+
+.oc .oc-notice-btn .oc-usage-help-bubble {
+    top: calc(100% + 8px);
+    bottom: auto;
+    right: 0;
+    z-index: 100;
+}
+
+/* 3. Hero Card (Unified Status & Config) */
+.oc .oc-hero-card {
+    background: var(--bg-white, #ffffff);
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: var(--radius-lg, 8px);
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.04));
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+    position: relative;
+}
+
+.oc .hero-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-light, #e2e8f0);
+    box-sizing: border-box;
+    flex-wrap: wrap;
+}
+
+.oc .hero-row:last-child,
+.oc .hero-row-config:has(+ #subscription-progress-section.oc-hidden),
+.oc .hero-row-config:has(+ #subscription-progress-section[data-count="0"]) {
+    border-bottom: none;
+    border-radius: 0 0 var(--radius-lg, 8px) var(--radius-lg, 8px);
+}
+
+.oc .hero-row-status {
+    position: relative;
+    z-index: 30;
+    background: var(--bg-gray, #f8fafc);
+    border-radius: var(--radius-lg, 8px) var(--radius-lg, 8px) 0 0;
+}
+
+.oc .hero-status-left,
+.oc .hero-status-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.oc .hero-status-left {
+    flex: 1 1 auto;
+}
+
+.oc .hero-status-left #_oclog {
+    flex: 0 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 320px !important;
+    height: 28px !important;
+    line-height: 28px !important;
+    padding: 0 10px !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.oc .hero-logo-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 8px;
+    background: var(--bg-white, #ffffff);
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: var(--radius-sm, 4px);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary, #1e293b);
+}
+
+.oc .oc-hero-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 10px;
+    border-radius: var(--radius-sm, 4px);
+    border: 1px solid var(--border-light, #e2e8f0);
+    background: var(--bg-white, #ffffff);
+    color: var(--text-primary, #1e293b);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all var(--transition-fast, 0.15s ease);
+}
+
+.oc .oc-hero-btn:hover {
+    border-color: var(--primary-color, #3b82f6);
+    color: var(--primary-color, #3b82f6);
+}
+
+.oc .oc-hero-btn-primary {
+    background: var(--primary-color, #3b82f6);
+    color: var(--text-on-primary, #ffffff);
+    border-color: var(--primary-color, #3b82f6);
+}
+
+.oc .oc-hero-btn-primary:hover {
+    background: var(--btn-primary-hover, #2563eb);
+    color: var(--text-on-primary, #ffffff);
+}
+
+/* Dropdown Wrappers & Layers */
+.oc .oc-dropdown-wrap {
+    position: relative;
+    display: inline-flex;
+}
+
+.oc .quick-dropdown-layer {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 240px;
+    background: var(--bg-white, #ffffff);
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: var(--radius-md, 6px);
+    box-shadow: var(--shadow-md, 0 4px 16px rgba(0, 0, 0, 0.12));
+    padding: 8px;
+    z-index: 999;
+    flex-direction: column;
+    gap: 6px;
+    box-sizing: border-box;
+}
+
+.oc .oc-dropdown-wrap.open .quick-dropdown-layer {
+    display: flex;
+}
+
+#dashboard-menu-layer {
+    width: 300px;
+}
+
+.oc .dropdown-header-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px 8px;
+    background: var(--bg-gray, #f8fafc);
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: var(--radius-sm, 4px);
+    font-size: 11.5px;
+}
+
+.oc .dropdown-info-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.oc .dropdown-info-label {
+    font-weight: 600;
+    color: var(--text-secondary, #64748b);
+    width: 78px;
+    flex-shrink: 0;
+}
+
+.oc .dropdown-panel-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.oc .dashboard-btn-wrap {
+    display: flex;
+    width: 100%;
+}
+
+.oc .quick-dropdown-layer .dashboard-btn,
+.oc .quick-dropdown-layer input.dashboard-btn,
+.oc .quick-dropdown-layer .dropdown-item-btn {
+    width: 100% !important;
+    height: 32px !important;
+    line-height: 30px !important;
+    padding: 0 8px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    border: 1px solid var(--border-light, #e2e8f0) !important;
+    border-radius: var(--radius-sm, 4px) !important;
+    background: var(--bg-white, #ffffff) !important;
+    color: var(--text-primary, #1e293b) !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    box-shadow: none !important;
+    transition: all var(--transition-fast, 0.15s ease) !important;
+    box-sizing: border-box !important;
+}
+
+.oc .quick-dropdown-layer .dashboard-btn:hover,
+.oc .quick-dropdown-layer input.dashboard-btn:hover,
+.oc .quick-dropdown-layer .dropdown-item-btn:hover {
+    border-color: var(--primary-color, #3b82f6) !important;
+    color: var(--primary-color, #3b82f6) !important;
+    background: var(--primary-a10, rgba(94, 114, 228, 0.08)) !important;
+}
+
+.oc .dropdown-divider {
+    height: 1px;
+    background: var(--border-light, #e2e8f0);
+    margin: 4px 0;
+}
+
+/* Row 2: Config File Row */
+.oc .hero-row-config .config-file-content {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.oc .hero-config-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 300px;
+    min-width: 0;
+    flex-wrap: wrap;
+}
+
+.oc .hero-config-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary, #64748b);
+    white-space: nowrap;
+}
+
+.oc .hero-config-left .config-select {
+    flex: 1 1 180px;
+    max-width: 320px;
+    height: 30px;
+    font-size: 13px;
+    padding: 0 28px 0 10px;
+    margin: 0;
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: var(--radius-sm, 4px);
+    background-color: var(--bg-white, #ffffff);
+    color: var(--text-primary, #1e293b);
+}
+
+.oc .hero-config-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.oc .config-action-icons {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.oc .oc-icon-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: var(--radius-sm, 4px);
+    background: var(--bg-white, #ffffff);
+    color: var(--text-secondary, #64748b);
+    cursor: pointer;
+    transition: all var(--transition-fast, 0.15s ease);
+}
+
+.oc .oc-icon-btn:hover {
+    border-color: var(--primary-color, #3b82f6);
+    color: var(--primary-color, #3b82f6);
+}
+
+#edit_overwrite {
+    height: 28px;
+    padding: 0 10px !important;
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: var(--radius-sm, 4px);
+    background: var(--bg-white, #ffffff);
+    color: var(--text-primary, #1e293b);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+#edit_overwrite:hover {
+    border-color: var(--primary-color, #3b82f6);
+    color: var(--primary-color, #3b82f6);
+}
+
+.oc .oc-overwrite-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 16px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--bg-gray, #f1f5f9);
+    border: 1px solid var(--border-light, #e2e8f0);
+    color: var(--text-secondary, #64748b);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+/* Row 3: Subscription Progress Section (Flat Multi-Provider Grid) */
+.oc .subscription-progress-fill::before {
+    display: none !important;
+    content: none !important;
+}
+
+#subscription-progress-section.hero-row-providers {
+    padding: 0 !important;
+    border-bottom: none !important;
+    background: var(--bg-white) !important;
+    border-radius: 0 0 var(--radius-lg, 8px) var(--radius-lg, 8px) !important;
+    overflow: hidden !important;
+}
+
+.oc .subscription-progress {
+    padding: 10px 14px !important;
+    min-height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+}
+
+.oc .subscription-providers-grid {
+    display: flex !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+    padding: 0 !important;
+    min-height: auto !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+}
+
+.oc .subscription-providers-grid .provider-card {
+    padding: 10px 14px !important;
+    border-right: 1px solid var(--border-light) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    min-width: 33.333% !important;
+    flex: 0 0 33.333% !important;
+    box-sizing: border-box !important;
+}
+
+.oc .subscription-providers-grid .provider-card:last-child {
+    border-right: none !important;
+}
+
+.oc .subscription-providers-grid[data-count="1"] .provider-card {
+    min-width: 100% !important;
+    flex: 1 1 100% !important;
+    border-right: none !important;
+}
+
+.oc .subscription-providers-grid[data-count="2"] .provider-card {
+    min-width: 50% !important;
+    flex: 1 1 50% !important;
+}
+
+.oc .subscription-progress-bar {
+    height: 5px !important;
+    border-radius: 999px !important;
+    background: var(--bg-gray) !important;
+    overflow: hidden !important;
+}
+
+.oc .subscription-info-title {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: var(--text-primary) !important;
+    line-height: 1.3 !important;
+}
+
+.oc .subscription-info-text {
+    font-size: 11.5px !important;
+    color: var(--text-secondary) !important;
+    line-height: 1.3 !important;
+}
+
+/* 4. Dual-layer Flat Control Tray */
+.oc .oc-control-tray {
+    background: var(--bg-white, #ffffff);
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: var(--radius-lg, 8px);
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.04));
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.oc .tray-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid var(--border-light, #e2e8f0);
+}
+
+.oc .tray-row:last-child {
+    border-bottom: none;
+}
+
+.oc .tray-cell {
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-right: 1px solid var(--border-light, #e2e8f0);
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.oc .tray-cell:last-child {
+    border-right: none;
+}
+
+.oc .tray-cell-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.oc .tray-label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-primary, #1e293b);
+    white-space: nowrap;
+}
+
+.oc .tray-radios {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: nowrap;
+}
+
+.oc .oc-native-radio {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text-secondary, #64748b);
+    cursor: pointer;
+    white-space: nowrap;
+    margin: 0;
+    user-select: none;
+}
+
+.oc .oc-native-radio input[type="radio"] {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    width: 14px !important;
+    height: 14px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 1.5px solid var(--border-color, #94a3b8) !important;
+    border-radius: 50% !important;
+    background: transparent !important;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+}
+
+.oc .oc-native-radio input[type="radio"]::before,
+.oc .oc-native-radio input[type="radio"]::after {
+    display: none !important;
+    content: none !important;
+}
+
+.oc .oc-native-radio input[type="radio"]:checked {
+    border-color: var(--primary-color, #2563eb) !important;
+    background-color: var(--primary-color, #2563eb) !important;
+    box-shadow: inset 0 0 0 2.5px var(--bg-white, #ffffff) !important;
+}
+
+.oc .oc-native-radio input[type="radio"]:checked + span {
+    color: var(--text-primary) !important;
+    font-weight: 600;
+}
+
+.oc .oc-native-select {
+    height: 28px;
+    padding: 0 24px 0 8px;
+    font-size: 12.5px;
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: var(--radius-sm, 4px);
+    background: var(--bg-white, #ffffff);
+    color: var(--text-primary, #1e293b);
+    min-width: 120px;
+    width: auto;
+}
+
+/* Policy Switches Grid */
+.oc .tray-cell-switches {
+    padding: 0;
+}
+
+.oc .policy-switches-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    height: 100%;
+}
+
+.oc .policy-switch-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 14px;
+    border-right: 1px solid var(--border-light, #e2e8f0);
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.oc .policy-switch-item:last-child {
+    border-right: none;
+}
+
+.oc .policy-switch-item .switch-label {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text-primary, #1e293b);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Switch Component */
+.oc .oc-switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+    flex-shrink: 0;
+    cursor: pointer;
+    margin: 0;
+}
+
+.oc .oc-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.oc .oc-switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--switch-off-bg, #cbd5e1);
+    transition: all 0.2s ease;
+    border-radius: 20px;
+}
+
+.oc .oc-switch-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: #ffffff;
+    transition: all 0.2s ease;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.oc .oc-switch input:checked + .oc-switch-slider {
+    background-color: var(--primary-color, #3b82f6);
+}
+
+.oc .oc-switch input:checked + .oc-switch-slider:before {
+    transform: translateX(16px);
+}
+
+/* 5. Telemetry & Access Control */
+.oc .oc-telemetry-card {
+    background: var(--bg-white, #ffffff);
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: var(--radius-lg, 8px);
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.04));
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.oc .telemetry-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 14px;
+    background: var(--bg-gray, #f8fafc);
+    border-bottom: 1px solid var(--border-light, #e2e8f0);
+    flex-wrap: wrap;
+}
+
+.oc .telemetry-head-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+    flex-wrap: wrap;
+}
+
+.oc .telemetry-kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    border-bottom: 1px solid var(--border-light, #e2e8f0);
+    background: var(--bg-white, #ffffff);
+}
+
+.oc .telemetry-kpi-strip .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 4px;
+    padding: 10px 12px;
+    border-right: 1px solid var(--border-light, #e2e8f0);
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.oc .telemetry-kpi-strip .stat-item:last-child {
+    border-right: none;
+}
+
+.oc .telemetry-kpi-strip .stat-label {
+    font-size: 11px;
+    color: var(--text-secondary, #64748b);
+    font-weight: 500;
+    margin: 0;
+}
+
+.oc .telemetry-kpi-strip .stat-label::after {
+    display: none !important;
+}
+
+.oc .telemetry-kpi-strip .stat-value {
+    font-size: 14px;
+    font-weight: 700;
+    min-height: auto;
+    margin: 0;
+    color: var(--text-primary, #1e293b);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.oc .telemetry-chart-box {
+    padding: 10px 14px 12px;
+    height: 215px;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-white, #ffffff);
+    box-sizing: border-box;
+}
+
+.oc .telemetry-chart-box .chart-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.oc .telemetry-chart-box .chart-top-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.oc #stats-tabs {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.oc #stats-tabs .cbi-button-option {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    padding: 3px 10px !important;
+    font-size: 12px !important;
+}
+
+.oc .telemetry-chart-box .stats-chart-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    position: relative;
+    width: 100%;
+}
+
+/* Clients AC Card Section */
+.oc .oc-ac-card-section {
+    margin-top: 10px;
+}
+
+.oc .oc-ac-card-section .ac-card {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+}
+
+.oc .oc-ac-card-section .ac-head {
+    padding: 8px 14px;
+    background: var(--bg-gray, #f8fafc);
+    border-bottom: 1px solid var(--border-light, #e2e8f0);
+}
+
+.oc .oc-ac-card-section .ac-head::before {
+    display: none !important;
+}
+
+.oc .oc-ac-card-section .ac-th {
+    padding: 6px 14px;
+    height: auto;
+}
+
+.oc .oc-ac-card-section .ac-list {
+    max-height: 360px;
+    padding: 0 !important;
+}
+
+.oc .oc-ac-card-section .ac-row {
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding: 6px 14px !important;
+    width: 100% !important;
+}
+
+.oc .oc-ac-card-section .ac-card.ac-w-xs .ac-row {
+    border-radius: 0 !important;
+    padding: 6px 14px 7px !important;
+}
+
+.oc .oc-ac-card-section .ac-card.ac-w-xs .ac-avatar {
+    left: 14px !important;
+}
+
+.oc .ac-col-up,
+.oc .ac-col-down {
+    width: 136px !important;
+    flex: 0 0 136px !important;
+    justify-content: center !important;
+}
+
+.oc .ac-rc {
+    width: 136px !important;
+    flex: 0 0 136px !important;
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    min-width: 0;
+}
+
+.oc .ac-rc .ac-rate-v::before {
+    display: none !important;
+    content: none !important;
+}
+
+.oc .ac-rc .ac-spark {
+    width: 44px !important;
+    height: 16px !important;
+    flex: 0 0 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.oc .config-file-content.empty-state {
+    display: none !important;
+}
+
+.oc .config-file-empty-state {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    min-height: 30px;
+}
+
+.oc .config-file-empty-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.oc .config-file-empty-text {
+    font-size: 12.5px;
+    color: var(--text-secondary, #64748b);
+    margin: 0;
+}
+
+.oc .config-file-empty-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+}
+
+/* 6. MyIP Section (Zero Box-in-Box 2x2 Grid) */
+.oc .myip-main-card {
+    background: transparent;
+    margin: 10px 0 0 0;
+    border: none;
+    box-shadow: none;
+}
+
+.oc .myip-content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+}
+
+.oc .myip-ip-section,
+.oc .myip-check-section {
+    background: var(--bg-white, #ffffff);
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: var(--radius-lg, 8px);
+    padding: 0;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.04));
+    transition: none;
+}
+
+.oc .myip-ip-section:hover,
+.oc .myip-check-section:hover {
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.04));
+    transform: none;
+}
+
+.oc .myip-section-title {
+    height: 40px !important;
+    min-height: 40px !important;
+    margin: 0 !important;
+    padding: 0 14px !important;
+    background: var(--bg-gray, #f8fafc) !important;
+    border-bottom: 1px solid var(--border-light, #e2e8f0) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: var(--text-primary, #1e293b) !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.oc .myip-ip-list,
+.oc .myip-check-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    background: var(--bg-white, #ffffff);
+    margin: 0;
+    padding: 0;
+}
+
+.oc .myip-card-item {
+    border: none;
+    border-radius: 0;
+    border-right: 1px solid var(--border-light, #e2e8f0);
+    border-bottom: 1px solid var(--border-light, #e2e8f0);
+    padding: 10px 12px;
+    min-height: 82px;
+    justify-content: center;
+    gap: 4px;
+    box-shadow: none;
+    margin: 0;
+    background: var(--bg-white, #ffffff);
+    box-sizing: border-box;
+}
+
+.oc .myip-card-item:nth-child(2n) {
+    border-right: none;
+}
+
+.oc .myip-card-item:nth-child(n+3) {
+    border-bottom: none;
+}
+
+/* 7. Developer Footer Section */
+.oc .developer-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 10px 16px;
+    background: var(--bg-white, #ffffff);
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: var(--radius-lg, 8px);
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.04));
+    margin-top: 10px;
+    box-sizing: border-box;
+}
+
+.oc .developer-grid {
+    --oc-dev-size: 32px !important;
+    display: flex;
+    align-items: center;
+    gap: 6px 10px !important;
+    flex-wrap: wrap;
+    padding: 0 !important;
+}
+
+.oc .developer-avatar-container {
+    --oc-dev-size: 32px !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
+}
+
+.oc .developer-avatar {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    flex: 0 0 32px !important;
+    border-width: 1.5px !important;
+}
+
+.oc .developer-container .developer-label {
+    display: none !important;
+}
+
+.oc .developer-footer-links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary, #64748b);
+    flex-shrink: 0;
+}
+
+.oc .dev-footer-link {
+    color: var(--text-secondary, #64748b);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color var(--transition-fast, 0.15s ease);
+}
+
+.oc .dev-footer-link:hover {
+    color: var(--primary-color, #3b82f6);
+}
+
+.oc .dev-footer-sep {
+    color: var(--border-light, #e2e8f0);
+}
+
+/* 8. Dark Mode Overrides */
+html[data-darkmode="true"] .oc .oc-notice,
+html[data-darkmode="true"] .oc .oc-hero-card,
+html[data-darkmode="true"] .oc .oc-control-tray,
+html[data-darkmode="true"] .oc .oc-telemetry-card,
+html[data-darkmode="true"] .oc .myip-ip-section,
+html[data-darkmode="true"] .oc .myip-check-section,
+html[data-darkmode="true"] .oc .developer-container,
+html[data-darkmode="true"] .oc .quick-dropdown-layer {
+    background: var(--bg-white);
+    border-color: var(--border-light);
+}
+
+.oc .hero-row-status,
+.oc .telemetry-head,
+.oc .myip-section-title,
+.oc .dropdown-header-info,
+.oc .oc-ac-card-section .ac-head,
+html[data-darkmode="true"] .oc .hero-row-status,
+html[data-darkmode="true"] .oc .telemetry-head,
+html[data-darkmode="true"] .oc .myip-section-title,
+html[data-darkmode="true"] .oc .dropdown-header-info,
+html[data-darkmode="true"] .oc .oc-ac-card-section .ac-head {
+    background: var(--bg-light) !important;
+    border-color: var(--border-light) !important;
+}
+
+html[data-darkmode="true"] .oc .hero-logo-btn,
+html[data-darkmode="true"] .oc .oc-hero-btn,
+html[data-darkmode="true"] .oc .oc-icon-btn,
+html[data-darkmode="true"] .oc #edit_overwrite,
+html[data-darkmode="true"] .oc .hero-config-left .config-select,
+html[data-darkmode="true"] .oc .oc-native-select,
+html[data-darkmode="true"] .oc .quick-dropdown-layer .dashboard-btn,
+html[data-darkmode="true"] .oc .quick-dropdown-layer input.dashboard-btn,
+html[data-darkmode="true"] .oc .quick-dropdown-layer .dropdown-item-btn,
+html[data-darkmode="true"] .oc .telemetry-kpi-strip,
+html[data-darkmode="true"] .oc .myip-card-item {
+    background-color: var(--bg-light) !important;
+    border-color: var(--border-light) !important;
+    color: var(--text-primary) !important;
+}
+
+html[data-darkmode="true"] .oc .hero-row,
+html[data-darkmode="true"] .oc .tray-row,
+html[data-darkmode="true"] .oc .tray-cell,
+html[data-darkmode="true"] .oc .policy-switch-item,
+html[data-darkmode="true"] .oc .telemetry-kpi-strip,
+html[data-darkmode="true"] .oc .telemetry-kpi-strip .stat-item,
+html[data-darkmode="true"] .oc .dropdown-divider,
+html[data-darkmode="true"] .oc .dev-footer-sep {
+    border-color: var(--border-light) !important;
+}
+
+html[data-darkmode="true"] .oc .oc-overwrite-badge {
+    background: var(--bg-light);
+    border-color: var(--border-light);
+    color: var(--text-secondary);
+}
+
+html[data-darkmode="true"] .oc .oc-switch-slider {
+    background-color: var(--switch-off-bg);
+}
+
+
+/* ==========================================================================
+ * Precision Refinements (Status Pill, Dev Logo Btn, KPI Fonts, Flip Notice, Dropdown Menus)
+ * ========================================================================== */
+
+/* 1. Developer Footer Logo Button */
+.oc .dev-logo-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: transparent;
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: 999px;
+    padding: 2px 9px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary, #1e293b);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.oc .dev-logo-btn .mihomo-link {
+    font-style: normal;
+    color: var(--primary-color, #2563eb);
+}
+
+.oc .dev-logo-btn:hover {
+    border-color: var(--primary-color, #2563eb);
+    background: var(--bg-gray, #f8fafc);
+}
+
+html[data-darkmode="true"] .oc .dev-logo-btn {
+    border-color: var(--border-light, #27272a);
+    color: var(--text-primary, #f4f4f5);
+}
+
+html[data-darkmode="true"] .oc .dev-logo-btn:hover {
+    background: var(--bg-gray, #18181b);
+}
+
+/* 2. Clash Status Pill & Log Display */
+.oc #_clash.value-indicator {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    min-width: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    border-radius: 999px !important;
+}
+
+.oc .oc-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+.oc .oc-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.oc .oc-status-pill.is-running {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.oc .oc-status-pill.is-running .oc-status-dot {
+    background: #10b981;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.oc .oc-status-pill.is-stopped,
+.oc .oc-status-pill.is-loading {
+    background: var(--bg-gray, #f1f5f9);
+    color: var(--text-secondary, #64748b);
+    border: 1px solid var(--border-light, #e2e8f0);
+}
+
+.oc .oc-status-pill.is-stopped .oc-status-dot,
+.oc .oc-status-pill.is-loading .oc-status-dot {
+    background: #94a3b8;
+}
+
+.oc .oc-status-pill.is-error {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.oc .oc-status-pill.is-error .oc-status-dot {
+    background: #ef4444;
+}
+
+.oc #_oclog {
+    height: 26px !important;
+    line-height: 26px !important;
+    border-radius: 999px !important;
+    background: var(--bg-gray, #f8fafc) !important;
+    border: 1px solid var(--border-light, #e2e8f0) !important;
+    padding: 0 12px !important;
+    font-size: 12px !important;
+}
+
+.oc #_oclog::before,
+.oc #_oclog::after {
+    display: none !important;
+}
+
+/* 3. Refined 8-KPI Strip (Clean Monochrome Font Sizes) */
+.oc .telemetry-kpi-strip .stat-item {
+    padding: 11px 16px !important;
+    gap: 4px !important;
+}
+
+.oc .telemetry-kpi-strip .stat-label {
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    color: var(--text-secondary, #64748b) !important;
+}
+
+.oc .telemetry-kpi-strip .stat-value {
+    display: inline-flex !important;
+    align-items: baseline !important;
+    gap: 2px !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    color: var(--text-primary, #0f172a) !important;
+}
+
+.oc .telemetry-kpi-strip .stat-num {
+    font-size: 17px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.02em !important;
+    color: var(--text-primary, #0f172a) !important;
+    line-height: 1.2 !important;
+}
+
+.oc .telemetry-kpi-strip .stat-unit {
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: var(--text-secondary, #64748b) !important;
+}
+
+/* 4. Flip Notice Transitions with Right Gradient Mask */
+/* 上游新增的公告视口包裹层：在新版横幅中回归普通文档流，取消左侧遮罩，仅保留右侧渐隐 */
+.oc .oc-notice .announcement-viewport {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+}
+
+.oc .oc-notice .announcement-content {
+    position: relative !important;
+    left: 0 !important;
+    top: 0 !important;
+    transform: translateY(0) !important;
+    animation: none !important;
+    width: 100% !important;
+    text-align: left !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: clip !important;
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 4em), transparent 100%) !important;
+    mask-image: linear-gradient(to right, #000 calc(100% - 4em), transparent 100%) !important;
+    line-height: 32px !important;
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease !important;
+    opacity: 1 !important;
+}
+
+.oc .oc-notice .announcement-content.flip-out {
+    transform: translateY(-14px) !important;
+    opacity: 0 !important;
+}
+
+.oc .oc-notice .announcement-content.flip-prep {
+    transition: none !important;
+    transform: translateY(14px) !important;
+    opacity: 0 !important;
+}
+
+/* 5. Dropdown Menu Fixes */
+#quick-menu-layer .dashboard-btn,
+#quick-menu-layer input.dashboard-btn,
+#quick-menu-layer .dropdown-item-btn {
+    width: 100% !important;
+    height: 32px !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: 0 10px !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--text-primary, #1e293b) !important;
+    font-size: 12.5px !important;
+    font-weight: 500 !important;
+    text-align: left !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    cursor: pointer !important;
+}
+
+#quick-menu-layer .dashboard-btn:hover,
+#quick-menu-layer input.dashboard-btn:hover,
+#quick-menu-layer .dropdown-item-btn:hover {
+    background: var(--bg-gray, #f1f5f9) !important;
+    color: var(--primary-color, #2563eb) !important;
+    transform: none !important;
+}
+
+html[data-darkmode="true"] #quick-menu-layer .dashboard-btn:hover,
+html[data-darkmode="true"] #quick-menu-layer input.dashboard-btn:hover,
+html[data-darkmode="true"] #quick-menu-layer .dropdown-item-btn:hover {
+    background: var(--hover-bg) !important;
+    color: var(--primary-color) !important;
+}
+
+.oc #dashboard-menu-layer,
+#dashboard-menu-layer {
+    min-width: 310px !important;
+    width: max-content !important;
+    padding: 10px 12px !important;
+}
+
+.oc #dashboard-menu-layer .dropdown-info-row,
+#dashboard-menu-layer .dropdown-info-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    white-space: nowrap !important;
+}
+
+.oc #dashboard-menu-layer .value-indicator,
+.oc #dashboard-menu-layer .value-indicator b,
+#dashboard-menu-layer .value-indicator,
+#dashboard-menu-layer .value-indicator b {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    width: auto !important;
+    flex: 1 1 auto !important;
+    justify-content: flex-start !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace !important;
+    font-size: 12px !important;
+    color: var(--text-primary, #0f172a) !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+}
+
+#dashboard-menu-layer .icon-btn {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    padding: 0 !important;
+    border: 1px solid var(--border-light, #e2e8f0) !important;
+    border-radius: 5px !important;
+    background: var(--bg-white, #ffffff) !important;
+}
+
+#dashboard-menu-layer .dashboard-btn-wrap.hidden,
+.oc .hidden {
+    display: none !important;
+}
+
+#dashboard-menu-layer .dropdown-panel-buttons .dashboard-btn {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 30px !important;
+    font-size: 12px !important;
+    border-radius: 6px !important;
+}
+
+/* Native Select Chevron Arrows */
+.oc .hero-config-left .config-select,
+.oc .oc-native-select {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 8px center !important;
+    background-size: 14px 14px !important;
+    padding-right: 28px !important;
+}
+
+/* Prevent Dropdown Menus from being clipped */
+.oc,
+.oc .oc-dashboard,
+.oc .oc-ac-card-section,
+.oc .oc-ac-card-section .ac-card,
+.oc .oc-ac-card-section .ac-head,
+.oc .oc-ac-card-section .ac-tools {
+    overflow: visible !important;
+}
+
+.oc .oc-ac-card-section {
+    position: relative !important;
+    z-index: 25 !important;
+}
+
+.oc .oc-ac-card-section .ac-head {
+    position: relative !important;
+    z-index: 30 !important;
+}
+
+.oc .oc-ac-card-section .ac-sort-menu {
+    z-index: 100 !important;
+}
+
+.oc .usage-help-tip,
+.oc .oc-usage-help-bubble,
+.oc #usage-help-bubble,
+.oc #first-use-bubble {
+    display: none !important;
+}
+
+
+/* ==========================================================================
+ * Version Pills (Aligned to OpenClash Page Header with 999px Full Rounding)
+ * ========================================================================== */
+.version-display-container,
+.oc .version-display-container {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin: 0 !important;
+    flex-shrink: 0 !important;
+}
+
+.version-display,
+.oc .version-display {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    height: 24px !important;
+    padding: 3px 10px !important;
+    border-radius: 999px !important;
+    border: 1px solid var(--border-light, #e2e8f0) !important;
+    background: var(--bg-white, #ffffff) !important;
+    color: var(--text-secondary, #64748b) !important;
+    font-size: 11.5px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    transition: all var(--transition-fast, 0.15s ease) !important;
+    box-sizing: border-box !important;
+    line-height: 1 !important;
+}
+
+.version-display:hover,
+.oc .version-display:hover {
+    border-color: var(--primary-color, #2563eb) !important;
+    color: var(--primary-color, #2563eb) !important;
+}
+
+.version-display .update-dot,
+.oc .version-display .update-dot {
+    width: 6px !important;
+    height: 6px !important;
+    border-radius: 50% !important;
+    background: #f59e0b !important;
+    margin-left: 2px !important;
+    flex-shrink: 0 !important;
+}
+
+html[data-darkmode="true"] .version-display,
+html[data-darkmode="true"] .oc .version-display {
+    border-color: var(--border-light, #27272a) !important;
+    background: var(--bg-white, #18181b) !important;
+    color: var(--text-secondary, #a1a1aa) !important;
+}
+
+html[data-darkmode="true"] .version-display:hover,
+html[data-darkmode="true"] .oc .version-display:hover {
+    border-color: var(--primary-color, #3b82f6) !important;
+    color: var(--primary-color, #3b82f6) !important;
+}
+
+/* ==========================================================================
+ * V4 Polish: Upstream Theme Colors, Unified Spacing, Mobile Geometry & Precision Fixes
+ * ========================================================================== */
+
+/* 1. Global 10px Vertical Card Spacing across LuCI sections & Zero Nested Table Inflation */
+fieldset.cbi-section:has(.oc),
+.cbi-section:has(.oc),
+.cbi-map-section:has(.oc) {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 0 10px 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    box-sizing: border-box !important;
+}
+
+fieldset.cbi-section:has(.oc):last-child,
+.cbi-section:has(.oc):last-child {
+    margin-bottom: 0 !important;
+}
+
+/* Force LuCI outer table elements to block to prevent horizontal inflation (e.g. 1320px blowout) */
+fieldset.cbi-section:has(.oc) > table,
+.cbi-section:has(.oc) > table,
+fieldset.cbi-section:has(.oc) > table > tbody,
+.cbi-section:has(.oc) > table > tbody,
+fieldset.cbi-section:has(.oc) > table > tbody > tr,
+.cbi-section:has(.oc) > table > tbody > tr,
+fieldset.cbi-section:has(.oc) > table > tbody > tr > td,
+.cbi-section:has(.oc) > table > tbody > tr > td {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-sizing: border-box !important;
+}
+
+.oc,
+.oc .oc-dashboard,
+.oc .oc-notice,
+.oc .oc-hero-card,
+.oc .oc-control-tray,
+.oc .oc-telemetry-card,
+.oc .oc-ac-card-section,
+.oc #stats-view-ac,
+.oc .myip-main-card,
+.oc .developer-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+.oc,
+.oc-dashboard {
+    margin: 0 !important;
+}
+
+.oc #stats-view-ac,
+.oc .oc-ac-card-section {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.oc .myip-main-card,
+.oc .developer-container {
+    margin: 0 !important;
+}
+
+/* 2. Clash Status Pill Clickable & Feedback */
+.oc #_clash,
+.oc .oc-clash-status-wrap,
+.oc .oc-status-pill {
+    cursor: pointer !important;
+    user-select: none !important;
+    transition: filter var(--transition-fast, 0.15s ease), transform var(--transition-fast, 0.15s ease) !important;
+}
+
+.oc #_clash:hover .oc-status-pill,
+.oc .oc-clash-status-wrap:hover .oc-status-pill,
+.oc .oc-status-pill:hover {
+    filter: brightness(0.95) !important;
+    transform: none !important;
+}
+
+html[data-darkmode="true"] .oc #_clash:hover .oc-status-pill,
+html[data-darkmode="true"] .oc .oc-status-pill:hover {
+    filter: brightness(1.1) !important;
+}
+
+/* 3. Segmented Controls: ZERO Box-Shadow & Strictly Follow Upstream Theme Color var(--primary-color) */
+
+/* 3.1 DNS Enhanced Mode Pill (.mode-pill) */
+.oc .mode-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    background: var(--seg-bg, var(--bg-light)) !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: 6px !important;
+    padding: 2px !important;
+    gap: 2px !important;
+    box-shadow: none !important;
+}
+
+.oc .mode-pill .mode-pill-opt {
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 28px !important;
+    height: 20px !important;
+    padding: 0 !important;
+    border-radius: 4px !important;
+    background: transparent !important;
+    color: var(--text-secondary) !important;
+    cursor: pointer !important;
+    border: none !important;
+    box-shadow: none !important;
+    transition: all var(--transition-fast, 0.15s ease) !important;
+}
+
+.oc .mode-pill .mode-pill-opt svg {
+    width: 13px !important;
+    height: 13px !important;
+    display: block !important;
+    stroke: currentColor !important;
+}
+
+.oc .mode-pill .mode-pill-opt::after {
+    display: none !important;
+}
+
+.oc .mode-pill .mode-pill-opt:hover {
+    color: var(--primary-color) !important;
+    background: var(--primary-a10) !important;
+}
+
+/* Active: Upstream Primary Color */
+.oc .mode-pill input:checked + .mode-pill-opt,
+.oc .mode-pill .mode-pill-opt.active {
+    background: var(--primary-color) !important;
+    color: var(--text-on-primary, #ffffff) !important;
+    box-shadow: none !important;
+}
+
+.oc .mode-pill input:checked + .mode-pill-opt svg,
+.oc .mode-pill .mode-pill-opt.active svg {
+    stroke: var(--text-on-primary, #ffffff) !important;
+    color: var(--text-on-primary, #ffffff) !important;
+}
+
+/* 3.2 Access Control Header Batch Toggle (.ac-dir-pill) */
+.oc .ac-dir-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    background: var(--bg-light) !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: 6px !important;
+    padding: 2px !important;
+    gap: 2px !important;
+    box-shadow: none !important;
+}
+
+.oc .ac-dir-opt {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    height: 20px !important;
+    padding: 0 8px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+    border-radius: 4px !important;
+    border: none !important;
+    background: transparent !important;
+    color: var(--text-secondary) !important;
+    cursor: pointer !important;
+    box-shadow: none !important;
+    transition: all var(--transition-fast, 0.15s ease) !important;
+}
+
+.oc .ac-dir-opt svg {
+    width: 12px !important;
+    height: 12px !important;
+    stroke: currentColor !important;
+}
+
+.oc .ac-dir-opt:hover:not(:disabled):not(.active) {
+    color: var(--primary-color) !important;
+    background: var(--primary-a10) !important;
+}
+
+/* Active: Upstream Primary Color */
+.oc .ac-dir-opt.active,
+.oc .ac-dir-opt[aria-pressed="true"] {
+    background: var(--primary-color) !important;
+    color: var(--text-on-primary, #ffffff) !important;
+    box-shadow: none !important;
+}
+
+.oc .ac-dir-opt.active svg,
+.oc .ac-dir-opt[aria-pressed="true"] svg {
+    stroke: var(--text-on-primary, #ffffff) !important;
+    color: var(--text-on-primary, #ffffff) !important;
+}
+
+/* 3.3 Access Control Row Inline Toggle (.ac-ctrl .ac-switch) */
+.oc .ac-switch {
+    display: inline-flex !important;
+    align-items: center !important;
+    background: var(--bg-light) !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: 6px !important;
+    padding: 2px !important;
+    gap: 2px !important;
+    box-shadow: none !important;
+}
+
+.oc .ac-switch button {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 40px !important;
+    height: 20px !important;
+    padding: 0 6px !important;
+    border: none !important;
+    border-radius: 4px !important;
+    background: transparent !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+    color: var(--text-secondary) !important;
+    cursor: pointer !important;
+    box-shadow: none !important;
+    transition: all var(--transition-fast, 0.15s ease) !important;
+}
+
+.oc .ac-switch button::before {
+    display: none !important;
+}
+
+.oc .ac-switch:not(.ac-disabled) button:hover:not(.on):not([aria-pressed="true"]) {
+    color: var(--primary-color) !important;
+    background: var(--primary-a10) !important;
+}
+
+/* Active: Upstream Primary Color */
+.oc .ac-switch button.on,
+.oc .ac-switch button[aria-pressed="true"] {
+    background: var(--primary-color) !important;
+    color: var(--text-on-primary, #ffffff) !important;
+    box-shadow: none !important;
+}
+
+/* 3.4 Telemetry Chart Tabs & Other Segmented Controls */
+.oc #stats-tabs,
+.oc .stats-tabs {
+    display: inline-flex !important;
+    align-items: center !important;
+    background: var(--bg-light) !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: 6px !important;
+    padding: 2px !important;
+    gap: 2px !important;
+    box-shadow: none !important;
+}
+.oc #stats-tabs .cbi-button-option::before,
+.oc #stats-tabs .cbi-button-option::after,
+.oc .stats-tabs .cbi-button-option::before,
+.oc .stats-tabs .cbi-button-option::after {
+    display: none !important;
+}
+.oc #stats-tabs .cbi-button-option,
+.oc .stats-tabs .cbi-button-option {
+    min-height: 22px !important;
+    height: 22px !important;
+    padding: 0 10px !important;
+    border-radius: 4px !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    color: var(--text-secondary) !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+.oc #stats-tabs .cbi-button-option:hover,
+.oc .stats-tabs .cbi-button-option:hover {
+    color: var(--primary-color) !important;
+    background: var(--primary-a10) !important;
+}
+.oc #stats-tabs input:checked + .cbi-button-option,
+.oc .stats-tabs input:checked + .cbi-button-option,
+.oc .stats-tab.active {
+    background: var(--primary-color) !important;
+    color: var(--text-on-primary, #ffffff) !important;
+    box-shadow: none !important;
+}
+
+/* 4. Client Sorting Dropdown Left-Aligned (#ac-sort-menu) */
+html body .oc #ac-sort-menu button {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+    width: 100% !important;
+    gap: 8px !important;
+    padding: 7px 10px !important;
+    box-shadow: none !important;
+}
+
+html body .oc #ac-sort-menu button > span:not(.ac-sort-ind) {
+    flex: 1 1 auto !important;
+    text-align: left !important;
+}
+
+html body .oc #ac-sort-menu button > svg {
+    flex-shrink: 0 !important;
+}
+
+/* 5. Access Control Card Border-Radius Fix */
+.oc .oc-ac-card-section {
+    border-radius: var(--radius-lg, 8px) !important;
+    overflow: visible !important;
+}
+
+.oc .oc-ac-card-section .ac-head {
+    border-top-left-radius: var(--radius-lg, 8px) !important;
+    border-top-right-radius: var(--radius-lg, 8px) !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+.oc .oc-ac-card-section .ac-body,
+.oc .oc-ac-card-section .ac-list {
+    border-bottom-left-radius: var(--radius-lg, 8px) !important;
+    border-bottom-right-radius: var(--radius-lg, 8px) !important;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    overflow: hidden !important;
+}
+
+/* 6. MyIP Unified Borders (Eliminate Dark Border on Access Check) */
+.oc .myip-ip-section,
+.oc .myip-check-section {
+    border: 1px solid var(--border-light, #e2e8f0) !important;
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
+    outline: none !important;
+}
+
+.oc .myip-ip-section:hover,
+.oc .myip-check-section:hover {
+    border-color: var(--border-light, #e2e8f0) !important;
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
+}
+
+html[data-darkmode="true"] .oc .myip-ip-section,
+html[data-darkmode="true"] .oc .myip-check-section {
+    border: 1px solid var(--border-light, #27272a) !important;
+    box-shadow: none !important;
+}
+
+/* 7. Developer Footer: Borderless & Transparent */
+.oc .developer-container {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 10px 4px !important;
+    margin: 0 !important;
+}
+
+html[data-darkmode="true"] .oc .developer-container {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.oc .developer-container .dev-logo-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    text-decoration: none !important;
+    color: var(--text-secondary, #64748b) !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    transition: color var(--transition-fast, 0.15s ease) !important;
+}
+
+.oc .developer-container .dev-logo-btn:hover {
+    color: var(--text-primary, #0f172a) !important;
+}
+
+.oc .developer-container .dev-logo-btn .mihomo-link {
+    font-style: normal !important;
+    font-weight: 600 !important;
+    color: var(--primary-color, #2563eb) !important;
+}
+
+html[data-darkmode="true"] .oc .developer-container .dev-logo-btn {
+    color: var(--text-secondary, #a1a1aa) !important;
+}
+
+html[data-darkmode="true"] .oc .developer-container .dev-logo-btn:hover {
+    color: #f4f4f5 !important;
+}
+
+/* 8. Comprehensive Responsive Design & Mobile Geometry Fixes */
+@media (max-width: 1024px) {
+    .oc .hero-row-status {
+        padding: 10px 14px !important;
+    }
+    .oc .hero-row-config {
+        padding: 8px 14px !important;
+    }
+}
+
+@media (max-width: 960px) {
+    .oc .tray-row.tray-row-modes,
+    .oc .tray-row.tray-row-policies,
+    .oc .tray-row {
+        grid-template-columns: 1fr !important;
+    }
+    .oc .tray-cell {
+        border-right: none !important;
+        border-bottom: 1px solid var(--border-light, #e2e8f0) !important;
+    }
+    .oc .tray-row .tray-cell:last-child {
+        border-bottom: none !important;
+    }
+    .oc .telemetry-kpi-strip {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
+    .oc .telemetry-kpi-strip .stat-item:nth-child(4n) {
+        border-right: none !important;
+    }
+    .oc .telemetry-kpi-strip .stat-item:nth-child(-n+4) {
+        border-bottom: 1px solid var(--border-light, #e2e8f0) !important;
+    }
+    .oc .myip-content-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .oc-dashboard {
+        gap: 8px !important;
+    }
+    fieldset.cbi-section:has(.oc),
+    .cbi-section:has(.oc),
+    .cbi-map-section:has(.oc) {
+        margin-bottom: 8px !important;
+    }
+
+    .oc .oc-notice {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+        padding: 8px 12px !important;
+    }
+    .oc .oc-notice-actions {
+        align-self: flex-end !important;
+    }
+
+    .oc .hero-row-status {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+    }
+    .oc .hero-status-right {
+        width: 100% !important;
+        justify-content: flex-end !important;
+    }
+
+    /* Fix 300px Vertical Height Defect on Mobile Config Row */
+    .oc .hero-config-left,
+    .oc .hero-config-right {
+        flex: 0 0 auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        width: 100% !important;
+    }
+    .oc .config-file-content {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+    }
+    .oc .hero-row-config {
+        height: auto !important;
+        min-height: 0 !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+    }
+    .oc .hero-config-left {
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
+    .oc .hero-config-left .config-select {
+        flex: 1 1 180px !important;
+        max-width: 100% !important;
+    }
+    .oc .hero-config-right {
+        justify-content: flex-end !important;
+    }
+
+    .oc .myip-content-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .oc .subscription-providers-grid {
+        flex-direction: column !important;
+        overflow-x: hidden !important;
+    }
+    .oc .subscription-providers-grid .provider-card,
+    .oc .subscription-providers-grid[data-count="2"] .provider-card,
+    .oc .subscription-providers-grid[data-count="3"] .provider-card {
+        min-width: 100% !important;
+        flex: 1 1 100% !important;
+        border-right: none !important;
+        border-bottom: 1px solid var(--border-light) !important;
+    }
+    .oc .subscription-providers-grid .provider-card:last-child {
+        border-bottom: none !important;
+    }
+    .oc .myip-section-title .myip-toolbar,
+    .oc .myip-toolbar {
+        position: static !important;
+        top: auto !important;
+        right: auto !important;
+        margin: 0 !important;
+        background: var(--bg-white) !important;
+        border: 1px solid var(--border-light) !important;
+    }
+    .oc .developer-container {
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 12px !important;
+    }
+    .oc .developer-grid {
+        justify-content: center !important;
+    }
+    .oc .developer-footer-links {
+        justify-content: center !important;
+        flex-wrap: wrap !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .oc .policy-switches-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 6px !important;
+    }
+    .oc .tray-cell {
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+    }
+    .oc .telemetry-kpi-strip {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    .oc .telemetry-kpi-strip .stat-item {
+        border-right: 1px solid var(--border-light, #e2e8f0) !important;
+        border-bottom: 1px solid var(--border-light, #e2e8f0) !important;
+        padding: 8px 10px !important;
+    }
+    .oc .telemetry-kpi-strip .stat-item:nth-child(2n) {
+        border-right: none !important;
+    }
+    .oc .telemetry-kpi-strip .stat-item:nth-child(n+7) {
+        border-bottom: none !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .oc .hero-status-right {
+        justify-content: space-between !important;
+    }
+    .oc .oc-hero-btn {
+        padding: 0 8px !important;
+        font-size: 11.5px !important;
+    }
+    .oc .policy-switches-grid {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+    .oc .policy-switch-item {
+        flex: 1 1 calc(50% - 4px) !important;
+        justify-content: space-between !important;
+    }
+    .oc .tray-cell-bypass {
+        flex-direction: row !important;
+        justify-content: space-between !important;
+    }
+    .oc .oc-native-select {
+        flex: 1 1 140px !important;
+        max-width: 100% !important;
+    }
+    .oc .tray-radios {
+        flex-wrap: wrap !important;
+        gap: 4px !important;
+    }
+    .oc .myip-ip-list,
+    .oc .myip-check-list {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* MyIP Container Reset (Light & Dark Mode) */
+.oc .myip-main-card,
+html[data-darkmode="true"] .oc .myip-main-card,
+.oc .myip-content-grid,
+html[data-darkmode="true"] .oc .myip-content-grid,
+.oc .myip-footer,
+html[data-darkmode="true"] .oc .myip-footer,
+.oc .myip-footer p,
+html[data-darkmode="true"] .oc .myip-footer p {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Unified Button Hover Feedback (Light & Dark Mode) */
+.oc .oc-hero-btn:hover,
+.oc .oc-icon-btn:hover,
+.oc #edit_overwrite:hover,
+.oc .hero-logo-btn:hover,
+.oc #dashboard-menu-layer .icon-btn:hover,
+.oc .quick-dropdown-layer .dashboard-btn:hover,
+.oc .quick-dropdown-layer input.dashboard-btn:hover,
+.oc .quick-dropdown-layer .dropdown-item-btn:hover,
+html[data-darkmode="true"] .oc .oc-hero-btn:hover,
+html[data-darkmode="true"] .oc .oc-icon-btn:hover,
+html[data-darkmode="true"] .oc #edit_overwrite:hover,
+html[data-darkmode="true"] .oc .hero-logo-btn:hover,
+html[data-darkmode="true"] .oc #dashboard-menu-layer .icon-btn:hover,
+html[data-darkmode="true"] .oc .quick-dropdown-layer .dashboard-btn:hover,
+html[data-darkmode="true"] .oc .quick-dropdown-layer input.dashboard-btn:hover,
+html[data-darkmode="true"] .oc .quick-dropdown-layer .dropdown-item-btn:hover {
+    background: var(--hover-bg, rgba(59, 130, 246, 0.1)) !important;
+    border-color: var(--primary-color, #3b82f6) !important;
+    color: var(--primary-color, #3b82f6) !important;
+}
+
+.oc .hero-config-left .config-select:hover,
+.oc .oc-native-select:hover,
+html[data-darkmode="true"] .oc .hero-config-left .config-select:hover,
+html[data-darkmode="true"] .oc .oc-native-select:hover {
+    border-color: var(--primary-color, #3b82f6) !important;
+}
+
+.oc .oc-notice-btn-guide:hover,
+html[data-darkmode="true"] .oc .oc-notice-btn-guide:hover {
+    background: var(--primary-a20, rgba(59, 130, 246, 0.22)) !important;
+    border-color: var(--primary-color, #3b82f6) !important;
+    color: var(--primary-color, #3b82f6) !important;
+}
+
+.oc .oc-notice-btn-help:hover,
+html[data-darkmode="true"] .oc .oc-notice-btn-help:hover {
+    filter: brightness(1.12) !important;
+}
+
+.version-display:hover,
+.oc .version-display:hover,
+html[data-darkmode="true"] .version-display:hover,
+html[data-darkmode="true"] .oc .version-display:hover {
+    background: var(--hover-bg, rgba(59, 130, 246, 0.12)) !important;
+    border-color: var(--primary-color, #3b82f6) !important;
+    color: var(--primary-color, #3b82f6) !important;
+}
+
+.oc .ac-key-btn:hover:not(:disabled):not(.ac-working),
+html[data-darkmode="true"] .oc .ac-key-btn:hover:not(:disabled):not(.ac-working) {
+    background: var(--hover-bg, rgba(59, 130, 246, 0.12)) !important;
+    border-color: var(--primary-color, #3b82f6) !important;
+    color: var(--primary-color, #3b82f6) !important;
+}
+
+.oc .myip-toolbar .icon-pill-opt {
+    position: relative !important;
+    z-index: 1 !important;
+    border-radius: 4px !important;
+    transition: background 0.15s ease, color 0.15s ease !important;
+}
+
+.oc .myip-toolbar .icon-pill-opt:hover,
+html[data-darkmode="true"] .oc .myip-toolbar .icon-pill-opt:hover {
+    background: var(--hover-bg, rgba(59, 130, 246, 0.15)) !important;
+    color: var(--primary-color, #3b82f6) !important;
+}
+
+.oc .oc-native-radio:hover,
+html[data-darkmode="true"] .oc .oc-native-radio:hover {
+    color: var(--text-primary) !important;
+}
+
+.oc .oc-native-radio:hover input[type="radio"]:not(:checked),
+html[data-darkmode="true"] .oc .oc-native-radio:hover input[type="radio"]:not(:checked) {
+    border-color: var(--primary-color, #3b82f6) !important;
+}
+
+.oc .developer-container .dev-logo-btn:hover,
+.oc .dev-footer-link:hover,
+html[data-darkmode="true"] .oc .developer-container .dev-logo-btn:hover,
+html[data-darkmode="true"] .oc .dev-footer-link:hover {
+    color: var(--primary-color, #3b82f6) !important;
+}
+
+/* Native Dropdown Custom Arrow (Light & Dark Mode) */
+.oc .hero-config-left .config-select,
+.oc .oc-native-select {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    background-color: var(--bg-white, #ffffff) !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 8px center !important;
+    background-size: 14px 14px !important;
+    padding-right: 28px !important;
+}
+
+html[data-darkmode="true"] .oc .hero-config-left .config-select,
+html[data-darkmode="true"] .oc .oc-native-select {
+    background-color: var(--bg-light, #1e2126) !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a9afb7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 8px center !important;
+    background-size: 14px 14px !important;
+    padding-right: 28px !important;
+}
+
+/* Host Theme Accent Variable Fallback Chain */
+.oc,
+.oc-ver-pills-top {
+    --primary-color: var(--primary-color-high, var(--primary, var(--main-color, #3b82f6)));
+}
+
+/* Universal Control Box-Model Isolation */
+.oc input[type="radio"],
+.oc input[type="checkbox"],
+.oc .mode-radio-label input[type="radio"] {
+    min-height: 0 !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    position: relative !important;
+    top: 0 !important;
+    right: 0 !important;
+    left: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    flex-shrink: 0 !important;
+    aspect-ratio: 1 / 1 !important;
+}
+
+.oc button,
+.oc .oc-hero-btn,
+.oc .oc-icon-btn,
+.oc .oc-notice-btn,
+.oc .ac-dir-opt,
+.oc .ac-key-btn {
+    text-transform: none !important;
+    box-sizing: border-box !important;
+}
+
