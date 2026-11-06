@@ -34,7 +34,15 @@ local uci = require "luci.model.uci".cursor()
 local SYS  = require "luci.sys"
 -- The section types used to be written with a hyphen, convert the stored package once.
 do
-	if SYS.call("grep -q '^config proxy-groups\\|^config proxy-providers' /etc/config/openclash /tmp/.uci/openclash 2>/dev/null") == 0 then
+	local function has_legacy_sections(path)
+		local raw = fs.readfile(path)
+		if not raw then return false end
+		return raw:find("\nconfig proxy%-groups", 1) ~= nil
+			or raw:find("\nconfig proxy%-providers", 1) ~= nil
+			or raw:find("^config proxy%-groups", 1) ~= nil
+			or raw:find("^config proxy%-providers", 1) ~= nil
+	end
+	if has_legacy_sections("/etc/config/openclash") or has_legacy_sections("/tmp/.uci/openclash") then
 		SYS.call("sed -i 's/^config proxy-groups/config proxy_groups/;s/^config proxy-providers/config proxy_providers/' /etc/config/openclash /tmp/.uci/openclash 2>/dev/null")
 	end
 end
