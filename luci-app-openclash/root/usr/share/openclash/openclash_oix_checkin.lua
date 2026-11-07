@@ -8,20 +8,25 @@ local fs = require "luci.openclash"
 local json = require "luci.jsonc"
 
 local function oix_checkin()
-	local info, path, checkin
+	local info, path
 	local token = fs.uci_get_config("config", "oix_token")
 	local enable = fs.uci_get_config("config", "oix_checkin") or 0
 	local interval = fs.uci_get_config("config", "oix_checkin_interval") or 1
 	local multiple = fs.uci_get_config("config", "oix_checkin_multiple") or 1
 	path = "/tmp/oix_checkin"
 	if token and enable == "1" then
-		checkin = string.format("curl -sL -m 20 --proto '=https' --proto-redir '=https' -H 'User-Agent: OpenClash for oixCloud' -H 'X-oixCloud-Client: openclash' -H 'Content-Type: application/json' -H 'Authorization: Bearer %s' -d '{\"multiple\":\"%s\"}' -X POST https://oix-api.dler.io/api/v1/checkin -o %s", token, multiple, path)
+		local function checkin()
+			local reply = fs.oix_cli("checkin", {token = token, multiple = math.floor(tonumber(multiple) or 1)})
+			if reply then
+				fs.writefile(path, json.stringify(reply.error and {msg = reply.error} or {ret = 200, data = {checkin = reply.checkin}}))
+			end
+		end
 		if fs.readfile(path) == "" or not fs.readfile(path) then
-			luci.sys.exec(checkin)
+			checkin()
 		else
 			if (os.time() - fs.mtime(path) > interval*3600+1) then
 				fs.unlink(path)
-				luci.sys.exec(checkin)
+				checkin()
 			else
 				os.exit(0)
 			end
@@ -34,12 +39,12 @@ local function oix_checkin()
 			info = json.parse(info)
 		end
 		if info and info.ret == 200 then
-			luci.sys.exec(string.format('echo "%s [Info] oixCloud Checkin Successful, Result:【%s】" >> /tmp/openclash.log', os.date("%Y-%m-%d %H:%M:%S"), info.data.checkin))
+			fs.append_log(string.format("%s [Info] oixCloud Checkin Successful, Result:【%s】", os.date("%Y-%m-%d %H:%M:%S"), tostring(info.data.checkin)))
 		else
 			if info and info.msg then
-				luci.sys.exec(string.format('echo "%s [Info] oixCloud Checkin Failed, Result:【%s】" >> /tmp/openclash.log', os.date("%Y-%m-%d %H:%M:%S"), info.msg))
+				fs.append_log(string.format("%s [Info] oixCloud Checkin Failed, Result:【%s】", os.date("%Y-%m-%d %H:%M:%S"), tostring(info.msg)))
 			else
-				luci.sys.exec(string.format('echo "%s [Info] oixCloud Checkin Failed! Please Check And Try Again..." >> /tmp/openclash.log', os.date("%Y-%m-%d %H:%M:%S")))
+				fs.append_log(os.date("%Y-%m-%d %H:%M:%S") .. " [Info] oixCloud Checkin Failed! Please Check And Try Again...")
 			end
 		end
 	end

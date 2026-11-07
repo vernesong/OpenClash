@@ -122,19 +122,52 @@ yaml_sub_validate()
    return 1
 }
 
+# Subscription addresses carry credentials, the log names only the host.
+url_host()
+{
+   printf '%s' "$1" | sed -E 's|^[A-Za-z][A-Za-z0-9+.-]*://||; s|^[^/?#]*@||; s|[/?#].*$||'
+}
+
+# The core downloads the account's subscription; the token goes over stdin.
+config_download_managed()
+{
+   local core reply
+   core="/etc/openclash/core/clash_meta"
+   [ "$(uci_get_config "small_flash_memory")" = "1" ] && core="/tmp/etc/openclash/core/clash_meta"
+   if ! "$core" -v 2>/dev/null | grep -q oix || ! "$core" oix managed-config --check >/dev/null 2>&1; then
+      OIX_INSTALL_ONLY=1 /usr/share/openclash/openclash_core.sh Oix >/dev/null 2>&1
+   fi
+   if ! "$core" -v 2>/dev/null | grep -q oix || ! "$core" oix managed-config --check >/dev/null 2>&1; then
+      LOG_ERROR "Config File【$name】Needs The oixCloud Core, Please Install It First"
+      DOWNLOAD_RESULT=1
+      return
+   fi
+   LOG_INFO "Config File【$name】Downloading Through The Core..."
+   reply=$(printf '{"token":"%s","output":"%s"}' "$oix_token" "$CFG_FILE" | OIX_CLIENT=openclash CLASH_HOME_DIR="$CLASH_CONFIG" "$core" oix managed-config -format lines 2>/dev/null)
+   DOWNLOAD_RESULT=$?
+   if [ "$DOWNLOAD_RESULT" -ne 0 ]; then
+      LOG_OUT "Config File【$name】Download Failed:【$(printf '%s\n' "$reply" | sed -n 's/^error=//p')】"
+      DOWNLOAD_RESULT=1
+   fi
+}
+
 config_download()
 {
+if [ -n "$oix_token" ]; then
+   config_download_managed
+   return
+fi
 local DEFER_ETAG_SAVE=1
 LOG_TIP "Config File【$name】Downloading User-Agent【$sub_ua】..."
 if [ -n "$sub_headers" ]; then
    LOG_TIP "Config File【$name】Custom Headers【$(echo "$sub_headers" | tr '\n' ',' | sed 's/,$//')】..."
 fi
 if [ -n "$subscribe_url_param" ] && [ -n "$c_address" ]; then
-   LOG_INFO "Config File【$name】Downloading URL【$c_address$subscribe_url_param】..."
+   LOG_INFO "Config File【$name】Downloading URL【$(url_host "$c_address")】..."
    DOWNLOAD_URL="${c_address}${subscribe_url_param}"
 fi
 if [ -z "$DOWNLOAD_URL" ]; then
-   LOG_INFO "Config File【$name】Downloading URL【$subscribe_url】..."
+   LOG_INFO "Config File【$name】Downloading URL【$(url_host "$subscribe_url")】..."
    DOWNLOAD_URL="${subscribe_url}"
 fi
 DOWNLOAD_PARAM="$sub_ua"
@@ -383,7 +416,7 @@ $1"
 
 sub_info_get()
 {
-   local section="$1" subscribe_url template_path subscribe_url_param template_path_encode key_match_param key_ex_match_param c_address de_ex_keyword sub_ua sub_headers append_custom_params SECRET_KEY DOWNLOAD_URL DOWNLOAD_PARAM
+   local section="$1" subscribe_url template_path subscribe_url_param template_path_encode key_match_param key_ex_match_param c_address de_ex_keyword sub_ua sub_headers append_custom_params SECRET_KEY DOWNLOAD_URL DOWNLOAD_PARAM oix_token
    config_get "name" "$section" "name" "config"
    config_get "sub_convert" "$section" "sub_convert" "0"
    config_get "address" "$section" "address" ""
@@ -408,6 +441,26 @@ sub_info_get()
 
    CONFIG_FILE="/etc/openclash/config/$name.yaml"
    CFG_FILE="/tmp/$name.yaml"
+
+   # the account's entry follows the sign-in; an address it still holds is dropped
+   if [ "$name" = "oixCloud" ]; then
+      oix_token=$(uci_get_config "oix_token")
+      case "$oix_token" in
+         *[!0-9a-f]*) oix_token="" ;;
+      esac
+      if [ -n "$oix_token" ] && [ "$address" != "oixcloud://managed" ]; then
+         address="oixcloud://managed"
+         uci -q set openclash."$section".address="$address"
+         uci -q delete openclash."$section".address_fallback
+         uci -q commit openclash
+      elif [ -z "$oix_token" ] && { [ -z "$address" ] || [ "$address" = "oixcloud://managed" ]; }; then
+         if [ "$2" = "$name" ] || [ "$2" = "$CONFIG_FILE" ]; then
+            LOG_ERROR "Config File【$name】Needs An oixCloud Sign-In, Nothing Was Updated"
+            exit_code=1
+         fi
+         return
+      fi
+   fi
 
    if [ -z "$address" ]; then
       return

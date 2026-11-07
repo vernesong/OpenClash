@@ -417,6 +417,54 @@ function uci_get_config(section, key)
 	return val
 end
 
+--- Installed core binary.
+function core_path()
+	if uci_get_config("config", "small_flash_memory") == "1" then
+		return "/tmp/etc/openclash/core/clash_meta"
+	end
+	return "/etc/openclash/core/clash_meta"
+end
+
+--- Runs an account command of the core. The request goes over stdin, which keeps its
+-- contents out of the process list; the reply is one JSON object.
+-- @param command	Command name
+-- @param request	Table with the request fields
+-- @return			Decoded reply, or nil when the core gave none
+function oix_cli(command, request)
+	local core = core_path()
+	if not fs.access(core) then
+		return nil
+	end
+	local temporary = (SYS.exec("mktemp /tmp/.oix_cli.XXXXXX 2>/dev/null") or ""):match("^(%S+)")
+	if not temporary then
+		return nil
+	end
+	local out
+	if fs.writefile(temporary, json.stringify(request or {})) then
+		out = SYS.exec(string.format("OIX_CLIENT=openclash CLASH_HOME_DIR=/etc/openclash %s oix %s < %s 2>/dev/null",
+			UTIL.shellquote(core), command, UTIL.shellquote(temporary)))
+	end
+	fs.remove(temporary)
+	local ok, reply = pcall(json.parse, out or "")
+	if not ok or type(reply) ~= "table" then
+		return nil
+	end
+	-- a core older than the plugin answers this to a command it does not know
+	if reply.code == "usage" and SYS.call(UTIL.shellquote(core) .. " oix managed-config --check >/dev/null 2>&1") ~= 0 then
+		return nil
+	end
+	return reply
+end
+
+--- Appends one line to the plugin log without going through a shell.
+function append_log(line, path)
+	local file = io.open(path or "/tmp/openclash.log", "a")
+	if file then
+		file:write((tostring(line):gsub("%c", " ")), "\n")
+		file:close()
+	end
+end
+
 --- Asks a subscription for its usage headers, under a second User-Agent if the first one
 -- gets no answer.
 function sub_info_command(agent, header_args, url)

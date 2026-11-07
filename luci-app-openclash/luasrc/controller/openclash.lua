@@ -126,6 +126,7 @@ function index()
 	entry({"admin", "services", "openclash", "oix_logout"}, call("oix_logout"))
 	entry({"admin", "services", "openclash", "oix_login"}, call("oix_login"))
 	entry({"admin", "services", "openclash", "oix_google_begin"}, call("oix_google_begin"))
+	entry({"admin", "services", "openclash", "oix_web_link"}, call("oix_web_link"))
 	entry({"admin", "services", "openclash", "oix_login_info_save"}, call("oix_login_info_save"))
 	entry({"admin", "services", "openclash", "theme_get"}, call("action_theme_get"))
 	entry({"admin", "services", "openclash", "theme_save"}, call("action_theme_save"))
@@ -923,8 +924,8 @@ function get_sub_url(filename)
 				providers = []
 				if config && config["proxy-providers"]
 					config["proxy-providers"].each do |name, provider|
-						# Only include providers with non-empty URLs
-						if provider && provider["url"] && !provider["url"].to_s.empty?
+						# Only include providers with URLs that can be requested
+						if provider && provider["url"] && !provider["url"].to_s.empty? && !provider["url"].to_s.include?(".invalid/")
 							providers << {"name" => name, "url" => provider["url"].to_s}
 						end
 					end
@@ -989,6 +990,7 @@ end
 
 function sub_info_get()
 	local sub_ua, sub_headers, filename, sub_info, url_result
+	local managed = false
 	local providers_data = {}
 
 	filename = HTTP.formvalue("filename")
@@ -1004,6 +1006,7 @@ function sub_info_get()
 				if s.sub_ua then
 					sub_ua = s.sub_ua
 				end
+				managed = s.name == "oixCloud"
 				local raw = uci:get_list("openclash", s['.name'], "sub_headers")
 				if raw then
 					sub_headers = table.concat(raw, "\n")
@@ -1013,7 +1016,15 @@ function sub_info_get()
 		end
 	)
 
-	if base and not is_start() then
+	if managed and fs.uci_get_config("config", "oix_token") and not is_start() then
+		local reply = fs.oix_cli("managed-config", {token = fs.uci_get_config("config", "oix_token")})
+		url_result = {type = "single"}
+		local info = reply and reply.subscription_info
+			and fetch_sub_info(nil, nil, nil, "subscription-userinfo: " .. reply.subscription_info .. "\nhttp_code=200")
+		if info then
+			providers_data[#providers_data + 1] = info
+		end
+	elseif base and not is_start() then
 		url_result = get_sub_url(base)
 
 		if url_result then
@@ -6890,59 +6901,58 @@ local function oix_valid_token(token)
 	return type(token) == "string" and #token >= 32 and #token <= 128 and token:match("^[0-9a-f]+$") ~= nil
 end
 
-local function oix_quote(value)
-	return "'" .. tostring(value):gsub("'", "'\\''") .. "'"
-end
+local oix_quote = UTIL.shellquote
 
 local function oix_progress(stage, text)
 	write_padded('{"stage":"' .. stage .. '","text":"' .. luci.i18n.translate(text) .. '"}')
 end
 
-local function oix_api(path, token, payload, timeout, with_ua)
-	local cmd = string.format("curl -sL -m %d --retry 2 -H 'Content-Type: application/json'", timeout or 20)
-	if with_ua then
-		cmd = cmd .. " -H 'User-Agent: OpenClash for oixCloud'"
+local OIX_CORE_MISSING = "The oixCloud core is not installed or too old; install it from the Core settings and try again"
+
+-- subscription entries of the account carry this in place of an address
+local OIX_MANAGED_ADDRESS = "oixcloud://managed"
+
+local function oix_core_ready()
+	local version = coremetacv()
+	return version ~= "0" and string.match(version, "oix") ~= nil
+		and SYS.call(oix_quote(meta_core_path) .. " oix managed-config --check >/dev/null 2>&1") == 0
+end
+
+local OIX_INSTALL_COMMAND = "OIX_INSTALL_ONLY=1 /usr/share/openclash/openclash_core.sh Oix >/dev/null 2>&1"
+local OIX_INSTALL_STAMP = "/tmp/oix_core_install_tried"
+
+-- Everything that talks to the panel runs through the core, so it comes first.
+-- A background read never waits for it, and starts one install per ten minutes.
+local function oix_ensure_core(report, background)
+	if oix_core_ready() then return true end
+	if background then
+		if os.time() - (fs.mtime(OIX_INSTALL_STAMP) or 0) >= 600 then
+			fs.writefile(OIX_INSTALL_STAMP, "")
+			SYS.call(OIX_INSTALL_COMMAND .. " &")
+		end
+		return nil, OIX_CORE_MISSING
 	end
-	if token then
-		cmd = cmd .. " -H 'Authorization: Bearer " .. token .. "'"
-	end
-	if payload then
-		cmd = cmd .. " -d " .. oix_quote(payload)
-	end
-	local out = SYS.exec(cmd .. " -X POST https://oix-api.dler.io/api/v1/" .. path)
-	if not out or out == "" then return nil end
-	local ok, res = pcall(json.parse, out)
-	if ok and type(res) == "table" then return res end
-	return nil
+	if report then oix_progress("downloading_core", "Installing oixCloud core and restarting...") end
+	SYS.call(OIX_INSTALL_COMMAND)
+	if oix_core_ready() then return true end
+	return nil, OIX_CORE_MISSING
+end
+
+local function oix_cli_error(reply, fallback)
+	if not reply then return OIX_CORE_MISSING end
+	return reply.error or fallback
 end
 
 local function oix_account_token(token)
 	if not oix_valid_token(token) then return nil, "invalid token" end
-	local info = oix_api("information", token)
-	if not info or info.ret ~= 200 or type(info.data) ~= "table" then return nil, "login failed" end
-	if type(info.data.token_client) == "string" and info.data.token_client ~= "" and info.data.token_client ~= "openclash" then
-		local rebound = oix_api("token/rebind", token)
-		if rebound and rebound.ret == 200 and type(rebound.data) == "table"
-			and rebound.data.token_client == "openclash" and oix_valid_token(rebound.data.token) then
-			return rebound.data.token
-		end
-		return nil, "Unable to select the OpenClash account"
+	local reply = fs.oix_cli("account", {token = token})
+	if not reply or reply.error or not oix_valid_token(reply.token) then
+		return nil, oix_cli_error(reply, "login failed")
 	end
-	return token
+	return reply.token
 end
 
 local OIX_GOOGLE_FLOW = "/tmp/oix_google_login"
-
-local function oix_b64url(bytes)
-	return (nixio.bin.b64encode(bytes):gsub("[+/=]", {["+"] = "-", ["/"] = "_", ["="] = ""}))
-end
-
-local function oix_random_b64url()
-	local file = io.open("/dev/urandom", "rb")
-	local bytes = file and file:read(32)
-	if file then file:close() end
-	return bytes and #bytes == 32 and oix_b64url(bytes) or nil
-end
 
 -- mirrors the panel, which only returns codes to local addresses; checking here gives a readable error
 local function oix_local_origin(origin)
@@ -6975,17 +6985,17 @@ local function oix_google_token(code, state)
 		or (tonumber(flow.expires) or 0) <= os.time() or type(code) ~= "string" or #code ~= 64 or code:find("[^0-9a-f]") then
 		return nil, "Google sign-in expired or could not be verified, please try again"
 	end
-	-- the code is single-use, so the exchange is neither retried nor redirected
-	local out = SYS.exec(string.format("curl -s -m 30 --proto '=https' -H 'User-Agent: OpenClash for oixCloud' -H 'X-oixCloud-Client: openclash' --data-urlencode %s --data-urlencode %s -X POST https://oix-api.dler.io/api/v1/login/google",
-		oix_quote("code=" .. code), oix_quote("code_verifier=" .. flow.verifier)))
-	if not out or out == "" then
+	local reply = fs.oix_cli("google", {code = code, code_verifier = flow.verifier})
+	if not reply then
+		return nil, OIX_CORE_MISSING
+	end
+	if reply.code == "network" or reply.code == "timeout" then
 		return nil, "Network request failed, please check your connection and try again"
 	end
-	local parsed, info = pcall(json.parse, out)
-	if not parsed or type(info) ~= "table" or info.ret ~= 200 or type(info.data) ~= "table" or not oix_valid_token(info.data.token) then
+	if not oix_valid_token(reply.token) then
 		return nil, "Google sign-in expired or could not be verified, please try again"
 	end
-	return info.data.token
+	return reply.token
 end
 
 local function oix_core_api(method, path, timeout)
@@ -7040,33 +7050,25 @@ local function fetch_oix_sub(token)
 	if not oix_valid_token(token) then
 		return nil, "invalid token"
 	end
-	oix_progress("fetching_sub", "Fetching subscription...")
-	local sub_info = oix_api("managed/clash", token, nil, 30)
-	local sub_url = sub_info and sub_info.ret == 200 and sub_info.openclash
-	if type(sub_url) ~= "string" or not sub_url:match("^https://[^/%s]+/") or sub_url:find("[%c]") then
-		return nil, "Unable to fetch managed configuration"
-	end
 	oix_progress("downloading_config", "Downloading config...")
 	local temporary = SYS.exec("mktemp /etc/openclash/config/.oixCloud.XXXXXX 2>/dev/null")
 	temporary = temporary and temporary:match("^(/etc/openclash/config/%.oixCloud%.[%w]+)%s*$")
 	if not temporary then
 		return nil, "Unable to save subscription; existing configuration was kept"
 	end
-	local function fail(message, detail)
+	local function fail(message)
 		fs.unlink(temporary)
-		if detail then message = string.format(luci.i18n.translate(message), detail) end
 		return nil, message
 	end
-	local result = SYS.exec(string.format("curl -fsSL --connect-timeout 10 -m 10 --retry 2 --proto '=https' --proto-redir '=https' --user-agent clash -w '%%{http_code}' -o %s -- %s 2>/dev/null; printf ':%%s' \"$?\"", oix_quote(temporary), oix_quote(sub_url)))
-	local status, code = (result or ""):match("^(%d%d%d):(%d+)$")
-	if status and status ~= "000" and status ~= "200" then
-		return fail("Subscription download failed (HTTP %s); existing configuration was kept", status)
-	end
-	if code == "28" then
+	local reply = fs.oix_cli("managed-config", {token = token, output = temporary})
+	if not reply then
+		return fail(OIX_CORE_MISSING)
+	elseif reply.code == "timeout" then
 		return fail("Subscription download timed out; existing configuration was kept")
-	end
-	if code ~= "0" or status ~= "200" then
-		return fail("Subscription request failed (curl %s); existing configuration was kept", code or "unknown")
+	elseif reply.code == "invalid_config" then
+		return fail("Subscription is not a valid Clash configuration; existing configuration was kept")
+	elseif reply.error then
+		return fail(reply.error)
 	end
 	local validation_result = SYS.exec("ruby -ryaml -rYAML -I /usr/share/openclash -E UTF-8 -e 'puts YAML.subscription_status(ARGV[0], ARGV.drop(1))' " .. oix_quote(temporary) .. " oixCloud 'oixCloud - smart' 2>/dev/null; printf ':%s' \"$?\"")
 	local validation, validation_code = (validation_result or ""):match("^%s*([%u_]+)%s*:(%d+)$")
@@ -7080,17 +7082,8 @@ local function fetch_oix_sub(token)
 	elseif validation ~= "OK" then
 		return fail("Subscription validation could not run; check Ruby dependencies. Existing configuration was kept")
 	end
-	local core = coremetacv()
-	if core == "0" or not string.match(core, "oix") then
-		oix_progress("downloading_core", "Installing oixCloud core and restarting...")
-		SYS.call("OIX_INSTALL_ONLY=1 /usr/share/openclash/openclash_core.sh Oix >/dev/null 2>&1")
-		local installed = coremetacv()
-		if installed == "0" or not string.match(installed, "oix") then
-			return fail("Unable to update the oixCloud core")
-		end
-	end
 	local age_secret = SYS.exec("(. /usr/share/openclash/uci.sh; uci_get_age_secret_keys oixCloud; uci_get_age_secret_keys 'oixCloud - smart') 2>/dev/null") or ""
-	if SYS.call("OIX_TOKEN=" .. oix_quote(token) .. " OIX_CLIENT=openclash /etc/openclash/clash -t -d /etc/openclash -f " .. oix_quote(temporary) .. " -age-secret-key " .. oix_quote(age_secret) .. " >/dev/null 2>&1") ~= 0 then
+	if SYS.call("OIX_TOKEN=" .. oix_quote(token) .. " OIX_CLIENT=openclash " .. oix_quote(meta_core_path) .. " -t -d /etc/openclash -f " .. oix_quote(temporary) .. " -age-secret-key " .. oix_quote(age_secret) .. " >/dev/null 2>&1") ~= 0 then
 		return fail("Subscription failed core validation; existing configuration was kept")
 	end
 	local config_file = "/etc/openclash/config/oixCloud.yaml"
@@ -7105,22 +7098,18 @@ local function fetch_oix_sub(token)
 		uci:set("openclash", "config", "config_path", config_file)
 	end
 	uci:commit("openclash")
-	local managed_sids = {}
-	uci:foreach("openclash", "config_subscribe", function(s)
-		if s.name == "oixCloud - smart" then managed_sids[s['.name']] = true end
-	end)
 	fs.config_refs("oixCloud - smart.yaml", "oixCloud.yaml")
 	uci:load("openclash")
 	local sid, duplicates = nil, {}
 	uci:foreach("openclash", "config_subscribe", function(s)
-		-- adopt only sections renamed from the legacy name or still pointing at the managed URL
-		if s.name == "oixCloud" and (managed_sids[s['.name']] or s.address == nil or s.address == "" or s.address == sub_url) then
+		if s.name == "oixCloud" then
 			if not sid then sid = s['.name'] else duplicates[#duplicates + 1] = s['.name'] end
 		end
 	end)
 	sid = sid or uci:add("openclash", "config_subscribe")
 	uci:set("openclash", sid, "name", "oixCloud")
-	uci:set("openclash", sid, "address", sub_url)
+	uci:set("openclash", sid, "address", OIX_MANAGED_ADDRESS)
+	uci:delete("openclash", sid, "address_fallback")
 	for _, duplicate in ipairs(duplicates) do uci:delete("openclash", duplicate) end
 	uci:foreach("openclash", "overwrite", function(s)
 		local paths, changed = s.config, false
@@ -7147,6 +7136,11 @@ function oix_login()
 	local input_token = HTTP.formvalue("token")
 	local email = HTTP.formvalue("email")
 	local passwd = HTTP.formvalue("passwd")
+	local ready, core_err = oix_ensure_core(true)
+	if not ready then
+		write_padded('{"stage":"error","result":' .. json.stringify(luci.i18n.translate(core_err)) .. '}')
+		return
+	end
 	if google_code and google_code ~= "" then
 		write_padded('{"stage":"logging_in","text":"' .. luci.i18n.translate("Logging in...") .. '"}')
 		token, err = oix_google_token(google_code, HTTP.formvalue("google_state"))
@@ -7167,13 +7161,13 @@ function oix_login()
 			return
 		end
 		write_padded('{"stage":"logging_in","text":"' .. luci.i18n.translate("Logging in...") .. '"}')
-		local info = oix_api("login", nil, json.stringify({email = email, passwd = passwd, token_expire = "365"}), 30, true)
-		if not info or info.ret ~= 200 or type(info.data) ~= "table" or not oix_valid_token(info.data.token) then
-			local message = (info and info.msg) or luci.i18n.translate("login failed")
-			write_padded('{"stage":"error","result":' .. json.stringify(message) .. '}')
+		local reply = fs.oix_cli("login", {email = email, password = passwd})
+		if not reply or reply.error or not oix_valid_token(reply.token) then
+			local message = oix_cli_error(reply, "login failed")
+			write_padded('{"stage":"error","result":' .. json.stringify(luci.i18n.translate(message)) .. '}')
 			return
 		end
-		token = info.data.token
+		token = reply.token
 	end
 	local ok, ferr = fetch_oix_sub(token)
 	if ok then
@@ -7191,27 +7185,51 @@ function oix_google_begin()
 		HTTP.write_json({error = luci.i18n.translate("Google sign-in is only available when OpenClash is opened from a local network address")})
 		return
 	end
+	local ready, core_err = oix_ensure_core()
+	if not ready then
+		HTTP.write_json({error = luci.i18n.translate(core_err)})
+		return
+	end
 	-- the verifier stays on the router; the browser only carries its challenge
-	local state, verifier = oix_random_b64url(), oix_random_b64url()
-	local digest = verifier and (SYS.exec("printf '%s' " .. oix_quote(verifier) .. " | sha256sum 2>/dev/null") or ""):match("^(%x+)")
-	if not state or not digest or #digest ~= 64
-		or not fs.writefile(OIX_GOOGLE_FLOW, json.stringify({state = state, verifier = verifier, expires = os.time() + 600})) then
+	local grant = fs.oix_cli("google-start", {
+		redirect_uri = origin .. "/luci-static/resources/openclash/oix_google_callback.html"
+	})
+	if not grant or type(grant.url) ~= "string" or type(grant.state) ~= "string" or type(grant.code_verifier) ~= "string"
+		or not fs.writefile(OIX_GOOGLE_FLOW, json.stringify({state = grant.state, verifier = grant.code_verifier, expires = os.time() + 600})) then
 		HTTP.write_json({error = luci.i18n.translate("Unable to start Google sign-in")})
 		return
 	end
 	fs.chmod(OIX_GOOGLE_FLOW, "rw-------")
-	HTTP.write_json({
-		state = state,
-		url = "https://oixcloud.com/auth/client/google?client_id=openclash&state=" .. state
-			.. "&code_challenge=" .. oix_b64url(nixio.bin.unhexlify(digest)) .. "&code_challenge_method=S256"
-			.. "&redirect_uri=" .. HTTP.urlencode(origin .. "/luci-static/resources/openclash/oix_google_callback.html")
-	})
+	HTTP.write_json({state = grant.state, url = grant.url})
+end
+
+-- website pages the plugin links to; the core knows their addresses
+function oix_web_link()
+	HTTP.prepare_content("application/json")
+	HTTP.header("Cache-Control", "no-store")
+	local ready, core_err = oix_ensure_core()
+	if not ready then
+		HTTP.write_json({error = luci.i18n.translate(core_err)})
+		return
+	end
+	local reply = fs.oix_cli("web-link", {page = HTTP.formvalue("page")})
+	if reply and type(reply.url) == "string" and reply.url:match("^https://") then
+		HTTP.write_json({url = reply.url})
+	else
+		HTTP.write_json({error = luci.i18n.translate(oix_cli_error(reply, "Unable to open the page"))})
+	end
 end
 
 function oix_logout()
+	local warning
 	local token = fs.uci_get_config("config", "oix_token")
 	if oix_valid_token(token) then
-		SYS.call(string.format("curl -sL -m 10 --proto '=https' --proto-redir '=https' -H 'User-Agent: OpenClash for oixCloud' -H 'X-oixCloud-Client: openclash' -H 'Content-Type: application/json' -H 'Authorization: Bearer %s' -X POST https://oix-api.dler.io/api/v1/logout >/dev/null 2>&1", token))
+		local ready, core_err = oix_ensure_core()
+		if ready then
+			fs.oix_cli("logout", {token = token})
+		else
+			warning = luci.i18n.translate(core_err)
+		end
 	end
 	uci:delete("openclash", "config", "oix_token")
 	uci:delete("openclash", "config", "oix_email")
@@ -7222,28 +7240,43 @@ function oix_logout()
 	uci:delete("openclash", "config", "oix_params")
 	uci:delete("openclash", "config", "oix_default_params")
 	uci:delete("openclash", "config", "oix_show_info_page")
+	-- the account's entry has nothing to update from once signed out
+	uci:foreach("openclash", "config_subscribe", function(s)
+		if s.address == OIX_MANAGED_ADDRESS then
+			uci:delete("openclash", s['.name'], "address")
+		end
+	end)
 	uci:commit("openclash")
 	fs.unlink("/tmp/oix_checkin")
 	fs.unlink("/tmp/oix_info")
 	HTTP.prepare_content("application/json")
-	HTTP.write_json({result = 200})
+	HTTP.write_json({result = 200, warning = warning})
 end
 
 function oix_info()
-	local info, path, get_info
+	local info, path
 	local result = "error"
 	local token = fs.uci_get_config("config", "oix_token")
 	path = "/tmp/oix_info"
 	if token and oix_valid_token(token) then
-		get_info = string.format("curl -sL -m 15 -H 'Content-Type: application/json' -H 'Authorization: Bearer %s' -X POST https://oix-api.dler.io/api/v1/information -o %s", token, path)
+		-- only the panel's answer replaces what is kept; a failed read asks again next time
+		local function get_info()
+			if not oix_ensure_core(false, true) then return end
+			local reply = fs.oix_cli("info", {token = token})
+			if reply and reply.information then
+				fs.writefile(path, json.stringify({ret = 200, data = reply.information}))
+			elseif reply and reply.code == "rejected" then
+				fs.writefile(path, json.stringify({msg = reply.error}))
+			end
+		end
 		if not fs.access(path) then
-			SYS.exec(get_info)
+			get_info()
 		else
 			if fs.readfile(path) == "" or not fs.readfile(path) then
-				SYS.exec(get_info)
+				get_info()
 			else
 				if (os.time() - fs.mtime(path) > 900) then
-					SYS.exec(get_info)
+					get_info()
 				end
 			end
 		end
@@ -7256,9 +7289,7 @@ function oix_info()
 		end
 		if info and info.ret == 200 and info.data then
 			result = info.data
-		elseif info and info.msg then
-			fs.writefile(path, json.stringify(info))
-		else
+		elseif not (info and info.msg) then
 			fs.unlink(path)
 		end
 	end
@@ -7272,24 +7303,24 @@ function oix_checkin()
 	local path = "/tmp/oix_checkin"
 	local token = fs.uci_get_config("config", "oix_token")
 	local multiple = fs.uci_get_config("config", "oix_checkin_multiple") or 1
-	if token then
-		info = SYS.exec(string.format("curl -sL -m 20 --proto '=https' --proto-redir '=https' -H 'User-Agent: OpenClash for oixCloud' -H 'X-oixCloud-Client: openclash' -H 'Content-Type: application/json' -H 'Authorization: Bearer %s' -d '{\"multiple\":\"%s\"}' -X POST https://oix-api.dler.io/api/v1/checkin", token, multiple))
-		if info then
-			info = json.parse(info)
-		end
-		if info and info.ret == 200 then
+	if oix_valid_token(token) then
+		local ready, core_err = oix_ensure_core()
+		local reply = ready and fs.oix_cli("checkin", {token = token, multiple = math.floor(tonumber(multiple) or 1)})
+		if not ready then
+			info = {msg = luci.i18n.translate(core_err)}
+			fs.append_log(string.format("%s [Info] oixCloud Checkin Failed, Result:【%s】", os.date("%Y-%m-%d %H:%M:%S"), core_err))
+		elseif reply and not reply.error then
+			info = {ret = 200, data = {checkin = reply.checkin}}
 			fs.unlink("/tmp/oix_info")
 			fs.writefile(path, json.stringify(info))
-			SYS.exec(string.format("echo -e %s [Info] oixCloud Checkin Successful, Result:【%s】 >> /tmp/openclash.log", os.date("%Y-%m-%d %H:%M:%S"), info.data.checkin))
-			result = info
+			fs.append_log(string.format("%s [Info] oixCloud Checkin Successful, Result:【%s】", os.date("%Y-%m-%d %H:%M:%S"), tostring(reply.checkin)))
+		elseif reply then
+			info = {msg = reply.error}
+			fs.append_log(string.format("%s [Info] oixCloud Checkin Failed, Result:【%s】", os.date("%Y-%m-%d %H:%M:%S"), tostring(reply.error)))
 		else
-			if info and info.msg then
-				SYS.exec(string.format("echo -e %s [Info] oixCloud Checkin Failed, Result:【%s】 >> /tmp/openclash.log", os.date("%Y-%m-%d %H:%M:%S"), info.msg))
-			else
-				SYS.exec(string.format("echo -e %s [Info] oixCloud Checkin Failed! Please Check And Try Again... >> /tmp/openclash.log",os.date("%Y-%m-%d %H:%M:%S")))
-			end
-			result = info
+			fs.append_log(os.date("%Y-%m-%d %H:%M:%S") .. " [Info] oixCloud Checkin Failed! Please Check And Try Again...")
 		end
+		result = info
 	else
 		result = "error"
 	end

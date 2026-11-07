@@ -107,7 +107,7 @@
 | 登录 | `oix_email` / `oix_passwd` → `oix_login` 取 token；第三方云服务，需账号 |
 | 自动签到 | `oix_checkin`（需 token） |
 | 专属资源 | 登录后获取 Oix 专属内核与订阅 |
-| 节点筛选 | 有套餐时显示（`oix_info` 的 `plan_rank` > 0），新标签页打开 `https://oixcloud.com/user/node_filter?client=OpenClash`；按线路/地区/名称包含或排除选节点，保存于账号（所有 OpenClash 共用），未设置时为智能优选；下次订阅更新生效，重启 OpenClash 可立即拉取 |
+| 节点筛选 | 有套餐时显示（`oix_info` 的 `plan_rank` > 0），新标签页打开内核给出的网站页面；按线路/地区/名称包含或排除选节点，保存于账号（所有 OpenClash 共用），未设置时为智能优选；下次订阅更新生效，重启 OpenClash 可立即拉取 |
 
 ### 10.3 来源流量访问控制 (Source Traffic Bypass / lan_ac_traffic)
 

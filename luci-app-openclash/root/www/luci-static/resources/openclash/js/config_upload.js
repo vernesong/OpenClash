@@ -188,7 +188,7 @@ var SubscriptionUrlSetter = {
             }
         }
         if (urlresult.type && urlresult.type === "single") {
-            urls = urlresult.url + (urlresult.ua ? '#ua=' + urlresult.ua : '');
+            urls = urlresult.url ? urlresult.url + (urlresult.ua ? '#ua=' + urlresult.ua : '') : '';
         }
         textarea.value = urls;
     },

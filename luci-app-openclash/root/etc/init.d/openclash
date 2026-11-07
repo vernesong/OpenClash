@@ -557,7 +557,7 @@ sub_info_get()
       return
    fi
 
-   if [ -z "$address" ]; then
+   if [ -z "$address" ] || { [ "$address" = "oixcloud://managed" ] && [ -z "$(uci_get_config "oix_token")" ]; }; then
       return
    fi
 
