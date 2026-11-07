@@ -1,4 +1,6 @@
 # Local network ranges: traffic to these destinations bypasses the proxy.
+# These ranges also become throw routes in the OpenClash proxy routing table,
+# so remote private ranges that must be proxied have to stay out of this list.
 # One entry per line, '#' starts a comment (inline comments are allowed).
 0.0.0.0/8        # this network
 10.0.0.0/8       # private

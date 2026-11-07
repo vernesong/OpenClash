@@ -163,11 +163,11 @@ nft add rule inet fw4 mangle_prerouting meta nfproto {ipv6} counter jump opencla
 
 | 场景 | 命令 | 作用 |
 |------|------|------|
-| 源地址校验（TUN） | `ip route replace throw <cidr> table 0x162`，针对 `PROXY_THROW_NETS`（`0.0.0.0/8`、`10/8`、`100.64/10`、`127/8`、`169.254/16`、`172.16/12`、`192.168/16`，与 fake-ip 前缀重叠的跳过） | `src_valid_mark=1`（Tailscale 等会设）时 `fib_validate_source()` 带 mark 查源，命中代理表唯一路由 `local default dev lo` → 判 martian 源并**静默丢包**（无日志无计数）；throw 让它回落 main 表 |
+| 源地址校验（TUN 与非 TUN 的 TPROXY） | `ip route replace throw <cidr> table 0x162`，cidr 取自 `openclash_custom_localnetwork_ipv4.list`（文件缺失时用内置 9 段：`0.0.0.0/8`、`10/8`、`100.64/10`、`127/8`、`169.254/16`、`172.16/12`、`192.168/16`、`224/4`、`240/4`；与 fake-ip 前缀重叠的跳过）。`proxy_throw_route_del()` 用 `ip route flush table 0x162 type throw` 全清，不依赖当前列表 | `src_valid_mark=1`（Tailscale 等会设）时 `fib_validate_source()` 带 mark 查源，命中代理表唯一路由 `local default dev lo` → 判 martian 源并**静默丢包**（无日志无计数）；throw 让它回落 main 表。 |
 | 路由器自身 fake-ip6（`ipv6_mode=2/3` 且 `router_self_proxy=1` 或 fake-ip 未走防火墙 DNS） | `ip -6 rule add iif lo to <fakeip_range6> lookup 0x162 pref 998` | 本机发出的 fake-ip6 目标在 output 打标前先进代理表，转发流量仍走 main |
 | 与 mwan3 等共存 | `ip rule add fwmark 0x162 table 0x162 pref 999` | 取值原因见 `05-firewall-special.md` §5.4 |
 
-> 症状对照：TUN 下「能连但部分目标不通、日志无异常」→ 先查 `net.ipv4.conf.all.src_valid_mark`；「路由器自身访问 fake-ip6 失败但内网客户端正常」→ 查第二条规则。两者都在 `revert_firewall()` 中回滚。
+> 症状对照：TUN 下「能连但部分目标不通、日志无异常」→ 先查 `net.ipv4.conf.all.src_valid_mark`；「远端私网段配了代理规则却整段走 WAN」→ 查该段是否仍被本地网络绕过列表包含；「路由器自身访问 fake-ip6 失败但内网客户端正常」→ 查第二条规则。三者都在 `revert_firewall()` 中回滚。
 
 ### 4.4 WAN 入口防护与分区放行
 

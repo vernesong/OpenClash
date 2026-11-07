@@ -158,7 +158,7 @@ tun:
 | 8.3.6 | 仅允许内网 `intranet_allowed` | 1 | — | 控制面板与代理端口仅内网可访问。YAML 侧始终 `allow-lan: true` + `bind-address: "*"`（本项不控制 YAML）；防火墙侧始终建 `openclash_wan_input` 拒绝 `mark 0x162`，开启时追加拒绝 `ct status dnat` 与代理端口 dport 的入站 |
 | 8.3.7 | WAN 接口名称 `intranet_allowed_wan_name` | — | 接口名 | 指定哪个接口算 WAN；依赖 §8.3.6 |
 | 8.3.8 | LAN 接口名称 `lan_interface_name` | 0（自动检测） | 接口名 | 用于 `ip address show <接口>` 取路由器 LAN IP（面板地址、API、调试日志）；0=自动 |
-| 8.3.9 | 本地 IPv4 网络绕过 `local_network_pass` | — | `openclash_custom_localnetwork_ipv4.list` | 目标为该列表 IP 的流量不进内核 |
+| 8.3.9 | 本地 IPv4 网络绕过 `local_network_pass` | — | `openclash_custom_localnetwork_ipv4.list` | 目标为该列表 IP 的流量不进内核；同一列表也决定代理表 `0x162` 的 `throw` 范围（见 `04-firewall-chains.md` §4.3），要经代理的远端私网段（如公司 `172.20/16`）必须从列表去掉，改分流规则无效 |
 | 8.3.10 | 绕过指定区域 IPv4 黑名单 `chnroute_pass` | — | `openclash_custom_chnroute_pass.list` | 列表内域名/IP 不受区域绕行影响，依赖 dnsmasq；要求 `enable_redirect_dns != 2` |
 | 8.3.11 | UPNP 流量排除 | 自动 | — | 无 UCI 选项，见下 |
 
