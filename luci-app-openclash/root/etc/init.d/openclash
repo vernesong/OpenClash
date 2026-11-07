@@ -88,20 +88,28 @@ cron_append()
    printf '%s\n' "$1" >> "$CRON_FILE"
 }
 
-# The hour and weekday of a crontab line: anything else takes the fallback.
+# The hour and weekday of a crontab line keep what cron reads, lists and steps included.
+# Anything else could add to the line: it takes the fallback and is logged.
+cron_invalid()
+{
+   [ -n "$1" ] && LOG_WARN "Ignored An Invalid Cron Time【$(printf '%s' "$1" | tr -d '\r\n\\')】"
+   printf '%s' "$2"
+}
+
 cron_hour()
 {
    case "$1" in
-      [0-9]|1[0-9]|2[0-3]) printf '%s' "$1" ;;
-      *) printf '%s' "$2" ;;
+      ''|*[!0-9*,/-]*) cron_invalid "$1" "$2" ;;
+      *) printf '%s' "$1" ;;
    esac
 }
 
 cron_week()
 {
    case "$1" in
-      "*"|[0-6]) printf '%s' "$1" ;;
-      *) printf '%s' "$2" ;;
+      [A-Za-z][A-Za-z][A-Za-z]) printf '%s' "$1" ;;
+      ''|*[!0-9*,/-]*) cron_invalid "$1" "$2" ;;
+      *) printf '%s' "$1" ;;
    esac
 }
 
