@@ -2268,7 +2268,7 @@ end
 
 function action_backup()
 	local config = SYS.call("cp /etc/config/openclash /etc/openclash/openclash >/dev/null 2>&1")
-	local reader = ltn12_popen("exec tar -C '/etc/openclash/' -cz . 2>/dev/null")
+	local reader = ltn12_popen(fs.backup_command("."))
 
 	HTTP.header(
 		'Content-Disposition', 'attachment; filename="Backup-OpenClash-%s-%s-%s.tar.gz"' %{
@@ -2283,7 +2283,7 @@ end
 
 function action_backup_ex_core()
 	local config = SYS.call("cp /etc/config/openclash /etc/openclash/openclash >/dev/null 2>&1")
-	local reader = ltn12_popen("echo 'core' > /tmp/oc_exclude.txt && exec tar -C '/etc/openclash/' -X '/tmp/oc_exclude.txt' -cz . 2>/dev/null")
+	local reader = ltn12_popen(fs.backup_command(".", "core"))
 
 	HTTP.header(
 		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Exclude-Cores-%s-%s-%s.tar.gz"' %{
@@ -2336,7 +2336,7 @@ function action_backup_only_rule()
 end
 
 function action_backup_only_proxy()
-	local reader = ltn12_popen("exec tar -C '/etc/openclash' -cz './proxy_provider' 2>/dev/null")
+	local reader = ltn12_popen(fs.backup_command("./proxy_provider"))
 
 	HTTP.header(
 		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Proxy-Provider-%s-%s-%s.tar.gz"' %{

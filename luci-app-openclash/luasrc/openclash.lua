@@ -484,6 +484,28 @@ function core_api_command(timing, method, secret, host, port, path, body)
 		UTIL.shellquote("http://" .. tostring(host) .. ":" .. tostring(port) .. path), UTIL.shellquote(body))
 end
 
+--- Files rebuilt at the next start, and what an interrupted write of them left behind.
+-- Each comes twice: BusyBox compares a member's whole name when extracting.
+local function rebuilt_files(extra)
+	local patterns = {}
+	for _, name in ipairs({".oix_age_key*", "..oix_age_key*", ".oix_device_id*", "..oix_device_id*",
+		"proxy_provider/oixCloud", "proxy_provider/.oixCloud.tmp-*"}) do
+		patterns[#patterns + 1] = UTIL.shellquote(name)
+		patterns[#patterns + 1] = UTIL.shellquote("./" .. name)
+	end
+	if extra then
+		patterns[#patterns + 1] = UTIL.shellquote(extra)
+	end
+	return table.concat(patterns, " ")
+end
+
+--- Writes an archive of the plugin directory to stdout, without the rebuilt files.
+function backup_command(target, extra, root, list)
+	root, list = root or "/etc/openclash/", list or "/tmp/oc_exclude.txt"
+	return string.format("printf '%%s\\n' %s > %s && exec tar -C %s -X %s -cz %s 2>/dev/null",
+		rebuilt_files(extra), UTIL.shellquote(list), UTIL.shellquote(root), UTIL.shellquote(list), target)
+end
+
 function get_file_path_from_request()
 	local file_path = HTTP.formvalue("file")
 
@@ -504,9 +526,11 @@ function get_file_path_from_request()
 	return file_path
 end
 
-function restore_backup(archive)
+function restore_backup(archive, root, config_path)
+	root, config_path = root or "/etc/openclash/", config_path or "/etc/config/openclash"
 	local quoted = UTIL.shellquote(archive)
 	local listfile = "/tmp/oc_restore.list"
+	local excludefile = "/tmp/oc_restore.exclude"
 	-- list the archive before touching /etc/openclash: a broken upload used to report
 	-- success because every tar/mv error was discarded, and members with absolute or
 	-- parent-relative paths must not be extracted
@@ -516,11 +540,12 @@ function restore_backup(archive)
 	local unsafe = SYS.call("grep -qE '(^|/)\\.\\./|^/' " .. listfile) == 0
 	local restored = false
 	if tarok and has_members and has_config and not unsafe then
-		if SYS.call("tar -C '/etc/openclash/' -xzf " .. quoted .. " >/dev/null 2>&1") == 0 then
-			restored = SYS.call("mv -f /etc/openclash/openclash /etc/config/openclash >/dev/null 2>&1") == 0
+		SYS.call(string.format("printf '%%s\\n' %s > %s", rebuilt_files(), excludefile))
+		if SYS.call(string.format("tar -C %s -X %s -xzf %s >/dev/null 2>&1", UTIL.shellquote(root), excludefile, quoted)) == 0 then
+			restored = SYS.call(string.format("mv -f %s %s >/dev/null 2>&1", UTIL.shellquote(root .. "openclash"), UTIL.shellquote(config_path))) == 0
 		end
 	end
-	SYS.call("rm -f " .. listfile)
+	SYS.call("rm -f " .. listfile .. " " .. excludefile)
 	return restored
 end
 
