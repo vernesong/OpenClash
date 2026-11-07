@@ -336,6 +336,7 @@ export OC_enable_redirect_dns="$enable_redirect_dns"
 export OC_fake_ip_filter_mode="$fake_ip_filter_mode"
 export OC_stack_type="$stack_type"
 export OC_system_hostname="$system_hostname"
+export OC_system_hosts_enable="$system_hosts_enable"
 export OC_yacd_type="$yacd_type"
 
 OPENCLASH_CORS_DOMAIN="${36}" \
@@ -890,7 +891,7 @@ begin
 
       # Firewall redirect mode sends client queries straight to the core, which only
       # answers from dns.hosts plus the system file, so the flag must be explicit here
-      Value['dns']['use-system-hosts'] = true if '$system_hosts_enable' == '1'
+      Value['dns']['use-system-hosts'] = true if ENV['OC_system_hosts_enable'].to_s == '1'
 
       # DNS Loop Check
       if enable_redirect_dns == '1'
