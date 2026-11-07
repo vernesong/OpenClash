@@ -1763,7 +1763,7 @@ function trans_line(data)
 end
 
 function process_status(name)
-	local cmd = string.format("%s |grep '%s' |grep -v grep", fs.ps_cmd(), name)
+	local cmd = string.format("%s |grep %s |grep -v grep", fs.ps_cmd(), UTIL.shellquote(name))
 	local result = SYS.exec(cmd)
 	return result ~= nil and result ~= "" and not result:match("^%s*$")
 end
@@ -2470,7 +2470,7 @@ end
 
 function manual_stream_unlock_test()
 	local type = HTTP.formvalue("type")
-	local cmd = string.format('/usr/share/openclash/openclash_streaming_unlock.lua "%s"', type)
+	local cmd = string.format('/usr/share/openclash/openclash_streaming_unlock.lua %s', UTIL.shellquote(type))
 	if HTTP.formvalue("result") == "1" then
 		cmd = cmd .. ' "result"'
 	end
@@ -2502,7 +2502,7 @@ end
 
 function all_proxies_stream_test()
 	local type = HTTP.formvalue("type")
-	local cmd = string.format('/usr/share/openclash/openclash_streaming_unlock.lua "%s" "%s"', type, "all")
+	local cmd = string.format('/usr/share/openclash/openclash_streaming_unlock.lua %s "all"', UTIL.shellquote(type))
 	HTTP.prepare_content("text/plain; charset=utf-8")
 	local util = io.popen(cmd)
 	if util and util ~= "" then
@@ -3707,14 +3707,14 @@ function action_cdn_info()
 		end
 		local cmd = string.format([[
 PLUGIN_VER=""
-CORE_META_VER="%s"
+CORE_META_VER=%s
 CORE_SMART_VER=""
-CORE_ERR="%s"
+CORE_ERR=%s
 OIX_MODE="%s"
-RAW_CORE_URL="%s"
+RAW_CORE_URL=%s
 LATENCY="null"
 
-PLUGIN_RAW=$(curl -sL -m 5 -w '\n%%{http_code} %%{time_starttransfer}' "%s" 2>/dev/null)
+PLUGIN_RAW=$(curl -sL -m 5 -w '\n%%{http_code} %%{time_starttransfer}' %s 2>/dev/null)
 P_EXIT=$?
 
 if [ $P_EXIT -eq 0 ] && [ -n "$PLUGIN_RAW" ]; then
@@ -3732,7 +3732,7 @@ else
 	LATENCY=-2
 fi
 
-CORE_RAW=$(curl -sL -m 5 -w '\n%%{http_code} %%{time_starttransfer}' "%s" 2>/dev/null)
+CORE_RAW=$(curl -sL -m 5 -w '\n%%{http_code} %%{time_starttransfer}' %s 2>/dev/null)
 C_EXIT=$?
 if [ $C_EXIT -ne 0 ] && [ -n "$RAW_CORE_URL" ]; then
 	CORE_RAW=$(curl -sL -m 5 -w '\n%%{http_code} %%{time_starttransfer}' "$RAW_CORE_URL" 2>/dev/null)
@@ -3765,7 +3765,7 @@ fi
 
 printf '{"plugin_ver":"%%s","core_meta_ver":"%%s","core_smart_ver":"%%s","latency":%%s,"core_error":"%%s"}\n' \
 	"$PLUGIN_VER" "$CORE_META_VER" "$CORE_SMART_VER" "${LATENCY:-null}" "$CORE_ERR"
-]], oix_core_ver, oix_core_error, oix_mode and "1" or "0", raw_core_url, plugin_url, core_url)
+]], UTIL.shellquote(oix_core_ver), UTIL.shellquote(oix_core_error), oix_mode and "1" or "0", UTIL.shellquote(raw_core_url), UTIL.shellquote(plugin_url), UTIL.shellquote(core_url))
 		local fdi, fdo = nixio.pipe()
 		if fdi and fdo then
 			local pid = nixio.fork()
@@ -6717,7 +6717,7 @@ function action_cal_age_public_key()
 		HTTP.write_json({status = "error", message = "Secret key is required"})
 		return
 	end
-	local cmd = string.format("%s age convert %s", meta_core_path, secret)
+	local cmd = string.format("%s age convert %s", meta_core_path, UTIL.shellquote(secret))
 	local out = SYS.exec(cmd .. " 2>/dev/null")
 	HTTP.prepare_content("application/json")
 	if out and out:match("^age") then
@@ -7004,7 +7004,7 @@ local function oix_core_api(method, path, timeout)
 	if secret and secret ~= "" then
 		cmd = cmd .. " -H " .. oix_quote("Authorization: Bearer " .. secret)
 	end
-	cmd = cmd .. " -X " .. method .. " http://127.0.0.1:" .. cn_port() .. path
+	cmd = cmd .. " -X " .. method .. " " .. oix_quote("http://127.0.0.1:" .. cn_port() .. path)
 	local out = SYS.exec(cmd)
 	if not out then return nil end
 	local response, status = out:match("^(.*)\n(%d%d%d)%s*$")

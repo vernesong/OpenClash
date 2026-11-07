@@ -349,7 +349,7 @@ function lanip(loopback)
 	if lan_int_name == "0" then
 		lan_ip = SYS.exec("uci -q get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n'")
 	else
-		lan_ip = SYS.exec(string.format("ip address show %s 2>/dev/null | grep -w 'inet' 2>/dev/null | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -1 | tr -d '\n'", lan_int_name))
+		lan_ip = SYS.exec(string.format("ip address show %s 2>/dev/null | grep -w 'inet' 2>/dev/null | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -1 | tr -d '\n'", UTIL.shellquote(lan_int_name)))
 	end
 	if not lan_ip or lan_ip == "" then
 		lan_ip = SYS.exec("ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w 'inet'  2>/dev/null | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -1 | tr -d '\n'")
@@ -395,7 +395,7 @@ function get_resourse_mtime(path)
 		end
 	end
 	local file = fs.readlink(real_path) or real_path
-	local resourse_etag_version = SYS.exec(string.format("source /usr/share/openclash/openclash_etag.sh && GET_ETAG_TIMESTAMP_BY_PATH '%s'", file))
+	local resourse_etag_version = SYS.exec(string.format("source /usr/share/openclash/openclash_etag.sh && GET_ETAG_TIMESTAMP_BY_PATH %s", UTIL.shellquote(file)))
 	if resourse_etag_version and resourse_etag_version ~= "" then
 		return resourse_etag_version
 	end
@@ -576,7 +576,7 @@ function age_encrypt(public, content)
 
 	local cmd = string.format(
 		"/etc/openclash/core/clash_meta age encrypt %s %s %s 2>/dev/null",
-		public, tmp_in, tmp_out
+		UTIL.shellquote(public), UTIL.shellquote(tmp_in), UTIL.shellquote(tmp_out)
 	)
 	os.execute(cmd)
 
@@ -605,7 +605,7 @@ function age_decrypt(secret, content)
 
 	local cmd = string.format(
 		"/etc/openclash/core/clash_meta age decrypt %s %s %s 2>/dev/null",
-		secret, tmp_in, tmp_out
+		UTIL.shellquote(secret), UTIL.shellquote(tmp_in), UTIL.shellquote(tmp_out)
 	)
 	os.execute(cmd)
 

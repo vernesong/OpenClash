@@ -249,7 +249,7 @@ btnapply.write = function(self, t)
 		sPath = "/etc/openclash/config/"..e[t].name
 		sFile = NXFS.basename(sPath)
 		if fs.isdirectory(sPath) then
-			fd = io.popen('tar -C "%s" -cz .' % {sPath}, "r")
+			fd = io.popen('tar -C %s -cz .' % {UTIL.shellquote(sPath)}, "r")
 			sFile = sFile .. ".tar.gz"
 		else
 			fd = nixio.open(sPath, "r")
@@ -269,7 +269,7 @@ btnapply.write = function(self, t)
 		sPath = "/etc/openclash/"..e[t].name
 		sFile = NXFS.basename(sPath)
 		if fs.isdirectory(sPath) then
-			fd = io.popen('tar -C "%s" -cz .' % {sPath}, "r")
+			fd = io.popen('tar -C %s -cz .' % {UTIL.shellquote(sPath)}, "r")
 			sFile = sFile .. ".tar.gz"
 		else
 			fd = nixio.open(sPath, "r")

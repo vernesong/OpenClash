@@ -53,7 +53,7 @@ btndl2.write = function (h,n)
 	sPath = "/etc/openclash/rule_provider/"..g[n].name
 	sFile = NXFS.basename(sPath)
 	if fs.isdirectory(sPath) then
-		fd = io.popen('tar -C "%s" -cz .' % {sPath}, "r")
+		fd = io.popen('tar -C %s -cz .' % {UTIL.shellquote(sPath)}, "r")
 		sFile = sFile .. ".tar.gz"
 	else
 		fd = nixio.open(sPath, "r")

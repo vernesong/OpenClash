@@ -4,6 +4,7 @@ require "nixio"
 require "luci.model.uci"
 local fs = require "luci.openclash"
 local json = require "luci.jsonc"
+local UTIL = require "luci.util"
 
 local M = {}
 
@@ -94,7 +95,7 @@ end
 local function fork_curl(url, timeout)
 	local fdi, fdo = nixio.pipe()
 	if not fdi or not fdo then return nil end
-	local cmd = string.format('curl -sL -m %d "%s" 2>/dev/null', timeout or 5, url)
+	local cmd = string.format('curl -sL -m %d %s 2>/dev/null', timeout or 5, UTIL.shellquote(url))
 	local child = nixio.fork()
 	if child > 0 then
 		fdo:close()
@@ -201,7 +202,7 @@ function M.prepare_oix_cdn_data(force)
 	local function fork_oix_version(url)
 		local fdi, fdo = nixio.pipe()
 		if not fdi or not fdo then return nil end
-		local cmd = string.format('curl -sL -m 3 --connect-timeout 3 "%s" 2>/dev/null', url)
+		local cmd = string.format('curl -sL -m 3 --connect-timeout 3 %s 2>/dev/null', UTIL.shellquote(url))
 		local child = nixio.fork()
 		if child > 0 then
 			fdo:close()

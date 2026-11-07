@@ -18,8 +18,10 @@ local function debug_dns()
 	local passwd = fs.uci_get_config("config", "dashboard_password") or ""
 
 	if datatype.hostname(addr) and ip and port then
-		info_v4 = luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://"%s":"%s"/dns/query?name="%s"', passwd, ip, port, addr))
-		info_v6 = luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET \"http://"%s":"%s"/dns/query?name="%s"&type=AAAA\"', passwd, ip, port, addr))
+		info_v4 = luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H %s -XGET %s',
+			luci.util.shellquote("Authorization: Bearer " .. passwd), luci.util.shellquote("http://" .. ip .. ":" .. port .. "/dns/query?name=" .. addr)))
+		info_v6 = luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H %s -XGET %s',
+			luci.util.shellquote("Authorization: Bearer " .. passwd), luci.util.shellquote("http://" .. ip .. ":" .. port .. "/dns/query?name=" .. addr .. "&type=AAAA")))
 		if info_v4 then
 			info_v4 = json.parse(info_v4)
 		end

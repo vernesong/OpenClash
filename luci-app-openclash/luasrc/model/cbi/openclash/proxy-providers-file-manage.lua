@@ -53,7 +53,7 @@ btndl1.write = function (r,x)
 	sPath = "/etc/openclash/proxy_provider/"..p[x].name
 	sFile = NXFS.basename(sPath)
 	if fs.isdirectory(sPath) then
-		fd = io.popen('tar -C "%s" -cz .' % {sPath}, "r")
+		fd = io.popen('tar -C %s -cz .' % {UTIL.shellquote(sPath)}, "r")
 		sFile = sFile .. ".tar.gz"
 	else
 		fd = nixio.open(sPath, "r")

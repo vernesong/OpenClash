@@ -15,11 +15,25 @@ local UA = FS.user_agent
 local UA_SEC_CH_UA = FS.user_agent_ch_ua
 local class_type = type
 local type = arg[1]
+
+local function shell_quote(value)
+	return "'" .. tostring(value):gsub("'", "'\\''") .. "'"
+end
+
 local all_test = arg[2] == "all"
 local check_only = arg[2] == "check"
 local result_output = arg[2] == "result"
 math.randomseed(os.time())
 local status, ip, port, passwd, group_match_name
+
+local function core_auth()
+	return shell_quote("Authorization: Bearer " .. passwd)
+end
+
+local function core_url(path)
+	return shell_quote("http://" .. ip .. ":" .. port .. path)
+end
+
 local tested_set = {}
 local proxy_index = {}
 local group_set = {}
@@ -147,13 +161,13 @@ local function bail(message)
 	os.exit(0)
 end
 
-if not type then
+if not type or type == "" then
 	bail(MSG.err_no_type)
 end
 
 MSG.group = "【"..type.."】Group:"
 
-local self_status = SYS.exec(string.format('ps -w |grep -v grep |grep "openclash_streaming_unlock.lua %s" |grep -vc " check"', type))
+local self_status = SYS.exec(string.format('ps -w |grep -v grep |grep %s |grep -vc " check"', shell_quote("openclash_streaming_unlock.lua " .. type)))
 local select_logic = get_config("stream_auto_select_logic") or "urltest"
 
 if (tonumber(get_config("router_self_proxy")) or 1) == 0 then
@@ -291,10 +305,6 @@ local function build_plain_pattern(regex)
 end
 
 local pattern_cache = {}
-
-local function shell_quote(value)
-	return "'" .. tostring(value):gsub("'", "'\\''") .. "'"
-end
 
 local function datamatch(data, regex)
 	if not data or not regex then
@@ -568,7 +578,7 @@ local function table_sort_by_urltest(t, d)
 		return
 	end
 
-	local providers = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/providers/proxies', passwd, ip, port))
+	local providers = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H %s -XGET %s', core_auth(), core_url("/providers/proxies")))
 	if providers then
 		providers = JSON.parse(providers)
 		if not providers or not providers.providers then return t end
@@ -603,7 +613,7 @@ local function table_sort_by_urltest(t, d)
 	for n = 1, #(t) do
 		local delay = delay_map[t[n]]
 		if not delay and (is_group(t[n]) or t[n] == "DIRECT") then
-			local group_delay = SYS.exec(string.format('curl -sL -m 60 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET "http://%s:%s/proxies/%s/delay?timeout=5000&url=%s"', passwd, ip, port, urlencode(t[n]), urlencode(delay_url)))
+			local group_delay = SYS.exec(string.format('curl -sL -m 60 --retry 2 -H "Content-Type: application/json" -H %s -XGET %s', core_auth(), core_url("/proxies/" .. urlencode(t[n]) .. "/delay?timeout=5000&url=" .. urlencode(delay_url))))
 			if group_delay then
 				group_delay = JSON.parse(group_delay)
 			end
@@ -650,7 +660,7 @@ end
 
 local function set_selected(group, node)
 	result_node = node or ""
-	SYS.exec(string.format("curl -sL -m 5 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, node, ip, port, urlencode(group)))
+	SYS.exec(string.format("curl -sL -m 5 --retry 2 -w %%{http_code} -o /dev/null -H %s -H 'Content-Type:application/json' -X PUT -d %s %s", core_auth(), shell_quote(JSON.stringify({name = node})), core_url("/proxies/" .. urlencode(group))))
 end
 
 local function get_auth_info()
@@ -665,7 +675,7 @@ end
 local function close_connections()
 	local enable = tonumber(get_config("stream_auto_select_close_con")) or 1
 	if enable == 0 then return end
-	local con = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/connections', passwd, ip, port))
+	local con = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H %s -XGET %s', core_auth(), core_url("/connections")))
 	if con then
 		con = JSON.parse(con)
 	end
@@ -681,7 +691,7 @@ local function close_connections()
 	end
 	--close connections
 	for i = 1, #(group_cons_id) do
-		SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -X DELETE http://%s:%s/connections/%s >/dev/null 2>&1 &', passwd, ip, port, group_cons_id[i]))
+		SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H %s -X DELETE %s >/dev/null 2>&1 &', core_auth(), core_url("/connections/" .. group_cons_id[i])))
 	end
 end
 
@@ -737,7 +747,7 @@ local function proxy_unlock_test(tested)
 end
 
 local function get_sniffed_chains(host)
-	local con = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/connections', passwd, ip, port))
+	local con = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H %s -XGET %s', core_auth(), core_url("/connections")))
 	if con then
 		con = JSON.parse(con)
 	end
@@ -816,7 +826,7 @@ local function sniff_service_node()
 end
 
 local function load_proxies()
-	local info = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/proxies', passwd, ip, port))
+	local info = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H %s -XGET %s', core_auth(), core_url("/proxies")))
 	if info then
 		info = JSON.parse(info)
 		if not info or not info.proxies then os.exit(0) end
@@ -849,7 +859,7 @@ local function current_service_node()
 	if node ~= "" then
 		return node
 	end
-	local info = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/proxies', passwd, ip, port))
+	local info = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H %s -XGET %s', core_auth(), core_url("/proxies")))
 	if not info or info == "" then
 		return ""
 	end
@@ -1430,7 +1440,7 @@ function disney_unlock_test()
 	if not assertion then return region end
 
 	disneycookie = "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&latitude=0&longitude=0&platform=browser&subject_token="..assertion.."&subject_token_type=urn%3Abamtech%3Aparams%3Aoauth%3Atoken-type%3Adevice"
-	local tokencontent = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 %s -H 'User-Agent: %s' -d '%s' -XPOST %s", auth, UA, disneycookie, url2))
+	local tokencontent = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 %s -H 'User-Agent: %s' -d %s -XPOST %s", auth, UA, shell_quote(disneycookie), url2))
 
 	if tokencontent then
 		local token_info = JSON.parse(tokencontent)
@@ -1635,7 +1645,7 @@ function discovery_plus_unlock_test()
 	if token_info and token_info.data and token_info.data.attributes then
 		status = 1
 		local token = token_info.data.attributes.token
-		local cookie = string.format("-b \"_gcl_au=1.1.858579665.1632206782; _rdt_uuid=1632206782474.6a9ad4f2-8ef7-4a49-9d60-e071bce45e88; _scid=d154b864-8b7e-4f46-90e0-8b56cff67d05; _pin_unauth=dWlkPU1qWTRNR1ZoTlRBdE1tSXdNaTAwTW1Nd0xUbGxORFV0WWpZMU0yVXdPV1l6WldFeQ; _sctr=1|1632153600000; aam_fw=aam%%3D9354365%%3Baam%%3D9040990; aam_uuid=24382050115125439381416006538140778858; st=%s; gi_ls=0; _uetvid=a25161a01aa711ec92d47775379d5e4d; AMCV_BC501253513148ED0A490D45%%40AdobeOrg=-1124106680%%7CMCIDTS%%7C18894%%7CMCMID%%7C24223296309793747161435877577673078228%%7CMCAAMLH-1633011393%%7C9%%7CMCAAMB-1633011393%%7CRKhpRz8krg2tLO6pguXWp5olkAcUniQYPHaMWWgdJ3xzPWQmdj0y%%7CMCOPTOUT-1632413793s%%7CNONE%%7CvVersion%%7C5.2.0; ass=19ef15da-95d6-4b1d-8fa2-e9e099c9cc38.1632408400.1632406594\"", token)
+		local cookie = "-b " .. shell_quote(string.format("_gcl_au=1.1.858579665.1632206782; _rdt_uuid=1632206782474.6a9ad4f2-8ef7-4a49-9d60-e071bce45e88; _scid=d154b864-8b7e-4f46-90e0-8b56cff67d05; _pin_unauth=dWlkPU1qWTRNR1ZoTlRBdE1tSXdNaTAwTW1Nd0xUbGxORFV0WWpZMU0yVXdPV1l6WldFeQ; _sctr=1|1632153600000; aam_fw=aam%%3D9354365%%3Baam%%3D9040990; aam_uuid=24382050115125439381416006538140778858; st=%s; gi_ls=0; _uetvid=a25161a01aa711ec92d47775379d5e4d; AMCV_BC501253513148ED0A490D45%%40AdobeOrg=-1124106680%%7CMCIDTS%%7C18894%%7CMCMID%%7C24223296309793747161435877577673078228%%7CMCAAMLH-1633011393%%7C9%%7CMCAAMB-1633011393%%7CRKhpRz8krg2tLO6pguXWp5olkAcUniQYPHaMWWgdJ3xzPWQmdj0y%%7CMCOPTOUT-1632413793s%%7CNONE%%7CvVersion%%7C5.2.0; ass=19ef15da-95d6-4b1d-8fa2-e9e099c9cc38.1632408400.1632406594", token))
 		local data = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s %s", UA, cookie, url1))
 		local body = data and JSON.parse(data)
 		if body and body.data and body.data.attributes and (body.data.attributes.currentLocationSovereignTerritory or body.data.attributes.currentLocationTerritory) then
@@ -1806,7 +1816,7 @@ function bahamut_unlock_test()
 		local device = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -c %s -H 'User-Agent: %s' 'https://ani.gamer.com.tw/ajax/getdeviceid.php'", jar, UA))
 		local deviceid = device and string.match(device, '"deviceid"%s*:%s*"([^"]+)"')
 		if deviceid then
-			local token = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -b %s -H 'User-Agent: %s' 'https://ani.gamer.com.tw/ajax/token.php?adID=89422&sn=37783&device=%s'", jar, UA, deviceid))
+			local token = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -b %s -H 'User-Agent: %s' %s", jar, UA, shell_quote("https://ani.gamer.com.tw/ajax/token.php?adID=89422&sn=37783&device=" .. deviceid)))
 			local home = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -b %s -H 'accept: */*;q=0.8,application/signed-exchange;v=b3;q=0.7' -H 'accept-language: zh-CN,zh;q=0.9' -H 'User-Agent: %s' 'https://ani.gamer.com.tw/'", jar, UA))
 			if token and home then
 				if string.find(token, "animeSn", 1, true) then
