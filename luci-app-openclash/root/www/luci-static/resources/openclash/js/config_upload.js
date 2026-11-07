@@ -1108,7 +1108,8 @@ var SubPanel = {
         }
         var structTabs = document.querySelectorAll('#sub-struct-tabs .oc-tpl-tab');
         for (var st = 0; st < structTabs.length; st++) {
-            structTabs[st].classList.toggle('active', structTabs[st].getAttribute('data-tab') === 'groups');
+            var stTab = structTabs[st].getAttribute('data-tpl-tab') || structTabs[st].getAttribute('data-tab');
+            structTabs[st].classList.toggle('active', stTab === 'groups');
         }
         var providerNote = this.el('sub-provider-note');
         if (providerNote) {
@@ -1704,7 +1705,8 @@ var SubPanel = {
     jumpToRuleTarget: function(name) {
         var tabs = document.querySelectorAll('#sub-struct-tabs .oc-tpl-tab');
         for (var i = 0; i < tabs.length; i++) {
-            if (tabs[i].getAttribute('data-tab') === 'rules') tabs[i].click();
+            var tabVal = tabs[i].getAttribute('data-tpl-tab') || tabs[i].getAttribute('data-tab');
+            if (tabVal === 'rules') tabs[i].click();
         }
         var pane = this.el('sub-pane-rules');
         if (!pane) return;
@@ -1886,7 +1888,7 @@ var TemplatePreview = {
         var tabs = document.querySelectorAll('#tpl-tabs .oc-tpl-tab');
         for (var i = 0; i < tabs.length; i++) {
             tabs[i].addEventListener('click', function() {
-                self.switchTab(this.getAttribute('data-tab'));
+                self.switchTab(this.getAttribute('data-tpl-tab') || this.getAttribute('data-tab'));
             });
         }
         this.overlay.addEventListener('click', function(e) {
@@ -2016,7 +2018,8 @@ var TemplatePreview = {
     switchTab: function(tab) {
         var tabs = document.querySelectorAll('#tpl-tabs .oc-tpl-tab');
         for (var i = 0; i < tabs.length; i++) {
-            tabs[i].classList.toggle('active', tabs[i].getAttribute('data-tab') === tab);
+            var tVal = tabs[i].getAttribute('data-tpl-tab') || tabs[i].getAttribute('data-tab');
+            tabs[i].classList.toggle('active', tVal === tab);
         }
         var panes = ['groups', 'rules', 'extra'];
         for (var j = 0; j < panes.length; j++) {
@@ -2809,10 +2812,11 @@ var ConfigUploader = {
         var structTabs = document.querySelectorAll('#sub-struct-tabs .oc-tpl-tab');
         for (var st = 0; st < structTabs.length; st++) {
             structTabs[st].addEventListener('click', function() {
-                var tab = this.getAttribute('data-tab');
+                var tab = this.getAttribute('data-tpl-tab') || this.getAttribute('data-tab');
                 var tabs = document.querySelectorAll('#sub-struct-tabs .oc-tpl-tab');
                 for (var i = 0; i < tabs.length; i++) {
-                    tabs[i].classList.toggle('active', tabs[i].getAttribute('data-tab') === tab);
+                    var curTab = tabs[i].getAttribute('data-tpl-tab') || tabs[i].getAttribute('data-tab');
+                    tabs[i].classList.toggle('active', curTab === tab);
                 }
                 SubPanel.el('sub-pane-groups').classList.toggle('oc-hidden', tab !== 'groups');
                 SubPanel.el('sub-pane-rules').classList.toggle('oc-hidden', tab !== 'rules');

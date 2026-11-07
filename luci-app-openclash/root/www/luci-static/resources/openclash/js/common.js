@@ -273,8 +273,14 @@ function ocSyncThemeFromUci() {
         if (!d) return;
         var changed = false;
         if (d.mode && d.mode !== (localStorage.getItem('oc-theme') || 'auto')) { localStorage.setItem('oc-theme', d.mode); changed = true; }
-        if (d.name && d.name !== (localStorage.getItem('oc-theme-name') || 'classic')) { localStorage.setItem('oc-theme-name', d.name); changed = true; }
-        if (d.custom && /^#[0-9a-f]{6}$/i.test(d.custom) && d.custom !== localStorage.getItem('oc-theme-custom')) { localStorage.setItem('oc-theme-custom', d.custom); changed = true; }
+        var remoteName = d.name || 'classic';
+        if (remoteName !== (localStorage.getItem('oc-theme-name') || 'classic')) { localStorage.setItem('oc-theme-name', remoteName); changed = true; }
+        if (d.custom && /^#[0-9a-f]{6}$/i.test(d.custom)) {
+            if (d.custom !== localStorage.getItem('oc-theme-custom')) { localStorage.setItem('oc-theme-custom', d.custom); changed = true; }
+        } else if (localStorage.getItem('oc-theme-custom')) {
+            localStorage.removeItem('oc-theme-custom');
+            changed = true;
+        }
         if (!changed) return;
         ocUpdateTheme();
         if (typeof DarkModeDetector !== 'undefined') DarkModeDetector.init();

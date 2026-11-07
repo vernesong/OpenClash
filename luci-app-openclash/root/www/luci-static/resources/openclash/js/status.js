@@ -68,6 +68,114 @@ var ocLang = window.ocLang || '';
         };
     }
 
+// --- OpenClash V4 UI Interactions & Dropdowns ---
+function ocToggleDropdown(wrapId, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    var target = document.getElementById(wrapId);
+    if (!target) return false;
+    var isOpen = target.classList.contains('open');
+    document.querySelectorAll('.oc-dropdown-wrap.open').forEach(function(el) {
+        if (el !== target) el.classList.remove('open');
+    });
+    target.classList.toggle('open', !isOpen);
+    return false;
+}
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.oc-dropdown-wrap')) {
+        document.querySelectorAll('.oc-dropdown-wrap.open').forEach(function(el) {
+            el.classList.remove('open');
+        });
+    }
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' || e.keyCode === 27) {
+        document.querySelectorAll('.oc-dropdown-wrap.open').forEach(function(el) {
+            el.classList.remove('open');
+        });
+    }
+});
+
+function onOverseaSelectChange(val) {
+    if (typeof DOMCache !== 'undefined') {
+        if (val === '1' && DOMCache.oc_setting_oversea_1) DOMCache.oc_setting_oversea_1.checked = true;
+        else if (val === '2' && DOMCache.oc_setting_oversea_2) DOMCache.oc_setting_oversea_2.checked = true;
+        else if (DOMCache.oc_setting_oversea_0) DOMCache.oc_setting_oversea_0.checked = true;
+    }
+    return switch_oc_setting_oversea(val);
+}
+
+function onPolicyToggleChange(type, isChecked) {
+    var val = isChecked ? '1' : '0';
+    if (typeof DOMCache !== 'undefined') {
+        if (type === 'meta_sniffer' && DOMCache.meta_sniffer_on && DOMCache.meta_sniffer_off) {
+            DOMCache.meta_sniffer_on.checked = isChecked;
+            DOMCache.meta_sniffer_off.checked = !isChecked;
+            return switch_meta_sniffer(val);
+        } else if (type === 'respect_rules' && DOMCache.respect_rules_on && DOMCache.respect_rules_off) {
+            DOMCache.respect_rules_on.checked = isChecked;
+            DOMCache.respect_rules_off.checked = !isChecked;
+            return switch_respect_rules(val);
+        } else if (type === 'stream_unlock' && DOMCache.stream_unlock_on && DOMCache.stream_unlock_off) {
+            DOMCache.stream_unlock_on.checked = isChecked;
+            DOMCache.stream_unlock_off.checked = !isChecked;
+            return switch_stream_unlock(val);
+        }
+    }
+    return false;
+}
+
+function syncPolicySwitchUI() {
+    if (typeof DOMCache === 'undefined') return;
+    var overseaSelect = document.getElementById('oc_setting_oversea_select');
+    if (overseaSelect) {
+        if (DOMCache.oc_setting_oversea_1 && DOMCache.oc_setting_oversea_1.checked) {
+            overseaSelect.value = '1';
+        } else if (DOMCache.oc_setting_oversea_2 && DOMCache.oc_setting_oversea_2.checked) {
+            overseaSelect.value = '2';
+        } else {
+            overseaSelect.value = '0';
+        }
+    }
+    var snifferToggle = document.getElementById('meta_sniffer_toggle');
+    if (snifferToggle && DOMCache.meta_sniffer_on) {
+        snifferToggle.checked = !!DOMCache.meta_sniffer_on.checked;
+    }
+    var respectToggle = document.getElementById('respect_rules_toggle');
+    if (respectToggle && DOMCache.respect_rules_on) {
+        respectToggle.checked = !!DOMCache.respect_rules_on.checked;
+    }
+    var streamToggle = document.getElementById('stream_unlock_toggle');
+    if (streamToggle && DOMCache.stream_unlock_on) {
+        streamToggle.checked = !!DOMCache.stream_unlock_on.checked;
+    }
+}
+
+function generateSparklineSVG(points, color, width, height) {
+    width = width || 44;
+    height = height || 16;
+    if (!points || points.length < 2) {
+        return '<svg width="' + width + '" height="' + height + '" viewBox="0 0 ' + width + ' ' + height + '" style="vertical-align:middle;opacity:0.35;"><line x1="0" y1="' + (height / 2) + '" x2="' + width + '" y2="' + (height / 2) + '" stroke="' + color + '" stroke-width="1.2" stroke-dasharray="2,2"/></svg>';
+    }
+    var max = 0;
+    for (var i = 0; i < points.length; i++) {
+        if (points[i] > max) max = points[i];
+    }
+    if (max <= 0) max = 1;
+    var step = width / (points.length - 1);
+    var d = '';
+    for (var j = 0; j < points.length; j++) {
+        var x = (j * step).toFixed(1);
+        var y = (height - 2 - (points[j] / max) * (height - 4)).toFixed(1);
+        d += (j === 0 ? 'M' : ' L') + x + ',' + y;
+    }
+    return '<svg width="' + width + '" height="' + height + '" viewBox="0 0 ' + width + ' ' + height + '" style="vertical-align:middle;flex-shrink:0;"><path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+
     var DOMCache = {
         clash: document.getElementById('_clash'),
         dns_fakeip: document.getElementById('dns_fakeip'),
@@ -112,6 +220,36 @@ var ocLang = window.ocLang || '';
         plugin_version_text: document.getElementById('plugin-version-text')
     };
 
+    function ocRelocateVersionPills() {
+        var container = document.querySelector('.version-display-container');
+        if (!container) return;
+
+        var h2 = null;
+        var allH2 = document.querySelectorAll('.cbi-map > h2, form > h2, .cbi-map-title, h2');
+        for (var i = 0; i < allH2.length; i++) {
+            if (allH2[i].textContent && allH2[i].textContent.indexOf('OpenClash') !== -1) {
+                h2 = allH2[i];
+                break;
+            }
+        }
+
+        if (h2 && container.parentNode !== h2) {
+            h2.style.display = 'flex';
+            h2.style.alignItems = 'center';
+            h2.style.justifyContent = 'space-between';
+            h2.style.flexWrap = 'wrap';
+            h2.style.gap = '10px';
+            container.classList.add('oc-ver-pills-top');
+            h2.appendChild(container);
+        }
+    }
+
+    ocRelocateVersionPills();
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', ocRelocateVersionPills);
+    }
+
+
     var getDashboardBaseURL = ocGetDashboardBaseURL;
     var getDashboardWebSocketOrigin = ocGetDashboardWebSocketOrigin;
     var buildDashboardURL = ocBuildDashboardURL;
@@ -119,13 +257,16 @@ var ocLang = window.ocLang || '';
     var bytesToSize = ocFormatBytes;
     var debounceButton = ocDebounce;
 
-    function ocStatHtml(text, color) {
-        color = color || 'var(--success-color)';
+    function ocFormatClashPill(state, text) {
+        return '<span class="oc-status-pill is-' + state + '"><span class="oc-status-dot"></span><span class="oc-status-text">' + text + '</span></span>';
+    }
+
+    function ocStatHtml(text) {
         var s = String(text);
         var m = s.match(/^([\d.]+)\s*(.*)$/);
         var num = m ? m[1] : s;
         var unit = m ? m[2] : '';
-        return '<span class="stat-num" style="color:' + color + '">' + num + '</span>'
+        return '<span class="stat-num">' + num + '</span>'
             + (unit ? '<span class="stat-unit">' + unit + '</span>' : '');
     }
 
@@ -1178,8 +1319,13 @@ var ocLang = window.ocLang || '';
 
         getSelectedConfig: function() {
             return this.selectElement ? this.selectElement.value : '';
+        },
+
+        onConfigSelectChange: function(el) {
+            if (el) this.onConfigChange({ target: el });
         }
     };
+    window.ConfigFileManager = ConfigFileManager;
 
     var SubscriptionManager = {
         currentConfigFile: '',
@@ -1400,6 +1546,7 @@ var ocLang = window.ocLang || '';
                 }
             } else {
                 progressSection.classList.add('oc-hidden');
+                progressSection.setAttribute('data-count', '0');
             }
 
             if (detailsSection) {
@@ -1412,7 +1559,8 @@ var ocLang = window.ocLang || '';
 
             progressSection.innerHTML = '';
             progressSection.classList.remove('oc-hidden');
-            progressSection.className = 'subscription-progress';
+            progressSection.className = 'hero-row hero-row-providers subscription-progress';
+            progressSection.setAttribute('data-count', '1');
 
             var progressBar = document.createElement('div');
             progressBar.className = 'subscription-progress-bar';
@@ -1458,7 +1606,7 @@ var ocLang = window.ocLang || '';
 
             progressSection.innerHTML = '';
             progressSection.classList.remove('oc-hidden');
-            progressSection.className = 'subscription-providers-grid';
+            progressSection.className = 'hero-row hero-row-providers subscription-providers-grid';
             progressSection.setAttribute('data-count', providerCount);
 
             displayProviders.forEach(function(provider) {
@@ -1493,18 +1641,33 @@ var ocLang = window.ocLang || '';
                 var daysLeft = parseInt(provider.day_left, 10);
                 if (isNaN(daysLeft)) daysLeft = 0;
 
-                var infoString = used + ' / ' + total + ' (' + percent + '%)';
-                if (expire && expire !== 'null' && daysLeft > 0) {
-                    infoString += ' • ' + expire + ' (<%:Remaining%> ' + daysLeft + ' <%:days%>)';
-                }
+                if (provider.no_sub_info || total === 'null' || total === 'N/A') {
+                    progressFill.style.width = '0%';
+                    progressFill.className = 'subscription-progress-fill';
+                    infoText.textContent = '<%:No Sub Info Found%>';
+                    infoText.title = '<%:No Sub Info Found%>';
+                } else {
+                    var infoString = used + ' / ' + total + ' (' + percent + '%)';
+                    if (expire && expire !== 'null') {
+                        if (expire === '<%:Long-term%>' || provider.day_left === '∞') {
+                            infoString += ' • ' + expire;
+                        } else if (daysLeft > 0) {
+                            infoString += ' • ' + expire + ' (<%:Remaining%> ' + daysLeft + ' <%:days%>)';
+                        }
+                    }
 
-                var tooltipString = used + ' / ' + total + ' (' + percent + '%)';
-                if (expire && expire !== 'null' && daysLeft > 0) {
-                    tooltipString += '\n' + expire + ' (<%:Remaining%> ' + daysLeft + ' <%:days%>)';
-                }
+                    var tooltipString = used + ' / ' + total + ' (' + percent + '%)';
+                    if (expire && expire !== 'null') {
+                        if (expire === '<%:Long-term%>' || provider.day_left === '∞') {
+                            tooltipString += '\n' + expire;
+                        } else if (daysLeft > 0) {
+                            tooltipString += '\n' + expire + ' (<%:Remaining%> ' + daysLeft + ' <%:days%>)';
+                        }
+                    }
 
-                infoText.textContent = infoString;
-                infoText.title = tooltipString;
+                    infoText.textContent = infoString;
+                    infoText.title = tooltipString;
+                }
                 SubscriptionManager.enableOverflowDrag(infoText);
 
                 card.appendChild(infoText);
@@ -1588,9 +1751,10 @@ var ocLang = window.ocLang || '';
             container.classList.remove('oc-hidden');
 
             if (progressSection) {
-                progressSection.innerHTML = '<div class="subscription-no-info"><%:No Sub Info Found%></div>';
-                progressSection.classList.remove('oc-hidden');
-                progressSection.className = 'subscription-progress';
+                progressSection.innerHTML = '';
+                progressSection.classList.add('oc-hidden');
+                progressSection.setAttribute('data-count', '0');
+                progressSection.className = 'hero-row hero-row-providers subscription-progress oc-hidden';
             }
 
             if (detailsSection) {
@@ -1622,12 +1786,9 @@ var ocLang = window.ocLang || '';
                 return;
             }
 
-            container.classList.remove('oc-hidden');
-
             if (progressSection) {
-                progressSection.innerHTML = '<div class="oc-sk oc-sk-block" style="width:92%"></div><div class="oc-sk oc-sk-block" style="width:55%"></div>';
-                progressSection.classList.remove('oc-hidden');
-                progressSection.className = 'subscription-progress';
+                progressSection.classList.add('oc-hidden');
+                progressSection.setAttribute('data-count', '0');
             }
 
             if (detailsSection) {
@@ -1971,6 +2132,11 @@ var ocLang = window.ocLang || '';
 
             var self = this;
             var enabledModules = this.getEnabledModules(data);
+            var badgeEl = document.getElementById('overwrite-count-badge');
+            if (badgeEl) {
+                badgeEl.textContent = String(enabledModules.length);
+                badgeEl.classList.toggle('oc-hidden', enabledModules.length === 0);
+            }
             this.container.innerHTML = '';
 
             if (enabledModules.length === 0) {
@@ -2489,6 +2655,9 @@ var ocLang = window.ocLang || '';
                     } else if (window.ocToast) {
                         ocToast('<%:Switch Successful%>', 'success');
                     }
+                    if (typeof syncPolicySwitchUI === 'function') {
+                        syncPolicySwitchUI();
+                    }
                 }, 1500);
             });
 
@@ -2789,24 +2958,7 @@ var ocLang = window.ocLang || '';
         },
 
         requiredSources: function() {
-            var ws = [];
-            var sys = false;
-            if (this.view === 'ac') {
-                return { ws: [], sys: false };
-            }
-            if (this.view === 'cards') {
-                ws = ['traffic', 'connections', 'memory'];
-                sys = true;
-            } else if (this.metric === 'traffic') {
-                ws = ['traffic', 'connections'];
-            } else if (this.metric === 'memory') {
-                ws = ['memory'];
-            } else if (this.metric === 'connections') {
-                ws = ['connections'];
-            } else {
-                sys = true;
-            }
-            return { ws: ws, sys: sys };
+            return { ws: ['traffic', 'connections', 'memory'], sys: true };
         },
 
         notifyDataSource: function() {
@@ -2814,10 +2966,7 @@ var ocLang = window.ocLang || '';
         },
 
         init: function() {
-            var savedView = localStorage.getItem('oc-stats-view');
-            if (savedView === 'chart' || savedView === 'cards' || savedView === 'ac') {
-                this.view = savedView;
-            }
+            this.view = 'chart';
             this.resetBuffer(Date.now());
             this.metrics = {
                 traffic: { unit: ' MB/s', series: [{ key: 'up', name: '<%:Upload%>' }, { key: 'down', name: '<%:Download%>' }] },
@@ -2836,46 +2985,28 @@ var ocLang = window.ocLang || '';
             this.renderLegend();
             this.initCardDots();
             this.startTimer();
-            if (this.view === 'chart') {
-                this.render();
-            }
+            this.render();
         },
 
         applyView: function() {
-            document.getElementById('stats-view-cards').classList.toggle('oc-hidden', this.view !== 'cards');
-            document.getElementById('stats-view-chart').classList.toggle('oc-hidden', this.view !== 'chart');
+            this.view = 'chart';
+            var cardsEl = document.getElementById('stats-view-cards');
+            if (cardsEl) cardsEl.classList.remove('oc-hidden');
+            var chartEl = document.getElementById('stats-view-chart');
+            if (chartEl) chartEl.classList.remove('oc-hidden');
             var acEl = document.getElementById('stats-view-ac');
-            if (acEl) acEl.classList.toggle('oc-hidden', this.view !== 'ac');
+            if (acEl) acEl.classList.remove('oc-hidden');
             var statsTabs = document.getElementById('stats-tabs');
-            if (statsTabs) statsTabs.classList.toggle('oc-hidden', this.view !== 'chart');
-            var cardsBtn = document.getElementById('stats-cards-btn');
-            var chartBtn = document.getElementById('stats-chart-btn');
-            var acBtn = document.getElementById('stats-ac-btn');
-            if (cardsBtn) cardsBtn.classList.toggle('active', this.view === 'cards');
-            if (chartBtn) chartBtn.classList.toggle('active', this.view === 'chart');
-            if (acBtn) acBtn.classList.toggle('active', this.view === 'ac');
-            var sectionTitle = document.getElementById('stats-section-title');
-            if (sectionTitle) sectionTitle.textContent = this.view === 'ac' ? '<%:Access Control%>' : '<%:Statistics%>';
-            if (typeof ClientsAC !== 'undefined') ClientsAC.setActive(this.view === 'ac');
+            if (statsTabs) statsTabs.classList.remove('oc-hidden');
+
+            if (this.chart && typeof this.chart.resize === 'function') {
+                this.chart.resize();
+            }
+            this.startTimer();
         },
 
         initCardDots: function() {
-            var map = {
-                upload_: 'up', download_: 'down', uploadtotal_: 'up', downloadtotal_: 'down',
-                connect_t: 'conn', mem_t: 'mem', cpu_t: 'cpu', load_a: 'load'
-            };
-            for (var id in map) {
-                var el = document.getElementById(id);
-                if (!el) continue;
-                var item = el.closest('.stat-item');
-                if (!item) continue;
-                var label = item.querySelector('.stat-label');
-                if (!label || label.querySelector('.stat-dot')) continue;
-                var dot = document.createElement('span');
-                dot.className = 'stat-dot';
-                dot.style.background = this.seriesColor(map[id]);
-                label.insertBefore(dot, label.firstChild);
-            }
+            return;
         },
 
         feed: function(key, val) {
@@ -3835,11 +3966,18 @@ var ocLang = window.ocLang || '';
                 else if (tot === 0) decaying = true;
                 if (!st) continue;
                 var h = this.hist[d.key];
-                if (!h) continue;
-                h.up.push(st.ur);
-                h.down.push(st.dr);
-                if (h.up.length > this.histLen) h.up.shift();
-                if (h.down.length > this.histLen) h.down.shift();
+                if (h) {
+                    h.up.push(st.ur);
+                    h.down.push(st.dr);
+                    if (h.up.length > this.histLen) h.up.shift();
+                    if (h.down.length > this.histLen) h.down.shift();
+                }
+                if (!this.rateHistory) this.rateHistory = {};
+                if (!this.rateHistory[d.key]) this.rateHistory[d.key] = { up: [], down: [] };
+                this.rateHistory[d.key].up.push(st.ur || 0);
+                this.rateHistory[d.key].down.push(st.dr || 0);
+                if (this.rateHistory[d.key].up.length > 12) this.rateHistory[d.key].up.shift();
+                if (this.rateHistory[d.key].down.length > 12) this.rateHistory[d.key].down.shift();
             }
             var sig = 0, k3;
             for (k3 in stats) sig += stats[k3].ur + stats[k3].dr + stats[k3].c * 7;
@@ -4302,31 +4440,9 @@ var ocLang = window.ocLang || '';
         syncSpark: function(d, row, kind, shown) {
             var slot = row.querySelector('.ac-spark-slot[data-kind="' + kind + '"]');
             if (!slot) return;
-            var pair = this.sparks[d.key];
-            if (!shown || !slot.offsetWidth) {
-                if (pair && pair[kind]) {
-                    pair[kind].destroy();
-                    pair[kind] = null;
-                }
-                return;
-            }
-            var h = this.hist[d.key];
-            var data = h ? h[kind] : null;
-            if (!data || data.length < 2) return;
-            var chart = pair && pair[kind];
-            if (!chart) {
-                chart = this.createSpark(slot, kind, d);
-                if (!chart) return;
-            } else if (chart.pollSeq === this.pollSeq) {
-                return;
-            }
-            chart.pollSeq = this.pollSeq;
-            var pts = [];
-            for (var i = 0; i < data.length; i++) pts.push({ x: i, y: data[i] });
-            chart.data.datasets[0].data = pts;
-            // a freshly built chart has nothing to interpolate from, only later samples animate
-            chart.update(chart.hasPoints ? undefined : 'none');
-            chart.hasPoints = true;
+            var pts = (this.rateHistory && this.rateHistory[d.key] && this.rateHistory[d.key][kind]) || (this.hist && this.hist[d.key] && this.hist[d.key][kind]) || [];
+            var color = (kind === 'up') ? 'var(--oc-accent, #5e72e4)' : 'var(--oc-green, #2dce89)';
+            slot.innerHTML = generateSparklineSVG(pts, color, 44, 16);
         },
 
         setRate: function(cell, val) {
@@ -4426,12 +4542,12 @@ var ocLang = window.ocLang || '';
             out += '</div>';
             out += '<div class="ac-rates">';
             out += '<div class="ac-rc ac-up' + (d.online ? (Math.round(up) > 0 ? '' : ' ac-idle-val') : ' ac-off') + '">';
-            out += '<span class="ac-rate-v">' + (d.online ? acEscape(acFmtRate(up)) : '—') + '</span>';
             if (d.online) out += '<span class="ac-spark ac-spark-slot" data-kind="up"></span>';
+            out += '<span class="ac-rate-v">' + (d.online ? acEscape(acFmtRate(up)) : '—') + '</span>';
             out += '</div>';
             out += '<div class="ac-rc ac-down' + (d.online ? (Math.round(down) > 0 ? '' : ' ac-idle-val') : ' ac-off') + '">';
-            out += '<span class="ac-rate-v">' + (d.online ? acEscape(acFmtRate(down)) : '—') + '</span>';
             if (d.online) out += '<span class="ac-spark ac-spark-slot" data-kind="down"></span>';
+            out += '<span class="ac-rate-v">' + (d.online ? acEscape(acFmtRate(down)) : '—') + '</span>';
             out += '</div>';
             out += '</div>';
             out += '</div>';
@@ -4486,18 +4602,20 @@ var ocLang = window.ocLang || '';
 
         syncSortUI: function() {
             var self = this;
+            var upIcon = '<svg class="oc-icon" style="width:11px;height:11px;margin-left:2px;vertical-align:middle;"><use href="#oc-icon-chevron-up"/></svg>';
+            var downIcon = '<svg class="oc-icon" style="width:11px;height:11px;margin-left:2px;vertical-align:middle;"><use href="#oc-icon-chevron-down"/></svg>';
             var ths = document.querySelectorAll('#stats-view-ac .ac-th-cell');
             for (var i = 0; i < ths.length; i++) {
                 var key = ths[i].getAttribute('data-key');
                 var ind = ths[i].querySelector('.ac-sort-ind');
-                if (ind) ind.textContent = (key === self.sortKey && self.sortDir !== 0) ? (self.sortDir === 1 ? '▲' : '▼') : '';
+                if (ind) ind.innerHTML = (key === self.sortKey && self.sortDir !== 0) ? (self.sortDir === 1 ? upIcon : downIcon) : '';
             }
             var items = document.querySelectorAll('#ac-sort-menu button');
             for (var j = 0; j < items.length; j++) {
                 var k2 = items[j].getAttribute('data-key');
                 var ind2 = items[j].querySelector('.ac-sort-ind');
                 var on = (k2 === self.sortKey && self.sortDir !== 0);
-                if (ind2) ind2.textContent = on ? (self.sortDir === 1 ? '▲' : '▼') : '';
+                if (ind2) ind2.innerHTML = on ? (self.sortDir === 1 ? upIcon : downIcon) : '';
                 items[j].classList.toggle('on', on);
             }
             var sortBtn = document.getElementById('ac-sort-btn');
@@ -4505,7 +4623,7 @@ var ocLang = window.ocLang || '';
                 var onBtn = !!self.sortKey && self.sortDir !== 0;
                 sortBtn.classList.toggle('on', onBtn);
                 var btnInd = sortBtn.querySelector('.ac-sort-ind');
-                if (btnInd) btnInd.textContent = onBtn ? (self.sortDir === 1 ? '▲' : '▼') : '';
+                if (btnInd) btnInd.innerHTML = onBtn ? (self.sortDir === 1 ? upIcon : downIcon) : '';
             }
         },
 
@@ -4798,6 +4916,7 @@ var ocLang = window.ocLang || '';
     StatsChart.init();
 
     ClientsAC.init();
+    ClientsAC.setActive(true);
 
     var pluginToggleUserAction = false;
     var coreMissing = null;
@@ -4814,7 +4933,9 @@ var ocLang = window.ocLang || '';
             if (!pluginToggleUserAction) {
                 updates.push({
                     element: DOMCache.clash,
-                    content: status.clash ? '<b style=color:var(--success-color)>' + status.core_type +'&nbsp;<%:Running%></b>' : '<b style=color:var(--error-color)><%:Not Running%></b>'
+                    content: status.clash ?
+                        ocFormatClashPill('running', (status.core_type ? status.core_type + ' · ' : '') + '<%:Running%>') :
+                        ocFormatClashPill('stopped', '<%:Not Running%>')
                 });
 
                 updatePluginToggleState(status.clash);
@@ -4855,6 +4976,9 @@ var ocLang = window.ocLang || '';
                 DOMCache.stream_unlock_on.checked = status.stream_unlock === '1';
                 DOMCache.stream_unlock_off.checked = status.stream_unlock !== '1';
             }
+            if (typeof syncPolicySwitchUI === 'function') {
+                syncPolicySwitchUI();
+            }
 
             var webContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Yacd%>" onclick="return ycad_dashboard(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Yacd%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: DOMCache.web, content: webContent});
@@ -4871,16 +4995,21 @@ var ocLang = window.ocLang || '';
             var externalWebContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:External Dashboard%>" onclick="return external_dashboard(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:External Dashboard%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: DOMCache.web_external, content: externalWebContent});
 
-            var closeConnContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Close Connect%>" onclick="return b_close_all_connection(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Close Connect%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
+            var svgPower = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+            var svgShield = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>';
+            var svgTrash = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>';
+            var svgRefresh = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+
+            var closeConnContent = status.clash ? '<button type="button" class="dropdown-item-btn" onclick="return b_close_all_connection(this)">' + svgPower + '<span><%:Close Connect%></span></button>' : '<button type="button" class="dropdown-item-btn is-disabled" onclick="event.preventDefault(); event.stopPropagation(); return false;">' + svgPower + '<span><%:Close Connect%></span></button>';
             updates.push({element: document.getElementById('_close_all_connection_btn'), content: closeConnContent});
 
-            var reloadFwContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Reload Firewall%>" onclick="return b_reload_firewall(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Reload Firewall%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
+            var reloadFwContent = status.clash ? '<button type="button" class="dropdown-item-btn" onclick="return b_reload_firewall(this)">' + svgShield + '<span><%:Reload Firewall%></span></button>' : '<button type="button" class="dropdown-item-btn is-disabled" onclick="event.preventDefault(); event.stopPropagation(); return false;">' + svgShield + '<span><%:Reload Firewall%></span></button>';
             updates.push({element: document.getElementById('_reload_firewall_btn'), content: reloadFwContent});
 
-            var flushCacheContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Flush DNS%>" onclick="return b_flush_dns_cache(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Flush DNS Cache%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
+            var flushCacheContent = status.clash ? '<button type="button" class="dropdown-item-btn" onclick="return b_flush_dns_cache(this)">' + svgTrash + '<span><%:Flush DNS%></span></button>' : '<button type="button" class="dropdown-item-btn is-disabled" onclick="event.preventDefault(); event.stopPropagation(); return false;">' + svgTrash + '<span><%:Flush DNS Cache%></span></button>';
             updates.push({element: document.getElementById('_flush_dns_cache_btn'), content: flushCacheContent});
 
-            var oneKeyUpdateContent = '<input type="button" class="dashboard-btn" value="<%:Check Update%>" onclick="return all_one_key_update(this)"/>';
+            var oneKeyUpdateContent = '<button type="button" class="dropdown-item-btn" onclick="return all_one_key_update(this)">' + svgRefresh + '<span><%:Check Update%></span></button>';
             updates.push({element: document.getElementById('_one_key_update_btn'), content: oneKeyUpdateContent});
 
             StateManager.batchUpdateDOM(updates);
@@ -4908,14 +5037,14 @@ var ocLang = window.ocLang || '';
 
                 var dashboardBase = getDashboardBaseURL(status);
                 dapoContent = dashboardBase.port ? ":" + dashboardBase.port : "";
-                daipContent = "<b style=color:var(--success-color)>" + dashboardBase.host + dapoContent + "</b>";
+                daipContent = "<b>" + dashboardBase.host + dapoContent + "</b>";
 
                 DOMCache.daip.innerHTML = daipContent;
 
                 StateManager.cached_proxy_info = { mixed_port: status.mixed_port, auth_user: status.auth_user, auth_pass: status.auth_pass };
                 var proxy_ip = status.daip;
                 var mix_addr = proxy_ip + ':' + (status.mixed_port || '7893');
-                DOMCache.mix_proxy.innerHTML = "<b style=color:var(--success-color)>" + mix_addr + "</b>";
+                DOMCache.mix_proxy.innerHTML = "<b>" + mix_addr + "</b>";
             } else {
                 DOMCache.daip.innerHTML = "<b style=color:var(--error-color)>" + '<%:Not Available%>' + "</b>";
                 StateManager.cached_proxy_info = null;
@@ -5124,211 +5253,117 @@ var ocLang = window.ocLang || '';
     function AnnouncementAnimator(config) {
         var bannerElement = config.bannerElement;
         var contentElement = config.contentElement;
-        var announcements = config.announcements;
+        var announcements = config.announcements || [];
         var isRandomTips = config.isRandomTips || false;
         var randomTipCount = config.randomTipCount || 3;
         var getRandomTipsCallback = config.getRandomTipsCallback;
-        var onIndexChange = config.onIndexChange || function(index, text) {};
-        var loopDelay = config.loopDelay || 2000;
-        var animationRefreshThreshold = 250;
         var currentIndex = 0;
+        var timer = null;
         var isHovered = false;
-        var pauseTimeout = null;
-        var nextAnimationTimeout = null;
-        var resizeTimeout = null;
-        var animationEndHandler = null;
         var destroyed = false;
-        var cachedBannerWidth = 0;
-        var cachedContentWidth = 0;
-        var cachedDuration = 0;
-
-        function calculateAnimationDuration() {
-            var bannerWidth = bannerElement.offsetWidth;
-            var contentWidth = contentElement.offsetWidth;
-            if (bannerWidth === cachedBannerWidth && contentWidth === cachedContentWidth && cachedDuration > 0) {
-                return cachedDuration;
-            }
-            cachedBannerWidth = bannerWidth;
-            cachedContentWidth = contentWidth;
-            var refreshRate = window.screen && window.screen.refreshRate ? window.screen.refreshRate : 60;
-            if (refreshRate <= 0) refreshRate = 60;
-            if (refreshRate > 480) refreshRate = 480;
-
-            var scrollDistance = contentWidth + bannerWidth;
-
-            var minDistance = 400;
-            var maxDistance = 20000;
-            var minSpeed = 60;
-            var maxSpeed = 360;
-            var clampedDistance = Math.min(maxDistance, Math.max(minDistance, scrollDistance));
-            var targetVelocity = minSpeed + (maxSpeed - minSpeed) * (clampedDistance - minDistance) / (maxDistance - minDistance);
-
-            var duration = (scrollDistance / targetVelocity) * 1000;
-
-            var refreshRateMultiplier = 1;
-            if (refreshRate > 60) {
-                refreshRateMultiplier = 1 + (refreshRate - 60) / 240;
-            }
-            duration = duration * refreshRateMultiplier;
-
-            cachedDuration = Math.max(4000, Math.min(duration, 50000));
-            return cachedDuration;
-        }
-
-        function updateScrollAnimation(duration) {
-            var viewport = bannerElement.parentElement;
-            if (!viewport) viewport = bannerElement;
-
-            var viewportWidth = viewport.clientWidth;
-            var contentWidth = contentElement.scrollWidth;
-            var scrollDistance = -(contentWidth + viewportWidth);
-
-            viewport.style.setProperty('--scroll-distance', scrollDistance + 'px');
-            contentElement.style.animationDuration = duration + 'ms';
-        }
-
-        function refreshAnimation() {
-            if (!contentElement.classList.contains('scrolling')) return;
-            var duration = calculateAnimationDuration();
-            updateScrollAnimation(duration);
-            contentElement.classList.remove('scrolling');
-            contentElement.offsetHeight;
-            contentElement.classList.add('scrolling');
-        }
 
         function refreshAnnouncementsForRandomMode() {
             if (!isRandomTips) return;
             var newTips;
             if (getRandomTipsCallback) {
                 newTips = getRandomTipsCallback(randomTipCount);
-            } else {
-                newTips = AnnouncementDataManager.getRandomTips(randomTipCount);
             }
-            if (newTips && newTips.length) {
+            if (newTips && newTips.length > 0) {
                 announcements = newTips;
+                currentIndex = 0;
             }
         }
 
-        function startSingleScroll() {
-            if (destroyed) return;
-            if (nextAnimationTimeout) {
-                clearTimeout(nextAnimationTimeout);
-                nextAnimationTimeout = null;
+        function scheduleNextFlip() {
+            if (destroyed || isHovered || !announcements || announcements.length <= 1) return;
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(function() {
+                flipNext();
+            }, 10000);
+        }
+
+        function flipNext() {
+            if (destroyed || !contentElement || announcements.length <= 1) return;
+            currentIndex++;
+            if (currentIndex >= announcements.length) {
+                if (isRandomTips) {
+                    refreshAnnouncementsForRandomMode();
+                } else {
+                    currentIndex = 0;
+                }
             }
 
-            var text = announcements[currentIndex] || '';
-            contentElement.textContent = text;
-            if (onIndexChange) onIndexChange(currentIndex, text);
+            contentElement.classList.remove('flip-in');
+            contentElement.classList.add('flip-out');
 
             setTimeout(function() {
                 if (destroyed) return;
-                var duration = calculateAnimationDuration();
-                updateScrollAnimation(duration);
-
-                if (animationEndHandler) {
-                    contentElement.removeEventListener('animationend', animationEndHandler);
-                }
-
-                animationEndHandler = function(e) {
-                    if (e.target === contentElement && e.animationName === 'announceScroll') {
-                        contentElement.removeEventListener('animationend', animationEndHandler);
-                        animationEndHandler = null;
-
-                        pauseTimeout = setTimeout(function() {
-                            if (destroyed) return;
-                            if (!isHovered) {
-                                currentIndex = (currentIndex + 1) % announcements.length;
-                                if (isRandomTips && currentIndex === 0) {
-                                    refreshAnnouncementsForRandomMode();
-                                }
-                                startSingleScroll();
-                            }
-                        }, loopDelay);
-                    }
-                };
-                contentElement.addEventListener('animationend', animationEndHandler);
-
-                contentElement.classList.remove('scrolling');
-                contentElement.offsetHeight;
-                contentElement.classList.add('scrolling');
-            }, 50);
+                contentElement.textContent = announcements[currentIndex] || '';
+                contentElement.classList.remove('flip-out');
+                contentElement.classList.add('flip-prep');
+                contentElement.offsetHeight; // reflow
+                contentElement.classList.remove('flip-prep');
+                contentElement.classList.add('flip-in');
+                scheduleNextFlip();
+            }, 220);
         }
 
-        function pause() {
-            if (destroyed) return;
+        function mouseEnterHandler() {
             isHovered = true;
-            contentElement.classList.add('paused');
-            if (pauseTimeout) {
-                clearTimeout(pauseTimeout);
-                pauseTimeout = null;
+            if (timer) {
+                clearTimeout(timer);
+                timer = null;
             }
         }
 
-        function resume() {
-            if (destroyed) return;
+        function mouseLeaveHandler() {
             isHovered = false;
-            contentElement.classList.remove('paused');
-        }
-
-        function destroy() {
-            destroyed = true;
-            if (pauseTimeout) clearTimeout(pauseTimeout);
-            if (nextAnimationTimeout) clearTimeout(nextAnimationTimeout);
-            if (resizeTimeout) clearTimeout(resizeTimeout);
-            if (animationEndHandler) {
-                contentElement.removeEventListener('animationend', animationEndHandler);
-                animationEndHandler = null;
-            }
-            contentElement.classList.remove('scrolling', 'paused');
-            bannerElement.removeEventListener('mouseenter', mouseEnterHandler);
-            bannerElement.removeEventListener('mouseleave', mouseLeaveHandler);
-            window.removeEventListener('resize', resizeHandler);
-        }
-
-        function mouseEnterHandler() { pause(); }
-        function mouseLeaveHandler() { resume(); }
-        function resizeHandler() {
-            clearTimeout(resizeTimeout);
-            cachedBannerWidth = 0;
-            cachedContentWidth = 0;
-            cachedDuration = 0;
-            resizeTimeout = setTimeout(function() {
-                if (!destroyed && contentElement.classList.contains('scrolling')) {
-                    refreshAnimation();
-                }
-            }, animationRefreshThreshold);
+            scheduleNextFlip();
         }
 
         function init() {
             if (!bannerElement || !contentElement || !announcements || announcements.length === 0) {
-                console.warn('AnnouncementAnimator: invalid config');
                 return false;
             }
-            bannerElement.style.display = 'block';
+            bannerElement.style.display = 'flex';
+            contentElement.classList.remove('scrolling', 'flip-out', 'flip-prep');
+            contentElement.textContent = announcements[0] || '';
+
             bannerElement.addEventListener('mouseenter', mouseEnterHandler);
             bannerElement.addEventListener('mouseleave', mouseLeaveHandler);
-            window.addEventListener('resize', resizeHandler);
-            startSingleScroll();
+
+            if (announcements.length > 1) {
+                scheduleNextFlip();
+            }
             return true;
+        }
+
+        function destroy() {
+            destroyed = true;
+            if (timer) {
+                clearTimeout(timer);
+                timer = null;
+            }
+            if (bannerElement) {
+                bannerElement.removeEventListener('mouseenter', mouseEnterHandler);
+                bannerElement.removeEventListener('mouseleave', mouseLeaveHandler);
+            }
         }
 
         return {
             init: init,
-            pause: pause,
-            resume: resume,
+            pause: mouseEnterHandler,
+            resume: mouseLeaveHandler,
             destroy: destroy,
             updateAnnouncements: function(newList, newRandomFlag) {
                 announcements = newList || announcements;
                 isRandomTips = (newRandomFlag !== undefined) ? newRandomFlag : isRandomTips;
                 currentIndex = 0;
-                if (pauseTimeout) clearTimeout(pauseTimeout);
-                if (nextAnimationTimeout) clearTimeout(nextAnimationTimeout);
-                if (animationEndHandler) {
-                    contentElement.removeEventListener('animationend', animationEndHandler);
-                    animationEndHandler = null;
+                if (timer) clearTimeout(timer);
+                contentElement.textContent = announcements[0] || '';
+                if (announcements.length > 1) {
+                    scheduleNextFlip();
                 }
-                contentElement.classList.remove('scrolling');
-                startSingleScroll();
             }
         };
     }
@@ -5424,7 +5459,7 @@ var ocLang = window.ocLang || '';
         if (DOMCache.dns_fakeip) DOMCache.dns_fakeip.checked = (mode === 'fake-ip');
         if (DOMCache.dns_redirhost) DOMCache.dns_redirhost.checked = (mode === 'redir-host');
         if (DOMCache.radio_run_normal) {
-            DOMCache.radio_run_normal.innerHTML = (mode === 'fake-ip') ? '<%:Enhance%>' : '<%:Compat%>';
+            DOMCache.radio_run_normal.innerHTML = '<%:Compat%>';
         }
     }
 
@@ -5576,23 +5611,32 @@ var ocLang = window.ocLang || '';
         }
     }
 
+    function ocSetButtonLabel(btn, text) {
+        if (!btn) return;
+        btn.value = text;
+        var span = btn.querySelector ? btn.querySelector('span') : null;
+        if (span) {
+            span.textContent = text;
+        }
+    }
+
     var all_one_key_update = debounceButton(function(btn) {
-        btn.value = '<%:Checking...%>';
+        ocSetButtonLabel(btn, '<%:Checking...%>');
         ocShowUpdatePopup(function() {
-            btn.value = '<%:Check Update%>';
+            ocSetButtonLabel(btn, '<%:Check Update%>');
             btn.disabled = false;
         });
     });
 
     var b_flush_dns_cache = debounceButton(function(btn) {
         btn.disabled = true;
-        btn.value = '<%:Flushing...%> ';
+        ocSetButtonLabel(btn, '<%:Flushing...%>');
         XHR.get('<%=url("admin", "services", "openclash", "flush_dns_cache")%>', null, function(x, status) {
             btn.disabled = false;
             if (x && x.status == 200) {
-                btn.value = (status.fakeip_flush === "" && status.dns_flush === "") ? '<%:Flush Successful%>' : '<%:Flush Failed%>';
+                ocSetButtonLabel(btn, (status.fakeip_flush === "" && status.dns_flush === "") ? '<%:Flush Successful%>' : '<%:Flush Failed%>');
             } else {
-                btn.value = '<%:Flush Timeout%>';
+                ocSetButtonLabel(btn, '<%:Flush Timeout%>');
             }
         });
         return false;
@@ -5600,21 +5644,21 @@ var ocLang = window.ocLang || '';
 
     var b_reload_firewall = debounceButton(function(btn) {
         btn.disabled = true;
-        btn.value = '<%:Reloading...%>';
+        ocSetButtonLabel(btn, '<%:Reloading...%>');
         LogManager.startLogDisplay('<%:Reloading...%>', false, 'init');
         XHR.get('<%=url("admin", "services", "openclash", "reload_firewall")%>', null, function(x, status) {
             btn.disabled = false;
-            btn.value = (x && x.status == 200) ? '<%:Reload Firewall%>' : '<%:Firewall Rules Reset Failed%>';
+            ocSetButtonLabel(btn, (x && x.status == 200) ? '<%:Reload Firewall%>' : '<%:Firewall Rules Reset Failed%>');
         });
         return false;
     });
 
     var b_close_all_connection = debounceButton(function(btn) {
         btn.disabled = true;
-        btn.value = '<%:Reloading...%>';
+        ocSetButtonLabel(btn, '<%:Reloading...%>');
         XHR.get('<%=url("admin", "services", "openclash", "close_all_connection")%>', null, function(x, status) {
             btn.disabled = false;
-            btn.value = (x && x.status == 200) ? '<%:Close Connect%>' : '<%:Close Connect Failed%>';
+            ocSetButtonLabel(btn, (x && x.status == 200) ? '<%:Close Connect%>' : '<%:Close Connect Failed%>');
         });
         return false;
     });
@@ -5691,6 +5735,7 @@ var ocLang = window.ocLang || '';
     }
 
     function clashversion_check() {
+        ocRelocateVersionPills();
         if (document.visibilityState === 'hidden') return;
         var now = Date.now();
         if (now - lastVersionCheck < 30000) return;
@@ -5997,9 +6042,9 @@ var ocLang = window.ocLang || '';
         if (DOMCache.clash) {
             if (isEnabled) {
                 var coreType = (StateManager.current_status && StateManager.current_status.core_type) || '';
-                DOMCache.clash.innerHTML = '<b style=color:var(--success-color)>' + coreType + '&nbsp;<%:Running%></b>';
+                DOMCache.clash.innerHTML = ocFormatClashPill('running', (coreType ? coreType + ' · ' : '') + '<%:Running%>');
             } else {
-                DOMCache.clash.innerHTML = '<b style=color:var(--error-color)><%:Not Running%></b>';
+                DOMCache.clash.innerHTML = ocFormatClashPill('stopped', '<%:Not Running%>');
             }
         }
         StateManager.current_status.clash = isEnabled;
@@ -6033,7 +6078,7 @@ var ocLang = window.ocLang || '';
                 ocAlert(errorMessage);
 
                 if (DOMCache.clash) {
-                    DOMCache.clash.innerHTML = '<b style="color:var(--error-color)"><%:Operation Failed%></b>';
+                    DOMCache.clash.innerHTML = ocFormatClashPill('error', '<%:Operation Failed%>');
                 }
 
                 pluginToggleUserAction = false;
@@ -6054,8 +6099,8 @@ var ocLang = window.ocLang || '';
 
             if (DOMCache.clash && StateManager.current_status) {
                 DOMCache.clash.innerHTML = isRunning ?
-                    '<b style=color:var(--success-color)>' + StateManager.current_status.core_type +'&nbsp;<%:Running%></b>' :
-                    '<b style=color:var(--error-color)><%:Not Running%></b>';
+                    ocFormatClashPill('running', (StateManager.current_status.core_type ? StateManager.current_status.core_type + ' · ' : '') + '<%:Running%>') :
+                    ocFormatClashPill('stopped', '<%:Not Running%>');
             }
         }
     }
