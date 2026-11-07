@@ -147,16 +147,16 @@ config_cus_up()
    if [ -z "$subscribe_url_param" ]; then
       if [ -n "$key_match_param" ] || [ -n "$key_ex_match_param" ]; then
          LOG_OUT "Config File【$name】Start Picking Nodes..."
-         ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+         OC_CFG_FILE="$CFG_FILE" OC_KEY_MATCH="$key_match_param" OC_KEY_EX_MATCH="$key_ex_match_param" ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
          begin
             threads = [];
-            Value = YAML.load_file('$CFG_FILE');
+            Value = YAML.load_file(ENV['OC_CFG_FILE']);
             if Value.is_a?(Hash) and Value.has_key?('proxies') and not Value['proxies'].to_a.empty? then
                Value['proxies'].reverse.each{
                |x|
-                  if not '$key_match_param'.empty? then
+                  if not ENV['OC_KEY_MATCH'].empty? then
                      threads << YAML::Inline.new {
-                        if not /$key_match_param/i =~ x['name'] then
+                        if not Regexp.new(ENV['OC_KEY_MATCH'], Regexp::IGNORECASE) =~ x['name'] then
                            Value['proxies'].delete(x)
                            Value['proxy-groups'].each{
                               |g|
@@ -170,9 +170,9 @@ config_cus_up()
                         end;
                      };
                   end;
-                  if not '$key_ex_match_param'.empty? then
+                  if not ENV['OC_KEY_EX_MATCH'].empty? then
                      threads << YAML::Inline.new {
-                        if /$key_ex_match_param/i =~ x['name'] then
+                        if Regexp.new(ENV['OC_KEY_EX_MATCH'], Regexp::IGNORECASE) =~ x['name'] then
                            if Value['proxies'].include?(x) then
                               Value['proxies'].delete(x)
                               Value['proxy-groups'].each{
@@ -194,11 +194,11 @@ config_cus_up()
                Value['proxy-providers'].values.each do
                   |i|
                   threads << YAML::Inline.new {
-                     if not '$key_match_param'.empty? then
-                        i['filter'] = '(?i)$key_match_param';
+                     if not ENV['OC_KEY_MATCH'].empty? then
+                        i['filter'] = '(?i)' + ENV['OC_KEY_MATCH'];
                      end;
-                     if not '$key_ex_match_param'.empty? then
-                        i['exclude-filter'] = '(?i)$key_ex_match_param';
+                     if not ENV['OC_KEY_EX_MATCH'].empty? then
+                        i['exclude-filter'] = '(?i)' + ENV['OC_KEY_EX_MATCH'];
                      end;
                   };
                end;
@@ -208,7 +208,7 @@ config_cus_up()
             YAML.LOG_ERROR('Filter Proxies Failed,【' + e.message + '】');
          ensure
             begin
-               YAML.dump(Value, '$CFG_FILE');
+               YAML.dump(Value, ENV['OC_CFG_FILE']);
             rescue Exception => e
                YAML.LOG_ERROR('Write file failed:【%s】' % [e.message])
             end

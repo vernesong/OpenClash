@@ -618,14 +618,14 @@ config_check()
 #rm -rf "/etc/openclash/*.y*" 2>/dev/null
 cp "$RAW_CONFIG_FILE" "$TMP_CONFIG_FILE"
 
-ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+OC_RAW_CONFIG_FILE="$RAW_CONFIG_FILE" OC_TMP_CONFIG_FILE="$TMP_CONFIG_FILE" ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
 begin
-   config = YAML.load_file('$RAW_CONFIG_FILE');
+   config = YAML.load_file(ENV['OC_RAW_CONFIG_FILE']);
    # A file without a document still needs a mapping for the overwrite stage
-   YAML.dump({}, '$TMP_CONFIG_FILE') if config == {};
+   YAML.dump({}, ENV['OC_TMP_CONFIG_FILE']) if config == {};
 rescue Exception => e
    YAML.LOG_ERROR('Unable To Parse Config File,【' + e.message + '】');
-   system 'rm -rf ${TMP_CONFIG_FILE}';
+   system('rm', '-rf', ENV['OC_TMP_CONFIG_FILE']);
 end
 " 2>/dev/null >> $LOG_FILE
 if [ $? -ne 0 ]; then
@@ -4201,10 +4201,10 @@ start_service()
          fi
 
          #provider path
-         ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+         OC_TMP_CONFIG_FILE="$TMP_CONFIG_FILE" ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
             begin
                threads = []
-               Value = YAML.load_file('$TMP_CONFIG_FILE')
+               Value = YAML.load_file(ENV['OC_TMP_CONFIG_FILE'])
                provider_configs = {'proxy-providers' => 'proxy_provider', 'rule-providers' => 'rule_provider'}
                provider_configs.each do |provider_type, path_prefix|
                   if Value.is_a?(Hash) && Value.key?(provider_type) && Value[provider_type].is_a?(Hash)
@@ -4225,7 +4225,7 @@ start_service()
                   end
                end
                threads.each(&:join)
-               YAML.dump(Value, '$TMP_CONFIG_FILE')
+               YAML.dump(Value, ENV['OC_TMP_CONFIG_FILE'])
             rescue Exception => e
                YAML.LOG_ERROR('Edit Provider Path Failed,【%s】' % [e.message])
             end

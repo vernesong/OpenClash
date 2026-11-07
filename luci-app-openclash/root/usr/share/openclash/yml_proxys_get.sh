@@ -51,11 +51,11 @@ fi
 # the same ones the set direction uses.
 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    require 'uci';
-   failed = UCI.import_config('$CONFIG_FILE', '$CONFIG_NAME');
+   failed = UCI.import_config(ARGV[0], ARGV[1]);
    if not failed.empty? then
       YAML.LOG_ERROR('Write Uci Config Failed,【' + failed.map{ |t, e| t.to_s + ' => ' + e.to_s }.join('; ') + '】');
    end;
-" >> $LOG_FILE 2>&1
+" "$CONFIG_FILE" "$CONFIG_NAME" >> $LOG_FILE 2>&1
 
 LOG_OUT "Config File【$CONFIG_NAME】Read Successful!"
 del_lock

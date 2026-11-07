@@ -417,6 +417,25 @@ function uci_get_config(section, key)
 	return val
 end
 
+--- Asks a subscription for its usage headers, under a second User-Agent if the first one
+-- gets no answer.
+function sub_info_command(agent, header_args, url)
+	local quoted = UTIL.shellquote(url)
+	return string.format(
+		'OUT=$(curl -sLI -X GET -m 5 --retry 2 -w "http_code=%%{http_code}" -H %s%s %s 2>/dev/null); '
+		.. 'CODE=$(echo "$OUT" | grep -o "http_code=[0-9]*" | head -1 | cut -d= -f2); '
+		.. 'if [ -n "$OUT" ] && [ "$CODE" = "200" ]; then echo "$OUT"; '
+		.. 'else curl -sLI -X GET -m 5 --retry 2 -w "http_code=%%{http_code}" -H "User-Agent: Quantumultx"%s %s 2>/dev/null; fi',
+		UTIL.shellquote("User-Agent: " .. tostring(agent)), header_args, quoted, header_args, quoted)
+end
+
+--- A curl command for the core's controller.
+function core_api_command(timing, method, secret, host, port, path, body)
+	return string.format("curl -sL %s -H 'Content-Type: application/json' -H %s -X%s %s -d %s", timing,
+		UTIL.shellquote("Authorization: Bearer " .. tostring(secret or "")), method,
+		UTIL.shellquote("http://" .. tostring(host) .. ":" .. tostring(port) .. path), UTIL.shellquote(body))
+end
+
 function get_file_path_from_request()
 	local file_path = HTTP.formvalue("file")
 

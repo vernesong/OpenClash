@@ -454,7 +454,7 @@ local function coreup()
 	uci:set("openclash", "config", "enable", "1")
 	uci:commit("openclash")
 	local type = HTTP.formvalue("core_type")
-	return SYS.call(string.format("/usr/share/openclash/openclash_core.sh '%s' >/dev/null 2>&1 &", type))
+	return SYS.call(string.format("/usr/share/openclash/openclash_core.sh %s >/dev/null 2>&1 &", UTIL.shellquote(type)))
 end
 
 local function save_corever_branch()
@@ -476,9 +476,9 @@ function core_download()
 	local core_type = is_oix() and "Oix" or "Meta"
 
 	if download_url and download_url ~= "" then
-		SYS.call(string.format("/usr/share/openclash/openclash_core.sh '%s' '%s' >/dev/null 2>&1 &", core_type, download_url))
+		SYS.call(string.format("/usr/share/openclash/openclash_core.sh %s %s >/dev/null 2>&1 &", UTIL.shellquote(core_type), UTIL.shellquote(download_url)))
 	else
-		SYS.call(string.format("/usr/share/openclash/openclash_core.sh '%s' >/dev/null 2>&1 &", core_type))
+		SYS.call(string.format("/usr/share/openclash/openclash_core.sh %s >/dev/null 2>&1 &", UTIL.shellquote(core_type)))
 	end
 
 end
@@ -582,10 +582,10 @@ function action_one_key_update()
 
 	if update_type == "plugin" then
 		if download_url and download_url ~= "" then
-			return SYS.call(string.format("/usr/share/openclash/openclash_update.sh 'plugin_update' '%s' '%s' >/dev/null 2>&1 &",
-				cdn_url or "", download_url))
+			return SYS.call(string.format("/usr/share/openclash/openclash_update.sh 'plugin_update' %s %s >/dev/null 2>&1 &",
+				UTIL.shellquote(cdn_url or ""), UTIL.shellquote(download_url)))
 		elseif cdn_url and cdn_url ~= "" then
-			return SYS.call(string.format("/usr/share/openclash/openclash_update.sh 'plugin_update' '%s' >/dev/null 2>&1 &", cdn_url))
+			return SYS.call(string.format("/usr/share/openclash/openclash_update.sh 'plugin_update' %s >/dev/null 2>&1 &", UTIL.shellquote(cdn_url)))
 		else
 			return SYS.call("/usr/share/openclash/openclash_update.sh 'plugin_update' >/dev/null 2>&1 &")
 		end
@@ -593,10 +593,10 @@ function action_one_key_update()
 
 	if download_url and download_url ~= "" then
 		-- Full download URL: pass as $3 to the update script
-		return SYS.call(string.format("/usr/share/openclash/openclash_update.sh 'one_key_update' '%s' '%s' >/dev/null 2>&1 &",
-			cdn_url or "", download_url))
+		return SYS.call(string.format("/usr/share/openclash/openclash_update.sh 'one_key_update' %s %s >/dev/null 2>&1 &",
+			UTIL.shellquote(cdn_url or ""), UTIL.shellquote(download_url)))
 	elseif cdn_url and cdn_url ~= "" then
-		return SYS.call(string.format("/usr/share/openclash/openclash_update.sh 'one_key_update' '%s' >/dev/null 2>&1 &", cdn_url))
+		return SYS.call(string.format("/usr/share/openclash/openclash_update.sh 'one_key_update' %s >/dev/null 2>&1 &", UTIL.shellquote(cdn_url)))
 	else
 		return SYS.call("/usr/share/openclash/openclash_update.sh 'one_key_update' >/dev/null 2>&1 &")
 	end
@@ -743,10 +743,10 @@ function fetch_sub_info(sub_url, sub_ua, sub_headers, raw_info)
 			end
 		end
 
-		info = SYS.exec(string.format("curl -sLI -X GET -m 5 --retry 2 -w 'http_code=%%{http_code}' -H 'User-Agent: %s'%s '%s'", sub_ua, header_args, sub_url))
+		info = SYS.exec(string.format("curl -sLI -X GET -m 5 --retry 2 -w 'http_code=%%{http_code}' -H %s%s %s", UTIL.shellquote("User-Agent: " .. sub_ua), header_args, UTIL.shellquote(sub_url)))
 		local http_match = string.match(info, "http_code=(%d+)")
 		if not info or not http_match or tonumber(http_match) ~= 200 then
-			info = SYS.exec(string.format("curl -sLI -X GET -m 5 --retry 2 -w 'http_code=%%{http_code}' -H 'User-Agent: Quantumultx'%s '%s'", header_args, sub_url))
+			info = SYS.exec(string.format("curl -sLI -X GET -m 5 --retry 2 -w 'http_code=%%{http_code}' -H 'User-Agent: Quantumultx'%s %s", header_args, UTIL.shellquote(sub_url)))
 		end
 	end
 
@@ -919,7 +919,7 @@ function get_sub_url(filename)
 		local ruby_result = SYS.exec(string.format([[
 			ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e '
 			begin
-				config = YAML.load_file("%s")
+				config = YAML.load_file(ARGV[0])
 				providers = []
 				if config && config["proxy-providers"]
 					config["proxy-providers"].each do |name, provider|
@@ -943,8 +943,8 @@ function get_sub_url(filename)
 			rescue => e
 				puts "[]"
 			end
-			' 2>/dev/null || echo '[]'
-		]], config_path)):gsub("\n", "")
+			' %s 2>/dev/null || echo '[]'
+		]], UTIL.shellquote(config_path))):gsub("\n", "")
 
 		if ruby_result and ruby_result ~= "" and ruby_result ~= "[]" then
 			local success, parsed_providers = pcall(function()
@@ -1044,13 +1044,7 @@ function sub_info_get()
 				local function fork_provider_curl(url, ua)
 					local fdi, fdo = nixio.pipe()
 					if not fdi or not fdo then return nil end
-					local cmd = string.format(
-						'OUT=$(curl -sLI -X GET -m 5 --retry 2 -w "http_code=%%{http_code}" -H "User-Agent: %s"%s "%s" 2>/dev/null); '
-						.. 'CODE=$(echo "$OUT" | grep -o "http_code=[0-9]*" | head -1 | cut -d= -f2); '
-						.. 'if [ -n "$OUT" ] && [ "$CODE" = "200" ]; then echo "$OUT"; '
-						.. 'else curl -sLI -X GET -m 5 --retry 2 -w "http_code=%%{http_code}" -H "User-Agent: Quantumultx"%s "%s" 2>/dev/null; fi',
-						ua, header_args, url, header_args, url
-					)
+					local cmd = fs.sub_info_command(ua, header_args, url)
 					local child = nixio.fork()
 					if child > 0 then
 						fdo:close()
@@ -1182,7 +1176,7 @@ function action_switch_rule_mode()
 
 	if is_running() then
 		if not daip or not cn_port then HTTP.status(500, "Switch Failed") return end
-		info = SYS.exec(string.format('curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPATCH http://"%s":"%s"/configs -d \'{\"mode\": \"%s\"}\'', dase, daip, cn_port, mode))
+		info = SYS.exec(fs.core_api_command("-m 3 --retry 2", "PATCH", dase, daip, cn_port, "/configs", string.format('{"mode": "%s"}', mode)))
 		if info ~= "" then
 			HTTP.status(500, "Switch Failed")
 		end
@@ -1254,7 +1248,7 @@ function action_switch_log()
 		local cn_port = cn_port()
 		level = HTTP.formvalue("log_level")
 		if not daip or not cn_port or not level then HTTP.status(500, "Switch Failed") return end
-		info = SYS.exec(string.format('curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPATCH http://"%s":"%s"/configs -d \'{\"log-level\": \"%s\"}\'', dase, daip, cn_port, level))
+		info = SYS.exec(fs.core_api_command("-m 3 --retry 2", "PATCH", dase, daip, cn_port, "/configs", string.format('{"log-level": "%s"}', level)))
 		if info ~= "" then
 			HTTP.status(500, "Switch Failed")
 		end
@@ -1454,7 +1448,7 @@ end
 function action_switch_dashboard()
 	local switch_name = HTTP.formvalue("name")
 	local switch_type = HTTP.formvalue("type")
-	local state = SYS.call(string.format('/usr/share/openclash/openclash_download_dashboard.sh "%s" "%s" >/dev/null 2>&1', switch_name, switch_type))
+	local state = SYS.call(string.format('/usr/share/openclash/openclash_download_dashboard.sh %s %s >/dev/null 2>&1', UTIL.shellquote(switch_name), UTIL.shellquote(switch_type)))
 	if switch_name == "Dashboard" and tonumber(state) == 0 then
 		if switch_type == "Official" then
 			uci:set("openclash", "config", "dashboard_type", "Official")
@@ -1480,6 +1474,15 @@ end
 
 function action_delete_dashboard()
 	local delete_name = HTTP.formvalue("name")
+	local known = {dashboard = true, yacd = true, metacubexd = true, zashboard = true}
+	if type(delete_name) ~= "string" or not known[string.lower(delete_name)] then
+		HTTP.prepare_content("application/json")
+		HTTP.write_json({
+			delete_state = 0,
+			error = "Unknown dashboard"
+		})
+		return
+	end
 	local delete_path = string.format("/usr/share/openclash/ui/%s", string.lower(delete_name))
 
 	local panels = {
@@ -1504,7 +1507,7 @@ function action_delete_dashboard()
 		return
 	end
 
-	local state = SYS.call(string.format("rm -rf '%s' >/dev/null 2>&1", delete_path)) == 0 and 1 or 0
+	local state = SYS.call(string.format("rm -rf %s >/dev/null 2>&1", UTIL.shellquote(delete_path))) == 0 and 1 or 0
 	if tonumber(state) == 1 then
 		if delete_name == "Dashboard" then
 			uci:set("openclash", "config", "dashboard_type", "Official")
@@ -2866,8 +2869,8 @@ function latency_test(addr, on_result)
 		local fdi, fdo = nixio.pipe()
 		if fdi and fdo then
 			local cmd = string.format(
-				'curl -sI -m 10 --connect-timeout 3 -w "%%{http_code},%%{time_total},%%{time_connect},%%{time_appconnect}" "%s" -o /dev/null 2>/dev/null',
-				test_url
+				'curl -sI -m 10 --connect-timeout 3 -w "%%{http_code},%%{time_total},%%{time_connect},%%{time_appconnect}" %s -o /dev/null 2>/dev/null',
+				UTIL.shellquote(test_url)
 			)
 			local pid = nixio.fork()
 			if pid > 0 then
@@ -3291,8 +3294,8 @@ function action_website_check()
 			local fdi, fdo = nixio.pipe()
 			if fdi and fdo then
 				local cmd = string.format(
-					'curl -sI -m 10 --connect-timeout 3 -w "%%{http_code},%%{time_total},%%{time_connect},%%{time_appconnect}" "%s" -o /dev/null 2>/dev/null',
-					test_url
+					'curl -sI -m 10 --connect-timeout 3 -w "%%{http_code},%%{time_total},%%{time_connect},%%{time_appconnect}" %s -o /dev/null 2>/dev/null',
+					UTIL.shellquote(test_url)
 				)
 				local pid = nixio.fork()
 				if pid > 0 then
@@ -4070,7 +4073,7 @@ function action_switch_oc_setting()
 			return false
 		end
 
-		local reload_result = SYS.exec(string.format('curl -sL -m 5 --connect-timeout 2 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPUT http://"%s":"%s"/configs?force=true -d \'{"path":"%s"}\' 2>&1', dase, daip, cn_port, runtime_config_path))
+		local reload_result = SYS.exec(fs.core_api_command("-m 5 --connect-timeout 2 --retry 2", "PUT", dase, daip, cn_port, "/configs?force=true", string.format('{"path":"%s"}', runtime_config_path)) .. " 2>&1")
 
 		if reload_result ~= "" then
 			HTTP.status(500, "Switch Failed")
@@ -4087,9 +4090,9 @@ function action_switch_oc_setting()
 
 			if value == "1" then
 				ruby_cmd = string.format([[
-					ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+					OC_CONFIG_PATH=%s ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
 					begin
-						config_path = '%s'
+						config_path = ENV['OC_CONFIG_PATH']
 
 						config = File.exist?(config_path) ? YAML.load_file(config_path) : {}
 
@@ -4138,12 +4141,12 @@ function action_switch_oc_setting()
 						exit 1
 					end
 					" 2>/dev/null
-				]], runtime_config_path)
+				]], UTIL.shellquote(runtime_config_path))
 			else
 				ruby_cmd = string.format([[
-					ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+					OC_CONFIG_PATH=%s ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
 					begin
-						config_path = '%s'
+						config_path = ENV['OC_CONFIG_PATH']
 
 						if File.exist?(config_path)
 							config = YAML.load_file(config_path)
@@ -4163,7 +4166,7 @@ function action_switch_oc_setting()
 						exit 1
 					end
 					" 2>/dev/null
-				]], runtime_config_path)
+				]], UTIL.shellquote(runtime_config_path))
 			end
 
 			if not update_runtime_config(ruby_cmd) then
@@ -4181,9 +4184,9 @@ function action_switch_oc_setting()
 			local target_value = (value == "1") and "true" or "false"
 
 			local ruby_cmd = string.format([[
-				ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+				OC_CONFIG_PATH=%s ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
 				begin
-					config_path = '%s'
+					config_path = ENV['OC_CONFIG_PATH']
 					target_value = %s
 
 					if File.exist?(config_path)
@@ -4214,7 +4217,7 @@ function action_switch_oc_setting()
 					exit 1
 				end
 				" 2>/dev/null
-			]], runtime_config_path, target_value)
+			]], UTIL.shellquote(runtime_config_path), target_value)
 
 			if not update_runtime_config(ruby_cmd) then
 				return
@@ -4363,7 +4366,7 @@ function action_generate_pac()
 							if file then
 								file:write(new_pac_content)
 								file:close()
-								SYS.call("chmod 644 " .. file_path)
+								SYS.call("chmod 644 " .. UTIL.shellquote(file_path))
 
 								pac_filename = file_path:match("([^/]+)$")
 								pac_file_path = file_path
@@ -4391,7 +4394,7 @@ function action_generate_pac()
 							if file then
 								file:write(final_content)
 								file:close()
-								SYS.call("chmod 644 " .. file_path)
+								SYS.call("chmod 644 " .. UTIL.shellquote(file_path))
 
 								pac_filename = file_path:match("([^/]+)$")
 								pac_file_path = file_path
@@ -4418,7 +4421,7 @@ function action_generate_pac()
 			file:write(new_pac_content)
 			file:close()
 
-			SYS.call("chmod 644 " .. pac_file_path)
+			SYS.call("chmod 644 " .. UTIL.shellquote(pac_file_path))
 		else
 			result.error = luci.i18n.translate("Failed to write PAC file")
 			HTTP.prepare_content("application/json")
@@ -4426,7 +4429,7 @@ function action_generate_pac()
 			return
 		end
 	else
-		SYS.call(string.format("find %s -name 'pac_*' -type f ! -name '%s' -delete 2>/dev/null", pac_dir, pac_filename))
+		SYS.call(string.format("find %s -name 'pac_*' -type f ! -name %s -delete 2>/dev/null", pac_dir, UTIL.shellquote(pac_filename)))
 	end
 
 	local pac_url = generate_pac_url_with_client_info(pac_filename, random_suffix)
@@ -6386,7 +6389,7 @@ function action_overwrite_subscribe_info()
 				respond_json({status="error", message="Download failed"})
 				return
 			end
-			SYS.call(string.format("mkdir -p /etc/openclash/overwrite && mv -f %s %s && chmod 644 %s", tmp_file, UTIL.shellquote(file_path), UTIL.shellquote(file_path)))
+			SYS.call(string.format("mkdir -p /etc/openclash/overwrite && mv -f %s %s && chmod 644 %s", UTIL.shellquote(tmp_file), UTIL.shellquote(file_path), UTIL.shellquote(file_path)))
 			if not fs.access(file_path) then
 				respond_json({status="error", message="Failed to save downloaded file"})
 				return

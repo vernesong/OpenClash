@@ -169,8 +169,8 @@ sys_dns_append()
    fi
 }
 
-PROXY_GROUPS=$(ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-   Value = YAML.load_file_cached('$CONFIG_FILE', '/tmp/yaml_change_marshal') rescue nil
+PROXY_GROUPS=$(OC_CONFIG_FILE="$CONFIG_FILE" ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+   Value = YAML.load_file_cached(ENV['OC_CONFIG_FILE'], '/tmp/yaml_change_marshal') rescue nil
    if Value.is_a?(Hash) && Value['proxy-groups'].is_a?(Array)
       Value['proxy-groups'].each { |x| puts x['name'] if x.key?('name') }
    end
@@ -311,6 +311,33 @@ config_load "openclash"
 config_foreach yml_auth_get "authentication"
 yml_dns_custom "$enable_custom_dns" "$5" "$append_wan_dns" "${16}"
 
+# The program below takes its values from the environment.
+oc_arg=0
+for oc_value in "$@"; do
+   oc_arg=$((oc_arg + 1))
+   export "OC_ARG_$oc_arg=$oc_value"
+done
+export OC_append_wan_dns="$append_wan_dns"
+export OC_china_ip6_route="$china_ip6_route"
+export OC_china_ip_route="$china_ip_route"
+export OC_china_ip_route_domain_source="$china_ip_route_domain_source"
+export OC_custom_fakeip_filter="$custom_fakeip_filter"
+export OC_custom_fallback_filter="$custom_fallback_filter"
+export OC_custom_host="$custom_host"
+export OC_custom_name_policy="$custom_name_policy"
+export OC_custom_proxy_server_policy="$custom_proxy_server_policy"
+export OC_dashboard_type="$dashboard_type"
+export OC_default_dashboard="$default_dashboard"
+export OC_disable_tun_gso="$disable_tun_gso"
+export OC_dnsmasq_domain="$dnsmasq_domain"
+export OC_en_mode_tun="$en_mode_tun"
+export OC_enable_custom_dns="$enable_custom_dns"
+export OC_enable_redirect_dns="$enable_redirect_dns"
+export OC_fake_ip_filter_mode="$fake_ip_filter_mode"
+export OC_stack_type="$stack_type"
+export OC_system_hostname="$system_hostname"
+export OC_yacd_type="$yacd_type"
+
 OPENCLASH_CORS_DOMAIN="${36}" \
 OPENCLASH_CORS_PORT="$dashboard_forward_port" \
 OPENCLASH_CORS_SSL="$dashboard_forward_ssl" \
@@ -401,7 +428,7 @@ end
 
 
 begin
-   config_file = '$5'
+   config_file = ENV['OC_ARG_5'].to_s
    Value = YAML.load_file_cached(config_file, '/tmp/yaml_change_marshal')
 rescue Exception => e
    YAML.LOG_ERROR('Load File Failed,【%s】' % [e.message])
@@ -409,66 +436,66 @@ rescue Exception => e
 end
 
 begin
-   fake_ip_mode = '$1'
-   secret = '$2'
-   controller_port = '$3'
-   redir_port = '$4'
-   enable_ipv6 = '$6' == '1'
-   http_port = '$7'
-   socks_port = '$8'
-   log_level = '$9'
-   mode = '${10}'
-   en_mode_tun = '$en_mode_tun'
-   stack_type = '$stack_type'
-   dns_listen_port = '${13}'
-   mixed_port = '${14}'
-   tproxy_port = '${15}'
-   dns_ipv6 = '${16}' == '1'
-   store_fake_ip = '${17}' == '1'
-   enable_sniffer = '${18}' == '1'
-   geodata_mode = '${19}' == '1'
-   geodata_loader = '${20}'
-   append_sniffer_config = '${21}' == '1'
-   interface_name = '${22}'
-   tcp_concurrent = '${23}' == '1'
-   add_default_from_dns = '${25}' == '1'
-   sniffer_parse_pure_ip = '${26}' == '1'
-   find_process_mode = '${27}'
-   fake_ip_range = '${28}'
-   ipv6_mode = '${29}'
-   unified_delay = '${31}' == '1'
-   respect_rules = '${32}' == '1'
-   fake_ip_filter_mode = '$fake_ip_filter_mode'
-   routing_mark_setting = '${34}'
-   quic_gso = '${35}' == '1'
-   disable_tun_gso = '$disable_tun_gso' == '1'
+   fake_ip_mode = ENV['OC_ARG_1'].to_s
+   secret = ENV['OC_ARG_2'].to_s
+   controller_port = ENV['OC_ARG_3'].to_s
+   redir_port = ENV['OC_ARG_4'].to_s
+   enable_ipv6 = ENV['OC_ARG_6'].to_s == '1'
+   http_port = ENV['OC_ARG_7'].to_s
+   socks_port = ENV['OC_ARG_8'].to_s
+   log_level = ENV['OC_ARG_9'].to_s
+   mode = ENV['OC_ARG_10'].to_s
+   en_mode_tun = ENV['OC_en_mode_tun'].to_s
+   stack_type = ENV['OC_stack_type'].to_s
+   dns_listen_port = ENV['OC_ARG_13'].to_s
+   mixed_port = ENV['OC_ARG_14'].to_s
+   tproxy_port = ENV['OC_ARG_15'].to_s
+   dns_ipv6 = ENV['OC_ARG_16'].to_s == '1'
+   store_fake_ip = ENV['OC_ARG_17'].to_s == '1'
+   enable_sniffer = ENV['OC_ARG_18'].to_s == '1'
+   geodata_mode = ENV['OC_ARG_19'].to_s == '1'
+   geodata_loader = ENV['OC_ARG_20'].to_s
+   append_sniffer_config = ENV['OC_ARG_21'].to_s == '1'
+   interface_name = ENV['OC_ARG_22'].to_s
+   tcp_concurrent = ENV['OC_ARG_23'].to_s == '1'
+   add_default_from_dns = ENV['OC_ARG_25'].to_s == '1'
+   sniffer_parse_pure_ip = ENV['OC_ARG_26'].to_s == '1'
+   find_process_mode = ENV['OC_ARG_27'].to_s
+   fake_ip_range = ENV['OC_ARG_28'].to_s
+   ipv6_mode = ENV['OC_ARG_29'].to_s
+   unified_delay = ENV['OC_ARG_31'].to_s == '1'
+   respect_rules = ENV['OC_ARG_32'].to_s == '1'
+   fake_ip_filter_mode = ENV['OC_fake_ip_filter_mode'].to_s
+   routing_mark_setting = ENV['OC_ARG_34'].to_s
+   quic_gso = ENV['OC_ARG_35'].to_s == '1'
+   disable_tun_gso = ENV['OC_disable_tun_gso'].to_s == '1'
    cors_origin = http_origin(ENV['OPENCLASH_CORS_CUSTOM_URL']) || controller_origin(ENV['OPENCLASH_CORS_DOMAIN'], ENV['OPENCLASH_CORS_PORT'], ENV['OPENCLASH_CORS_SSL'])
-   geo_custom_url = '${37}'
-   geoip_custom_url = '${38}'
-   geosite_custom_url = '${39}'
-   geoasn_custom_url = '${40}'
-   lgbm_auto_update = '${41}' == '1'
-   lgbm_custom_url = '${42}'
-   lgbm_update_interval = '${43}'
-   smart_collect = '${44}' == '1'
-   smart_collect_size = '${45}'
-   fake_ip_range6 = '${46}'
-   fake_ip_range6_enable = '${47}' == '1'
-   global_ua = '${48}'
-   default_dashboard = '$default_dashboard'
-   yacd_type = '$yacd_type'
-   dashboard_type = '$dashboard_type'
+   geo_custom_url = ENV['OC_ARG_37'].to_s
+   geoip_custom_url = ENV['OC_ARG_38'].to_s
+   geosite_custom_url = ENV['OC_ARG_39'].to_s
+   geoasn_custom_url = ENV['OC_ARG_40'].to_s
+   lgbm_auto_update = ENV['OC_ARG_41'].to_s == '1'
+   lgbm_custom_url = ENV['OC_ARG_42'].to_s
+   lgbm_update_interval = ENV['OC_ARG_43'].to_s
+   smart_collect = ENV['OC_ARG_44'].to_s == '1'
+   smart_collect_size = ENV['OC_ARG_45'].to_s
+   fake_ip_range6 = ENV['OC_ARG_46'].to_s
+   fake_ip_range6_enable = ENV['OC_ARG_47'].to_s == '1'
+   global_ua = ENV['OC_ARG_48'].to_s
+   default_dashboard = ENV['OC_default_dashboard'].to_s
+   yacd_type = ENV['OC_yacd_type'].to_s
+   dashboard_type = ENV['OC_dashboard_type'].to_s
 
-   enable_custom_dns = '$enable_custom_dns' == '1'
-   append_wan_dns = '$append_wan_dns' == '1'
-   custom_fakeip_filter = '$custom_fakeip_filter' == '1'
-   china_ip_route = '$china_ip_route' != '0'
-   china_ip6_route = '$china_ip6_route' != '0'
-   china_ip_route_domain_source = '$china_ip_route_domain_source'
-   custom_name_policy = '$custom_name_policy' == '1'
-   custom_proxy_server_policy = '$custom_proxy_server_policy' == '1'
-   custom_host = '$custom_host' == '1'
-   enable_redirect_dns = '$enable_redirect_dns'
+   enable_custom_dns = ENV['OC_enable_custom_dns'].to_s == '1'
+   append_wan_dns = ENV['OC_append_wan_dns'].to_s == '1'
+   custom_fakeip_filter = ENV['OC_custom_fakeip_filter'].to_s == '1'
+   china_ip_route = ENV['OC_china_ip_route'].to_s != '0'
+   china_ip6_route = ENV['OC_china_ip6_route'].to_s != '0'
+   china_ip_route_domain_source = ENV['OC_china_ip_route_domain_source'].to_s
+   custom_name_policy = ENV['OC_custom_name_policy'].to_s == '1'
+   custom_proxy_server_policy = ENV['OC_custom_proxy_server_policy'].to_s == '1'
+   custom_host = ENV['OC_custom_host'].to_s == '1'
+   enable_redirect_dns = ENV['OC_enable_redirect_dns'].to_s
 
    Value['dns'] ||= {}
    threads = []
@@ -659,7 +686,7 @@ begin
       end
 
       begin
-         if '$custom_fallback_filter' == '1'
+         if ENV['OC_custom_fallback_filter'].to_s == '1'
             if !Value.dig('dns', 'fallback')
                YAML.LOG_ERROR('Fallback-Filter Need fallback of DNS Been Setted, Ignore...')
             elsif (filter_config = safe_load_yaml('/etc/openclash/custom/openclash_custom_fallback_filter.yaml'))
@@ -851,8 +878,8 @@ begin
             'lede.lan' => 'lan',
             'router.lan' => 'lan'
          }
-         system_hostname = '$system_hostname'
-         dnsmasq_domain = '$dnsmasq_domain'
+         system_hostname = ENV['OC_system_hostname'].to_s
+         dnsmasq_domain = ENV['OC_dnsmasq_domain'].to_s
          builtin_hosts[system_hostname.to_s + '.lan'] = 'lan' unless system_hostname.to_s.empty?
          builtin_hosts[system_hostname.to_s + '.' + dnsmasq_domain.to_s] = 'lan' unless system_hostname.to_s.empty? || dnsmasq_domain.to_s.empty?
          builtin_hosts.each { |k, v| Value['hosts'][k] ||= v }
