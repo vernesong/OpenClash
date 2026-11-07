@@ -121,7 +121,7 @@
 | 11.4.7 | 自定义 Sniffer `sniffer_custom` | — | `openclash_custom_sniffer.yaml` | `sniffer` | 仅 `enable_meta_sniffer_custom=1` 生效 |
 | 11.4.8 | Geodata 加载方式 `geodata_loader` | 0 | `0` / `memconservative` / `standard` | `geodata-loader` | 0 时不写该键；小内存设备用 `memconservative`（逐段读取） |
 | 11.4.9 | 启用 GeoIP Dat 数据库 `enable_geoip_dat` | 0 | — | `geodata-mode` | 用 Dat 替代 MMDB；Dat 文件需单独下载（GEO 数据库订阅页） |
-| 11.4.10 | 全局 User-Agent `global_ua` | 0 | `clash-verge/v2.4.5` / `clash.meta/1.19.20` / `Clash` | `global-ua` | 内核下载外部资源时使用；0 = 系统默认 `clash.meta` |
+| 11.4.10 | 全局 User-Agent `global_ua` | 0 | `clash-verge/v2.5.10` / `clash.meta/1.19.33` / `Clash` | `global-ua` | 内核下载外部资源时使用；0 = 系统默认 `clash.meta` |
 
 **默认 `sniffer` 内容**（`enable_meta_sniffer=1` 且未自定义时写入）：
 - `sniff.TLS.ports: [443, 8443]`（SNI）、`sniff.HTTP.ports: [80, 8080-8880]`（Host 头）、`sniff.QUIC.ports: [443]`

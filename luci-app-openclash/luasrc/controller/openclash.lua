@@ -848,17 +848,29 @@ function fetch_sub_info(sub_url, sub_ua, sub_headers, raw_info)
 	return nil
 end
 
-local function parse_url_with_name(raw_url, default_name)
-	local url, name = string.match(raw_url, "^(.-)#name=(.+)$")
+-- subscription links may carry "#name=xxx&ua=xxx" markers after the url
+local function parse_sub_url(raw_url)
+	local url, fragment = string.match(raw_url, "^(.-)#(.+)$")
 	if url then
-		return url, name
-	else
-		return raw_url, default_name
+		local name, ua
+		for key, value in string.gmatch(fragment, "([%w_%-]+)=([^&]*)") do
+			if value ~= "" then
+				if key == "name" then
+					name = value
+				elseif key == "ua" then
+					ua = value
+				end
+			end
+		end
+		if name or ua then
+			return url, name, ua
+		end
 	end
+	return raw_url
 end
 
 function get_sub_url(filename)
-	local sub_url = nil
+	local sub_url, sub_url_ua = nil, nil
 	local info_tb = {}
 	local providers = {}
 
@@ -874,16 +886,17 @@ function get_sub_url(filename)
 					string.gsub(s.url, '[^\n]+', function(w) info_tb[#info_tb + 1] = w end)
 				end
 				if #info_tb == 1 then
-					local url, name = parse_url_with_name(info_tb[1], filename)
-					if url ~= info_tb[1] then
-						providers[#providers + 1] = {name = name, url = url}
+					local url, name, ua = parse_sub_url(info_tb[1])
+					if name then
+						providers[#providers + 1] = {name = name, url = url, ua = ua}
 					else
 						sub_url = url
+						sub_url_ua = ua
 					end
 				elseif #info_tb > 1 then
 					for _, raw in ipairs(info_tb) do
-						local url, name = parse_url_with_name(raw, filename)
-						providers[#providers + 1] = {name = name, url = url}
+						local url, name, ua = parse_sub_url(raw)
+						providers[#providers + 1] = {name = name or filename, url = url, ua = ua}
 					end
 				end
 				return false
@@ -892,7 +905,7 @@ function get_sub_url(filename)
 	)
 
 	if sub_url then
-		return {type = "single", url = sub_url}
+		return {type = "single", url = sub_url, ua = sub_url_ua}
 	end
 
 	if #providers > 0 then
@@ -950,12 +963,13 @@ function get_sub_url(filename)
 			if s.name == filename and s.address and string.find(s.address, "http") then
 				string.gsub(s.address, '[^\n]+', function(w) info_tb[#info_tb + 1] = w end)
 				if #info_tb == 1 then
-					local url, _ = parse_url_with_name(info_tb[1], filename)
+					local url, _, ua = parse_sub_url(info_tb[1])
 					sub_url = url
+					sub_url_ua = ua
 				elseif #info_tb > 1 then
 					for _, raw in ipairs(info_tb) do
-						local url, name = parse_url_with_name(raw, filename)
-						providers[#providers + 1] = {name = name, url = url}
+						local url, name, ua = parse_sub_url(raw)
+						providers[#providers + 1] = {name = name or filename, url = url, ua = ua}
 					end
 				end
 			end
@@ -963,7 +977,7 @@ function get_sub_url(filename)
 	)
 
 	if sub_url then
-		return {type = "single", url = sub_url}
+		return {type = "single", url = sub_url, ua = sub_url_ua}
 	end
 
 	if #providers > 0 then
@@ -979,7 +993,7 @@ function sub_info_get()
 
 	filename = HTTP.formvalue("filename")
 	sub_info = ""
-	sub_ua = "Clash"
+	sub_ua = "clash-verge/v2.5.10"
 	sub_headers = ""
 
 	-- the config list passes the file name; subscription entries are keyed by the bare config name
@@ -1004,13 +1018,13 @@ function sub_info_get()
 
 		if url_result then
 			if url_result.type == "single" then
-				local info = fetch_sub_info(url_result.url, sub_ua, sub_headers)
+				local info = fetch_sub_info(url_result.url, url_result.ua or sub_ua, sub_headers)
 				if info then
 					providers_data[#providers_data + 1] = info
 				end
 			elseif #url_result.providers <= 1 then
 				for i, provider in ipairs(url_result.providers) do
-					local info = fetch_sub_info(provider.url, sub_ua, sub_headers)
+					local info = fetch_sub_info(provider.url, provider.ua or sub_ua, sub_headers)
 					if info then
 						info.provider_name = provider.name
 						providers_data[#providers_data + 1] = info
@@ -1027,7 +1041,7 @@ function sub_info_get()
 					end
 				end
 
-				local function fork_provider_curl(url)
+				local function fork_provider_curl(url, ua)
 					local fdi, fdo = nixio.pipe()
 					if not fdi or not fdo then return nil end
 					local cmd = string.format(
@@ -1035,7 +1049,7 @@ function sub_info_get()
 						.. 'CODE=$(echo "$OUT" | grep -o "http_code=[0-9]*" | head -1 | cut -d= -f2); '
 						.. 'if [ -n "$OUT" ] && [ "$CODE" = "200" ]; then echo "$OUT"; '
 						.. 'else curl -sLI -X GET -m 5 --retry 2 -w "http_code=%%{http_code}" -H "User-Agent: Quantumultx"%s "%s" 2>/dev/null; fi',
-						sub_ua, header_args, url, header_args, url
+						ua, header_args, url, header_args, url
 					)
 					local child = nixio.fork()
 					if child > 0 then
@@ -1057,7 +1071,7 @@ function sub_info_get()
 				local jobs = {}
 
 				for i, provider in ipairs(providers) do
-					local job = fork_provider_curl(provider.url)
+					local job = fork_provider_curl(provider.url, provider.ua or sub_ua)
 					if job then
 						job.idx = i
 						job.name = provider.name
@@ -1098,7 +1112,8 @@ function sub_info_get()
 					end
 					for _, job in ipairs(jobs) do
 						if job.done and job.buf ~= "" then
-							local info = fetch_sub_info(providers[job.idx].url, sub_ua, sub_headers, job.buf)
+							local provider = providers[job.idx]
+							local info = fetch_sub_info(provider.url, provider.ua or sub_ua, sub_headers, job.buf)
 							if info then
 								info.provider_name = job.name
 								providers_data[#providers_data + 1] = info
@@ -1109,7 +1124,7 @@ function sub_info_get()
 				-- Fallback: if all forks failed, try serial
 				if #providers_data == 0 then
 					for i, provider in ipairs(providers) do
-						local info = fetch_sub_info(provider.url, sub_ua, sub_headers)
+						local info = fetch_sub_info(provider.url, provider.ua or sub_ua, sub_headers)
 						if info then
 							info.provider_name = provider.name
 							providers_data[#providers_data + 1] = info
@@ -5232,7 +5247,7 @@ end
 function action_add_subscription()
 	local name = HTTP.formvalue("name")
 	local address = HTTP.formvalue("address")
-	local sub_ua = HTTP.formvalue("sub_ua") or "clash-verge/v2.4.5"
+	local sub_ua = HTTP.formvalue("sub_ua") or "clash-verge/v2.5.10"
 	local sub_convert = HTTP.formvalue("sub_convert") or "0"
 	local convert_address = HTTP.formvalue("convert_address") or ""
 	local template = HTTP.formvalue("template") or ""

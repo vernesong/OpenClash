@@ -49,7 +49,7 @@ var UrlValidator = {
     },
 
     validateUrl: function(url, allowNonHttp) {
-        var urlPart = url.replace(/#name=.*$/, '');
+        var urlPart = url.replace(/#.*$/, '');
         if (!urlPart) return { valid: false, reason: '<%:Empty URL%>' };
 
         var re = allowNonHttp ? this.anyProtocolRe : this.httpRe;
@@ -170,7 +170,7 @@ var SubscriptionUrlSetter = {
         });
     },
 
-    // strip any existing #name= marker before appending, or the chain grows on save
+    // strip any existing # markers before appending, or the chain grows on save
     handleSubURL: function(urlresult) {
         var textarea = document.getElementById('subscription-url-textarea');
         if (!textarea) return;
@@ -178,12 +178,17 @@ var SubscriptionUrlSetter = {
         var urls = '';
         if (urlresult.type && urlresult.type === "multiple") {
             for (var data in urlresult.providers) {
-                var providerUrl = String(urlresult.providers[data].url || '').split('#name=')[0];
-                urls += providerUrl + '#name=' + urlresult.providers[data].name + '\n';
+                var provider = urlresult.providers[data] || {};
+                var providerUrl = String(provider.url || '').split('#')[0];
+                var line = providerUrl + '#name=' + provider.name;
+                if (provider.ua) {
+                    line += '&ua=' + provider.ua;
+                }
+                urls += line + '\n';
             }
         }
         if (urlresult.type && urlresult.type === "single") {
-            urls = urlresult.url;
+            urls = urlresult.url + (urlresult.ua ? '#ua=' + urlresult.ua : '');
         }
         textarea.value = urls;
     },
@@ -3062,7 +3067,7 @@ var ConfigUploader = {
         this.switchMode('file');
         document.getElementById('config-filename-input').value = '';
         document.getElementById('subscribe-url-input').value = '';
-        document.getElementById('subscribe-ua-input').value = 'clash-verge/v2.4.5';
+        document.getElementById('subscribe-ua-input').value = 'clash-verge/v2.5.10';
         document.getElementById('subscribe-ua-custom').classList.add('oc-hidden');
         var hdrContainer = document.getElementById('subscribe-headers-container');
         hdrContainer.innerHTML = '';
@@ -3105,7 +3110,7 @@ var ConfigUploader = {
             document.getElementById('subscribe-url-input').value = data.address;
         }
         if (data.sub_ua) {
-            if (data.sub_ua === 'clash.meta/1.19.20' || data.sub_ua === 'clash-verge/v2.4.5' || data.sub_ua === 'Clash' || data.sub_ua === 'custom') {
+            if (data.sub_ua === 'clash.meta/1.19.33' || data.sub_ua === 'clash-verge/v2.5.10' || data.sub_ua === 'Clash' || data.sub_ua === 'custom') {
                 document.getElementById('subscribe-ua-input').value = data.sub_ua;
                 if (data.sub_ua === 'custom') {
                     document.getElementById('subscribe-ua-custom').classList.remove('oc-hidden');

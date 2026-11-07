@@ -1112,6 +1112,7 @@ end
 
 local function apply_fallback_select(value, job)
 	local fallback_select
+	local old_node = get_group_now(value.name)
 	if #job.full_support > 0 then
 		fallback_select = job.full_support
 	elseif #job.no_old_region > 0 then
@@ -1144,6 +1145,11 @@ local function apply_fallback_select(value, job)
 		end
 		set_selected(value.name, v[1])
 		set_selected(v[2], v[3])
+		-- keep the local snapshot in sync to resolve the effective node after switching
+		proxy_index[value.name].now = v[1]
+		if group_set[v[2]] then
+			proxy_index[v[2]].now = v[3]
+		end
 		local group_now
 		if is_group(v[3]) then
 			group_now = "【".. v[3] .. " ➟ " .. get_group_now(v[3]) .. "】"
@@ -1174,7 +1180,9 @@ local function apply_fallback_select(value, job)
 				print(log_prefix()..MSG.group.."【"..value.name.."】"..MSG.select_all_failed..group_now)
 			end
 		end
-		close_connections()
+		if get_group_now(value.name) ~= old_node then
+			close_connections()
+		end
 		break
 	end
 end

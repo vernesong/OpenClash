@@ -68,6 +68,8 @@
 | 指定 URL 按钮 | 设置订阅信息查询 URL | `/set_subinfo_url` |
 | 订阅进度条 | 订阅流量使用情况 | `/sub_info_get` 轮询 |
 
+> 「指定 URL」每行链接末尾可追加 `#name=显示名` 与 `&ua=User-Agent` 标记（如 `https://example.com/sub#name=机场A&ua=clash-verge/v2.5.10`）：`ua` 仅作用于该链接的流量信息查询（缺省用配置订阅的同名 `sub_ua`），保存后重新打开会原样回填。
+
 ### 7.6 控制面板卡片
 
 显示 Dashboard 地址与 Secret：`cn_port`（默认 9090，对应 `external-controller`）、`dashboard_password`（`secret`）、`dashboard_forward_domain`/`_port`/`_ssl`（公网访问，域名或 IP/IPv6，端口留空默认 443/80）、`dashboard_custom_url`/`_clash_compatible`（自定义外部仪表盘，见 `09-settings-dns-ac-ipv6.md` §9.4）。

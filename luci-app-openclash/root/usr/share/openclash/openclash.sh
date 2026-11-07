@@ -402,7 +402,7 @@ sub_info_get()
    config_get "tls13" "$section" "tls13" ""
    config_get "custom_template_url" "$section" "custom_template_url" ""
    config_get "de_ex_keyword" "$section" "de_ex_keyword" ""
-   config_get "sub_ua" "$section" "sub_ua" "clash-verge/v2.4.5"
+   config_get "sub_ua" "$section" "sub_ua" "clash-verge/v2.5.10"
    config_list_foreach "$section" "sub_headers" build_sub_headers
    SECRET_KEY=$(uci_get_age_secret_keys "$name")
 

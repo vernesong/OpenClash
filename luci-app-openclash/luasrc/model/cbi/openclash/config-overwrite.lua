@@ -338,8 +338,8 @@ o.default = "0"
 
 o = s:taboption("meta", Value, "global_ua", translate("Global User-Agent"))
 o:value("0", translate("Disable"))
-o:value("clash-verge/v2.4.5")
-o:value("clash.meta/1.19.20")
+o:value("clash-verge/v2.5.10")
+o:value("clash.meta/1.19.33")
 o:value("Clash")
 o.default = "0"
 

@@ -120,7 +120,7 @@ AGE_SECRET_KEY = AGE-SECRET-KEY-xxxxxxxxx
 
 ```ini
 [General]
-DOWNLOAD_FILE = url=https://example.com/rules.yaml, path=/etc/openclash/rule_provider/custom_rules.yaml, ua=clash-verge/v2.4.5, cron=0 2 * * *
+DOWNLOAD_FILE = url=https://example.com/rules.yaml, path=/etc/openclash/rule_provider/custom_rules.yaml, ua=clash-verge/v2.5.10, cron=0 2 * * *
 ```
 
 #### 17.3.9 模块元信息标识（添加时自动回填）
