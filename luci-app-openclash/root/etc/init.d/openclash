@@ -4255,10 +4255,7 @@ stop_service()
    {
       # Keep the running configuration's name even if UCI now selects another file.
       local running_config=""
-      if pidof clash >/dev/null; then
-         running_config=$(unify_ps_cfgname)
-         [ -n "$running_config" ] || running_config=$(uci_get_config "config_path")
-      fi
+      running_config=$(unify_ps_cfgname)
 
       LOG_OUT "Step 2: Delete OpenClash Firewall Rules..."
       revert_firewall
@@ -4278,9 +4275,9 @@ stop_service()
       # remove only the core instance, rc.common's stop() deletes the service itself
       procd_kill "openclash" "openclash"
       for i in $(seq 1 10); do
-         { procd_running "openclash" >/dev/null || pidof clash >/dev/null; } && sleep 1 || break
+         procd_running "openclash" >/dev/null && sleep 1 || break
       done
-      if [ -n "$running_config" ] && ! pidof clash >/dev/null; then
+      if [ -n "$running_config" ]; then
          /usr/share/openclash/openclash_history_get.sh after_stop "$running_config"
       fi
 
