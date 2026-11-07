@@ -4376,7 +4376,8 @@ var ocLang = window.ocLang || '';
 
             var name = this.displayName(d);
             var ipLine = [d.ip, d.ip6].filter(Boolean).join(' · ');
-            var tipParts = [name];
+            var tipParts = [];
+            if (d.name || d.hostname) tipParts.push(name);
             if (d.vendor) tipParts.push(d.vendor);
             if (d.ip) tipParts.push(d.ip);
             if (d.ip6) tipParts.push(d.ip6);

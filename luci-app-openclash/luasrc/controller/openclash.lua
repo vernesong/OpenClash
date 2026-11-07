@@ -7497,34 +7497,42 @@ local function clients_meta_write(meta)
 	end
 end
 
--- device names come from the LAN's DHCP server: dnsmasq leases, then static host entries,
--- then the addn-hosts files it publishes for the same records
+-- device names and addresses come from the LAN's DHCP server: dnsmasq leases, then
+-- static host entries, then the addn-hosts files it publishes for the same records
 local function clients_device_names()
-	local by_mac, by_ip = {}, {}
+	local by_mac, by_ip, ip_by_mac = {}, {}, {}
 	local data = fs.readfile("/tmp/dhcp.leases")
 	if data then
 		for line in data:gmatch("[^\n]+") do
 			local mac, ip, name = line:match("^%d+ (%S+) (%S+) (%S+)")
-			if mac and mac ~= "*" and ip and ip ~= "*" and name and name ~= "*" then
-				by_mac[mac:lower()] = name
-				by_ip[ip] = name
+			if mac and mac ~= "*" and ip and ip ~= "*" then
+				ip_by_mac[mac:lower()] = ip
+				if name and name ~= "*" then
+					by_mac[mac:lower()] = name
+					by_ip[ip] = name
+				end
 			end
 		end
 	end
 	uci:foreach("dhcp", "host", function(s)
 		local name = s.name
-		if not name or name == "" then return end
+		if name == "" then name = nil end
+		local ip = s.ip and s.ip:match("^%d+%.%d+%.%d+%.%d+$") and s.ip or nil
 		local macs = type(s.mac) == "table" and s.mac or { s.mac }
 		for _, mac in ipairs(macs) do
-			if mac and mac:match("^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x$") then by_mac[mac:lower()] = name end
+			if mac and mac:match("^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x$") then
+				mac = mac:lower()
+				if name then by_mac[mac] = name end
+				if ip then ip_by_mac[mac] = ip end
+			end
 		end
-		if s.ip and s.ip:match("^%d+%.%d+%.%d+%.%d+$") then by_ip[s.ip] = name end
+		if name and ip then by_ip[ip] = name end
 	end)
 	local hosts = SYS.exec("cat /tmp/hosts/* 2>/dev/null")
 	for ip, name in (hosts or ""):gmatch("(%d+%.%d+%.%d+%.%d+)%s+([%w%-%._]+)") do
 		if not by_ip[ip] then by_ip[ip] = name end
 	end
-	return by_mac, by_ip
+	return by_mac, by_ip, ip_by_mac
 end
 
 local function clients_list_values(key)
@@ -7613,7 +7621,7 @@ function action_clients_ac()
 	local ip6_by_mac, v4_state, v4_mac, v4_dev = clients_neighbors(own_macs)
 	local ac_mode = clients_ac_mode()
 	local meta = clients_meta_read()
-	local lease_by_mac, lease_by_ip = clients_device_names()
+	local lease_by_mac, lease_by_ip, lease_ip_by_mac = clients_device_names()
 
 	local black_ips = clients_list_values("lan_ac_black_ips")
 	local white_ips = clients_list_values("lan_ac_white_ips")
@@ -7683,18 +7691,27 @@ function action_clients_ac()
 
 	local probing = clients_probe_trigger(cache, candidates)
 
-	-- list entries without a current neighbour stay manageable while offline
+	-- list entries without a current neighbour stay manageable while offline; a MAC is
+	-- paired with its leased or last-seen address so one device keeps one row
+	local ip_by_mac = {}
+	for mac, ip in pairs(lease_ip_by_mac) do ip_by_mac[mac] = ip end
+	for ip, m in pairs(ip_mac) do
+		if not ip_by_mac[m.mac] then ip_by_mac[m.mac] = ip end
+	end
+	local function ensure_list_mac(mac)
+		mac = mac:lower()
+		if by_mac[mac] then return end
+		local ip = ip_by_mac[mac]
+		if ip and (by_ip[ip] or not clients_is_lan_ip(ip, nets, own)) then ip = nil end
+		ensure(mac, ip)
+	end
+	for _, mac in ipairs(black_mac_list) do ensure_list_mac(mac) end
+	for _, mac in ipairs(white_mac_list) do ensure_list_mac(mac) end
 	for _, ip in ipairs(black_ips) do
 		if not by_ip[ip] and clients_is_lan_ip(ip, nets, own) then ensure(nil, ip) end
 	end
 	for _, ip in ipairs(white_ips) do
 		if not by_ip[ip] and clients_is_lan_ip(ip, nets, own) then ensure(nil, ip) end
-	end
-	for _, mac in ipairs(black_mac_list) do
-		if not by_mac[mac:lower()] then ensure(mac:lower(), nil) end
-	end
-	for _, mac in ipairs(white_mac_list) do
-		if not by_mac[mac:lower()] then ensure(mac:lower(), nil) end
 	end
 
 	-- IPv6-only devices still belong to the list
