@@ -20,31 +20,29 @@ PROXY_FWMARK="0x162"
 skip_proxies_address()
 {
 OC_FW4="$FW4" OC_CONFIG_FILE="$CONFIG_FILE" ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-REG4 = /^((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$/
-REG6 = /^(?:(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))|\[(?:(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))\]$/i
-REG_DOMAIN = /([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/
+REG4 = /\A((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\z/
+REG6 = /\A(?:(?:(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))|\[(?:(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))\])\z/i
+REG_DOMAIN = /\A([0-9a-zA-Z_-]+\.)+[a-zA-Z][0-9a-zA-Z-]*[0-9a-zA-Z]\.?\z/
 
 def write_ips_set(ips)
    return if ips.nil? or ips.empty?
    firewall_v = ENV['OC_FW4'].to_s.empty? ? 'ipt' : 'nft'
-   set_commands = []
    ips.each do |ip|
       next if ip.nil? or ip.empty?
       if ip.match(REG4) then
          if firewall_v == 'nft' then
-            set_commands << 'nft add element inet fw4 localnetwork { \"' + ip + '\" } 2>/dev/null'
+            system('nft', 'add', 'element', 'inet', 'fw4', 'localnetwork', '{', ip, '}', err: File::NULL)
          else
-            set_commands << 'ipset add localnetwork \"' + ip + '\" 2>/dev/null'
+            system('ipset', 'add', 'localnetwork', ip, err: File::NULL)
          end
       elsif ip.match(REG6) then
          if firewall_v == 'nft' then
-            set_commands << 'nft add element inet fw4 localnetwork6 { \"' + ip + '\" } 2>/dev/null'
+            system('nft', 'add', 'element', 'inet', 'fw4', 'localnetwork6', '{', ip, '}', err: File::NULL)
          else
-            set_commands << 'ipset add localnetwork6 \"' + ip + '\" 2>/dev/null'
+            system('ipset', 'add', 'localnetwork6', ip, err: File::NULL)
          end
       end
    end
-   system(set_commands.join('; ')) if not set_commands.empty?
 end
 
 begin
@@ -109,8 +107,7 @@ begin
                         next
                      end
                      begin
-                        syscall = \"lua /usr/share/openclash/openclash_sub_parser.lua \\\"#{path}\\\"\"
-                        sub_servers = IO.popen(syscall).read.split(/\n+/)
+                        sub_servers = IO.popen(['lua', '/usr/share/openclash/openclash_sub_parser.lua', path], &:read).split(/\n+/)
                         servers_to_process.concat(sub_servers) if sub_servers
                      rescue Exception => e
                         YAML.LOG_WARN('Failed to parse config file with Lua helper【' + path + ': ' + e.message+'】')
@@ -146,8 +143,8 @@ begin
 
    if not domains_to_resolve.empty?
       host = '127.0.0.1'
-      port = IO.popen('uci -q get openclash.config.cn_port').read.strip
-      pw = IO.popen('uci -q get openclash.config.dashboard_password').read.strip
+      port = IO.popen(['uci', '-q', 'get', 'openclash.config.cn_port'], &:read).strip
+      pw = IO.popen(['uci', '-q', 'get', 'openclash.config.dashboard_password'], &:read).strip
 
       ips_mutex = Mutex.new
       queue = Queue.new
@@ -160,8 +157,8 @@ begin
          Thread.new do
             while task = (queue.pop(true) rescue nil)
                domain, qtype = task
-               syscall = 'curl -s -m 3 -H \"Authorization: Bearer ' + pw + '\" \"http://' + host + ':' + port + '/dns/query?name=' + domain + '&type=' + qtype + '\" | jsonfilter -e \"@.Answer[*].data\" 2>/dev/null'
-               result = IO.popen(syscall).read.split(/\n+/)
+               reply = IO.popen(['curl', '-s', '-m', '3', '-H', 'Authorization: Bearer ' + pw, 'http://' + host + ':' + port + '/dns/query?name=' + domain + '&type=' + qtype], &:read)
+               result = IO.popen(['jsonfilter', '-e', '@.Answer[*].data'], 'r+', err: File::NULL) { |io| io.write(reply); io.close_write; io.read }.split(/\n+/)
                if result
                   ips_mutex.synchronize do
                      result.each do |ip|
