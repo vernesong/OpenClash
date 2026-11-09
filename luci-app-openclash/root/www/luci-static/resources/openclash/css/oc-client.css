@@ -6,16 +6,20 @@
 
 html[data-darkmode="true"] .oc .plugin-toggle-slider {
     background-color: var(--switch-off-bg);
-    border-color: var(--switch-off-bg);
+    border: none !important;
 }
 
 html[data-darkmode="true"] .oc .plugin-toggle-switch input:checked + .plugin-toggle-slider {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
+    background-color: var(--primary-color) !important;
+    border: none !important;
 }
 
 html[data-darkmode="true"] .oc .plugin-toggle-slider:before {
-    background-color: var(--switch-knob-bg);
+    background-color: var(--switch-knob-bg, #ffffff);
+}
+
+html[data-darkmode="true"] .oc .plugin-toggle-switch input:checked + .plugin-toggle-slider:before {
+    background-color: var(--text-on-primary, #ffffff) !important;
 }
 
 html[data-darkmode="true"] .oc .version-display .update-dot {
@@ -910,62 +914,71 @@ html[data-darkmode="true"] .oc .config-select:focus {
 }
 
 .oc .plugin-toggle-switch {
-    position: relative;
-    display: inline-block;
-    width: 44px;
-    height: 22px;
-    cursor: pointer;
-    font-size: 0;
-    line-height: 0;
+    position: relative !important;
+    display: inline-block !important;
+    width: 36px !important;
+    height: 20px !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+    vertical-align: middle !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
 }
 
 .oc .plugin-toggle-switch input {
-    position: absolute;
-    opacity: 0;
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    top: 0;
-    left: 0;
-    cursor: pointer;
-    z-index: 1;
+    position: absolute !important;
+    opacity: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    top: 0 !important;
+    left: 0 !important;
+    cursor: pointer !important;
+    z-index: 1 !important;
 }
 
 .oc .plugin-toggle-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--switch-off-bg);
-    transition: background-color 160ms var(--ease-standard), border-color 160ms var(--ease-standard);
-    border-radius: 22px;
-    border: 1px solid var(--border-light);
+    position: absolute !important;
+    cursor: pointer !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background-color: var(--switch-off-bg, rgba(120, 120, 128, 0.32)) !important;
+    transition: background-color 160ms var(--ease-standard) !important;
+    border-radius: 20px !important;
+    border: none !important;
+    box-sizing: border-box !important;
 }
 
 .oc .plugin-toggle-slider:before {
-    position: absolute;
-    content: "";
-    height: 16px;
-    width: 16px;
-    left: 2px;
-    top: 2px;
-    background-color: var(--switch-knob-bg);
-    transition: transform 160ms var(--ease-standard);
-    border-radius: 50%;
-    box-shadow: var(--switch-knob-shadow);
+    position: absolute !important;
+    content: "" !important;
+    height: 16px !important;
+    width: 16px !important;
+    left: 2px !important;
+    top: 2px !important;
+    background-color: var(--switch-knob-bg, #ffffff) !important;
+    transition: transform 160ms var(--ease-standard) !important;
+    border-radius: 50% !important;
+    box-shadow: var(--switch-knob-shadow, 0 2px 4px rgba(0, 0, 0, 0.2)) !important;
 }
 
 .oc .plugin-toggle-switch input:checked + .plugin-toggle-slider {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
+    background-color: var(--primary-color) !important;
+    border: none !important;
 }
 
 .oc .plugin-toggle-switch input:checked + .plugin-toggle-slider:before {
-    transform: translateX(22px);
+    transform: translateX(16px) !important;
+    background-color: var(--text-on-primary, #ffffff) !important;
 }
 
 .oc #logo_btn,
@@ -4184,7 +4197,20 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
 html:not([data-oc-theme]) .oc,
 html[data-oc-theme="classic"] .oc,
 .oc-ver-pills-top {
-    --primary-color: var(--primary-color-high, var(--primary, var(--main-color, #3b82f6)));
+    --primary-color: var(--oc-host-primary, var(--v-accent, var(--accent-text, var(--primary-color-high, var(--primary, var(--color-primary, var(--theme-primary, var(--main-color, var(--accent, #3b82f6)))))))));
+    --btn-primary-hover: var(--oc-host-primary-hover, color-mix(in srgb, var(--primary-color) 88%, #000000));
+    --text-on-primary: var(--oc-host-on-primary, var(--v-accent-ink, #ffffff));
+    --primary-text: var(--oc-host-primary-text, var(--accent-text, var(--primary-color)));
+    --primary-a5: color-mix(in srgb, var(--primary-color) 5%, transparent);
+    --primary-a8: color-mix(in srgb, var(--primary-color) 8%, transparent);
+    --primary-a10: var(--accent-soft, color-mix(in srgb, var(--primary-color) 10%, transparent));
+    --primary-a12: color-mix(in srgb, var(--primary-color) 12%, transparent);
+    --primary-a15: color-mix(in srgb, var(--primary-color) 15%, transparent);
+    --primary-a20: color-mix(in srgb, var(--primary-color) 20%, transparent);
+    --primary-a30: color-mix(in srgb, var(--primary-color) 30%, transparent);
+    --primary-a40: color-mix(in srgb, var(--primary-color) 40%, transparent);
+    --primary-a50: color-mix(in srgb, var(--primary-color) 50%, transparent);
+    --primary-a60: color-mix(in srgb, var(--primary-color) 60%, transparent);
     --bg-white: var(--s1, #ffffff);
     --bg-light: var(--s3, #f8fafc);
     --bg-gray: var(--s2, #f1f5f9);
@@ -4199,7 +4225,20 @@ html[data-oc-theme="classic"] .oc,
 html[data-darkmode="true"]:not([data-oc-theme]) .oc,
 html[data-darkmode="true"][data-oc-theme="classic"] .oc,
 html[data-darkmode="true"] .oc-ver-pills-top {
-    --primary-color: var(--primary-color-high, var(--primary, var(--main-color, #3b82f6)));
+    --primary-color: var(--oc-host-primary, var(--v-accent, var(--accent, var(--primary-color-high, var(--dark-primary, var(--primary, var(--color-primary, var(--theme-primary, var(--main-color, #3b82f6)))))))));
+    --btn-primary-hover: var(--oc-host-primary-hover, var(--accent-hover, var(--primary-color-medium, var(--primary-hover, color-mix(in srgb, var(--primary-color) 88%, #ffffff)))));
+    --text-on-primary: var(--oc-host-on-primary, var(--v-accent-ink, var(--accent-ink, #ffffff)));
+    --primary-text: var(--oc-host-primary-text, var(--accent-text, var(--primary-color)));
+    --primary-a5: color-mix(in srgb, var(--primary-color) 5%, transparent);
+    --primary-a8: color-mix(in srgb, var(--primary-color) 8%, transparent);
+    --primary-a10: var(--accent-soft, color-mix(in srgb, var(--primary-color) 10%, transparent));
+    --primary-a12: color-mix(in srgb, var(--primary-color) 12%, transparent);
+    --primary-a15: color-mix(in srgb, var(--primary-color) 15%, transparent);
+    --primary-a20: color-mix(in srgb, var(--primary-color) 20%, transparent);
+    --primary-a30: color-mix(in srgb, var(--primary-color) 30%, transparent);
+    --primary-a40: color-mix(in srgb, var(--primary-color) 40%, transparent);
+    --primary-a50: color-mix(in srgb, var(--primary-color) 50%, transparent);
+    --primary-a60: color-mix(in srgb, var(--primary-color) 60%, transparent);
     --bg-white: var(--s1, #18181b);
     --bg-light: var(--s2, #22252a);
     --bg-gray: var(--s3, #27272a);
@@ -4441,7 +4480,7 @@ html[data-darkmode="true"] .oc .oc-notice #megaphone {
 
 .oc .oc-hero-btn:hover {
     border-color: var(--primary-color, #3b82f6);
-    color: var(--primary-color, #3b82f6);
+    color: var(--primary-text, var(--primary-color, #3b82f6));
 }
 
 .oc .oc-hero-btn-primary {
@@ -4627,7 +4666,7 @@ html[data-darkmode="true"] .oc .oc-notice #megaphone {
 
 .oc .oc-icon-btn:hover {
     border-color: var(--primary-color, #3b82f6);
-    color: var(--primary-color, #3b82f6);
+    color: var(--primary-text, var(--primary-color, #3b82f6));
 }
 
 #edit_overwrite {
@@ -6463,7 +6502,7 @@ html[data-darkmode="true"] .oc .quick-dropdown-layer input.dashboard-btn:hover,
 html[data-darkmode="true"] .oc .quick-dropdown-layer .dropdown-item-btn:hover {
     background: var(--hover-bg, rgba(59, 130, 246, 0.1)) !important;
     border-color: var(--primary-color, #3b82f6) !important;
-    color: var(--primary-color, #3b82f6) !important;
+    color: var(--primary-text, var(--primary-color, #3b82f6)) !important;
 }
 
 .oc .hero-config-left .config-select:hover,
@@ -6555,9 +6594,42 @@ html[data-darkmode="true"] .oc .oc-native-select {
 }
 
 /* Host Theme Accent Variable Fallback Chain */
+[data-page^="admin-services-openclash"] .oc,
 .oc,
 .oc-ver-pills-top {
-    --primary-color: var(--primary-color-high, var(--primary, var(--main-color, #3b82f6)));
+    --primary-color: var(--oc-host-primary, var(--v-accent, var(--accent-text, var(--primary-color-high, var(--primary, var(--color-primary, var(--theme-primary, var(--main-color, var(--accent, #3b82f6)))))))));
+    --btn-primary-hover: var(--oc-host-primary-hover, color-mix(in srgb, var(--primary-color) 88%, #000000));
+    --text-on-primary: var(--oc-host-on-primary, var(--v-accent-ink, #ffffff));
+    --primary-text: var(--oc-host-primary-text, var(--accent-text, var(--primary-color)));
+    --primary-a5: color-mix(in srgb, var(--primary-color) 5%, transparent);
+    --primary-a8: color-mix(in srgb, var(--primary-color) 8%, transparent);
+    --primary-a10: var(--accent-soft, color-mix(in srgb, var(--primary-color) 10%, transparent));
+    --primary-a12: color-mix(in srgb, var(--primary-color) 12%, transparent);
+    --primary-a15: color-mix(in srgb, var(--primary-color) 15%, transparent);
+    --primary-a20: color-mix(in srgb, var(--primary-color) 20%, transparent);
+    --primary-a30: color-mix(in srgb, var(--primary-color) 30%, transparent);
+    --primary-a40: color-mix(in srgb, var(--primary-color) 40%, transparent);
+    --primary-a50: color-mix(in srgb, var(--primary-color) 50%, transparent);
+    --primary-a60: color-mix(in srgb, var(--primary-color) 60%, transparent);
+}
+
+html[data-darkmode="true"][data-page^="admin-services-openclash"] .oc,
+html[data-darkmode="true"] .oc,
+html[data-darkmode="true"] .oc-ver-pills-top {
+    --primary-color: var(--oc-host-primary, var(--v-accent, var(--accent, var(--primary-color-high, var(--dark-primary, var(--primary, var(--color-primary, var(--theme-primary, var(--main-color, #3b82f6)))))))));
+    --btn-primary-hover: var(--oc-host-primary-hover, var(--accent-hover, var(--primary-color-medium, var(--primary-hover, color-mix(in srgb, var(--primary-color) 88%, #ffffff)))));
+    --text-on-primary: var(--oc-host-on-primary, var(--v-accent-ink, var(--accent-ink, #ffffff)));
+    --primary-text: var(--oc-host-primary-text, var(--accent-text, var(--primary-color)));
+    --primary-a5: color-mix(in srgb, var(--primary-color) 5%, transparent);
+    --primary-a8: color-mix(in srgb, var(--primary-color) 8%, transparent);
+    --primary-a10: var(--accent-soft, color-mix(in srgb, var(--primary-color) 10%, transparent));
+    --primary-a12: color-mix(in srgb, var(--primary-color) 12%, transparent);
+    --primary-a15: color-mix(in srgb, var(--primary-color) 15%, transparent);
+    --primary-a20: color-mix(in srgb, var(--primary-color) 20%, transparent);
+    --primary-a30: color-mix(in srgb, var(--primary-color) 30%, transparent);
+    --primary-a40: color-mix(in srgb, var(--primary-color) 40%, transparent);
+    --primary-a50: color-mix(in srgb, var(--primary-color) 50%, transparent);
+    --primary-a60: color-mix(in srgb, var(--primary-color) 60%, transparent);
 }
 
 /* Universal Control Box-Model Isolation */
