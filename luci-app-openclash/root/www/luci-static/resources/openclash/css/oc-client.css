@@ -6648,7 +6648,7 @@ html[data-darkmode="true"] .oc .oc-native-select {
 [data-page^="admin-services-openclash"] .oc,
 .oc,
 .oc-ver-pills-top {
-    --primary-color: var(--oc-host-primary, var(--v-accent, var(--accent-text, var(--primary-color-high, var(--primary, var(--color-primary, var(--theme-primary, var(--main-color, var(--accent, #3b82f6)))))))));
+    --primary-color: var(--oc-host-primary, var(--v-accent, var(--accent-text, var(--primary-color-high, var(--proton-accent, var(--primary, var(--color-primary, var(--theme-primary, var(--main-color, var(--accent, #3b82f6))))))))));
     --btn-primary-hover: var(--oc-host-primary-hover, color-mix(in srgb, var(--primary-color) 88%, #000000));
     --text-on-primary: var(--oc-host-on-primary, var(--v-accent-ink, #ffffff));
     --primary-text: var(--oc-host-primary-text, var(--accent-text, var(--primary-color)));
@@ -6667,7 +6667,7 @@ html[data-darkmode="true"] .oc .oc-native-select {
 html[data-darkmode="true"][data-page^="admin-services-openclash"] .oc,
 html[data-darkmode="true"] .oc,
 html[data-darkmode="true"] .oc-ver-pills-top {
-    --primary-color: var(--oc-host-primary, var(--v-accent, var(--accent, var(--primary-color-high, var(--dark-primary, var(--primary, var(--color-primary, var(--theme-primary, var(--main-color, #3b82f6)))))))));
+    --primary-color: var(--oc-host-primary, var(--v-accent, var(--accent, var(--primary-color-high, var(--proton-accent, var(--dark-primary, var(--primary, var(--color-primary, var(--theme-primary, var(--main-color, #3b82f6))))))))));
     --btn-primary-hover: var(--oc-host-primary-hover, var(--accent-hover, var(--primary-color-medium, var(--primary-hover, color-mix(in srgb, var(--primary-color) 88%, #ffffff)))));
     --text-on-primary: var(--oc-host-on-primary, var(--v-accent-ink, var(--accent-ink, #ffffff)));
     --primary-text: var(--oc-host-primary-text, var(--accent-text, var(--primary-color)));
