@@ -3902,18 +3902,68 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
 .oc .ac-sort-menu button .ac-sort-ind { margin-left: auto; font-size: 9px; }
 
 .oc .ac-th {
-    display: flex; align-items: center; gap: 8px; flex: 0 0 auto;
-    height: 20px; padding: 0 8px 3px;
-    border-bottom: 1px solid var(--border-light);
-    color: var(--text-secondary); font-size: 10.5px; font-weight: 600;
-    white-space: nowrap;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex: 0 0 auto !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 0 14px !important;
+    background: var(--bg-light) !important;
+    border-bottom: 1px solid var(--border-light) !important;
+    color: var(--text-secondary) !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
 }
-.oc .ac-th-cell { display: inline-flex; align-items: center; gap: 3px; background: none; border: none; padding: 0; font: inherit; color: inherit; cursor: pointer; white-space: nowrap; }
-.oc .ac-th-cell:disabled { cursor: default; }
-.oc .ac-th-cell:not(:disabled):hover { color: var(--primary-color); }
-.oc .ac-th-cell .ac-sort-ind { font-size: 8px; line-height: normal; }
+
+.oc .ac-th-cell,
+html body .oc button.ac-th-cell {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    line-height: 1.2 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    font: inherit !important;
+    color: inherit !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+}
+
+.oc .ac-th-cell:disabled,
+html body .oc button.ac-th-cell:disabled {
+    cursor: default !important;
+}
+
+.oc .ac-th-cell:not(:disabled):hover,
+html body .oc button.ac-th-cell:not(:disabled):hover {
+    color: var(--primary-text, var(--primary-color)) !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.oc .ac-th-cell .ac-sort-ind {
+    font-size: 8px !important;
+    line-height: normal !important;
+}
+
 .oc .ac-col-dev, .oc .ac-col-ctrl, .oc .ac-col-conns, .oc .ac-col-up, .oc .ac-col-down { display: flex; align-items: center; }
-.oc .ac-col-dev { flex: 1 1 auto; min-width: 0; justify-content: center; }
+.oc .ac-col-dev {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    justify-content: flex-start !important;
+    padding-left: 4px !important;
+}
 .oc .ac-col-ctrl { width: 92px; flex: 0 0 auto; justify-content: center; }
 .oc .ac-col-conns { width: 52px; flex: 0 0 auto; justify-content: center; }
 .oc .ac-col-up, .oc .ac-col-down { width: 136px; flex: 0 0 136px; justify-content: center; }
@@ -5130,8 +5180,9 @@ html[data-darkmode="true"] .oc .oc-notice #megaphone {
 }
 
 .oc .oc-ac-card-section .ac-th {
-    padding: 6px 14px;
-    height: auto;
+    padding: 0 14px !important;
+    height: 32px !important;
+    min-height: 32px !important;
 }
 
 .oc .oc-ac-card-section .ac-list {
