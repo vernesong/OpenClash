@@ -412,9 +412,9 @@
                         else {
                             $$.getElementById(elID).innerHTML = 'Unknown';
                         }
-                    })
+                    }).catch(function() {})
                 }
-            })
+            }).catch(function() {})
         },
         getPcolIP: () => {
             document.querySelectorAll('script[data-pcol]').forEach(function(el) {
@@ -444,6 +444,7 @@
         getIpipIP: () => {
             IP.get(`https://myip.ipip.net?z=${random}`, 'text')
             .then(resp => {
+                if (!resp || !resp.data) return;
                 const ipMatch = resp.data.match(/当前 IP：([0-9A-Fa-f:.]+)/);
                 const geoMatch = resp.data.match(/来自于：(.+)/);
 
@@ -452,18 +453,21 @@
                     $$.getElementById('ip-ipip-geo').innerHTML = geoMatch[1].trim();
                     addTitleOnOverflow();
                 }
-            })
+            }).catch(function() {})
         },
         getIpifyIP: () => {
             IP.get(`https://api.ipify.org/?format=json&z=${random}`, 'json')
             .then(resp => {
+                if (!resp || !resp.data) return;
                 $$.getElementById('ip-ipify').innerHTML = localStorage.getItem('privacy_my_ip') == 'true' ? '***.***.***.***' : resp.data.ip;
                 return resp.data.ip;
             })
             .then(ip => {
-                IP.parseIPIpip(ip, 'ip-ipify-geo');
-                addTitleOnOverflow();
-            })
+                if (ip) {
+                    IP.parseIPIpip(ip, 'ip-ipify-geo');
+                    addTitleOnOverflow();
+                }
+            }).catch(function() {})
         },
         getIpsbIP: () => {
             fetch(`https://api.ip.sb/geoip?z=${random}`)
@@ -472,7 +476,7 @@
                     $$.getElementById('ip-ipsb').innerHTML = localStorage.getItem('privacy_my_ip') == 'true' ? '***.***.***.***' : data.ip;
                     $$.getElementById('ip-ipsb-geo').innerHTML = `${data.country} ${data.isp}`;
                     addTitleOnOverflow();
-                })
+                }).catch(function() {})
         }
     };
 

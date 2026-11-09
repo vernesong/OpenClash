@@ -1891,7 +1891,7 @@ var TemplatePreview = {
         var tabs = document.querySelectorAll('#tpl-tabs .oc-tpl-tab');
         for (var i = 0; i < tabs.length; i++) {
             tabs[i].addEventListener('click', function() {
-                self.switchTab(this.getAttribute('data-tab'));
+                self.switchTab((this.getAttribute('data-tpl-tab') || this.getAttribute('data-tab')));
             });
         }
         this.overlay.addEventListener('click', function(e) {
@@ -2021,7 +2021,7 @@ var TemplatePreview = {
     switchTab: function(tab) {
         var tabs = document.querySelectorAll('#tpl-tabs .oc-tpl-tab');
         for (var i = 0; i < tabs.length; i++) {
-            tabs[i].classList.toggle('active', tabs[i].getAttribute('data-tab') === tab);
+            tabs[i].classList.toggle('active', (tabs[i].getAttribute('data-tpl-tab') || tabs[i].getAttribute('data-tab')) === tab);
         }
         var panes = ['groups', 'rules', 'extra'];
         for (var j = 0; j < panes.length; j++) {
@@ -2814,10 +2814,10 @@ var ConfigUploader = {
         var structTabs = document.querySelectorAll('#sub-struct-tabs .oc-tpl-tab');
         for (var st = 0; st < structTabs.length; st++) {
             structTabs[st].addEventListener('click', function() {
-                var tab = this.getAttribute('data-tab');
+                var tab = (this.getAttribute('data-tpl-tab') || this.getAttribute('data-tab'));
                 var tabs = document.querySelectorAll('#sub-struct-tabs .oc-tpl-tab');
                 for (var i = 0; i < tabs.length; i++) {
-                    tabs[i].classList.toggle('active', tabs[i].getAttribute('data-tab') === tab);
+                    tabs[i].classList.toggle('active', (tabs[i].getAttribute('data-tpl-tab') || tabs[i].getAttribute('data-tab')) === tab);
                 }
                 SubPanel.el('sub-pane-groups').classList.toggle('oc-hidden', tab !== 'groups');
                 SubPanel.el('sub-pane-rules').classList.toggle('oc-hidden', tab !== 'rules');
