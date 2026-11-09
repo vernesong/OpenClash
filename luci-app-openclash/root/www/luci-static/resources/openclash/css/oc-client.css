@@ -6076,6 +6076,8 @@ html[data-darkmode="true"] .oc .oc-status-pill:hover {
 .oc .stats-tabs {
     display: inline-flex !important;
     align-items: center !important;
+    width: auto !important;
+    height: auto !important;
     background: var(--bg-light) !important;
     border: 1px solid var(--border-light) !important;
     border-radius: 6px !important;
@@ -6091,9 +6093,14 @@ html[data-darkmode="true"] .oc .oc-status-pill:hover {
 }
 .oc #stats-tabs .cbi-button-option,
 .oc .stats-tabs .cbi-button-option {
-    min-height: 22px !important;
-    height: 22px !important;
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    min-height: 24px !important;
+    height: 24px !important;
     padding: 0 10px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     border-radius: 4px !important;
     font-size: 11.5px !important;
     font-weight: 600 !important;
@@ -6554,8 +6561,8 @@ html[data-darkmode="true"] .oc .oc-native-select {
 }
 
 /* Universal Control Box-Model Isolation */
-.oc input[type="radio"],
-.oc input[type="checkbox"],
+.oc input[type="radio"]:not(.cbi-button-group input):not(.stats-tabs input):not(#stats-tabs input),
+.oc input[type="checkbox"]:not(.oc-switch input):not(.oc-ui-switch input):not(.plugin-toggle-switch input),
 .oc .mode-radio-label input[type="radio"] {
     min-height: 0 !important;
     min-width: 0 !important;
@@ -6568,6 +6575,20 @@ html[data-darkmode="true"] .oc .oc-native-select {
     padding: 0 !important;
     flex-shrink: 0 !important;
     aspect-ratio: 1 / 1 !important;
+}
+
+.oc .cbi-button-group input[type="radio"],
+.oc #stats-tabs input[type="radio"],
+.oc .stats-tabs input[type="radio"] {
+    position: absolute !important;
+    width: 0 !important;
+    height: 0 !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 .oc button,
