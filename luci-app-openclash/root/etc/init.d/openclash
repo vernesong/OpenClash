@@ -88,48 +88,6 @@ cron_append()
    printf '%s\n' "$1" >> "$CRON_FILE"
 }
 
-# The hour and weekday of a crontab line keep what cron reads, lists and steps included.
-# Anything else could add to the line: it takes the fallback and is logged.
-cron_invalid()
-{
-   [ -n "$1" ] && LOG_WARN "Ignored An Invalid Cron Time【$(printf '%s' "$1" | tr -d '\r\n\\')】"
-   printf '%s' "$2"
-}
-
-cron_hour()
-{
-   case "$1" in
-      ''|*[!0-9*,/-]*) cron_invalid "$1" "$2" ;;
-      *) printf '%s' "$1" ;;
-   esac
-}
-
-cron_week()
-{
-   case "$1" in
-      [A-Za-z][A-Za-z][A-Za-z]) printf '%s' "$1" ;;
-      ''|*[!0-9*,/-]*) cron_invalid "$1" "$2" ;;
-      *) printf '%s' "$1" ;;
-   esac
-}
-
-# A range for the firewall rules: printed only when it is an address with a prefix length.
-cidr_v4()
-{
-   case "$1" in
-      *[!0-9./]*) return ;;
-   esac
-   printf '%s' "$1" | grep -Eqx '([0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]{1,2}' && printf '%s' "$1"
-}
-
-cidr_v6()
-{
-   case "$1" in
-      *[!0-9a-fA-F:./]*) return ;;
-   esac
-   printf '%s' "$1" | grep -Eqx '[0-9a-fA-F:.]*:[0-9a-fA-F:.]*/[0-9]{1,3}' && printf '%s' "$1"
-}
-
 subscribe_cron_gcd()
 {
    local a="$1" b="$2" t
@@ -231,12 +189,12 @@ add_cron()
    config_load "openclash"
    config_foreach add_subscribe_cron "config_subscribe"
 
-   [ "$(uci_get_config "geo_auto_update")" -eq 1 ] && echo "0 $(cron_hour "$(uci_get_config "geo_update_day_time")" 1) * * $(cron_week "$(uci_get_config "geo_update_week_time")" 0) /usr/share/openclash/openclash_geo.sh ipdb #openclash-cron-task" >> "$CRON_FILE"
-   [ "$(uci_get_config "geosite_auto_update")" -eq 1 ] && echo "0 $(cron_hour "$(uci_get_config "geosite_update_day_time")" 1) * * $(cron_week "$(uci_get_config "geosite_update_week_time")" 0) /usr/share/openclash/openclash_geo.sh geosite #openclash-cron-task" >> "$CRON_FILE"
-   [ "$(uci_get_config "geoip_auto_update")" -eq 1 ] && echo "0 $(cron_hour "$(uci_get_config "geoip_update_day_time")" 1) * * $(cron_week "$(uci_get_config "geoip_update_week_time")" 0) /usr/share/openclash/openclash_geo.sh geoip #openclash-cron-task" >> "$CRON_FILE"
-   [ "$(uci_get_config "geoasn_auto_update")" -eq 1 ] && echo "0 $(cron_hour "$(uci_get_config "geoasn_update_day_time")" 1) * * $(cron_week "$(uci_get_config "geoasn_update_week_time")" 0) /usr/share/openclash/openclash_geo.sh geoasn #openclash-cron-task" >> "$CRON_FILE"
-   [ "$(uci_get_config "chnr_auto_update")" -eq 1 ] && echo "0 $(cron_hour "$(uci_get_config "chnr_update_day_time")" 1) * * $(cron_week "$(uci_get_config "chnr_update_week_time")" 0) /usr/share/openclash/openclash_chnroute.sh #openclash-cron-task" >> "$CRON_FILE"
-   [ "$(uci_get_config "auto_restart")" -eq 1 ] && echo "0 $(cron_hour "$(uci_get_config "auto_restart_day_time")" 1) * * $(cron_week "$(uci_get_config "auto_restart_week_time")" 0) /etc/init.d/openclash restart #openclash-cron-task" >> "$CRON_FILE"
+   [ "$(uci_get_config "geo_auto_update")" -eq 1 ] && echo "0 $(uci_get_config "geo_update_day_time" || 1) * * $(uci_get_config "geo_update_week_time" || 0) /usr/share/openclash/openclash_geo.sh ipdb #openclash-cron-task" >> "$CRON_FILE"
+   [ "$(uci_get_config "geosite_auto_update")" -eq 1 ] && echo "0 $(uci_get_config "geosite_update_day_time" || 1) * * $(uci_get_config "geosite_update_week_time" || 0) /usr/share/openclash/openclash_geo.sh geosite #openclash-cron-task" >> "$CRON_FILE"
+   [ "$(uci_get_config "geoip_auto_update")" -eq 1 ] && echo "0 $(uci_get_config "geoip_update_day_time" || 1) * * $(uci_get_config "geoip_update_week_time" || 0) /usr/share/openclash/openclash_geo.sh geoip #openclash-cron-task" >> "$CRON_FILE"
+   [ "$(uci_get_config "geoasn_auto_update")" -eq 1 ] && echo "0 $(uci_get_config "geoasn_update_day_time" || 1) * * $(uci_get_config "geoasn_update_week_time" || 0) /usr/share/openclash/openclash_geo.sh geoasn #openclash-cron-task" >> "$CRON_FILE"
+   [ "$(uci_get_config "chnr_auto_update")" -eq 1 ] && echo "0 $(uci_get_config "chnr_update_day_time" || 1) * * $(uci_get_config "chnr_update_week_time" || 0) /usr/share/openclash/openclash_chnroute.sh #openclash-cron-task" >> "$CRON_FILE"
+   [ "$(uci_get_config "auto_restart")" -eq 1 ] && echo "0 $(uci_get_config "auto_restart_day_time" || 1) * * $(uci_get_config "auto_restart_week_time" || 0) /etc/init.d/openclash restart #openclash-cron-task" >> "$CRON_FILE"
 
    config_foreach add_overwrite_cron "config_overwrite"
 
@@ -3453,8 +3411,6 @@ add_overwrite_cron()
       return
    fi
 
-   [ "$(cron_hour "$update_hour")" = "$update_hour" ] && [ "$(cron_week "$update_days")" = "$update_days" ] || return
-
    safe_name=$(printf '%s' "$name" | md5sum | cut -c1-8)
    eval "restart_flag=\${OVERWRITE_RESTART_FLAG_${safe_name}}"
    cron_dest="/etc/openclash/overwrite/$name"
@@ -4096,7 +4052,6 @@ get_config()
    else
       fakeip_range=$(uci_get_config "fakeip_range")
    fi
-   fakeip_range=$(cidr_v4 "$fakeip_range")
    [ -z "$fakeip_range" ] && fakeip_range="198.18.0.1/16"
 
    if [ "$(uci_get_config "fakeip_range6")"  = "0" ]; then
@@ -4104,7 +4059,6 @@ get_config()
    else
       fakeip_range6=$(uci_get_config "fakeip_range6")
    fi
-   fakeip_range6=$(cidr_v6 "$fakeip_range6")
    if [ -z "$fakeip_range6" ]; then
       fakeip_range6="2001:2::1/64"
       fake_ip_range6_enable=0

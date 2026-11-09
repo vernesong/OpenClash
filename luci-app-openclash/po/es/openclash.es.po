@@ -5807,3 +5807,15 @@ msgstr "Permite las ventanas emergentes en esta página"
 
 msgid "The oixCloud core is not installed or too old; install it from the Core settings and try again"
 msgstr "El núcleo de oixCloud no está instalado o es demasiado antiguo; instálalo desde los ajustes del núcleo e inténtalo de nuevo"
+
+msgid "Sign-in token is invalid or expired, please sign in again"
+msgstr "El token de inicio de sesión no es válido o ha caducado, vuelve a iniciar sesión"
+
+msgid "Needs The oixCloud Core, Please Install It First"
+msgstr "Se necesita el núcleo de oixCloud, instálalo primero"
+
+msgid "Downloading Through The Core..."
+msgstr "Descargando a través del núcleo..."
+
+msgid "Needs An oixCloud Sign-In, Nothing Was Updated"
+msgstr "Se necesita iniciar sesión en oixCloud, no se actualizó nada"

@@ -924,7 +924,7 @@ function get_sub_url(filename)
 				providers = []
 				if config && config["proxy-providers"]
 					config["proxy-providers"].each do |name, provider|
-						# Only include providers with URLs that can be requested
+						# The account provider keeps a placeholder address that cannot be requested
 						if provider && provider["url"] && !provider["url"].to_s.empty? && !provider["url"].to_s.include?(".invalid/")
 							providers << {"name" => name, "url" => provider["url"].to_s}
 						end
@@ -1055,7 +1055,14 @@ function sub_info_get()
 				local function fork_provider_curl(url, ua)
 					local fdi, fdo = nixio.pipe()
 					if not fdi or not fdo then return nil end
-					local cmd = fs.sub_info_command(ua, header_args, url)
+					local quoted_url = UTIL.shellquote(url)
+					local cmd = string.format(
+						'OUT=$(curl -sLI -X GET -m 5 --retry 2 -w "http_code=%%{http_code}" -H %s%s %s 2>/dev/null); '
+						.. 'CODE=$(echo "$OUT" | grep -o "http_code=[0-9]*" | head -1 | cut -d= -f2); '
+						.. 'if [ -n "$OUT" ] && [ "$CODE" = "200" ]; then echo "$OUT"; '
+						.. 'else curl -sLI -X GET -m 5 --retry 2 -w "http_code=%%{http_code}" -H "User-Agent: Quantumultx"%s %s 2>/dev/null; fi',
+						UTIL.shellquote("User-Agent: " .. tostring(ua)), header_args, quoted_url, header_args, quoted_url
+					)
 					local child = nixio.fork()
 					if child > 0 then
 						fdo:close()
@@ -1485,16 +1492,8 @@ end
 
 function action_delete_dashboard()
 	local delete_name = HTTP.formvalue("name")
-	local known = {dashboard = true, yacd = true, metacubexd = true, zashboard = true}
-	if type(delete_name) ~= "string" or not known[string.lower(delete_name)] then
-		HTTP.prepare_content("application/json")
-		HTTP.write_json({
-			delete_state = 0,
-			error = "Unknown dashboard"
-		})
-		return
-	end
-	local delete_path = string.format("/usr/share/openclash/ui/%s", string.lower(delete_name))
+	local delete_path = type(delete_name) == "string"
+		and string.format("/usr/share/openclash/ui/%s", string.lower(delete_name)) or nil
 
 	local panels = {
 		"/usr/share/openclash/ui/dashboard",
@@ -1502,6 +1501,22 @@ function action_delete_dashboard()
 		"/usr/share/openclash/ui/metacubexd",
 		"/usr/share/openclash/ui/zashboard"
 	}
+	local known = false
+	for _, path in ipairs(panels) do
+		if path == delete_path then
+			known = true
+			break
+		end
+	end
+	if not known then
+		HTTP.prepare_content("application/json")
+		HTTP.write_json({
+			delete_state = 0,
+			error = "Unknown dashboard"
+		})
+		return
+	end
+
 	local existing_panels = 0
 	for _, path in ipairs(panels) do
 		if fs.isdirectory(path) then
@@ -6940,6 +6955,9 @@ end
 
 local function oix_cli_error(reply, fallback)
 	if not reply then return OIX_CORE_MISSING end
+	if reply.code == "rejected" then
+		return "Sign-in token is invalid or expired, please sign in again"
+	end
 	return reply.error or fallback
 end
 
@@ -7068,7 +7086,7 @@ local function fetch_oix_sub(token)
 	elseif reply.code == "invalid_config" then
 		return fail("Subscription is not a valid Clash configuration; existing configuration was kept")
 	elseif reply.error then
-		return fail(reply.error)
+		return fail(oix_cli_error(reply, "Subscription update failed; existing configuration was kept"))
 	end
 	local validation_result = SYS.exec("ruby -ryaml -rYAML -I /usr/share/openclash -E UTF-8 -e 'puts YAML.subscription_status(ARGV[0], ARGV.drop(1))' " .. oix_quote(temporary) .. " oixCloud 'oixCloud - smart' 2>/dev/null; printf ':%s' \"$?\"")
 	local validation, validation_code = (validation_result or ""):match("^%s*([%u_]+)%s*:(%d+)$")
@@ -7109,7 +7127,6 @@ local function fetch_oix_sub(token)
 	sid = sid or uci:add("openclash", "config_subscribe")
 	uci:set("openclash", sid, "name", "oixCloud")
 	uci:set("openclash", sid, "address", OIX_MANAGED_ADDRESS)
-	uci:delete("openclash", sid, "address_fallback")
 	for _, duplicate in ipairs(duplicates) do uci:delete("openclash", duplicate) end
 	uci:foreach("openclash", "overwrite", function(s)
 		local paths, changed = s.config, false
@@ -7304,7 +7321,7 @@ function oix_checkin()
 	local token = fs.uci_get_config("config", "oix_token")
 	local multiple = fs.uci_get_config("config", "oix_checkin_multiple") or 1
 	if oix_valid_token(token) then
-		local ready, core_err = oix_ensure_core()
+		local ready, core_err = oix_ensure_core(false, true)
 		local reply = ready and fs.oix_cli("checkin", {token = token, multiple = math.floor(tonumber(multiple) or 1)})
 		if not ready then
 			info = {msg = luci.i18n.translate(core_err)}
@@ -7315,7 +7332,7 @@ function oix_checkin()
 			fs.writefile(path, json.stringify(info))
 			fs.append_log(string.format("%s [Info] oixCloud Checkin Successful, Result:【%s】", os.date("%Y-%m-%d %H:%M:%S"), tostring(reply.checkin)))
 		elseif reply then
-			info = {msg = reply.error}
+			info = {msg = oix_cli_error(reply, "oixCloud Checkin Failed! Please Check And Try Again...")}
 			fs.append_log(string.format("%s [Info] oixCloud Checkin Failed, Result:【%s】", os.date("%Y-%m-%d %H:%M:%S"), tostring(reply.error)))
 		else
 			fs.append_log(os.date("%Y-%m-%d %H:%M:%S") .. " [Info] oixCloud Checkin Failed! Please Check And Try Again...")

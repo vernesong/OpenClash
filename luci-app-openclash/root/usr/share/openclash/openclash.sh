@@ -351,6 +351,17 @@ config_download_direct()
    fi
 }
 
+# The account config has no address of its own, a direct download cannot work.
+config_download_fallback()
+{
+   if [ "$address" = "oixcloud://managed" ]; then
+      config_error
+      return
+   fi
+   LOG_ERROR "Config File【$name】Subscribed Failed, Trying to Download Without Agent..."
+   config_download_direct
+}
+
 server_key_match()
 {
    local key_match key_word
@@ -451,7 +462,6 @@ sub_info_get()
       if [ -n "$oix_token" ] && [ "$address" != "oixcloud://managed" ]; then
          address="oixcloud://managed"
          uci -q set openclash."$section".address="$address"
-         uci -q delete openclash."$section".address_fallback
          uci -q commit openclash
       elif [ -z "$oix_token" ] && { [ -z "$address" ] || [ "$address" = "oixcloud://managed" ]; }; then
          if [ "$2" = "$name" ] || [ "$2" = "$CONFIG_FILE" ]; then
@@ -545,16 +555,14 @@ EOF
    config_download
    if [ "$DOWNLOAD_RESULT" -eq 0 ]; then
       if ! yaml_sub_validate || ! config_test; then
-         LOG_ERROR "Config File【$name】Subscribed Failed, Trying to Download Without Agent..."
-         config_download_direct
+         config_download_fallback
       else
          config_su_check
       fi
    elif [ "$DOWNLOAD_RESULT" -eq 2 ]; then
       LOG_OUT "Config File【$name】No Change, Do Nothing!"
    else
-      LOG_ERROR "Config File【$name】Subscribed Failed, Trying to Download Without Agent..."
-      config_download_direct
+      config_download_fallback
    fi
 }
 

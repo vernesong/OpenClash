@@ -5815,3 +5815,15 @@ msgstr "请允许本页面打开弹出窗口"
 
 msgid "The oixCloud core is not installed or too old; install it from the Core settings and try again"
 msgstr "oixCloud 内核未安装或版本过旧，请先在内核设置中安装后再试"
+
+msgid "Sign-in token is invalid or expired, please sign in again"
+msgstr "登录令牌无效或已过期，请重新登录"
+
+msgid "Needs The oixCloud Core, Please Install It First"
+msgstr "需要 oixCloud 内核，请先安装"
+
+msgid "Downloading Through The Core..."
+msgstr "正在通过内核下载..."
+
+msgid "Needs An oixCloud Sign-In, Nothing Was Updated"
+msgstr "需要登录 oixCloud，未更新任何内容"

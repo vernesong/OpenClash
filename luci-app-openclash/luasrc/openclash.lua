@@ -417,30 +417,34 @@ function uci_get_config(section, key)
 	return val
 end
 
---- Installed core binary.
-function core_path()
-	if uci_get_config("config", "small_flash_memory") == "1" then
-		return "/tmp/etc/openclash/core/clash_meta"
-	end
-	return "/etc/openclash/core/clash_meta"
-end
-
 --- Runs an account command of the core. The request goes over stdin, which keeps its
 -- contents out of the process list; the reply is one JSON object.
 -- @param command	Command name
 -- @param request	Table with the request fields
 -- @return			Decoded reply, or nil when the core gave none
 function oix_cli(command, request)
-	local core = core_path()
+	local core = "/etc/openclash/core/clash_meta"
+	if uci_get_config("config", "small_flash_memory") == "1" then
+		core = "/tmp/etc/openclash/core/clash_meta"
+	end
 	if not fs.access(core) then
+		return nil
+	end
+	-- A core without the oix dispatcher treats the subcommand as a config path and
+	-- starts a server, so the version has to be checked before anything is run.
+	if not string.find(SYS.exec(UTIL.shellquote(core) .. " -v 2>/dev/null") or "", "oix", 1, true) then
 		return nil
 	end
 	local temporary = (SYS.exec("mktemp /tmp/.oix_cli.XXXXXX 2>/dev/null") or ""):match("^(%S+)")
 	if not temporary then
 		return nil
 	end
+	local payload = json.stringify(request or {})
+	if payload == "[]" then
+		payload = "{}"
+	end
 	local out
-	if fs.writefile(temporary, json.stringify(request or {})) then
+	if fs.writefile(temporary, payload) then
 		out = SYS.exec(string.format("OIX_CLIENT=openclash CLASH_HOME_DIR=/etc/openclash %s oix %s < %s 2>/dev/null",
 			UTIL.shellquote(core), command, UTIL.shellquote(temporary)))
 	end
@@ -449,8 +453,7 @@ function oix_cli(command, request)
 	if not ok or type(reply) ~= "table" then
 		return nil
 	end
-	-- a core older than the plugin answers this to a command it does not know
-	if reply.code == "usage" and SYS.call(UTIL.shellquote(core) .. " oix managed-config --check >/dev/null 2>&1") ~= 0 then
+	if reply.code == "usage" then
 		return nil
 	end
 	return reply
@@ -465,18 +468,6 @@ function append_log(line, path)
 	end
 end
 
---- Asks a subscription for its usage headers, under a second User-Agent if the first one
--- gets no answer.
-function sub_info_command(agent, header_args, url)
-	local quoted = UTIL.shellquote(url)
-	return string.format(
-		'OUT=$(curl -sLI -X GET -m 5 --retry 2 -w "http_code=%%{http_code}" -H %s%s %s 2>/dev/null); '
-		.. 'CODE=$(echo "$OUT" | grep -o "http_code=[0-9]*" | head -1 | cut -d= -f2); '
-		.. 'if [ -n "$OUT" ] && [ "$CODE" = "200" ]; then echo "$OUT"; '
-		.. 'else curl -sLI -X GET -m 5 --retry 2 -w "http_code=%%{http_code}" -H "User-Agent: Quantumultx"%s %s 2>/dev/null; fi',
-		UTIL.shellquote("User-Agent: " .. tostring(agent)), header_args, quoted, header_args, quoted)
-end
-
 --- A curl command for the core's controller.
 function core_api_command(timing, method, secret, host, port, path, body)
 	return string.format("curl -sL %s -H 'Content-Type: application/json' -H %s -X%s %s -d %s", timing,
@@ -485,7 +476,7 @@ function core_api_command(timing, method, secret, host, port, path, body)
 end
 
 --- Files rebuilt at the next start, and what an interrupted write of them left behind.
--- Each comes twice: BusyBox compares a member's whole name when extracting.
+-- Archives store member names with "./", and BusyBox matches the whole name.
 local function rebuilt_files(extra)
 	local patterns = {}
 	for _, name in ipairs({".oix_age_key*", "..oix_age_key*", ".oix_device_id*", "..oix_device_id*",
@@ -500,8 +491,8 @@ local function rebuilt_files(extra)
 end
 
 --- Writes an archive of the plugin directory to stdout, without the rebuilt files.
-function backup_command(target, extra, root, list)
-	root, list = root or "/etc/openclash/", list or "/tmp/oc_exclude.txt"
+function backup_command(target, extra)
+	local root, list = "/etc/openclash/", "/tmp/oc_exclude.txt"
 	return string.format("printf '%%s\\n' %s > %s && exec tar -C %s -X %s -cz %s 2>/dev/null",
 		rebuilt_files(extra), UTIL.shellquote(list), UTIL.shellquote(root), UTIL.shellquote(list), target)
 end
@@ -526,8 +517,8 @@ function get_file_path_from_request()
 	return file_path
 end
 
-function restore_backup(archive, root, config_path)
-	root, config_path = root or "/etc/openclash/", config_path or "/etc/config/openclash"
+function restore_backup(archive)
+	local root, config_path = "/etc/openclash/", "/etc/config/openclash"
 	local quoted = UTIL.shellquote(archive)
 	local listfile = "/tmp/oc_restore.list"
 	local excludefile = "/tmp/oc_restore.exclude"
