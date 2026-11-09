@@ -4718,8 +4718,8 @@ msgstr "窗口分两步：选择来源，然后确认详情"
 msgid "Select the txt or conf file to upload here:"
 msgstr "在这里选择要上传的 txt/conf 文件："
 
-msgid "Choosing the file reads it and jumps to the details step"
-msgstr "选择文件后会读取内容并跳转到详情步骤"
+msgid "Choosing the file reads it; click Next to review the details"
+msgstr "选择文件后会读取内容，点击「下一步」查看详情"
 
 msgid "Paste the module link here:"
 msgstr "在这里粘贴模块链接："
@@ -5812,3 +5812,12 @@ msgstr "在 OpenClash 运行期间将下列条目写入系统 /etc/hosts"
 
 msgid "One IP Domain Pair Per Line, Invalid Lines Are Ignored"
 msgstr "每行一条「IP 域名」记录，非法行会被忽略"
+
+msgid "Copy Module"
+msgstr "复制模块"
+
+msgid "Copy failed"
+msgstr "复制失败"
+
+msgid "Click Next without a file to create a blank module with a comment skeleton"
+msgstr "不选择文件直接点「下一步」会创建带注释骨架的空白模块"

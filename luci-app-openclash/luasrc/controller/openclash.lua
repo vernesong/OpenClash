@@ -119,6 +119,7 @@ function index()
 	entry({"admin", "services", "openclash", "overwrite_module_preview"}, call("action_overwrite_module_preview"))
 	entry({"admin", "services", "openclash", "overwrite_file_list"}, call("action_overwrite_file_list"))
 	entry({"admin", "services", "openclash", "delete_overwrite_file"}, call("delete_overwrite_file"))
+	entry({"admin", "services", "openclash", "duplicate_overwrite_module"}, call("duplicate_overwrite_module"))
 	entry({"admin", "services", "openclash", "get_subscribe_data"}, call("action_get_subscribe_data"))
 	entry({"admin", "services", "openclash", "get_subscribe_info_data"}, call("action_get_subscribe_info_data"))
 	entry({"admin", "services", "openclash", "oix_info"}, call("oix_info"))
@@ -6587,6 +6588,94 @@ function delete_overwrite_file()
 
 	HTTP.prepare_content("application/json")
 	HTTP.write_json({status="success"})
+end
+
+-- Copies a module file and the UCI info that makes it run; the copy starts disabled
+-- with the next order so the original keeps its place in the pipeline.
+function duplicate_overwrite_module()
+	local overwrite_dir = "/etc/openclash/overwrite/"
+	local filename = HTTP.formvalue("filename")
+	local new_name = HTTP.formvalue("new_name")
+	local next_order = 0
+	local source_section = nil
+	local target_exists = false
+
+	local function fail(message)
+		HTTP.prepare_content("application/json")
+		HTTP.write_json({status="error", message=message})
+	end
+
+	if not filename or filename == "" or not new_name or new_name == "" then
+		fail("Missing filename")
+		return
+	end
+	if not is_safe_filename(filename) or not is_safe_filename(new_name) then
+		fail("Invalid filename")
+		return
+	end
+
+	local src_path = overwrite_dir .. filename
+	local dst_path = overwrite_dir .. new_name
+	if not fs.access(src_path) then
+		fail("Module file not found")
+		return
+	end
+
+	uci:foreach("openclash", "config_overwrite", function(s)
+		local order = tonumber(s.order)
+		if order and order > next_order then
+			next_order = order
+		end
+		if s.name == filename then
+			source_section = s
+		elseif s.name == new_name then
+			target_exists = true
+		end
+	end)
+
+	if target_exists or fs.access(dst_path) then
+		fail("Target module already exists")
+		return
+	end
+	if not fs.copy(src_path, dst_path) then
+		fail("Failed to copy module file")
+		return
+	end
+
+	local config_values = {}
+	local source_config = source_section and source_section.config or nil
+	if type(source_config) == "table" then
+		for _, item in ipairs(source_config) do
+			if item and item ~= "" then
+				table.insert(config_values, tostring(item))
+			end
+		end
+	elseif type(source_config) == "string" and source_config ~= "" then
+		table.insert(config_values, source_config)
+	end
+	if #config_values == 0 then
+		config_values = {"all"}
+	end
+
+	local sid = uci:add("openclash", "config_overwrite")
+	uci:set("openclash", sid, "name", new_name)
+	uci:set("openclash", sid, "type", "file")
+	uci:set("openclash", sid, "url", "")
+	uci:set("openclash", sid, "enable", "0")
+	uci:set("openclash", sid, "order", tostring(next_order + 1))
+	uci:set_list("openclash", sid, "config", config_values)
+	if source_section then
+		if source_section.param and source_section.param ~= "" then
+			uci:set("openclash", sid, "param", source_section.param)
+		end
+		if source_section.desc and source_section.desc ~= "" then
+			uci:set("openclash", sid, "desc", source_section.desc)
+		end
+	end
+	uci:commit("openclash")
+
+	HTTP.prepare_content("application/json")
+	HTTP.write_json({status="success", filename=new_name, file_path=dst_path})
 end
 
 function action_get_subscribe_data()

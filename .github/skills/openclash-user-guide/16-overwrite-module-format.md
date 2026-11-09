@@ -23,8 +23,8 @@
 | 步骤 | 操作 |
 |------|------|
 | ① 入口 | 运行状态页顶部 **Overwrite Module** 按钮（`editOverwrite()` → `ConfigEditor.showOverwrite()`，复用配置编辑器模态框，标题变 Overwrite Edit） |
-| ② 窗口 | 顶部覆写警告横幅（"You are editing the overwrite script..."）+ 左侧模块列表栏（标题 + 数量徽标 + 收起按钮 / 条目列表 / 底部「+ 添加新模块」）+ 右侧 CodeMirror 主编辑器；列表栏可收起为 46px 图标条（状态记 localStorage），窄屏首次默认收起；每项两行：文件名 + 启用开关 / 内联标签 + 类型 + 刷新·编辑·删除按钮 |
-| ③ 新建 | 底部「+ 添加新模块」→ 两步向导：**① 选择来源**（本地模块只放文件上传区，选中 txt/conf 自动读取进第二步；订阅链接只放 URL 输入框，点「下一步」才下载读取文件头）→ **② 填写模块信息**（名称必填、描述→`desc`、匹配配置、更新时间→`update_days`/`update_hour`、环境变量→`param`）。上传与下载都有百分比进度条；下载失败停在第一步，改链接或再点「下一步」即清除（链接未改时二次点击 = 跳过读取直接继续） |
+| ② 窗口 | 顶部覆写警告横幅（"You are editing the overwrite script..."）+ 左侧模块列表栏（标题 + 数量徽标 + 收起按钮 / 条目列表 / 底部「+ 添加新模块」）+ 右侧 CodeMirror 主编辑器；列表栏可收起为 46px 图标条（状态记 localStorage），窄屏首次默认收起；每项两行：文件名 + 启用开关 / 内联标签 + 类型 + 刷新·复制·编辑·删除按钮 |
+| ③ 新建 | 底部「+ 添加新模块」→ 两步向导：**① 选择来源**（本地模块：上传区选中 txt/conf 后**停留本步**，点「下一步」才进第二步并读取文件头；**不选文件直接点「下一步」= 创建空白模块**，按名称/描述生成带 `#!NAME`/`#!DESC` 与三段格式说明注释的骨架，创建后直接打开编辑器手写；订阅链接只放 URL 输入框，点「下一步」才下载读取文件头）→ **② 填写模块信息**（名称必填、描述→`desc`、匹配配置、更新时间→`update_days`/`update_hour`、环境变量→`param`）。上传与下载都有百分比进度条；下载失败停在第一步，改链接或再点「下一步」即清除（链接未改时二次点击 = 跳过读取直接继续） |
 | ④ 编辑 | 选条目 → 按 INI 三段格式编辑 → Save（POST `/config_file_save`，后端只允许写 `/etc/openclash/overwrite/<名称>`、`custom/openclash_custom_overwrite.sh`、`/etc/openclash/config/*.ya?ml`）。**改完重启插件才生效** |
 | ⑤ 原理 | 见上方执行模型；列表按 order **升序**自上而下，内核按 order **降序**执行 ⇒ **越靠上的模块越晚合并、优先级越高** |
 
@@ -34,6 +34,7 @@
 - **`order`**: 表单里没有该字段，自动取「现有最大 order + 1」（排最后）
 - **`type`**: 订阅来源固定 `http`，本地来源 `file`
 - **默认关闭**: 新建模块注册时 `enable=0`（与内置 `default`/`Google_Play` 一致），需手动开开关并重启
+- **复制模块**: 每个模块条目第三个按钮（复制图标）→ POST `/duplicate_overwrite_module`，按 `<名称>_copy`（重复复制递增 `_copy2`…）复制文件正文，并继承 `config`（无匹配时回落 `all`）、`param`、`desc`；副本固定 `type=file`（脱离订阅 URL）、`enable=0`、`order=最大+1`，`official` 不继承 ⇒ 内置模块的副本可直接编辑/删除；复制完成后自动切换到副本并载入编辑器
 - **`#!` 元信息回填**: 文件带 `#!` 标识时（§16.2.5）自动填表单，**只填留空或自动填入的字段，不覆盖手动输入**
 - **内置模块六个**: `default`、`Google_Play`、`Tailscale`、`WiFi_Calling`、`BT_PT_Download`（随包安装）、`openclash_custom_overwrite.sh`（在 `custom/` 且不可改名）；这六项第二行带内联蓝底标签「内建 / Built-in」。`openclash_custom_overwrite.sh` **恒为第一个条目且不可拖动**
 - **开关与拖拽只改 UCI，不重新下载正文**；只有「刷新」、改订阅 URL、新建订阅模块才拉远程内容（避免手工编辑被覆盖）。下载失败不写 UCI、不清空原文件；新建订阅模块下载失败则不注册
