@@ -233,6 +233,7 @@ function createSingleMergeEditor(content, readOnly) {
         view.dom.style.width = state.wid;
         view.dom.style.height = state.height;
     }
+    if (CM6.primeEditorLayout) CM6.primeEditorLayout(view);
     state.instance = view;
     state.isMerge = false;
 
@@ -290,6 +291,8 @@ function renderMergeView() {
         mv.b.dom.style.height = state.height;
     }
 
+    if (CM6.primeMergeLayout) CM6.primeMergeLayout(mv);
+    if (CM6.mergeScrollSync) CM6.mergeScrollSync(mv);
     if (CM6.mirrorThemeScrollbar) CM6.mirrorThemeScrollbar();
 
     var btn = document.getElementById('oc-merge-toggle-btn');

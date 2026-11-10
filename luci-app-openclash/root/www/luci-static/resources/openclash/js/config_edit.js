@@ -584,6 +584,7 @@ var ConfigEditor = {
             });
 
             textarea.classList.add('oc-hidden');
+            if (CM6.primeEditorLayout) CM6.primeEditorLayout(self.editorInstance);
             self.editorInstance.dom.style.height = '100%';
             ocHideLoading(textarea.parentNode);
 
@@ -716,6 +717,8 @@ var ConfigEditor = {
             self.mergeViewActive = true;
             window.mergeViewInstance = self.editorInstance;
 
+            if (CM6.primeMergeLayout) CM6.primeMergeLayout(self.editorInstance);
+            if (CM6.mergeScrollSync) CM6.mergeScrollSync(self.editorInstance);
             if (CM6.mirrorThemeScrollbar) CM6.mirrorThemeScrollbar();
 
             if (statusText) statusText.textContent = '<%:Compare mode: left(Original Config), right(Runtime Config)%>';
@@ -1238,6 +1241,17 @@ var ConfigEditor = {
                 actions.appendChild(refresh);
             }
 
+            var copyBtn = document.createElement('button');
+            copyBtn.className = 'icon-btn';
+            copyBtn.type = 'button';
+            copyBtn.title = '<%:Copy Module%>';
+            copyBtn.innerHTML = '<svg width="14" height="14"><use href="#oc-icon-copy"/></svg>';
+            copyBtn.onclick = function(e) {
+                e.stopPropagation();
+                self.duplicateOverwriteModule(name, copyBtn);
+            };
+            actions.appendChild(copyBtn);
+
             var gear = document.createElement('button');
             gear.className = 'icon-btn';
             gear.type = 'button';
@@ -1384,6 +1398,54 @@ var ConfigEditor = {
             if (order > maxOrder && order < 9999) maxOrder = order;
         });
         return maxOrder + 1;
+    },
+
+    // "_copy", then "_copy2"... so repeated copies never collide with an existing module.
+    getOverwriteCopyName: function(name) {
+        var self = this;
+        var taken = {};
+        this.overwriteFiles.forEach(function(file) {
+            taken[self.getOverwriteFileName(file)] = true;
+        });
+        var extMatch = name.match(/(\.[A-Za-z0-9]+)$/);
+        var ext = extMatch ? extMatch[1] : '';
+        var stem = (ext ? name.slice(0, -ext.length) : name).replace(/_copy\d*$/, '');
+        var candidate = stem + '_copy' + ext;
+        for (var n = 2; taken[candidate]; n++) {
+            candidate = stem + '_copy' + n + ext;
+        }
+        return candidate;
+    },
+
+    duplicateOverwriteModule: function(name, btn) {
+        var self = this;
+        var statusText = document.getElementById('config-editor-status-text');
+        var newName = this.getOverwriteCopyName(name);
+        var formData = new FormData();
+        formData.append('filename', name);
+        formData.append('new_name', newName);
+        if (btn) btn.disabled = true;
+        fetch('/cgi-bin/luci/admin/services/openclash/duplicate_overwrite_module', {
+            method: 'POST',
+            body: formData
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            if (btn) btn.disabled = false;
+            if (data.status !== 'success') {
+                if (statusText) statusText.textContent = '<%:Copy failed%>: ' + (data.message || '');
+                return;
+            }
+            if (btn) ocShowCopySuccess(btn);
+            self.currentConfigFile = '/etc/openclash/overwrite/' + newName;
+            self.loadOverwriteFiles();
+            self.loadConfigContent();
+            var configNameElement = document.getElementById('config-file-name');
+            if (configNameElement) {
+                configNameElement.textContent = self.formatDisplayName(self.currentConfigFile);
+            }
+        }).catch(function() {
+            if (btn) btn.disabled = false;
+            if (statusText) statusText.textContent = '<%:Copy failed%>';
+        });
     },
 
     getOverwriteList: function() {
@@ -2092,6 +2154,29 @@ var ConfigEditor = {
         });
     },
 
+    // Comment skeleton for a blank module: section headers match what overwrite_file() parses
+    // and every example stays commented so the module does nothing until it is filled in.
+    buildOverwriteModuleTemplate: function(name, desc) {
+        var lines = ['#!NAME = ' + name];
+        if (desc) lines.push('#!DESC = ' + desc);
+        return lines.concat([
+            '# OpenClash overwrite module: comment lines and blank lines are ignored',
+            '# [General]   plugin settings written as KEY=VALUE',
+            '# [Overwrite] custom overwrite script lines (ruby_* calls, see openclash_custom_overwrite.sh)',
+            '# [YAML]      YAML block merged into the runtime config',
+            '',
+            '[General]',
+            '#LAN_INTERFACE_NAME=br-lan',
+            '',
+            '[Overwrite]',
+            '',
+            '[YAML]',
+            '#dns:',
+            '#  enable: true',
+            ''
+        ]).join('\n');
+    },
+
     // Two-step wizard: source first, then the module info form.
     setAddWizardStep: function(step) {
         var model = document.getElementById('overwrite-add-model');
@@ -2141,10 +2226,8 @@ var ConfigEditor = {
         var tabSub = model.querySelector('#overwrite-upload-mode-subscribe');
         var subscribe = !!(tabSub && tabSub.classList.contains('active'));
         var urlInput = model.querySelector('#overwrite-subscribe-url');
-        var fileInput = model.querySelector('#overwrite-upload-file-input');
-        var ready = subscribe
-            ? !!(urlInput && ocIsHttpUrl(urlInput.value))
-            : !!(fileInput && (fileInput.files.length > 0 || fileInput.dataset.picked === '1'));
+        // a local module without a file is created from the blank skeleton
+        var ready = !subscribe || !!(urlInput && ocIsHttpUrl(urlInput.value));
         var nameInput = model.querySelector('#overwrite-add-filename');
         var name = nameInput ? nameInput.value.trim() : '';
         var valid = !!name && name !== OC_CUSTOM_OVERWRITE;
@@ -2159,7 +2242,7 @@ var ConfigEditor = {
                 statusText.textContent = model.dataset.notice;
                 statusText.classList.add('is-error');
             } else if (step === 'source') {
-                statusText.textContent = '<%:Pick a file or paste a link%>';
+                statusText.textContent = subscribe ? '<%:Pick a file or paste a link%>' : '<%:Ready to add module%>';
             } else {
                 statusText.textContent = valid ? '<%:Ready to add module%>' : '<%:Please enter a module name%>';
             }
@@ -2679,7 +2762,7 @@ var ConfigEditor = {
                 nameInput.dataset.auto = '1';
             }
             delete overlay.dataset.notice;
-            goToAddInfo();
+            self.refreshAddWizard();
             self.readOverwriteFileHead(file).then(function(text) {
                 self.applyOverwriteMetaBackfill(model, self.parseOverwriteModuleMeta(text));
                 self.refreshAddWizard();
@@ -2727,9 +2810,6 @@ var ConfigEditor = {
                     ocAlert('<%:Invalid subscription URL format, only single HTTP/HTTPS link is supported%>');
                     return;
                 }
-            } else if (!selectedFile) {
-                ocAlert('<%:No Specify Upload File%>');
-                return;
             }
             var selectedConfigPaths = self.getOverwriteConfigSelection(model, 'overwrite-add-config');
             if (!selectedConfigPaths.length) {
@@ -2766,7 +2846,8 @@ var ConfigEditor = {
 
             if (source === 'file') {
                 var formData = new FormData();
-                formData.append('config_file', selectedFile, filename);
+                var uploadBody = selectedFile || new Blob([self.buildOverwriteModuleTemplate(filename, desc)], { type: 'text/plain' });
+                formData.append('config_file', uploadBody, filename);
                 formData.append('order', self.getNextOverwriteOrder());
                 formData.append('enable', '0');
                 formData.append('config', selectedConfigPaths.join('\n'));

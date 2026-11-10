@@ -699,6 +699,11 @@ function parseAheadExtension(buffer = 1000, budget = 8, catchup = 45, chunk = 30
         constructor(view) {
             this.view = view
             this.rafId = null
+            // A dispatch during scrolling costs one extra layout pass per frame, which
+            // accumulates into visible text flicker, so it is deferred until scrolling stops.
+            this.scrollAt = 0
+            this.onScroll = () => { this.scrollAt = performance.now() }
+            document.addEventListener('scroll', this.onScroll, true)
             this.schedule()
         }
         update(u) {
@@ -716,6 +721,8 @@ function parseAheadExtension(buffer = 1000, budget = 8, catchup = 45, chunk = 30
         step() {
             var view = this.view
             if (!view) return
+            // Parsing during scrolling competes with rendering, so it waits for the scroll to stop
+            if (performance.now() - this.scrollAt < 120) { this.schedule(); return }
             if (!view.state.field(Language.state, false)) return
             var doc = view.state.doc
             var front = syntaxTree(view.state).length
@@ -733,6 +740,7 @@ function parseAheadExtension(buffer = 1000, budget = 8, catchup = 45, chunk = 30
         }
         destroy() {
             if (this.rafId !== null) cancelAnimationFrame(this.rafId)
+            document.removeEventListener('scroll', this.onScroll, true)
             this.view = null
         }
     })
@@ -745,22 +753,52 @@ function baseExtensions(extra = [], opts = {}) {
         rectangularSelection(), crosshairCursor(),
         bracketMatching(), foldGutter({ placeholderDOM: null }),
         indentOnInput(), history(),
-        highlightSelectionMatches(), EditorView.lineWrapping,
+        highlightSelectionMatches(),
         closeBrackets(),
         cmKeymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap, ...closeBracketsKeymap, ...foldKeymap, { key: 'Tab', run: function(v) { return acceptCompletion(v) || indentMore(v) } }]),
+        scrollAnchorFix(),
         ...extra
     ]
+    // Wrapped rows are measured lazily, and every correction shifts the rows below them,
+    // so callers that must scroll smoothly keep the rows unwrapped.
+    if (opts.wrap !== false) list.push(EditorView.lineWrapping)
     if (opts.preload !== false) list.push(parseAheadExtension())
     return list
+}
+
+// CodeMirror skips its own scroll-anchor compensation on frames where the viewport changes,
+// which is exactly the frame where lazily measured rows shift everything below them, so the
+// visible rows jump for one frame. Re-anchor those frames here.
+function scrollAnchorFix() {
+    var anchorOf = function(view) {
+        var block = view.lineBlockAt(view.viewport.from)
+        return { pos: block.from, top: block.top, scrollTop: view.scrollDOM.scrollTop }
+    }
+    return ViewPlugin.fromClass(class {
+        constructor(view) {
+            this.anchor = anchorOf(view)
+        }
+        update(u) {
+            var scroll = u.view.scrollDOM
+            if (u.docChanged || Math.abs(scroll.scrollTop - this.anchor.scrollTop) > 1) {
+                this.anchor = anchorOf(u.view)
+                return
+            }
+            if (u.viewportChanged || u.heightChanged || u.geometryChanged) {
+                var diff = u.view.lineBlockAt(this.anchor.pos).top - this.anchor.top
+                if (Math.abs(diff) > 1) scroll.scrollTop += diff
+            }
+            this.anchor = anchorOf(u.view)
+        }
+    })
 }
 
 // ============================================================
 // Custom indentation markers
 // Fixes left:2px→6px: @codemirror/view >=~6.29 changed .cm-line
 // padding from "0 2px" to "0 2px 0 6px".
-// The ::before pseudo-element fills the full line height (no gaps)
-// but is capped at one visual row (--oc-lh) so it never bleeds
-// through wrapped text on long lines.
+// The ::before pseudo-element spans the whole row so the guides stay
+// one continuous line across blank rows and wrapped lines.
 // ============================================================
 
 const ocImBaseTheme = EditorView.baseTheme({
@@ -771,7 +809,9 @@ const ocImBaseTheme = EditorView.baseTheme({
         top: 0,
         left: '6px',
         right: 0,
-        height: 'var(--oc-lh, 100%)',
+        // 1px of overlap plus full row height keeps the guides a continuous solid line
+        // even when rows are wrapped or the row height lands on a fractional pixel.
+        height: 'calc(100% + 1px)',
         background: 'var(--oc-im)',
         pointerEvents: 'none',
         zIndex: '-1',
@@ -805,14 +845,24 @@ function indentMarkerExtension({ highlightActiveBlock = true, hideFirstIndent = 
                 this.stepPx = null
                 this.measurePending = false
                 this.cacheStep = 0
-                this.cacheLh = 0
                 this.styleCache = new Map()
+                this.levels = null
+                this.masks = null
+                this.scanned = 0
+                this.scanIw = 0
+                this.scanTs = 0
+                this.prevLvl = 0
+                this.prevOpen = 0
+                this.prevValid = false
+                this.blankStart = -1
+                this.blankOpen = 0
                 this.decorations = this.build(view)
                 this.scheduleMeasure(view)
             }
 
             update(u) {
                 this.view = u.view
+                if (u.docChanged) this.resetScan()
                 var needsRebuild = u.docChanged || u.viewportChanged ||
                     (highlightActiveBlock && u.selectionSet)
                 if (!needsRebuild) {
@@ -825,7 +875,6 @@ function indentMarkerExtension({ highlightActiveBlock = true, hideFirstIndent = 
                 // decorations must cover the committed viewport in this update cycle;
                 // only the glyph metrics follow the layout, so they are kept between scroll frames
                 var remeasure = u.geometryChanged || this.stepPx === null
-                if (remeasure) this.stepPx = null
                 this.decorations = this.build(u.view)
                 if (remeasure) this.scheduleMeasure(u.view)
             }
@@ -840,59 +889,109 @@ function indentMarkerExtension({ highlightActiveBlock = true, hideFirstIndent = 
                 return {
                     read: function(view) {
                         var state = view.state, iw = getIndentUnit(state), ts = state.tabSize, doc = state.doc
-                        var fl = doc.lineAt(view.viewport.from).number
                         var ll = doc.lineAt(view.viewport.to).number
-
-                        var hasIndent = false
-                        for (var n = fl; n <= ll; n++) {
-                            if (ocImIndent(doc.line(n).text, ts) >= iw) { hasIndent = true; break }
+                        for (var n = doc.lineAt(view.viewport.from).number; n <= ll; n++) {
+                            var text = doc.line(n).text
+                            if (ocImIndent(text, ts) < iw) continue
+                            var c0 = view.coordsAtPos(doc.line(n).from)
+                            var c1 = view.coordsAtPos(doc.line(n).from + iw)
+                            if (c0 && c1) return Math.round((c1.left - c0.left) * 100) / 100
                         }
-
-                        var stepPx = 0, lineHeight = 0
-
-                        if (hasIndent) {
-                            for (var n = fl; n <= ll; n++) {
-                                var t = doc.line(n).text
-                                if (t.trim() === '') continue
-                                if (ocImIndent(t, ts) >= iw) {
-                                    var c0 = view.coordsAtPos(doc.line(n).from)
-                                    var c1 = view.coordsAtPos(doc.line(n).from + iw)
-                                    if (c0 && c1) { stepPx = Math.round((c1.left - c0.left) * 100) / 100; break }
-                                }
-                            }
-                        }
-
-                        if (fl < doc.lines) {
-                            var c0 = view.coordsAtPos(doc.line(fl).from)
-                            var c1 = view.coordsAtPos(doc.line(fl + 1).from)
-                            if (c0 && c1) lineHeight = Math.round(c1.top - c0.top)
-                        }
-
-                        return lineHeight > 0
-                            ? { stepPx: stepPx > 0 ? stepPx : -1, lineHeight: lineHeight }
-                            : (stepPx > 0 ? stepPx : -1)
+                        return 0
                     },
                     write: function(result) {
-                        var stepPx, lineHeight
-                        if (typeof result === 'number') {
-                            stepPx = result; lineHeight = 0
-                        } else if (result) {
-                            stepPx = result.stepPx; lineHeight = result.lineHeight || 0
-                        } else {
-                            stepPx = -1; lineHeight = 0
-                        }
-                        if (typeof stepPx === 'number') {
-                            self.stepPx = stepPx > 0 ? stepPx : -1
-                            self.lineHeight = lineHeight
-                            self.measurePending = true
-                            var v = self.view
-                            // Defer dispatch past the current update cycle
-                            queueMicrotask(function() {
-                                if (v && self.measurePending) v.dispatch({})
-                            })
-                        }
+                        // A viewport without indented lines must not discard a good measurement,
+                        // and an unchanged one must not trigger another synchronous build.
+                        if (result <= 0 && self.stepPx !== null) result = self.stepPx
+                        if (result === self.stepPx) return
+                        self.stepPx = result
+                        self.measurePending = true
+                        var v = self.view
+                        // Defer dispatch past the current update cycle
+                        queueMicrotask(function() {
+                            if (v && self.measurePending) v.dispatch({})
+                        })
                     }
                 }
+            }
+
+            // Guide masks only depend on everything above a line, so they are computed once per
+            // document and extended as the viewport moves; a window replay loses outer guides.
+            resetScan() {
+                this.scanned = 0
+                this.prevLvl = 0
+                this.prevOpen = 0
+                this.prevValid = false
+                this.blankStart = -1
+            }
+
+            ensureLines(doc, iw, ts, upto) {
+                var lines = doc.lines
+                if (upto > lines) upto = lines
+                if (!this.masks || this.masks.length < lines) {
+                    var cap = Math.max(1024, lines, this.masks ? this.masks.length * 2 : 0)
+                    var masks = new Uint32Array(cap), levels = new Uint8Array(cap)
+                    if (this.masks) { masks.set(this.masks); levels.set(this.levels) }
+                    this.masks = masks
+                    this.levels = levels
+                }
+                if (this.scanIw !== iw || this.scanTs !== ts) {
+                    this.scanIw = iw
+                    this.scanTs = ts
+                    this.resetScan()
+                }
+                if (this.scanned >= upto) return
+                var masks = this.masks, levels = this.levels
+                for (var n = this.scanned + 1; n <= upto; n++) {
+                    var text = doc.line(n).text
+                    var ind = 0
+                    while (ind < text.length) {
+                        var ch = text.charCodeAt(ind)
+                        if (ch !== 32 && ch !== 9) break
+                        ind++
+                    }
+                    if (ind === text.length) {
+                        if (this.blankStart < 0) { this.blankStart = n; this.blankOpen = this.prevOpen }
+                        continue
+                    }
+                    var lvl = Math.min(30, Math.floor(ind / iw))
+                    this.fillBlanks(lvl, n - 1)
+                    // a deeper line keeps the shallower line's guide open, then closes the rest
+                    if (this.prevValid && lvl > this.prevLvl) this.prevOpen |= 1 << this.prevLvl
+                    this.prevOpen &= (1 << lvl) - 1
+                    levels[n] = lvl
+                    masks[n] = this.prevOpen
+                    this.prevLvl = lvl
+                    this.prevValid = true
+                }
+                this.scanned = upto
+                if (this.blankStart >= 0) this.fillBlanks(this.peekLevel(doc, upto + 1, iw), upto)
+            }
+
+            peekLevel(doc, from, iw) {
+                var last = Math.min(doc.lines, from + 50)
+                for (var n = from; n <= last; n++) {
+                    var text = doc.line(n).text
+                    var ind = 0
+                    while (ind < text.length) {
+                        var ch = text.charCodeAt(ind)
+                        if (ch !== 32 && ch !== 9) break
+                        ind++
+                    }
+                    if (ind < text.length) return Math.min(30, Math.floor(ind / iw))
+                }
+                return 0
+            }
+
+            fillBlanks(nextLvl, end) {
+                if (this.blankStart < 0) return
+                var m = Math.min(this.prevLvl, nextLvl)
+                var mask = this.blankOpen & ((1 << m) - 1)
+                for (var n = this.blankStart; n <= end; n++) {
+                    this.levels[n] = m
+                    this.masks[n] = mask
+                }
+                this.blankStart = -1
             }
 
             build(view) {
@@ -903,81 +1002,34 @@ function indentMarkerExtension({ highlightActiveBlock = true, hideFirstIndent = 
                 var doc = state.doc
                 var fl = doc.lineAt(view.viewport.from).number
                 var ll = doc.lineAt(view.viewport.to).number
-                var bl = Math.max(1, fl - buffer), el = Math.min(doc.lines, ll + buffer)
+                this.ensureLines(doc, iw, ts, Math.min(doc.lines, ll + buffer))
 
-                var cnt = el - bl + 1
-                var lvls = new Int32Array(cnt)
-                var bk = new Uint8Array(cnt)
-                var nextNB = new Int32Array(cnt)
-                for (var i = 0; i < cnt; i++) {
-                    var text = doc.line(bl + i).text
-                    var ind = 0
-                    var blank = true
-                    for (var c = 0; c < text.length; c++) {
-                        var ch = text.charCodeAt(c)
-                        if (ch === 32) ind++
-                        else if (ch === 9) ind += ts
-                        else { blank = false; break }
-                    }
-                    bk[i] = blank ? 1 : 0
-                    lvls[i] = blank ? 0 : Math.floor(ind / iw)
-                }
-                var prevLvl = 0
-                for (var i = 0; i < cnt; i++) {
-                    if (bk[i]) lvls[i] = prevLvl
-                    else prevLvl = lvls[i]
-                }
-                var nextLvl = 0
-                for (var i = cnt - 1; i >= 0; i--) {
-                    if (bk[i]) lvls[i] = Math.min(lvls[i], nextLvl)
-                    else nextLvl = lvls[i]
-                }
-                var lastNB = -1
-                for (var i = cnt - 1; i >= 0; i--) {
-                    nextNB[i] = lastNB
-                    if (!bk[i]) lastNB = i
-                }
-
+                var levels = this.levels, masks = this.masks
                 var maxLvl = 0
                 for (var n = fl; n <= ll; n++) {
-                    var lv = lvls[n - bl]
+                    var lv = levels[n]
                     if (lv > maxLvl) maxLvl = lv
                 }
                 if (maxLvl <= sa) return Decoration.none
 
                 var keep = Math.min(maxLvl, 30)
+                var limit = (1 << keep) - 1
 
                 var activeLvl = -1
                 if (highlightActiveBlock) {
                     var cn = doc.lineAt(state.selection.main.head).number
-                    if (cn >= fl && cn <= ll && lvls[cn - bl] > sa) {
-                        // replay the scope state up to the cursor line, only its guide column matters
-                        var sc = new Uint8Array(maxLvl)
-                        for (var i = 0; i <= cn - bl; i++) {
-                            var lv = lvls[i], isB = bk[i] === 1
-                            if (!isB) {
-                                for (var k = lv; k < maxLvl; k++) sc[k] = 0
-                            }
-                            if (bl + i === cn) {
-                                for (var k = Math.min(lv, keep) - 1; k >= sa; k--) {
-                                    if (sc[k]) { activeLvl = k; break }
-                                }
-                            }
-                            if (!isB) {
-                                var nbi = nextNB[i]
-                                if (nbi >= 0 && lvls[nbi] > lv && lv < maxLvl) sc[lv] = 1
-                            }
-                        }
+                    if (cn >= fl && cn <= ll && levels[cn] > sa) {
+                        var cm = masks[cn] & limit
+                        if (cm) activeLvl = 31 - Math.clz32(cm)
+                        if (activeLvl < sa) activeLvl = -1
                     }
                 }
 
                 var stepPx = this.stepPx
                 if (stepPx === null || stepPx <= 0)
                     stepPx = iw * (view.defaultCharacterWidth || 8)
-                var lh = this.lineHeight
-                if (this.cacheStep !== stepPx || this.cacheLh !== lh) {
+                if (this.cacheStep !== stepPx) {
                     this.cacheStep = stepPx
-                    this.cacheLh = lh
                     this.styleCache.clear()
                 }
 
@@ -985,31 +1037,14 @@ function indentMarkerExtension({ highlightActiveBlock = true, hideFirstIndent = 
                 for (var k = 0; k < keep; k++) pos[k] = Math.round(k * stepPx)
 
                 var builder = new RangeSetBuilder()
-                var scopeOpen = new Uint8Array(maxLvl)
-                for (var n = bl; n <= el; n++) {
-                    var i2 = n - bl
-                    var lv2 = lvls[i2], isB2 = bk[i2] === 1
-                    if (!isB2) {
-                        for (var k = lv2; k < maxLvl; k++) scopeOpen[k] = 0
-                    }
-                    if (n >= fl && n <= ll) {
-                        var mask = 0
-                        for (var k = sa; k < lv2 && k < keep; k++) {
-                            if (scopeOpen[k]) mask |= (1 << k)
-                        }
-                        if (mask) {
-                            var style = this.styleFor(mask, activeLvl, pos)
-                            var from = doc.line(n).from
-                            builder.add(from, from, Decoration.line({
-                                class: 'cm-oc-im',
-                                attributes: { style: style }
-                            }))
-                        }
-                    }
-                    if (!isB2) {
-                        var nbi2 = nextNB[i2]
-                        if (nbi2 >= 0 && lvls[nbi2] > lv2 && lv2 < maxLvl) scopeOpen[lv2] = 1
-                    }
+                for (var n = fl; n <= ll; n++) {
+                    var mask = masks[n] & limit
+                    if (!mask) continue
+                    var from = doc.line(n).from
+                    builder.add(from, from, Decoration.line({
+                        class: 'cm-oc-im',
+                        attributes: { style: this.styleFor(mask, activeLvl, pos) }
+                    }))
                 }
                 return builder.finish()
             }
@@ -1026,7 +1061,6 @@ function indentMarkerExtension({ highlightActiveBlock = true, hideFirstIndent = 
                     parts.push('linear-gradient(' + cv + ',' + cv + ') ' + pos[k] + 'px 0/' + thickness + 'px 100% no-repeat')
                 }
                 s = '--oc-im:' + parts.join(',')
-                if (this.lineHeight > 0) s += ';--oc-lh:' + this.lineHeight + 'px'
                 if (this.styleCache.size > 1024) this.styleCache.clear()
                 this.styleCache.set(key, s)
                 return s
@@ -1043,12 +1077,9 @@ function searchScrollFix() {
             this.rafId = null
             this.timers = []
             this.head = -1
-            this.panel = null
-            this.panelObserver = null
         }
         update(update) {
             this.view = update.view
-            this.syncPanel(update.view)
             if (!searchPanelOpen(update.state)) {
                 this.head = -1
                 this.clearTimers()
@@ -1064,28 +1095,6 @@ function searchScrollFix() {
             if (!nav && head === this.head) return
             this.head = head
             this.schedule(nav)
-        }
-        // MergeView editors are auto-height and do not scroll; keep the panel floating
-        // over the outer scroller so it neither scrolls away nor shifts diff alignment.
-        syncPanel(view) {
-            if (!view.dom.closest('.cm-mergeView')) return
-            var panel = view.dom.querySelector('.cm-panels-top')
-            if (panel === this.panel) return
-            if (this.panelObserver) {
-                this.panelObserver.disconnect()
-                this.panelObserver = null
-            }
-            this.panel = panel
-            if (!panel) return
-            var apply = function() {
-                var h = panel.offsetHeight
-                panel.style.marginBottom = h ? (-h + 'px') : ''
-            }
-            apply()
-            if (typeof ResizeObserver === 'function') {
-                this.panelObserver = new ResizeObserver(apply)
-                this.panelObserver.observe(panel)
-            }
         }
         clearTimers() {
             if (this.rafId !== null) {
@@ -1114,38 +1123,28 @@ function searchScrollFix() {
             var view = this.view
             if (!view || !searchPanelOpen(view.state)) return
             var head = view.state.selection.main.head
-            var merge = view.dom.closest('.cm-mergeView')
-            var scroller = merge || view.scrollDOM
+            var scroller = view.scrollDOM
             var box = scroller.getBoundingClientRect()
             var top = box.top
             var panel = view.dom.querySelector('.cm-panels-top')
-            if (merge && panel) {
+            if (panel) {
                 var pr = panel.getBoundingClientRect()
                 if (pr.height) top = Math.max(top, pr.bottom)
             }
             var match = view.dom.querySelector('.cm-searchMatch-selected')
-            var rect = null
-            if (match) rect = match.getBoundingClientRect()
-            else if (merge) {
-                var block = view.lineBlockAt(head)
-                var blockTop = view.dom.getBoundingClientRect().top + block.top
-                rect = { top: blockTop, bottom: blockTop + block.height }
+            if (match) {
+                var rect = match.getBoundingClientRect()
+                if (rect.top >= top - 2 && rect.bottom <= box.bottom + 2) return
+                scroller.scrollTop += (rect.top + rect.bottom) / 2 - (top + box.bottom) / 2
+                return
             }
-            // a missing mark means the target is outside the viewport, whatever the estimate says
-            if (rect && rect.top >= top - 2 && rect.bottom <= box.bottom + 2) return
-            if (merge) {
-                if (rect) merge.scrollTop += (rect.top + rect.bottom) / 2 - (top + box.bottom) / 2
-            } else {
-                view.dispatch({ effects: EditorView.scrollIntoView(head, { y: 'center' }) })
-                // scroll targets are applied in the measure pass, which an unfocused editor never runs
-                view.requestMeasure()
-            }
+            // no mark means the target is outside the viewport, whatever the estimate says
+            view.dispatch({ effects: EditorView.scrollIntoView(head, { y: 'center' }) })
+            // scroll targets are applied in the measure pass, which an unfocused editor never runs
+            view.requestMeasure()
         }
         destroy() {
             this.clearTimers()
-            if (this.panelObserver) this.panelObserver.disconnect()
-            this.panelObserver = null
-            this.panel = null
             this.view = null
         }
     })
@@ -1193,6 +1192,71 @@ const mergeDefaultConfig = {
     gutter: true,
     revertControls: "b-to-a",
     collapseUnchanged: false,
+}
+
+// The panes scroll on their own, so their offsets are mirrored to keep the diff aligned.
+function mergeScrollSync(mv) {
+    if (!mv || !mv.a || !mv.b) return
+    var a = mv.a.scrollDOM, b = mv.b.scrollDOM, lock = false
+    function link(from, to) {
+        from.addEventListener('scroll', function() {
+            if (lock) return
+            lock = true
+            to.scrollTop = from.scrollTop
+            to.scrollLeft = from.scrollLeft
+            lock = false
+        })
+    }
+    link(a, b)
+    link(b, a)
+}
+
+// CodeMirror only measures an editor once it is on screen, so an editor created further down the
+// page keeps the 14px fallback and re-lays out the whole document the moment it scrolls into view.
+// Briefly showing it off-screen but inside the viewport lets that first measurement happen early.
+function primeLayout(host, views, tries) {
+    if (!host) return
+    var rect = host.getBoundingClientRect()
+    if (!rect.width || !rect.height) {
+        // The merge panes have no size until their first layout pass completes
+        if ((tries || 0) < 5) setTimeout(function() { primeLayout(host, views, (tries || 0) + 1) }, 60)
+        return
+    }
+    var prevTransform = host.style.transform
+    var prevOpacity = host.style.opacity
+    var prevEvents = host.style.pointerEvents
+    // transform keeps the element in flow, unlike a fixed position which would collapse the row
+    host.style.transform = 'translateY(' + Math.round(-rect.top) + 'px)'
+    host.style.opacity = '0'
+    host.style.pointerEvents = 'none'
+    var ask = function() {
+        for (var i = 0; i < views.length; i++) if (views[i] && !views[i].destroyed) views[i].requestMeasure()
+    }
+    ask()
+    setTimeout(function() {
+        host.style.transform = prevTransform
+        host.style.opacity = prevOpacity
+        host.style.pointerEvents = prevEvents
+        ask()
+    }, 60)
+}
+
+function primeEditorLayout(view) {
+    if (!view) return
+    requestAnimationFrame(function() {
+        if (view.destroyed || view.inView) return
+        primeLayout(view.dom, [view], 0)
+    })
+}
+
+function primeMergeLayout(mv) {
+    if (!mv || !mv.a || !mv.b) return
+    requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+            if (mv.a.destroyed || (mv.a.inView && mv.b.inView)) return
+            primeLayout(mv.dom, [mv.a, mv.b], 0)
+        })
+    })
 }
 
 // ============================================================
@@ -1360,7 +1424,8 @@ export {
     MergeView,
     logLanguage, logHighlightStyle,
     baseExtensions, parseAheadExtension, placeholderExtension, indentMarkerExtension,
-    topSearchExtension, mergeDefaultConfig, mirrorThemeScrollbar,
+    topSearchExtension, mergeDefaultConfig, mirrorThemeScrollbar, mergeScrollSync,
+    primeEditorLayout, primeMergeLayout,
     themeExtension, dispatchTheme,
     switchHljsTheme, ensureMarkdown, renderMarkdown,
     getActiveEditor, toggleFullscreen

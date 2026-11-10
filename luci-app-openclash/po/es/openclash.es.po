@@ -4710,8 +4710,8 @@ msgstr "La ventana tiene dos pasos: elegir el origen y revisar los detalles"
 msgid "Select the txt or conf file to upload here:"
 msgstr "Selecciona aquí el archivo txt o conf que quieres subir:"
 
-msgid "Choosing the file reads it and jumps to the details step"
-msgstr "Al elegir el archivo se lee y salta al paso de detalles"
+msgid "Choosing the file reads it; click Next to review the details"
+msgstr "Al elegir el archivo se lee; pulsa Siguiente para revisar los detalles"
 
 msgid "Paste the module link here:"
 msgstr "Pega aquí el enlace del módulo:"
@@ -5819,3 +5819,12 @@ msgstr "Descargando a través del núcleo..."
 
 msgid "Needs An oixCloud Sign-In, Nothing Was Updated"
 msgstr "Se necesita iniciar sesión en oixCloud, no se actualizó nada"
+
+msgid "Copy Module"
+msgstr "Copiar módulo"
+
+msgid "Copy failed"
+msgstr "Error al copiar"
+
+msgid "Click Next without a file to create a blank module with a comment skeleton"
+msgstr "Pulsa Siguiente sin archivo para crear un módulo en blanco con un esqueleto comentado"

@@ -55,6 +55,7 @@ function editor(id, readOnly, wid, height) {
             state: CM6.EditorState.create({ doc: id.value, extensions: exts })
         });
         id.parentNode.insertBefore(view.dom, id.nextSibling);
+        if (CM6.primeEditorLayout) CM6.primeEditorLayout(view);
         ocHideLoading(id.parentNode);
         if (wid && height) {
             view.dom.style.width = wid;
@@ -84,6 +85,7 @@ function shell_editor(id, readOnly, wid, height) {
             state: CM6.EditorState.create({ doc: id.value, extensions: exts })
         });
         id.parentNode.insertBefore(view.dom, id.nextSibling);
+        if (CM6.primeEditorLayout) CM6.primeEditorLayout(view);
         ocHideLoading(id.parentNode);
         if (wid && height) {
             view.dom.style.width = wid;
@@ -113,6 +115,7 @@ function other_editor(id, readOnly, wid, height) {
             state: CM6.EditorState.create({ doc: id.value, extensions: exts })
         });
         id.parentNode.insertBefore(view.dom, id.nextSibling);
+        if (CM6.primeEditorLayout) CM6.primeEditorLayout(view);
         ocHideLoading(id.parentNode);
         if (wid && height) {
             view.dom.style.width = wid;
@@ -143,6 +146,7 @@ function log_editor(id, name, readOnly, wid, height, onReady) {
             state: CM6.EditorState.create({ doc: id.value, extensions: exts })
         });
         id.parentNode.insertBefore(view.dom, id.nextSibling);
+        if (CM6.primeEditorLayout) CM6.primeEditorLayout(view);
         ocHideLoading(id.parentNode);
         if (CM6.dispatchTheme) CM6.dispatchTheme(view, isDark);
         window['editor_' + name] = view;
@@ -194,6 +198,7 @@ function markdown_editor(id, name, readOnly, wid, height, onReady) {
             state: CM6.EditorState.create({ doc: id.value || '', extensions: exts })
         });
         id.parentNode.insertBefore(view.dom, id.nextSibling);
+        if (CM6.primeEditorLayout) CM6.primeEditorLayout(view);
         ocHideLoading(id.parentNode);
         if (CM6.dispatchTheme) CM6.dispatchTheme(view, isDark);
         window['editor_' + name] = view;

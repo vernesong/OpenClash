@@ -733,8 +733,9 @@ var Guide = {
             prepare: function () { Guide.ensureAddDialog(); Guide.ensureAddStep('source'); },
             body: function () {
                 return '<p><%:Select the txt or conf file to upload here:%></p>'
-                    + '<p class="guide-info"><%:Choosing the file reads it and jumps to the details step%></p>'
-                    + '<p class="guide-tip"><%:A file with #! info lines fills the name, description and variables automatically%></p>';
+                    + '<p class="guide-info"><%:Choosing the file reads it; click Next to review the details%></p>'
+                    + '<p class="guide-tip"><%:A file with #! info lines fills the name, description and variables automatically%></p>'
+                    + '<p class="guide-tip"><%:Click Next without a file to create a blank module with a comment skeleton%></p>';
             }
         },
         {

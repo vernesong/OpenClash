@@ -517,6 +517,25 @@ function trimEditorLog(view) {
     return true;
 }
 
+// A second transaction in the same tick re-baselines CM6's scroll anchor, so the
+// prepend and the tail trim must reach the editor as one transaction.
+function prependEditorLog(view, text) {
+    if (!text) return;
+    var parts = text.split('\n');
+    var n = parts.length - 1;
+    var doc = view.state.doc;
+    if (n >= logMaxLines - 1) {
+        view.dispatch({ changes: { from: 0, to: doc.length, insert: parts.slice(0, logMaxLines - 1).join('\n') + '\n...' } });
+        return;
+    }
+    var changes = [{ from: 0, insert: text }];
+    var keep = logMaxLines - 1 - n;
+    if (doc.lines + n > logMaxLines) {
+        changes.push({ from: doc.line(keep).to, to: doc.length, insert: '\n...' });
+    }
+    view.dispatch({ changes: changes });
+}
+
 function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiveTab) {
     if (logCascade && logCascade.target === target) {
         for (var qi = 0; qi < newLines.length; qi++) logCascade.lines.push(newLines[qi]);
@@ -558,12 +577,10 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
     // Small refreshes and background updates go in at once.
     if ((target === editor_oc && animatingOC) || (target === editor_core && animatingCore) || (target === editor_debug && animatingDebug) || !isActiveTab) {
         var lines = newLines.slice().reverse();
-        var content = lines.join('\n') + (lines.length > 0 ? '\n' : '') + (currentContent || '');
 
         if (isEditor) {
             var addedLines = lines.length;
-            target.setValue(content);
-            trimEditorLog(target);
+            prependEditorLog(target, addedLines > 0 ? lines.join('\n') + '\n' : '');
 
             if (!isAtTop && scrollPosition) {
                 if (cursorPos) {
@@ -591,6 +608,7 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
                 }
             }
         } else {
+            var content = lines.join('\n') + (lines.length > 0 ? '\n' : '') + (currentContent || '');
             var allLines = content.split("\n");
             if (allLines.length > logMaxLines) {
                 allLines = allLines.slice(0, logMaxLines - 1);
@@ -671,11 +689,12 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
                 target.scrollIntoView({line: cursorPos.line, ch: cursorPos.ch}, 300);
             }
         }
-        if (isEditor && !cursorPos) {
+        // scrollIntoView from here would yank a reader who scrolled up back to the top
+        if (isEditor && isAtTop && !cursorPos) {
             setCursorToFirstLineEnd(target);
         }
 
-        if (isEditor && trimEditorLog(target) && !cursorPos) {
+        if (isEditor && trimEditorLog(target) && isAtTop && !cursorPos) {
             setCursorToFirstLineEnd(target);
         }
     }
@@ -695,7 +714,7 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
             // Prepend only this chunk: rebuilding the whole document string per
             // step was the expensive part of the old cascade.
             var scrollInfo = isAtTop ? null : target.getScrollInfo();
-            target.dispatch({ changes: { from: 0, insert: batchText + '\n' } });
+            prependEditorLog(target, batchText + '\n');
             if (!isAtTop && scrollInfo) {
                 target.scrollTo(scrollInfo.left, scrollInfo.top);
             } else {
@@ -731,7 +750,6 @@ function poll_log(){
     var titles = document.getElementsByName('tab-header');
     var core_logs = [];
     var oc_logs = [];
-    var currentCoreContent = "";
     var currentContent = "";
     var bufferToProcess = [];
 
@@ -751,8 +769,7 @@ function poll_log(){
             coreLogBuffer = [];
             core_logs = line_tolocal(bufferToProcess);
             if (editor_core && activeTabId === 1) {
-                currentCoreContent = editor_core.getValue();
-                smoothlyDisplayLogs(core_logs, editor_core, true, currentCoreContent, true);
+                smoothlyDisplayLogs(core_logs, editor_core, true, '', true);
             } else {
                 accumulateCoreLog(core_logs);
             }
@@ -794,8 +811,7 @@ function poll_log(){
 
                         if (oc_logs.length > 0) {
                             if (editor_oc) {
-                                currentContent = editor_oc.getValue();
-                                smoothlyDisplayLogs(oc_logs, editor_oc, true, currentContent, activeTabId === 0);
+                                smoothlyDisplayLogs(oc_logs, editor_oc, true, '', activeTabId === 0);
                             } else if (lv) {
                                 currentContent = lv.value;
                                 smoothlyDisplayLogs(oc_logs, lv, false, currentContent, activeTabId === 0);
@@ -808,8 +824,7 @@ function poll_log(){
 
                         if (core_logs.length > 0) {
                             if (editor_core && activeTabId === 1) {
-                                currentCoreContent = editor_core.getValue();
-                                smoothlyDisplayLogs(core_logs, editor_core, true, currentCoreContent, true);
+                                smoothlyDisplayLogs(core_logs, editor_core, true, '', true);
                             } else {
                                 accumulateCoreLog(core_logs);
                             }
