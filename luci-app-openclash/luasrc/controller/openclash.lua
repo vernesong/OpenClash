@@ -1157,7 +1157,8 @@ function action_rule_mode(internal)
 		local daip_val = daip()
 		local cn_port_val = cn_port()
 		if daip_val and cn_port_val then
-			local info = json.parse(core_api_get("/configs"))
+			local configs_raw = core_api_get("/configs")
+			local info = configs_raw and json.parse(configs_raw) or nil
 			if info and info["mode"] then
 				mode = info["mode"]
 			end
@@ -1232,7 +1233,8 @@ function action_log_level()
 		local daip = daip()
 		local cn_port = cn_port()
 		if not daip or not cn_port then return end
-		info = json.parse(core_api_get("/configs"))
+		local configs_raw = core_api_get("/configs")
+		info = configs_raw and json.parse(configs_raw) or nil
 		if info then
 			level = info["log-level"]
 		else
@@ -1364,7 +1366,8 @@ function action_toolbar_show()
 		if not daip or not cn_port then return end
 
 		-- the totals are cumulative, the page turns two samples into the current rate
-		local connections = json.parse(core_api_get("/connections"))
+		local connections_raw = core_api_get("/connections")
+		local connections = connections_raw and json.parse(connections_raw) or nil
 		if connections and connections.connections then
 			connection = #(connections.connections)
 			up_total = connections.uploadTotal
