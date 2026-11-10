@@ -1113,7 +1113,7 @@ var SubPanel = {
         }
         var structTabs = document.querySelectorAll('#sub-struct-tabs .oc-tpl-tab');
         for (var st = 0; st < structTabs.length; st++) {
-            structTabs[st].classList.toggle('active', structTabs[st].getAttribute('data-tab') === 'groups');
+            structTabs[st].classList.toggle('active', (structTabs[st].getAttribute('data-tpl-tab') || structTabs[st].getAttribute('data-tab')) === 'groups');
         }
         var providerNote = this.el('sub-provider-note');
         if (providerNote) {
@@ -1709,7 +1709,7 @@ var SubPanel = {
     jumpToRuleTarget: function(name) {
         var tabs = document.querySelectorAll('#sub-struct-tabs .oc-tpl-tab');
         for (var i = 0; i < tabs.length; i++) {
-            if (tabs[i].getAttribute('data-tab') === 'rules') tabs[i].click();
+            if ((tabs[i].getAttribute('data-tpl-tab') || tabs[i].getAttribute('data-tab')) === 'rules') tabs[i].click();
         }
         var pane = this.el('sub-pane-rules');
         if (!pane) return;

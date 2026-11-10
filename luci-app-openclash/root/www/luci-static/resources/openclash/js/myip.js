@@ -369,19 +369,8 @@
                     return Promise.all([resp.ok, resp.status, resp.json(), resp.headers]);
                 }
             }).then(([ok, status, data, headers]) => {
-                if (ok) {
-                    let json = {
-                        ok,
-                        status,
-                        data,
-                        headers
-                    }
-                    return json;
-                } else {
-                    throw new Error(JSON.stringify(json.error));
-                }
-            }).catch(error => {
-                throw error;
+                if (!ok) throw new Error('HTTP ' + status);
+                return { ok, status, data, headers };
             }),
         parseIPIpip: (ip, elID) => {
             const v4 = '(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)){3}';
