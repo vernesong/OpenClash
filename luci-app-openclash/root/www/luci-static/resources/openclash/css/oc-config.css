@@ -4,14 +4,6 @@
  * ========================================================================== */
 
 /* ---- Merge editor toolbar (my_editor_div) ---- */
-.oc .oc-merge-editor-bar {
-    display: flex;
-    width: auto;
-    margin: 8px 16px;
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-}
 
 .oc #oc-merge-toggle-btn.oc-usage-help-float {
     position: absolute;
@@ -39,10 +31,6 @@
 
 .oc .oc-merge-area {
     height: 700px;
-}
-
-html[data-darkmode="true"] .oc .oc-merge-editor-bar {
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
 .sub_div {
@@ -212,145 +200,6 @@ html[data-darkmode="true"] .oc .oc-merge-editor-bar {
     background-color: var(--pink-pale);
 }
 
-.oc .sub-info-url-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: var(--overlay-bg);
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(2px);
-}
-
-.sub-info-url-model {
-    background: var(--bg-white, white);
-    border-radius: var(--radius-lg, 8px);
-    box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.15));
-    width: 90vw;
-    max-width: 550px;
-    min-width: 400px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    border: 1px solid var(--border-light, #e5e7eb);
-    max-height: 85vh;
-    transition: var(--transition-ui);
-}
-
-.sub-info-url-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px;
-    border-bottom: 1px solid var(--border-light, #e5e7eb);
-    background: var(--bg-gray, #f9fafb);
-    flex-shrink: 0;
-}
-
-.sub-info-url-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text-primary, #1f2937);
-}
-
-.sub-info-url-footer {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding: 20px;
-    border-top: 1px solid var(--border-light, #e5e7eb);
-    background: var(--bg-gray, #f9fafb);
-    flex-shrink: 0;
-    gap: 12px;
-}
-
-.sub-info-url-content {
-    padding: 24px;
-    flex: 1;
-    overflow-y: auto;
-}
-
-.sub-info-url-form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.sub-info-url-form-group label {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-primary, #1f2937);
-}
-
-.sub-info-url-form-textarea {
-    width: 100%;
-    min-height: 120px;
-    padding: 10px 12px;
-    border: 1px solid var(--border-light, #e5e7eb);
-    border-radius: var(--radius-sm, 4px);
-    background: var(--bg-white, white);
-    color: var(--text-primary, #1f2937);
-    font-size: 14px;
-    font-family: inherit;
-    resize: vertical;
-    transition: var(--transition-ui);
-    box-sizing: border-box;
-}
-
-.sub-info-url-form-textarea:focus {
-    outline: none;
-    border-color: var(--primary-color, #3b82f6);
-    box-shadow: 0 0 0 2px var(--primary-a10);
-}
-
-.sub-info-url-form-textarea::placeholder {
-    color: var(--text-secondary, #6b7280);
-}
-
-.sub-info-url-btn {
-    padding: 8px 16px;
-    border: 1px solid var(--border-light, #e5e7eb);
-    border-radius: var(--radius-sm, 4px);
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: var(--transition-ui);
-    white-space: nowrap;
-}
-
-.sub-info-url-cancel-btn {
-    background: var(--bg-white, white);
-    color: var(--text-secondary, #6b7280);
-    border-color: var(--border-light, #e5e7eb);
-}
-
-.sub-info-url-cancel-btn:hover {
-    background: var(--hover-bg, #f3f4f6);
-    color: var(--text-primary, #1f2937);
-}
-
-.sub-info-url-submit-btn {
-    background: var(--primary-color, #3b82f6);
-    color: var(--text-on-primary, #ffffff);
-    border-color: var(--primary-color, #3b82f6);
-}
-
-.sub-info-url-submit-btn:hover:not(:disabled) {
-    background: var(--primary-color, #3b82f6);
-    opacity: 0.9;
-}
-
-.sub-info-url-submit-btn:disabled {
-    background: var(--bg-gray, #f9fafb);
-    color: var(--text-secondary, #6b7280);
-    border-color: var(--border-light, #e5e7eb);
-    cursor: not-allowed;
-}
-
 html[data-darkmode="true"] .oc .sub_setting svg {
     color: var(--text-primary, #e0e0e0);
 }
@@ -375,57 +224,6 @@ html[data-darkmode="true"] .oc .progress_bar_medium {
 
 html[data-darkmode="true"] .oc .progress_bar_low {
     background-color: var(--pink-muted);
-}
-
-html[data-darkmode="true"] .oc .sub-info-url-model {
-    background: var(--bg-white, #1f2937);
-    border-color: var(--border-light, #374151);
-}
-
-html[data-darkmode="true"] .oc .sub-info-url-header,
-html[data-darkmode="true"] .oc .sub-info-url-footer {
-    background: var(--bg-gray, #111827);
-    border-color: var(--border-light, #374151);
-}
-
-html[data-darkmode="true"] .oc .sub-info-url-title {
-    color: var(--text-primary, #f3f4f6);
-}
-
-html[data-darkmode="true"] .oc .sub-info-url-form-group label {
-    color: var(--text-primary, #f3f4f6);
-}
-
-html[data-darkmode="true"] .oc .sub-info-url-form-textarea {
-    background: var(--bg-gray, #374151);
-    border-color: var(--border-light, #4b5563);
-    color: var(--text-primary, #f3f4f6);
-}
-
-html[data-darkmode="true"] .oc .sub-info-url-form-textarea:focus {
-    border-color: var(--primary-color, #60a5fa);
-    box-shadow: 0 0 0 2px var(--primary-a10);
-}
-
-html[data-darkmode="true"] .oc .sub-info-url-form-textarea::placeholder {
-    color: var(--text-secondary, #9ca3af);
-}
-
-html[data-darkmode="true"] .oc .sub-info-url-cancel-btn {
-    background: var(--bg-white, #374151);
-    color: var(--text-secondary, #9ca3af);
-    border-color: var(--border-light, #4b5563);
-}
-
-html[data-darkmode="true"] .oc .sub-info-url-cancel-btn:hover {
-    background: var(--hover-bg, #4b5563);
-    color: var(--text-primary, #f3f4f6);
-}
-
-.sub-info-url-submit-btn:disabled {
-    background: var(--bg-gray, #4b5563);
-    color: var(--text-secondary, #9ca3af);
-    border-color: var(--border-light, #374151);
 }
 
 .sub_providers_container {
@@ -527,10 +325,7 @@ html[data-darkmode="true"] .oc .sub_provider_item {
     border-color: var(--scrollbar-thumb-hover);
 }
 
-html[data-darkmode="true"] .oc .sub_provider_name {
-    color: var(--text-primary, #e0e0e0);
-}
-
+html[data-darkmode="true"] .oc .sub_provider_name,
 html[data-darkmode="true"] .oc .sub_provider_percent {
     color: var(--text-primary, #e0e0e0);
 }

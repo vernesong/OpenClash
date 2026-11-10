@@ -64,18 +64,6 @@ html[data-darkmode="true"] .oc .overwrite-banner svg circle {
     height: 70vh !important;
 }
 
-.oc .size-btn {
-    width: 24px !important;
-    height: 24px !important;
-    min-width: 24px !important;
-    padding: 0 !important;
-}
-
-.oc .size-btn svg {
-    width: 12px !important;
-    height: 12px !important;
-}
-
 .oc .config-editor-body {
     display: flex;
     flex: 1;

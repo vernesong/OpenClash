@@ -43,6 +43,114 @@ function ocRequireCM6(cb) {
     document.head.appendChild(s);
 }
 
+// Chart.js loader shared by stats, access-control sparklines and the config dialogs:
+// concurrent callers share one script tag, callbacks get true/false, failure stays retryable
+function ocRequireChart(cb) {
+    if (typeof Chart !== 'undefined') { if (cb) cb(true); return; }
+    if (window.ocChartLoadState === 1) {
+        if (cb) window.ocChartWaiters.push(cb);
+        return;
+    }
+    window.ocChartLoadState = 1;
+    window.ocChartWaiters = cb ? [cb] : [];
+    var url = window.ocChartUrl || ('/luci-static/resources/openclash/js/chart.umd.min.js?v=' + (window.ocPluginVer || ''));
+    ocRequireScript(url, function() {
+        var ok = typeof Chart !== 'undefined';
+        window.ocChartLoadState = 0;
+        var waiters = window.ocChartWaiters || [];
+        window.ocChartWaiters = [];
+        for (var i = 0; i < waiters.length; i++) {
+            try { waiters[i](ok); } catch (e) {}
+        }
+    });
+}
+
+// YAML extension stack shared by the editor factory and the merge editor; callers append
+// their own read-only/update compartments after these.
+function ocYamlEditorExtensions(isDark) {
+    var exts = [CM6.baseExtensions(), CM6.themeExtension(isDark), CM6.placeholderExtension('<%:Enter YAML configuration...%>')];
+    var topSearch = (CM6 && CM6.topSearchExtension) ? CM6.topSearchExtension() : null;
+    if (topSearch) exts.push(topSearch);
+    exts.push(CM6.yaml());
+    exts.push(CM6.yamlLinter());
+    exts.push(CM6.lintGutter());
+    exts.push(CM6.autocompletion({ override: [CM6.mihomoCompletion] }));
+    exts.push(CM6.indentUnit.of('  '));
+    exts.push(CM6.indentMarkerExtension());
+    return exts;
+}
+
+// Drops stream markers, the leading log timestamp and blank lines (both log viewers).
+function ocCleanLogLines(text) {
+    var lines = String(text || '').split('\n');
+    var all = [];
+    for (var i = 0; i < lines.length; i++) {
+        var t = lines[i].replace(/##FINISHED##|##CONTINUE##|##FINISH##/g, '').trim().replace(/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\s*/, '');
+        if (t) all.push(t);
+    }
+    return all;
+}
+
+// Key/value editor row shared by the subscribe headers and the overwrite parameters.
+function ocKeyValueRow(container, opts) {
+    opts = opts || {};
+    var row = document.createElement('div');
+    row.className = 'form-row ' + (opts.rowClass || '');
+    row.style.cssText = 'align-items: center; gap: 6px; margin-bottom: 6px;';
+
+    var keyInput = document.createElement('input');
+    keyInput.type = 'text';
+    keyInput.className = 'form-input';
+    keyInput.placeholder = opts.keyPlaceholder || '';
+    keyInput.value = opts.key || '';
+    keyInput.style.cssText = 'flex: 1; height: 32px;';
+
+    var valueInput = document.createElement('input');
+    valueInput.type = 'text';
+    valueInput.className = 'form-input';
+    valueInput.placeholder = opts.valuePlaceholder || '';
+    valueInput.value = opts.value || '';
+    valueInput.style.cssText = 'flex: 1.5; height: 32px;';
+
+    var removeBtn = ocIconButton('close', '<%:Remove%>', function() {
+        row.parentNode.removeChild(row);
+        if (container.children.length === 0) container.classList.add('oc-hidden');
+        if (opts.onRemove) opts.onRemove(row);
+    });
+    removeBtn.style.cssText = 'flex-shrink: 0;';
+
+    row.appendChild(keyInput);
+    row.appendChild(valueInput);
+    row.appendChild(removeBtn);
+    container.appendChild(row);
+    container.classList.remove('oc-hidden');
+    return row;
+}
+
+// The sprite reference and the 14px size are the component contract: keep them in one place so
+// icon-only buttons built in JS match the ones written in templates.
+function ocIconSvg(icon) {
+    return '<svg width="14" height="14"><use href="#oc-icon-' + icon + '"/></svg>';
+}
+
+function ocIconButton(icon, title, onClick) {
+    var btn = document.createElement('button');
+    btn.className = 'icon-btn';
+    btn.type = 'button';
+    btn.title = title;
+    btn.innerHTML = ocIconSvg(icon);
+    if (onClick) btn.onclick = onClick;
+    return btn;
+}
+
+function ocIconButtonHtml(icon, title, attrs) {
+    return '<button type="button" class="icon-btn"' + (attrs ? ' ' + attrs : '') + ' title="' + title + '">' + ocIconSvg(icon) + '</button>';
+}
+
+function ocAddRowButtonHtml(id, label) {
+    return '<button type="button" id="' + id + '" class="add-row-btn"><svg><use href="#oc-icon-add"/></svg><span>' + label + '</span></button>';
+}
+
 function luminanceFromColor(color) {
     var r, g, b;
 
@@ -373,20 +481,6 @@ function imgerrorfuns(imgobj, imgSrc) {
         imgobj.src = imgSrc;
         imgobj.loading = "lazy";
     }, 1000 * 10);
-}
-
-function ocMaxScroll(element) {
-    var computed = window.getComputedStyle(element);
-    var contentHeight = (parseFloat(computed.paddingTop) || 0) + (parseFloat(computed.paddingBottom) || 0);
-    var children = element.children;
-    for (var i = 0; i < children.length; i++) {
-        contentHeight += children[i].offsetHeight || 0;
-    }
-    var rowGap = parseFloat(computed.rowGap) || 0;
-    if (rowGap && children.length > 1) {
-        contentHeight += rowGap * (children.length - 1);
-    }
-    return Math.max(0, contentHeight - element.clientHeight);
 }
 
 // Scroll to the bottom, centring the last line (upstream behaviour). A new call cancels the
@@ -961,6 +1055,7 @@ function ocRequireScript(url, cb) {
 
 // The theme wraps page content in a z-index stacking context, so every fixed overlay rendered
 // inside it stays below the sidebar; re-host them directly under body (same host the AC dialogs use).
+// Re-portalizing always moves the node to the end: equal z-index means the dialog opened last wins.
 function ocPortalize(target) {
     var host = document.getElementById('oc-portal');
     if (!host) {
@@ -971,7 +1066,7 @@ function ocPortalize(target) {
     }
     var list = target ? [target] : document.querySelectorAll('.config-upload-model-overlay, .select-popup:not(.select-popup-tab)');
     for (var i = 0; i < list.length; i++) {
-        if (list[i] && list[i].parentNode !== host) host.appendChild(list[i]);
+        if (list[i]) host.appendChild(list[i]);
     }
     return host;
 }
@@ -1282,6 +1377,8 @@ function ocCreateLogStream(opts) {
     var maxWaitTimer = null;
     var stopped = false;
     var initialShown = false;
+    // when ##FINISHED## arrived: the watches notice the exit seconds later, the elapsed clocks must stop at it
+    var endStamp = 0;
     var lastLineCount = opts.skipLines != null ? opts.skipLines : null;
     var watchMode = !!opts.script && opts.script !== 'view';
     var params = [];
@@ -1349,6 +1446,7 @@ function ocCreateLogStream(opts) {
 
         function scheduleFinish() {
             if (finishTimer) return;
+            if (!endStamp) endStamp = Date.now();
             finishTimer = setTimeout(function() {
                 streamEnded = true;
                 if (xhr !== req) return;
@@ -1422,7 +1520,8 @@ function ocCreateLogStream(opts) {
             openStream();
         },
         abort: abort,
-        isRunning: function() { return !!xhr; }
+        isRunning: function() { return !!xhr; },
+        endTime: function() { return endStamp; }
     };
 }
 
@@ -1463,6 +1562,24 @@ function ocFallbackCopy(text, btnElement, failMessage) {
     } else if (failMessage) {
         prompt(failMessage, text);
     }
+}
+
+// Saves a blob through a throwaway anchor; callers that hand the browser a large file
+// pass revokeDelayMs so the URL outlives the click.
+function ocDownloadBlob(blob, filename, revokeDelayMs) {
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    if (revokeDelayMs) {
+        setTimeout(function() { URL.revokeObjectURL(url); }, revokeDelayMs);
+        return;
+    }
+    URL.revokeObjectURL(url);
 }
 
 function ocSetBtnLoading(btn, loading) {

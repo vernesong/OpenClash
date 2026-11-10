@@ -854,17 +854,7 @@ var ConfigEditor = {
         }
 
         try {
-            var blob = new Blob([content], { type: 'text/yaml;charset=utf-8' });
-            var url = window.URL.createObjectURL(blob);
-            var link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            link.style.display = 'none';
-
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
+            ocDownloadBlob(new Blob([content], { type: 'text/yaml;charset=utf-8' }), filename);
 
             var statusText = document.getElementById('config-editor-status-text');
             if (statusText) {
@@ -1185,12 +1175,7 @@ var ConfigEditor = {
             itemParts.meta.appendChild(actions);
 
             if (sub.type === 'http') {
-                var refresh = document.createElement('button');
-                refresh.className = 'icon-btn';
-                refresh.type = 'button';
-                refresh.title = '<%:Refresh Subscription%>';
-                refresh.innerHTML = '<svg width="14" height="14"><use href="#oc-icon-update"/></svg>';
-                refresh.onclick = function(e) {
+                var refresh = ocIconButton('update', '<%:Refresh Subscription%>', function(e) {
                     e.stopPropagation();
                     var statusText = document.getElementById('config-editor-status-text');
                     if (statusText) {
@@ -1237,38 +1222,23 @@ var ConfigEditor = {
                     setTimeout(function(){
                         self.loadConfigContent();
                     }, 1000);
-                };
+                });
                 actions.appendChild(refresh);
             }
 
-            var copyBtn = document.createElement('button');
-            copyBtn.className = 'icon-btn';
-            copyBtn.type = 'button';
-            copyBtn.title = '<%:Copy Module%>';
-            copyBtn.innerHTML = '<svg width="14" height="14"><use href="#oc-icon-copy"/></svg>';
-            copyBtn.onclick = function(e) {
+            var copyBtn = ocIconButton('copy', '<%:Copy Module%>', function(e) {
                 e.stopPropagation();
                 self.duplicateOverwriteModule(name, copyBtn);
-            };
+            });
             actions.appendChild(copyBtn);
 
-            var gear = document.createElement('button');
-            gear.className = 'icon-btn';
-            gear.type = 'button';
-            gear.title = '<%:Edit Module Info%>';
-            gear.innerHTML = '<svg width="14" height="14"><use href="#oc-icon-gear"/></svg>';
-            gear.onclick = function(e) {
+            var gear = ocIconButton('gear', '<%:Edit Module Info%>', function(e) {
                 e.stopPropagation();
                 ConfigEditor.showOverwriteSubmodel(name, sub, file.path);
-            };
+            });
             actions.appendChild(gear);
 
-            var del = document.createElement('button');
-            del.className = 'icon-btn';
-            del.type = 'button';
-            del.title = '<%:Delete%>';
-            del.innerHTML = '<svg width="14" height="14"><use href="#oc-icon-trash"/></svg>';
-            del.onclick = function(e) {
+            var del = ocIconButton('trash', '<%:Delete%>', function(e) {
                 e.stopPropagation();
                 ocConfirm({
                     title: '<%:Delete module%>',
@@ -1307,7 +1277,7 @@ var ConfigEditor = {
                         }
                     });
                 });
-            };
+            });
             actions.appendChild(del);
 
             var touchPrimary = window.matchMedia && window.matchMedia('(hover: none)').matches;
@@ -1983,42 +1953,13 @@ var ConfigEditor = {
     },
 
     addOverwriteParamRow: function(container, name, value) {
-        var row = document.createElement('div');
-        row.className = 'form-row overwrite-param-row';
-        row.style.cssText = 'align-items: center; gap: 6px; margin-bottom: 6px;';
-
-        var nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.className = 'form-input';
-        nameInput.placeholder = 'Key';
-        nameInput.value = name || '';
-        nameInput.style.cssText = 'flex: 1; height: 32px;';
-
-        var valueInput = document.createElement('input');
-        valueInput.type = 'text';
-        valueInput.className = 'form-input';
-        valueInput.placeholder = 'Value';
-        valueInput.value = value || '';
-        valueInput.style.cssText = 'flex: 1.5; height: 32px;';
-
-        var removeBtn = document.createElement('button');
-        removeBtn.type = 'button';
-        removeBtn.className = 'icon-btn';
-        removeBtn.title = '<%:Remove%>';
-        removeBtn.style.cssText = 'flex-shrink: 0;';
-        removeBtn.innerHTML = '<svg width="14" height="14"><use href="#oc-icon-close"/></svg>';
-        removeBtn.addEventListener('click', function() {
-            row.parentNode.removeChild(row);
-            if (container.children.length === 0) {
-                container.classList.add('oc-hidden');
-            }
+        ocKeyValueRow(container, {
+            rowClass: 'overwrite-param-row',
+            keyPlaceholder: 'Key',
+            valuePlaceholder: 'Value',
+            key: name,
+            value: value
         });
-
-        row.appendChild(nameInput);
-        row.appendChild(valueInput);
-        row.appendChild(removeBtn);
-        container.appendChild(row);
-        container.classList.remove('oc-hidden');
     },
 
     buildOverwriteParamRows: function(container, paramStr) {
@@ -2440,7 +2381,7 @@ var ConfigEditor = {
                     <label>${'<%:Environment variable%>'}:</label>
                     <div class="form-help" style="margin-bottom: unset;">${'<%:Set environment variables for the overwrite script%>'}</div>
                     <div id="overwrite-subscribe-param-container" class="oc-hidden"></div>
-                    <button type="button" id="overwrite-subscribe-param-add" class="add-row-btn"><svg><use href="#oc-icon-add"/></svg><span>${'<%:Add Param%>'}</span></button>
+                    ${ocAddRowButtonHtml('overwrite-subscribe-param-add', '<%:Add Param%>')}
                 </div>
                 <div class="upload-progress oc-hidden" id="overwrite-upload-progress">
                     <div class="progress-bar">
@@ -2477,9 +2418,7 @@ var ConfigEditor = {
                     <span>${'<%:Add Overwrite Module%>'}</span>
                 </div>
                 <div class="config-upload-actions">
-                    <button type="button" class="icon-btn" id="overwrite-add-close" title="${'<%:Close%>'}">
-                        <svg width="14" height="14"><use href="#oc-icon-close"/></svg>
-                    </button>
+                    ${ocIconButtonHtml('close', '<%:Close%>', 'id="overwrite-add-close"')}
                 </div>
             </div>
             <div class="config-upload-content">
@@ -2560,7 +2499,7 @@ var ConfigEditor = {
                         <label>${'<%:Environment variable%>'}:</label>
                         <div class="form-help" style="margin-bottom: unset;">${'<%:Set environment variables for the overwrite script%>'}</div>
                         <div id="overwrite-add-param-container" class="oc-hidden"></div>
-                        <button type="button" id="overwrite-add-param-add" class="add-row-btn"><svg><use href="#oc-icon-add"/></svg><span>${'<%:Add Param%>'}</span></button>
+                        ${ocAddRowButtonHtml('overwrite-add-param-add', '<%:Add Param%>')}
                     </div>
                 </div>
                 <div class="upload-progress oc-hidden" id="overwrite-upload-progress">
@@ -2928,9 +2867,7 @@ var ConfigEditor = {
                     <span>${'<%:Overwrite Module Edit%>'}</span>
                 </div>
                 <div class="config-upload-actions">
-                    <button type="button" class="icon-btn" id="overwrite-sub-close" title="${'<%:Close%>'}">
-                        <svg width="14" height="14"><use href="#oc-icon-close"/></svg>
-                    </button>
+                    ${ocIconButtonHtml('close', '<%:Close%>', 'id="overwrite-sub-close"')}
                 </div>
             </div>
             <div class="config-upload-content">
@@ -3183,10 +3120,6 @@ var ConfigEditor = {
     zoomOut: function() {
         var newZoom = ocZoomOut(this.currentZoom);
         if (newZoom !== this.currentZoom) this.updateZoom(newZoom);
-    },
-
-    resetZoom: function() {
-        this.updateZoom(ocResetZoom());
     },
 
     isPointOnTextContent: function(el, clientX, clientY) {

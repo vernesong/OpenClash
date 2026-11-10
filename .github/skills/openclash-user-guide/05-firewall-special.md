@@ -29,7 +29,7 @@
 | 4 | 真实 IP 且未禁用转发 | `ping.ConnectDestination()` 以 **DIRECT** 发真实 ICMP，延迟为真实 RTT |
 | 5 | 超时 | 默认 10 s，可用 `icmp-timeout` 改 |
 
-> 关键结论：TUN 下 ping 分两种——Fake-IP 得虚假 0ms、真实 IP 走 DIRECT 直连延迟；**ping 始终不经代理节点**（与 TCP/UDP 不同）。用户「ping 不通但网页正常」时，先确认是不是在 Fake-IP 非 TUN 下 ping 被代理的域名。
+> 要点：TUN 下 ping 分两种——Fake-IP 得虚假 0ms、真实 IP 走 DIRECT 直连延迟；**ping 始终不经代理节点**（与 TCP/UDP 不同）。用户「ping 不通但网页正常」时，先确认是不是在 Fake-IP 非 TUN 下 ping 被代理的域名。
 
 ### 5.2 高级流量控制 (`firewall_lan_ac_traffic`)
 

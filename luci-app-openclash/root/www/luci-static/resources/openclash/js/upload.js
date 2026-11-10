@@ -1,0 +1,136 @@
+// Extracted from luasrc/view/openclash/upload.htm - edit this file, not the template.
+// <%:...%> markers and <%=...%> islands are rendered server-side by the translate_js action.
+
+//<![CDATA[
+
+(function() {
+	var result = document.getElementById('upload-result');
+	var defaultNote = document.getElementById('upload-note-default');
+	if (result && defaultNote && !result.classList.contains('oc-hidden')) {
+		defaultNote.classList.add('oc-hidden');
+		setTimeout(function() {
+			result.classList.add('oc-hidden');
+			defaultNote.classList.remove('oc-hidden');
+		}, 10000);
+	}
+
+	var typeSel = document.getElementById('file_type');
+	var fileInput = document.getElementById('ulfile');
+	var submitBtn = document.getElementById('upload-submit');
+	var submitLabel = document.getElementById('upload-submit-label');
+
+	var noteDefault = document.getElementById('upload-note-default');
+	var helpTexts = {
+		'config': '<%:Profiles are saved to the config directory (/etc/openclash/config)%>',
+		'proxy-provider': '<%:Proxy provider files are saved to /etc/openclash/proxy_provider%>',
+		'rule-provider': '<%:Rule provider files are saved to /etc/openclash/rule_provider%>',
+		'clash_meta': '<%:Core files are extracted to /etc/openclash/core%>',
+		'backup-file': '<%:Backup files restore settings from a previous backup%>'
+	};
+
+	function updateHelp() {
+		if (noteDefault && typeSel) noteDefault.textContent = helpTexts[typeSel.value] || helpTexts.config;
+	}
+
+	function fileAccept() {
+		var t = typeSel ? typeSel.value : 'config';
+		return (t === 'clash_meta' || t === 'backup-file') ? '.tar.gz' : '.yaml,.yml';
+	}
+
+	function updateSubmitState() {
+		if (!fileInput || !submitBtn) return;
+		var f = fileInput.files && fileInput.files[0];
+		if (!f) {
+			submitBtn.disabled = true;
+			submitLabel.textContent = '<%:Upload%>';
+			return;
+		}
+		submitBtn.disabled = false;
+		submitLabel.textContent = '<%:Upload%>' + ' ' + f.name;
+	}
+
+	if (typeSel && fileInput) {
+		fileInput.setAttribute('accept', fileAccept());
+		typeSel.addEventListener('change', function() {
+			fileInput.value = '';
+			fileInput.setAttribute('accept', fileAccept());
+			updateSubmitState();
+			updateHelp();
+		});
+		fileInput.addEventListener('change', updateSubmitState);
+		updateSubmitState();
+		updateHelp();
+	}
+
+	var dropBar = document.querySelector('.upload-bar');
+	if (dropBar && fileInput) {
+		['dragenter', 'dragover'].forEach(function(evt) {
+			dropBar.addEventListener(evt, function(e) {
+				e.preventDefault();
+				dropBar.classList.add('drag-over');
+			});
+		});
+		['dragleave', 'drop'].forEach(function(evt) {
+			dropBar.addEventListener(evt, function(e) {
+				e.preventDefault();
+				dropBar.classList.remove('drag-over');
+			});
+		});
+		dropBar.addEventListener('drop', function(e) {
+			if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+				fileInput.files = e.dataTransfer.files;
+				updateSubmitState();
+			}
+		});
+	}
+})();
+
+function uploadShowResult(message, isError)
+{
+	var result = document.getElementById('upload-result');
+	var defaultNote = document.getElementById('upload-note-default');
+	if (!result || !defaultNote) return;
+	result.textContent = message;
+	result.classList.toggle('err', !!isError);
+	result.classList.remove('oc-hidden');
+	defaultNote.classList.add('oc-hidden');
+	setTimeout(function() {
+		result.classList.add('oc-hidden');
+		defaultNote.classList.remove('oc-hidden');
+	}, 10000);
+}
+
+function backup_all_file(btn)
+{
+	ocSetBtnLoading(btn, true);
+	var xhr = new XMLHttpRequest();
+	xhr.open('GET', '<%=luci.dispatcher.build_url("admin", "services", "openclash", "backup")%>', true);
+	xhr.responseType = 'blob';
+	xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+	xhr.onload = function() {
+		ocSetBtnLoading(btn, false);
+		if (xhr.status == 200 && xhr.response) {
+			var disposition = xhr.getResponseHeader('Content-Disposition') || '';
+			var match = disposition.match(/filename="?([^";]+)"?/);
+			var filename = match ? match[1] : 'Backup-OpenClash.tar.gz';
+			var blobUrl = URL.createObjectURL(xhr.response);
+			var a = document.createElement('a');
+			a.href = blobUrl;
+			a.download = filename;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			uploadShowResult('<%:Backup downloaded%>: ' + filename, false);
+			setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 1000);
+		} else {
+			uploadShowResult('<%:Backup failed!%>', true);
+		}
+	};
+	xhr.onerror = function() {
+		ocSetBtnLoading(btn, false);
+		uploadShowResult('<%:Backup failed!%>', true);
+	};
+	xhr.send();
+	return false;
+};
+//]]>

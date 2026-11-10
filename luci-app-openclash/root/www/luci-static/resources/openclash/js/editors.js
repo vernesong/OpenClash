@@ -30,107 +30,82 @@ function ocDiffSetValue(view, value) {
     view.dispatch({ changes: { from: prefix, to: oldLen - suffix, insert: value.slice(prefix, newLen - suffix) } });
 }
 
-function editor(id, readOnly, wid, height) {
+// Every factory shares the same mount: hide the textarea, hold the loading overlay until the
+// CM6 bundle is ready, insert the editor after it and apply the caller's size.
+function ocMountCM6(id, wid, height, buildExtensions, afterMount, onReady) {
+    var container = id.parentNode;
     id.style.display = 'none';
-    id.parentNode.classList.add('oc');
-    ocShowLoading(id.parentNode, '<%:Loading...%>', height);
-    ocQueueEditor(id.parentNode, function() {
+    container.classList.add('oc');
+    ocShowLoading(container, '<%:Loading...%>', height);
+    ocQueueEditor(container, function() {
         var isDark = isDarkBackground(document.body);
-        var exts = [CM6.baseExtensions(), CM6.themeExtension(isDark), CM6.placeholderExtension('<%:Enter YAML configuration...%>')];
-        var topSearch = (CM6 && CM6.topSearchExtension) ? CM6.topSearchExtension() : null;
-        if (topSearch) exts.push(topSearch);
-        exts.push(CM6.yaml());
-        exts.push(CM6.yamlLinter());
-        exts.push(CM6.lintGutter());
-        exts.push(CM6.autocompletion({ override: [CM6.mihomoCompletion] }));
-        exts.push(CM6.indentUnit.of("  "));
-        exts.push(CM6.indentMarkerExtension());
-        if (readOnly) exts.push(CM6.EditorState.readOnly.of(true));
-
-        exts.push(CM6.EditorView.updateListener.of(function(update) {
-            if (update.docChanged) id.value = update.state.doc.toString();
-        }));
-
         var view = new CM6.EditorView({
-            state: CM6.EditorState.create({ doc: id.value, extensions: exts })
+            state: CM6.EditorState.create({ doc: id.value, extensions: buildExtensions(isDark) })
         });
-        id.parentNode.insertBefore(view.dom, id.nextSibling);
+        container.insertBefore(view.dom, id.nextSibling);
         if (CM6.primeEditorLayout) CM6.primeEditorLayout(view);
-        ocHideLoading(id.parentNode);
+        ocHideLoading(container);
         if (wid && height) {
             view.dom.style.width = wid;
             view.dom.style.height = height;
         }
+        if (afterMount) afterMount(view, isDark);
         return view;
+    }, onReady);
+}
+
+// Editable variants mirror the document into the hidden textarea the CBI form submits.
+function ocEditorSyncListener(id) {
+    return CM6.EditorView.updateListener.of(function(update) {
+        if (update.docChanged) id.value = update.state.doc.toString();
+    });
+}
+
+function ocBindEditorBasics(view, id, name, isDark) {
+    if (CM6.dispatchTheme) CM6.dispatchTheme(view, isDark);
+    window['editor_' + name] = view;
+    if (id.value && id.value.length > 0) {
+        requestAnimationFrame(function() { view.requestMeasure(); });
+    }
+    view.getValue = function() { return view.state.doc.toString(); };
+    view.setValue = function(v) { ocDiffSetValue(view, v); };
+}
+
+function editor(id, readOnly, wid, height) {
+    ocMountCM6(id, wid, height, function(isDark) {
+        var exts = ocYamlEditorExtensions(isDark);
+        if (readOnly) exts.push(CM6.EditorState.readOnly.of(true));
+        exts.push(ocEditorSyncListener(id));
+        return exts;
     });
 }
 
 function shell_editor(id, readOnly, wid, height) {
-    id.style.display = 'none';
-    id.parentNode.classList.add('oc');
-    ocShowLoading(id.parentNode, '<%:Loading...%>', height);
-    ocQueueEditor(id.parentNode, function() {
-        var isDark = isDarkBackground(document.body);
+    ocMountCM6(id, wid, height, function(isDark) {
         var exts = [CM6.baseExtensions(), CM6.themeExtension(isDark), CM6.placeholderExtension('<%:Enter shell script...%>')];
         var topSearch = (CM6 && CM6.topSearchExtension) ? CM6.topSearchExtension() : null;
         if (topSearch) exts.push(topSearch);
         exts.push(CM6.StreamLanguage.define(CM6.shell));
         if (readOnly) exts.push(CM6.EditorState.readOnly.of(true));
-
-        exts.push(CM6.EditorView.updateListener.of(function(update) {
-            if (update.docChanged) id.value = update.state.doc.toString();
-        }));
-
-        var view = new CM6.EditorView({
-            state: CM6.EditorState.create({ doc: id.value, extensions: exts })
-        });
-        id.parentNode.insertBefore(view.dom, id.nextSibling);
-        if (CM6.primeEditorLayout) CM6.primeEditorLayout(view);
-        ocHideLoading(id.parentNode);
-        if (wid && height) {
-            view.dom.style.width = wid;
-            view.dom.style.height = height;
-        }
-        return view;
+        exts.push(ocEditorSyncListener(id));
+        return exts;
     });
 }
 
 function other_editor(id, readOnly, wid, height) {
-    id.style.display = 'none';
-    id.parentNode.classList.add('oc');
-    ocShowLoading(id.parentNode, '<%:Loading...%>', height);
-    ocQueueEditor(id.parentNode, function() {
-        var isDark = isDarkBackground(document.body);
+    ocMountCM6(id, wid, height, function(isDark) {
         var exts = [CM6.baseExtensions(), CM6.themeExtension(isDark), CM6.placeholderExtension('<%:Enter configuration...%>')];
         var topSearch = (CM6 && CM6.topSearchExtension) ? CM6.topSearchExtension() : null;
         if (topSearch) exts.push(topSearch);
         exts.push(CM6.StreamLanguage.define(CM6.properties));
         if (readOnly) exts.push(CM6.EditorState.readOnly.of(true));
-
-        exts.push(CM6.EditorView.updateListener.of(function(update) {
-            if (update.docChanged) id.value = update.state.doc.toString();
-        }));
-
-        var view = new CM6.EditorView({
-            state: CM6.EditorState.create({ doc: id.value, extensions: exts })
-        });
-        id.parentNode.insertBefore(view.dom, id.nextSibling);
-        if (CM6.primeEditorLayout) CM6.primeEditorLayout(view);
-        ocHideLoading(id.parentNode);
-        if (wid && height) {
-            view.dom.style.width = wid;
-            view.dom.style.height = height;
-        }
-        return view;
+        exts.push(ocEditorSyncListener(id));
+        return exts;
     });
 }
 
 function log_editor(id, name, readOnly, wid, height, onReady) {
-    id.style.display = 'none';
-    id.parentNode.classList.add('oc');
-    ocShowLoading(id.parentNode, '<%:Loading...%>', height);
-    ocQueueEditor(id.parentNode, function() {
-        var isDark = isDarkBackground(document.body);
+    ocMountCM6(id, wid, height, function(isDark) {
         var exts = [CM6.lineNumbers(), CM6.EditorView.lineWrapping, CM6.EditorState.readOnly.of(true), CM6.themeExtension(isDark)];
         var topSearch = (CM6 && CM6.topSearchExtension) ? CM6.topSearchExtension() : null;
         if (topSearch) exts.push(topSearch);
@@ -141,24 +116,9 @@ function log_editor(id, name, readOnly, wid, height, onReady) {
         exts.push(CM6.logLanguage);
         exts.push(CM6.syntaxHighlighting(CM6.logHighlightStyle));
         exts.push(CM6.parseAheadExtension());
-
-        var view = new CM6.EditorView({
-            state: CM6.EditorState.create({ doc: id.value, extensions: exts })
-        });
-        id.parentNode.insertBefore(view.dom, id.nextSibling);
-        if (CM6.primeEditorLayout) CM6.primeEditorLayout(view);
-        ocHideLoading(id.parentNode);
-        if (CM6.dispatchTheme) CM6.dispatchTheme(view, isDark);
-        window['editor_' + name] = view;
-        if (id.value && id.value.length > 0) {
-            requestAnimationFrame(function() { view.requestMeasure(); });
-        }
-        if (wid && height) {
-            view.dom.style.width = wid;
-            view.dom.style.height = height;
-        }
-        view.getValue = function() { return view.state.doc.toString(); };
-        view.setValue = function(v) { ocDiffSetValue(view, v); };
+        return exts;
+    }, function(view, isDark) {
+        ocBindEditorBasics(view, id, name, isDark);
         view.refresh = function() { view.dispatch({}); if (view.requestMeasure) view.requestMeasure(); };
         view.getScrollInfo = function() { var sd = view.scrollDOM; return { top: sd.scrollTop, left: sd.scrollLeft, height: sd.scrollHeight, width: sd.scrollWidth, clientHeight: sd.clientHeight, clientWidth: sd.clientWidth }; };
         view.scrollTo = function(l, t) { if (typeof l === 'object') { t = l.top; l = l.left; } view.scrollDOM.scrollTop = t || 0; view.scrollDOM.scrollLeft = l || 0; };
@@ -180,40 +140,18 @@ function log_editor(id, name, readOnly, wid, height, onReady) {
             var fl = view.state.doc.line(1);
             view.dispatch({ selection: { anchor: fl.to } });
         }
-        return view;
     }, onReady);
 }
 
 function markdown_editor(id, name, readOnly, wid, height, onReady) {
-    id.style.display = 'none';
-    id.parentNode.classList.add('oc');
-    ocShowLoading(id.parentNode, '<%:Loading...%>', height);
-    ocQueueEditor(id.parentNode, function() {
-        var isDark = isDarkBackground(document.body);
+    ocMountCM6(id, wid, height, function(isDark) {
         var exts = [CM6.lineNumbers(), CM6.EditorView.lineWrapping, CM6.themeExtension(isDark), CM6.markdown()];
         if (readOnly) exts.push(CM6.EditorState.readOnly.of(true));
         exts.push(CM6.parseAheadExtension());
-
-        var view = new CM6.EditorView({
-            state: CM6.EditorState.create({ doc: id.value || '', extensions: exts })
-        });
-        id.parentNode.insertBefore(view.dom, id.nextSibling);
-        if (CM6.primeEditorLayout) CM6.primeEditorLayout(view);
-        ocHideLoading(id.parentNode);
-        if (CM6.dispatchTheme) CM6.dispatchTheme(view, isDark);
-        window['editor_' + name] = view;
-        if (id.value && id.value.length > 0) {
-            requestAnimationFrame(function() { view.requestMeasure(); });
-        }
-        if (wid && height) {
-            view.dom.style.width = wid;
-            view.dom.style.height = height;
-        }
-        view.getValue = function() { return view.state.doc.toString(); };
-        view.setValue = function(v) { ocDiffSetValue(view, v); };
+        return exts;
+    }, function(view, isDark) {
+        ocBindEditorBasics(view, id, name, isDark);
         view.refresh = function() { view.dispatch({}); };
-        view.dom = view.dom;
-        return view;
     }, onReady);
 }
 

@@ -115,12 +115,7 @@ function setRefreshButton(btn, paused) {
 };
 
 function createAndDownloadFile(fileName, content) {
-    var aTag = document.createElement('a');
-    var blob = new Blob([content]);
-    aTag.download = fileName;
-    aTag.href = URL.createObjectURL(blob);
-    aTag.click();
-    URL.revokeObjectURL(blob);
+    ocDownloadBlob(new Blob([content]), fileName);
 };
 
 function download_log(){
@@ -962,7 +957,7 @@ function debugParts(text) {
 
 function decorateDebugBlocks(host) {
     var pres = host.querySelectorAll('pre');
-    var copyIcon = '<svg width="14" height="14"><use href="#oc-icon-copy"/></svg>';
+    var copyIcon = ocIconSvg('copy');
     for (var i = 0; i < pres.length; i++) {
         (function(pre) {
             if (pre.parentNode && pre.parentNode.classList.contains('pre-copy-wrap')) return;

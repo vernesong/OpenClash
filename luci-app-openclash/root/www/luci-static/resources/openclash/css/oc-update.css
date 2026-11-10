@@ -490,12 +490,7 @@ html[data-darkmode="true"] .oc .ver-hint {
 }
 
 /* Neutral note/log style for the hint area (update_tip merged) */
-.oc .ver-hint.note {
-    border: 1px solid var(--primary-a20);
-    color: var(--primary-color);
-    background: var(--primary-a10);
-}
-
+.oc .ver-hint.note,
 html[data-darkmode=true] .oc .ver-hint.note {
     border: 1px solid var(--primary-a20);
     color: var(--primary-color);
@@ -543,10 +538,7 @@ html[data-darkmode=true] .oc .ver-hint.note {
     align-items: center;
 }
 
-.oc #custom-addr-option {
-    min-width: var(--addr-cols, 508px);
-}
-
+.oc #custom-addr-option,
 .oc .custom-option-input,
 .oc #addCustomOption {
     min-width: var(--addr-cols, 508px);
@@ -825,11 +817,7 @@ html[data-darkmode=true] .oc .ver-hint.note {
     background: var(--addr-row-alt, var(--bg-light));
 }
 
-.oc .select-option.addr-row:has(.addr-proxy.on) {
-    background: var(--primary-a5);
-    box-shadow: inset 3px 0 0 var(--primary-color);
-}
-
+.oc .select-option.addr-row:has(.addr-proxy.on),
 .oc .select-option.addr-row:hover {
     background: var(--primary-a5);
     box-shadow: inset 3px 0 0 var(--primary-color);
@@ -1015,11 +1003,7 @@ html[data-darkmode=true] .oc .ver-hint.note {
     background: var(--warning-a10);
 }
 
-[data-darkmode=true] .oc .addr-status.slow {
-    color: var(--error-color);
-    background: var(--error-a10);
-}
-
+[data-darkmode=true] .oc .addr-status.slow,
 [data-darkmode=true] .oc .addr-status.err {
     color: var(--error-color);
     background: var(--error-a10);
