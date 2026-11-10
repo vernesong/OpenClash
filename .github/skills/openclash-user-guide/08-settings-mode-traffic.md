@@ -132,7 +132,7 @@ UCI 写入 → start_service() → get_config() 读取所有 UCI 变量
 2. **`mtu`、`gso-max-size`、`congestion-controller`、`processors-per-channel`、`endpoint-independent-nat` 无可测收益，保持默认**（§8.4.4）：`mtu: 9000` 不提速（改小反而 -6%），`gso-max-size` 默认 65536 已够；`congestion-controller` 各算法差异在 ±5%（保持 `cubic`，填非法值核心启动失败 `invalid TCP congestion control`）；`processors-per-channel` 对 gvisor 无改善
 3. **栈选择见 §8.2.12**：默认 `mips` + `gso`；看重每字节 CPU 用 `system`；`gvisor` 仅纯大流量上传有优势
 4. **满载延迟**：`mips` 约升 320–360%（~2 ms → ~8–12 ms/req）、`mixed` ~43 ms、`gvisor` ~105 ms 且伴随失败（§8.4.5）；低延迟优先走内核短路路径（REDIRECT/TPROXY）
-5. **内核 sysctl 无需调优**：`rmem_max`/`wmem_max`/`tcp_rmem`/`tcp_wmem`（16 MB）、`tcp_congestion_control=bbr`、`default_qdisc=fq`、`netdev_max_backlog`/`netdev_budget`、`tcp_fastopen`/`tcp_max_syn_backlog`/`somaxconn` 全部一起改，差异仍 ≤5%（`bbr` 反而略差）——TUN/REDIRECT/TPROXY 三路径均已验证（§8.4.6）；UDP 缓冲默认值、`dev_weight`、TCP 连接周转参数同样无收益
+5. **内核 sysctl 无需调优**：`rmem_max`/`wmem_max`/`tcp_rmem`/`tcp_wmem`（16 MB）、`tcp_congestion_control=bbr`、`default_qdisc=fq`、`netdev_max_backlog`/`netdev_budget`、`tcp_fastopen`/`tcp_max_syn_backlog`/`somaxconn` 全部调整，差异仍 ≤5%（`bbr` 反而略差）——TUN/REDIRECT/TPROXY 三路径均已验证（§8.4.6）；UDP 缓冲默认值、`dev_weight`、TCP 连接周转参数同样无收益
 6. `tun.gso` 与 `experimental.quic-go-disable-gso` 互不影响：前者作用于 tun 设备层；后者在核心启动前设环境变量 `QUIC_GO_DISABLE_GSO`（`hub/executor/executor.go`），作用于 QUIC 的 UDP socket。QUIC 报文也经 tun，故 `tun.gso` 对 UDP/QUIC 吞吐同样有正收益
 7. **持续满载无衰减**：连续满载 10 分钟（单连接 2 GB 循环 + 4 连接循环）吞吐、CPU、RSS/fd 均平稳，无热降频
 
@@ -158,7 +158,7 @@ tun:
 | 8.3.6 | 仅允许内网 `intranet_allowed` | 1 | — | 控制面板与代理端口仅内网可访问。YAML 侧始终 `allow-lan: true` + `bind-address: "*"`（本项不控制 YAML）；防火墙侧始终建 `openclash_wan_input` 拒绝 `mark 0x162`，开启时追加拒绝 `ct status dnat` 与代理端口 dport 的入站 |
 | 8.3.7 | WAN 接口名称 `intranet_allowed_wan_name` | — | 接口名 | 指定哪个接口算 WAN；依赖 §8.3.6 |
 | 8.3.8 | LAN 接口名称 `lan_interface_name` | 0（自动检测） | 接口名 | 用于 `ip address show <接口>` 取路由器 LAN IP（面板地址、API、调试日志）；0=自动 |
-| 8.3.9 | 本地 IPv4 网络绕过 `local_network_pass` | — | `openclash_custom_localnetwork_ipv4.list` | 目标为该列表 IP 的流量不进内核；同一列表也决定代理表 `0x162` 的 `throw` 范围（见 `04-firewall-chains.md` §4.3），要经代理的远端私网段（如公司 `172.20/16`）必须从列表去掉，改分流规则无效 |
+| 8.3.9 | 本地 IPv4 网络绕过 `local_network_pass` | — | `openclash_custom_localnetwork_ipv4.list` | 目标为该列表 IP 的流量不进内核；同一列表也决定代理表 `0x162` 的 `throw` 范围（见 `04-firewall-chains.md` §4.3），修改条目会同时改变这两处范围：要经代理的远端私网段（如公司 `172.20/16`）必须从列表去掉，改分流规则无效；列表还须覆盖实际 LAN 网段——沿用旧模板 `192.168.0.0/24` 而 LAN 为其他网段时，TPROXY 模式的内网 UDP 会被内核静默丢弃（游戏机 NAT 类型 F、TCP 正常），改为实际网段或 `192.168.0.0/16`（仓库默认）后重启插件 |
 | 8.3.10 | 绕过指定区域 IPv4 黑名单 `chnroute_pass` | — | `openclash_custom_chnroute_pass.list` | 列表内域名/IP 不受区域绕行影响，依赖 dnsmasq；要求 `enable_redirect_dns != 2` |
 | 8.3.11 | UPNP 流量排除 | 自动 | — | 无 UCI 选项，见下 |
 
@@ -313,4 +313,4 @@ TPROXY 的 UDP 场景（200 B @20/40 kpps、1400 B @7.5 kpps、QUIC-40、flood�
 
 其余参数组单独调整同样无收益：UDP 缓冲默认值（`rmem_default`/`wmem_default` → 1 MB、`udp_rmem_min`/`udp_wmem_min` → 64 KB）、`dev_weight` → 512、TCP 连接周转与发送参数（`tcp_max_tw_buckets`、`tcp_max_orphans`、`tcp_fin_timeout`、`ip_local_port_range`、`tcp_syncookies`、`tcp_no_metrics_save`、`tcp_slow_start_after_idle`、`tcp_autocorking`、`optmem_max`）。
 
-> 结论：**无需调优，保持系统默认**（`bbr` 反而略差）。瓶颈在核心的用户态读写循环与逐包处理（§8.4.5），与内核缓冲、软中断批处理权重、连接生命周期参数无关。`bbr` 模块本身可用（`reno cubic bbr`），`tcp_tw_reuse` 内核默认即为 2。
+> **无需调优，保持系统默认**（`bbr` 反而略差）。瓶颈在核心的用户态读写循环与逐包处理（§8.4.5），与内核缓冲、软中断批处理权重、连接生命周期参数无关。`bbr` 模块本身可用（`reno cubic bbr`），`tcp_tw_reuse` 内核默认即为 2。

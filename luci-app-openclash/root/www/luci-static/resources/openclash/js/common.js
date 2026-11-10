@@ -961,6 +961,7 @@ function ocRequireScript(url, cb) {
 
 // The theme wraps page content in a z-index stacking context, so every fixed overlay rendered
 // inside it stays below the sidebar; re-host them directly under body (same host the AC dialogs use).
+// Re-portalizing always moves the node to the end: equal z-index means the dialog opened last wins.
 function ocPortalize(target) {
     var host = document.getElementById('oc-portal');
     if (!host) {
@@ -971,7 +972,7 @@ function ocPortalize(target) {
     }
     var list = target ? [target] : document.querySelectorAll('.config-upload-model-overlay, .select-popup:not(.select-popup-tab)');
     for (var i = 0; i < list.length; i++) {
-        if (list[i] && list[i].parentNode !== host) host.appendChild(list[i]);
+        if (list[i]) host.appendChild(list[i]);
     }
     return host;
 }
@@ -1282,6 +1283,8 @@ function ocCreateLogStream(opts) {
     var maxWaitTimer = null;
     var stopped = false;
     var initialShown = false;
+    // when ##FINISHED## arrived: the watches notice the exit seconds later, the elapsed clocks must stop at it
+    var endStamp = 0;
     var lastLineCount = opts.skipLines != null ? opts.skipLines : null;
     var watchMode = !!opts.script && opts.script !== 'view';
     var params = [];
@@ -1349,6 +1352,7 @@ function ocCreateLogStream(opts) {
 
         function scheduleFinish() {
             if (finishTimer) return;
+            if (!endStamp) endStamp = Date.now();
             finishTimer = setTimeout(function() {
                 streamEnded = true;
                 if (xhr !== req) return;
@@ -1422,7 +1426,8 @@ function ocCreateLogStream(opts) {
             openStream();
         },
         abort: abort,
-        isRunning: function() { return !!xhr; }
+        isRunning: function() { return !!xhr; },
+        endTime: function() { return endStamp; }
     };
 }
 

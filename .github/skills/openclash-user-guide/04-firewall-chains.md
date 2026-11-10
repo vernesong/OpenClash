@@ -167,7 +167,7 @@ nft add rule inet fw4 mangle_prerouting meta nfproto {ipv6} counter jump opencla
 | 路由器自身 fake-ip6（`ipv6_mode=2/3` 且 `router_self_proxy=1` 或 fake-ip 未走防火墙 DNS） | `ip -6 rule add iif lo to <fakeip_range6> lookup 0x162 pref 998` | 本机发出的 fake-ip6 目标在 output 打标前先进代理表，转发流量仍走 main |
 | 与 mwan3 等共存 | `ip rule add fwmark 0x162 table 0x162 pref 999` | 取值原因见 `05-firewall-special.md` §5.4 |
 
-> 症状对照：TUN 下「能连但部分目标不通、日志无异常」→ 先查 `net.ipv4.conf.all.src_valid_mark`；「远端私网段配了代理规则却整段走 WAN」→ 查该段是否仍被本地网络绕过列表包含；「路由器自身访问 fake-ip6 失败但内网客户端正常」→ 查第二条规则。三者都在 `revert_firewall()` 中回滚。
+> 症状对照：TUN 下「能连但部分目标不通、日志无异常」→ 先查 `net.ipv4.conf.all.src_valid_mark`；TPROXY 模式（`fake-ip`/`redir-host`，非 `*-mix`）下「内网 UDP 全部无回应、TCP 正常」（游戏机 NAT 类型为 F、mangle 链 TPROXY 计数增长但核心日志无 `[UDP]` 记录）→ 查表 `0x162` 的 throw 是否覆盖客户端网段；「远端私网段配了代理规则却整段走 WAN」→ 查该段是否仍被本地网络绕过列表包含；「路由器自身访问 fake-ip6 失败但内网客户端正常」→ 查第二条规则。三者都在 `revert_firewall()` 中回滚。
 
 ### 4.4 WAN 入口防护与分区放行
 
