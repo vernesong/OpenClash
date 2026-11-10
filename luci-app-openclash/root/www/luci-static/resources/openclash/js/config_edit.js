@@ -584,6 +584,7 @@ var ConfigEditor = {
             });
 
             textarea.classList.add('oc-hidden');
+            if (CM6.primeEditorLayout) CM6.primeEditorLayout(self.editorInstance);
             self.editorInstance.dom.style.height = '100%';
             ocHideLoading(textarea.parentNode);
 
@@ -716,6 +717,8 @@ var ConfigEditor = {
             self.mergeViewActive = true;
             window.mergeViewInstance = self.editorInstance;
 
+            if (CM6.primeMergeLayout) CM6.primeMergeLayout(self.editorInstance);
+            if (CM6.mergeScrollSync) CM6.mergeScrollSync(self.editorInstance);
             if (CM6.mirrorThemeScrollbar) CM6.mirrorThemeScrollbar();
 
             if (statusText) statusText.textContent = '<%:Compare mode: left(Original Config), right(Runtime Config)%>';

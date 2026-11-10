@@ -59,7 +59,7 @@ html[data-darkmode="true"] .oc .cm-editor {
     width: 100% !important; height: 100% !important;
     z-index: 999999 !important;
     background: var(--editor-bg, #f5f5f5) !important;
-    overflow-y: auto !important;
+    overflow: hidden !important;
 }
 
 /* ---- Cursor gap (visual spacing between cursor and text) ---- */
@@ -88,15 +88,29 @@ html[data-darkmode="true"] .oc .cm-editor {
     border-radius: 2px;
 }
 
-/* MergeView panes are auto-height and never scroll themselves, so the search panel
- * has to stick to the outer .cm-mergeView scrollport instead. */
+/* Each pane scrolls on its own (mirrored by CM6.mergeScrollSync). Scrolling inside the
+ * editor keeps CodeMirror's scroll anchor working, otherwise a row-height correction
+ * during scrolling visibly shifts the rows that are about to enter the viewport. */
 .oc .cm-mergeView .cm-editor,
 .oc .cm-mergeView .cm-mergeViewEditor {
-    overflow: visible !important;
+    overflow: hidden !important;
+    height: 100% !important;
+    min-height: 0 !important;
+}
+
+.oc .cm-mergeView .cm-mergeViewEditors {
+    height: 100% !important;
+    min-height: 0 !important;
+}
+
+.oc .cm-mergeView .cm-scroller {
+    height: 100% !important;
 }
 
 .oc .cm-mergeView .cm-panels-top {
+    position: sticky !important;
     top: 0 !important;
+    z-index: 5;
 }
 
 /* ---- Hide diff highlights when F10 toggles differences off ---- */
@@ -137,7 +151,7 @@ html[data-darkmode="true"] .oc .cm-editor {
 .oc #config-mergeview-container .cm-mergeView,
 .oc .cm-mergeView {
     height: 100% !important;
-    overflow: auto;
+    overflow: hidden;
 }
 
 .oc #config-mergeview-container .cm-mergeViewEditor,
