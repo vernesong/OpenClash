@@ -9,6 +9,83 @@ var ocIcons = {
 // Uses EditorView.updateListener instead of view.dispatch override.
 // dispatch() can receive TransactionSpec objects which lack docChanged.
 
+function fetchMergeConfigFile(filePath, cb) {
+    if (!filePath) {
+        cb('');
+        return;
+    }
+    var url = '/cgi-bin/luci/admin/services/openclash/config_file_read?config_file=' + encodeURIComponent(filePath) + '&fallback=default';
+    fetch(url, { credentials: 'same-origin' })
+        .then(function(r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.text();
+        })
+        .then(function(text) {
+            cb(text || '');
+        })
+        .catch(function(err) {
+            if (window.console) console.error(err);
+            cb('');
+        });
+}
+
+function ensureMergeContent(state, which, cb) {
+    if (!state) return;
+    if (which === 'def') {
+        if (state.defLoaded) {
+            cb();
+            return;
+        }
+        if (state.defWaiters) {
+            state.defWaiters.push(cb);
+            return;
+        }
+        state.defWaiters = [cb];
+        ocShowLoading(state.target, '<%:Loading...%>', state.height);
+        fetchMergeConfigFile(state.runtimeFile, function(text) {
+            state.defContent = text;
+            state.defLoaded = true;
+            var waiters = state.defWaiters || [];
+            state.defWaiters = null;
+            for (var i = 0; i < waiters.length; i++) {
+                try { waiters[i](); } catch (e) {}
+            }
+        });
+    } else {
+        if (state.useLoaded) {
+            cb();
+            return;
+        }
+        if (state.useWaiters) {
+            state.useWaiters.push(cb);
+            return;
+        }
+        state.useWaiters = [cb];
+        ocShowLoading(state.target, '<%:Loading...%>', state.height);
+        fetchMergeConfigFile(state.userFile, function(text) {
+            state.useContent = text;
+            state.useLoaded = true;
+            var waiters = state.useWaiters || [];
+            state.useWaiters = null;
+            for (var i = 0; i < waiters.length; i++) {
+                try { waiters[i](); } catch (e) {}
+            }
+        });
+    }
+}
+
+function syncMergeEditorContent(state) {
+    if (!state || !state.instance) return;
+    if (state.isMerge && state.instance.a && state.instance.a.state) {
+        state.useContent = state.instance.a.state.doc.toString();
+    } else if (!state.isMerge && state.instance.state && state.showUse) {
+        state.useContent = state.instance.state.doc.toString();
+    }
+    if (state.id && state.id.dataset.ocModified === '1') {
+        state.id.value = state.useContent;
+    }
+}
+
 function config_merge_editor(id, id2, target, target2, readOnly, readOnly2, wid, height) {
     id.style.display = "none";
     id2.style.display = "none";
@@ -68,14 +145,14 @@ function config_merge_editor(id, id2, target, target2, readOnly, readOnly2, wid,
         updateMergeHelpText(false);
     }
 
+    var fname = 'config.yaml';
     var sectionDescr = wrapper.querySelector('.cbi-section-descr');
     if (sectionDescr) {
         sectionDescr.classList.add('config-editor-header', 'config-editor-title', 'oc-merge-section-descr');
         var text = sectionDescr.textContent.trim();
         var idx = text.indexOf(':');
         if (idx > 0) {
-            var label = text.substring(0, idx + 1);
-            var fname = text.substring(idx + 1).trim();
+            fname = text.substring(idx + 1).trim() || fname;
             sectionDescr.innerHTML = '<span id="config-file-name" class="config-file-name">' + fname + '</span>';
         }
         wrapper.insertBefore(sectionDescr, descr);
@@ -87,7 +164,6 @@ function config_merge_editor(id, id2, target, target2, readOnly, readOnly2, wid,
 
     var useContent = id.value || '';
     var defContent = id2.value || '';
-    var showUse = useContent !== '';
 
     window.mergeEditorState = {
         id: id,
@@ -96,19 +172,41 @@ function config_merge_editor(id, id2, target, target2, readOnly, readOnly2, wid,
         target2: target2,
         wid: wid,
         height: height,
+        fname: fname,
+        userFile: '/etc/openclash/config/' + fname,
+        runtimeFile: '/etc/openclash/' + fname,
         isMerge: false,
-        showUse: showUse,
+        showUse: true,
         useContent: useContent,
         defContent: defContent,
+        useLoaded: useContent !== '',
+        defLoaded: defContent !== '',
+        useWaiters: null,
+        defWaiters: null,
         instance: null,
         readOnlyCompartment: null,
         programmaticChange: false
     };
 
-    createSingleMergeEditor(showUse ? useContent : defContent, !showUse);
+    id.ocBeforeSubmit = function() {
+        syncMergeEditorContent(window.mergeEditorState);
+    };
 
     updateMergeToggleBtn();
     updateMergeTabs(false);
+
+    ocQueueEditor(target, function() {
+        var state = window.mergeEditorState;
+        if (!state || state.instance) return;
+        ensureMergeContent(state, 'use', function() {
+            if (state.instance) return;
+            var showUse = state.useContent !== '' || !state.defLoaded;
+            state.showUse = showUse;
+            createSingleMergeEditor(showUse ? state.useContent : state.defContent, !showUse);
+            updateMergeToggleBtn();
+            updateMergeTabs(false);
+        });
+    });
 
     var tabOriginal = document.getElementById('tab-original-config');
     var tabRuntime = document.getElementById('tab-runtime-config');
@@ -118,24 +216,25 @@ function config_merge_editor(id, id2, target, target2, readOnly, readOnly2, wid,
             e.preventDefault();
             var state = window.mergeEditorState;
             if (!state) return;
-            if (state.instance) {
-                if (state.isMerge && state.instance.a && state.instance.a.state) {
-                    state.useContent = state.instance.a.state.doc.toString();
-                } else if (!state.isMerge && state.instance.state) {
-                    var cur = state.instance.state.doc.toString();
-                    if (state.showUse) state.useContent = cur;
-                }
-            }
-            if (state.isMerge) {
-                state.showUse = true;
-                createSingleMergeEditor(state.useContent, false);
-                document.getElementById('my_editor_div').classList.remove('oc-hidden');
-            } else if (!state.showUse) {
-                state.showUse = true;
-                switchSingleTab(state.useContent, false);
-            }
-            updateMergeToggleBtn();
-            updateMergeTabs(false);
+            syncMergeEditorContent(state);
+            ocRequireCM6(function() {
+                ensureMergeContent(state, 'use', function() {
+                    if (state.isMerge) {
+                        state.showUse = true;
+                        createSingleMergeEditor(state.useContent, false);
+                        document.getElementById('my_editor_div').classList.remove('oc-hidden');
+                    } else if (!state.instance) {
+                        state.showUse = true;
+                        createSingleMergeEditor(state.useContent, false);
+                    } else if (!state.showUse) {
+                        state.showUse = true;
+                        switchSingleTab(state.useContent, false);
+                        ocHideLoading(state.target);
+                    }
+                    updateMergeToggleBtn();
+                    updateMergeTabs(false);
+                });
+            });
         };
     }
 
@@ -144,24 +243,25 @@ function config_merge_editor(id, id2, target, target2, readOnly, readOnly2, wid,
             e.preventDefault();
             var state = window.mergeEditorState;
             if (!state) return;
-            if (state.instance) {
-                if (state.isMerge && state.instance.a && state.instance.a.state) {
-                    state.useContent = state.instance.a.state.doc.toString();
-                } else if (!state.isMerge && state.instance.state) {
-                    var cur = state.instance.state.doc.toString();
-                    if (state.showUse) state.useContent = cur;
-                }
-            }
-            if (state.isMerge) {
-                state.showUse = false;
-                createSingleMergeEditor(state.defContent, true);
-                document.getElementById('my_editor_div').classList.remove('oc-hidden');
-            } else if (state.showUse) {
-                state.showUse = false;
-                switchSingleTab(state.defContent, true);
-            }
-            updateMergeToggleBtn();
-            updateMergeTabs(false);
+            syncMergeEditorContent(state);
+            ocRequireCM6(function() {
+                ensureMergeContent(state, 'def', function() {
+                    if (state.isMerge) {
+                        state.showUse = false;
+                        createSingleMergeEditor(state.defContent, true);
+                        document.getElementById('my_editor_div').classList.remove('oc-hidden');
+                    } else if (!state.instance) {
+                        state.showUse = false;
+                        createSingleMergeEditor(state.defContent, true);
+                    } else if (state.showUse) {
+                        state.showUse = false;
+                        switchSingleTab(state.defContent, true);
+                        ocHideLoading(state.target);
+                    }
+                    updateMergeToggleBtn();
+                    updateMergeTabs(false);
+                });
+            });
         };
     }
 }
@@ -169,20 +269,7 @@ function config_merge_editor(id, id2, target, target2, readOnly, readOnly2, wid,
 function switchSingleTab(content, readOnly) {
     var state = window.mergeEditorState;
     if (!state || !state.instance || state.isMerge) return;
-
-    var view = state.instance;
-    state.programmaticChange = true;
-    view.dispatch({
-        changes: { from: 0, to: view.state.doc.length, insert: content }
-    });
-    if (state.readOnlyCompartment) {
-        view.dispatch({
-            effects: state.readOnlyCompartment.reconfigure(
-                readOnly ? CM6.EditorState.readOnly.of(true) : []
-            )
-        });
-    }
-    state.programmaticChange = false;
+    createSingleMergeEditor(content, readOnly);
 }
 
 function createSingleMergeEditor(content, readOnly) {
@@ -215,8 +302,7 @@ function createSingleMergeEditor(content, readOnly) {
 
     exts.push(CM6.EditorView.updateListener.of(function(update) {
         if (update.docChanged && !state.programmaticChange) {
-            state.id.value = update.state.doc.toString();
-            state.useContent = update.state.doc.toString();
+            state.id.dataset.ocModified = '1';
         }
     }));
 
@@ -268,8 +354,7 @@ function renderMergeView() {
 
     extA.push(CM6.EditorView.updateListener.of(function(update) {
         if (update.docChanged) {
-            state.id.value = update.state.doc.toString();
-            state.useContent = update.state.doc.toString();
+            state.id.dataset.ocModified = '1';
         }
     }));
 
@@ -349,33 +434,37 @@ function toggleMergeView() {
     var state = window.mergeEditorState;
     if (!state) return;
 
-    if (state.instance) {
-        if (state.isMerge && state.instance.a && state.instance.a.state) {
-            state.useContent = state.instance.a.state.doc.toString();
-        } else if (!state.isMerge && state.instance.state) {
-            var cur = state.instance.state.doc.toString();
-            if (state.showUse) state.useContent = cur;
-        }
-    }
+    syncMergeEditorContent(state);
 
     var wasFullscreen = window.ocFullscreenActive;
+
+    function finishToggle() {
+        updateMergeToggleBtn();
+        updateMergeTabs(state.isMerge);
+        updateMergeHelpText(state.isMerge);
+
+        if (wasFullscreen && CM6 && CM6.toggleFullscreen) {
+            var target = state.instance && state.instance.dom ? state.instance.dom : null;
+            if (!target && CM6.getActiveEditor) target = CM6.getActiveEditor();
+            if (target) CM6.toggleFullscreen(target);
+        }
+    }
 
     if (state.isMerge) {
         state.showUse = true;
         createSingleMergeEditor(state.useContent, false);
         document.getElementById('my_editor_div').classList.remove('oc-hidden');
+        finishToggle();
     } else {
-        renderMergeView();
-        document.getElementById('my_editor_div').classList.add('oc-hidden');
-    }
-    updateMergeToggleBtn();
-    updateMergeTabs(state.isMerge);
-    updateMergeHelpText(state.isMerge);
-
-    if (wasFullscreen && CM6 && CM6.toggleFullscreen) {
-        var target = state.instance && state.instance.dom ? state.instance.dom : null;
-        if (!target && CM6.getActiveEditor) target = CM6.getActiveEditor();
-        if (target) CM6.toggleFullscreen(target);
+        ocRequireCM6(function() {
+            ensureMergeContent(state, 'use', function() {
+                ensureMergeContent(state, 'def', function() {
+                    renderMergeView();
+                    document.getElementById('my_editor_div').classList.add('oc-hidden');
+                    finishToggle();
+                });
+            });
+        });
     }
 }
 

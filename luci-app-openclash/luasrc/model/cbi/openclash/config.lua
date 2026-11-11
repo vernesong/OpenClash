@@ -345,10 +345,10 @@ sev = s:option(TextValue, "user")
 sev.rows = 40
 sev.wrap = "off"
 sev.cfgvalue = function(self, section)
-	return fs.readfile(conf) or fs.readfile(dconf) or ""
+	return ""
 end
 sev.write = function(self, section, value)
-if (CHIF == "0" and value and value ~= "oc-editor-streamed") then
+if (CHIF == "0" and value and value ~= "" and value ~= "oc-editor-streamed") then
 	value = value:gsub("\r\n?", "\n")
 	local old_value = fs.readfile(conf)
 	if value ~= old_value then
@@ -367,7 +367,7 @@ def.rows = 40
 def.wrap = "off"
 def.readonly = true
 def.cfgvalue = function(self, section)
-	return fs.readfile(sconf) or fs.readfile(dconf) or ""
+	return ""
 end
 def.write = function(self, section, value)
 end

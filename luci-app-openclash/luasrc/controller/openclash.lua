@@ -917,43 +917,67 @@ function get_sub_url(filename)
 	local config_path = "/etc/openclash/config/" .. fs.basename(filename .. ".yaml")
 
 	if fs.access(config_path) then
-		local ruby_result = SYS.exec(string.format([[
-			ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e '
-			begin
-				config = YAML.load_file("%s")
-				providers = []
-				if config && config["proxy-providers"]
-					config["proxy-providers"].each do |name, provider|
-						# Only include providers with non-empty URLs
-						if provider && provider["url"] && !provider["url"].to_s.empty?
-							providers << {"name" => name, "url" => provider["url"].to_s}
+		local has_pp = false
+		local f = io.open(config_path, "rb")
+		if f then
+			local tail = "\n"
+			while true do
+				local chunk = f:read(65536)
+				if not chunk then break end
+				local buf = tail .. chunk
+				local pos = buf:find("\nproxy-providers:", 1, true)
+				if pos then
+					local rest = buf:sub(pos + 17, pos + 200):match("^([^\r\n]*)") or ""
+					local inline = rest:match("^%s*(.-)%s*$")
+					if inline == "" or inline:sub(1, 1) == "#" or (inline ~= "{}" and inline ~= "~" and inline ~= "null") then
+						has_pp = true
+					end
+					break
+				end
+				tail = chunk:sub(-32)
+			end
+			f:close()
+		end
+
+		if has_pp then
+			local ruby_result = SYS.exec(string.format([[
+				ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e '
+				begin
+					config = YAML.load_file("%s")
+					providers = []
+					if config && config["proxy-providers"]
+						config["proxy-providers"].each do |name, provider|
+							# Only include providers with non-empty URLs
+							if provider && provider["url"] && !provider["url"].to_s.empty?
+								providers << {"name" => name, "url" => provider["url"].to_s}
+							end
 						end
 					end
+					# Manual JSON output (ruby-json is not a dependency)
+					result = "["
+					providers.each_with_index do |p, i|
+						result << "," if i > 0
+						# Escape quotes in name and URL
+						name_escaped = p["name"].gsub("\"", "\\\\\"")
+						url_escaped = p["url"].gsub("\"", "\\\\\"")
+						result << "{\"name\":\"#{name_escaped}\",\"url\":\"#{url_escaped}\"}"
+					end
+					result << "]"
+					puts result
+				rescue => e
+					puts "[]"
 				end
-				# Manual JSON output (ruby-json is not a dependency)
-				result = "["
-				providers.each_with_index do |p, i|
-					result << "," if i > 0
-					# Escape quotes in name and URL
-					name_escaped = p["name"].gsub("\"", "\\\\\"")
-					url_escaped = p["url"].gsub("\"", "\\\\\"")
-					result << "{\"name\":\"#{name_escaped}\",\"url\":\"#{url_escaped}\"}"
+				' 2>/dev/null || echo '[]'
+			]], config_path)):gsub("\n", "")
+
+			if ruby_result and ruby_result ~= "" and ruby_result ~= "[]" then
+				local success, parsed_providers = pcall(function()
+					return json.parse(ruby_result)
+				end)
+
+				if success and parsed_providers and #parsed_providers > 0 then
+					return {type = "multiple", providers = parsed_providers}
 				end
-				result << "]"
-				puts result
-			rescue => e
-				puts "[]"
-			end
-			' 2>/dev/null || echo '[]'
-		]], config_path)):gsub("\n", "")
-
-		if ruby_result and ruby_result ~= "" and ruby_result ~= "[]" then
-			local success, parsed_providers = pcall(function()
-				return json.parse(ruby_result)
-			end)
-
-			if success and parsed_providers and #parsed_providers > 0 then
-				return {type = "multiple", providers = parsed_providers}
 			end
 		end
 	end
@@ -5066,6 +5090,8 @@ function action_config_file_read()
 	local allow = false
 	if config_file == "/etc/openclash/custom/openclash_custom_overwrite.sh" then
 		allow = true
+	elseif config_file == "/usr/share/openclash/res/default.yaml" then
+		allow = true
 	elseif config_file:match("^/etc/openclash/overwrite/[^/]+$") and not string.find(config_file, "%.%.") then
 		allow = true
 	elseif config_file:match("^/etc/openclash/[^/]+%.ya?ml$") then
@@ -5080,6 +5106,10 @@ function action_config_file_read()
 	end
 
 	local stat = fs.stat(config_file)
+	if not stat and HTTP.formvalue("fallback") == "default" then
+		config_file = "/usr/share/openclash/res/default.yaml"
+		stat = fs.stat(config_file)
+	end
 	if stat and stat.type ~= "regular" then
 		HTTP.status(500, "Config file is not a regular file")
 		return
@@ -5099,6 +5129,20 @@ function action_config_file_read()
 	if not file then
 		return
 	end
+	local first_chunk = file:read(65536)
+	if not first_chunk then
+		file:close()
+		return
+	end
+	if first_chunk:sub(1, 1024):find("BEGIN AGE ENCRYPTED FILE", 1, true) then
+		file:close()
+		local decrypted = fs.readfile(config_file)
+		if decrypted then
+			write_raw(decrypted)
+		end
+		return
+	end
+	write_raw(first_chunk)
 	while true do
 		local chunk = file:read(65536)
 		if not chunk then break end
