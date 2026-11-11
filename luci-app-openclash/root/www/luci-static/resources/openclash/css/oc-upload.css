@@ -502,11 +502,7 @@ html[data-darkmode="true"] .oc .upload-btn:disabled {
     opacity: 0.55;
 }
 
-html[data-darkmode="true"] .oc .sub-convert-options {
-    background: var(--primary-a5);
-    border-color: var(--border-light);
-}
-
+html[data-darkmode="true"] .oc .sub-convert-options,
 html[data-darkmode="true"] .oc .advanced-options-container {
     background: var(--primary-a5);
     border-color: var(--border-light);
@@ -577,6 +573,8 @@ html[data-darkmode="true"] .oc .sub-convert-options .sub-convert-options {
 .oc .oc-sub-console-b .cm-scroller { font: 11.5px/1.7 ui-monospace, SFMono-Regular, Consolas, monospace; padding: 4px 2px; }
 .oc .oc-sub-console-b .cm-gutters { display: none; }
 .oc .oc-sub-console-b .cm-content { padding: 0 6px; }
+/* only the log box grows inside the start dialog; the dialog keeps its content height */
+.oc #core-start-content .oc-sub-console-b { height: 40vh; min-height: 168px; }
 .oc .oc-sub-note { --note-fs: 12.5px; --note-lh: 1.6; --note-mark: 16px; display: flex; align-items: flex-start; gap: 8px; margin-top: 12px; padding: 8px 10px; border-left: 3px solid var(--primary-color); border-right: 3px solid var(--primary-color); background: var(--primary-a5); border-radius: var(--radius-sm); font-size: var(--note-fs); line-height: var(--note-lh); color: var(--text-primary); }
 .oc .oc-sub-note-ok { border-left-color: var(--success-color); border-right-color: var(--success-color); background: var(--success-a5); color: var(--success-dark); }
 /* flex-start + the token-derived offset keep the badge on the first line (never hand-tune it) */
@@ -627,7 +625,6 @@ html[data-darkmode="true"] .oc .oc-sub-box { background: var(--primary-a5); }
 .oc .oc-sub-bar-top b { flex: 0 1 auto; min-width: 0; font-size: 20px; font-weight: 600; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .oc #sub-view-result { padding-top: 16px; }
 .oc .oc-sub-empty { padding: 12px 16px; background: var(--bg-light); border: 1px solid var(--border-light); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 12.5px; }
-.oc .oc-sub-empty-top { margin-top: 12px; }
 html[data-darkmode="true"] .oc .oc-sub-empty { background: var(--bg-gray); }
 /* Summary charts (donut / target bars / composition rows) */
 .oc .oc-charts-grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 8px; margin-top: 12px; }

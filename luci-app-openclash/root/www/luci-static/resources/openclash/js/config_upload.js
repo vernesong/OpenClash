@@ -705,6 +705,8 @@ var SubPanel = {
     swStage: 0,
     seconds: 0,
     timer: null,
+    timerStart: 0,
+    streamEndAt: 0,
     logLineCount: null,
     lastParams: null,
     resultSize: null,
@@ -850,15 +852,25 @@ var SubPanel = {
         var self = this;
         var label = this.el(labelId);
         this.stopTimer();
+        this.timerStart = Date.now();
+        this.streamEndAt = 0;
         this.seconds = 0;
         if (label) label.textContent = '00:00';
         this.timer = setInterval(function() {
-            self.seconds += 1;
+            self.seconds = self.elapsedSeconds();
             var m = Math.floor(self.seconds / 60);
             var s = self.seconds % 60;
             if (label) label.textContent = (m < 10 ? '0' + m : m) + ':' + (s < 10 ? '0' + s : s);
             if (max && self.seconds >= max) self.stopTimer();
         }, 1000);
+    },
+
+    // wall clock instead of tick counting: a throttled background tab must not stall the
+    // clock, and the script exit stamp must win over the later runtime poll
+    elapsedSeconds: function() {
+        if (!this.timerStart) return this.seconds || 0;
+        var until = this.streamEndAt > this.timerStart ? this.streamEndAt : Date.now();
+        return Math.max(0, Math.round((until - this.timerStart) / 1000));
     },
 
     stopTimer: function() {
@@ -874,13 +886,17 @@ var SubPanel = {
         if (typeof LogManager === 'undefined') return;
         if (LogManager.stream && LogManager.stream !== stream) {
             LogManager.stream.abort();
+            // the status box kept the aborted run's lines; leave them out of later dialogs
+            if (LogManager.resetLogBox) LogManager.resetLogBox();
         }
         LogManager.stream = stream;
+        LogManager.scriptDone = false;
     },
 
     releaseLogStream: function(stream) {
         if (typeof LogManager !== 'undefined' && LogManager.stream === stream) {
             LogManager.stream = null;
+            LogManager.scriptDone = true;
         }
     },
 
@@ -923,9 +939,27 @@ var SubPanel = {
             });
             host.appendChild(view.dom);
             host.ocFollow = true;
+            host.ocDragging = false;
+            host.ocPending = '';
             view.scrollDOM.addEventListener('scroll', function() {
                 host.ocFollow = view.scrollDOM.scrollTop + view.scrollDOM.clientHeight >= view.scrollDOM.scrollHeight - 24;
             });
+            // appended lines resize the thumb under the pointer, which breaks the drag; hold
+            // the text while the native bar is grabbed (pointerdown lands on the scroller itself)
+            view.scrollDOM.addEventListener('pointerdown', function(e) {
+                if (e.button === 0 && e.target === view.scrollDOM) host.ocDragging = true;
+            });
+            var releaseDrag = function() {
+                if (!host.ocDragging) return;
+                host.ocDragging = false;
+                var pending = host.ocPending;
+                host.ocPending = '';
+                if (pending) SubPanel.appendLog(hostId, pending);
+            };
+            window.addEventListener('pointerup', releaseDrag);
+            window.addEventListener('pointercancel', releaseDrag);
+            // a release outside the window never reaches the page: unblock the console
+            window.addEventListener('blur', releaseDrag);
             host.ocLogView = view;
             if (CM6.dispatchTheme) CM6.dispatchTheme(view, isDark);
             cb(host);
@@ -936,6 +970,7 @@ var SubPanel = {
         var host = this.el(hostId);
         if (host && host.ocLogView) {
             host.ocFollow = true;
+            host.ocPending = '';
             host.ocLogView.dispatch({ changes: { from: 0, to: host.ocLogView.state.doc.length, insert: '' } });
         }
     },
@@ -943,6 +978,12 @@ var SubPanel = {
     appendLog: function(hostId, text) {
         var host = this.el(hostId);
         if (!host || !host.ocLogView) return;
+        if (host.ocDragging) {
+            host.ocPending = host.ocPending ? host.ocPending + '\n' + text : text;
+            return;
+        }
+        text = (host.ocPending ? host.ocPending + '\n' : '') + text;
+        host.ocPending = '';
         var view = host.ocLogView;
         // Every stream response starts with an 8KB space line that flushes the proxy buffer.
         var body = text.replace(/ {4096,}/g, '').replace(/^\n+/, '');
@@ -993,6 +1034,7 @@ var SubPanel = {
             },
             onFinish: function() {
                 self.releaseLogStream(stream);
+                self.streamEndAt = stream.endTime ? stream.endTime() : Date.now();
                 self.stream = null;
                 self.streamDone = true;
             },
@@ -1009,13 +1051,15 @@ var SubPanel = {
     },
 
     // Stream lines arrive translated, so every match lists the shipped languages.
+    // Subscription steps: 1 request, 2 download, 3 validation, 4 write config.
     stageFromLog: function(text) {
-        if (/测试成功|Test Successful|configuración válido/i.test(text)) this.kernelResult = 'ok';
-        else if (/测试失败|Tested Failed|configuración ha fallado/i.test(text)) this.kernelResult = 'fail';
+        if (/测试成功|Test Successful|configuración válido|prueba exitosa/i.test(text)) this.kernelResult = 'ok';
+        else if (/测试失败|Tested Failed|configuración ha fallado|prueba fallida/i.test(text)) this.kernelResult = 'fail';
         if (this.view !== 'progress') return;
-        if (/更新成功|Update Successful|Actualización realizada/i.test(text)) this.setStage(4);
-        else if (/开始创建|开始替换|Start To Create|Start Replacing|creando nuevo/i.test(text)) this.setStage(3);
-        else if (/下载成功|Download Successful|Descarga completada/i.test(text)) this.setStage(2);
+        if (/更新成功|Update Successful|Actualización completada/i.test(text)) this.setStage(4);
+        else if (/开始创建|开始替换|Start To Create|Start Replacing|creando nuevo|iniciando reemplazo/i.test(text)) this.setStage(4);
+        else if (/测试成功|Test Successful|configuración válido|prueba exitosa/i.test(text)) this.setStage(3);
+        else if (/下载成功|Download Successful|descargado correctamente|Descarga completada/i.test(text)) this.setStage(2);
         else if (/开始更新配置文件|Start Updating|Iniciando actualización/i.test(text)) this.setStage(1);
     },
 
@@ -1517,15 +1561,11 @@ var SubPanel = {
             this.chartSource = source;
             if (this.chartsFailed || this.chartsPending) return;
             var self = this;
-            var url = window.ocChartUrl || ('/luci-static/resources/openclash/js/chart.umd.min.js?v=' + (window.ocPluginVer || ''));
             this.chartsPending = true;
-            ocRequireScript(url, function() {
+            ocRequireChart(function(ok) {
                 self.chartsPending = false;
-                if (typeof Chart !== 'undefined') {
-                    if (self.view === 'result') self.renderCharts(self.chartSource);
-                    return;
-                }
-                self.chartsFailed = true;
+                if (!ok) { self.chartsFailed = true; return; }
+                if (self.view === 'result') self.renderCharts(self.chartSource);
             });
             return;
         }
@@ -1742,7 +1782,7 @@ var SubPanel = {
         CoreStartFlow.beginRun();
         this.resetSwitchStage();
         this.stopPoll();
-        this.startTimer('sw-elapsed', 0);
+        this.streamEndAt = 0;
         this.startStream('sw-log-host', 'init');
         XHR.get('<%=url("admin", "services", "openclash", "switch_config")%>', {
             config_file: '/etc/openclash/config/' + name + '.yaml'
@@ -1818,10 +1858,8 @@ var SubPanel = {
     },
 
     finishSwitchFail: function(message) {
-        this.stopTimer();
         this.stopPoll();
-        CoreStartFlow.lastElapsed = this.seconds || 0;
-        CoreStartFlow.dropSession();
+        CoreStartFlow.freezeElapsed();
         this.failed = true;
         var retry = this.el('sw-retry-btn');
         if (retry) retry.classList.remove('oc-hidden');
@@ -1840,10 +1878,8 @@ var SubPanel = {
     },
 
     finishSwitch: function() {
-        this.stopTimer();
         this.stopPoll();
-        CoreStartFlow.lastElapsed = this.seconds || 0;
-        CoreStartFlow.dropSession();
+        CoreStartFlow.freezeElapsed();
         var retry = this.el('sw-retry-btn');
         if (retry) retry.classList.add('oc-hidden');
         this.markStatusDone();
@@ -2352,12 +2388,11 @@ var TemplatePreview = {
             var self = this;
             this.chartData = data;
             if (this.chartsPending || this.chartsFailed) return;
-            var url = window.ocChartUrl || ('/luci-static/resources/openclash/js/chart.umd.min.js?v=' + (window.ocPluginVer || ''));
             this.chartsPending = true;
-            ocRequireScript(url, function() {
+            ocRequireChart(function(ok) {
                 self.chartsPending = false;
-                if (typeof Chart !== 'undefined') self.renderCharts(self.chartData);
-                else self.chartsFailed = true;
+                if (!ok) { self.chartsFailed = true; return; }
+                self.renderCharts(self.chartData);
             });
             return;
         }
@@ -3999,43 +4034,14 @@ var ConfigUploader = {
 
     addHeaderRow: function(name, value) {
         var container = document.getElementById('subscribe-headers-container');
-        var row = document.createElement('div');
-        row.className = 'form-row header-row';
-        row.style.cssText = 'align-items: center; gap: 6px; margin-bottom: 6px;';
-
-        var nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.className = 'form-input';
-        nameInput.placeholder = 'Header-Name';
-        nameInput.value = name || '';
-        nameInput.style.cssText = 'flex: 1; height: 32px;';
-
-        var valueInput = document.createElement('input');
-        valueInput.type = 'text';
-        valueInput.className = 'form-input';
-        valueInput.placeholder = 'value';
-        valueInput.value = value || '';
-        valueInput.style.cssText = 'flex: 1.5; height: 32px;';
-
-        var removeBtn = document.createElement('button');
-        removeBtn.type = 'button';
-        removeBtn.className = 'icon-btn';
-        removeBtn.title = '<%:Remove%>';
-        removeBtn.style.cssText = 'flex-shrink: 0;';
-        removeBtn.innerHTML = '<svg width="14" height="14"><use href="#oc-icon-close"/></svg>';
-        removeBtn.addEventListener('click', function() {
-            row.parentNode.removeChild(row);
-            if (container.children.length === 0) {
-                container.classList.add('oc-hidden');
-            }
-            ConfigUploader.updateFoldSummaries();
+        ocKeyValueRow(container, {
+            rowClass: 'header-row',
+            keyPlaceholder: 'Header-Name',
+            valuePlaceholder: 'value',
+            key: name,
+            value: value,
+            onRemove: function() { ConfigUploader.updateFoldSummaries(); }
         });
-
-        row.appendChild(nameInput);
-        row.appendChild(valueInput);
-        row.appendChild(removeBtn);
-        container.appendChild(row);
-        container.classList.remove('oc-hidden');
         this.updateFoldSummaries();
     },
 
@@ -4073,12 +4079,12 @@ var ConfigUploader = {
 var CoreStartFlow = {
     overlay: null,
     mode: '',
-    mirrorTimer: null,
+    logListener: null,
     shownLines: 0,
     lastMirrored: null,
     lastElapsed: 0,
     sessionStart: 0,
-    viewTimer: null,
+    clockTimer: null,
     viewPollTimer: null,
     viewPollXhr: null,
     viewRestartSeen: false,
@@ -4101,13 +4107,12 @@ var CoreStartFlow = {
     },
 
     beginRun: function() {
-        if (this.mirrorTimer) {
-            clearInterval(this.mirrorTimer);
-            this.mirrorTimer = null;
-        }
+        this.stopLogMirror();
         this.mode = 'run';
-        // keep the start time: a later log dialog resumes the session with a live clock
-        try { sessionStorage.setItem('ocCoreStartAt', String(Date.now())); } catch (e) {}
+        // one start stamp feeds the dialog clock and the session the log viewer resumes
+        var started = Date.now();
+        try { sessionStorage.setItem('ocCoreStartAt', String(started)); } catch (e) {}
+        this.startClock(started);
         if (typeof window.ocStatusMarkCoreStart === 'function') window.ocStatusMarkCoreStart();
         var title = document.getElementById('core-start-title');
         if (title) title.textContent = '<%:Program starting...%>';
@@ -4140,12 +4145,12 @@ var CoreStartFlow = {
         this.lastMirrored = null;
         this.viewRestartSeen = false;
         this.downPolls = 0;
-        this.sessionStart = 0;
-        try {
-            var started = parseInt(sessionStorage.getItem('ocCoreStartAt') || '0', 10);
-            if (started && Date.now() - started < 600000) this.sessionStart = started;
-            else if (started) sessionStorage.removeItem('ocCoreStartAt');
-        } catch (e) {}
+        // only a running operation owns the mirrored lines; a finished one would be
+        // replayed together with its stale clock
+        if (!(window.ocStatusLogLive && window.ocStatusLogLive()) && window.ocStatusResetLog) {
+            window.ocStatusResetLog();
+        }
+        this.adoptSession();
         this.showOverlay();
         var stepper = SubPanel.el('sw-stepper');
         if (stepper) stepper.classList.add('oc-hidden');
@@ -4156,9 +4161,10 @@ var CoreStartFlow = {
         if (title) title.textContent = '<%:Running Log%>';
         SubPanel.resetSwitchStage(true);
         SubPanel.stopTimer();
-        this.updateViewElapsed();
-        if (this.sessionStart) {
-            this.viewTimer = setInterval(function() { self.updateViewElapsed(); }, 1000);
+        this.stopLogMirror();
+        if (window.ocStatusWatchLog) {
+            this.logListener = function(lines, reset) { self.onLogUpdate(lines, reset); };
+            window.ocStatusWatchLog(this.logListener);
         }
         var status = SubPanel.el('sw-status');
         if (status) status.textContent = '';
@@ -4168,13 +4174,94 @@ var CoreStartFlow = {
             self.syncLog();
         });
         this.viewPoll(0);
-        this.mirrorTimer = setInterval(function() { self.syncLog(); }, 1500);
+    },
+
+    // the shared stream pushes every new line, so the dialog mirrors it without a timer;
+    // open/reset replay the buffer, steady-state appends only touch the new lines
+    onLogUpdate: function(lines, reset) {
+        if (this.mode !== 'view') return;
+        if (reset) {
+            this.shownLines = 0;
+            this.lastMirrored = null;
+            SubPanel.clearLog('sw-log-host');
+            this.adoptSession();
+            this.syncLog();
+            return;
+        }
+        var host = SubPanel.el('sw-log-host');
+        if (!host || !host.ocLogView) return;
+        if (!lines || !lines.length) return;
+        SubPanel.appendLog('sw-log-host', lines.join('\n'));
+        this.shownLines += lines.length;
+        this.lastMirrored = lines[lines.length - 1];
+    },
+
+    stopLogMirror: function() {
+        if (!this.logListener) return;
+        if (window.ocStatusUnwatchLog) window.ocStatusUnwatchLog(this.logListener);
+        this.logListener = null;
+    },
+
+    adoptSession: function() {
+        this.sessionStart = 0;
+        if (window.ocStatusLogLive && window.ocStatusLogLive()) {
+            try {
+                var started = parseInt(sessionStorage.getItem('ocCoreStartAt') || '0', 10);
+                if (started && Date.now() - started < 600000) this.sessionStart = started;
+                else if (started) sessionStorage.removeItem('ocCoreStartAt');
+            } catch (e) {}
+        }
+        if (!this.sessionStart) this.lastElapsed = 0;
+        if (this.sessionStart) {
+            this.startClock(this.sessionStart);
+        } else {
+            this.stopClock();
+            this.updateViewElapsed();
+        }
+    },
+
+    // one clock for both entry points (summary switch and log viewer): wall clock from
+    // the start stamp, so a throttled tab cannot stall it
+    startClock: function(startedAt) {
+        var self = this;
+        this.stopClock();
+        this.sessionStart = startedAt || Date.now();
+        this.updateViewElapsed();
+        this.clockTimer = setInterval(function() { self.updateViewElapsed(); }, 1000);
+    },
+
+    stopClock: function() {
+        if (this.clockTimer) {
+            clearInterval(this.clockTimer);
+            this.clockTimer = null;
+        }
+    },
+
+    // ##FINISHED## stamps the real end; the runtime poll notices it seconds later
+    sessionEndAt: function() {
+        var page = window.ocStatusCoreEndAt ? window.ocStatusCoreEndAt() : 0;
+        var run = SubPanel.streamEndAt || 0;
+        return page > run ? page : run;
+    },
+
+    sessionElapsed: function() {
+        if (!this.sessionStart) return this.lastElapsed || 0;
+        var end = this.sessionEndAt();
+        var until = end > this.sessionStart ? end : Date.now();
+        return Math.max(0, Math.round((until - this.sessionStart) / 1000));
+    },
+
+    freezeElapsed: function() {
+        this.lastElapsed = this.sessionElapsed();
+        this.stopClock();
+        this.dropSession();
+        this.updateViewElapsed();
     },
 
     updateViewElapsed: function() {
         var elapsed = SubPanel.el('sw-elapsed');
         if (!elapsed) return;
-        var s = this.sessionStart ? Math.max(0, Math.round((Date.now() - this.sessionStart) / 1000)) : (this.lastElapsed || 0);
+        var s = this.sessionElapsed();
         var m = Math.floor(s / 60);
         elapsed.textContent = (m < 10 ? '0' + m : m) + ':' + ((s % 60) < 10 ? '0' + (s % 60) : (s % 60));
     },
@@ -4227,13 +4314,7 @@ var CoreStartFlow = {
             this.downPolls = (this.downPolls || 0) + 1;
             if (this.sessionStart && scriptDone && this.downPolls >= 10) {
                 // the script is gone and the service stays down: end the session so the clock freezes
-                CoreStartFlow.lastElapsed = Math.max(0, Math.round((Date.now() - this.sessionStart) / 1000));
-                this.dropSession();
-                if (this.viewTimer) {
-                    clearInterval(this.viewTimer);
-                    this.viewTimer = null;
-                }
-                this.updateViewElapsed();
+                this.freezeElapsed();
             }
             return;
         }
@@ -4255,13 +4336,7 @@ var CoreStartFlow = {
         SubPanel.setSwitchStage(4);
         if (this.sessionStart) {
             // the session carried over from another page ends here: freeze the elapsed time
-            CoreStartFlow.lastElapsed = Math.max(0, Math.round((Date.now() - this.sessionStart) / 1000));
-            this.dropSession();
-            if (this.viewTimer) {
-                clearInterval(this.viewTimer);
-                this.viewTimer = null;
-            }
-            this.updateViewElapsed();
+            this.freezeElapsed();
         }
     },
 
@@ -4272,6 +4347,9 @@ var CoreStartFlow = {
 
     syncLog: function() {
         if (this.mode !== 'view') return;
+        // advancing the cursor without a view would swallow the first lines on a cold CM6 load
+        var host = SubPanel.el('sw-log-host');
+        if (!host || !host.ocLogView) return;
         var lines = (window.ocStatusLogLines && window.ocStatusLogLines()) || [];
         // realign when another operation emptied the status log array: a stale cursor
         // would freeze the mirror forever
@@ -4288,14 +4366,8 @@ var CoreStartFlow = {
     },
 
     close: function() {
-        if (this.mirrorTimer) {
-            clearInterval(this.mirrorTimer);
-            this.mirrorTimer = null;
-        }
-        if (this.viewTimer) {
-            clearInterval(this.viewTimer);
-            this.viewTimer = null;
-        }
+        this.stopLogMirror();
+        this.stopClock();
         if (this.viewPollTimer) {
             clearTimeout(this.viewPollTimer);
             this.viewPollTimer = null;

@@ -322,7 +322,7 @@ const mihomoSnippets = [
     snippetCompletion("- name: \"#{1}\"\n  type: http\n  server: \"#{2}\"\n  port: #{3}\n  # username: \"\"\n  # password: \"\"\n  # tls: true\n  # skip-cert-verify: true\n#{}", {
         label: "http-template", type: "snippet", detail: "HTTP node"
     }),
-    snippetCompletion("- name: \"#{1}\"\n  type: snell\n  server: \"#{2}\"\n  port: #{3}\n  psk: \"#{4}\"\n  version: #{5}\n  # udp: true\n  # obfs-opts:\n  #   mode: http\n  #   host: bing.com\n#{}", {
+    snippetCompletion("- name: \"#{1}\"\n  type: snell\n  server: \"#{2}\"\n  port: #{3}\n  psk: \"#{4}\"\n  version: #{5}\n  # udp: true\n  # reuse: false\n  # mode: default # v6 only: default / unshaped / unsafe-raw\n  # obfs-opts:\n  #   mode: http\n  #   host: bing.com\n#{}", {
         label: "snell-template", type: "snippet", detail: "Snell node"
     }),
     snippetCompletion("- name: \"#{1}\"\n  type: hysteria\n  server: \"#{2}\"\n  port: #{3}\n  auth-str: \"#{4}\"\n  protocol: udp\n  up: \"#{5}\"\n  down: \"#{6}\"\n  # sni: \"\"\n  # skip-cert-verify: false\n  # alpn:\n  #   - h3\n#{}", {

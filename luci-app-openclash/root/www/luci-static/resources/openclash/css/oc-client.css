@@ -257,10 +257,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
     min-width: 0;
 }
 
-.oc .status-header-row .version-display {
-    min-width: 0;
-}
-
+.oc .status-header-row .version-display,
 .oc .status-header-row .version-display .version-text {
     min-width: 0;
 }
@@ -281,13 +278,6 @@ html[data-darkmode="true"] .oc .config-select:focus {
     gap: var(--file-content-gap);
     flex: 1;
     min-height: 0;
-}
-
-.oc .config-file-top {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    width: 100%;
 }
 
 .oc .card-value {
@@ -669,10 +659,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
     background: var(--border-light);
 }
 
-.oc .cbi-button-group .cbi-button-option:first-of-type::before {
-    display: none;
-}
-
+.oc .cbi-button-group .cbi-button-option:first-of-type::before,
 .oc input[type="radio"]:checked + .cbi-button-option::before {
     display: none;
 }
@@ -995,15 +982,6 @@ html[data-darkmode="true"] .oc .config-select:focus {
     font-weight: 500;
 }
 
-.oc .config-subscription-info {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    flex: 1;
-    min-width: 0;
-    margin-left: 16px;
-}
-
 .oc .subscription-info-container {
     background: var(--bg-white);
     border: 1px solid var(--border-light);
@@ -1256,10 +1234,7 @@ html[data-darkmode="true"] .oc .config-select:focus {
     cursor: grabbing;
 }
 
-.oc .subscription-providers-grid[data-count="1"] {
-    overflow-x: hidden;
-}
-
+.oc .subscription-providers-grid[data-count="1"],
 .oc .subscription-providers-grid[data-count="2"],
 .oc .subscription-providers-grid[data-count="3"] {
     overflow-x: hidden;
@@ -1290,8 +1265,6 @@ html[data-darkmode="true"] .oc .config-select:focus {
 
 /* For 3+ providers, fixed 33.333% width */
 /* data-count="3" uses the base rule: flex: 0 0 calc(33.333% - 8px) */
-.oc .subscription-loading,
-.oc .subscription-error,
 .oc .subscription-no-info {
     display: flex;
     align-items: center;
@@ -1301,10 +1274,6 @@ html[data-darkmode="true"] .oc .config-select:focus {
     text-align: center;
     min-height: 40px;
     flex: 1;
-}
-
-.oc .subscription-error {
-    color: var(--error-color);
 }
 
 .oc .subscription-nav-arrow {
@@ -2136,11 +2105,7 @@ html[data-darkmode="true"] .oc .myip-card-icon.ic-steam { color: #66C0F4; }
     background: var(--btn-primary-hover, #2563eb);
 }
 
-.oc .myip-find-btn:disabled {
-    cursor: default;
-    opacity: 0.6;
-}
-
+.oc .myip-find-btn:disabled,
 .oc .myip-find-btn.oc-disabled {
     cursor: default;
     opacity: 0.6;
@@ -2730,8 +2695,7 @@ html[data-darkmode="true"] .oc .myip-gear-state {
 .oc .myip-toolbar #mode-icon.mode-browser .mode-line,
 .oc .myip-toolbar #mode-icon.mode-browser .mode-dot { fill: currentColor; stroke: currentColor; }
 
-.oc .myip-toolbar #unlock-icon.oc-unlock-on { color: var(--primary-color); }
-
+.oc .myip-toolbar #unlock-icon.oc-unlock-on,
 .oc .myip-toolbar #unlock-gear-icon.oc-gear-on { color: var(--primary-color); }
 
 .oc .developer-container {
@@ -2945,18 +2909,12 @@ html[data-darkmode="true"] .oc .card .additional {
     background: linear-gradient(var(--card-accent), var(--slate-500));
 }
 
-html[data-darkmode="true"] .oc .card .general .oix-title {
-    color: var(--slate-200);
-}
-
+html[data-darkmode="true"] .oc .card .general .oix-title,
 html[data-darkmode="true"] .oc .card .general .oix-result {
     color: var(--slate-200);
 }
 
-html[data-darkmode="true"] .oc .card .general .oix-result2 {
-    color: var(--slate-200);
-}
-
+html[data-darkmode="true"] .oc .card .general .oix-result2,
 html[data-darkmode="true"] .oc .card .general h1 {
     color: var(--slate-200);
 }
@@ -2965,10 +2923,7 @@ html[data-darkmode="true"] .oc .card .additional .user-card::after {
     border-left: 2px solid #ffffff33;
 }
 
-html[data-darkmode="true"] .oc .card .additional .more-info h1 {
-    color: var(--slate-100);
-}
-
+html[data-darkmode="true"] .oc .card .additional .more-info h1,
 html[data-darkmode="true"] .oc .card .additional .coords {
     color: var(--slate-100);
 }
@@ -3185,13 +3140,7 @@ html[data-darkmode="true"] .oc .oix-announcement {
     position: relative;
 }
 
-.oc .card .general .oix-info-left {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    overflow: visible;
-}
-
+.oc .card .general .oix-info-left,
 .oc .card .general .oix-info-center {
     display: flex;
     flex-direction: column;
@@ -3242,20 +3191,7 @@ html[data-darkmode="true"] .oc .oix-announcement {
     text-align: left;
 }
 
-.oc .card .general .oix-result {
-    color: var(--text-secondary) !important;
-    font-size: 15px;
-    white-space: nowrap;
-    display: inline-block;
-    width: 55%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    vertical-align: bottom;
-    text-align: right;
-    line-height: 25px;
-    height: 25px;
-}
-
+.oc .card .general .oix-result,
 .oc .card .general .oix-result2 {
     color: var(--text-secondary) !important;
     font-size: 15px;
@@ -4003,7 +3939,7 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
 .oc .ac-switch button:disabled { cursor: default; }
 .oc .ac-switch.ac-disabled { opacity: .55; }
 
-.oc .ac-metrics { display: contents; }
+.oc .ac-metrics,
 .oc .ac-rates { display: contents; }
 .oc .ac-conns {
     width: 52px; flex: 0 0 auto; display: flex; align-items: center; justify-content: center;
@@ -4011,7 +3947,7 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
     font-variant-numeric: tabular-nums;
 }
 .oc .ac-conns.ac-zero { color: var(--text-secondary); font-weight: 600; }
-.oc .ac-conns .ac-conns-label { display: none; }
+.oc .ac-conns .ac-conns-label,
 .oc .ac-conns .ac-conns-off-label { display: none; }
 .oc .ac-rc {
     width: 106px; flex: 0 0 auto; display: flex; flex-direction: column;
@@ -4059,7 +3995,7 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
 .oc .ac-card.ac-w-sm .ac-rc { width: 62px; }
 .oc .ac-card.ac-w-sm .ac-col-ctrl,
 .oc .ac-card.ac-w-sm .ac-ctrl { width: 86px; }
-.oc .ac-card.ac-w-sm .ac-spark { display: none; }
+.oc .ac-card.ac-w-sm .ac-spark,
 .oc .ac-card.ac-w-sm .ac-sum .ac-sum-extra { display: none; }
 .oc .ac-card.ac-w-xs .ac-col-conns,
 .oc .ac-card.ac-w-xs .ac-conns { width: 44px; }

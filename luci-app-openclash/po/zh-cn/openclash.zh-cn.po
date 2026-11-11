@@ -704,6 +704,9 @@ msgstr "XUDP 支持"
 msgid "obfs-mode"
 msgstr "传输协议"
 
+msgid "v6 only, must match the server; v6 psk must be 12 to 255 bytes"
+msgstr "仅 v6 可用，需与服务端一致；v6 的 psk 长度须为 12 到 255 字节"
+
 msgid "obfs-hosts"
 msgstr "混淆参数（HOST）"
 

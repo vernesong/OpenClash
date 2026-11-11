@@ -200,15 +200,7 @@ function createSingleMergeEditor(content, readOnly) {
     ocShowLoading(state.target, '<%:Loading...%>');
 
     var isDark = isDarkBackground(document.body);
-    var exts = [CM6.baseExtensions(), CM6.themeExtension(isDark), CM6.placeholderExtension('<%:Enter YAML configuration...%>')];
-    var topSearch = (CM6 && CM6.topSearchExtension) ? CM6.topSearchExtension() : null;
-    if (topSearch) exts.push(topSearch);
-    exts.push(CM6.yaml());
-    exts.push(CM6.yamlLinter());
-    exts.push(CM6.lintGutter());
-    exts.push(CM6.autocompletion({ override: [CM6.mihomoCompletion] }));
-    exts.push(CM6.indentUnit.of("  "));
-    exts.push(CM6.indentMarkerExtension());
+    var exts = ocYamlEditorExtensions(isDark);
     var readOnlyComp = new CM6.Compartment();
     exts.push(readOnlyComp.of(readOnly ? CM6.EditorState.readOnly.of(true) : []));
     state.readOnlyCompartment = readOnlyComp;

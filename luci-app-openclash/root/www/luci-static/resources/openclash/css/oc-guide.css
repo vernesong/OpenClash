@@ -189,12 +189,6 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
     stroke-opacity: 0.16;
 }
 
-.oc .guide-pop-body .guide-cover .cv-beam {
-    fill: currentColor;
-    fill-opacity: 0.07;
-}
-
-.oc .guide-pop-body .guide-cover .cv-card,
 .oc .guide-pop-body .guide-cover .cv-ring {
     fill: none;
     stroke: currentColor;
@@ -209,20 +203,6 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
 
 .oc .guide-pop-body .guide-cover .cv-faint {
     fill-opacity: 0.16;
-}
-
-.oc .guide-pop-body .guide-cover .cv-switch,
-.oc .guide-pop-body .guide-cover .cv-cursor {
-    fill: currentColor;
-}
-
-.oc .guide-pop-body .guide-cover .cv-knob {
-    fill: var(--bg-white);
-}
-
-.oc .guide-pop-body .guide-cover .cv-cursor {
-    stroke: var(--bg-white);
-    stroke-width: 1.4;
 }
 
 .oc .guide-pop-body .guide-cover .cv-check,
@@ -513,10 +493,7 @@ html[lang^="zh"] .oc .guide-pop-body .guide-sep::after {
     transition: top 220ms var(--ease-standard), left 220ms var(--ease-standard), opacity 180ms var(--ease-standard);
 }
 
-.oc .guide-pop.wide {
-    width: 530px;
-}
-
+.oc .guide-pop.wide,
 .oc .guide-pop.wide-dots {
     width: 530px;
 }
@@ -882,11 +859,7 @@ html[data-darkmode=true] .oc .guide-pop-body {
     --bg-gray: rgba(148, 163, 184, 0.12);
 }
 
-html[data-darkmode=true] .oc .guide-pop-body code {
-    background: var(--primary-a20);
-    color: var(--primary-soft);
-}
-
+html[data-darkmode=true] .oc .guide-pop-body code,
 html[data-darkmode=true] .oc .guide-pop-body .guide-tag.req {
     background: var(--primary-a20);
     color: var(--primary-soft);

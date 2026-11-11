@@ -220,32 +220,9 @@ var ocLang = window.ocLang || '';
             this.cachedXHR(url, params, callback, force);
         },
 
-        clearCache: function(url, params) {
-            var cacheKey = params ? url + JSON.stringify(params) : url;
-            delete this.request_cache[cacheKey];
-            delete this.last_request_time[cacheKey];
-        },
-
         clearAllCache: function() {
             this.request_cache = {};
             this.last_request_time = {};
-        },
-
-        hasCache: function(url, params) {
-            var cacheKey = params ? url + JSON.stringify(params) : url;
-            return !!this.request_cache[cacheKey];
-        },
-
-        getCacheAge: function(url, params) {
-            var cacheKey = params ? url + JSON.stringify(params) : url;
-            if (!this.last_request_time[cacheKey]) {
-                return null;
-            }
-            return Date.now() - this.last_request_time[cacheKey];
-        },
-
-        setCacheTTL: function(ttl) {
-            this.cache_ttl = ttl;
         },
 
         batchUpdateDOM: function(updates) {
@@ -267,27 +244,6 @@ var ocLang = window.ocLang || '';
                     self.last_request_time[cacheKey] = Date.now();
                 }
             });
-        },
-
-        cachedXHRGetWithRetry: function(url, params, callback, force, maxRetries) {
-            maxRetries = maxRetries || 3;
-            var retryCount = 0;
-            var self = this;
-
-            function attemptRequest() {
-                self.cachedXHRGetWithParams(url, params, function(x, data) {
-                    if (x && x.status == 200) {
-                        callback(x, data);
-                    } else if (retryCount < maxRetries) {
-                        retryCount++;
-                        setTimeout(attemptRequest, 1000 * retryCount);
-                    } else {
-                        callback(x, data);
-                    }
-                }, force && retryCount === 0);
-            }
-
-            attemptRequest();
         }
     };
 
@@ -541,14 +497,6 @@ var ocLang = window.ocLang || '';
         getConnectionState: function(type) {
             var connection = this.connections[type];
             return connection ? connection.state : this.connectionStates.DISCONNECTED;
-        },
-
-        getAllConnectionStates: function() {
-            var states = {};
-            for (var type in this.connections) {
-                states[type] = this.getConnectionState(type);
-            }
-            return states;
         },
 
         hasActiveConnections: function() {
@@ -1676,13 +1624,6 @@ var ocLang = window.ocLang || '';
                 SubscriptionManager.getSubscriptionInfo();
                 SubscriptionManager.startAutoUpdate();
             }, 60000 * 15);
-        },
-
-        stopAutoUpdate: function() {
-            if (this.updateTimer) {
-                clearTimeout(this.updateTimer);
-                this.updateTimer = null;
-            }
         }
     };
 
@@ -2014,10 +1955,19 @@ var ocLang = window.ocLang || '';
         lastLogLineCount: null,
         logLines: [],
         scriptDone: true,
+        endAt: 0,
+        listeners: [],
 
         // marks a restart so a later-opened log dialog resumes the session with a live clock
         markCoreStart: function() {
             try { sessionStorage.setItem('ocCoreStartAt', String(Date.now())); } catch (e) {}
+        },
+
+        // push each display batch to the dialog viewer; reset means a new operation started
+        notifyLog: function(lines, reset) {
+            for (var i = 0; i < this.listeners.length; i++) {
+                try { this.listeners[i](lines, reset); } catch (e) {}
+            }
         },
 
         // Clear the log before streaming so the operation API is served first and the stream does not block it
@@ -2030,13 +1980,28 @@ var ocLang = window.ocLang || '';
                     return;
                 }
             }
-            this.scriptDone = false;
+            // a probe replays the persisted file: it counts as live only once content arrives,
+            // otherwise a finished run would keep the dialog clock and the old lines alive
+            this.scriptDone = !initialMessage && scriptName === 'view';
             if (initialMessage) {
+                // _oclog serves every operation, so each new run stamps its own start
+                this.markCoreStart();
                 this.lastLogLineCount = null;
                 this.logLines = [];
+                this.endAt = 0;
+                this.notifyLog([], true);
                 if (DOMCache.oclog && DOMCache.oclog.ocScrollAnimId) {
                     cancelAnimationFrame(DOMCache.oclog.ocScrollAnimId);
                     DOMCache.oclog.ocScrollAnimId = null;
+                }
+            } else if (DOMCache.oclog) {
+                DOMCache.oclog.classList.add('oc-hidden');
+                DOMCache.oclog.innerHTML = '';
+                // nothing mirrors the buffer while the probe runs, so drop the previous run:
+                // a probe that finds a live script must not mix its lines with the old ones
+                if (typeof CoreStartFlow === 'undefined' || !CoreStartFlow.isShown()) {
+                    this.logLines = [];
+                    this.lastLogLineCount = null;
                 }
             }
 
@@ -2050,10 +2015,16 @@ var ocLang = window.ocLang || '';
                 skipLines: this.lastLogLineCount,
                 onSkipLines: function(n) { self.lastLogLineCount = n; },
                 maxWaitMs: initialMessage ? 600000 : 0,
-                display: function(text) { self.displayLog(text); },
+                // same grace as the dialog flow: both streams must settle alike
+                finishDelayMs: 3000,
+                display: function(text) {
+                    self.scriptDone = false;
+                    self.displayLog(text);
+                },
                 onFinish: function() {
                     self.stream = null;
                     self.scriptDone = true;
+                    self.endAt = stream.endTime ? stream.endTime() : Date.now();
                     setTimeout(function() {
                         if (!DOMCache.oclog) return;
                         if (!self.stream || !self.stream.isRunning()) {
@@ -2096,14 +2067,10 @@ var ocLang = window.ocLang || '';
 
         displayLog: function(logContent) {
             if (!this.stream || !this.stream.isRunning() || !DOMCache.oclog) return;
-            var lines = logContent.split('\n');
-            var allLines = [];
-            for (var i = 0; i < lines.length; i++) {
-                var t = lines[i].replace(/##FINISHED##|##CONTINUE##|##FINISH##/g, '').trim().replace(/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\s*/, '');
-                if (t) allLines.push(t);
-            }
+            var allLines = ocCleanLogLines(logContent);
             if (allLines.length === 0) return;
             this.logLines = this.logLines.concat(allLines);
+            this.notifyLog(allLines, false);
 
             var maxLines = 10;
             var el = DOMCache.oclog;
@@ -2139,15 +2106,40 @@ var ocLang = window.ocLang || '';
             el.scrollTop = keepOffset;
             el.style.willChange = 'scroll-position';
             ocAnimateScroll(el, Math.min(maxLines, allLines.length));
+        },
+
+        // drops the mirrored lines of a finished run so no later dialog can replay them
+        resetLogBox: function() {
+            this.logLines = [];
+            this.lastLogLineCount = null;
+            this.endAt = 0;
+            this.notifyLog([], true);
+            if (DOMCache.oclog) {
+                DOMCache.oclog.classList.add('oc-hidden');
+                DOMCache.oclog.innerHTML = '';
+            }
         }
     };
 
     // the start-flow dialog reuses this stream instead of opening a second one
     window.ocStatusLogLines = function() { return LogManager.logLines || []; };
     window.ocStatusScriptDone = function() { return !!LogManager.scriptDone; };
+    window.ocStatusLogLive = function() {
+        var stream = LogManager.stream;
+        // ##FINISHED## is final even while the delayed onFinish is still pending
+        return !LogManager.scriptDone && !(stream && stream.endTime && stream.endTime());
+    };
+    window.ocStatusCoreEndAt = function() { return LogManager.endAt || 0; };
+    window.ocStatusResetLog = function() { LogManager.resetLogBox(); };
+    window.ocStatusWatchLog = function(fn) {
+        if (typeof fn === 'function' && LogManager.listeners.indexOf(fn) < 0) LogManager.listeners.push(fn);
+    };
+    window.ocStatusUnwatchLog = function(fn) {
+        var i = LogManager.listeners.indexOf(fn);
+        if (i >= 0) LogManager.listeners.splice(i, 1);
+    };
     // dialog-started switches register like the page's own restart buttons (stamp + init watch)
     window.ocStatusMarkCoreStart = function() {
-        LogManager.markCoreStart();
         LogManager.startLogDisplay('<%:Switching Config...%>', false, 'init');
     };
 
@@ -3314,10 +3306,10 @@ var ocLang = window.ocLang || '';
             var el = document.getElementById('stats-chart');
             if (!el) return;
             if (typeof Chart === 'undefined') {
-                if (!this.chartLoadPending && window.ocChartUrl) {
+                if (!this.chartLoadPending) {
                     this.chartLoadPending = true;
                     var self = this;
-                    ocRequireScript(window.ocChartUrl, function() {
+                    ocRequireChart(function() {
                         self.chartLoadPending = false;
                         if (self.view === 'chart') self.render();
                     });
@@ -4237,10 +4229,10 @@ var ocLang = window.ocLang || '';
         },
 
         loadChartLib: function() {
-            if (this.chartLoading || typeof Chart !== 'undefined' || !window.ocChartUrl) return;
+            if (this.chartLoading || typeof Chart !== 'undefined') return;
             this.chartLoading = true;
             var self = this;
-            ocRequireScript(window.ocChartUrl, function() {
+            ocRequireChart(function() {
                 self.chartLoading = false;
                 self.lastStruct = null;
                 if (self.active) self.renderList();
@@ -5317,20 +5309,7 @@ var ocLang = window.ocLang || '';
             init: init,
             pause: pause,
             resume: resume,
-            destroy: destroy,
-            updateAnnouncements: function(newList, newRandomFlag) {
-                announcements = newList || announcements;
-                isRandomTips = (newRandomFlag !== undefined) ? newRandomFlag : isRandomTips;
-                currentIndex = 0;
-                if (pauseTimeout) clearTimeout(pauseTimeout);
-                if (nextAnimationTimeout) clearTimeout(nextAnimationTimeout);
-                if (animationEndHandler) {
-                    contentElement.removeEventListener('animationend', animationEndHandler);
-                    animationEndHandler = null;
-                }
-                contentElement.classList.remove('scrolling');
-                startSingleScroll();
-            }
+            destroy: destroy
         };
     }
 
@@ -5409,7 +5388,6 @@ var ocLang = window.ocLang || '';
     }
 
     function switch_run_mode(value) {
-        LogManager.markCoreStart();
         LogManager.startLogDisplay('<%:Saving...%>', false, 'init');
         return SettingsManager.switchSetting(
             'run_mode',
@@ -5448,7 +5426,6 @@ var ocLang = window.ocLang || '';
 
         var previous = currentDnsMode;
 
-        LogManager.markCoreStart();
         LogManager.startLogDisplay('<%:Saving...%>', false, 'init');
         setDnsModeUI(value);
         if (DOMCache.dns_fakeip) DOMCache.dns_fakeip.disabled = true;
@@ -5906,7 +5883,6 @@ var ocLang = window.ocLang || '';
     }
 
     function switch_oc_setting_oversea(value) {
-        LogManager.markCoreStart();
         LogManager.startLogDisplay('<%:Saving...%>', false, 'view');
         return SettingsManager.switchSetting(
             'oversea',
@@ -6016,7 +5992,6 @@ var ocLang = window.ocLang || '';
             }
         }
 
-        if (isEnabled) LogManager.markCoreStart();
         LogManager.startLogDisplay(isEnabled ? '<%:Starting...%>' : '<%:Stopping...%>', false, 'init');
         XHR.get('<%=url("admin", "services", "openclash", "action")%>', requestParams, function(x, status) {
             if (x && x.status == 200 && status && status.status === 'success') {
@@ -6070,7 +6045,6 @@ var ocLang = window.ocLang || '';
 
         pluginToggleUserAction = true;
 
-        LogManager.markCoreStart();
         LogManager.startLogDisplay('<%:Switching Config...%>', false, 'init');
 
         XHR.get('<%=url("admin", "services", "openclash", "switch_config")%>', {
@@ -6111,7 +6085,6 @@ var ocLang = window.ocLang || '';
 
         pluginToggleUserAction = true;
 
-        LogManager.markCoreStart();
         LogManager.startLogDisplay('<%:Updating Config...%>', false, 'openclash.sh');
 
         XHR.get('<%=url("admin", "services", "openclash", "update_config")%>', {
@@ -6178,7 +6151,6 @@ var ocLang = window.ocLang || '';
             requestParams.config_file = selectedConfig;
         }
 
-        LogManager.markCoreStart();
         LogManager.startLogDisplay('<%:Restarting...%>', false, 'init');
 
         XHR.get('<%=url("admin", "services", "openclash", "action")%>', requestParams, function(x, status) {
@@ -6474,7 +6446,7 @@ var ocLang = window.ocLang || '';
 
         panel.innerHTML = '<div class="tp-head">'
             + '<div class="tp-title"><%:Switch Theme%></div>'
-            + '<button type="button" class="icon-btn" id="tp-close" title="<%:Close%>"><svg width="14" height="14"><use href="#oc-icon-close"/></svg></button>'
+            + ocIconButtonHtml('close', '<%:Close%>', 'id="tp-close"')
             + '</div>'
             + '<div class="tp-label"><%:Mode%></div>'
             + '<div class="tp-seg" id="tp-modes">'

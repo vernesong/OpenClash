@@ -999,10 +999,6 @@ html[data-darkmode="true"][data-oc-theme="smoky"] .oc {
 
 .oc-ml-2 { margin-left: 8px; }
 
-.oc-mb-5 { margin-bottom: 20px; }
-
-.oc-mt-5 { margin-top: 20px; }
-
 .oc-svg-inline { vertical-align: middle; margin-right: 4px; flex-shrink: 0; }
 
 .oc-w100 { width: 100%; }
@@ -2581,22 +2577,6 @@ html[data-darkmode="true"] .oc-sk {
 
 .oc-warn-strip svg {
     flex: 0 0 auto;
-}
-
-.oc-warn-strip .oc-warn-strip-btn {
-    margin-left: auto;
-    flex: 0 0 auto;
-    padding: 2px 10px;
-    border: 1px solid var(--tip-color, #f59e0b);
-    border-radius: 6px;
-    background: transparent;
-    color: inherit;
-    font-size: 12px;
-    cursor: pointer;
-}
-
-.oc-warn-strip .oc-warn-strip-btn:hover {
-    background: rgba(245, 158, 11, 0.12);
 }
 
 html[data-darkmode="true"] .oc-warn-strip {

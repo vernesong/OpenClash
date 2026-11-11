@@ -3,21 +3,13 @@
  * Loaded by: settings page (oix_login.htm / debug.htm).
  * ========================================================================== */
 
-html[data-darkmode="true"] .oc .diag-style {
-    color: var(--text-on-primary, #ffffff);
-    background-color: var(--debug-bg);
-}
-
+html[data-darkmode="true"] .oc .diag-style,
 html[data-darkmode="true"] .oc .diag-style select, .diag-style input {
     color: var(--text-on-primary, #ffffff);
     background-color: var(--debug-bg);
 }
 
-html[data-darkmode="true"] .oc #diag-rc-output > pre {
-    background-color: var(--debug-bg);
-    color: var(--text-on-primary, #ffffff);
-}
-
+html[data-darkmode="true"] .oc #diag-rc-output > pre,
 html[data-darkmode="true"] .oc #dns-rc-output > pre {
     background-color: var(--debug-bg);
     color: var(--text-on-primary, #ffffff);
@@ -38,20 +30,7 @@ html[data-darkmode="true"] .oc .diag-legend {
     background-color: var(--editor-bg);
 }
 
-.oc #diag-rc-output > pre {
-    background-color: var(--bg-white);
-    display: block;
-    padding: 8.5px;
-    margin: 0 0 18px;
-    line-height: 1.5rem;
-    border-radius: 3px;
-    -moz-border-radius: 3px;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    font-size: 1.4rem;
-    color: var(--debug-bg);
-}
-
+.oc #diag-rc-output > pre,
 .oc #dns-rc-output > pre {
     background-color: var(--bg-white);
     display: block;
@@ -210,10 +189,7 @@ html[data-darkmode="true"] .oc .diag-legend {
 }
 
 /* Dark mode — only switch blend mode, keep same ribbon colors */
-html[data-darkmode=true] .oc .oix-panel::before {
-    mix-blend-mode: screen;
-}
-
+html[data-darkmode=true] .oc .oix-panel::before,
 html[data-darkmode=true] .oc .oix-panel::after {
     mix-blend-mode: screen;
 }
@@ -429,8 +405,6 @@ html[data-darkmode=true] .oc .oix-panel::after {
 .oix-announce-body code { background: var(--primary-a5); color: var(--primary-color); padding: 1px 5px; border-radius: 3px; font-size: 11px; border: 1px solid var(--primary-a20); }
 
 .oix-logo { display: block; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 16px; }
-
-.oix-logo-sm { display: inline-block; width: 28px; height: 28px; border-radius: 50%; vertical-align: middle; margin-right: 6px; }
 
 .oix-cards {
     display: grid;

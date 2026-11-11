@@ -871,6 +871,40 @@ local function parse_sub_url(raw_url)
 	return raw_url
 end
 
+-- must match the openclash.sh config_get default and the dialog's first <option>
+local SUB_UA_DEFAULT = "clash-verge/v2.5.10"
+
+-- stored URL may carry no #ua marker; the subscription entry knows which UA it downloads with
+local function config_subscribe_ua(filename)
+        local ua
+        local base = filename:gsub("%.ya?ml$", "")
+        uci:foreach("openclash", "config_subscribe",
+                function(s)
+                        if s.name == filename or s.name == base then
+                                ua = s.sub_ua
+                                return false
+                        end
+                end
+        )
+        if ua == nil or ua == "" then ua = SUB_UA_DEFAULT end
+        return ua
+end
+
+-- one line per source; a source without #ua= takes the entry's UA, or the download default
+local function with_config_ua(result, filename)
+        if not result then return result end
+        local fallback = config_subscribe_ua(filename)
+        if not fallback then return result end
+        if result.type == "single" then
+                if result.ua == nil or result.ua == "" then result.ua = fallback end
+        elseif result.providers then
+                for _, provider in ipairs(result.providers) do
+                        if provider.ua == nil or provider.ua == "" then provider.ua = fallback end
+                end
+        end
+        return result
+end
+
 function get_sub_url(filename)
 	local sub_url, sub_url_ua = nil, nil
 	local info_tb = {}
@@ -907,11 +941,11 @@ function get_sub_url(filename)
 	)
 
 	if sub_url then
-		return {type = "single", url = sub_url, ua = sub_url_ua}
+		return with_config_ua({type = "single", url = sub_url, ua = sub_url_ua}, filename)
 	end
 
 	if #providers > 0 then
-		return {type = "multiple", providers = providers}
+		return with_config_ua({type = "multiple", providers = providers}, filename)
 	end
 
 	-- Priority 2: YAML proxy-providers (use actual config file content first)
@@ -979,11 +1013,11 @@ function get_sub_url(filename)
 	)
 
 	if sub_url then
-		return {type = "single", url = sub_url, ua = sub_url_ua}
+		return with_config_ua({type = "single", url = sub_url, ua = sub_url_ua}, filename)
 	end
 
 	if #providers > 0 then
-		return {type = "multiple", providers = providers}
+		return with_config_ua({type = "multiple", providers = providers}, filename)
 	end
 
 	return nil
@@ -996,9 +1030,8 @@ function sub_info_get()
 
 	filename = HTTP.formvalue("filename")
 	sub_info = ""
-	sub_ua = "clash-verge/v2.5.10"
+	sub_ua = SUB_UA_DEFAULT
 	sub_headers = ""
-
 	-- the config list passes the file name; subscription entries are keyed by the bare config name
 	local base = filename and filename:gsub("%.ya?ml$", "") or filename
 	uci:foreach("openclash", "config_subscribe",
@@ -5280,7 +5313,7 @@ end
 function action_add_subscription()
 	local name = HTTP.formvalue("name")
 	local address = HTTP.formvalue("address")
-	local sub_ua = HTTP.formvalue("sub_ua") or "clash-verge/v2.5.10"
+	local sub_ua = HTTP.formvalue("sub_ua") or SUB_UA_DEFAULT
 	local sub_convert = HTTP.formvalue("sub_convert") or "0"
 	local convert_address = HTTP.formvalue("convert_address") or ""
 	local template = HTTP.formvalue("template") or ""
