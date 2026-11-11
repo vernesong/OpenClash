@@ -568,7 +568,18 @@ o:depends("type", "snell")
 o = s:option(ListValue, "snell_version", translate("Version"))
 o:value("2")
 o:value("3")
+o:value("4")
+o:value("5")
+o:value("6")
 o:depends("type", "snell")
+
+o = s:option(ListValue, "snell_mode", translate("Mode"))
+o.rmempty = true
+o:value("default")
+o:value("unshaped")
+o:value("unsafe-raw")
+o.description = translate("v6 only, must match the server; v6 psk must be 12 to 255 bytes")
+o:depends({type = "snell", snell_version = "6"})
 
 o = s:option(ListValue, "cipher", translate("Encrypt Method"))
 add_option_values(o, {encrypt_methods_ss, securitys})
@@ -617,6 +628,9 @@ o:depends("type", "vless")
 o:depends("type", "socks5")
 o:depends("type", "trojan")
 o:depends({type = "snell", snell_version = "3"})
+o:depends({type = "snell", snell_version = "4"})
+o:depends({type = "snell", snell_version = "5"})
+o:depends({type = "snell", snell_version = "6"})
 o:depends("type", "wireguard")
 o:depends("type", "direct")
 o:depends("type", "anytls")
@@ -655,7 +669,10 @@ o.default = "none"
 o:value("none")
 o:value("tls")
 o:value("http")
-o:depends("type", "snell")
+o:depends({type = "snell", snell_version = "2"})
+o:depends({type = "snell", snell_version = "3"})
+o:depends({type = "snell", snell_version = "4"})
+o:depends({type = "snell", snell_version = "5"})
 
 o = s:option(ListValue, "obfs_vless", translate("obfs-mode"))
 o.rmempty = true
@@ -1453,7 +1470,9 @@ o:depends("type", "mieru")
 o = s:option(Flag, "snell_reuse", translate("reuse"))
 o.rmempty = true
 o.default = "0"
-o:depends("type", "snell")
+o:depends({type = "snell", snell_version = "4"})
+o:depends({type = "snell", snell_version = "5"})
+o:depends({type = "snell", snell_version = "6"})
 
 o = s:option(Value, "uri", translate("uri"))
 o.rmempty = true

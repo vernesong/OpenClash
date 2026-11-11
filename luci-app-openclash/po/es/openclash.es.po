@@ -698,6 +698,9 @@ msgstr "Habilitar XUDP"
 msgid "obfs-mode"
 msgstr "Modo de ofuscación"
 
+msgid "v6 only, must match the server; v6 psk must be 12 to 255 bytes"
+msgstr "solo v6, debe coincidir con el servidor; el psk de v6 debe tener entre 12 y 255 bytes"
+
 msgid "obfs-hosts"
 msgstr "Host de ofuscación"
 
