@@ -278,9 +278,9 @@ html[data-darkmode=true] .oc .oix-panel::after {
 
 .oix-btn-ghost-subtle:hover { opacity: 0.85; }
 
-.oix-btn-google { background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border-light); }
+.oix-btn-google { background: var(--primary-color); color: var(--text-on-primary); }
 
-.oix-btn-google:hover { background: var(--hover-bg); }
+.oix-btn-google:hover { background: var(--btn-primary-hover); }
 
 .oix-btn-google:disabled { cursor: not-allowed; }
 
@@ -290,11 +290,6 @@ html[data-darkmode=true] .oc .oix-panel::after {
 
 .oix-btn .loading-spinner.oc-btn-spinner {
     border-color: var(--text-on-primary);
-    border-right-color: transparent;
-}
-
-.oix-btn-google .loading-spinner.oc-btn-spinner {
-    border-color: var(--text-primary);
     border-right-color: transparent;
 }
 
