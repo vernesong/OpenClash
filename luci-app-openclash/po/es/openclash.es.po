@@ -5831,3 +5831,15 @@ msgstr "Error al copiar"
 
 msgid "Click Next without a file to create a blank module with a comment skeleton"
 msgstr "Pulsa Siguiente sin archivo para crear un módulo en blanco con un esqueleto comentado"
+
+msgid "br_netfilter: Set bridge-nf-call-iptables To 0 For TPROXY, Enable It Per Bridge If That Bridge Needs iptables: ip link set dev <bridge> type bridge nf_call_iptables 1"
+msgstr "br_netfilter: bridge-nf-call-iptables se ha puesto en 0 para que TPROXY funcione; si un puente necesita iptables de capa 2, actívalo en ese puente: ip link set dev <bridge> type bridge nf_call_iptables 1"
+
+msgid "br_netfilter: Can't Set bridge-nf-call-iptables To 0, TPROXY For Bridge Traffic May Fail, Run: sysctl -w net.bridge.bridge-nf-call-iptables=0 And Restart The Plugin"
+msgstr "br_netfilter: no se puede poner bridge-nf-call-iptables en 0; el TPROXY del tráfico de puente puede fallar; ejecuta sysctl -w net.bridge.bridge-nf-call-iptables=0 y reinicia el plugin"
+
+msgid "br_netfilter: Set bridge-nf-call-ip6tables To 0 For IPv6 TPROXY, Enable It Per Bridge If That Bridge Needs ip6tables: ip link set dev <bridge> type bridge nf_call_ip6tables 1"
+msgstr "br_netfilter: bridge-nf-call-ip6tables se ha puesto en 0 para que TPROXY IPv6 funcione; si un puente necesita ip6tables de capa 2, actívalo en ese puente: ip link set dev <bridge> type bridge nf_call_ip6tables 1"
+
+msgid "br_netfilter: Can't Set bridge-nf-call-ip6tables To 0, IPv6 TPROXY For Bridge Traffic May Fail, Run: sysctl -w net.bridge.bridge-nf-call-ip6tables=0 And Restart The Plugin"
+msgstr "br_netfilter: no se puede poner bridge-nf-call-ip6tables en 0; el TPROXY IPv6 del tráfico de puente puede fallar; ejecuta sysctl -w net.bridge.bridge-nf-call-ip6tables=0 y reinicia el plugin"

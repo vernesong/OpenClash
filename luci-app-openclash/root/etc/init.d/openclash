@@ -1601,15 +1601,30 @@ firewall_lan_ac_traffic()
 set_firewall()
 {
 
-# Keep Docker bridge hooks scoped to IP families using UDP TProxy.
-if [ -e /proc/sys/net/bridge/bridge-nf-call-iptables ] && [ -z "$en_mode_tun" ] && [ "$enable_udp_proxy" -eq 1 ] && ip link show dev docker0 >/dev/null 2>&1; then
-   if ip link set dev docker0 type bridge nf_call_iptables 1 >/dev/null 2>&1; then
+# br_netfilter bridge hooks drop the socket TPROXY assigned, so proxied packets are
+# delivered locally by their original port (certificate error or connection timeout).
+# Disable them whenever TPROXY is in use; a bridge that still needs L2 iptables
+# filtering can opt in per bridge: ip link set dev <bridge> type bridge nf_call_iptables 1
+if [ -e /proc/sys/net/bridge/bridge-nf-call-iptables ] && [ -z "$en_mode_tun" ] && { [ "$enable_udp_proxy" -eq 1 ] || [ "$en_mode" = "fake-ip" ]; }; then
+   brnf_iptables="$(cat /proc/sys/net/bridge/bridge-nf-call-iptables 2>/dev/null)"
+   if [ "$brnf_iptables" != "0" ]; then
       printf '0\n' > /proc/sys/net/bridge/bridge-nf-call-iptables 2>/dev/null
+      if [ "$(cat /proc/sys/net/bridge/bridge-nf-call-iptables 2>/dev/null)" = "0" ]; then
+         LOG_WARN "br_netfilter: Set bridge-nf-call-iptables To 0 For TPROXY, Enable It Per Bridge If That Bridge Needs iptables: ip link set dev <bridge> type bridge nf_call_iptables 1【Previous Value: ${brnf_iptables:-unknown}】"
+      else
+         LOG_WARN "br_netfilter: Can't Set bridge-nf-call-iptables To 0, TPROXY For Bridge Traffic May Fail, Run: sysctl -w net.bridge.bridge-nf-call-iptables=0 And Restart The Plugin【Current Value: ${brnf_iptables:-unknown}】"
+      fi
    fi
 fi
-if [ -e /proc/sys/net/bridge/bridge-nf-call-ip6tables ] && [ "$ipv6_enable" -eq 1 ] && [ "$enable_v6_udp_proxy" -eq 1 ] && { [ "$ipv6_mode" -eq 0 ] || [ "$ipv6_mode" -eq 1 ]; } && ip link show dev docker0 >/dev/null 2>&1; then
-   if ip link set dev docker0 type bridge nf_call_ip6tables 1 >/dev/null 2>&1; then
+if [ -e /proc/sys/net/bridge/bridge-nf-call-ip6tables ] && [ "$ipv6_enable" -eq 1 ] && { [ "$ipv6_mode" -eq 0 ] || { [ "$ipv6_mode" -eq 1 ] && [ "$enable_v6_udp_proxy" -eq 1 ]; }; }; then
+   brnf_ip6tables="$(cat /proc/sys/net/bridge/bridge-nf-call-ip6tables 2>/dev/null)"
+   if [ "$brnf_ip6tables" != "0" ]; then
       printf '0\n' > /proc/sys/net/bridge/bridge-nf-call-ip6tables 2>/dev/null
+      if [ "$(cat /proc/sys/net/bridge/bridge-nf-call-ip6tables 2>/dev/null)" = "0" ]; then
+         LOG_WARN "br_netfilter: Set bridge-nf-call-ip6tables To 0 For IPv6 TPROXY, Enable It Per Bridge If That Bridge Needs ip6tables: ip link set dev <bridge> type bridge nf_call_ip6tables 1【Previous Value: ${brnf_ip6tables:-unknown}】"
+      else
+         LOG_WARN "br_netfilter: Can't Set bridge-nf-call-ip6tables To 0, IPv6 TPROXY For Bridge Traffic May Fail, Run: sysctl -w net.bridge.bridge-nf-call-ip6tables=0 And Restart The Plugin【Current Value: ${brnf_ip6tables:-unknown}】"
+      fi
    fi
 fi
 
@@ -1907,7 +1922,7 @@ if [ -n "$FW4" ]; then
             nft 'add rule inet fw4 openclash_mangle ip daddr @localnetwork counter return'
             nft 'add rule inet fw4 openclash_mangle ct direction reply counter return'
             if [ "$en_mode" = "fake-ip" ]; then
-               nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr { "$fakeip_range" } mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept
+               nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr { "$fakeip_range" } tproxy ip to 127.0.0.1:"$tproxy_port" mark set "$PROXY_FWMARK" counter accept
             fi
             nft 'add rule inet fw4 openclash_mangle ip daddr @wan_ac_black_ips counter return'
             nft 'add rule inet fw4 openclash_mangle th dport @wan_ac_black_ports counter return'
@@ -1931,7 +1946,7 @@ if [ -n "$FW4" ]; then
             fi
 
             nft 'add rule inet fw4 openclash_mangle ip protocol udp counter jump openclash_upnp'
-            nft add rule inet fw4 openclash_mangle meta l4proto { udp } mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept
+            nft add rule inet fw4 openclash_mangle meta l4proto { udp } tproxy ip to 127.0.0.1:"$tproxy_port" mark set "$PROXY_FWMARK" counter accept
             nft add rule inet fw4 mangle_prerouting meta nfproto {ipv4} $wan_guard ip protocol udp counter jump openclash_mangle
          fi
          if [ "$enable_udp_proxy" -ne 1 ] && [ "$en_mode" = "fake-ip" ]; then
@@ -1941,7 +1956,7 @@ if [ -n "$FW4" ]; then
             proxy_throw_route_add "$fakeip_range"
             nft 'add chain inet fw4 openclash_mangle'
             nft 'flush chain inet fw4 openclash_mangle'
-            nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr { "$fakeip_range" } mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept
+            nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr { "$fakeip_range" } tproxy ip to 127.0.0.1:"$tproxy_port" mark set "$PROXY_FWMARK" counter accept
             nft add rule inet fw4 mangle_prerouting meta nfproto {ipv4} $wan_guard ip protocol udp counter jump openclash_mangle
          fi
 
@@ -2254,7 +2269,7 @@ if [ -n "$FW4" ]; then
          nft 'add rule inet fw4 openclash_mangle_v6 ether saddr @lan_ac_black_macs counter return'
          if [ "$ipv6_mode" -ne 1 ] && [ "$ipv6_mode" -ne 3 ]; then
             if [ "$ipv6_mode" -eq 0 ]; then
-               nft add rule inet fw4 openclash_mangle_v6 ip6 nexthdr {tcp} ip6 daddr { "$fakeip_range6" } mark set "$PROXY_FWMARK" tproxy ip6 to :"$tproxy_port" counter accept
+               nft add rule inet fw4 openclash_mangle_v6 ip6 nexthdr {tcp} ip6 daddr { "$fakeip_range6" } tproxy ip6 to :"$tproxy_port" mark set "$PROXY_FWMARK" counter accept
             else
                nft add rule inet fw4 openclash_mangle_v6 ip6 nexthdr {tcp} ip6 daddr { "$fakeip_range6" } mark set "$PROXY_FWMARK" counter
             fi
@@ -2264,7 +2279,7 @@ if [ -n "$FW4" ]; then
             nft add rule inet fw4 openclash_mangle_v6 ip6 nexthdr {udp} ip6 daddr { "$fakeip_range6" } mark set "$PROXY_FWMARK" counter
          else
             if [ "$enable_v6_udp_proxy" -eq 1 ]; then
-               nft add rule inet fw4 openclash_mangle_v6 ip6 nexthdr {udp} ip6 daddr { "$fakeip_range6" } mark set "$PROXY_FWMARK" tproxy ip6 to :"$tproxy_port" counter accept
+               nft add rule inet fw4 openclash_mangle_v6 ip6 nexthdr {udp} ip6 daddr { "$fakeip_range6" } tproxy ip6 to :"$tproxy_port" mark set "$PROXY_FWMARK" counter accept
             fi
          fi
          nft 'add rule inet fw4 openclash_mangle_v6 ip6 daddr @wan_ac_black_ipv6s counter return'
@@ -2292,7 +2307,7 @@ if [ -n "$FW4" ]; then
       #tcp Tproxy && TUN
       if [ "$ipv6_mode" -ne 1 ] && [ "$ipv6_mode" -ne 3 ]; then
          if [ "$ipv6_mode" -eq 0 ]; then
-            nft add rule inet fw4 openclash_mangle_v6 ip6 nexthdr {tcp} mark set "$PROXY_FWMARK" tproxy ip6 to :"$tproxy_port" counter accept comment \"OpenClash TCP Tproxy\"
+            nft add rule inet fw4 openclash_mangle_v6 ip6 nexthdr {tcp} tproxy ip6 to :"$tproxy_port" mark set "$PROXY_FWMARK" counter accept comment \"OpenClash TCP Tproxy\"
          else
             nft add rule inet fw4 openclash_mangle_v6 ip6 nexthdr {tcp} mark set "$PROXY_FWMARK" counter
          fi
@@ -2303,7 +2318,7 @@ if [ -n "$FW4" ]; then
          nft add rule inet fw4 openclash_mangle_v6 ip6 nexthdr {udp} mark set "$PROXY_FWMARK" counter
       else
          if [ "$enable_v6_udp_proxy" -eq 1 ]; then
-            nft add rule inet fw4 openclash_mangle_v6 ip6 nexthdr {udp} mark set "$PROXY_FWMARK" tproxy ip6 to :"$tproxy_port" counter accept comment \"OpenClash UDP Tproxy\"
+            nft add rule inet fw4 openclash_mangle_v6 ip6 nexthdr {udp} tproxy ip6 to :"$tproxy_port" mark set "$PROXY_FWMARK" counter accept comment \"OpenClash UDP Tproxy\"
          fi
       fi
 

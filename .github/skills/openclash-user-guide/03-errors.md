@@ -69,6 +69,8 @@
 | `Nameserver Option Must Be Setted, Stop Customing DNS Servers` | 覆写设置→DNS | 启用自定义 DNS 但无 nameserver | 至少添加一个 DNS 服务器 |
 | `Fallback-Filter Need fallback of DNS Been Setted` | 覆写设置→DNS | 未配 fallback DNS | 先添加 fallback 分组的服务器 |
 | `DNS Loop Check` | 覆写设置→DNS | 存在回环风险 | 不要把关 Mihomo DNS 端口本身设为其上游 |
+| 浏览器提示「证书不安全 / 证书不对」，查看证书是路由器自身（uhttpd 自签） | 防火墙（nft TPROXY） | 网桥入口启用了 `br_netfilter`（`net.bridge.bridge-nf-call-iptables` / `-ip6tables=1`），报文被提前交给 IP 层，`tproxy` 挂上的套接字随后丢失，报文按原端口落到路由器监听（如 `[::]:443`） | 见 `05-firewall-special.md` §5.5：插件启动时已默认置 `0`，若诊断日志第 17 章显示仍为 `1`，说明启动后被 Docker/QSDK/`sysctl.d` 改回，先 `openclash restart` 再用 `grep -rIn 'bridge-nf-call' /etc/sysctl.d/` 定位；需要保留网桥层 iptables 的网桥（`docker0` 等）单独 `ip link set dev <br> type bridge nf_call_iptables 1` |
+| 同一机型 TCP 能通、部分 UDP/QUIC 不通（IPv4 无证书提示） | 防火墙（nft TPROXY） | 同上；IPv4 报文在 TCP/UDP 入栈阶段被丢弃，表现为超时而非证书错误 | 同上；`nft list chain inet fw4 openclash_mangle{,_v6} \| grep -i tproxy` 看规则计数（计数增长但 mihomo 无连接 = 假成功） |
 
 ### 3.6 覆写模块错误
 

@@ -66,7 +66,7 @@ nft insert rule inet fw4 dstnat position 0 \
 | 9 | 中国 IP 绕行 return | `china_ip_route=1` 用 `ip daddr @china_ip_route`、`=2` 用 `ip daddr != @china_ip_route`；`china_ip_route_pass` 条件仅在 `enable_redirect_dns != 2` 时附加 |
 | 10 | `ip protocol tcp counter redirect to $proxy_port` | 最终代理 |
 
-**`openclash_mangle` 链规则顺序**（仅在 `enable_udp_proxy=1` 或 Fake-IP 时创建）: ① `ip daddr @localnetwork return` → ② `ct direction reply return` → ③ Fake-IP 段 `mark set $PROXY_FWMARK tproxy ip to 127.0.0.1:$tproxy_port counter accept`（仅 fake-ip）→ ④ WAN/LAN AC bypass（同 TCP 顺序）→ ⑤ `common_ports` 绕过（仅 redir-host）→ ⑥ `china_ip_route` 绕行 → ⑦ `jump openclash_upnp` → ⑧ 最终 `mark set $PROXY_FWMARK tproxy ip to 127.0.0.1:$tproxy_port counter accept`。
+**`openclash_mangle` 链规则顺序**（仅在 `enable_udp_proxy=1` 或 Fake-IP 时创建）: ① `ip daddr @localnetwork return` → ② `ct direction reply return` → ③ Fake-IP 段 `tproxy ip to 127.0.0.1:$tproxy_port mark set $PROXY_FWMARK counter accept`（仅 fake-ip）→ ④ WAN/LAN AC bypass（同 TCP 顺序）→ ⑤ `common_ports` 绕过（仅 redir-host）→ ⑥ `china_ip_route` 绕行 → ⑦ `jump openclash_upnp` → ⑧ 最终 `tproxy ip to 127.0.0.1:$tproxy_port mark set $PROXY_FWMARK counter accept`。`tproxy` 放在 `mark set` 之前：挂不上套接字时不再打标，报文按正常路由直连（fail-open），见 `05-firewall-special.md` §5.5。
 
 跳转与放行：
 
@@ -143,7 +143,7 @@ nft insert rule inet fw4 srcnat  position 0 meta nfproto {ipv4} oifname utun cou
 | `openclash_post_v6` | 旁路由 SNAT/MASQUERADE | `bypass_gateway_compatible=1` |
 | `openclash_wan_input` | WAN 区入口防护（v4/v6 共用） | WAN 区链存在即建 |
 
-**`openclash_mangle_v6` 规则顺序**: ① `ip6 daddr @localnetwork6 return` → ② `ct direction reply return` → ③ LAN AC（`lan_ac_black_ipv6s` / `lan_ac_white_ipv6s`，逻辑同 IPv4）→ ④ Fake-IP 段标记（按 `ipv6_mode` 选 TProxy 或 fwmark）→ ⑤ WAN AC / `common_ports` / `china_ip6_route` 绕行 → ⑥ ICMPv6 echo-request 标记（仅 `ipv6_mode=2/3`，注释 `OpenClash ICMPv6 Redirect`）→ ⑦ 最终代理规则（按 `ipv6_mode` 组合 TPROXY 或 fwmark）。
+**`openclash_mangle_v6` 规则顺序**: ① `ip6 daddr @localnetwork6 return` → ② `ct direction reply return` → ③ LAN AC（`lan_ac_black_ipv6s` / `lan_ac_white_ipv6s`，逻辑同 IPv4）→ ④ Fake-IP 段标记（按 `ipv6_mode` 选 TProxy 或 fwmark）→ ⑤ WAN AC / `common_ports` / `china_ip6_route` 绕行 → ⑥ ICMPv6 echo-request 标记（仅 `ipv6_mode=2/3`，注释 `OpenClash ICMPv6 Redirect`）→ ⑦ 最终代理规则（按 `ipv6_mode` 组合 TPROXY 或 fwmark）。TPROXY 规则同样是 `tproxy` 在前、`mark set` 在后（挂不上即直连，见 `05-firewall-special.md` §5.5）。
 
 ```bash
 nft add rule inet fw4 mangle_prerouting meta nfproto {ipv6} counter jump openclash_mangle_v6

@@ -5839,3 +5839,15 @@ msgstr "复制失败"
 
 msgid "Click Next without a file to create a blank module with a comment skeleton"
 msgstr "不选择文件直接点「下一步」会创建带注释骨架的空白模块"
+
+msgid "br_netfilter: Set bridge-nf-call-iptables To 0 For TPROXY, Enable It Per Bridge If That Bridge Needs iptables: ip link set dev <bridge> type bridge nf_call_iptables 1"
+msgstr "br_netfilter：已将 bridge-nf-call-iptables 置为 0 以保证 TPROXY 生效；若某个网桥仍需网桥层 iptables，请单独开启：ip link set dev <bridge> type bridge nf_call_iptables 1"
+
+msgid "br_netfilter: Can't Set bridge-nf-call-iptables To 0, TPROXY For Bridge Traffic May Fail, Run: sysctl -w net.bridge.bridge-nf-call-iptables=0 And Restart The Plugin"
+msgstr "br_netfilter：无法将 bridge-nf-call-iptables 置为 0，网桥流量的 TPROXY 可能失效，请执行 sysctl -w net.bridge.bridge-nf-call-iptables=0 后重启插件"
+
+msgid "br_netfilter: Set bridge-nf-call-ip6tables To 0 For IPv6 TPROXY, Enable It Per Bridge If That Bridge Needs ip6tables: ip link set dev <bridge> type bridge nf_call_ip6tables 1"
+msgstr "br_netfilter：已将 bridge-nf-call-ip6tables 置为 0 以保证 IPv6 TPROXY 生效；若某个网桥仍需网桥层 ip6tables，请单独开启：ip link set dev <bridge> type bridge nf_call_ip6tables 1"
+
+msgid "br_netfilter: Can't Set bridge-nf-call-ip6tables To 0, IPv6 TPROXY For Bridge Traffic May Fail, Run: sysctl -w net.bridge.bridge-nf-call-ip6tables=0 And Restart The Plugin"
+msgstr "br_netfilter：无法将 bridge-nf-call-ip6tables 置为 0，网桥流量的 IPv6 TPROXY 可能失效，请执行 sysctl -w net.bridge.bridge-nf-call-ip6tables=0 后重启插件"

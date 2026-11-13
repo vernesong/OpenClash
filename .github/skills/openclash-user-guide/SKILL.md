@@ -37,7 +37,7 @@ disable-model-invocation: false
 
 **排查优先级**（从快到慢）:
 
-1. **先要日志** —— 让用户生成调试日志（LuCI「运行日志 → 调试日志 → 生成日志」，或 SSH `/usr/share/openclash/openclash_debug.sh` → `/tmp/openclash_debug.log`；含依赖检查、配置、防火墙规则、系统信息等 30 章节）
+1. **先要日志** —— 让用户生成调试日志（LuCI「运行日志 → 调试日志 → 生成日志」，或 SSH `/usr/share/openclash/openclash_debug.sh` → `/tmp/openclash_debug.log`；含依赖检查、配置、防火墙规则、br_netfilter/TPROXY 状态、系统信息等 31 章节）
 2. **日志不足时给命令** —— 按 `14-diagnostics.md` §14.2 决策树给精确 CLI 命令（🟢 安全查询优先，🟡/🔴 附风险说明）
 3. **定位根因后给路径/模块** —— 给 LuCI 操作路径，或按 `16-overwrite-module-format.md` §16.1 铁律给可直接新建的覆写模块
 4. **仍未解决查外部** —— Issues / 源码 / Mihomo Wiki
@@ -76,7 +76,7 @@ disable-model-invocation: false
 | 启动失败 / 依赖缺失 / 重装 | `02-dependencies.md` | §2.1–2.7 依赖清单、`check_mod()`、故障速查、`install.sh` |
 | 用户报错 / 日志异常 | `03-errors.md` | §3.1–3.16 错误关键字 → 原因 → 排查 |
 | 透明代理 / 防火墙链原理 | `04-firewall-chains.md` | §4.1 模式解析、§4.2 fw4 链结构、§4.3 策略路由辅助规则、§4.4 WAN 入口防护 |
-| ICMP / Tailscale / `ts.net` / ZeroTier / mwan3 / Docker | `05-firewall-special.md` | §5.1 ICMP、§5.2 高级流量控制、§5.3 Tailscale、§5.4 mwan3、§5.5 Docker 网桥 |
+| ICMP / Tailscale / `ts.net` / ZeroTier / mwan3 / Docker / 证书不对 | `05-firewall-special.md` | §5.1 ICMP、§5.2 高级流量控制、§5.3 Tailscale、§5.4 mwan3、§5.5 br_netfilter 与 TPROXY（证书错误/超时、Docker 网桥） |
 | 选项→规则映射 / fw3 / DNS 劫持实现 / 解析不到地址 | `06-firewall-options-dnsmasq.md` | §6.1 fw3 等效链、§6.2 选项对规则的影响、§6.3 dnsmasq 改写、§6.4 重绑定保护 |
 | 运行状态页功能 | `07-page-overview.md` | §7.1–7.12 核心控制、模式切换、仪表盘、IP 检测、oixCloud |
 | 插件设置·模式 / 流量 | `08-settings-mode-traffic.md` | §8.1 总览（§8.1.1 强制写入项）、§8.2 运行模式（§8.2.12 四栈选型、§8.2.13 转发模式、§8.2.14 默认值与 MIPS 来源、§8.2.15 TUN 参数）、§8.3 流量控制、§8.4 性能实测 |
@@ -84,7 +84,7 @@ disable-model-invocation: false
 | 插件设置·GEO / 其他 / 来源流量 | `10-settings-geo-misc-src.md` | §10.1 GEO、§10.2 其他杂项、§10.3 来源流量控制 |
 | 覆写设置页(CBI)·常规/DNS/Meta/Smart/规则/认证 | `11-overwrite-settings.md` | §11.2 常规、§11.3 DNS、§11.4 Meta、§11.5 Smart、§11.6 规则、§11.7 认证（「覆写设置→DNS」读 §11.3） |
 | 订阅 / 配置管理 | `12-subscribe-config.md` | §12.1–12.3 订阅更新、§12.4–12.8 配置管理 |
-| 运行日志 / 调试日志 | `13-logs.md` | §13.1 总览、§13.2 三标签页、§13.5 30 章节清单 |
+| 运行日志 / 调试日志 | `13-logs.md` | §13.1 总览、§13.2 三标签页、§13.5 31 章节清单 |
 | CLI 诊断 / AI 自助修复 | `14-diagnostics.md` | §14.2 决策树（含 §14.2.7 TFO）、§14.3 命令、§14.4 脚本、§14.5 认证前置、§14.6 自助诊断、§14.7 覆写修复 |
 | LuCI / Mihomo HTTP API | `15-api.md` | §15.1 LuCI API、§15.2 Mihomo API |
 | 覆写模块格式 / 操作符 | `16-overwrite-module-format.md` | §16.1 是什么、§16.2 格式（§16.2.1 General、§16.2.2 Overwrite、§16.2.3 YAML 操作符、§16.2.5 `#!`） |

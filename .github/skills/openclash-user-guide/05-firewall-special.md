@@ -206,10 +206,109 @@ iptables -t filter -I INPUT 1 -i lo -s 100.100.100.100 -p udp --sport 53 \
 | 开 mwan3 后 UDP/QUIC 不通、TCP/DNS 正常；`openclash_mangle` 的 tproxy 计数在涨但 mihomo 无 `[UDP]` 日志 | mwan3 的 `fwmark 0x100/0x3f00 lookup N`（`pref 2001+`）命中 OpenClash 的 `0x162`（`0x162 & 0x3f00 = 0x100`）；不写 `pref` 时本规则落在 32765，被抢走 |
 | mwan3 stop/restart 后复现 | `mwan3_delete_iface_rules` 会删 `1000 < pref < 4000` 的规则（条件 `pref % 1000 == iface id`），1888 正在区间内 |
 
-### 5.5 Docker 网桥与 UDP TPROXY
+### 5.5 br_netfilter 与 TPROXY（证书错误 / 连接超时）
 
-- **IPv4**: `docker0` 存在、`en_mode_tun` 为空且 `enable_udp_proxy=1` 时，先设 `nf_call_iptables=1`，成功后才把全局 `bridge-nf-call-iptables` 置 `0`
-- **IPv6**: `ipv6_enable=1`、`enable_v6_udp_proxy=1` 且 `ipv6_mode=0/1` 时，同样处理 `nf_call_ip6tables` 与 `bridge-nf-call-ip6tables`
-- 只处理 `docker0`，但全局值影响所有网桥；停止 OpenClash 或切换模式**不会**恢复这些值
+**症状**: 开启 OpenClash 后部分站点报「证书不安全 / 证书不对」（证书来自路由器自身，如 uhttpd 自签），或 TCP 正常而 UDP/QUIC 不通；把 `net.bridge.bridge-nf-call-ip6tables` 置 `0` 后立刻恢复。
+
+**根因**: `br_netfilter` 会把网桥收到的帧在 PREROUTING 提前交给 IP 层，`tproxy` 即使挂上了 mihomo 的监听套接字，报文仍按**原端口**走本地投递：
+
+- IPv6：落到路由器自己在原端口的通配监听（如 `[::]:443` 的 uhttpd）→ 浏览器报证书错误
+- IPv4：在 TCP 入栈阶段被丢弃 → 表现为连接超时（所以通常只有 IPv6 被报成「证书不对」）
+
+判据是 `br_netfilter` 是否被加载且 `bridge-nf-call-iptables` / `bridge-nf-call-ip6tables` 为 `1`（Docker、QSDK `qca-nss-ecm` 等会自动拉起）；与内核/厂商补丁相关，实测 6.18.39 可复现、ImmortalWrt 5.4.203 的 ip6tables 路径正常。
+
+**插件侧的防御（规则层，fail-open）**: TPROXY 规则写成 `tproxy ... mark set $PROXY_FWMARK counter accept`——`tproxy` 在前，**挂不上套接字时不再打标**，报文按正常路由走（直连/该走哪走哪），优先保证能上网。实测：mihomo 未监听 `7895` 时 IPv4/IPv6 均直连成功（`forward` 计数增长、`input` 计数不增长）。
+
+> 注意：`br_netfilter` 这一种情况是 **`tproxy` 假成功**（规则计数正常增长，内核随后丢失套接字关联），规则层无法感知也无法挽救——只能关闭 `bridge-nf-call-*`（插件已默认关闭，见下）。
+
+**插件侧的处理（默认置 0 + 启动日志提示）**: `bridge-nf-call-*` 是**全局**开关，插件在生成防火墙规则前直接把它置 `0`，不再区分 `docker0`：
+
+| 开启条件 | 处理 |
+|----------|------|
+| 非 TUN 模式且（`enable_udp_proxy=1` 或 `en_mode=fake-ip`） | `net.bridge.bridge-nf-call-iptables`：非 `0` 时写入 `0` |
+| `ipv6_enable=1` 且 `ipv6_mode=0`（v6 TPROXY），或 `ipv6_mode=1` 且 `enable_v6_udp_proxy=1` | `net.bridge.bridge-nf-call-ip6tables`：非 `0` 时写入 `0` |
+
+- 只在值不为 `0` 时才写，避免每次防火墙重载重复刷日志
+- 写入成功 → `[Warning] br_netfilter: Set bridge-nf-call-iptables To 0 For TPROXY, Enable It Per Bridge If That Bridge Needs iptables: ip link set dev <bridge> type bridge nf_call_iptables 1【Previous Value: 1】`（末尾 `【…】` 是原值）
+- 写入失败（只读 sysctl / 容器内运行）→ `[Warning] br_netfilter: Can't Set bridge-nf-call-iptables To 0, … Run: sysctl -w … And Restart The Plugin【Current Value: 1】`
+- 文案为英文并已进 `po/zh-cn`、`po/es` 词条；动态值放在句尾 `【…】` 里、不写进 msgid（与 `skipping DSCP rule for【…】` 一致的约定），因此译文里不会出现 `%s`
+- 已是 `0` 时静默；插件停止时**不会**恢复原值
+
+**为什么默认关闭**: 只要客户端从网桥上收包并使用 TPROXY，`br_netfilter` 介入就会让 IPv6 落到路由器自身端口的通配监听（证书错误）、IPv4 被丢弃（超时）。LAN 默认就是 `br-lan` 网桥，单臂网关/旁路由同理，所以这是默认场景而非个例。
+
+**fw4（nftables）要不要单独处理？不需要**: 这个 sysctl 关掉的不是「iptables」而是 br_netfilter 的**交 IP 栈**动作（`NFPROTO_IPV4/IPV6` 的 hook）；iptables 与 nftables 的 `ip`/`inet` 族链都挂在这条路径上，内核也没有 `bridge-nf-call-nftables` 这种开关（`/proc/sys/net/bridge/` 只有 `-arptables` / `-ip6tables` / `-iptables` 与 vlan/pppoe 选项）。只有 nft 的 **`bridge` 族**（`nft ... table bridge`）直接注册在 `NFPROTO_BRIDGE`，不经过这个开关，OpenClash 与 fw4 都不使用它。
+
+实测（oc224，kernel 6.18.39 / nft 1.1.6，netns 内网桥两端互 ping 5 次，`inet` 表计数 `/` `bridge` 表计数）:
+
+| 开关 | nft `inet`（与 `fw4` 同族）forward 计数 | nft `bridge` 族 forward 计数 |
+|------|----------------------------------------|------------------------------|
+| `bridge-nf-call-iptables=1` | 3（bridged ICMP 进了 IP 栈） | 3 |
+| `bridge-nf-call-iptables=0` | **0**（不再进 IP 栈） | 3（不受影响） |
+| `bridge-nf-call-ip6tables=1` | 3 | 3 |
+| `bridge-nf-call-ip6tables=0` | **0** | 3 |
+
+同一份设置对 fw3（iptables）与 fw4（nft）都成立，插件因此只写这两个全局开关，不再按 `FW4`/`fw3` 分叉。
+
+**需要逐网桥重新打开 `nf_call_*` 的场景**（全局置 `0` 后，容器/虚拟机网桥的二层过滤会失效）:
+
+| 场景 | 说明 |
+|------|------|
+| `docker0`、`lxcbr0`/`lxcbrX`、`virbrX`、`incusbr0`、`cni-podman0` 等容器/虚拟机网桥 | 需要 `--icc=false`、`FORWARD -i <br> -o <br>`、`-m physdev` 这类**同网桥二层**过滤时，必须用 `ip link set dev <br> type bridge nf_call_iptables 1` 单独打开 |
+| nft `bridge` 族的自定义链 | **不需要**恢复，它不经过该开关，置 `0` 后照常命中 |
+| 需要 ebtables/arptables 与 iptables 联动 | 由 `bridge-nf-call-arptables` 单独控制，插件不改动 |
+
+**置 0 对 Docker 等的影响**（只影响**网桥二层转发**的帧，路由器自身路由不受影响）:
+
+| 受影响 | 不受影响 |
+|--------|----------|
+| `--icc=false` 等**同一网桥内**容器之间的过滤（`-i docker0 -o docker0`、`-m physdev`） | 容器 ↔ 外网（路由转发，`FORWARD` 照常命中） |
+| 依赖网桥层看到的 `-m physdev` / `--physdev-is-bridged` 规则 | 端口发布 `-p`（DNAT）与外网入站 |
+| ebtables/arptables 与 iptables 的联动（`bridge-nf-call-arptables` 单独控制） | 跨网桥隔离 `DOCKER-ISOLATION-STAGE-*`（走路由路径，实测仍生效） |
+| — | MASQUERADE、`ip rule`/`ip route`、OpenClash 自身所有规则、路由器 `output`/`input` 流量 |
+
+即：**对外转发、端口映射、跨网桥隔离都不受影响，唯一失去的是"同一网桥内二层转发"的 iptables 过滤**；需要时用 `ip link set dev docker0 type bridge nf_call_iptables 1`（IPv6 加 `nf_call_ip6tables 1`）逐接口恢复。
+
+**实测（oc140：kernel 5.4.203 / Docker 20.10.17 / iptables 1.8.7 legacy，同一台机器切换 `docker0` 的 `nf_call_iptables`）**:
+
+| 测试项 | `nf_call_iptables=1`（有网桥回调） | `=0`（新默认） |
+|--------|-----------------------------------|----------------|
+| 容器 → 外网（ICMP `223.5.5.5`） | 通 | 通 |
+| 容器 → 外网（HTTP `www.baidu.com`） | 通 | 通 |
+| 宿主 → 发布端口 `127.0.0.1:18080` | 通（HTTP 404） | 通（HTTP 404） |
+| LAN 客户端 → `192.168.3.140:18080` | — | 通（HTTP 404） |
+| 同网桥容器 A → B ping | 通 | 通 |
+| 加 `FORWARD -i docker0 -o docker0 DROP` 后 A → B | **被丢弃**（规则生效） | 仍通（规则不生效） |
+| 加 `FORWARD -i docker0 -o br-xxxx DROP` 后跨网桥访问 | 被丢弃 | 被丢弃（路由路径，行为一致） |
+| `DOCKER-ISOLATION-STAGE-*` 跨网桥隔离 | 生效 | 生效 |
+
+**排查**（调试日志第 17 章 `br_netfilter 与 TPROXY 状态` 会自动带上以下参数）:
+
+| 命令 | 判据 |
+|------|------|
+| `cat /proc/sys/net/bridge/bridge-nf-call-ip6tables` | 插件默认写 `0`；仍为 `1` 说明启动后被别的服务（Docker、QSDK `qca-nss-ecm`）或 `sysctl.d` 改回去了 |
+| `nft list chain inet fw4 openclash_mangle_v6 \| grep -i tproxy` | `tproxy` 计数随连接增长但仍拿不到 mihomo 日志 = 本问题（假成功） |
+| `ss -tnp \| grep ':443'` | 出现 uhttpd/socat 等**路由器自身**进程的 ESTABLISHED 即命中 |
+| `grep -rIn 'bridge-nf-call' /etc/sysctl.conf /etc/sysctl.d/` | 找出是谁把它重新置 `1`（如 `qca-nss-ecm.conf`、`12-br-netfilter-ip.conf`） |
+
+**修复（用户侧，仅在插件写入失败或被覆盖时需要）**:
+
+插件启动时会自动置 `0` 并在日志里打印 `[Warning] ... => 0`；日志里出现「无法写入」或值随后被改回 `1` 时才需要手动处理：
+
+```bash
+# 立即生效（插件日志提示无法写入时）
+sysctl -w net.bridge.bridge-nf-call-iptables=0
+sysctl -w net.bridge.bridge-nf-call-ip6tables=0
+
+# 若被固件 sysctl.d 反复改回 1，用更高优先级的文件固化（注意与自带文件的先后顺序）
+printf 'net.bridge.bridge-nf-call-iptables=0\nnet.bridge.bridge-nf-call-ip6tables=0\n' \
+  > /etc/sysctl.d/99-openclash-brnetfilter.conf
+
+# 仍需网桥层 iptables 的网桥单独打开（如 docker0）
+ip link set dev docker0 type bridge nf_call_iptables 1
+ip link set dev docker0 type bridge nf_call_ip6tables 1
+```
+
+- 只在 6.x / 厂商回移了新 br_netfilter 逻辑的固件上需要；5.4 原版内核无此现象（插件同样会置 `0`，只是无害）
+- 只影响**网桥**转发的流量；路由器自身路由（LAN↔WAN）不受影响
 
 > 让某个接口（如 `docker0`）流量完全绕过内核，用「来源流量控制」规则：`10-settings-geo-misc-src.md` §10.3。
