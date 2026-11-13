@@ -7138,7 +7138,7 @@ local function oix_google_token(code, state)
 	if not oix_valid_token(reply.token) then
 		return nil, "Google sign-in expired or could not be verified, please try again"
 	end
-	return reply.token
+	return reply.token, nil, type(reply.account) == "table" and reply.account.suggest_node_filter == true
 end
 
 local function oix_core_api(method, path, timeout)
@@ -7274,6 +7274,7 @@ function oix_login()
 	HTTP.prepare_content("text/plain; charset=utf-8")
 	HTTP.header("Cache-Control", "no-store")
 	local token, err
+	local suggest_node_filter = false
 	local google_code = HTTP.formvalue("google_code")
 	local input_token = HTTP.formvalue("token")
 	local email = HTTP.formvalue("email")
@@ -7285,7 +7286,7 @@ function oix_login()
 	end
 	if google_code and google_code ~= "" then
 		write_padded('{"stage":"logging_in","text":"' .. luci.i18n.translate("Logging in...") .. '"}')
-		token, err = oix_google_token(google_code, HTTP.formvalue("google_state"))
+		token, err, suggest_node_filter = oix_google_token(google_code, HTTP.formvalue("google_state"))
 		if not token then
 			write_padded('{"stage":"error","result":' .. json.stringify(luci.i18n.translate(err)) .. '}')
 			return
@@ -7310,10 +7311,11 @@ function oix_login()
 			return
 		end
 		token = reply.token
+		suggest_node_filter = type(reply.account) == "table" and reply.account.suggest_node_filter == true
 	end
 	local ok, ferr = fetch_oix_sub(token)
 	if ok then
-		write_padded('{"stage":"done","result":200}')
+		write_padded(json.stringify({stage = "done", result = 200, suggest_node_filter = suggest_node_filter}))
 	else
 		write_padded('{"stage":"error","result":' .. json.stringify(luci.i18n.translate(ferr or "login failed")) .. '}')
 	end

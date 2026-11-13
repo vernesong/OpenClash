@@ -3983,6 +3983,9 @@ msgstr "签到倍数"
 msgid "Node Filter"
 msgstr "节点筛选"
 
+msgid "Review the recommended nodes for your plan on the oixCloud website"
+msgstr "在 oixCloud 网站查看套餐的智能优选节点"
+
 msgid "Open the oixCloud website to choose the nodes delivered to OpenClash"
 msgstr "前往 oixCloud 网站选择下发给 OpenClash 的节点"
 

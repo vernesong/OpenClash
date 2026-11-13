@@ -3972,6 +3972,9 @@ msgstr "Multiplicador de registro"
 msgid "Node Filter"
 msgstr "Filtro de nodos"
 
+msgid "Review the recommended nodes for your plan on the oixCloud website"
+msgstr "Consulta los nodos recomendados para tu plan en el sitio web de oixCloud"
+
 msgid "Open the oixCloud website to choose the nodes delivered to OpenClash"
 msgstr "Abrir el sitio web de oixCloud para elegir los nodos que recibe OpenClash"
 

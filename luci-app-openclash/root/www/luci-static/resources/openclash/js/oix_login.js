@@ -113,11 +113,23 @@ var OixCloud = {
             });
         };
 
-        var onLoginSuccess = function() {
+        var onLoginSuccess = function(suggestNodeFilter) {
             btns.forEach(function(b){ ocSetBtnBusy(b, false); });
             var info = '<%:oixCloud configuration and nodes are ready%>';
             OixMsg.show(info, 'success', 20000);
             self.loggedIn = true; self.showLoggedIn(); self.loadAccountInfo(); self.startPolling();
+            if (suggestNodeFilter) {
+                ocConfirm({
+                    title: '<%:Node Filter%>',
+                    body: '<%:Review the recommended nodes for your plan on the oixCloud website%>',
+                    buttons: [
+                        {label: '<%:Cancel%>', value: false},
+                        {label: '<%:Node Filter%>', value: true, kind: 'primary'}
+                    ]
+                }).then(function(open) {
+                    if (open && self.loggedIn) self.openNodeFilter();
+                });
+            }
         };
 
         var onLoginError = function(msg) {
@@ -146,7 +158,7 @@ var OixCloud = {
                         var obj = JSON.parse(line);
                         if (obj.stage === 'done' && obj.result === 200) {
                             finished = true;
-                            onLoginSuccess();
+                            onLoginSuccess(obj.suggest_node_filter === true);
                         } else if (obj.stage === 'error') {
                             finished = true;
                             onLoginError(obj.result || '<%:oixCloud Login Failed%>');
