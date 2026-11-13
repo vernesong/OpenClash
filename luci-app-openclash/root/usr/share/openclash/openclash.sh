@@ -122,19 +122,52 @@ yaml_sub_validate()
    return 1
 }
 
+# Subscription addresses carry credentials, the log names only the host.
+url_host()
+{
+   printf '%s' "$1" | sed -E 's|^[A-Za-z][A-Za-z0-9+.-]*://||; s|^[^/?#]*@||; s|[/?#].*$||'
+}
+
+# The core downloads the account's subscription; the token goes over stdin.
+config_download_managed()
+{
+   local core reply
+   core="/etc/openclash/core/clash_meta"
+   [ "$(uci_get_config "small_flash_memory")" = "1" ] && core="/tmp/etc/openclash/core/clash_meta"
+   if ! "$core" -v 2>/dev/null | grep -q oix || ! "$core" oix managed-config --check >/dev/null 2>&1; then
+      OIX_INSTALL_ONLY=1 /usr/share/openclash/openclash_core.sh Oix >/dev/null 2>&1
+   fi
+   if ! "$core" -v 2>/dev/null | grep -q oix || ! "$core" oix managed-config --check >/dev/null 2>&1; then
+      LOG_ERROR "Config File【$name】Needs The oixCloud Core, Please Install It First"
+      DOWNLOAD_RESULT=1
+      return
+   fi
+   LOG_INFO "Config File【$name】Downloading Through The Core..."
+   reply=$(printf '{"token":"%s","output":"%s"}' "$oix_token" "$CFG_FILE" | OIX_CLIENT=openclash CLASH_HOME_DIR="$CLASH_CONFIG" "$core" oix managed-config -format lines 2>/dev/null)
+   DOWNLOAD_RESULT=$?
+   if [ "$DOWNLOAD_RESULT" -ne 0 ]; then
+      LOG_OUT "Config File【$name】Download Failed:【$(printf '%s\n' "$reply" | sed -n 's/^error=//p')】"
+      DOWNLOAD_RESULT=1
+   fi
+}
+
 config_download()
 {
+if [ -n "$oix_token" ]; then
+   config_download_managed
+   return
+fi
 local DEFER_ETAG_SAVE=1
 LOG_TIP "Config File【$name】Downloading User-Agent【$sub_ua】..."
 if [ -n "$sub_headers" ]; then
    LOG_TIP "Config File【$name】Custom Headers【$(echo "$sub_headers" | tr '\n' ',' | sed 's/,$//')】..."
 fi
 if [ -n "$subscribe_url_param" ] && [ -n "$c_address" ]; then
-   LOG_INFO "Config File【$name】Downloading URL【$c_address$subscribe_url_param】..."
+   LOG_INFO "Config File【$name】Downloading URL【$(url_host "$c_address")】..."
    DOWNLOAD_URL="${c_address}${subscribe_url_param}"
 fi
 if [ -z "$DOWNLOAD_URL" ]; then
-   LOG_INFO "Config File【$name】Downloading URL【$subscribe_url】..."
+   LOG_INFO "Config File【$name】Downloading URL【$(url_host "$subscribe_url")】..."
    DOWNLOAD_URL="${subscribe_url}"
 fi
 DOWNLOAD_PARAM="$sub_ua"
@@ -147,16 +180,16 @@ config_cus_up()
    if [ -z "$subscribe_url_param" ]; then
       if [ -n "$key_match_param" ] || [ -n "$key_ex_match_param" ]; then
          LOG_OUT "Config File【$name】Start Picking Nodes..."
-         ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+         OC_CFG_FILE="$CFG_FILE" OC_KEY_MATCH="$key_match_param" OC_KEY_EX_MATCH="$key_ex_match_param" ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
          begin
             threads = [];
-            Value = YAML.load_file('$CFG_FILE');
+            Value = YAML.load_file(ENV['OC_CFG_FILE']);
             if Value.is_a?(Hash) and Value.has_key?('proxies') and not Value['proxies'].to_a.empty? then
                Value['proxies'].reverse.each{
                |x|
-                  if not '$key_match_param'.empty? then
+                  if not ENV['OC_KEY_MATCH'].empty? then
                      threads << YAML::Inline.new {
-                        if not /$key_match_param/i =~ x['name'] then
+                        if not Regexp.new(ENV['OC_KEY_MATCH'], Regexp::IGNORECASE) =~ x['name'] then
                            Value['proxies'].delete(x)
                            Value['proxy-groups'].each{
                               |g|
@@ -170,9 +203,9 @@ config_cus_up()
                         end;
                      };
                   end;
-                  if not '$key_ex_match_param'.empty? then
+                  if not ENV['OC_KEY_EX_MATCH'].empty? then
                      threads << YAML::Inline.new {
-                        if /$key_ex_match_param/i =~ x['name'] then
+                        if Regexp.new(ENV['OC_KEY_EX_MATCH'], Regexp::IGNORECASE) =~ x['name'] then
                            if Value['proxies'].include?(x) then
                               Value['proxies'].delete(x)
                               Value['proxy-groups'].each{
@@ -194,11 +227,11 @@ config_cus_up()
                Value['proxy-providers'].values.each do
                   |i|
                   threads << YAML::Inline.new {
-                     if not '$key_match_param'.empty? then
-                        i['filter'] = '(?i)$key_match_param';
+                     if not ENV['OC_KEY_MATCH'].empty? then
+                        i['filter'] = '(?i)' + ENV['OC_KEY_MATCH'];
                      end;
-                     if not '$key_ex_match_param'.empty? then
-                        i['exclude-filter'] = '(?i)$key_ex_match_param';
+                     if not ENV['OC_KEY_EX_MATCH'].empty? then
+                        i['exclude-filter'] = '(?i)' + ENV['OC_KEY_EX_MATCH'];
                      end;
                   };
                end;
@@ -208,7 +241,7 @@ config_cus_up()
             YAML.LOG_ERROR('Filter Proxies Failed,【' + e.message + '】');
          ensure
             begin
-               YAML.dump(Value, '$CFG_FILE');
+               YAML.dump(Value, ENV['OC_CFG_FILE']);
             rescue Exception => e
                YAML.LOG_ERROR('Write file failed:【%s】' % [e.message])
             end
@@ -318,6 +351,17 @@ config_download_direct()
    fi
 }
 
+# The account config has no address of its own, a direct download cannot work.
+config_download_fallback()
+{
+   if [ "$address" = "oixcloud://managed" ]; then
+      config_error
+      return
+   fi
+   LOG_ERROR "Config File【$name】Subscribed Failed, Trying to Download Without Agent..."
+   config_download_direct
+}
+
 server_key_match()
 {
    local key_match key_word
@@ -383,7 +427,7 @@ $1"
 
 sub_info_get()
 {
-   local section="$1" subscribe_url template_path subscribe_url_param template_path_encode key_match_param key_ex_match_param c_address de_ex_keyword sub_ua sub_headers append_custom_params SECRET_KEY DOWNLOAD_URL DOWNLOAD_PARAM
+   local section="$1" subscribe_url template_path subscribe_url_param template_path_encode key_match_param key_ex_match_param c_address de_ex_keyword sub_ua sub_headers append_custom_params SECRET_KEY DOWNLOAD_URL DOWNLOAD_PARAM oix_token
    config_get "name" "$section" "name" "config"
    config_get "sub_convert" "$section" "sub_convert" "0"
    config_get "address" "$section" "address" ""
@@ -408,6 +452,25 @@ sub_info_get()
 
    CONFIG_FILE="/etc/openclash/config/$name.yaml"
    CFG_FILE="/tmp/$name.yaml"
+
+   # the account's entry follows the sign-in; an address it still holds is dropped
+   if [ "$name" = "oixCloud" ]; then
+      oix_token=$(uci_get_config "oix_token")
+      case "$oix_token" in
+         *[!0-9a-f]*) oix_token="" ;;
+      esac
+      if [ -n "$oix_token" ] && [ "$address" != "oixcloud://managed" ]; then
+         address="oixcloud://managed"
+         uci -q set openclash."$section".address="$address"
+         uci -q commit openclash
+      elif [ -z "$oix_token" ] && { [ -z "$address" ] || [ "$address" = "oixcloud://managed" ]; }; then
+         if [ "$2" = "$name" ] || [ "$2" = "$CONFIG_FILE" ]; then
+            LOG_ERROR "Config File【$name】Needs An oixCloud Sign-In, Nothing Was Updated"
+            exit_code=1
+         fi
+         return
+      fi
+   fi
 
    if [ -z "$address" ]; then
       return
@@ -492,16 +555,14 @@ EOF
    config_download
    if [ "$DOWNLOAD_RESULT" -eq 0 ]; then
       if ! yaml_sub_validate || ! config_test; then
-         LOG_ERROR "Config File【$name】Subscribed Failed, Trying to Download Without Agent..."
-         config_download_direct
+         config_download_fallback
       else
          config_su_check
       fi
    elif [ "$DOWNLOAD_RESULT" -eq 2 ]; then
       LOG_OUT "Config File【$name】No Change, Do Nothing!"
    else
-      LOG_ERROR "Config File【$name】Subscribed Failed, Trying to Download Without Agent..."
-      config_download_direct
+      config_download_fallback
    fi
 }
 

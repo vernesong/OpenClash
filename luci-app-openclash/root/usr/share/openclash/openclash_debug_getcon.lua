@@ -14,7 +14,8 @@ if addr and not (datatype.hostname(addr) or datatype.ipaddr(addr)) then
 end
 
 local function fetch_connections(ip, port, passwd)
-	local raw = luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://"%s":"%s"/connections', passwd, ip, port))
+	local raw = luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H %s -XGET %s',
+		luci.util.shellquote("Authorization: Bearer " .. passwd), luci.util.shellquote("http://" .. ip .. ":" .. port .. "/connections")))
 	if not raw or raw == "" then
 		return nil
 	end

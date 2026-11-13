@@ -4037,12 +4037,6 @@ msgstr "无法保存订阅，请检查存储空间和写入权限，已保留原
 msgid "Subscription update failed; existing configuration was kept"
 msgstr "订阅更新失败，已保留原配置"
 
-msgid "Unable to update the oixCloud core"
-msgstr "无法更新 oixCloud 内核，请检查网络与内核架构设置"
-
-msgid "Unable to select the OpenClash account"
-msgstr "无法切换到 OpenClash 对应的账户令牌，请稍后重试"
-
 msgid "Installing oixCloud core and restarting..."
 msgstr "正在安装 oixCloud 内核并重启..."
 
@@ -5815,6 +5809,27 @@ msgstr "在 OpenClash 运行期间将下列条目写入系统 /etc/hosts"
 
 msgid "One IP Domain Pair Per Line, Invalid Lines Are Ignored"
 msgstr "每行一条「IP 域名」记录，非法行会被忽略"
+
+msgid "Unable to open the page"
+msgstr "无法打开页面"
+
+msgid "Allow pop-up windows for this page"
+msgstr "请允许本页面打开弹出窗口"
+
+msgid "The oixCloud core is not installed or too old; install it from the Core settings and try again"
+msgstr "oixCloud 内核未安装或版本过旧，请先在内核设置中安装后再试"
+
+msgid "Sign-in token is invalid or expired, please sign in again"
+msgstr "登录令牌无效或已过期，请重新登录"
+
+msgid "Needs The oixCloud Core, Please Install It First"
+msgstr "需要 oixCloud 内核，请先安装"
+
+msgid "Downloading Through The Core..."
+msgstr "正在通过内核下载..."
+
+msgid "Needs An oixCloud Sign-In, Nothing Was Updated"
+msgstr "需要登录 oixCloud，未更新任何内容"
 
 msgid "Copy Module"
 msgstr "复制模块"

@@ -4,6 +4,7 @@ local fs = require "luci.openclash"
 local SYS = require "luci.sys"
 local DISP = require "luci.dispatcher"
 local HTTP = require "luci.http"
+local UTIL = require "luci.util"
 local sid = arg[1]
 
 font_red = [[<b class="oc-txt-bad">]]
@@ -135,7 +136,7 @@ o:depends("group", "fallback")
 local groupnames,filename
 filename = m.uci:get(openclash, "config", "config_path")
 if filename then
-	groupnames = SYS.exec(string.format('ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "YAML.load_file(\'%s\')[\'proxy-groups\'].to_a.each do |i| puts i[\'name\']+\'##\' end" 2>/dev/null',filename))
+	groupnames = SYS.exec(string.format('ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "YAML.load_file(ARGV[0])[\'proxy-groups\'].to_a.each do |i| puts i[\'name\']+\'##\' end" %s 2>/dev/null',UTIL.shellquote(filename)))
 	if groupnames then
 		for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
 			if groupname ~= nil and groupname ~= "" then

@@ -188,7 +188,7 @@ var SubscriptionUrlSetter = {
             }
         }
         if (urlresult.type && urlresult.type === "single") {
-            urls = urlresult.url + (urlresult.ua ? '#ua=' + urlresult.ua : '');
+            urls = urlresult.url ? urlresult.url + (urlresult.ua ? '#ua=' + urlresult.ua : '') : '';
         }
         textarea.value = urls;
     },
@@ -304,6 +304,7 @@ var CHART_PROTO = {
     tuic: { name: 'TUIC', color: '#25b5b8' },
     anytls: { name: 'AnyTLS', color: '#ec4899' },
     snell: { name: 'Snell', color: '#8b5cf6' },
+    hollow: { name: 'Hollow', color: '#a855f7' },
     wireguard: { name: 'WireGuard', color: '#64748b' },
     socks5: { name: 'SOCKS5', color: '#0ea5e9' },
     http: { name: 'HTTP', color: '#14b8a6' },

@@ -58,9 +58,9 @@
 				}, 10000);
 
 				img.onerror = () => {
-			  	clearTimeout(timeout);
-  		  		show_diag_info(addr);
-  			}
+					clearTimeout(timeout);
+					show_diag_info(addr);
+				}
 
 				img.onload = () => {
 					clearTimeout(timeout);

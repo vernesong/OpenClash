@@ -8,7 +8,7 @@ var OIX_URLS = {
     logout: '<%=url("admin", "services", "openclash", "oix_logout")%>',
     save: '<%=url("admin", "services", "openclash", "oix_login_info_save")%>',
     checkin: '<%=url("admin", "services", "openclash", "oix_checkin")%>',
-    nodeFilter: 'https://oixcloud.com/user/node_filter?client=OpenClash'
+    webLink: '<%=url("admin", "services", "openclash", "oix_web_link")%>'
 };
 
 var OixCloud = {
@@ -194,7 +194,8 @@ var OixCloud = {
         XHR.get(OIX_URLS.logout, null, function(x, status) {
             if (btn) { btn.disabled = false; btn.innerHTML = btn.origHTML; }
             if (x && x.status == 200 && status && status.result == 200) {
-                OixMsg.show('<%:oixCloud Logout Successful%>', 'success', 2000);
+                if (status.warning) { OixMsg.show(status.warning, 'error'); }
+                else { OixMsg.show('<%:oixCloud Logout Successful%>', 'success', 2000); }
                 self.loggedIn = false; self.stopPolling(); self.showLoggedOut();
             } else {
                 var msg = (status && status.result) ? status.result : '<%:oixCloud Logout Failed%>';
@@ -333,7 +334,25 @@ var OixCloud = {
     },
 
     openNodeFilter: function() {
-        window.open(OIX_URLS.nodeFilter, '_blank', 'noopener');
+        // Open the window inside the click so pop-up blockers allow it; the core gives the address
+        var popup = window.open('', '_blank');
+        if (!popup) { OixMsg.show('<%:Allow pop-up windows for this page%>', 'error'); return; }
+        XHR.get(OIX_URLS.webLink, {page: 'node-filter'}, function(x, reply) {
+            var address = x && x.status == 200 && reply && reply.url;
+            if (!address || String(address).indexOf('https://oixcloud.com/') !== 0) {
+                popup.close();
+                OixMsg.show((reply && reply.error) || '<%:Unable to open the page%>', 'error');
+                return;
+            }
+            // Closed while the router answered; some browsers throw on navigating it
+            try {
+                if (popup.closed) return;
+                popup.opener = null;
+                popup.location.replace(address);
+            } catch (e) {
+                popup.close();
+            }
+        });
     },
 
     toggleInfoPage: function() {

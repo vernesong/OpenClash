@@ -349,7 +349,7 @@ function lanip(loopback)
 	if lan_int_name == "0" then
 		lan_ip = SYS.exec("uci -q get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n'")
 	else
-		lan_ip = SYS.exec(string.format("ip address show %s 2>/dev/null | grep -w 'inet' 2>/dev/null | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -1 | tr -d '\n'", lan_int_name))
+		lan_ip = SYS.exec(string.format("ip address show %s 2>/dev/null | grep -w 'inet' 2>/dev/null | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -1 | tr -d '\n'", UTIL.shellquote(lan_int_name)))
 	end
 	if not lan_ip or lan_ip == "" then
 		lan_ip = SYS.exec("ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w 'inet'  2>/dev/null | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -1 | tr -d '\n'")
@@ -395,7 +395,7 @@ function get_resourse_mtime(path)
 		end
 	end
 	local file = fs.readlink(real_path) or real_path
-	local resourse_etag_version = SYS.exec(string.format("source /usr/share/openclash/openclash_etag.sh && GET_ETAG_TIMESTAMP_BY_PATH '%s'", file))
+	local resourse_etag_version = SYS.exec(string.format("source /usr/share/openclash/openclash_etag.sh && GET_ETAG_TIMESTAMP_BY_PATH %s", UTIL.shellquote(file)))
 	if resourse_etag_version and resourse_etag_version ~= "" then
 		return resourse_etag_version
 	end
@@ -415,6 +415,86 @@ function uci_get_config(section, key)
 		val = uci:get("openclash", section, key)
 	end
 	return val
+end
+
+--- Runs an account command of the core. The request goes over stdin, which keeps its
+-- contents out of the process list; the reply is one JSON object.
+-- @param command	Command name
+-- @param request	Table with the request fields
+-- @return			Decoded reply, or nil when the core gave none
+function oix_cli(command, request)
+	local core = "/etc/openclash/core/clash_meta"
+	if uci_get_config("config", "small_flash_memory") == "1" then
+		core = "/tmp/etc/openclash/core/clash_meta"
+	end
+	if not fs.access(core) then
+		return nil
+	end
+	-- A core without the oix dispatcher treats the subcommand as a config path and
+	-- starts a server, so the version has to be checked before anything is run.
+	if not string.find(SYS.exec(UTIL.shellquote(core) .. " -v 2>/dev/null") or "", "oix", 1, true) then
+		return nil
+	end
+	local temporary = (SYS.exec("mktemp /tmp/.oix_cli.XXXXXX 2>/dev/null") or ""):match("^(%S+)")
+	if not temporary then
+		return nil
+	end
+	local payload = json.stringify(request or {})
+	if payload == "[]" then
+		payload = "{}"
+	end
+	local out
+	if fs.writefile(temporary, payload) then
+		out = SYS.exec(string.format("OIX_CLIENT=openclash CLASH_HOME_DIR=/etc/openclash %s oix %s < %s 2>/dev/null",
+			UTIL.shellquote(core), command, UTIL.shellquote(temporary)))
+	end
+	fs.remove(temporary)
+	local ok, reply = pcall(json.parse, out or "")
+	if not ok or type(reply) ~= "table" then
+		return nil
+	end
+	if reply.code == "usage" then
+		return nil
+	end
+	return reply
+end
+
+--- Appends one line to the plugin log without going through a shell.
+function append_log(line, path)
+	local file = io.open(path or "/tmp/openclash.log", "a")
+	if file then
+		file:write((tostring(line):gsub("%c", " ")), "\n")
+		file:close()
+	end
+end
+
+--- A curl command for the core's controller.
+function core_api_command(timing, method, secret, host, port, path, body)
+	return string.format("curl -sL %s -H 'Content-Type: application/json' -H %s -X%s %s -d %s", timing,
+		UTIL.shellquote("Authorization: Bearer " .. tostring(secret or "")), method,
+		UTIL.shellquote("http://" .. tostring(host) .. ":" .. tostring(port) .. path), UTIL.shellquote(body))
+end
+
+--- Files rebuilt at the next start, and what an interrupted write of them left behind.
+-- Archives store member names with "./", and BusyBox matches the whole name.
+local function rebuilt_files(extra)
+	local patterns = {}
+	for _, name in ipairs({".oix_age_key*", "..oix_age_key*", ".oix_device_id*", "..oix_device_id*",
+		"proxy_provider/oixCloud", "proxy_provider/.oixCloud.tmp-*"}) do
+		patterns[#patterns + 1] = UTIL.shellquote(name)
+		patterns[#patterns + 1] = UTIL.shellquote("./" .. name)
+	end
+	if extra then
+		patterns[#patterns + 1] = UTIL.shellquote(extra)
+	end
+	return table.concat(patterns, " ")
+end
+
+--- Writes an archive of the plugin directory to stdout, without the rebuilt files.
+function backup_command(target, extra)
+	local root, list = "/etc/openclash/", "/tmp/oc_exclude.txt"
+	return string.format("printf '%%s\\n' %s > %s && exec tar -C %s -X %s -cz %s 2>/dev/null",
+		rebuilt_files(extra), UTIL.shellquote(list), UTIL.shellquote(root), UTIL.shellquote(list), target)
 end
 
 function get_file_path_from_request()
@@ -438,8 +518,10 @@ function get_file_path_from_request()
 end
 
 function restore_backup(archive)
+	local root, config_path = "/etc/openclash/", "/etc/config/openclash"
 	local quoted = UTIL.shellquote(archive)
 	local listfile = "/tmp/oc_restore.list"
+	local excludefile = "/tmp/oc_restore.exclude"
 	-- list the archive before touching /etc/openclash: a broken upload used to report
 	-- success because every tar/mv error was discarded, and members with absolute or
 	-- parent-relative paths must not be extracted
@@ -449,11 +531,12 @@ function restore_backup(archive)
 	local unsafe = SYS.call("grep -qE '(^|/)\\.\\./|^/' " .. listfile) == 0
 	local restored = false
 	if tarok and has_members and has_config and not unsafe then
-		if SYS.call("tar -C '/etc/openclash/' -xzf " .. quoted .. " >/dev/null 2>&1") == 0 then
-			restored = SYS.call("mv -f /etc/openclash/openclash /etc/config/openclash >/dev/null 2>&1") == 0
+		SYS.call(string.format("printf '%%s\\n' %s > %s", rebuilt_files(), excludefile))
+		if SYS.call(string.format("tar -C %s -X %s -xzf %s >/dev/null 2>&1", UTIL.shellquote(root), excludefile, quoted)) == 0 then
+			restored = SYS.call(string.format("mv -f %s %s >/dev/null 2>&1", UTIL.shellquote(root .. "openclash"), UTIL.shellquote(config_path))) == 0
 		end
 	end
-	SYS.call("rm -f " .. listfile)
+	SYS.call("rm -f " .. listfile .. " " .. excludefile)
 	return restored
 end
 
@@ -484,7 +567,7 @@ function age_encrypt(public, content)
 
 	local cmd = string.format(
 		"/etc/openclash/core/clash_meta age encrypt %s %s %s 2>/dev/null",
-		public, tmp_in, tmp_out
+		UTIL.shellquote(public), UTIL.shellquote(tmp_in), UTIL.shellquote(tmp_out)
 	)
 	os.execute(cmd)
 
@@ -513,7 +596,7 @@ function age_decrypt(secret, content)
 
 	local cmd = string.format(
 		"/etc/openclash/core/clash_meta age decrypt %s %s %s 2>/dev/null",
-		secret, tmp_in, tmp_out
+		UTIL.shellquote(secret), UTIL.shellquote(tmp_in), UTIL.shellquote(tmp_out)
 	)
 	os.execute(cmd)
 

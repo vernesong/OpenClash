@@ -557,7 +557,7 @@ sub_info_get()
       return
    fi
 
-   if [ -z "$address" ]; then
+   if [ -z "$address" ] || { [ "$address" = "oixcloud://managed" ] && [ -z "$(uci_get_config "oix_token")" ]; }; then
       return
    fi
 
@@ -618,14 +618,14 @@ config_check()
 #rm -rf "/etc/openclash/*.y*" 2>/dev/null
 cp "$RAW_CONFIG_FILE" "$TMP_CONFIG_FILE"
 
-ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+OC_RAW_CONFIG_FILE="$RAW_CONFIG_FILE" OC_TMP_CONFIG_FILE="$TMP_CONFIG_FILE" ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
 begin
-   config = YAML.load_file('$RAW_CONFIG_FILE');
+   config = YAML.load_file(ENV['OC_RAW_CONFIG_FILE']);
    # A file without a document still needs a mapping for the overwrite stage
-   YAML.dump({}, '$TMP_CONFIG_FILE') if config == {};
+   YAML.dump({}, ENV['OC_TMP_CONFIG_FILE']) if config == {};
 rescue Exception => e
    YAML.LOG_ERROR('Unable To Parse Config File,【' + e.message + '】');
-   system 'rm -rf ${TMP_CONFIG_FILE}';
+   system('rm', '-rf', ENV['OC_TMP_CONFIG_FILE']);
 end
 " 2>/dev/null >> $LOG_FILE
 if [ $? -ne 0 ]; then
@@ -1017,7 +1017,7 @@ start_run_core()
    procd_set_param env SAFE_PATHS=/usr/share/openclash:/etc/ssl
    procd_append_param env CLASH_AGE_SECRET_KEY="$SECRET_KEY"
    procd_append_param env OIX_TOKEN="$OIX_TOKEN"
-   procd_set_param command /bin/sh -c "exec $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1"
+   procd_set_param command /bin/sh -c 'exec "$0" -d "$1" -f "$2" >> "$3" 2>&1' "$CLASH" "$CLASH_CONFIG" "$CONFIG_FILE" "$LOG_FILE"
    procd_set_param user "root"
    procd_set_param group "nogroup"
    procd_set_param limits nproc="unlimited" as="unlimited" memlock="unlimited" nofile="1000000 1000000"
@@ -4201,10 +4201,10 @@ start_service()
          fi
 
          #provider path
-         ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+         OC_TMP_CONFIG_FILE="$TMP_CONFIG_FILE" ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
             begin
                threads = []
-               Value = YAML.load_file('$TMP_CONFIG_FILE')
+               Value = YAML.load_file(ENV['OC_TMP_CONFIG_FILE'])
                provider_configs = {'proxy-providers' => 'proxy_provider', 'rule-providers' => 'rule_provider'}
                provider_configs.each do |provider_type, path_prefix|
                   if Value.is_a?(Hash) && Value.key?(provider_type) && Value[provider_type].is_a?(Hash)
@@ -4225,7 +4225,7 @@ start_service()
                   end
                end
                threads.each(&:join)
-               YAML.dump(Value, '$TMP_CONFIG_FILE')
+               YAML.dump(Value, ENV['OC_TMP_CONFIG_FILE'])
             rescue Exception => e
                YAML.LOG_ERROR('Edit Provider Path Failed,【%s】' % [e.message])
             end

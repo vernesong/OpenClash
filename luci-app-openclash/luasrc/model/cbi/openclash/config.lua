@@ -123,33 +123,33 @@ HTTP.setfilehandler(
 				local archive_path = core_dir .. meta.file
 				if string.lower(string.sub(meta.file, -7, -1)) == ".tar.gz" then
 					-- tar.gz
-					os.execute(string.format("tar -C '/etc/openclash/core/core' -xzf '%s' >/dev/null 2>&1", archive_path))
-					os.execute(string.format("rm -f '%s' >/dev/null 2>&1", archive_path))
+					os.execute(string.format("tar -C '/etc/openclash/core/core' -xzf %s >/dev/null 2>&1", UTIL.shellquote(archive_path)))
+					os.execute(string.format("rm -f %s >/dev/null 2>&1", UTIL.shellquote(archive_path)))
 					local first_file_cmd = "find /etc/openclash/core/core -type f ! -name '*.tar.gz' ! -name '*.tar' ! -name '*.gz' 2>/dev/null | head -1"
 					local first_file = io.popen(first_file_cmd):read("*line")
 					if first_file and first_file ~= "" then
-						os.execute(string.format("mv '%s' '/etc/openclash/core/%s' >/dev/null 2>&1", first_file, fp))
+						os.execute(string.format("mv %s '/etc/openclash/core/%s' >/dev/null 2>&1", UTIL.shellquote(first_file), fp))
 					end
 				elseif string.lower(string.sub(meta.file, -4, -1)) == ".tar" then
 					-- tar
-					os.execute(string.format("tar -C '/etc/openclash/core/core' -xf '%s' >/dev/null 2>&1", archive_path))
-					os.execute(string.format("rm -f '%s' >/dev/null 2>&1", archive_path))
+					os.execute(string.format("tar -C '/etc/openclash/core/core' -xf %s >/dev/null 2>&1", UTIL.shellquote(archive_path)))
+					os.execute(string.format("rm -f %s >/dev/null 2>&1", UTIL.shellquote(archive_path)))
 					local first_file_cmd = "find /etc/openclash/core/core -type f ! -name '*.tar' ! -name '*.gz' 2>/dev/null | head -1"
 					local first_file = io.popen(first_file_cmd):read("*line")
 					if first_file and first_file ~= "" then
-						os.execute(string.format("mv '%s' '/etc/openclash/core/%s' >/dev/null 2>&1", first_file, fp))
+						os.execute(string.format("mv %s '/etc/openclash/core/%s' >/dev/null 2>&1", UTIL.shellquote(first_file), fp))
 					end
 				elseif string.lower(string.sub(meta.file, -3, -1)) == ".gz" then
 					-- gz
-					os.execute(string.format("gzip -fd '%s' >/dev/null 2>&1", archive_path))
-					os.execute(string.format("rm -f '%s' >/dev/null 2>&1", archive_path))
+					os.execute(string.format("gzip -fd %s >/dev/null 2>&1", UTIL.shellquote(archive_path)))
+					os.execute(string.format("rm -f %s >/dev/null 2>&1", UTIL.shellquote(archive_path)))
 					local first_file_cmd = "find /etc/openclash/core/core -type f ! -name '*.gz' 2>/dev/null | head -1"
 					local first_file = io.popen(first_file_cmd):read("*line")
 					if first_file and first_file ~= "" then
-						os.execute(string.format("mv '%s' '/etc/openclash/core/%s' >/dev/null 2>&1", first_file, fp))
+						os.execute(string.format("mv %s '/etc/openclash/core/%s' >/dev/null 2>&1", UTIL.shellquote(first_file), fp))
 					end
 				else
-					os.execute(string.format("mv '%s' '/etc/openclash/core/%s' >/dev/null 2>&1", (core_dir .. meta.file), fp))
+					os.execute(string.format("mv %s '/etc/openclash/core/%s' >/dev/null 2>&1", UTIL.shellquote(core_dir .. meta.file), fp))
 				end
 
 				os.execute(string.format("chmod 4755 '/etc/openclash/core/%s' >/dev/null 2>&1", fp))
@@ -249,7 +249,7 @@ btnapply.write = function(self, t)
 		sPath = "/etc/openclash/config/"..e[t].name
 		sFile = NXFS.basename(sPath)
 		if fs.isdirectory(sPath) then
-			fd = io.popen('tar -C "%s" -cz .' % {sPath}, "r")
+			fd = io.popen('tar -C %s -cz .' % {UTIL.shellquote(sPath)}, "r")
 			sFile = sFile .. ".tar.gz"
 		else
 			fd = nixio.open(sPath, "r")
@@ -269,7 +269,7 @@ btnapply.write = function(self, t)
 		sPath = "/etc/openclash/"..e[t].name
 		sFile = NXFS.basename(sPath)
 		if fs.isdirectory(sPath) then
-			fd = io.popen('tar -C "%s" -cz .' % {sPath}, "r")
+			fd = io.popen('tar -C %s -cz .' % {UTIL.shellquote(sPath)}, "r")
 			sFile = sFile .. ".tar.gz"
 		else
 			fd = nixio.open(sPath, "r")
