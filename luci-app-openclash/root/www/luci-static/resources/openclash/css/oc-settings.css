@@ -398,6 +398,8 @@ html[data-darkmode=true] .oc .oix-panel::after {
 
 .oix-announce-body a { color: var(--primary-color); text-decoration: underline; }
 
+.oix-announce-body img { max-width: 100%; height: auto; }
+
 .oix-announce-body strong { color: var(--primary-color); font-weight: 600; }
 
 .oix-announce-body hr { border: none; border-top: 1px solid var(--border-light); margin: 8px 0; }
