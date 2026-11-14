@@ -14,218 +14,223 @@ end
 	<link rel="stylesheet" href="/luci-static/resources/openclash/css/oc-settings.css?v=@OPENCLASH_VERSION@">
 	<script src="/cgi-bin/luci/admin/services/openclash/translate_js?f=common&v=@OPENCLASH_VERSION@&l=<%=luci.i18n.context.lang%>"></script>
 	<fieldset class="cbi-section oix-panel">
-		<div id="oix-msg-bar" class="oix-msg-bar oc-hidden"></div>
-		<div id="oix-login-section" class="<%= logged_in and 'oc-hidden' or '' %>">
-			<div class="oix-login-box">
+		<div class="oix-body">
+			<div id="oix-msg-bar" class="oix-msg-bar oc-hidden"></div>
+			<div id="oix-login-section" class="<%= logged_in and 'oc-hidden' or '' %>">
+				<div class="oix-login-box">
 
-				<%= oix_logo_img("oix-logo") %>
+					<%= oix_logo_img("oix-logo") %>
 
-				<div class="mode-tabs" id="oix-tabs">
-					<button type="button" class="mode-tab active" id="oix-tab-account" onclick="OixCloud.switchTab('account')">
-						<svg class="oc-icon" width="13" height="13"><use href="#oc-icon-user"/></svg>
-						<span><%:Account Login%></span>
-					</button>
-					<button type="button" class="mode-tab" id="oix-tab-token" onclick="OixCloud.switchTab('token')">
-						<svg class="oc-icon" width="13" height="13"><use href="#oc-icon-key-oix"/></svg>
-						<span><%:Token Login%></span>
-					</button>
-				</div>
-
-				<div id="oix-panel-account">
-					<div class="oix-field-group-sm">
-						<input type="text" id="oix-email" class="oix-input oix-input-ok" placeholder="<%:Account Email Address%>" autocomplete="email" inputmode="email" value="">
-						<span id="oix-email-hint" class="oix-field-hint oix-field-help"></span>
-					</div>
-				<div class="oix-field-group">
-					<div class="oix-input-wrap">
-					<input type="password" id="oix-passwd" class="oix-input oix-input-ok oix-input-has-icon" placeholder="<%:Account Password%>" autocomplete="current-password">
-						<button type="button" class="oix-pwd-toggle" onclick="OixCloud.togglePwd('oix-passwd')"
-							data-show="<%:Show Password%>" data-hide="<%:Hide Password%>"
-							title="<%:Hide Password%>">
-							<svg class="oc-icon oix-eye-icon" width="15" height="15"><use href="#oc-icon-eye-off"/></svg>
+					<div class="mode-tabs" id="oix-tabs">
+						<button type="button" class="mode-tab active" id="oix-tab-account" onclick="OixCloud.switchTab('account')">
+							<svg class="oc-icon" width="13" height="13"><use href="#oc-icon-user"/></svg>
+							<span><%:Account Login%></span>
 						</button>
-						</div>
-						<span id="oix-passwd-hint" class="oix-field-hint oix-field-help"></span>
+						<button type="button" class="mode-tab" id="oix-tab-token" onclick="OixCloud.switchTab('token')">
+							<svg class="oc-icon" width="13" height="13"><use href="#oc-icon-key-oix"/></svg>
+							<span><%:Token Login%></span>
+						</button>
 					</div>
-					<button type="button" class="oix-btn oix-btn-primary oix-btn-block" onclick="OixCloud.doLogin()">
-						<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-login"/></svg>
-						<span><%:Login Account%></span>
-					</button>
 
-				<div class="oix-btn-row">
-					<button type="button" class="oix-btn oix-btn-google oix-btn-block" onclick="OixCloud.googleLogin()" title="<%:Only accounts already registered with oixCloud can sign in with Google%>">
-						<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-google"/></svg>
-						<span><%:Sign in with Google%></span>
-					</button>
+					<div id="oix-panel-account">
+						<div class="oix-field-group-sm">
+							<input type="text" id="oix-email" class="oix-input oix-input-ok" placeholder="<%:Account Email Address%>" autocomplete="email" inputmode="email" value="">
+							<span id="oix-email-hint" class="oix-field-hint oix-field-help"></span>
+						</div>
+					<div class="oix-field-group">
+						<div class="oix-input-wrap">
+						<input type="password" id="oix-passwd" class="oix-input oix-input-ok oix-input-has-icon" placeholder="<%:Account Password%>" autocomplete="current-password">
+							<button type="button" class="oix-pwd-toggle" onclick="OixCloud.togglePwd('oix-passwd')"
+								data-show="<%:Show Password%>" data-hide="<%:Hide Password%>"
+								title="<%:Hide Password%>">
+								<svg class="oc-icon oix-eye-icon" width="15" height="15"><use href="#oc-icon-eye-off"/></svg>
+							</button>
+							</div>
+							<span id="oix-passwd-hint" class="oix-field-hint oix-field-help"></span>
+						</div>
+						<button type="button" class="oix-btn oix-btn-primary oix-btn-block" onclick="OixCloud.doLogin()">
+							<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-login"/></svg>
+							<span><%:Login Account%></span>
+						</button>
+
+					<div class="oix-btn-row">
+						<button type="button" class="oix-btn oix-btn-google oix-btn-block" onclick="OixCloud.googleLogin()" title="<%:Only accounts already registered with oixCloud can sign in with Google%>">
+							<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-google"/></svg>
+							<span><%:Sign in with Google%></span>
+						</button>
+					</div>
+
+					<div class="oix-btn-row">
+						<button type="button" class="oix-btn oix-btn-ghost oix-btn-block" onclick="OixCloud.openWebsite();return false;">
+							<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-home"/></svg>
+							<span><%:oixCloud Website%></span>
+						</button>
+					</div>
 				</div>
+				<div id="oix-panel-token" class="oc-hidden">
+					<div class="oix-field-group">
+						<div class="oix-input-wrap">
+						<input type="password" id="oix-token" class="oix-input oix-input-ok oix-input-has-icon" placeholder="<%:Please enter your oixCloud token%>"
+							autocomplete="off">
+							<button type="button" class="oix-pwd-toggle" onclick="OixCloud.togglePwd('oix-token')"
+								data-show="<%:Show Token%>" data-hide="<%:Hide Token%>"
+								title="<%:Hide Token%>">
+								<svg class="oc-icon oix-eye-icon" width="15" height="15"><use href="#oc-icon-eye-off"/></svg>
+							</button>
+							</div>
+							<span id="oix-token-hint" class="oix-field-hint oix-field-help"><%:Token login does not require email and password%></span>
+						</div>
+						<button type="button" class="oix-btn oix-btn-primary oix-btn-block" onclick="OixCloud.doLogin()">
+							<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-login"/></svg>
+							<span><%:Login Account%></span>
+						</button>
 
-				<div class="oix-btn-row">
-					<button type="button" class="oix-btn oix-btn-ghost oix-btn-block" onclick="OixCloud.openWebsite();return false;">
-						<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-home"/></svg>
-						<span><%:oixCloud Website%></span>
-					</button>
+					<div class="oix-btn-row">
+						<button type="button" class="oix-btn oix-btn-ghost oix-btn-block" onclick="OixCloud.openWebsite();return false;">
+							<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-home"/></svg>
+							<span><%:oixCloud Website%></span>
+							</button>
+						</div>
+					</div>
+					<div class="oix-footer">
+						<span>Powered by <a href="javascript:void(0);" onclick="OixCloud.openWebsite();return false;">oixcloud.com</a></span>
+					</div>
 				</div>
 			</div>
-			<div id="oix-panel-token" class="oc-hidden">
-				<div class="oix-field-group">
-					<div class="oix-input-wrap">
-					<input type="password" id="oix-token" class="oix-input oix-input-ok oix-input-has-icon" placeholder="<%:Please enter your oixCloud token%>"
-						autocomplete="off">
-						<button type="button" class="oix-pwd-toggle" onclick="OixCloud.togglePwd('oix-token')"
-							data-show="<%:Show Token%>" data-hide="<%:Hide Token%>"
-							title="<%:Hide Token%>">
-							<svg class="oc-icon oix-eye-icon" width="15" height="15"><use href="#oc-icon-eye-off"/></svg>
-						</button>
-						</div>
-						<span id="oix-token-hint" class="oix-field-hint oix-field-help"><%:Token login does not require email and password%></span>
-					</div>
-					<button type="button" class="oix-btn oix-btn-primary oix-btn-block" onclick="OixCloud.doLogin()">
-						<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-login"/></svg>
-						<span><%:Login Account%></span>
-					</button>
 
-				<div class="oix-btn-row">
-					<button type="button" class="oix-btn oix-btn-ghost oix-btn-block" onclick="OixCloud.openWebsite();return false;">
-						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-home"/></svg>
-						<span><%:oixCloud Website%></span>
+			<div id="oix-logged-section" class="oix-canvas<%= logged_in and '' or ' oc-hidden' %>">
+				<div class="oix-header">
+					<div class="oix-header-left">
+						<span class="oix-status-badge">
+							<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-badge"/></svg>
+							<span id="oix-header-plan">--</span>
+						</span>
+					</div>
+					<div class="oix-header-right">
+						<button type="button" class="oix-btn oix-btn-soft-plain oix-btn-sm" onclick="OixCloud.updateSubscription(this);return false;">
+							<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-update"/></svg>
+							<span><%:Update Config%></span>
 						</button>
+						<button type="button" id="oix-node-filter" class="oix-btn oix-btn-soft-plain oix-btn-sm oc-hidden" onclick="OixCloud.openNodeFilter();return false;" title="<%:Open the oixCloud website to choose the nodes delivered to OpenClash%>">
+							<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-filter"/></svg>
+							<span><%:Node Filter%></span>
+						</button>
+						<button type="button" class="oix-btn oix-btn-soft-plain oix-btn-sm" onclick="OixCloud.doCheckin();return false;">
+							<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-gift"/></svg>
+							<span><%:Checkin%></span>
+						</button>
+						<button type="button" class="oix-btn oix-btn-soft-plain oix-btn-sm" onclick="OixCloud.openWebsite();return false;">
+							<img class="oix-img-inline" src="<%= oix_logo_src %>" width="14" height="14" alt="oixCloud">
+							<span><%:oixCloud Website%></span>
+						</button>
+						<button type="button" class="oix-btn oix-btn-danger oix-btn-sm" onclick="OixCloud.doLogout();return false;">
+							<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-logout"/></svg>
+							<span><%:Logout Account%></span>
+						</button>
+					</div>
+				</div>
+
+				<div id="oix-node-filter-help" class="oix-field-hint oix-field-help oix-hint-block oc-hidden"><svg class="oc-icon" width="11" height="11"><use href="#oc-icon-help"/></svg><span><%:For a manually created Access Token, bind the current token to a non-primary subscription URL in Access Token Management on the website, then edit the node filter for that URL%></span></div>
+
+				<div class="oix-announce oc-hidden" id="oix-announce">
+					<div class="oix-announce-header">
+						<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-bell"/></svg>
+						<%:Announcement%>
+					</div>
+					<div class="oix-announce-body oix-collapsed" id="oix-announce-body"></div>
+					<div class="oix-announce-arrow oc-hidden" id="oix-announce-arrow" onclick="OixCloud.toggleAnnounce();return false;">
+						<svg class="oc-icon oix-icon-accent" width="18" height="18"><use href="#oc-icon-chevron-oix"/></svg>
+					</div>
+				</div>
+
+				<div class="oix-card-box">
+					<div class="oix-cards" id="oix-cards">
+						<div class="oix-card">
+							<div class="oix-card-label"><%:Plan Expiration Time%></div>
+							<div class="oix-card-value" id="oix-plantime">--</div>
+						</div>
+						<div class="oix-card">
+							<div class="oix-card-label"><%:Account Integral%></div>
+							<div class="oix-card-value" id="oix-integral">--</div>
+						</div>
+						<div class="oix-card">
+							<div class="oix-card-label"><%:Aff Balances%></div>
+							<div class="oix-card-value" id="oix-affmoney">--</div>
+						</div>
+						<div class="oix-card">
+							<div class="oix-card-label"><%:Account Balances%></div>
+							<div class="oix-card-value" id="oix-money">--</div>
+						</div>
+						<div class="oix-card">
+							<div class="oix-card-label"><%:Plan Traffic%></div>
+							<div class="oix-card-value" id="oix-traffic">--</div>
+						</div>
+						<div class="oix-card">
+							<div class="oix-card-label"><%:Plan Unused%></div>
+							<div class="oix-card-value" id="oix-unused">--</div>
+						</div>
+						<div class="oix-card">
+							<div class="oix-card-label"><%:Plan Used%></div>
+							<div class="oix-card-value" id="oix-used">--</div>
+						</div>
+						<div class="oix-card">
+							<div class="oix-card-label"><%:Today Used%></div>
+							<div class="oix-card-value" id="oix-today-used">--</div>
+						</div>
+					</div>
+
+					<div class="oix-settings-grid oix-settings-grid-4">
+						<div class="oix-setting-card">
+							<div class="oix-toggle-row">
+								<span><%:Show on Overview%></span>
+								<label class="oix-toggle" title="<%:Show on Overview%>">
+									<input type="checkbox" id="oix-show-info-page" onchange="OixCloud.toggleInfoPage()" <%= fs.uci_get_config('config', 'oix_show_info_page') == '1' and 'checked' or '' %>>
+									<span class="oix-toggle-slider"></span>
+								</label>
+							</div>
+							<div class="oix-card-help">
+								<svg class="oc-icon" width="10" height="10"><use href="#oc-icon-help"/></svg>
+								<span><%:Display account info on the main page%></span>
+							</div>
+						</div>
+						<div class="oix-setting-card">
+							<div class="oix-toggle-row">
+								<span><%:Auto Checkin%></span>
+								<label class="oix-toggle" title="<%:Auto Checkin%>">
+									<input type="checkbox" id="oix-checkin-enable" onchange="OixCloud.toggleCheckin()" <%= checkin_enabled and 'checked' or '' %>>
+									<span class="oix-toggle-slider"></span>
+								</label>
+							</div>
+							<div class="oix-card-help">
+								<svg class="oc-icon" width="10" height="10"><use href="#oc-icon-help"/></svg>
+								<span><%:Auto check-in for traffic rewards and penalties%></span>
+							</div>
+						</div>
+						<div class="oix-setting-card">
+							<div class="oix-params-item">
+								<span><%:Checkin Interval%> (<%:Hours%>):</span>
+								<input type="text" id="oix-checkin-interval" size="3" value="<%= checkin_interval %>" onblur="OixCloud.saveCheckin()" class="oix-input-num oix-input-ok">
+							</div>
+							<div class="oix-card-help">
+								<svg class="oc-icon" width="10" height="10"><use href="#oc-icon-help"/></svg>
+								<span><%:Checkin interval must be between 1 and 720%></span>
+							</div>
+						</div>
+						<div class="oix-setting-card">
+							<div class="oix-params-item">
+								<span><%:Checkin Multiple%>:</span>
+								<input type="text" id="oix-checkin-multiple" size="3" value="<%= checkin_multiple %>" onblur="OixCloud.saveCheckin()" oninput="OixCloud.validateMultiple(this)" class="oix-input-num oix-input-ok">
+							</div>
+							<div class="oix-card-help">
+								<svg class="oc-icon" width="10" height="10"><use href="#oc-icon-help"/></svg>
+								<span><%:Multiple Must Be a Positive Integer and No More Than 100%></span>
+							</div>
+						</div>
 					</div>
 				</div>
 				<div class="oix-footer">
 					<span>Powered by <a href="javascript:void(0);" onclick="OixCloud.openWebsite();return false;">oixcloud.com</a></span>
 				</div>
-			</div>
-		</div>
-
-		<div id="oix-logged-section"<%= logged_in and '' or ' class="oc-hidden"' %>>
-			<div class="oix-header">
-				<div class="oix-header-left">
-					<span class="oix-status-badge">
-						<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-badge"/></svg>
-						<span id="oix-header-plan">--</span>
-					</span>
-				</div>
-				<div class="oix-header-right">
-					<button type="button" class="oix-btn oix-btn-ghost-subtle oix-btn-sm" onclick="OixCloud.updateSubscription(this);return false;">
-						<span><%:Update subscription%></span>
-					</button>
-					<button type="button" class="oix-btn oix-btn-primary oix-btn-sm" onclick="OixCloud.doCheckin();return false;">
-						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-gift"/></svg>
-						<span><%:Checkin%></span>
-					</button>
-					<button type="button" id="oix-node-filter" class="oix-btn oix-btn-ghost-subtle oix-btn-sm oc-hidden" onclick="OixCloud.openNodeFilter();return false;" title="<%:Open the oixCloud website to choose the nodes delivered to OpenClash%>">
-						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-filter"/></svg>
-						<span><%:Node Filter%></span>
-					</button>
-					<button type="button" class="oix-btn oix-btn-ghost-subtle oix-btn-sm" onclick="OixCloud.openWebsite();return false;">
-						<img class="oix-img-inline" src="<%= oix_logo_src %>" width="14" height="14" alt="oixCloud">
-						<span><%:oixCloud Website%></span>
-					</button>
-					<button type="button" class="oix-btn oix-btn-danger oix-btn-sm" onclick="OixCloud.doLogout();return false;">
-						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-logout"/></svg>
-						<span><%:Logout Account%></span>
-					</button>
-				</div>
-			</div>
-
-			<p id="oix-node-filter-help" class="oix-card-help oc-hidden"><%:For a manually created Access Token, bind the current token to a non-primary subscription URL in Access Token Management on the website, then edit the node filter for that URL%></p>
-
-			<div class="oix-announce oc-hidden" id="oix-announce">
-				<div class="oix-announce-header">
-					<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-bell"/></svg>
-					<%:Announcement%>
-				</div>
-				<div class="oix-announce-body oix-collapsed" id="oix-announce-body"></div>
-				<div class="oix-announce-arrow oc-hidden" id="oix-announce-arrow" onclick="OixCloud.toggleAnnounce();return false;">
-					<svg class="oc-icon oix-icon-accent" width="18" height="18"><use href="#oc-icon-chevron-oix"/></svg>
-				</div>
-			</div>
-
-			<div class="oix-cards" id="oix-cards">
-				<div class="oix-card">
-					<div class="oix-card-label"><%:Plan Expiration Time%></div>
-					<div class="oix-card-value" id="oix-plantime">--</div>
-				</div>
-				<div class="oix-card">
-					<div class="oix-card-label"><%:Account Integral%></div>
-					<div class="oix-card-value" id="oix-integral">--</div>
-				</div>
-				<div class="oix-card">
-					<div class="oix-card-label"><%:Aff Balances%></div>
-					<div class="oix-card-value" id="oix-affmoney">--</div>
-				</div>
-				<div class="oix-card">
-					<div class="oix-card-label"><%:Account Balances%></div>
-					<div class="oix-card-value" id="oix-money">--</div>
-				</div>
-				<div class="oix-card">
-					<div class="oix-card-label"><%:Plan Traffic%></div>
-					<div class="oix-card-value" id="oix-traffic">--</div>
-				</div>
-				<div class="oix-card">
-					<div class="oix-card-label"><%:Plan Unused%></div>
-					<div class="oix-card-value" id="oix-unused">--</div>
-				</div>
-				<div class="oix-card">
-					<div class="oix-card-label"><%:Plan Used%></div>
-					<div class="oix-card-value" id="oix-used">--</div>
-				</div>
-				<div class="oix-card">
-					<div class="oix-card-label"><%:Today Used%></div>
-					<div class="oix-card-value" id="oix-today-used">--</div>
-				</div>
-			</div>
-
-			<div class="oix-settings-grid oix-settings-grid-4">
-				<div class="oix-setting-card">
-					<div class="oix-toggle-row">
-						<span><%:Show on Overview%></span>
-						<label class="oix-toggle" title="<%:Show on Overview%>">
-							<input type="checkbox" id="oix-show-info-page" onchange="OixCloud.toggleInfoPage()" <%= fs.uci_get_config('config', 'oix_show_info_page') == '1' and 'checked' or '' %>>
-							<span class="oix-toggle-slider"></span>
-						</label>
-					</div>
-					<div class="oix-card-help">
-						<svg class="oc-icon" width="10" height="10"><use href="#oc-icon-help"/></svg>
-						<span><%:Display account info on the main page%></span>
-					</div>
-				</div>
-				<div class="oix-setting-card">
-					<div class="oix-toggle-row">
-						<span><%:Auto Checkin%></span>
-						<label class="oix-toggle" title="<%:Auto Checkin%>">
-							<input type="checkbox" id="oix-checkin-enable" onchange="OixCloud.toggleCheckin()" <%= checkin_enabled and 'checked' or '' %>>
-							<span class="oix-toggle-slider"></span>
-						</label>
-					</div>
-					<div class="oix-card-help">
-						<svg class="oc-icon" width="10" height="10"><use href="#oc-icon-help"/></svg>
-						<span><%:Auto check-in for traffic rewards and penalties%></span>
-					</div>
-				</div>
-				<div class="oix-setting-card">
-					<div class="oix-params-item">
-						<span><%:Checkin Interval%> (<%:Hours%>):</span>
-						<input type="text" id="oix-checkin-interval" size="3" value="<%= checkin_interval %>" onblur="OixCloud.saveCheckin()" class="oix-input-num oix-input-ok">
-					</div>
-					<div class="oix-card-help">
-						<svg class="oc-icon" width="10" height="10"><use href="#oc-icon-help"/></svg>
-						<span><%:Checkin interval must be between 1 and 720%></span>
-					</div>
-				</div>
-				<div class="oix-setting-card">
-					<div class="oix-params-item">
-						<span><%:Checkin Multiple%>:</span>
-						<input type="text" id="oix-checkin-multiple" size="3" value="<%= checkin_multiple %>" onblur="OixCloud.saveCheckin()" oninput="OixCloud.validateMultiple(this)" class="oix-input-num oix-input-ok">
-					</div>
-					<div class="oix-card-help">
-						<svg class="oc-icon" width="10" height="10"><use href="#oc-icon-help"/></svg>
-						<span><%:Multiple Must Be a Positive Integer and No More Than 100%></span>
-					</div>
-				</div>
-			</div>
-			<div class="oix-footer">
-				<span>Powered by <a href="javascript:void(0);" onclick="OixCloud.openWebsite();return false;">oixcloud.com</a></span>
 			</div>
 		</div>
 	</fieldset>

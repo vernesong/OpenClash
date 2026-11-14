@@ -58,7 +58,7 @@ html[data-darkmode="true"] .oc .diag-legend {
 }
 
 .oix-panel {
-    position: relative; padding: 16px;
+    position: relative; padding: 0;
     background: var(--bg-white);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-lg);
@@ -174,6 +174,20 @@ html[data-darkmode="true"] .oc .diag-legend {
     z-index: 1;
 }
 
+/* Big tinted plate inside the ribbon background: header, hints, cards and footer */
+.oix-body {
+    padding: var(--card-outer-padding);
+}
+
+.oix-canvas {
+    background-color: var(--bg-white);
+    background-image: linear-gradient(rgba(148, 163, 184, 0.14), rgba(148, 163, 184, 0.14));
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--card-outer-padding);
+    box-shadow: var(--shadow-sm);
+}
+
 .oc-icon { flex-shrink: 0; vertical-align: middle; }
 
 .oix-login-box {
@@ -274,9 +288,10 @@ html[data-darkmode=true] .oc .oix-panel::after {
 
 .oix-btn-ghost:disabled { cursor: not-allowed; }
 
-.oix-btn-ghost-subtle { background: var(--watchdog-color); color: var(--text-on-primary); }
+/* Neutral action button shared by every non-destructive header action */
+.oix-btn-soft-plain { background: var(--bg-white); color: var(--text-secondary); border: 1px solid var(--border-light); }
 
-.oix-btn-ghost-subtle:hover { opacity: 0.85; }
+.oix-btn-soft-plain:hover { background: var(--primary-a5); color: var(--primary-color); border-color: var(--primary-color); opacity: 1; }
 
 .oix-btn-google { background: var(--primary-color); color: var(--text-on-primary); }
 
@@ -319,6 +334,15 @@ html[data-darkmode=true] .oc .oix-panel::after {
 
 .oix-field-hint { font-size: 11px; display: block; margin-top: 2px; line-height: 1.3; }
 
+.oix-hint-block {
+    display: flex; align-items: flex-start; gap: 5px;
+    margin: 0 0 10px; padding: 6px 10px;
+    background: var(--primary-a5); border: 1px solid var(--primary-a20);
+    border-radius: var(--radius-sm); line-height: 1.5;
+}
+
+.oix-hint-block svg { flex-shrink: 0; margin-top: 2px; opacity: 0.8; }
+
 .oix-field-error { color: var(--error-color); }
 
 .oix-field-help { color: var(--text-secondary); }
@@ -326,8 +350,9 @@ html[data-darkmode=true] .oc .oix-panel::after {
 .oix-header {
     display: flex; align-items: center; justify-content: space-between;
     flex-wrap: wrap; gap: var(--content-gap); margin-bottom: 12px;
-    background: var(--bg-gray); border: 1px solid var(--border-light);
+    background: var(--bg-white); border: 1px solid var(--border-light);
     border-radius: var(--radius-md); padding: 8px 14px;
+    box-shadow: var(--shadow-sm);
     transition: var(--transition-ui);
 }
 
@@ -339,6 +364,10 @@ html[data-darkmode=true] .oc .oix-panel::after {
 .oix-header-left { display: flex; align-items: center; gap: var(--card-grid-gap); }
 
 .oix-header-right { display: flex; align-items: center; flex-wrap: wrap; gap: var(--tight-gap); }
+
+.oix-header-right .oix-btn {
+    height: 28px; min-height: 0; padding: 0 10px; line-height: 1; white-space: nowrap;
+}
 
 .oix-status-badge {
     display: inline-flex; align-items: center; gap: var(--tight-gap);
@@ -413,7 +442,7 @@ html[data-darkmode=true] .oc .oix-panel::after {
 }
 
 .oix-card {
-    background: var(--bg-gray); border: 1px solid var(--border-light);
+    background: var(--bg-white); border: 1px solid var(--border-light);
     border-radius: var(--radius-md); padding: var(--card-padding);
     text-align: center; transition: var(--transition-ui);
     box-shadow: var(--shadow-sm);
@@ -446,9 +475,22 @@ html[data-darkmode=true] .oc .oix-panel::after {
     grid-template-columns: repeat(4, 1fr);
 }
 
+/* Groups the metric cards and the setting cards so they share one gap rhythm */
+.oix-card-box {
+    display: flex;
+    flex-direction: column;
+    gap: var(--card-grid-gap);
+    margin-bottom: 10px;
+}
+
+.oix-card-box > .oix-cards,
+.oix-card-box > .oix-settings-grid {
+    margin: 0; border: 0; padding: 0; background: transparent;
+}
+
 .oix-setting-card {
     display: flex; flex-direction: column;
-    background: var(--bg-gray);
+    background: var(--bg-white);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-md);
     padding: var(--card-padding);
@@ -561,7 +603,13 @@ html[data-darkmode=true] .oc .oix-msg-bar svg { color: inherit; }
     .oix-params-item .oix-input-num { min-width: 36px; }
 }
 
+@media (max-width: 620px) {
+    .oix-header-right { width: 100%; }
+    .oix-header-right .oix-btn { flex: 1 1 auto; }
+}
+
 @media (max-width: 480px) {
     .oix-header { align-items: center; justify-content: center; }
+    .oix-header-right .oix-btn { flex: 1 1 30%; padding: 0 6px; gap: 3px; }
     .oix-settings-grid { grid-template-columns: 1fr; }
 }

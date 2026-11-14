@@ -5917,3 +5917,6 @@ msgstr "无法保存登录状态，请检查路由器存储空间后重试"
 
 msgid "Configuration was saved, but settings could not be saved; check router storage and try again"
 msgstr "配置文件已保存，但设置保存失败，请检查路由器存储空间后重试"
+
+msgid "Subscription was saved; the active configuration was kept"
+msgstr "订阅已保存，当前使用的配置保持不变"

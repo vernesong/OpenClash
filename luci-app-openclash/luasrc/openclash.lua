@@ -45,6 +45,7 @@ local i18n = require "luci.i18n"
 
 local type  = type
 local string  = string
+local tonumber = tonumber
 local tostring = tostring
 local table = table
 local math = math

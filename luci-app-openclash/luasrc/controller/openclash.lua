@@ -7239,7 +7239,7 @@ local function oix_wait_loaded()
 	return true, "Configuration is active, but node connectivity checks did not pass; check network diagnostics or select another node"
 end
 
-local function fetch_oix_sub(token)
+local function fetch_oix_sub(token, select_profile)
 	if not oix_valid_token(token) then
 		return nil, "invalid token"
 	end
@@ -7289,8 +7289,15 @@ local function fetch_oix_sub(token)
 		return fail("Unable to save subscription; existing configuration was kept")
 	end
 	fs.chmod(config_file, "rw-r--r--")
-	uci:set("openclash", "config", "config_path", config_file)
-	uci:set("openclash", "config", "enable", "1")
+	-- A completed sign-in selects the managed profile. A refresh keeps the
+	-- user's choice, but brings the managed profile back up when it is in use.
+	local active = uci:get("openclash", "config", "config_path")
+	if select_profile then
+		uci:set("openclash", "config", "config_path", config_file)
+		uci:set("openclash", "config", "enable", "1")
+	elseif active == config_file then
+		uci:set("openclash", "config", "enable", "1")
+	end
 	if not uci:commit("openclash") then
 		return true, "Configuration was saved, but settings could not be saved; check router storage and try again"
 	end
@@ -7320,6 +7327,9 @@ local function fetch_oix_sub(token)
 		return true, "Configuration was saved, but settings could not be saved; check router storage and try again"
 	end
 	fs.unlink(legacy_file)
+	if not select_profile and active ~= config_file then
+		return true, "Subscription was saved; the active configuration was kept"
+	end
 	oix_progress("restarting", "Restarting...")
 	if SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1") ~= 0 then
 		return true, "Configuration was saved, but OpenClash could not start"
@@ -7340,12 +7350,13 @@ function oix_login()
 	local input_token = HTTP.formvalue("token")
 	local email = HTTP.formvalue("email")
 	local passwd = HTTP.formvalue("passwd")
+	local refresh = HTTP.formvalue("refresh") == "1"
 	local ready, core_err = oix_ensure_core(true)
 	if not ready then
 		write_padded('{"stage":"error","result":' .. json.stringify(luci.i18n.translate(core_err)) .. '}')
 		return
 	end
-	if HTTP.formvalue("refresh") == "1" then
+	if refresh then
 		token = fs.uci_get_config("config", "oix_token")
 		if not oix_valid_token(token) then
 			write_padded(json.stringify({stage = "error", code = "auth", result = luci.i18n.translate("Sign-in token is invalid or expired, please sign in again")}))
@@ -7381,7 +7392,7 @@ function oix_login()
 		suggest_node_filter = type(reply.account) == "table" and reply.account.suggest_node_filter == true
 	end
 	-- Authentication succeeds independently of downloading or activating a profile.
-	if HTTP.formvalue("refresh") ~= "1" then
+	if not refresh then
 		uci:set("openclash", "config", "oix_token", token)
 		if not uci:commit("openclash") then
 			write_padded(json.stringify({stage = "error", result = luci.i18n.translate("Unable to save sign-in; check router storage and try again")}))
@@ -7390,7 +7401,7 @@ function oix_login()
 		fs.unlink("/tmp/oix_info")
 		fs.unlink("/tmp/oix_checkin")
 	end
-	local ok, warning, code = fetch_oix_sub(token)
+	local ok, warning, code = fetch_oix_sub(token, not refresh)
 	uci:load("openclash")
 	if uci:get("openclash", "config", "oix_token") ~= token then
 		code = "session_changed"

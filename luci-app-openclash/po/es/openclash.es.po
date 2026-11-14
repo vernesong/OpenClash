@@ -5909,3 +5909,6 @@ msgstr "No se pudo guardar la sesión; revisa el almacenamiento del router e int
 
 msgid "Configuration was saved, but settings could not be saved; check router storage and try again"
 msgstr "Se guardó la configuración, pero no los ajustes; revisa el almacenamiento del router e inténtalo de nuevo"
+
+msgid "Subscription was saved; the active configuration was kept"
+msgstr "La suscripción se guardó; se mantuvo la configuración activa"

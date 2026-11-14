@@ -320,14 +320,16 @@ var OixCloud = {
                 if (ref && ref.offsetWidth > 0) {
                     measureContent();
                 } else {
-                    var tabContainer = document.getElementById('tab.openclash.config.oixcloud');
-                    var observer = new MutationObserver(function() {
-                        if (ref && ref.offsetWidth > 0) {
-                            observer.disconnect();
-                            measureContent();
-                        }
-                    });
-                    observer.observe(tabContainer, { attributes: true, attributeFilter: ['style', 'class'] });
+                    var tabContainer = document.getElementById('container.openclash.config.oixcloud');
+                    if (tabContainer && window.MutationObserver) {
+                        var observer = new MutationObserver(function() {
+                            if (ref && ref.offsetWidth > 0) {
+                                observer.disconnect();
+                                measureContent();
+                            }
+                        });
+                        observer.observe(tabContainer, { attributes: true, attributeFilter: ['style', 'class'] });
+                    }
                 }
             }
         } else {

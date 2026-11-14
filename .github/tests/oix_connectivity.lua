@@ -4,11 +4,19 @@ local function read(path)
 end
 local controller = read('luci-app-openclash/luasrc/controller/openclash.lua')
 local helpers = read('luci-app-openclash/luasrc/openclash.lua')
-local function extract(source, name, next_marker, env, global)
+-- The helper module uses `module "luci.openclash"`: only globals it aliases at
+-- the top are visible, so its cases must not fall back to _G.
+local module_header = helpers:match("^(.-)\nmodule ") or helpers
+local module_globals = {}
+for line in module_header:gmatch("[^\n]+") do
+ local lhs, rhs = line:match("^local%s+([%a_][%w_]*)%s*=%s*([%a_][%w_]*)%s*$")
+ if lhs and lhs == rhs then module_globals[lhs] = _G[lhs] end
+end
+local function extract(source, name, next_marker, env, global, isolated)
  local start = assert(source:find((global and 'function ' or 'local function ') .. name .. '(', 1, true))
  local finish = assert(source:find('\n' .. next_marker, start, true))
  local chunk = assert(loadstring(source:sub(start, finish - 1) .. '\nreturn ' .. name))
- setfenv(chunk, setmetatable(env, {__index = _G}))
+ setfenv(chunk, setmetatable(env, isolated and {} or {__index = _G}))
  return chunk()
 end
 local function encode(s)
@@ -45,8 +53,15 @@ assert(errorMessage({code='rejected',error='the request was refused by the serve
 assert(errorMessage({code='auth',error='wrong password'},'fallback')=='wrong password')
 cases=cases+2
 
-for _, mode in ipairs({'success','offline','start_failed','load_failed','download_failed','session_changed','activation_save_failed','subscription_save_failed'}) do
- local values={config_path='/etc/openclash/config/previous.yaml', enable='0',oix_token=mode=='session_changed' and 'new-session' or 'fixture-token'}
+-- A completed sign-in selects the managed profile; later account actions do not.
+for _, mode in ipairs({'success','offline','start_failed','load_failed','download_failed','session_changed','activation_save_failed','subscription_save_failed','other_config'}) do
+ local managed='/etc/openclash/config/oixCloud.yaml'
+ local values={
+  config_path=mode=='other_config' and '/etc/openclash/config/previous.yaml' or managed,
+  enable='1',
+  oix_token=mode=='session_changed' and 'new-session' or 'fixture-token'
+ }
+ local initial_config,initial_enable,restarted=values.config_path,values.enable,false
  local commits=0
  local uci={set=function(_,_,_,key,value) values[key]=value end,get=function(_,_,_,key)return values[key] end,
   commit=function()commits=commits+1;return not (mode=='activation_save_failed' and commits==1 or mode=='subscription_save_failed' and commits==2)end,load=function()end,
@@ -63,19 +78,59 @@ for _, mode in ipairs({'success','offline','start_failed','load_failed','downloa
    return ''
   end,call=function(command)
    if command:find(' restart ',1,true) then
-    assert(mode~='activation_save_failed' and mode~='subscription_save_failed','restart after settings save failure')
+    restarted=true
     if mode=='start_failed' then return 1 end
    end
    return 0
   end}
  }
  local fetch=extract(controller,'fetch_oix_sub','function oix_login()',env)
- local ok,warning=fetch('fixture-token')
- if mode=='download_failed' or mode=='session_changed' then assert(not ok and values.config_path=='/etc/openclash/config/previous.yaml' and values.enable=='0')
+ local ok,warning=fetch('fixture-token',true)
+ if mode=='download_failed' or mode=='session_changed' then
+  assert(not ok and values.config_path==initial_config and values.enable==initial_enable and not restarted)
+ elseif mode=='activation_save_failed' or mode=='subscription_save_failed' then
+  assert(ok and values.config_path==managed and values.enable=='1' and not restarted)
+  assert(warning and warning:find('settings could not be saved',1,true))
  else
-  assert(ok and values.config_path=='/etc/openclash/config/oixCloud.yaml' and values.enable=='1')
-  assert((mode=='success' and not warning) or (mode~='success' and warning))
-  if mode=='activation_save_failed' or mode=='subscription_save_failed' then assert(warning:find('settings could not be saved',1,true))end
+  local quiet=mode=='success' or mode=='other_config'
+  assert(ok and values.config_path==managed and values.enable=='1' and restarted)
+  assert((quiet and not warning) or (not quiet and warning))
+ end
+ cases=cases+1
+end
+
+-- Refreshing the subscription must not touch the configuration in use.
+for _, mode in ipairs({'refresh_active','refresh_other','refresh_disabled','refresh_empty'}) do
+ local managed='/etc/openclash/config/oixCloud.yaml'
+ local values={
+  config_path=(mode=='refresh_other' and '/etc/openclash/config/previous.yaml') or (mode=='refresh_empty' and '') or managed,
+  enable=mode=='refresh_disabled' and '0' or '1',
+  oix_token='fixture-token'
+ }
+ local initial_config,initial_enable,restarted=values.config_path,values.enable,false
+ local uci={set=function(_,_,_,key,value) values[key]=value end,get=function(_,_,_,key)return values[key] end,
+  commit=function()return true end,load=function()end,foreach=function()end,add=function()return 'subscription' end}
+ local env={uci=uci, OIX_MANAGED_ADDRESS='oixcloud://managed',oix_valid_token=function()return true end,
+  oix_progress=function()end, oix_quote=function(x)return x end,meta_core_path='/fixture/core',
+  luci={i18n={translate=function(x)return x end}},oix_cli_error=errorMessage,
+  oix_wait_loaded=function()return true end,
+  fs={oix_cli=function()return {} end,unlink=function()end,rename=function()return true end,chmod=function()end,config_refs=function()end},
+  SYS={exec=function(command)
+   if command:find('mktemp',1,true) then return '/etc/openclash/config/.oixCloud.fixture' end
+   if command:find('subscription_status',1,true) then return 'OK:0' end
+   return ''
+  end,call=function(command)
+   if command:find(' restart ',1,true) then restarted=true end
+   return 0
+  end}
+ }
+ local fetch=extract(controller,'fetch_oix_sub','function oix_login()',env)
+ local ok,warning=fetch('fixture-token',false)
+ if mode=='refresh_other' or mode=='refresh_empty' then
+  assert(ok and values.config_path==initial_config and values.enable==initial_enable and not restarted)
+  assert(warning and warning:find('active configuration was kept',1,true))
+ else
+  assert(ok and values.config_path==initial_config and values.enable=='1' and restarted and not warning)
  end
  cases=cases+1
 end
@@ -84,23 +139,25 @@ for _,mode in ipairs({'stopped','authenticated','default_enabled','empty_passwor
  local running = mode ~= 'stopped'
  local payload,commands
  commands={}
- local env={uci_get_config=function(_,key) if key=='mixed_port' then return '7893' end end,
-  uci={foreach=function(_,_,_,fn)
+ local env={}
+ for name,value in pairs(module_globals) do env[name]=value end
+ env.uci_get_config=function(_,key) if key=='mixed_port' then return '7893' end end
+ env.uci={foreach=function(_,_,_,fn)
    local section={username='fixture user',password=mode=='empty_password' and '' or 'fixture@password'}
    if mode~='default_enabled' then section.enabled='1' end
    fn(section)
-  end},
-  fs={access=function()return true end,writefile=function()return true end,remove=function()end},
-  HTTP={urlencode=encode},UTIL={shellquote=function(x)return x end},
-  json={stringify=function(request)payload=request;return '{}' end,parse=function()return {}end},
-  SYS={call=function()return running and 0 or 1 end,exec=function(cmd)
+  end}
+ env.fs={access=function()return true end,writefile=function()return true end,remove=function()end}
+ env.HTTP={urlencode=encode}
+ env.UTIL={shellquote=function(x)return x end}
+ env.json={stringify=function(request)payload=request;return '{}' end,parse=function()return {}end}
+ env.SYS={call=function()return running and 0 or 1 end,exec=function(cmd)
    commands[#commands+1]=cmd
    if cmd:find(' -v ',1,true) then return 'mihomo oix' end
    if cmd:find('mktemp',1,true) then return '/tmp/.oix_cli.fixture' end
    return '{}'
   end}
- }
- local cli=extract(helpers,'oix_cli','--- Appends',env,true)
+ local cli=extract(helpers,'oix_cli','--- Appends',env,true,true)
  assert(cli('managed-config',{token='fixture-token'}))
  if not running then assert(not payload.proxy)
  elseif mode=='empty_password' then assert(payload.proxy=='http://127.0.0.1:7893')
