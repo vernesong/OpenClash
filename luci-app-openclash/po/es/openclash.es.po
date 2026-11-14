@@ -3978,9 +3978,6 @@ msgstr "Consulta los nodos recomendados para tu plan en el sitio web de oixCloud
 msgid "Open the oixCloud website to choose the nodes delivered to OpenClash"
 msgstr "Abrir el sitio web de oixCloud para elegir los nodos que recibe OpenClash"
 
-msgid "oixCloud configuration and nodes are ready"
-msgstr "La configuración y los nodos de oixCloud están listos"
-
 msgid "Loading managed nodes..."
 msgstr "Cargando los nodos administrados..."
 
@@ -5846,3 +5843,72 @@ msgstr "br_netfilter: bridge-nf-call-ip6tables se ha puesto en 0 para que TPROXY
 
 msgid "br_netfilter: Can't Set bridge-nf-call-ip6tables To 0, IPv6 TPROXY For Bridge Traffic May Fail, Run: sysctl -w net.bridge.bridge-nf-call-ip6tables=0 And Restart The Plugin"
 msgstr "br_netfilter: no se puede poner bridge-nf-call-ip6tables en 0; el TPROXY IPv6 del tráfico de puente puede fallar; ejecuta sysctl -w net.bridge.bridge-nf-call-ip6tables=0 y reinicia el plugin"
+
+msgid "oixCloud configuration is active and a node passed the connectivity check"
+msgstr "La configuración de oixCloud está activa y un nodo superó la prueba de conectividad"
+
+msgid "Checking node connectivity..."
+msgstr "Comprobando la conectividad de los nodos..."
+
+msgid "Configuration is active, but node connectivity checks did not pass; check network diagnostics or select another node"
+msgstr "La configuración está activa, pero las pruebas de conectividad no se superaron; revise el diagnóstico de red o seleccione otro nodo"
+
+msgid "Configuration is active and another node is reachable; the selected node did not pass the connectivity check"
+msgstr "La configuración está activa y otro nodo es accesible; el nodo seleccionado no superó la prueba de conectividad"
+
+msgid "Configuration was saved, but OpenClash could not start"
+msgstr "La configuración se guardó, pero OpenClash no pudo iniciarse"
+
+msgid "Configuration was saved, but activation failed: %s"
+msgstr "La configuración se guardó, pero no pudo activarse: %s"
+
+msgid "check the device clock and time synchronization"
+msgstr "Compruebe el reloj del dispositivo y la sincronización de hora"
+
+msgid "the request was refused by the server"
+msgstr "El servidor rechazó la solicitud; revise el diagnóstico de red o contacte con soporte"
+
+msgid "cannot resolve the oixCloud panel address"
+msgstr "No se puede resolver la dirección del servicio oixCloud; compruebe el DNS"
+
+msgid "cannot establish a secure connection; check the device clock and network"
+msgstr "No se puede establecer una conexión segura; compruebe el reloj del dispositivo y la red"
+
+msgid "cannot reach the oixCloud panel"
+msgstr "No se puede conectar con el servicio oixCloud; compruebe la red"
+
+msgid "cannot use the local proxy; check proxy authentication and settings"
+msgstr "No se puede utilizar el proxy local; compruebe la autenticación y la configuración"
+
+msgid "timed out reaching the oixCloud panel"
+msgstr "La conexión con el servicio oixCloud agotó el tiempo; compruebe la red o inténtelo más tarde"
+
+msgid "the oixCloud panel failed to answer"
+msgstr "El servicio oixCloud no respondió correctamente; inténtelo más tarde"
+
+msgid "too many requests, try again later"
+msgstr "Demasiadas solicitudes; inténtelo más tarde"
+
+msgid "rate limited"
+msgstr "Se alcanzó el límite de solicitudes; inténtelo más tarde"
+
+msgid "Signed in, but subscription update failed: %s"
+msgstr "Sesión iniciada, pero falló la actualización de la suscripción: %s"
+
+msgid "Sign-in changed; please retry the subscription update"
+msgstr "La sesión ha cambiado; vuelve a actualizar la suscripción"
+
+msgid "Update subscription"
+msgstr "Actualizar suscripción"
+
+msgid "Subscription update failed:"
+msgstr "Error al actualizar la suscripción:"
+
+msgid "Unable to save sign-in; check router storage and try again"
+msgstr "No se pudo guardar la sesión; revisa el almacenamiento del router e inténtalo de nuevo"
+
+msgid "Configuration was saved, but settings could not be saved; check router storage and try again"
+msgstr "Se guardó la configuración, pero no los ajustes; revisa el almacenamiento del router e inténtalo de nuevo"
+
+msgid "Subscription was saved; the active configuration was kept"
+msgstr "La suscripción se guardó; se mantuvo la configuración activa"

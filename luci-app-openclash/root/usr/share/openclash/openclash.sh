@@ -136,14 +136,27 @@ config_download_managed()
    [ "$(uci_get_config "small_flash_memory")" = "1" ] && core="/tmp/etc/openclash/core/clash_meta"
    if ! "$core" -v 2>/dev/null | grep -q oix || ! "$core" oix managed-config --check >/dev/null 2>&1; then
       OIX_INSTALL_ONLY=1 /usr/share/openclash/openclash_core.sh Oix >/dev/null 2>&1
-   fi
-   if ! "$core" -v 2>/dev/null | grep -q oix || ! "$core" oix managed-config --check >/dev/null 2>&1; then
-      LOG_ERROR "Config File【$name】Needs The oixCloud Core, Please Install It First"
-      DOWNLOAD_RESULT=1
-      return
+      if ! "$core" -v 2>/dev/null | grep -q oix || ! "$core" oix managed-config --check >/dev/null 2>&1; then
+         LOG_ERROR "Config File【$name】Needs The oixCloud Core, Please Install It First"
+         DOWNLOAD_RESULT=1
+         return
+      fi
    fi
    LOG_INFO "Config File【$name】Downloading Through The Core..."
-   reply=$(printf '{"token":"%s","output":"%s"}' "$oix_token" "$CFG_FILE" | OIX_CLIENT=openclash CLASH_HOME_DIR="$CLASH_CONFIG" "$core" oix managed-config -format lines 2>/dev/null)
+   reply=$(printf '{"token":"%s","output":"%s"}' "$oix_token" "$CFG_FILE" | lua -e '
+      local fs = require "luci.openclash"
+      local json = require "luci.jsonc"
+      local request = json.parse(io.read("*a"))
+      local reply = fs.oix_cli("managed-config", request)
+      if not reply then
+         print("error=The oixCloud core is not installed or too old; install it from the Core settings and try again")
+         os.exit(1)
+      end
+      if reply.error then
+         print("error=" .. tostring(reply.error):gsub("[\r\n]", " "))
+         os.exit(1)
+      end
+   ' 2>/dev/null)
    DOWNLOAD_RESULT=$?
    if [ "$DOWNLOAD_RESULT" -ne 0 ]; then
       LOG_OUT "Config File【$name】Download Failed:【$(printf '%s\n' "$reply" | sed -n 's/^error=//p')】"
