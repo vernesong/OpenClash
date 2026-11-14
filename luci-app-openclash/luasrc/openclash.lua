@@ -439,7 +439,23 @@ function oix_cli(command, request)
 	if not temporary then
 		return nil
 	end
-	local payload = json.stringify(request or {})
+	request = request or {}
+	-- Only an already running local core may supply the fallback route.
+	if SYS.call("pidof clash >/dev/null 2>&1") == 0 then
+		local port = tonumber(uci_get_config("config", "mixed_port") or "7893")
+		if port and port > 0 and port <= 65535 and port == math.floor(port) then
+			local credentials = ""
+			uci:foreach("openclash", "authentication", function(section)
+				if (section.enabled == nil or section.enabled == "1") and section.username and section.username ~= ""
+					and section.password and section.password ~= "" then
+					credentials = HTTP.urlencode(section.username) .. ":" .. HTTP.urlencode(section.password) .. "@"
+					return false
+				end
+			end)
+			request.proxy = "http://" .. credentials .. "127.0.0.1:" .. port
+		end
+	end
+	local payload = json.stringify(request)
 	if payload == "[]" then
 		payload = "{}"
 	end

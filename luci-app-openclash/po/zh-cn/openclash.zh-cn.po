@@ -3989,9 +3989,6 @@ msgstr "在 oixCloud 网站查看套餐的智能优选节点"
 msgid "Open the oixCloud website to choose the nodes delivered to OpenClash"
 msgstr "前往 oixCloud 网站选择下发给 OpenClash 的节点"
 
-msgid "oixCloud configuration and nodes are ready"
-msgstr "oixCloud 配置与节点已加载"
-
 msgid "Loading managed nodes..."
 msgstr "正在加载托管节点..."
 
@@ -5854,3 +5851,69 @@ msgstr "br_netfilter：已将 bridge-nf-call-ip6tables 置为 0 以保证 IPv6 T
 
 msgid "br_netfilter: Can't Set bridge-nf-call-ip6tables To 0, IPv6 TPROXY For Bridge Traffic May Fail, Run: sysctl -w net.bridge.bridge-nf-call-ip6tables=0 And Restart The Plugin"
 msgstr "br_netfilter：无法将 bridge-nf-call-ip6tables 置为 0，网桥流量的 IPv6 TPROXY 可能失效，请执行 sysctl -w net.bridge.bridge-nf-call-ip6tables=0 后重启插件"
+
+msgid "oixCloud configuration is active and a node passed the connectivity check"
+msgstr "oixCloud 配置已启用，已有节点通过连通性检查"
+
+msgid "Checking node connectivity..."
+msgstr "正在检查节点连通性..."
+
+msgid "Configuration is active, but node connectivity checks did not pass; check network diagnostics or select another node"
+msgstr "配置已启用，但节点连通性检查未通过，请检查网络诊断或选择其他节点"
+
+msgid "Configuration is active and another node is reachable; the selected node did not pass the connectivity check"
+msgstr "配置已启用，其他节点可连通，但当前所选节点未通过连通性检查"
+
+msgid "Configuration was saved, but OpenClash could not start"
+msgstr "配置已保存，但 OpenClash 未能启动"
+
+msgid "Configuration was saved, but activation failed: %s"
+msgstr "配置已保存，但启用失败：%s"
+
+msgid "check the device clock and time synchronization"
+msgstr "请检查路由器时间和时间同步服务"
+
+msgid "the request was refused by the server"
+msgstr "服务器拒绝了请求，请检查网络诊断或联系支持"
+
+msgid "cannot resolve the oixCloud panel address"
+msgstr "无法解析 oixCloud 服务地址，请检查 DNS"
+
+msgid "cannot establish a secure connection; check the device clock and network"
+msgstr "无法建立安全连接，请检查路由器时间和网络"
+
+msgid "cannot reach the oixCloud panel"
+msgstr "无法连接 oixCloud 服务，请检查网络"
+
+msgid "cannot use the local proxy; check proxy authentication and settings"
+msgstr "无法使用本机代理，请检查代理认证和设置"
+
+msgid "timed out reaching the oixCloud panel"
+msgstr "连接 oixCloud 服务超时，请检查网络或稍后重试"
+
+msgid "the oixCloud panel failed to answer"
+msgstr "oixCloud 服务响应异常，请稍后重试"
+
+msgid "too many requests, try again later"
+msgstr "请求过于频繁，请稍后重试"
+
+msgid "rate limited"
+msgstr "请求受到限流，请稍后重试"
+
+msgid "Signed in, but subscription update failed: %s"
+msgstr "已登录，但订阅更新失败：%s"
+
+msgid "Sign-in changed; please retry the subscription update"
+msgstr "登录状态已变更，请重新更新订阅"
+
+msgid "Update subscription"
+msgstr "更新订阅"
+
+msgid "Subscription update failed:"
+msgstr "订阅更新失败："
+
+msgid "Unable to save sign-in; check router storage and try again"
+msgstr "无法保存登录状态，请检查路由器存储空间后重试"
+
+msgid "Configuration was saved, but settings could not be saved; check router storage and try again"
+msgstr "配置文件已保存，但设置保存失败，请检查路由器存储空间后重试"
