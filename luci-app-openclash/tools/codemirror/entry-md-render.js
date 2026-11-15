@@ -4,7 +4,7 @@
 // Build: npx esbuild tools/codemirror/entry-md-render.js --bundle --format=iife --global-name=OCMarkdown --minify --target=es2019 --outfile=root/www/luci-static/resources/openclash/js/md-render.min.js --legal-comments=none --loader:.css=text
 // ============================================================
 
-import { marked } from "marked"
+import { Marked, marked } from "marked"
 import hljs from "highlight.js/lib/core"
 import yamlLang from "highlight.js/lib/languages/yaml"
 import bashLang from "highlight.js/lib/languages/bash"
@@ -79,7 +79,48 @@ function renderMarkdown(text) {
     try { return marked.parse(text) } catch(e) { return text }
 }
 
+function isWebURL(href) {
+    try {
+        const url = new URL(href);
+        return (url.protocol === 'https:' || url.protocol === 'http:') && Boolean(url.hostname);
+    } catch {
+        return false;
+    }
+}
+
+const announcementMarkdown = new Marked({
+    breaks: true,
+    gfm: true,
+    renderer: {
+        html({ text }) { return escapeHtml(text); },
+        link(token) {
+            return isWebURL(token.href) ? false : this.parser.parseInline(token.tokens);
+        },
+        image(token) {
+            return isWebURL(token.href) ? false : escapeHtml(token.text);
+        }
+    }
+});
+
+function announcementContent(announcement) {
+    const format = announcement && announcement.content_format;
+    if (format == null || typeof announcement.content !== 'string' || !announcement.content.trim()) return null;
+    const kind = typeof format === 'string' ? format.trim().toLowerCase() : 'text';
+    if (kind === 'html') return null;
+    const template = document.createElement('template');
+    if (kind === 'markdown') {
+        template.innerHTML = announcementMarkdown.parse(announcement.content);
+    } else {
+        const text = document.createElement('div');
+        text.style.whiteSpace = 'pre-wrap';
+        text.textContent = announcement.content;
+        template.content.appendChild(text);
+    }
+    return template.content;
+}
+
 export {
+    announcementContent,
     renderMarkdown,
     switchHljsTheme
 }

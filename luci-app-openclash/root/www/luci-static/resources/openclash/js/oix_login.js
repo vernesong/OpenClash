@@ -285,38 +285,49 @@ var OixCloud = {
     },
 
     renderAnnouncement: function(result) {
-        if (result.announcement && result.announcement.content) {
+        var announcement = result.announcement;
+        var content = window.OCMarkdown && OCMarkdown.announcementContent &&
+            OCMarkdown.announcementContent(announcement);
+        if (content) {
             var el = document.getElementById('oix-announce');
             var body = document.getElementById('oix-announce-body');
             var arrow = document.getElementById('oix-announce-arrow');
             if (el && body) {
                 el.classList.remove('oc-hidden');
-                body.innerHTML = '<strong>' + (result.announcement.date || '') + ': </strong>' + result.announcement.content;
+                body.textContent = '';
+                if (announcement.date) {
+                    var date = document.createElement('strong');
+                    date.textContent = announcement.date;
+                    body.appendChild(date);
+                }
+                body.appendChild(content);
                 body.classList.remove('oix-collapsed');
+                if (arrow) {
+                    arrow.classList.add('oc-hidden');
+                    arrow.style.transform = '';
+                }
                 var ref = document.getElementById('oix-cards');
                 var measureContent = function() {
                     if (!ref || ref.offsetWidth === 0) return;
                     var cs = getComputedStyle(body);
                     var fontSize = parseFloat(cs.fontSize) || 12;
                     var maxH = fontSize * 5.6;
-                    var measure = document.createElement('div');
-                    measure.style.font = cs.font;
-                    measure.style.lineHeight = cs.lineHeight;
-                    measure.style.wordBreak = cs.wordBreak;
-                    measure.style.width = ref.offsetWidth + 'px';
-                    measure.style.position = 'absolute';
-                    measure.style.visibility = 'hidden';
-                    measure.innerHTML = (result.announcement.date || '') + ': ' + result.announcement.content;
-                    ref.parentElement.appendChild(measure);
-                    var fullH = measure.scrollHeight;
-                    ref.parentElement.removeChild(measure);
-                    if (fullH > maxH + 4) {
+                    var expandable = body.scrollHeight > maxH + 4;
+                    if (expandable && arrow && arrow.classList.contains('oc-hidden')) {
                         body.classList.add('oix-collapsed');
-                        if (arrow) arrow.classList.remove('oc-hidden');
-                    } else {
-                        if (arrow) arrow.classList.add('oc-hidden');
+                    } else if (!expandable) {
+                        body.classList.remove('oix-collapsed');
+                        if (arrow) arrow.style.transform = '';
                     }
+                    if (arrow) arrow.classList.toggle('oc-hidden', !expandable);
                 };
+                body.querySelectorAll('img').forEach(function(image) {
+                    var onImageSettled = function() {
+                        if (body.contains(image)) measureContent();
+                    };
+                    image.addEventListener('load', onImageSettled, { once: true });
+                    image.addEventListener('error', onImageSettled, { once: true });
+                });
                 if (ref && ref.offsetWidth > 0) {
                     measureContent();
                 } else {
