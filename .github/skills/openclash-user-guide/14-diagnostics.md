@@ -146,7 +146,7 @@
 
 | 脚本 / 命令 | 用途 | 安全 |
 |-------------|------|------|
-| `openclash_debug.sh` | 生成完整调试日志（30 章节） | 🟡 |
+| `openclash_debug.sh` | 生成完整调试日志（31 章节） | 🟡 |
 | `openclash_geo.sh ipdb\|geoip\|geosite\|geoasn\|all` | 更新对应 GEO 数据 | 🟡 |
 | `openclash_chnroute.sh` | 下载中国 IPv4/IPv6 CIDR 并转为 set | 🟡 |
 | `openclash_version.sh [cdn]` | 检查最新版本（写 `/tmp/clash_last_version`），可传 CDN | 🟢 |

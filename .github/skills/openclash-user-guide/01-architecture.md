@@ -13,7 +13,7 @@ LuCI Web UI (Lua CBI)  →  /etc/config/openclash（UCI，所有选项持久化�
   openclash_chnroute.sh 大陆路由表更新
   yml_change.sh         Ruby 改 YAML（端口/模式/DNS/TUN/认证/Meta/Smart）
   yml_rules_change.sh   Ruby 改 YAML（规则/Provider/URL-Test/Smart 组）
-  openclash_debug.sh    诊断日志（30 章节）
+  openclash_debug.sh    诊断日志（31 章节）
   openclash_watchdog.sh 核心存活 + 流媒体解锁守护
                               │
                               ▼  产物
@@ -54,7 +54,7 @@ API: http://<LAN_IP>:9090 （external-controller）    Dashboard: http://<LAN_IP
 | 2 | 环境准备 | `do_run_file()`：判断核心类型（Oix/Smart/Meta）并自动下载缺失核心；GEO 文件规范化（`geosite.dat`→`GeoSite.dat`、`geoip.dat`→`GeoIP.dat`）；小闪存模式在 `/tmp/etc/openclash` 与 `/etc/openclash` 间搬移；建 `clash` symlink；缺核心调 `openclash_core.sh`、缺 Chnroute 调 `openclash_chnroute.sh` |
 | 3 | 改 YAML（QUICK_START 时整段跳过） | `config_check()` → ① `yml_change.sh`（~48 参数：端口/模式/TUN/DNS/Sniffer/认证/Meta/GEO/Smart/Dashboard/NTP/CORS/IPv6/routing-mark）→ ② `yml_rules_change.sh`（14 参数：BT 直连规则、url-test 覆写、自定义规则注入、smart 组转换）→ ③ `YAML.overwrite_run()` 执行覆写模块（先 `[YAML]` 后 `[Overwrite]`）→ ④ `custom/openclash_custom_overwrite.sh` → ⑤ 修正 provider path 为 `./proxy_provider/<name>` |
 | 4 | 启动内核 | `start_run_core()`：mv 运行配置 + procd 启动 `clash -d /etc/openclash -f <config.yaml>`；注入 env `SAFE_PATHS` / `CLASH_AGE_SECRET_KEY` / `OIX_TOKEN`；respawn `300 5 3`；rlimit `nofile=1000000`、`nproc`、`as`、`memlock=unlimited` |
-| 5 | 状态检查 + 防火墙 | 等核心进程 ≤10 s；TUN 模式 `check_mod tun` + 等 `utun` 接口（≤300 s，失败重启 ≤3 次）+ 策略路由（fwmark `0x162` → table `0x162`，pref 999）；非 TUN 轮询 `/group` 返回 200（≤300 s）；就绪后 `change_dnsmasq()` 做 DNS 劫持、`set_firewall()` 建 REDIRECT/TPROXY、DNS 劫持、访问控制、QUIC 阻断、中国 IP 绕行与 IPv6 链 |
+| 5 | 状态检查 + 防火墙 | 等核心进程 ≤10 s；TUN 模式 `check_mod tun` + 等 `utun` 接口（≤300 s，失败重启 ≤3 次）+ 策略路由（fwmark `0x162` → table `0x162`，pref 999）；非 TUN 轮询 `/group` 返回 200（≤300 s）；就绪后 `change_dnsmasq()` 做 DNS 劫持、`set_firewall()` 建 REDIRECT/TPROXY（并把 `net.bridge.bridge-nf-call-iptables` / `-ip6tables` 默认置 `0` 以免 br_netfilter 让 TPROXY 失效，见 `05-firewall-special.md` §5.5）、DNS 劫持、访问控制、QUIC 阻断、中国 IP 绕行与 IPv6 链 |
 | 6 | 定时任务 + 守护 | `add_cron()`：每条订阅独立 cron（`openclash.sh '<name>'`，非整分间隔走 `loop <interval>` 时间戳守卫）、GEO、chnroute、定时重启、覆写模块下载；`service_started()` 注册独立 procd 服务 `openclash-watchdog`（核心存活 + 流媒体解锁）；非 TUN 且 dhcpv6 未禁用时告警；清理 `/tmp/yaml_*` |
 
 ## 停止流程（`stop_service()`）

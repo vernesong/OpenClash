@@ -153,6 +153,7 @@ cat > "$DEBUG_LOG" <<-EOF
 | IPV6-DHCP | $(uci -q get dhcp.lan.dhcpv6 || echo "未配置") |
 | DNS劫持 | $(dns_re "$enable_redirect_dns") |
 | TFO 黑洞超时（秒） | $(cat /proc/sys/net/ipv4/tcp_fastopen_blackhole_timeout_sec 2>/dev/null || echo "不支持") |
+| br_netfilter 网桥回调 | IPv4=$(cat /proc/sys/net/bridge/bridge-nf-call-iptables 2>/dev/null || echo "未加载") IPv6=$(cat /proc/sys/net/bridge/bridge-nf-call-ip6tables 2>/dev/null || echo "未加载") |
 
 ### 磁盘与内存
 
@@ -306,8 +307,11 @@ cat >> "$DEBUG_LOG" <<-EOF
 | 当前配置文件 | $RAW_CONFIG_FILE |
 | 启动配置文件 | $CONFIG_FILE |
 | 运行模式 | $en_mode |
+| TUN/混合标记 | $(case "$en_mode_tun" in 1) echo "全TUN";; 2) echo "混合";; *) echo "未启用";; esac) |
 | 默认代理模式 | $proxy_mode |
 | UDP流量转发 | $(ts_cf "$enable_udp_proxy") |
+| IPv6 UDP流量转发 | $(ts_cf "$enable_v6_udp_proxy") |
+| TProxy 端口 | $(uci_get_config "tproxy_port" || echo 7895) |
 | 自定义DNS | $(ts_cf "$enable_custom_dns") |
 | IPV6代理 | $(ts_cf "$ipv6_enable") |
 | IPV6-DNS解析 | $(ts_cf "$ipv6_dns") |
@@ -510,6 +514,83 @@ cat >> "$DEBUG_LOG" <<-EOF
 \`\`\`
 EOF
 fi
+
+#br_netfilter & tproxy
+cat >> "$DEBUG_LOG" <<-EOF
+
+## br_netfilter 与 TPROXY 状态
+
+> \`bridge-nf-call-*\` 为 1 时 br_netfilter 会提前接管网桥流量，nft/iptables 的 TPROXY 可能挂不上套接字（IPv6 表现为证书错误，IPv4 表现为连接超时）；OpenClash 使用 TPROXY 时启动阶段会把它置 0，因此这里的值若仍为 1，通常是启动后被 Docker、QSDK \`qca-nss-ecm\` 或 \`sysctl.d\` 改回去了（该开关同时决定 nft \`ip\`/\`inet\` 族是否看到网桥帧，fw4 与 fw3 一样受它控制；nft \`bridge\` 族不受影响）
+
+### 网桥回调开关
+
+\`\`\`bash
+# cat /proc/sys/net/bridge/bridge-nf-call-iptables /proc/sys/net/bridge/bridge-nf-call-ip6tables
+EOF
+if [ -e "/proc/sys/net/bridge/bridge-nf-call-iptables" ]; then
+   brnf4=$(cat /proc/sys/net/bridge/bridge-nf-call-iptables 2>/dev/null)
+   brnf6=$(cat /proc/sys/net/bridge/bridge-nf-call-ip6tables 2>/dev/null)
+   echo "IPv4: ${brnf4}" >> "$DEBUG_LOG"
+   echo "IPv6: ${brnf6}" >> "$DEBUG_LOG"
+   if [ "$brnf4" != "0" ] || [ "$brnf6" != "0" ]; then
+      echo "提示: 存在非 0 值，透明代理（TPROXY）可能失效，可执行 openclash restart 让插件重新置 0，或用下面的 sysctl 来源定位是谁改回的" >> "$DEBUG_LOG"
+   fi
+else
+   echo "br_netfilter 未加载" >> "$DEBUG_LOG"
+fi
+cat >> "$DEBUG_LOG" <<-EOF
+\`\`\`
+
+### 模块与 sysctl 来源
+
+\`\`\`bash
+# lsmod | grep -Ei 'br_netfilter|tproxy'
+# grep -rIn 'bridge-nf-call' /etc/sysctl.conf /etc/sysctl.d/
+EOF
+lsmod 2>/dev/null | grep -Ei 'br_netfilter|tproxy' >> "$DEBUG_LOG"
+grep -rIn 'bridge-nf-call' /etc/sysctl.conf /etc/sysctl.d/ >> "$DEBUG_LOG" 2>/dev/null
+cat >> "$DEBUG_LOG" <<-EOF
+\`\`\`
+
+### 网桥 per-bridge 开关
+
+\`\`\`bash
+# ip -d link show type bridge
+EOF
+ip -d link show type bridge > /tmp/openclash_brnf_bridge.log 2>/dev/null
+if [ -s "/tmp/openclash_brnf_bridge.log" ]; then
+   cat /tmp/openclash_brnf_bridge.log >> "$DEBUG_LOG"
+else
+   echo "（当前 ip 命令不支持读取 per-bridge 开关，可用 ip link set dev <网桥> type bridge nf_call_iptables 0/1 手动设置）" >> "$DEBUG_LOG"
+fi
+rm -f /tmp/openclash_brnf_bridge.log
+tproxy_port=$(uci_get_config "tproxy_port")
+[ -z "$tproxy_port" ] && tproxy_port="7895"
+cat >> "$DEBUG_LOG" <<-EOF
+\`\`\`
+
+### 端口监听与原端口(443)连接
+
+\`\`\`bash
+# netstat -lntup | grep -E ':(${tproxy_port}|443) '
+# netstat -tnp | grep -E ':443 ' | head -20
+EOF
+netstat -lntup 2>/dev/null | grep -E ":(${tproxy_port}|443) " >> "$DEBUG_LOG"
+netstat -tnp 2>/dev/null | grep -E ':443 ' | head -20 >> "$DEBUG_LOG"
+cat >> "$DEBUG_LOG" <<-EOF
+\`\`\`
+
+### iptables TPROXY 规则计数
+
+\`\`\`bash
+# iptables -t mangle -vnL openclash
+# ip6tables -t mangle -vnL openclash
+EOF
+iptables -t mangle -vnL openclash >> "$DEBUG_LOG" 2>/dev/null
+ip6tables -t mangle -vnL openclash >> "$DEBUG_LOG" 2>/dev/null
+cat >> "$DEBUG_LOG" <<-EOF
+\`\`\`
+EOF
 
 if [ -n "$(command -v fw4)" ]; then
 cat >> "$DEBUG_LOG" <<-EOF
