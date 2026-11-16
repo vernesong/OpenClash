@@ -954,6 +954,44 @@ function ocWrapCbiActions() {
     }
 }
 
+// The add/remove tables are built as map-level CBI sections (tabs cannot hold a section),
+// so they render below every tab; move each into the tab it belongs to. CBI keeps the
+// active tab across add/remove/sort submits, so nothing else is needed to stay on it.
+var ocTabSections = [
+    ['lan_ac_traffic', 'lan_ac'],
+    ['dns_servers', 'dns'],
+    ['authentication', 'settings']
+];
+
+function ocMoveTabSections() {
+    for (var i = 0; i < ocTabSections.length; i++) {
+        var sec = document.getElementById('cbi-openclash-' + ocTabSections[i][0]);
+        if (!sec || !sec.parentNode) continue;
+        var scope = sec.closest('.cbi-map') || document;
+        var tab = ocTabSections[i][1];
+        var pane = document.getElementById('container.openclash.config.' + tab)
+            || scope.querySelector('.cbi-tabcontainer[data-tab="' + tab + '"]');
+        if (!pane || sec.parentNode === pane) continue;
+        pane.appendChild(sec);
+        // a pane whose only content was hidden options is dropped from the tab menu
+        var item = scope.querySelector('.cbi-tabmenu li[data-tab="' + tab + '"]');
+        if (item && item.style.display === 'none') item.style.display = '';
+    }
+}
+
+function ocInitTabSections() {
+    // other pages keep the stock behaviour: no DOM moves
+    var found = false;
+    for (var i = 0; i < ocTabSections.length; i++) {
+        if (document.getElementById('cbi-openclash-' + ocTabSections[i][0])) { found = true; break; }
+    }
+    if (!found) return;
+
+    ocMoveTabSections();
+    // CBI builds the tab menu after this script runs, so repeat once it is in place
+    setTimeout(ocMoveTabSections, 0);
+}
+
 var ocLoadingMap = typeof WeakMap !== 'undefined' ? new WeakMap() : (function(){
     var m = {};
     return {
@@ -1783,3 +1821,9 @@ function ocConfirm(options) {
 }
 
 ocInitTheme();
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', ocInitTabSections);
+} else {
+    ocInitTabSections();
+}
