@@ -50,10 +50,7 @@
         oix_integral.innerHTML = status.result.integral;
         oix_integral.title = status.result.integral;
 
-        if (status.result.announcement && status.result.announcement.content != "") {
-            oix_plan.classList.add('oc-hidden');
-            loadOixAnnouncement(status.result.announcement.date + ": " + status.result.announcement.content);
-        }
+        loadOixAnnouncement(status.result.announcement);
         collapseCard();
     }
     else {
@@ -120,17 +117,26 @@
   startOixPoll();
   if (document.hidden) stopOixPoll();
 
-  function loadOixAnnouncement(content) {
+  function loadOixAnnouncement(announcement) {
     if (!oix_container || !oix_banner || !oix_content) return;
 
-    var result = content.replace(/<[^>]*>/g, ' ');
-    result = result.replace(/\s+/g, ' ').trim();
+    var content = window.OCMarkdown && OCMarkdown.announcementContent &&
+        OCMarkdown.announcementContent(announcement);
+    if (!content) return;
+    content.querySelectorAll('br, img').forEach(function(node) {
+        node.replaceWith(document.createTextNode(node.alt || ' '));
+    });
+    var result = Array.prototype.map.call(content.childNodes, function(node) {
+        return node.textContent;
+    }).join(' ').replace(/\s+/g, ' ').trim();
 
     if (!result) {
         oix_container.classList.add('oc-hidden');
         return;
     }
 
+    if (announcement.date) result = announcement.date + ': ' + result;
+    oix_plan.classList.add('oc-hidden');
     oix_container.classList.remove('oc-hidden');
 
     var oixAnimator = new AnnouncementAnimator({
