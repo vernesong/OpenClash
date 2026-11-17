@@ -13,9 +13,9 @@
             <td>
                 <div class="oc">
                     <div class="myip-main-card">
-                        <div class="myip-content-grid">
+                        <div class="myip-content-grid sub-card">
                             <div class="myip-ip-section">
-                                <p class="myip-section-title">
+                                <p class="myip-section-title oc-hidden">
                                     <%:IP Address%>
                                 </p>
 
@@ -47,8 +47,9 @@
                             </div>
 
                             <div class="myip-check-section">
-                                <p class="myip-section-title">
-                                    <span id="myip-check-title"><%:Access Check%></span>
+                                <div class="status-header-row">
+                                    <div class="card-title"><%:Access Check%></div>
+                                    <span id="myip-check-title" class="oc-hidden"><%:Access Check%></span>
                                     <span class="icon-pill myip-toolbar">
                                         <button type="button" class="icon-pill-opt" onclick="return privacy_my_ip(this)">
                                             <svg id="eye-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" overflow="visible" xmlns="http://www.w3.org/2000/svg">
@@ -86,7 +87,7 @@
                                             </svg>
                                         </button>
                                     </span>
-                                </p>
+                                </div>
 
                                 <div class="myip-check-list">
                                     <div class="myip-card-item myip-check-item" data-svc="baidu">
