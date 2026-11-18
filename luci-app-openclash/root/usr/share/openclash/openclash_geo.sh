@@ -11,15 +11,16 @@ set_lock() {
 
 del_lock() {
    flock -u 888 2>/dev/null
-   rm -rf "/tmp/lock/openclash_update_databases.lock" 2>/dev/null
 }
 
-set_lock
+set_lock || exit 1
 inc_job_counter
 
 small_flash_memory=$(uci_get_config "small_flash_memory")
 github_address_mod=$(uci_get_config "github_address_mod" || echo 0)
 restart=0
+result=0
+DEFER_ETAG_SAVE=1
 
 update_one() {
    local type="$1"
@@ -29,12 +30,14 @@ update_one() {
    local name="$5"
    local download_url=""
    local required_rules=""
+   local SKIP_ETAG=0
 
    local custom_url=$(uci_get_config "$custom_key")
 
    if [ "$small_flash_memory" != "1" ]; then
       mkdir -p /etc/openclash
    else
+      path="/tmp/etc/openclash/$name"
       mkdir -p /tmp/etc/openclash
    fi
 
@@ -116,11 +119,11 @@ update_one() {
          ;;
    esac
 
-   # Delete damaged local file, otherwise its update may be skipped by the ETag cache
+   # A damaged local database needs a fresh response even when its ETag matches.
    if [ -f "$path" ]; then
       if head -c 512 "$path" | grep -qiE "<!doctype|<html|<head|<body" || ! grep -qaE "$required_rules" "$path"; then
-         LOG_OUT "【$name】Local Database File Damaged, Delete And Re-Download..."
-         rm -rf "$path"
+         LOG_OUT "【$name】Local Database File Damaged, Re-Download..."
+         SKIP_ETAG=1
       fi
    fi
 
@@ -130,16 +133,18 @@ update_one() {
    DOWNLOAD_RESULT=$?
    if [ "$DOWNLOAD_RESULT" -eq 0 ] && [ -s "/tmp/$tmpfile" ]; then
       if head -c 512 "/tmp/$tmpfile" | grep -qiE "<!doctype|<html|<head|<body"; then
+         result=1
          LOG_OUT "【$name】Download Failed: HTML Response Detected, Abort Update..."
          rm -rf "/tmp/$tmpfile"
       elif ! grep -qaE "$required_rules" "/tmp/$tmpfile"; then
+         result=1
          LOG_OUT "【$name】Download Failed: Database Content Invalid, Abort Update..."
          rm -rf "/tmp/$tmpfile"
       else
          LOG_OUT "【$name】Download Success, Check Updated..."
-         cmp -s "/tmp/$tmpfile" "$path"
-         if [ "$?" -ne 0 ]; then
-            LOG_OUT "【$name】Has Been Updated, Starting To Replace The Old Version..."
+         install_downloaded_resource "/tmp/$tmpfile" "$path"
+         case $? in
+         0)
             case "$type" in
                geoip)
                   rm -rf "/etc/openclash/geoip.dat"
@@ -151,16 +156,17 @@ update_one() {
                   rm -rf "/etc/openclash/GeoLite2-ASN.mmdb"
                   ;;
             esac
-            mv "/tmp/$tmpfile" "$path" >/dev/null 2>&1
             LOG_OUT "【$name】Update Successful!"
             restart=1
-         else
-            LOG_OUT "【$name】No Change, Do Nothing..."
-         fi
+            ;;
+         2) LOG_OUT "【$name】No Change, Do Nothing..." ;;
+         *) result=1; LOG_OUT "【$name】Update Error, Please Try Again Later..." ;;
+         esac
       fi
    elif [ "$DOWNLOAD_RESULT" -eq 2 ]; then
         LOG_OUT "【$name】No Change, Do Nothing..."
    else
+        result=1
         LOG_OUT "【$name】Update Error, Please Try Again Later..."
    fi
 
@@ -196,3 +202,4 @@ esac
 
 dec_job_counter_and_restart "$restart"
 del_lock
+exit "$result"

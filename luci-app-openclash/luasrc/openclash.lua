@@ -29,6 +29,7 @@ local os    = require "os"
 local ltn12 = require "luci.ltn12"
 local fs	= require "nixio.fs"
 local nutil = require "nixio.util"
+local nixio = require "nixio"
 
 local uci = require "luci.model.uci".cursor()
 local SYS  = require "luci.sys"
@@ -51,6 +52,7 @@ local table = table
 local math = math
 local pcall = pcall
 local ipairs = ipairs
+local pairs, next = pairs, next
 local b64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 
 --- LuCI filesystem library.
@@ -328,6 +330,39 @@ function is_safe_filename(name)
 	return name:find("[/%z\1-\31\127]") == nil
 end
 
+function save_config_selection(cursor, config_file, enable)
+	if config_file then
+		local name = config_file:match("^/etc/openclash/config/([^/]+)$")
+		if not name or name == "." or name == ".." or not isfile(config_file) then
+			return false, i18n.translate("Config Not Found")
+		end
+		local validate = "ruby -ryaml -rYAML -I /usr/share/openclash -E UTF-8 -e " ..
+			"'exit(%w[OK NO_PROXIES EMPTY].include?(YAML.subscription_status(ARGV.fetch(0))))' "
+		if SYS.call(validate .. UTIL.shellquote(config_file) .. " >/dev/null 2>&1") ~= 0 then
+			return false, i18n.translate("Config File Format Validation Failed...")
+		end
+	end
+
+	local changes = { config_path = config_file, enable = enable }
+	local previous, read_error = cursor:get_all("openclash", "config")
+	if not previous or read_error then return false, i18n.translate("Failed to save") end
+	for option, value in pairs(changes) do
+		if value == previous[option] then changes[option] = nil end
+	end
+	if not next(changes) then return true end
+	if cursor:tset("openclash", "config", changes) and cursor:commit("openclash") then
+		return true
+	end
+	for option in pairs(changes) do
+		if previous[option] == nil then
+			cursor:delete("openclash", "config", option)
+		else
+			cursor:set("openclash", "config", option, previous[option])
+		end
+	end
+	return false, i18n.translate("Failed to save")
+end
+
 function filesize(e)
 	local t=0
 	local a={' KB',' MB',' GB',' TB',' PB'}
@@ -350,13 +385,13 @@ function lanip(loopback)
 	if lan_int_name == "0" then
 		lan_ip = SYS.exec("uci -q get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n'")
 	else
-		lan_ip = SYS.exec(string.format("ip address show %s 2>/dev/null | grep -w 'inet' 2>/dev/null | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -1 | tr -d '\n'", UTIL.shellquote(lan_int_name)))
+		lan_ip = SYS.exec(string.format("ip address show %s 2>/dev/null | grep -w 'inet' 2>/dev/null | grep -Eo 'inet [0-9.]+' | awk '{print $2}' | head -1 | tr -d '\n'", UTIL.shellquote(lan_int_name)))
 	end
 	if not lan_ip or lan_ip == "" then
-		lan_ip = SYS.exec("ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w 'inet'  2>/dev/null | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -1 | tr -d '\n'")
+		lan_ip = SYS.exec("ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w 'inet'  2>/dev/null | grep -Eo 'inet [0-9.]+' | awk '{print $2}' | head -1 | tr -d '\n'")
 	end
 	if not lan_ip or lan_ip == "" then
-		lan_ip = SYS.exec("ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1 | tr -d '\n'")
+		lan_ip = SYS.exec("ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9.]+' | awk '{print $2}' | head -n 1 | tr -d '\n'")
 	end
 	return lan_ip
 end
@@ -416,6 +451,15 @@ function uci_get_config(section, key)
 		val = uci:get("openclash", section, key)
 	end
 	return val
+end
+
+function oix_with_session_lock(action)
+	local lock = nixio.open("/tmp/lock/openclash_oix_google.lock", "a", "600")
+	if not lock then return nil end
+	local ok, result
+	if lock:lock("lock") then ok, result = pcall(action) end
+	lock:close()
+	return ok and result
 end
 
 --- Runs an account command of the core. The request goes over stdin, which keeps its
@@ -493,25 +537,13 @@ function core_api_command(timing, method, secret, host, port, path, body)
 end
 
 --- Files rebuilt at the next start, and what an interrupted write of them left behind.
--- Archives store member names with "./", and BusyBox matches the whole name.
-local function rebuilt_files(extra)
-	local patterns = {}
-	for _, name in ipairs({".oix_age_key*", "..oix_age_key*", ".oix_device_id*", "..oix_device_id*",
-		"proxy_provider/oixCloud", "proxy_provider/.oixCloud.tmp-*"}) do
-		patterns[#patterns + 1] = UTIL.shellquote(name)
-		patterns[#patterns + 1] = UTIL.shellquote("./" .. name)
-	end
-	if extra then
-		patterns[#patterns + 1] = UTIL.shellquote(extra)
-	end
-	return table.concat(patterns, " ")
+local function archive_command(action, target, extra)
+	return "ruby /usr/share/openclash/openclash_backup.rb " .. action .. " " .. UTIL.shellquote(target)
+		.. (extra and " " .. UTIL.shellquote(extra) or "")
 end
 
---- Writes an archive of the plugin directory to stdout, without the rebuilt files.
 function backup_command(target, extra)
-	local root, list = "/etc/openclash/", "/tmp/oc_exclude.txt"
-	return string.format("printf '%%s\\n' %s > %s && exec tar -C %s -X %s -cz %s 2>/dev/null",
-		rebuilt_files(extra), UTIL.shellquote(list), UTIL.shellquote(root), UTIL.shellquote(list), target)
+	return "exec " .. archive_command("create", target, extra)
 end
 
 function get_file_path_from_request()
@@ -534,27 +566,12 @@ function get_file_path_from_request()
 	return file_path
 end
 
+function backup_upload_path()
+	return (SYS.exec("mktemp /tmp/.openclash-upload.XXXXXX 2>/dev/null") or ""):match("^(%S+)")
+end
+
 function restore_backup(archive)
-	local root, config_path = "/etc/openclash/", "/etc/config/openclash"
-	local quoted = UTIL.shellquote(archive)
-	local listfile = "/tmp/oc_restore.list"
-	local excludefile = "/tmp/oc_restore.exclude"
-	-- list the archive before touching /etc/openclash: a broken upload used to report
-	-- success because every tar/mv error was discarded, and members with absolute or
-	-- parent-relative paths must not be extracted
-	local tarok = SYS.call("tar tzf " .. quoted .. " >" .. listfile .. " 2>/dev/null") == 0
-	local has_members = SYS.call("grep -q . " .. listfile) == 0
-	local has_config = SYS.call("grep -Fxq './openclash' " .. listfile) == 0
-	local unsafe = SYS.call("grep -qE '(^|/)\\.\\./|^/' " .. listfile) == 0
-	local restored = false
-	if tarok and has_members and has_config and not unsafe then
-		SYS.call(string.format("printf '%%s\\n' %s > %s", rebuilt_files(), excludefile))
-		if SYS.call(string.format("tar -C %s -X %s -xzf %s >/dev/null 2>&1", UTIL.shellquote(root), excludefile, quoted)) == 0 then
-			restored = SYS.call(string.format("mv -f %s %s >/dev/null 2>&1", UTIL.shellquote(root .. "openclash"), UTIL.shellquote(config_path))) == 0
-		end
-	end
-	SYS.call("rm -f " .. listfile .. " " .. excludefile)
-	return restored
+	return SYS.call(archive_command("restore", archive) .. " >/dev/null 2>&1") == 0
 end
 
 function get_age_keys(file)

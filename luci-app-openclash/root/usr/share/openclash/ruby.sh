@@ -1,5 +1,13 @@
 #!/bin/sh
 
+cleanup_yaml_temps()
+{
+  rm -rf /tmp/yaml_openclash_*
+  rm -f /tmp/yaml_change_marshal /tmp/yaml_servers.yaml /tmp/yaml_provider.yaml /tmp/yaml_groups.yaml \
+    /tmp/yaml_config.namedns.yaml /tmp/yaml_config.falldns.yaml /tmp/yaml_config.defaultdns.yaml \
+    /tmp/yaml_config.proxynamedns.yaml /tmp/yaml_config.directnamedns.yaml
+}
+
 #The custom overwrite script never edits the config itself, its helper calls are recorded here
 #and executed by YAML.overwrite_run_custom() once it finished; the argument counts must stay in
 #sync with OVERWRITE_HELPERS in YAML.rb

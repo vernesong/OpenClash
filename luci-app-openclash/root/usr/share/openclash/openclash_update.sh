@@ -11,7 +11,6 @@ set_lock() {
 
 del_lock() {
    flock -u 878 2>/dev/null
-   rm -rf "/tmp/lock/openclash_update.lock" 2>/dev/null
 }
 
 early_exit() {
@@ -20,7 +19,7 @@ early_exit() {
    exit "${1:-0}"
 }
 
-set_lock
+set_lock || exit 1
 inc_job_counter
 
 RELEASE_BRANCH=$(uci_get_config "release_branch" || echo "master")
@@ -84,17 +83,15 @@ run_with_timeout() {
 }
 
 pre_test_package() {
-   local test_err=""
-
+   local test_err="" force_reinstall=""
+   openclash_package_restore_pending && force_reinstall=--force-reinstall
    pre_test_err=""
    if [ "$PKG_TYPE" = "opkg" ]; then
-      rm -f /var/lock/opkg.lock
-      test_err=$(opkg --force-downgrade install "$DOWNLOAD_PATH" --noaction 2>&1)
-      if echo "$test_err" | grep -qE '(Upgrading|Downgrading) luci-app-openclash on root'; then
+      if test_err=$(opkg --force-downgrade $force_reinstall install "$DOWNLOAD_PATH" --noaction 2>&1) &&
+         printf '%s' "$test_err" | grep -qE '(Installing|Upgrading|Downgrading|Reinstalling) luci-app-openclash( \([^)]*\))? (to|on) root'; then
          return 0
       fi
    else
-      rm -f /lib/apk/db/lock
       test_err=$(apk add -s -q --force-overwrite --clean-protected --allow-untrusted "$DOWNLOAD_PATH" 2>&1)
       if [ $? -eq 0 ]; then
          return 0
@@ -111,14 +108,11 @@ refresh_pkg_index() {
    while [ $update_retry -lt $max_update_retry ]; do
       update_retry=$((update_retry + 1))
       if [ "$PKG_TYPE" = "opkg" ]; then
-         rm -f /var/lock/opkg.lock
          update_err=$(run_with_timeout 30 opkg update 2>&1)
       else
-         rm -f /lib/apk/db/lock
          update_err=$(run_with_timeout 30 apk update 2>&1)
       fi
       ret=$?
-      rm -f /var/lock/opkg.lock /lib/apk/db/lock
       [ $ret -eq 0 ] && return 0
       if [ $update_retry -lt $max_update_retry ]; then
          LOG_ERROR "【$update_retry/$max_update_retry】【OpenClash - v$LAST_VER】${PKG_TYPE} update failed or timed out:【$(echo "$update_err" | tr '\n' ' ' | head -c 300)】, retrying..."
@@ -132,9 +126,9 @@ refresh_pkg_index() {
 
 LAST_VER=$(echo "$PLUGIN_LATEST" |sed "s/^v//g" |tr -d "\n")
 if [ "$PKG_TYPE" = "opkg" ]; then
-   OP_CV=$(rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print $2}' 2>/dev/null)
+   OP_CV=$(opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print $2}' 2>/dev/null)
 else
-   OP_CV=$(rm -f /lib/apk/db/lock && apk list luci-app-openclash 2>/dev/null|grep "installed" | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 2>/dev/null)
+   OP_CV=$(apk list luci-app-openclash 2>/dev/null|grep "installed" | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 2>/dev/null)
 fi
 OP_LV="$LAST_VER"
 github_address_mod=$(uci_get_config "github_address_mod" || echo 0)
@@ -188,7 +182,7 @@ if [ "$PLUGIN_DIRECT" -eq 1 ]; then
    fi
    LAST_VER=$(echo "$DOWNLOAD_URL" | grep -oE 'luci-app-openclash[_-][0-9]+(\.[0-9]+)*' | head -1 | sed 's/^luci-app-openclash[_-]//')
    LOG_TIP "Start downloading【OpenClash - v$LAST_VER】..."
-elif [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && version_compare "$OP_CV" "$OP_LV" && [ -n "$PLUGIN_LATEST" ]; then
+elif [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && { version_compare "$OP_CV" "$OP_LV" || { [ "$OP_CV" = "$OP_LV" ] && openclash_package_restore_pending; }; } && [ -n "$PLUGIN_LATEST" ]; then
    LOG_TIP "Start downloading【OpenClash - v$LAST_VER】..."
    if [ "$github_address_mod" != "0" ]; then
       if [ "$github_address_mod" = "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" = "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" = "https://testingcf.jsdelivr.net/" ]; then
@@ -309,7 +303,6 @@ set_update_lock() {
 
 del_update_lock() {
    flock -u 879 2>/dev/null
-   rm -rf "$UPDATE_LOCK" 2>/dev/null
 }
 
 if ! set_update_lock; then
@@ -325,7 +318,7 @@ check_install_success()
    local current_version=""
 
    if [ "$PKG_TYPE" = "opkg" ]; then
-      current_version=$(rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print $2}' 2>/dev/null)
+      current_version=$(opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print $2}' 2>/dev/null)
    else
       current_version=$(apk list luci-app-openclash 2>/dev/null |grep "installed" | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 2>/dev/null)
    fi
@@ -395,15 +388,11 @@ refresh_pkg_index() {
       return 0
    fi
    if [ "$PKG_TYPE" = "opkg" ]; then
-      rm -f /var/lock/opkg.lock
       run_with_timeout 30 opkg update >/dev/null 2>&1
       ret=$?
-      rm -f /var/lock/opkg.lock
    else
-      rm -f /lib/apk/db/lock
       run_with_timeout 30 apk update >/dev/null 2>&1
       ret=$?
-      rm -f /lib/apk/db/lock
    fi
    [ $ret -eq 0 ] && pkg_index_refreshed=true
    return $ret
@@ -462,12 +451,16 @@ install_retry_count=0
 max_install_retries=3
 install_success=false
 
-stop_openclash_before_install
+was_running=0
+openclash_service_running && was_running=1
+[ "$PKG_TYPE" = apk ] || stop_openclash_before_install
 
 while [ $install_retry_count -lt $max_install_retries ]; do
    install_retry_count=$((install_retry_count + 1))
    LOG_TIP "【$install_retry_count/$max_install_retries】Installing the new version, please do not refresh the page or do other operations..."
 
+   force_reinstall=
+   openclash_package_restore_pending && force_reinstall=--force-reinstall
    packages_to_check="luci-compat kmod-inet-diag kmod-nft-tproxy kmod-ipt-nat iptables-mod-tproxy iptables-mod-extra ipset"
    installed_before=""
    if [ "$PKG_TYPE" = "opkg" ]; then
@@ -476,7 +469,8 @@ while [ $install_retry_count -lt $max_install_retries ]; do
             installed_before="$installed_before $pkg"
          fi
       done
-      opkg --force-downgrade install /tmp/openclash.ipk >/dev/null 2>&1
+      OPENCLASH_KEEP_STOPPED=$((1 - was_running)) opkg --force-downgrade $force_reinstall install /tmp/openclash.ipk >/tmp/openclash_install.log 2>&1
+      install_rc=$?
       install_err=$(cat /tmp/openclash_install.log 2>/dev/null)
    else
       for pkg in $packages_to_check; do
@@ -484,13 +478,16 @@ while [ $install_retry_count -lt $max_install_retries ]; do
             installed_before="$installed_before $pkg"
          fi
       done
-      apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk >/tmp/openclash_install.log 2>&1
+      repair=0
+      if [ -n "$force_reinstall" ] && check_install_success "$LAST_VER"; then repair=1; fi
+      openclash_install_apk /tmp/openclash.apk "$repair" >/tmp/openclash_install.log 2>&1
+      install_rc=$?
       install_err=$(cat /tmp/openclash_install.log 2>/dev/null)
    fi
 
    sleep 2
 
-   if check_install_success "$LAST_VER"; then
+   if [ "$install_rc" = 0 ] && ! openclash_package_restore_pending && check_install_success "$LAST_VER"; then
       install_success=true
       install_missing_packages "$installed_before"
       break
@@ -514,10 +511,20 @@ else
    else
       LOG_ERROR "OpenClash update failed after 3 attempts, the file is saved in /tmp/openclash.apk, please try to update manually with【apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk】【$(echo "$install_err" | tr '\n' ' ' | head -c 500)】"
    fi
+   if openclash_package_restore_pending; then
+      dec_job_counter_and_restart 0 1
+      if [ "$PKG_TYPE" = opkg ] && [ "$was_running" = 1 ] && [ ! -d /tmp/openclash-package-backup ] && [ -f /etc/config/openclash ] &&
+         grep -Fxq 'OpenClash: backup failed before package replacement' /tmp/openclash_install.log; then
+         /etc/init.d/openclash start
+      fi
+   else
+      dec_job_counter_and_restart "$was_running"
+   fi
+   exit 1
 fi
 
 restart_flag=0
-if [ "$(uci -q get openclash.config.enable)" = "1" ]; then
+if [ "$was_running" = 1 ]; then
    if ! openclash_service_running; then
       restart_flag=1
    fi

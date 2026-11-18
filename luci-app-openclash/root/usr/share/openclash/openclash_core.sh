@@ -12,10 +12,9 @@ set_lock() {
 
 del_lock() {
    flock -u 872 2>/dev/null
-   rm -rf "/tmp/lock/openclash_core.lock" 2>/dev/null
 }
 
-set_lock
+set_lock || exit 1
 inc_job_counter
 
 restart=0

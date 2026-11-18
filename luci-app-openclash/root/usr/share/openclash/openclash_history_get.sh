@@ -10,7 +10,6 @@ set_lock() {
 
 del_lock() {
    flock -u 881 2>/dev/null
-   rm -rf "/tmp/lock/openclash_history_get.lock" 2>/dev/null
 }
 
 close_all_conection() {
@@ -25,7 +24,7 @@ close_all_conection() {
    curl -m 2 -H "Authorization: Bearer ${SECRET}" -H "Content-Type:application/json" -X DELETE http://"$LAN_IP":"$PORT"/connections >/dev/null 2>&1
 }
 
-set_lock
+set_lock || exit 1
 
 if [ "$1" = "close_all_conection" ]; then
    close_all_conection
@@ -47,22 +46,24 @@ core_version=$(uci_get_config "core_version" || echo 0)
 CACHE_PATH_OLD="/etc/openclash/.cache"
 . "/etc/openwrt_release"
 
+result=0
 if [ -f "$CONFIG_FILE" ] && { [ "$1" = "after_stop" ] || pidof clash >/dev/null; }; then
-   if [ "$small_flash_memory" = "1" ] || [ -n "$(echo $core_version |grep mips)" ] || [ -n "$(echo $DISTRIB_ARCH |grep mips)" ] || [ -n "$(rm -f /var/lock/opkg.lock && opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' |grep mips)" ] || [ -n "$(rm -f /lib/apk/db/lock && apk list libc 2>/dev/null |grep mips)" ]; then
+   if [ "$small_flash_memory" = "1" ] || [ -n "$(echo $core_version |grep mips)" ] || [ -n "$(echo $DISTRIB_ARCH |grep mips)" ] || [ -n "$(opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' |grep mips)" ] || [ -n "$(apk list libc 2>/dev/null |grep mips)" ]; then
       CACHE_PATH="/tmp/etc/openclash/cache.db"
       if [ -f "$CACHE_PATH" ]; then
          cmp -s "$CACHE_PATH" "$HISTORY_PATH"
          if [ "$?" -ne "0" ]; then
-            cp "$CACHE_PATH" "$HISTORY_PATH" 2>/dev/null
+            replace_openclash_file cp "$CACHE_PATH" "$HISTORY_PATH" || result=1
          fi
       fi
    fi
    if [ -f "$CACHE_PATH_OLD" ]; then
       cmp -s "$CACHE_PATH_OLD" "$HISTORY_PATH_OLD"
       if [ "$?" -ne "0" ]; then
-         cp "$CACHE_PATH_OLD" "$HISTORY_PATH_OLD" 2>/dev/null
+         replace_openclash_file cp "$CACHE_PATH_OLD" "$HISTORY_PATH_OLD" || result=1
       fi
    fi
 fi
 
 del_lock
+exit "$result"

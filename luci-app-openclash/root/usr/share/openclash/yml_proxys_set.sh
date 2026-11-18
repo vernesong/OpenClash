@@ -11,14 +11,13 @@ set_lock() {
 
 del_lock() {
    flock -u 886 2>/dev/null
-   rm -rf "/tmp/lock/openclash_proxies_set.lock"
 }
 
 CONFIG_FILE=$(uci_get_config "config_path")
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 UPDATE_CONFIG_FILE=$1
 UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
-set_lock
+set_lock || exit 1
 
 if [ ! -z "$UPDATE_CONFIG_FILE" ]; then
    CONFIG_FILE="$UPDATE_CONFIG_FILE"

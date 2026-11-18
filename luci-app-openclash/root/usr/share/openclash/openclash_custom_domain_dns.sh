@@ -9,10 +9,9 @@ set_lock() {
 
 del_lock() {
    flock -u 883 2>/dev/null
-   rm -rf "/tmp/lock/openclash_cus_domian.lock"
 }
 
-set_lock
+set_lock || exit 1
 
 # 获取默认的 DNSMASQ 配置 ID
 DEFAULT_DNSMASQ_CFGID="$(uci -q show "dhcp.@dnsmasq[0]" | awk 'NR==1 {split($0, conf, /[.=]/); print conf[2]}')"

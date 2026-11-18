@@ -5408,8 +5408,8 @@ msgstr "规则集文件保存在 /etc/openclash/rule_provider"
 msgid "Core files are extracted to /etc/openclash/core"
 msgstr "内核文件解压到 /etc/openclash/core"
 
-msgid "Backup files restore settings from a previous backup"
-msgstr "备份文件用于恢复此前的设置"
+msgid "Restore settings from a full backup or a backup excluding cores"
+msgstr "请使用完整备份或不含内核的备份恢复设置"
 
 msgid "Advanced Subscription Options"
 msgstr "订阅高级选项"

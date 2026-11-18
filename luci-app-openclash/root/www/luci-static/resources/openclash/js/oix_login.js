@@ -15,6 +15,8 @@ var OixCloud = {
     loggedIn: window.ocOixBoot.loggedIn,
     activeTab: 'account',
     pollTimer: null,
+    infoRequest: 0,
+    accountSession: 0,
     googlePopup: null,
     googleChannel: null,
     googleTimer: null,
@@ -107,10 +109,12 @@ var OixCloud = {
 
     streamLogin: function(data, btns) {
         var self = this;
+        var session = this.accountSession;
         OixMsg.hide();
         btns.forEach(function(b){ ocSetBtnBusy(b, true, data.refresh ? '<%:Downloading config...%>' : '<%:Login...%>'); });
 
         var updateBtnText = function(text) {
+            if (session !== self.accountSession) return;
             btns.forEach(function(b){
                 var span = b.querySelector('span:not(.loading-spinner)');
                 if (span) { span.textContent = text; }
@@ -119,6 +123,8 @@ var OixCloud = {
 
         var onLoginSuccess = function(suggestNodeFilter, warning) {
             btns.forEach(function(b){ ocSetBtnBusy(b, false); });
+            if (session !== self.accountSession) return;
+            if (!data.refresh) session = ++self.accountSession;
             var info = warning || '<%:oixCloud configuration is active and a node passed the connectivity check%>';
             OixMsg.show(info, warning ? 'info' : 'success', 20000);
             self.loggedIn = true; self.showLoggedIn(); self.loadAccountInfo(); self.startPolling();
@@ -131,13 +137,15 @@ var OixCloud = {
                         {label: '<%:Node Filter%>', value: true, kind: 'primary'}
                     ]
                 }).then(function(open) {
-                    if (open && self.loggedIn) self.openNodeFilter();
+                    if (open && self.loggedIn && session === self.accountSession) self.openNodeFilter();
                 });
             }
         };
 
         var onLoginError = function(msg, code) {
             btns.forEach(function(b){ ocSetBtnBusy(b, false); });
+            if (session !== self.accountSession) return;
+            if (code === 'session_changed') { window.location.reload(); return; }
             if (code === 'auth') {
                 self.loggedIn = false; self.stopPolling(); self.showLoggedOut();
             }
@@ -208,10 +216,14 @@ var OixCloud = {
 
     doLogout: function() {
         var self = this;
+        var session = this.accountSession;
         var btn = document.querySelector('#oix-logged-section .oix-btn-danger');
         if (btn) { btn.origHTML = btn.innerHTML; btn.disabled = true; var svg = btn.querySelector('svg'); btn.innerHTML = (svg ? svg.outerHTML : '') + ' <span><%:Logout...%></span>'; }
+        this.stopGoogleWait();
         XHR.get(OIX_URLS.logout, null, function(x, status) {
             if (btn) { btn.disabled = false; btn.innerHTML = btn.origHTML; }
+            if (session !== self.accountSession) return;
+            if (status && status.code === 'session_changed') { window.location.reload(); return; }
             if (x && x.status == 200 && status && status.result == 200) {
                 if (status.warning) { OixMsg.show(status.warning, 'error'); }
                 else { OixMsg.show('<%:oixCloud Logout Successful%>', 'success', 2000); }
@@ -229,6 +241,8 @@ var OixCloud = {
     },
 
     showLoggedOut: function() {
+        ++this.accountSession;
+        ++this.infoRequest;
         document.getElementById('oix-login-section').classList.remove('oc-hidden');
         document.getElementById('oix-logged-section').classList.add('oc-hidden');
         this.showNodeFilter(null);
@@ -264,7 +278,9 @@ var OixCloud = {
 
     loadAccountInfo: function() {
         var self = this;
+        var request = ++this.infoRequest;
         XHR.get(OIX_URLS.info, null, function(x, status) {
+            if (!self.loggedIn || request !== self.infoRequest) return;
             if (x && x.status == 200 && status && status.code === 'auth') {
                 if (self.loggedIn) {
                     self.loggedIn = false; self.stopPolling(); self.showLoggedOut();
@@ -408,10 +424,19 @@ var OixCloud = {
 
     doCheckin: function() {
         var self = this;
+        var session = this.accountSession;
         var btn = document.querySelector('#oix-logged-section .oix-btn-primary');
         if (btn) { btn.origHTML = btn.innerHTML; btn.disabled = true; var svg = btn.querySelector('svg'); btn.innerHTML = (svg ? svg.outerHTML : '') + ' <span><%:Checkin...%></span>'; }
         XHR.get(OIX_URLS.checkin, null, function(x, status) {
             if (btn) { btn.disabled = false; btn.innerHTML = btn.origHTML; }
+            if (!self.loggedIn || session !== self.accountSession) return;
+            if (status && status.code === 'auth') {
+                self.loggedIn = false;
+                self.stopPolling();
+                self.showLoggedOut();
+                OixMsg.show((status.result && status.result.msg) || '<%:Sign-in token is invalid or expired, please sign in again%>', 'error');
+                return;
+            }
             if (x && x.status == 200 && status && status.result && status.result.ret == 200) {
                 OixMsg.show('<%:oixCloud Checkin Successful, Result:%> ' + (status.result.data && status.result.data.checkin || ''), 'success', 4000);
                 self.loadAccountInfo();

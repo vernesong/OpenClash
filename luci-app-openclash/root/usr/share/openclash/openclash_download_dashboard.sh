@@ -11,7 +11,6 @@
 
    del_lock() {
       flock -u 871 2>/dev/null
-      rm -rf "/tmp/lock/openclash_dashboard.lock" 2>/dev/null
    }
 
    validate_dashboard_dir() {
@@ -63,7 +62,7 @@ EOF
       exit 2
    }
 
-   set_lock
+   set_lock || exit 1
 
    DASH_NAME="$1"
    DASH_TYPE="$2"
@@ -102,6 +101,9 @@ EOF
    NEW_FILE_DIR="${TARGET_PARENT_DIR}/.openclash_dashboard_new.$$"
    OLD_FILE_DIR="${TARGET_PARENT_DIR}/.openclash_dashboard_old.$$"
 
+   DEFER_ETAG_SAVE=1
+   SKIP_ETAG=0
+   validate_dashboard_dir "$TARGET_FILE_DIR" || SKIP_ETAG=1
    DOWNLOAD_FILE_CURL "$DOWNLOAD_PATH" "$DASH_FILE_DIR" "$UNPACK_FILE_DIR"
    DOWNLOAD_RESULT=$?
 
@@ -120,6 +122,7 @@ EOF
                mv "$TARGET_FILE_DIR" "$OLD_FILE_DIR" >/dev/null 2>&1 || log_unzip_error
             fi
             if mv "$NEW_FILE_DIR" "$TARGET_FILE_DIR" >/dev/null 2>&1 && validate_dashboard_dir "$TARGET_FILE_DIR"; then
+               [ -z "$NEW_ETAG" ] || SAVE_ETAG_TO_CACHE "$DOWNLOAD_URL" "$NEW_ETAG" "$UNPACK_FILE_DIR"
                cleanup_dashboard_tmp
                LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Download Successful!"
                del_lock

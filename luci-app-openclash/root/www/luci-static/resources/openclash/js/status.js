@@ -6006,7 +6006,7 @@ var ocLang = window.ocLang || '';
                 var errorMessage = isEnabled ?
                     '<%:Failed to start OpenClash%>' :
                     '<%:Failed to stop OpenClash%>';
-                ocAlert(errorMessage);
+                ocAlert((status && status.message) || errorMessage);
 
                 if (DOMCache.clash) {
                     DOMCache.clash.innerHTML = '<b style="color:var(--error-color)"><%:Operation Failed%></b>';
@@ -6167,7 +6167,7 @@ var ocLang = window.ocLang || '';
                 if (toggleElement) {
                     toggleElement.disabled = false;
                 }
-                ocAlert('<%:Failed to restart core%>');
+                ocAlert((status && status.message) || '<%:Failed to restart core%>');
 
                 pluginToggleUserAction = false;
             }
@@ -6279,7 +6279,7 @@ var ocLang = window.ocLang || '';
                         ocToast('<%:Backup File Restore Successful!%>', 'success');
                         setTimeout(function() { window.location.reload(); }, 1200);
                     } else {
-                        ocToast('<%:Backup File Restore Failed!%>', 'error');
+                        ocToast('<%:Backup File Restore Failed!%> <%:Restore settings from a full backup or a backup excluding cores%>', 'error');
                     }
                 }).catch(function() {
                     ocToast('<%:Backup File Restore Failed!%>', 'error');

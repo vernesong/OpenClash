@@ -5409,8 +5409,8 @@ msgstr "Los archivos de proveedor de reglas se guardan en /etc/openclash/rule_pr
 msgid "Core files are extracted to /etc/openclash/core"
 msgstr "Los archivos del núcleo se extraen en /etc/openclash/core"
 
-msgid "Backup files restore settings from a previous backup"
-msgstr "Los archivos de copia de seguridad restauran la configuración anterior"
+msgid "Restore settings from a full backup or a backup excluding cores"
+msgstr "Restaure la configuración desde una copia de seguridad completa o una que excluya los núcleos"
 
 msgid "Advanced Subscription Options"
 msgstr "Opciones avanzadas de suscripción"
