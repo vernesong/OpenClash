@@ -1,7 +1,7 @@
 ## 插件设置：GEO、其他与来源流量控制
 
 > **用途**: 插件设置页的 GEO/大陆白名单订阅、其他（定时重启、版本更新、开发者、内核测试、oixCloud）与来源流量访问控制（§10.1–10.3）。
-> **LuCI 路径**: 服务 → OpenClash → 插件设置 → 对应标签页（§10.3 在页面底部，独立表单）
+> **LuCI 路径**: 服务 → OpenClash → 插件设置 → 对应标签页（§10.3 在「黑白名单」标签页底部）
 
 ### 10.1 GEO 数据库订阅 / 大陆白名单订阅
 
@@ -111,7 +111,7 @@
 
 ### 10.3 来源流量访问控制 (Source Traffic Bypass / lan_ac_traffic)
 
-> **位置**: 插件设置页底部，独立 TypedSection（不属于任何标签页）
+> **位置**: 插件设置 → 黑白名单（Black&White）标签页底部，独立 `lan_ac_traffic` TypedSection；标签页内其余选项见 `09-settings-dns-ac-ipv6.md` §9.2
 > **生效路径**: `firewall_lan_ac_traffic()` 在代理链 **position 0** 插入规则，优先级高于其它代理规则；由 `config_foreach firewall_lan_ac_traffic "lan_ac_traffic"` 遍历
 > **与覆写模块**: §9.2 的黑白名单与 `lan_ac_mode` 可从覆写模块 `[General]` 段设置（见 `16-overwrite-module-format.md` §16.2.1），模块值与界面配置**取并集**（`ac_combined_values()` 合并，逗号或空格分隔均可）
 > **覆盖范围**: 这些名单只生成 `openclash` / `openclash_mangle`（转发流量）链，**不含** `openclash_output` / `openclash_mangle_output`——路由器自身流量不受影响；要让路由器自身（DDNS/STUN/证书校验）绕过代理，用 `WAN_AC_BLACK_PORTS`（output 链也生成）或 `ROUTER_SELF_PROXY=0`

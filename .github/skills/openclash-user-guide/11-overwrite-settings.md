@@ -41,6 +41,7 @@
 ### 11.3 DNS 设置 (DNS Settings / dns)
 
 > **生效路径**: `yml_change.sh` 的 `yml_dns_custom()` 构建完整 `dns:` 段合并进运行配置。
+> **位置**: 本标签页底部为 `dns_servers` 服务器列表（§11.3.13），仅 §11.3.1 启用后生效。
 > **字段语义**: 查 [Mihomo DNS 配置文档](https://wiki.metacubex.one/config/dns/)，配置写法按本页覆写方式给出，而非只给文档链接。
 
 | § | 项 (UCI key) | 默认 | 取值 / 文件 | YAML | 说明 |
@@ -229,7 +230,7 @@ rule-providers:
 
 ### 11.7 认证设置 (Authentication)
 
-位于常规设置标签页，为 SOCKS / HTTP / Mixed 代理加用户认证。
+> **位置**: 常规设置（General Settings）标签页底部，为 SOCKS / HTTP / Mixed 代理加用户认证。
 
 | 字段 | UCI Key | 默认 | 说明 |
 |------|---------|------|------|

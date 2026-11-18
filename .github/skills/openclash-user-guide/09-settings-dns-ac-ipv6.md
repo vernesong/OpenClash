@@ -30,7 +30,7 @@
 ### 9.2 黑白名单标签页 (Black&White / lan_ac)
 
 > **生效路径**: 完全在防火墙层实现，不改 YAML；匹配逻辑见 `init.d/openclash` 的 `firewall_lan_ac_traffic()` 与 `set_firewall()` 的 set 创建。
-> **需要按接口/用户/DSCP 精细绕过**: 用 `10-settings-geo-misc-src.md` §10.3「来源流量访问控制」。
+> **同标签页表格**: 本标签页底部为 `lan_ac_traffic` 来源流量控制表，字段、目标链与按接口/用户/DSCP 绕过用法见 `10-settings-geo-misc-src.md` §10.3
 
 | § | 项 (UCI key) | 默认 | 取值 / 文件 | 说明 |
 |---|---|---|---|---|
