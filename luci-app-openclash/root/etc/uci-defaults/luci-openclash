@@ -1,4 +1,9 @@
 #!/bin/sh
+# First-boot defaults also run outside apk, including after failed package scripts.
+if [ "${OPENCLASH_PACKAGE_CONFIGURE:-0}" != 1 ] && [ -r /lib/apk/db/installed ] &&
+	awk '/^P:/ { pkg=($0=="P:luci-app-openclash") } pkg && /^f:.*s/ { broken=1; exit } END { exit !broken }' /lib/apk/db/installed; then
+	exit 1
+fi
 . /lib/functions.sh
 . /usr/share/openclash/uci.sh
 
@@ -179,46 +184,54 @@ cp -f "/etc/openclash/overwrite/default" "/usr/share/openclash/backup/overwrite/
 cp -f "/etc/openclash/rule_provider/oc-cn-domain.mrs" "/usr/share/openclash/backup/oc-cn-domain.mrs" >/dev/null 2>&1
 
 #Restore
-if [ -f "/tmp/openclash.bak" ]; then
-	#delete old geosite database first
-	if [ "/etc/openclash/GeoSite.dat" -nt "/tmp/openclash/GeoSite.dat" ]; then
-		rm -rf "/tmp/openclash/GeoSite.dat" >/dev/null 2>&1
+restore_package_tree() {
+	backup_root=$1
+	if [ -n "$FW4" ]; then route_format=define; else route_format=create; fi
+	for entry in "$backup_root/openclash"/* "$backup_root/openclash"/.[!.]* "$backup_root/openclash"/..?*; do
+		[ -e "$entry" ] || [ -L "$entry" ] || continue
+		name=${entry##*/}
+		case $name in
+		GeoSite.dat) [ ! "/etc/openclash/GeoSite.dat" -nt "$entry" ] || continue ;;
+		china_ip_route.ipset|china_ip6_route.ipset)
+			grep -q "$route_format ${name%.ipset}" "$entry" || { [ "$?" = 1 ] && continue; return 1; }
+			;;
+		esac
+		cp -af "$entry" /etc/openclash/ || return 1
+	done
+	if [ "$apk_assets_restored" = 0 ]; then
+		if [ -d "$backup_root/openclash_ui/" ]; then cp -af "$backup_root/openclash_ui/." /usr/share/openclash/ui/ || return 1; fi
+		if [ -d "$backup_root/pac/" ]; then cp -af "$backup_root/pac/." /www/luci-static/resources/openclash/pac/ || return 1; fi
 	fi
-	#delete error china_ip_route first
-	if [ -n "$FW4" ]; then
-		if [ -z "$(cat "/tmp/openclash/china_ip_route.ipset" |grep "define china_ip_route")" ]; then
-			rm -f "/tmp/openclash/china_ip_route.ipset" >/dev/null 2>&1
-			rm -f "/tmp/openclash/china_ip6_route.ipset" >/dev/null 2>&1
+	if [ -f "$backup_root/openclash.bak" ]; then saved_config="$backup_root/openclash.bak"; fi
+	return 0
+}
+
+package_backup=/tmp/openclash-package-backup
+if [ -f /tmp/openclash.bak ] || [ -f "$package_backup/ready" ] || [ -f "$package_backup/openclash.bak" ]; then
+	saved_config=
+	apk_assets_restored=0
+	if [ -d "$package_backup/apk-mounts" ] || { [ -r /lib/apk/db/installed ] && [ -f /usr/share/openclash/apk-assets.sh ]; }; then
+		command -v openclash_apk_assets >/dev/null 2>&1 || . /usr/share/openclash/apk-assets.sh || exit 1
+		openclash_apk_assets restore-backup "$package_backup" || exit 1
+		apk_assets_restored=1
+	fi
+	# An old prerm may have only copied part of the tree. Preserve legacy-only files, then prefer the live snapshot.
+	if [ -f /tmp/openclash.bak ]; then restore_package_tree /tmp || exit 1; fi
+	if [ -d "$package_backup" ]; then restore_package_tree "$package_backup" || exit 1; fi
+	if [ -f "/usr/share/openclash/backup/oc-cn-domain.mrs" ]; then
+		cp -f "/usr/share/openclash/backup/oc-cn-domain.mrs" "/etc/openclash/rule_provider/oc-cn-domain.mrs" || exit 1
+	fi
+	if [ -n "$saved_config" ]; then
+		config_tmp=$(mktemp /etc/config/.openclash.XXXXXX) || exit 1
+		if ! cp -p "$saved_config" "$config_tmp" || ! mv -f "$config_tmp" /etc/config/openclash; then
+			rm -f "$config_tmp"
+			exit 1
 		fi
-	else
-		if [ -z "$(cat "/tmp/openclash/china_ip_route.ipset" |grep "create china_ip_route")" ]; then
-			rm -f "/tmp/openclash/china_ip_route.ipset" >/dev/null 2>&1
-			rm -f "/tmp/openclash/china_ip6_route.ipset" >/dev/null 2>&1
-		fi
 	fi
-	mv -f "/tmp/openclash.bak" "/etc/config/openclash" >/dev/null 2>&1
-	cp -rf "/tmp/openclash/." "/etc/openclash/" >/dev/null 2>&1
-	#ui
-	if [ -d "/tmp/openclash_ui/" ]; then
-		if [ -d "/tmp/openclash_ui/metacubexd/" ] || [ -d "/tmp/openclash_ui/zashboard/" ] || [ -d "/tmp/openclash_ui/yacd/" ] || [ -d "/tmp/openclash_ui/dashboard/" ]; then
-			rm -rf "/usr/share/openclash/ui/" >/dev/null 2>&1
-			cp -rf "/tmp/openclash_ui/." "/usr/share/openclash/ui/" >/dev/null 2>&1
-		fi
-		rm -rf "/tmp/openclash_ui/" >/dev/null 2>&1
+	if [ -f /tmp/openclash.bak ]; then
+		rm -rf /tmp/openclash /tmp/openclash_ui /tmp/pac && rm -f /tmp/openclash.bak || exit 1
 	fi
-	#pac
-	if [ -d "/tmp/pac/" ]; then
-		rm -rf "/www/luci-static/resources/openclash/pac/" >/dev/null 2>&1
-		cp -rf "/tmp/pac/." "/www/luci-static/resources/openclash/pac/" >/dev/null 2>&1
-		rm -rf "/tmp/pac/" >/dev/null 2>&1
-	fi
-	#oc-domain
-	if [ -f "/etc/openclash/rule_provider/oc-cn-domain.mrs" ]; then
-		cp -f "/usr/share/openclash/backup/oc-cn-domain.mrs" "/etc/openclash/rule_provider/oc-cn-domain.mrs" >/dev/null 2>&1
-	fi
-	rm -rf "/etc/openclash/openclash" >/dev/null 2>&1
-	rm -rf "/tmp/openclash" >/dev/null 2>&1
-	rm -rf "/tmp/openclash.bak" >/dev/null 2>&1
+	rm -rf "$package_backup" || exit 1
 	#old version files
 	rm -rf "/etc/openclash/fake_filter.list" >/dev/null 2>&1
 	rm -rf "/etc/openclash/openclash_servers_fake_filter.conf" >/dev/null 2>&1

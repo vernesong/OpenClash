@@ -38,14 +38,14 @@ if [ "$update_interval" -gt 0 ] && [ -n "$1" ]; then
    update_state="/tmp/openclash_cfg_update_$(printf '%s' "$1" | md5sum | cut -c1-8)"
    subscribe_update_due || exit 0
    # loop jobs queue so a scheduled refresh is not dropped when another one runs
-   set_lock
+   set_lock || exit 1
    # another job may have finished this subscription while this one was waiting
    if ! subscribe_update_due; then
       del_lock
       exit 0
    fi
 else
-   set_lock
+   set_lock || exit 1
 fi
 
 LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
@@ -263,6 +263,24 @@ config_cus_up()
    fi
 }
 
+replace_subscription()
+{
+   if [ -z "$oix_token" ]; then
+      mv -f "$1" "$CONFIG_FILE"
+      return
+   fi
+   printf '%s\n' "$oix_token" | OIX_PENDING="$1" OIX_TARGET="$CONFIG_FILE" lua -e '
+      local fs = require "luci.openclash"
+      local token = io.read("*l")
+      local saved = fs.oix_with_session_lock(function()
+         local uci = require "luci.model.uci".cursor()
+         return uci:get("openclash", "config", "oix_token") == token
+            and os.rename(os.getenv("OIX_PENDING"), os.getenv("OIX_TARGET"))
+      end)
+      os.exit(saved and 0 or 1)
+   '
+}
+
 config_su_check()
 {
    sed -i 's/!<str> /!!str /g' "$CFG_FILE" >/dev/null 2>&1
@@ -292,7 +310,7 @@ config_su_check()
    fi
    # Same-directory temp keeps the replacement atomic and preserves the file mode
    local temporary="${CONFIG_FILE}.tmp.$$"
-   if ! cp "$CFG_FILE" "$temporary" || ! mv -f "$temporary" "$CONFIG_FILE"; then
+   if ! cp "$CFG_FILE" "$temporary" || ! replace_subscription "$temporary"; then
       rm -f "$temporary"
       LOG_ERROR "Unable to save subscription; existing configuration was kept"
       config_error
@@ -301,11 +319,16 @@ config_su_check()
    rm -f "$CFG_FILE"
    [ -n "$NEW_ETAG" ] && SAVE_ETAG_TO_CACHE "$DOWNLOAD_URL" "$NEW_ETAG" "$CONFIG_FILE"
    LOG_OUT "Config File【$name】Update Successful!"
-   if [ -z "$CONFIG_PATH" ]; then
+   if [ -z "$CONFIG_PATH" ] && [ -z "$oix_token" ]; then
       uci -q set openclash.config.config_path="$CONFIG_FILE"
       uci commit openclash
    fi
-   if [ "$CONFIG_FILE" = "$CONFIG_PATH" ] && [ "$norestart" -eq 0 ]; then
+   local current_path="$CONFIG_PATH"
+   if [ -n "$oix_token" ]; then
+      current_path=$(uci_get_config "config_path")
+      [ "$(uci_get_config "enable")" = 1 ] && pidof clash >/dev/null 2>&1 || return 0
+   fi
+   if [ "$CONFIG_FILE" = "$current_path" ] && [ "$norestart" -eq 0 ]; then
       restart=1
    fi
 }
@@ -421,11 +444,17 @@ convert_custom_param()
       return
    fi
    local p_name="${1%%=*}" p_value="${1#*=}"
-   if [ -z "$append_custom_params" ]; then
-      append_custom_params="&${p_name}=$(urlencode "$p_value")"
-   else
-      append_custom_params="${append_custom_params}\`$(urlencode "$p_value")"
-   fi
+   local encoded before rest previous
+   encoded=$(urlencode "$p_value")
+   case "$append_custom_params" in
+      *"&$p_name="*)
+         before=${append_custom_params%%"&$p_name="*}
+         rest=${append_custom_params#*"&$p_name="}
+         previous=${rest%%&*}
+         append_custom_params="$before&$p_name=$previous\`$encoded${rest#"$previous"}"
+         ;;
+      *) append_custom_params="$append_custom_params&$p_name=$encoded" ;;
+   esac
 }
 
 build_sub_headers()

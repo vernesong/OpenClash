@@ -3,19 +3,19 @@
 
 //<![CDATA[
   var oix_plan = document.getElementById('oix-plan');
-  var oix_plantime = document.getElementById('oix-plantime');
-  var oix_money = document.getElementById('oix-money');
-  var oix_affmoney = document.getElementById('oix-affmoney');
-  var oix_today_used = document.getElementById('oix-today-used');
-  var oix_used = document.getElementById('oix-used');
-  var oix_unused = document.getElementById('oix-unused');
-  var oix_traffic = document.getElementById('oix-traffic');
-  var oix_integral = document.getElementById('oix-integral');
+  var oixFields = {
+    plan: oix_plan,
+    plan_time: document.getElementById('oix-plantime'),
+    money: document.getElementById('oix-money'),
+    aff_money: document.getElementById('oix-affmoney'),
+    today_used: document.getElementById('oix-today-used'),
+    used: document.getElementById('oix-used'),
+    unused: document.getElementById('oix-unused'),
+    traffic: document.getElementById('oix-traffic'),
+    integral: document.getElementById('oix-integral')
+  };
   var obj = document.getElementById("additional");
-  var card = document.getElementById("card");
   var oix_it = document.getElementById("oix_it");
-  var more_info = document.getElementById("more_info");
-  var oix_logo = document.getElementById("oix_logo");
   var oix_container = document.getElementById("oix-announcement");
   var oix_banner = document.getElementById("oix-announcement-banner");
   var oix_content = document.getElementById("oix-announcement-content");
@@ -30,68 +30,43 @@
   // open the cover on its own; slow or failed data requests must not trap the card
   setTimeout(collapseCard, 2000);
 
-  XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "oix_info")%>', null, function(x, status) {
-    if (x && x.status == 200 && status.result != "error") {
-        oix_plan.innerHTML = status.result.plan;
-        oix_plantime.innerHTML = status.result.plan_time;
-        oix_plantime.title = status.result.plan_time;
-        oix_money.innerHTML = status.result.money;
-        oix_money.title = status.result.money;
-        oix_affmoney.innerHTML = status.result.aff_money;
-        oix_affmoney.title = status.result.aff_money;
-        oix_today_used.innerHTML = status.result.today_used;
-        oix_today_used.title = status.result.today_used;
-        oix_used.innerHTML = status.result.used;
-        oix_used.title = status.result.used;
-        oix_unused.innerHTML = status.result.unused;
-        oix_unused.title = status.result.unused;
-        oix_traffic.innerHTML = status.result.traffic;
-        oix_traffic.title = status.result.traffic;
-        oix_integral.innerHTML = status.result.integral;
-        oix_integral.title = status.result.integral;
-
-        loadOixAnnouncement(status.result.announcement);
-        collapseCard();
-    }
-    else {
-        expandCard();
-    }
-  });
-
   var oixPollTimer = null;
+  var oixInfoRequest = 0;
+  var announcementShown = false;
+
+  function renderOixFields(info) {
+    Object.keys(oixFields).forEach(function(key) {
+      var field = oixFields[key];
+      var value = info && info[key] != null ? String(info[key]) : '';
+      field.textContent = value;
+      if (key !== 'plan') field.title = value;
+    });
+  }
 
   function oixPollRefresh() {
+    var request = ++oixInfoRequest;
     XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "oix_info")%>', null, function(x, status) {
-      if (x && x.status == 200 && status.result != "error") {
-        oix_plan.innerHTML = status.result.plan;
-        oix_plantime.innerHTML = status.result.plan_time;
-        oix_plantime.title = status.result.plan_time;
-        oix_money.innerHTML = status.result.money;
-        oix_money.title = status.result.money;
-        oix_affmoney.innerHTML = status.result.aff_money;
-        oix_affmoney.title = status.result.aff_money;
-        oix_today_used.innerHTML = status.result.today_used;
-        oix_today_used.title = status.result.today_used;
-        oix_used.innerHTML = status.result.used;
-        oix_used.title = status.result.used;
-        oix_unused.innerHTML = status.result.unused;
-        oix_unused.title = status.result.unused;
-        oix_traffic.innerHTML = status.result.traffic;
-        oix_traffic.title = status.result.traffic;
-        oix_integral.innerHTML = status.result.integral;
-        oix_integral.title = status.result.integral;
-        if (showmore != 0) {
-            collapseCard();
+      if (request !== oixInfoRequest) return;
+      if (x && x.status === 200 && status && status.result && typeof status.result === 'object') {
+        renderOixFields(status.result);
+        if (!announcementShown && status.result.announcement) {
+          announcementShown = true;
+          loadOixAnnouncement(status.result.announcement);
         }
-        else {
-            expandCard();
-      }
-      }
-      else {
-          expandCard();
+        if (showmore) collapseCard();
+        else expandCard();
+      } else {
+        if (status && status.code === 'auth') {
+          renderOixFields(null);
+          oix_plan.classList.remove('oc-hidden');
+          oix_container.classList.add('oc-hidden');
+        }
+        expandCard();
       }
     });
   }
+
+  oixPollRefresh();
 
   function startOixPoll() {
     if (oixPollTimer) return;
@@ -166,12 +141,14 @@
     if (btn) btn.disabled = true;
     XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "oix_checkin")%>', null, function(x, status) {
       if (btn) btn.disabled = false;
-      if ( x && x.status == 200 && status.result != "error") {
-        if (status.result.ret == 200) {
+      if (x && x.status === 200 && status && status.result && typeof status.result === 'object') {
+        if (status.result.ret == 200 && status.result.data) {
           ocToast("<%:oixCloud Checkin Successful, Result:%> " + status.result.data.checkin, 'success');
+          oixPollRefresh();
         }
         else if (status.result.msg) {
           ocToast("<%:oixCloud Checkin Failed, Result:%> " + status.result.msg, 'error');
+          if (status.code === 'auth') oixPollRefresh();
         }
         else {
           ocToast("<%:oixCloud Checkin Failed! Please Check And Try Again...%>", 'error');
@@ -185,8 +162,7 @@
 
   function web_oix()
   {
-    url='https://oixcloud.com/';
-    window.open(url);
+    window.open('https://oixcloud.com/');
   }
 
   function show_more()
@@ -196,7 +172,7 @@
       showmore = 1;
     }
     else {
-      if (oix_plan.innerHTML != "") {
+      if (oix_plan.textContent != "") {
         expandCard();
         showmore = 0;
       }

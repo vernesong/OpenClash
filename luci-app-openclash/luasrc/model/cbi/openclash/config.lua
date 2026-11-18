@@ -57,7 +57,7 @@ dir = "/etc/openclash/config/"
 proxy_pro_dir="/etc/openclash/proxy_provider/"
 rule_pro_dir="/etc/openclash/rule_provider/"
 core_dir="/etc/openclash/core/core/"
-backup_dir="/tmp/"
+local backup_file, backup_error
 
 HTTP.setfilehandler(
 	function(meta, chunk, eof)
@@ -78,6 +78,10 @@ HTTP.setfilehandler(
 		local fp = HTTP.formvalue("file_type")
 		if not fd then
 			if not meta then return end
+			if not fs.is_safe_filename(meta.file) then
+				o.value = translate("upload file error.")
+				return
+			end
 
 			if fp == "config" then
 				if meta and chunk then fd = nixio.open(dir .. meta.file, "w") end
@@ -89,19 +93,25 @@ HTTP.setfilehandler(
 				create_core_dir=fs.mkdir(core_dir)
 				if meta and chunk then fd = nixio.open(core_dir .. meta.file, "w") end
 			elseif fp == "backup-file" then
-				if meta and chunk then fd = nixio.open(backup_dir .. meta.file, "w") end
+				if chunk then
+					backup_file = fs.backup_upload_path()
+					fd = backup_file and io.open(backup_file, "wb")
+				end
 			end
 
 			if not fd then
+				if backup_file then fs.unlink(backup_file); backup_file = nil end
 				o.value = translate("upload file error.")
 				return
 			end
 		end
 		if chunk and fd then
-			fd:write(chunk)
+			local written = fd:write(chunk)
+			if backup_file and not written then backup_error = true end
 		end
 		if eof and fd then
-			fd:close()
+			local closed = fd:close()
+			if backup_file and not closed then backup_error = true end
 			fd = nil
 			if fp == "config" then
 				CHIF = "1"
@@ -156,19 +166,24 @@ HTTP.setfilehandler(
 				os.execute(string.format("rm -rf %s >/dev/null 2>&1", core_dir))
 				o.value = translate("File saved to") .. ' "/etc/openclash/core/"'
 			elseif fp == "backup-file" then
-				local archive = backup_dir .. meta.file
-				if fs.restore_backup(archive) then
+				if not backup_error and fs.restore_backup(backup_file) then
 					o.value = translate("Backup File Restore Successful!")
 				else
 					o.value = translate("Backup File Restore Failed!")
 				end
-				fs.unlink(archive)
+				fs.unlink(backup_file)
+				backup_file = nil
 			end
 		end
 	end
 )
 
 if HTTP.formvalue("upload") then
+	if backup_file then
+		if fd then fd:close(); fd = nil end
+		fs.unlink(backup_file)
+		o.value = translate("Backup File Restore Failed!")
+	end
 	if not o.value then
 		o.value = translate("No Specify Upload File")
 	end
@@ -225,8 +240,8 @@ btnapply.write = function(self, t)
 	local action = self.map:formvalue("cbid." .. self.map.config .. "." .. t .. ".actions")
 
 	if action == "switch" and fs.IsYamlExt(e[t].name) then
-		uci:set("openclash", "config", "config_path", "/etc/openclash/config/" .. e[t].name)
-		uci:commit("openclash")
+		local saved, message = fs.save_config_selection(uci, "/etc/openclash/config/" .. e[t].name)
+		if not saved then return self:add_error(t, "invalid", message) end
 		HTTP.redirect(DISP.build_url("admin", "services", "openclash", "config"))
 	elseif action == "edit" then
 		local file_path = "/etc/openclash/config/" .. fs.basename(e[t].name)
@@ -393,9 +408,9 @@ o.value = "/etc/openclash/config/"
 o = a:option(Button, "Apply", " ")
 o.inputtitle = translate("Apply Settings")
 o.inputstyle = "apply"
-o.write = function()
-	uci:set("openclash", "config", "enable", 1)
-	uci:commit("openclash")
+o.write = function(self, section)
+	local saved, message = fs.save_config_selection(uci, conf, "1")
+	if not saved then return self:add_error(section, "invalid", message) end
 	SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
 	HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end

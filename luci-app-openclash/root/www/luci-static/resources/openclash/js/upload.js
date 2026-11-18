@@ -25,7 +25,7 @@
 		'proxy-provider': '<%:Proxy provider files are saved to /etc/openclash/proxy_provider%>',
 		'rule-provider': '<%:Rule provider files are saved to /etc/openclash/rule_provider%>',
 		'clash_meta': '<%:Core files are extracted to /etc/openclash/core%>',
-		'backup-file': '<%:Backup files restore settings from a previous backup%>'
+		'backup-file': '<%:Restore settings from a full backup or a backup excluding cores%>'
 	};
 
 	function updateHelp() {

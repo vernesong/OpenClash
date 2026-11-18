@@ -38,7 +38,7 @@ SAVE_ETAG_TO_CACHE() {
     local url="\"$1\""
     local etag="\"$2\""
     local path="\"$3\""
-    local time="\"$(date '+%Y-%m-%d %H:%M:%S')\""
+    local time="\"$(date -r "$3" '+%Y-%m-%d %H:%M:%S' 2>/dev/null || date '+%Y-%m-%d %H:%M:%S')\""
     local path_hash=$(printf '%s' "$3" | md5sum)
     local lock_dir="${ETAG_CACHE}.lock"
     local temp_file="${ETAG_CACHE}.tmp.$$"

@@ -185,11 +185,11 @@ pkg_update() {
 		if [ "$PKG_TYPE" = "apk" ]; then
 			err=$(run_with_timeout 180 apk update 2>&1)
 			rc=$?
-			rm -f /lib/apk/db/lock 2>/dev/null
+
 		else
 			err=$(run_with_timeout 180 opkg update 2>&1)
 			rc=$?
-			rm -f /var/lock/opkg.lock 2>/dev/null
+
 		fi
 		if [ "$rc" -eq 0 ]; then
 			PKG_INDEX_UPDATED=1
@@ -684,11 +684,15 @@ get_core_version() {
 	printf '%s\n' "$ver"
 }
 
+package_restore_pending() {
+	[ -d /tmp/openclash-package-backup ] || [ -f /tmp/openclash.bak ] || [ -f /etc/uci-defaults/luci-openclash ]
+}
+
 installed_plugin_version() {
 	if [ "$PKG_TYPE" = "apk" ]; then
 		apk list luci-app-openclash 2>/dev/null | grep '\[installed\]' | grep -oE '[0-9]+(\.[0-9]+)+' | head -n 1
 	else
-		rm -f /var/lock/opkg.lock 2>/dev/null
+
 		opkg status luci-app-openclash 2>/dev/null | grep 'Version' | awk -F 'Version: ' '{ print $2 }' | head -n 1 | sed 's/-r[0-9]*$//'
 	fi
 }
@@ -784,12 +788,9 @@ stop_service() {
 }
 
 restart_service() {
+	package_restore_pending && return 1
 	[ -x /etc/init.d/openclash ] || return 0
-	local enable=""
-	if command -v uci >/dev/null 2>&1; then
-		enable=$(uci -q get openclash.config.enable 2>/dev/null)
-	fi
-	if [ "$SERVICE_WAS_RUNNING" = "1" ] || [ "$enable" = "1" ] || service_running; then
+	if [ "$SERVICE_WAS_RUNNING" = "1" ] || service_running; then
 		info "restarting OpenClash"
 		/etc/init.d/openclash restart >/dev/null 2>&1
 		info "OpenClash restarted"
@@ -817,18 +818,59 @@ clear_luci_cache() {
 	rm -rf /var/luci-indexcache /var/luci-indexcache.* 2>/dev/null
 }
 
+openclash_install_apk() (
+	file=$1
+	case "$file" in /*) ;; *) file="$PWD/$file" ;; esac
+	force=$2
+	cache=$(mktemp -d /tmp/.openclash-apk.XXXXXX) || exit 1
+	trap 'rm -rf "$cache"' EXIT
+	trap 'exit 1' HUP INT TERM
+	cd "$cache" || exit 1
+	# apk continues unpacking on a pre-upgrade error. Check the candidate's backup before entering the transaction.
+	apk verify --no-network --allow-untrusted "$file" || exit 1
+	if apk info --no-network --exists luci-app-openclash >/dev/null 2>&1 || [ -f /etc/config/openclash ] || [ -d /etc/openclash ]; then
+		apk adbdump --format json "$file" >"$cache/package.json" || exit 1
+		[ "$(jsonfilter -i "$cache/package.json" -e '@.info.name')" = luci-app-openclash ] || exit 1
+		if jsonfilter -i "$cache/package.json" -e '@.scripts["pre-upgrade"]' >"$cache/pre-upgrade"; then
+			if grep -Eq '^[[:space:]]*# openclash-package-preflight-v1$' "$cache/pre-upgrade"; then
+				sh "$cache/pre-upgrade" openclash-preflight check "$cache/backup" || exit 1
+			fi
+		else
+			scripts=$(jsonfilter -i "$cache/package.json" -e '@.scripts') || exit 1
+			case "$scripts" in *'"pre-upgrade":'*) exit 1 ;; esac
+		fi
+	fi
+	if [ "$force" != 1 ]; then
+		apk add -q --force-overwrite --clean-protected --allow-untrusted "$file"
+		exit $?
+	fi
+	key=$(apk adbdump "$file" | awk '
+		/^  name: / {name=$2}
+		/^  version: / {version=$2}
+		/^  hashes: / {
+			if (name=="luci-app-openclash" && version ~ /^[0-9][A-Za-z0-9._+-]*$/ && $2 ~ /^[0-9a-f]+$/ && length($2)>=8)
+				print name "-" version "." substr($2,1,8) ".apk"
+			exit
+		}')
+	[ -n "$key" ] && ln -s "$file" "$cache/$key" || exit 1
+	apk --cache-dir "$cache" --repositories-file /dev/null --no-network --allow-untrusted fix --reinstall --force-overwrite --clean-protected luci-app-openclash >"$cache/result" 2>&1
+	status=$?
+	cat "$cache/result"
+	if grep -Fq '[APK unavailable, skipped]' "$cache/result"; then
+		apk add -q --force-overwrite --clean-protected --allow-untrusted "$file"
+	else
+		exit "$status"
+	fi
+)
+
 pre_test_plugin() {
 	local file="$1" out rc
 	if [ "$PKG_TYPE" = "apk" ]; then
-		if [ "$FORCE" = "1" ]; then
-			out=$(apk add -s -q --force-overwrite --clean-protected --allow-untrusted --force-reinstall "$file" 2>&1)
-		else
-			out=$(apk add -s -q --force-overwrite --clean-protected --allow-untrusted "$file" 2>&1)
-		fi
+		out=$(apk add -s -q --force-overwrite --clean-protected --allow-untrusted "$file" 2>&1)
 		rc=$?
 	else
-		rm -f /var/lock/opkg.lock 2>/dev/null
-		if [ "$FORCE" = "1" ]; then
+
+		if [ "$FORCE" = "1" ] || package_restore_pending; then
 			out=$(opkg --force-downgrade --force-reinstall install "$file" --noaction 2>&1)
 		else
 			out=$(opkg --force-downgrade install "$file" --noaction 2>&1)
@@ -870,28 +912,30 @@ install_plugin() {
 	info "plugin takes about $(fmt_size "$install_kb") on disk"
 	require_space "/" "$((install_kb + 8192))" "plugin installation" || return 1
 
-	stop_service
+	if [ "$PKG_TYPE" = apk ]; then
+		service_running && SERVICE_WAS_RUNNING=1
+	else
+		stop_service
+	fi
 	log="${TMP_DIR}/install.log"
 	while [ "$attempt" -le 3 ]; do
 		if pre_test_plugin "$file"; then
 			info "installing OpenClash v${ver} (${attempt}/3)"
 			if [ "$PKG_TYPE" = "apk" ]; then
-				if [ "$FORCE" = "1" ]; then
-					apk add -q --force-overwrite --clean-protected --allow-untrusted --force-reinstall "$file" >"$log" 2>&1
-				else
-					apk add -q --force-overwrite --clean-protected --allow-untrusted "$file" >"$log" 2>&1
-				fi
+				local repair=0
+				if { [ "$FORCE" = 1 ] || package_restore_pending; } && [ "$(installed_plugin_version)" = "$ver" ]; then repair=1; fi
+				openclash_install_apk "$file" "$repair" >"$log" 2>&1
 			else
-				rm -f /var/lock/opkg.lock 2>/dev/null
-				if [ "$FORCE" = "1" ]; then
-					opkg --force-downgrade --force-reinstall install "$file" >"$log" 2>&1
+
+				if [ "$FORCE" = "1" ] || package_restore_pending; then
+					OPENCLASH_KEEP_STOPPED=$((1 - SERVICE_WAS_RUNNING)) opkg --force-downgrade --force-reinstall install "$file" >"$log" 2>&1
 				else
-					opkg --force-downgrade install "$file" >"$log" 2>&1
+					OPENCLASH_KEEP_STOPPED=$((1 - SERVICE_WAS_RUNNING)) opkg --force-downgrade install "$file" >"$log" 2>&1
 				fi
 			fi
 			rc=$?
 			installed=$(installed_plugin_version)
-			if [ "$installed" = "$ver" ]; then
+			if [ "$rc" = 0 ] && [ "$installed" = "$ver" ] && ! package_restore_pending; then
 				info "OpenClash v${ver} installed"
 				rm -f "$file"
 				return 0
@@ -1058,7 +1102,7 @@ main() {
 	latest_plugin=$(get_plugin_version) || die "failed to get the latest plugin version"
 	installed_plugin=$(installed_plugin_version)
 	info "plugin: installed ${installed_plugin:-none}, latest ${latest_plugin}"
-	if [ "$FORCE" = "1" ] || [ -z "$installed_plugin" ]; then
+	if [ "$FORCE" = "1" ] || [ -z "$installed_plugin" ] || { [ "$installed_plugin" = "$latest_plugin" ] && package_restore_pending; }; then
 		need_plugin=1
 	elif version_gt "$latest_plugin" "$installed_plugin"; then
 		need_plugin=1
@@ -1133,7 +1177,14 @@ main() {
 		stage "install OpenClash ${latest_plugin}"
 		fetch_checksums "package/${BRANCH}/checksums.txt" "$CHECKSUMS_PLUGIN" || true
 		if ! install_plugin "$latest_plugin"; then
-			restart_service
+			if [ "$SERVICE_WAS_RUNNING" = 1 ]; then
+				if [ "$PKG_TYPE" = opkg ] && [ -f /tmp/openclash.bak ] && [ ! -d /tmp/openclash-package-backup ] && [ -f /etc/config/openclash ] &&
+					grep -Fxq 'OpenClash: backup failed before package replacement' "$TMP_DIR/install.log"; then
+					/etc/init.d/openclash start
+				else
+					restart_service
+				fi
+			fi
 			exit 1
 		fi
 	fi

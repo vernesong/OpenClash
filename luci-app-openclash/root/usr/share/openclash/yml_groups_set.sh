@@ -10,10 +10,9 @@ set_lock() {
 
 del_lock() {
    flock -u 887 2>/dev/null
-   rm -rf "/tmp/lock/openclash_groups_set.lock"
 }
 
-set_lock
+set_lock || exit 1
 GROUP_FILE="/tmp/yaml_groups.yaml"
 CFG_FILE="/etc/config/openclash"
 CONFIG_FILE=$(uci_get_config "config_path")

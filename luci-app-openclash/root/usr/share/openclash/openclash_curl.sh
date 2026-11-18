@@ -36,7 +36,7 @@ DOWNLOAD_FILE_CURL() {
     CACHED_ETAG=$(GET_ETAG_BY_PATH "$FILE_PATH")
     ETAG_HEADER=""
 
-    if [ -n "$CACHED_ETAG" ] && [ -e "$FILE_PATH" ]; then
+    if [ "${SKIP_ETAG:-0}" != 1 ] && [ -n "$CACHED_ETAG" ] && [ -e "$FILE_PATH" ]; then
         FILE_MTIME=$(date -r "$FILE_PATH" '+%Y-%m-%d %H:%M:%S' 2>/dev/null)
         LAST_UPDATE=$(GET_ETAG_TIMESTAMP_BY_PATH "$FILE_PATH")
         if [ -n "$LAST_UPDATE" ] && [ -n "$FILE_MTIME" ] && [ "$LAST_UPDATE" = "$FILE_MTIME" ]; then
@@ -217,6 +217,17 @@ EOF
     rm -f "$HEADER_TMP" "$DOWNLOAD_TMP"
 
     return 0
+}
+
+# Resource updaters validate the body before saving its ETag against the installed file.
+install_downloaded_resource() {
+    local changed=0
+    if ! cmp -s "$1" "$2"; then
+        replace_openclash_file mv "$1" "$2" || return 1
+        changed=1
+    fi
+    [ -z "$NEW_ETAG" ] || SAVE_ETAG_TO_CACHE "$DOWNLOAD_URL" "$NEW_ETAG" "$2"
+    [ "$changed" = 1 ] || return 2
 }
 
 CHECKSUM_RAW_PREFIX="https://raw.githubusercontent.com/vernesong/OpenClash"

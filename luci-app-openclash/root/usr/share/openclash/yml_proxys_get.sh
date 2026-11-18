@@ -16,10 +16,9 @@ set_lock() {
 
 del_lock() {
    flock -u 875 2>/dev/null
-   rm -rf "/tmp/lock/openclash_proxies_get.lock"
 }
 
-set_lock
+set_lock || exit 1
 
 if [ ! -z "$UPDATE_CONFIG_FILE" ]; then
    CONFIG_FILE="$UPDATE_CONFIG_FILE"
