@@ -112,12 +112,12 @@ end
 o = s:option(DummyValue, "template", translate("Template Name"))
 function o.cfgvalue(...)
 	local value = Value.cfgvalue(...)
-	if value == "none" then
-		return translate("Do Not Use Template")
-	elseif value ~= "0" then
-		return value or translate("None")
-	else
+	if value == "0" then
 		return translate("Custom Template")
+	elseif value == nil or value == "" then
+		return translate("Default Template")
+	else
+		return value
 	end
 end
 
