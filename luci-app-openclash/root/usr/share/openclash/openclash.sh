@@ -433,7 +433,8 @@ sub_info_get()
       fi
    fi
 
-   if [ "$sub_convert" -eq 0 ]; then
+   if [ "$sub_convert" -eq 0 ] || [ "$template" = "none" ]; then
+      # Explicitly disabled template: bypass subconverter and preserve the source subscription.
       subscribe_url=$address
    elif [ "$sub_convert" -eq 1 ] && [ -n "$template" ]; then
       while IFS= read -r line; do
