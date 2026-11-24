@@ -5948,6 +5948,9 @@ msgstr "确认码已更新，请使用新的确认码"
 msgid "Unable to check the approval, retrying..."
 msgstr "暂时无法查询批准状态，正在重试..."
 
+msgid "This device approval request was denied"
+msgstr "此设备的批准请求已被拒绝"
+
 msgid "Device approval timed out; update the subscription to get a new code"
 msgstr "等待批准超时，请重新更新订阅获取新的确认码"
 

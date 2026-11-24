@@ -296,7 +296,7 @@ var OixCloud = {
                         OixMsg.show(reply.error || '<%:Sign-in token is invalid or expired, please sign in again%>', 'error');
                         return;
                     }
-                    if (reply && (reply.code === 'device_limit' || reply.code === 'invalid_enrollment')) {
+                    if (reply && (reply.code === 'device_approval_denied' || reply.code === 'device_limit' || reply.code === 'invalid_enrollment')) {
                         finish(false);
                         OixMsg.show(reply.error || '<%:Server response error, please try again later%>', 'error');
                         return;

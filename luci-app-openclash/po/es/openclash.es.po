@@ -5940,6 +5940,9 @@ msgstr "Se emitió un nuevo código de confirmación"
 msgid "Unable to check the approval, retrying..."
 msgstr "No se pudo comprobar la aprobación, reintentando..."
 
+msgid "This device approval request was denied"
+msgstr "Se ha denegado la solicitud de aprobación de este dispositivo"
+
 msgid "Device approval timed out; update the subscription to get a new code"
 msgstr "Se agotó el tiempo de aprobación; actualiza la suscripción para obtener un código nuevo"
 

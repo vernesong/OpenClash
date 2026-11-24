@@ -7048,6 +7048,7 @@ end
 
 local function oix_cli_error(reply, fallback)
 	if not reply then return OIX_CORE_MISSING end
+	if reply.code == "device_approval_denied" then return "This device approval request was denied" end
 	return reply.error or fallback
 end
 
