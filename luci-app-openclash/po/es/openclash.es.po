@@ -5912,3 +5912,42 @@ msgstr "Se guardó la configuración, pero no los ajustes; revisa el almacenamie
 
 msgid "Subscription was saved; the active configuration was kept"
 msgstr "La suscripción se guardó; se mantuvo la configuración activa"
+
+msgid "Approve this device"
+msgstr "Aprobar este dispositivo"
+
+msgid "Approve this router on the oixCloud website or with your linked Telegram bot, after checking that the fingerprint matches. This window closes by itself once approved"
+msgstr "Comprueba que la huella coincide y aprueba este router en la web de oixCloud o con tu bot de Telegram vinculado. Esta ventana se cierra sola tras la aprobación"
+
+msgid "Approval page"
+msgstr "Página de aprobación"
+
+msgid "Confirmation code"
+msgstr "Código de confirmación"
+
+msgid "Telegram command"
+msgstr "Comando de Telegram"
+
+msgid "Device fingerprint"
+msgstr "Huella del dispositivo"
+
+msgid "Waiting for approval..."
+msgstr "Esperando la aprobación..."
+
+msgid "A new confirmation code was issued"
+msgstr "Se emitió un nuevo código de confirmación"
+
+msgid "Unable to check the approval, retrying..."
+msgstr "No se pudo comprobar la aprobación, reintentando..."
+
+msgid "Device approval timed out; update the subscription to get a new code"
+msgstr "Se agotó el tiempo de aprobación; actualiza la suscripción para obtener un código nuevo"
+
+msgid "this device is not approved yet; approve it on the oixCloud website or with the Telegram bot"
+msgstr "Este router aún no está aprobado; apruébalo en la web de oixCloud o con el bot de Telegram"
+
+msgid "too many devices are waiting for approval; approve them first or try again in 10 minutes"
+msgstr "Hay demasiados dispositivos esperando aprobación; apruébalos primero o vuelve a intentarlo en 10 minutos"
+
+msgid "the device enrollment was refused; update the client and try again"
+msgstr "Se rechazó el registro del dispositivo; actualiza el plugin y el núcleo e inténtalo de nuevo"

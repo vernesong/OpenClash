@@ -1,7 +1,7 @@
 ROOT = '/etc/openclash'
 SETTINGS = '/etc/config/openclash'
 LOCK = '/tmp/lock/openclash_backup.lock'
-REBUILT = %w[.oix_age_key* ..oix_age_key* .oix_device_id* ..oix_device_id* proxy_provider/oixCloud proxy_provider/.oixCloud.tmp-* .openclash-restore.*]
+REBUILT = %w[.oix_age_key* ..oix_age_key* .oix_device_id* ..oix_device_id* .managed-device-v2* ..managed-device-v2.tmp-* proxy_provider/oixCloud proxy_provider/.oixCloud.tmp-* .openclash-restore.*]
 
 def temporary(*args)
   path = IO.popen(['mktemp', *args], &:read).chomp

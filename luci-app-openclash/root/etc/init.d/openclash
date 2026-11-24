@@ -1033,6 +1033,7 @@ start_run_core()
    procd_set_param env SAFE_PATHS=/usr/share/openclash:/etc/ssl
    procd_append_param env CLASH_AGE_SECRET_KEY="$SECRET_KEY"
    procd_append_param env OIX_TOKEN="$OIX_TOKEN"
+   procd_append_param env OIX_DEVICE_KEY_DIR=/etc/openclash
    procd_set_param command /bin/sh -c 'exec "$0" -d "$1" -f "$2" >> "$3" 2>&1' "$CLASH" "$CLASH_CONFIG" "$CONFIG_FILE" "$LOG_FILE"
    procd_set_param user "root"
    procd_set_param group "nogroup"

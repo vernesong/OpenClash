@@ -126,6 +126,7 @@ function index()
 	entry({"admin", "services", "openclash", "oix_checkin"}, call("oix_checkin"))
 	entry({"admin", "services", "openclash", "oix_logout"}, call("oix_logout"))
 	entry({"admin", "services", "openclash", "oix_login"}, call("oix_login"))
+	entry({"admin", "services", "openclash", "oix_device_status"}, call("oix_device_status"))
 	entry({"admin", "services", "openclash", "oix_google_begin"}, call("oix_google_begin"))
 	entry({"admin", "services", "openclash", "oix_web_link"}, call("oix_web_link"))
 	entry({"admin", "services", "openclash", "oix_login_info_save"}, call("oix_login_info_save"))
@@ -7059,6 +7060,36 @@ local function oix_account_token(token)
 	return reply.token
 end
 
+-- Enrolls this router under token, or takes the answer the sign-in already brought.
+-- Gives {approved = true}, or what the approval dialog shows: the code and the
+-- fingerprint grouped as the website shows them; on failure nil, message, code.
+local function oix_device_approval(token, approval)
+	if type(approval) ~= "table" or type(approval.approved) ~= "boolean" then
+		local reply = fs.oix_cli("device-approval", {token = token})
+		approval = reply and reply.approval
+		if type(approval) ~= "table" or type(approval.approved) ~= "boolean" then
+			return nil, oix_cli_error(reply, OIX_CORE_MISSING), reply and reply.code
+		end
+	end
+	if approval.approved then return {approved = true} end
+	local code, fingerprint, page = approval.user_code, approval.fingerprint, approval.verification_url
+	if type(code) ~= "string" or not code:match("^%x+$") or #code ~= 10
+		or type(fingerprint) ~= "string" or not fingerprint:match("^%x+$") or #fingerprint ~= 64 then
+		return nil, "Server response error, please try again later"
+	end
+	-- the core checks the page and names the plain one when the panel gave none
+	if type(page) ~= "string" or not page:match("^https://[^%s\"'<>]+$") then page = nil end
+	code = code:sub(1, 5) .. "-" .. code:sub(6)
+	return {
+		approved = false,
+		code = code,
+		telegram = "/device " .. code,
+		fingerprint = fingerprint:sub(1, 4) .. " " .. fingerprint:sub(5, 8) .. " " .. fingerprint:sub(9, 12) .. " " .. fingerprint:sub(13, 16),
+		url = page,
+		expires_in = tonumber(approval.expires_in)
+	}
+end
+
 local OIX_GOOGLE_FLOW = "/tmp/oix_google_login"
 
 local oix_with_google_flow = fs.oix_with_session_lock
@@ -7181,7 +7212,7 @@ local function oix_google_token(code, verifier)
 	if not oix_valid_token(reply.token) then
 		return nil, "Google sign-in expired or could not be verified, please try again"
 	end
-	return reply.token, nil, type(reply.account) == "table" and reply.account.suggest_node_filter == true
+	return reply.token, nil, type(reply.account) == "table" and reply.account.suggest_node_filter == true, reply.approval
 end
 
 local function oix_core_api(method, path, timeout)
@@ -7369,7 +7400,7 @@ end
 function oix_login()
 	HTTP.prepare_content("text/plain; charset=utf-8")
 	HTTP.header("Cache-Control", "no-store")
-	local token, err
+	local token, err, approval
 	local suggest_node_filter = false
 	local google_code = HTTP.formvalue("google_code")
 	local input_token = HTTP.formvalue("token")
@@ -7403,7 +7434,7 @@ function oix_login()
 		end
 	elseif google_code and google_code ~= "" then
 		write_padded('{"stage":"logging_in","text":"' .. luci.i18n.translate("Logging in...") .. '"}')
-		token, err, suggest_node_filter = oix_google_token(google_code, attempt.verifier)
+		token, err, suggest_node_filter, approval = oix_google_token(google_code, attempt.verifier)
 		if not token then
 			write_padded('{"stage":"error","result":' .. json.stringify(luci.i18n.translate(err)) .. '}')
 			return
@@ -7425,6 +7456,7 @@ function oix_login()
 		end
 		token = reply.token
 		suggest_node_filter = type(reply.account) == "table" and reply.account.suggest_node_filter == true
+		approval = reply.approval
 	end
 	-- Authentication succeeds independently of downloading or activating a profile.
 	if not refresh then
@@ -7451,7 +7483,37 @@ function oix_login()
 			return
 		end
 	end
-	local ok, warning, code = fetch_oix_sub(token, not refresh)
+	-- A password or Google sign-in enrolls this router with its one-time ticket and is
+	-- approved at once. A pasted or restored token, or a sign-in the panel gave no ticket
+	-- (two-step verification), waits for the approval code; the core reports it when
+	-- the download is refused, so an approved router spends no extra request.
+	local select_profile = not refresh or HTTP.formvalue("activate") == "1"
+	local ok, warning, code, device
+	if type(approval) == "table" and approval.approved == false then
+		device, warning, code = oix_device_approval(token, approval)
+	else
+		ok, warning, code = fetch_oix_sub(token, select_profile)
+		if code == "approval_required" then
+			local enroll_warning, enroll_code
+			device, enroll_warning, enroll_code = oix_device_approval(token)
+			if not device then
+				-- the reason enrolling failed, such as too many devices, says more
+				warning, code = enroll_warning, enroll_code
+			elseif device.approved then
+				-- approved in the meantime
+				ok, warning, code = fetch_oix_sub(token, select_profile)
+			end
+		end
+	end
+	if device and not device.approved then
+		uci:load("openclash")
+		if uci:get("openclash", "config", "oix_token") ~= token then
+			write_padded(json.stringify({stage = "error", code = "session_changed", result = luci.i18n.translate("Sign-in changed; please retry the subscription update")}))
+			return
+		end
+		write_padded(json.stringify({stage = "approval", approval = device}))
+		return
+	end
 	uci:load("openclash")
 	if uci:get("openclash", "config", "oix_token") ~= token then
 		code = "session_changed"
@@ -7521,6 +7583,35 @@ function oix_web_link()
 	else
 		HTTP.write_json({error = luci.i18n.translate(oix_cli_error(reply, "Unable to open the page"))})
 	end
+end
+
+-- polled by the approval dialog: enrolling again with the same keys and token
+-- answers the same request, and brings a new code once the old one expires
+function oix_device_status()
+	HTTP.prepare_content("application/json")
+	HTTP.header("Cache-Control", "no-store")
+	local token = fs.uci_get_config("config", "oix_token")
+	if not oix_valid_token(token) then
+		HTTP.write_json({code = "auth", error = luci.i18n.translate("Sign-in token is invalid or expired, please sign in again")})
+		return
+	end
+	local ready, core_err = oix_ensure_core(false, true)
+	if not ready then
+		HTTP.write_json({error = luci.i18n.translate(core_err)})
+		return
+	end
+	local device, message, code = oix_device_approval(token)
+	uci:load("openclash")
+	if uci:get("openclash", "config", "oix_token") ~= token then
+		HTTP.write_json({code = "session_changed"})
+		return
+	end
+	if not device then
+		if code == "auth" and not oix_clear_account(token) then code = nil end
+		HTTP.write_json({code = code, error = luci.i18n.translate(message)})
+		return
+	end
+	HTTP.write_json({approval = device})
 end
 
 function oix_logout()
