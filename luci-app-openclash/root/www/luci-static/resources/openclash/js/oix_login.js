@@ -12,7 +12,6 @@ var OIX_URLS = {
     deviceStatus: '<%=url("admin", "services", "openclash", "oix_device_status")%>'
 };
 
-
 var OixCloud = {
     loggedIn: window.ocOixBoot.loggedIn,
     activeTab: 'account',
@@ -109,7 +108,7 @@ var OixCloud = {
         this.googleTimer = null;
     },
 
-    streamLogin: function(data, btns) {
+    streamLogin: function(data, btns, suggestAfterApproval) {
         var self = this;
         var session = this.accountSession;
         OixMsg.hide();
@@ -175,7 +174,7 @@ var OixCloud = {
                         var obj = JSON.parse(line);
                         if (obj.stage === 'done' && obj.result === 200) {
                             finished = true;
-                            onLoginSuccess(obj.suggest_node_filter === true, obj.warning);
+                            onLoginSuccess(suggestAfterApproval || obj.suggest_node_filter === true, obj.warning);
                         } else if (obj.stage === 'approval') {
                             finished = true;
                             btns.forEach(function(b){ ocSetBtnBusy(b, false); });
@@ -186,7 +185,8 @@ var OixCloud = {
                             if (!data.refresh) { self.loadAccountInfo(); self.startPolling(); }
                             // once approved, carry on with the download this sign-in or update started
                             self.showDeviceApproval(obj.approval, function() {
-                                self.streamLogin({refresh: '1', activate: data.activate || (data.refresh ? '0' : '1')}, btns);
+                                self.streamLogin({refresh: '1', activate: data.activate || (data.refresh ? '0' : '1')}, btns,
+                                    suggestAfterApproval || obj.suggest_node_filter === true);
                             });
                         } else if (obj.stage === 'error') {
                             finished = true;
@@ -234,7 +234,7 @@ var OixCloud = {
     showDeviceApproval: function(approval, onApproved) {
         var self = this, session = this.accountSession;
         var box = document.createElement('div'), fields = {}, timer = null, closeDialog = null, stopped = false;
-        var deadline = Date.now() + 600000, shown = '';
+        var deadlineTimer, shown = '';
         box.className = 'oix-approval';
         var addText = function(className, text) {
             var p = document.createElement('p');
@@ -279,13 +279,13 @@ var OixCloud = {
         var finish = function(result) {
             stopped = true;
             clearTimeout(timer);
+            clearTimeout(deadlineTimer);
             if (closeDialog) closeDialog(result);
         };
         var poll = function() {
             timer = setTimeout(function() {
                 if (stopped) return;
                 if (session !== self.accountSession || !self.loggedIn) { finish(false); return; }
-                if (Date.now() >= deadline) { finish('timeout'); return; }
                 XHR.get(OIX_URLS.deviceStatus, null, function(x, reply) {
                     if (stopped) return;
                     if (session !== self.accountSession) { finish(false); return; }
@@ -294,6 +294,11 @@ var OixCloud = {
                         finish(false);
                         self.loggedIn = false; self.stopPolling(); self.showLoggedOut();
                         OixMsg.show(reply.error || '<%:Sign-in token is invalid or expired, please sign in again%>', 'error');
+                        return;
+                    }
+                    if (reply && (reply.code === 'device_limit' || reply.code === 'invalid_enrollment')) {
+                        finish(false);
+                        OixMsg.show(reply.error || '<%:Server response error, please try again later%>', 'error');
                         return;
                     }
                     var a = x && x.status == 200 && reply && reply.approval;
@@ -320,6 +325,7 @@ var OixCloud = {
             if (result === true) onApproved();
             else if (result === 'timeout') OixMsg.show('<%:Device approval timed out; update the subscription to get a new code%>', 'info', 0);
         });
+        deadlineTimer = setTimeout(function() { finish('timeout'); }, 600000);
         poll();
     },
 

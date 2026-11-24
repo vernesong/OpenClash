@@ -7511,7 +7511,7 @@ function oix_login()
 			write_padded(json.stringify({stage = "error", code = "session_changed", result = luci.i18n.translate("Sign-in changed; please retry the subscription update")}))
 			return
 		end
-		write_padded(json.stringify({stage = "approval", approval = device}))
+		write_padded(json.stringify({stage = "approval", approval = device, suggest_node_filter = suggest_node_filter}))
 		return
 	end
 	uci:load("openclash")
