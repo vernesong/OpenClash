@@ -7085,6 +7085,9 @@ local function oix_device_approval(token, approval)
 		approved = false,
 		code = code,
 		telegram = "/device " .. code,
+		request_id = approval.request_id,
+		approval_method = approval.approval_method,
+		device_fingerprint = fingerprint,
 		fingerprint = fingerprint:sub(1, 4) .. " " .. fingerprint:sub(5, 8) .. " " .. fingerprint:sub(9, 12) .. " " .. fingerprint:sub(13, 16),
 		url = page,
 		expires_in = tonumber(approval.expires_in)
@@ -7586,6 +7589,26 @@ function oix_web_link()
 	end
 end
 
+local function oix_device_code(token)
+	local mode = HTTP.formvalue("action")
+	local request_id = HTTP.formvalue("request_id")
+	local fingerprint = HTTP.formvalue("fingerprint")
+	local code = HTTP.formvalue("code")
+	if HTTP.getenv("HTTP_X_REQUESTED_WITH") ~= "XMLHttpRequest"
+		or (mode ~= "email" and mode ~= "verify")
+		or type(request_id) ~= "string" or #request_id ~= 32 or not request_id:match("^[a-f0-9]+$")
+		or type(fingerprint) ~= "string" or #fingerprint ~= 64 or not fingerprint:match("^[a-f0-9]+$")
+		or (mode == "verify" and (type(code) ~= "string" or (#code ~= 6 and #code ~= 8) or not code:match("^%d+$"))) then
+		return nil, "Invalid device approval request"
+	end
+	local reply = fs.oix_cli(mode == "email" and "device-email-code" or "device-verify",
+		{token = token, request_id = request_id, fingerprint = fingerprint, code = mode == "verify" and code or nil})
+	if reply and type(reply.approval) == "table" and type(reply.approval.approved) == "boolean" then
+		return {approved = reply.approval.approved}
+	end
+	return nil, oix_cli_error(reply, "Device verification failed"), reply and reply.code
+end
+
 -- polled by the approval dialog: enrolling again with the same keys and token
 -- answers the same request, and brings a new code once the old one expires
 function oix_device_status()
@@ -7601,7 +7624,12 @@ function oix_device_status()
 		HTTP.write_json({error = luci.i18n.translate(core_err)})
 		return
 	end
-	local device, message, code = oix_device_approval(token)
+	local device, message, code
+	if HTTP.getenv("REQUEST_METHOD") == "POST" then
+		device, message, code = oix_device_code(token)
+	else
+		device, message, code = oix_device_approval(token)
+	end
 	uci:load("openclash")
 	if uci:get("openclash", "config", "oix_token") ~= token then
 		HTTP.write_json({code = "session_changed"})

@@ -5962,3 +5962,24 @@ msgstr "待批准的设备太多，请先批准或等 10 分钟后重试"
 
 msgid "the device enrollment was refused; update the client and try again"
 msgstr "设备登记被拒绝，请更新插件和内核后重试"
+
+msgid "Send email code"
+msgstr "获取邮箱验证码"
+
+msgid "Other approval methods"
+msgstr "其他批准方式"
+
+msgid "8-digit email code"
+msgstr "8 位邮箱验证码"
+
+msgid "6-digit authenticator code"
+msgstr "验证器的 6 位动态码"
+
+msgid "Check your account email for the code"
+msgstr "请到账号邮箱查收验证码"
+
+msgid "Device verification failed"
+msgstr "设备验证失败"
+
+msgid "Invalid device approval request"
+msgstr "设备批准请求无效"

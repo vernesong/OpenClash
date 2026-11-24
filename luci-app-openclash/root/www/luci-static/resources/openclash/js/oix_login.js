@@ -234,7 +234,7 @@ var OixCloud = {
     showDeviceApproval: function(approval, onApproved) {
         var self = this, session = this.accountSession;
         var box = document.createElement('div'), fields = {}, timer = null, closeDialog = null, stopped = false;
-        var deadlineTimer, shown = '';
+        var deadlineTimer, shown = '', pending = {}, operation = null;
         box.className = 'oix-approval';
         var addText = function(className, text) {
             var p = document.createElement('p');
@@ -255,17 +255,93 @@ var OixCloud = {
             fields[name] = node;
             return row;
         };
-        addText('oix-approval-intro', '<%:Approve this router on the oixCloud website or with your linked Telegram bot, after checking that the fingerprint matches. This window closes by itself once approved%>');
+        var form = document.createElement('div'), caption = document.createElement('label'), input = document.createElement('input');
+        var send = document.createElement('button'), verify = document.createElement('button'), message = document.createElement('p');
+        input.type = 'text';
+        input.inputMode = 'numeric';
+        input.autocomplete = 'one-time-code';
+        caption.appendChild(document.createTextNode(''));
+        caption.appendChild(input);
+        form.appendChild(caption);
+        send.type = verify.type = 'button';
+        send.className = verify.className = 'cbi-button cbi-button-action';
+        send.textContent = '<%:Send email code%>';
+        verify.textContent = '<%:Approve this device%>';
+        form.appendChild(send);
+        form.appendChild(verify);
+        message.setAttribute('role', 'status');
+        form.appendChild(message);
+        box.appendChild(form);
+        var enableActions = function() {
+            send.disabled = operation !== null;
+            verify.disabled = operation !== null || !(pending.approval_method === 'email' ? /^[0-9]{8}$/ : /^[0-9]{6}$/).test(input.value);
+        };
+        input.oninput = enableActions;
+        var submit = function(action) {
+            if (stopped || operation || session !== self.accountSession || !self.loggedIn) return;
+            var xhr = new XMLHttpRequest(), body = 'action=' + action + '&request_id=' + pending.request_id + '&fingerprint=' + pending.device_fingerprint;
+            if (action === 'verify') {
+                if (verify.disabled) return;
+                body += '&code=' + encodeURIComponent(input.value);
+            }
+            operation = xhr;
+            enableActions();
+            message.textContent = '';
+            xhr.open('POST', OIX_URLS.deviceStatus, true);
+            xhr.timeout = 65000;
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.onloadend = function() {
+                if (stopped || operation !== xhr || session !== self.accountSession || !self.loggedIn) return;
+                operation = null;
+                enableActions();
+                var reply;
+                try { reply = JSON.parse(xhr.responseText); } catch(e) {}
+                if (reply && reply.code === 'session_changed') { finish(false); window.location.reload(); return; }
+                if (reply && reply.approval && reply.approval.approved === true) { finish(true); return; }
+                if (action === 'email' && reply && reply.approval && reply.approval.approved === false) {
+                    message.textContent = '<%:Check your account email for the code%>';
+                } else {
+                    message.textContent = reply && reply.error || '<%:Device verification failed%>';
+                }
+            };
+            xhr.send(body);
+        };
+        send.onclick = function() { submit('email'); };
+        verify.onclick = function() { submit('verify'); };
+        var alternatives = document.createElement('details'), summary = document.createElement('summary');
+        summary.textContent = '<%:Other approval methods%>';
+        alternatives.appendChild(summary);
+        box.appendChild(alternatives);
+        alternatives.appendChild(addText('oix-approval-intro', '<%:Approve this router on the oixCloud website or with your linked Telegram bot, after checking that the fingerprint matches. This window closes by itself once approved%>'));
         var link = document.createElement('a');
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
         var linkRow = addRow('url', '<%:Approval page%>', link);
-        addRow('code', '<%:Confirmation code%>', document.createElement('code'));
-        addRow('telegram', '<%:Telegram command%>', document.createElement('code'));
-        addRow('fingerprint', '<%:Device fingerprint%>', document.createElement('code'));
+        alternatives.appendChild(linkRow);
+        alternatives.appendChild(addRow('code', '<%:Confirmation code%>', document.createElement('code')));
+        alternatives.appendChild(addRow('telegram', '<%:Telegram command%>', document.createElement('code')));
+        alternatives.appendChild(addRow('fingerprint', '<%:Device fingerprint%>', document.createElement('code')));
         var status = addText('oix-approval-status', '<%:Waiting for approval...%>');
         status.setAttribute('role', 'status');
         var render = function(a) {
+            var supported = (a.approval_method === 'email' || a.approval_method === 'totp') &&
+                /^[0-9a-f]{32}$/.test(a.request_id || '') && /^[0-9a-f]{64}$/.test(a.device_fingerprint || '');
+            if (a.request_id !== pending.request_id || a.approval_method !== pending.approval_method || a.code !== shown) {
+                var previous = operation;
+                operation = null;
+                if (previous) previous.abort();
+                input.value = '';
+                message.textContent = '';
+                alternatives.open = !supported;
+            }
+            pending = a;
+            form.style.display = supported ? '' : 'none';
+            summary.style.display = supported ? '' : 'none';
+            send.style.display = a.approval_method === 'email' ? '' : 'none';
+            input.maxLength = a.approval_method === 'email' ? 8 : 6;
+            caption.firstChild.nodeValue = a.approval_method === 'email' ? '<%:8-digit email code%>' : '<%:6-digit authenticator code%>';
+            enableActions();
             // the core checks the page; link only to the website, as the other website links do
             var page = typeof a.url === 'string' && a.url.indexOf('https://oixcloud.com/') === 0 && !/[\s"'<>]/.test(a.url) ? a.url : '';
             link.href = page || '#';
@@ -278,6 +354,7 @@ var OixCloud = {
         };
         var finish = function(result) {
             stopped = true;
+            if (operation) { operation.abort(); operation = null; }
             clearTimeout(timer);
             clearTimeout(deadlineTimer);
             if (closeDialog) closeDialog(result);

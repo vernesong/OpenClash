@@ -5954,3 +5954,24 @@ msgstr "Hay demasiados dispositivos esperando aprobación; apruébalos primero o
 
 msgid "the device enrollment was refused; update the client and try again"
 msgstr "Se rechazó el registro del dispositivo; actualiza el plugin y el núcleo e inténtalo de nuevo"
+
+msgid "Send email code"
+msgstr "Enviar código por correo"
+
+msgid "Other approval methods"
+msgstr "Otros métodos de autorización"
+
+msgid "8-digit email code"
+msgstr "Código de 8 dígitos del correo"
+
+msgid "6-digit authenticator code"
+msgstr "Código de 6 dígitos de la aplicación de autenticación"
+
+msgid "Check your account email for the code"
+msgstr "Revisa el correo de tu cuenta para ver el código"
+
+msgid "Device verification failed"
+msgstr "No se pudo verificar el dispositivo"
+
+msgid "Invalid device approval request"
+msgstr "La solicitud de autorización del dispositivo no es válida"
