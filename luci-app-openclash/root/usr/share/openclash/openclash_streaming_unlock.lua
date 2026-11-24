@@ -15,11 +15,25 @@ local UA = FS.user_agent
 local UA_SEC_CH_UA = FS.user_agent_ch_ua
 local class_type = type
 local type = arg[1]
+
+local function shell_quote(value)
+	return "'" .. tostring(value):gsub("'", "'\\''") .. "'"
+end
+
 local all_test = arg[2] == "all"
 local check_only = arg[2] == "check"
 local result_output = arg[2] == "result"
 math.randomseed(os.time())
 local status, ip, port, passwd, group_match_name
+
+local function core_auth()
+	return shell_quote("Authorization: Bearer " .. passwd)
+end
+
+local function core_url(path)
+	return shell_quote("http://" .. ip .. ":" .. port .. path)
+end
+
 local tested_set = {}
 local proxy_index = {}
 local group_set = {}
@@ -27,9 +41,6 @@ local config_cache = {}
 local unlock_cache_file = "/etc/openclash/history/streaming_unlock_cache"
 local unlock_cache_info = {}
 
--- MSG holds every fixed log fragment. Fragments outside the 【】 markers are
--- translated through exact msgid matches by luci-app-openclash trans_line, so
--- wording and spacing must stay byte-identical with the po files.
 local MSG = {
 	info = " [Info] ",
 	error = " [Error] ",
@@ -150,13 +161,13 @@ local function bail(message)
 	os.exit(0)
 end
 
-if not type then
+if not type or type == "" then
 	bail(MSG.err_no_type)
 end
 
 MSG.group = "【"..type.."】Group:"
 
-local self_status = SYS.exec(string.format('ps -w |grep -v grep |grep "openclash_streaming_unlock.lua %s" |grep -vc " check"', type))
+local self_status = SYS.exec(string.format('ps -w |grep -v grep |grep %s |grep -vc " check"', shell_quote("openclash_streaming_unlock.lua " .. type)))
 local select_logic = get_config("stream_auto_select_logic") or "urltest"
 
 if (tonumber(get_config("router_self_proxy")) or 1) == 0 then
@@ -169,7 +180,7 @@ end
 local streams = {
 	["Netflix"] = { group_key = "stream_auto_select_group_key_netflix", group_default = "netflix|奈飞", region_key = "stream_auto_select_region_key_netflix", node_key = "stream_auto_select_node_key_netflix", site = "https://www.netflix.com", host = "www%.netflix%.com" },
 	["Disney Plus"] = { group_key = "stream_auto_select_group_key_disney", group_default = "disney|迪士尼", region_key = "stream_auto_select_region_key_disney", node_key = "stream_auto_select_node_key_disney", site = "https://www.disneyplus.com", host = "www%.disneyplus%.com" },
-	["HBO Max"] = { group_key = "stream_auto_select_group_key_hbo_max", group_default = "hbo|hbomax|hbo max", region_key = "stream_auto_select_region_key_hbo_max", node_key = "stream_auto_select_node_key_hbo_max", site = "https://www.max.com", host = "www%.max%.com" },
+	["HBO Max"] = { group_key = "stream_auto_select_group_key_hbo_max", group_default = "hbo|hbomax|hbo max", region_key = "stream_auto_select_region_key_hbo_max", node_key = "stream_auto_select_node_key_hbo_max", site = "https://www.hbomax.com/", host = "hbomax%.com" },
 	["YouTube Premium"] = { group_key = "stream_auto_select_group_key_ytb", group_default = "youtube|油管", region_key = "stream_auto_select_region_key_ytb", node_key = "stream_auto_select_node_key_ytb", site = "https://m.youtube.com/premium", host = "m%.youtube%.com" },
 	["TVB Anywhere+"] = { group_key = "stream_auto_select_group_key_tvb_anywhere", group_default = "tvb", region_key = "stream_auto_select_region_key_tvb_anywhere", node_key = "stream_auto_select_node_key_tvb_anywhere", site = "https://www.tvbanywhere.com/img/tvb/vip_purchase.png", host = "www%.tvbanywhere%.com" },
 	["Amazon Prime Video"] = { group_key = "stream_auto_select_group_key_prime_video", group_default = "prime video|amazon", region_key = "stream_auto_select_region_key_prime_video", node_key = "stream_auto_select_node_key_prime_video", site = "https://www.primevideo.com", host = "www%.primevideo%.com" },
@@ -199,8 +210,18 @@ local function get_node_regex()
 	return get_config(stream_config("node_key")) or ""
 end
 
--- Pattern fast path: ASCII-only case folding matches ruby /i exactly, and CJK/symbol
--- code points (>= U+3000) are case-invariant, so those patterns can be matched literally.
+-- Pattern fast path: ASCII case folding matches ruby /i exactly, and the whitelisted
+-- code points below carry no case mapping, so those patterns can be matched literally.
+local function caseless(code)
+	return (code >= 0x3000 and code <= 0x30FF)
+		or (code >= 0x3400 and code <= 0x4DBF)
+		or (code >= 0x4E00 and code <= 0x9FFF)
+		or (code >= 0xAC00 and code <= 0xD7AF)
+		or (code >= 0xF900 and code <= 0xFAFF)
+		or (code >= 0xFE00 and code <= 0xFE0F)
+		or (code >= 0x1F000 and code <= 0x1FAFF)
+end
+
 local function has_case_mapping(text)
 	local i = 1
 	while i <= #text do
@@ -233,7 +254,7 @@ local function has_case_mapping(text)
 		else
 			return true
 		end
-		if code >= 0x80 and (code < 0x3000 or (code >= 0xFF00 and code <= 0xFFEF)) then
+		if code >= 0x80 and not caseless(code) then
 			return true
 		end
 	end
@@ -242,48 +263,48 @@ end
 
 local regex_meta = { ".", "^", "$", "*", "+", "?", "(", ")", "[", "]", "{", "}", "\\" }
 
-local function build_plain_pattern(regex)
-	local first = regex:sub(1, 1)
-	local last = regex:sub(-1)
-	if first == "^" and last == "$" and #regex > 2 then
-		local inner = regex:sub(2, -2)
-		if inner ~= "" and not inner:find("|", 1, true) then
-			local ok = true
-			for _, meta in ipairs(regex_meta) do
-				if inner:find(meta, 1, true) then
-					ok = false
-					break
-				end
-			end
-			if ok and not has_case_mapping(inner) then
-				return { exact = string.lower(inner) }
-			end
-		end
-		return nil
-	end
-	if first == "|" or last == "|" or regex:find("||", 1, true) then
+local function plain_literal(text)
+	if text == "" then
 		return nil
 	end
 	for _, meta in ipairs(regex_meta) do
-		if regex:find(meta, 1, true) then
+		if text:find(meta, 1, true) then
 			return nil
 		end
 	end
-	if has_case_mapping(regex) then
+	if has_case_mapping(text) then
 		return nil
 	end
+	return string.lower(text)
+end
+
+local function build_plain_pattern(regex)
+	local first = regex:sub(1, 1)
+	local last = regex:sub(-1)
 	local parts = {}
-	for part in regex:gmatch("[^|]+") do
-		parts[#parts + 1] = string.lower(part)
+	local exact = {}
+	if first == "|" or last == "|" or regex:find("||", 1, true) then
+		return nil
 	end
-	return { parts = parts }
+	if first == "^" and last == "$" and #regex > 2 and not regex:find("|", 1, true) then
+		local literal = plain_literal(regex:sub(2, -2))
+		if literal then
+			return { parts = parts, exact = { literal } }
+		end
+		return nil
+	end
+	for part in regex:gmatch("[^|]+") do
+		local anchored = part:match("^%^(.-)%$$") or nil
+		local literal = plain_literal(anchored or part)
+		if not literal then
+			return nil
+		end
+		table.insert(anchored and exact or parts, literal)
+	end
+	return { parts = parts, exact = exact }
 end
 
 local pattern_cache = {}
-
-local function shell_quote(value)
-	return "'" .. tostring(value):gsub("'", "'\\''") .. "'"
-end
 
 local function datamatch(data, regex)
 	if not data or not regex then
@@ -298,18 +319,19 @@ local function datamatch(data, regex)
 		pattern_cache[regex] = pattern
 	end
 	if pattern then
-		if pattern.exact then
-			for line in (string.lower(data) .. "\n"):gmatch("([^\n]*)\n") do
-				if line == pattern.exact then
-					return true
-				end
-			end
-			return false
-		end
 		local target = string.lower(data)
 		for i = 1, #pattern.parts do
 			if target:find(pattern.parts[i], 1, true) then
 				return true
+			end
+		end
+		if #pattern.exact > 0 then
+			for line in (target .. "\n"):gmatch("([^\n]*)\n") do
+				for i = 1, #pattern.exact do
+					if line == pattern.exact[i] then
+						return true
+					end
+				end
 			end
 		end
 		return false
@@ -556,7 +578,7 @@ local function table_sort_by_urltest(t, d)
 		return
 	end
 
-	local providers = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/providers/proxies', passwd, ip, port))
+	local providers = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H %s -XGET %s', core_auth(), core_url("/providers/proxies")))
 	if providers then
 		providers = JSON.parse(providers)
 		if not providers or not providers.providers then return t end
@@ -591,7 +613,7 @@ local function table_sort_by_urltest(t, d)
 	for n = 1, #(t) do
 		local delay = delay_map[t[n]]
 		if not delay and (is_group(t[n]) or t[n] == "DIRECT") then
-			local group_delay = SYS.exec(string.format('curl -sL -m 60 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET "http://%s:%s/proxies/%s/delay?timeout=5000&url=%s"', passwd, ip, port, urlencode(t[n]), urlencode(delay_url)))
+			local group_delay = SYS.exec(string.format('curl -sL -m 60 --retry 2 -H "Content-Type: application/json" -H %s -XGET %s', core_auth(), core_url("/proxies/" .. urlencode(t[n]) .. "/delay?timeout=5000&url=" .. urlencode(delay_url))))
 			if group_delay then
 				group_delay = JSON.parse(group_delay)
 			end
@@ -638,7 +660,7 @@ end
 
 local function set_selected(group, node)
 	result_node = node or ""
-	SYS.exec(string.format("curl -sL -m 5 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, node, ip, port, urlencode(group)))
+	SYS.exec(string.format("curl -sL -m 5 --retry 2 -w %%{http_code} -o /dev/null -H %s -H 'Content-Type:application/json' -X PUT -d %s %s", core_auth(), shell_quote(JSON.stringify({name = node})), core_url("/proxies/" .. urlencode(group))))
 end
 
 local function get_auth_info()
@@ -653,7 +675,7 @@ end
 local function close_connections()
 	local enable = tonumber(get_config("stream_auto_select_close_con")) or 1
 	if enable == 0 then return end
-	local con = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/connections', passwd, ip, port))
+	local con = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H %s -XGET %s', core_auth(), core_url("/connections")))
 	if con then
 		con = JSON.parse(con)
 	end
@@ -669,7 +691,7 @@ local function close_connections()
 	end
 	--close connections
 	for i = 1, #(group_cons_id) do
-		SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -X DELETE http://%s:%s/connections/%s >/dev/null 2>&1 &', passwd, ip, port, group_cons_id[i]))
+		SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H %s -X DELETE %s >/dev/null 2>&1 &', core_auth(), core_url("/connections/" .. group_cons_id[i])))
 	end
 end
 
@@ -725,19 +747,25 @@ local function proxy_unlock_test(tested)
 end
 
 local function get_sniffed_chains(host)
-	local con = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/connections', passwd, ip, port))
+	local con = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H %s -XGET %s', core_auth(), core_url("/connections")))
 	if con then
 		con = JSON.parse(con)
 	end
 	if not con or not con.connections then
 		return nil
 	end
+	local chains, started
 	for i = 1, #(con.connections) do
-		local metadata = con.connections[i].metadata
+		local item = con.connections[i]
+		local metadata = item.metadata
 		if metadata and metadata.host and string.match(metadata.host, host) then
-			return con.connections[i].chains
+			if not chains or (item.start or "") > (started or "") then
+				chains = item.chains
+				started = item.start
+			end
 		end
 	end
+	return chains
 end
 
 -- The probes resolve through the OpenClash DNS: the router's own resolver may bypass
@@ -798,7 +826,7 @@ local function sniff_service_node()
 end
 
 local function load_proxies()
-	local info = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/proxies', passwd, ip, port))
+	local info = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H %s -XGET %s', core_auth(), core_url("/proxies")))
 	if info then
 		info = JSON.parse(info)
 		if not info or not info.proxies then os.exit(0) end
@@ -831,7 +859,7 @@ local function current_service_node()
 	if node ~= "" then
 		return node
 	end
-	local info = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/proxies', passwd, ip, port))
+	local info = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H %s -XGET %s', core_auth(), core_url("/proxies")))
 	if not info or info == "" then
 		return ""
 	end
@@ -1094,6 +1122,7 @@ end
 
 local function apply_fallback_select(value, job)
 	local fallback_select
+	local old_node = get_group_now(value.name)
 	if #job.full_support > 0 then
 		fallback_select = job.full_support
 	elseif #job.no_old_region > 0 then
@@ -1126,6 +1155,11 @@ local function apply_fallback_select(value, job)
 		end
 		set_selected(value.name, v[1])
 		set_selected(v[2], v[3])
+		-- keep the local snapshot in sync to resolve the effective node after switching
+		proxy_index[value.name].now = v[1]
+		if group_set[v[2]] then
+			proxy_index[v[2]].now = v[3]
+		end
 		local group_now
 		if is_group(v[3]) then
 			group_now = "【".. v[3] .. " ➟ " .. get_group_now(v[3]) .. "】"
@@ -1156,7 +1190,9 @@ local function apply_fallback_select(value, job)
 				print(log_prefix()..MSG.group.."【"..value.name.."】"..MSG.select_all_failed..group_now)
 			end
 		end
-		close_connections()
+		if get_group_now(value.name) ~= old_node then
+			close_connections()
+		end
 		break
 	end
 end
@@ -1404,7 +1440,7 @@ function disney_unlock_test()
 	if not assertion then return region end
 
 	disneycookie = "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&latitude=0&longitude=0&platform=browser&subject_token="..assertion.."&subject_token_type=urn%3Abamtech%3Aparams%3Aoauth%3Atoken-type%3Adevice"
-	local tokencontent = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 %s -H 'User-Agent: %s' -d '%s' -XPOST %s", auth, UA, disneycookie, url2))
+	local tokencontent = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 %s -H 'User-Agent: %s' -d %s -XPOST %s", auth, UA, shell_quote(disneycookie), url2))
 
 	if tokencontent then
 		local token_info = JSON.parse(tokencontent)
@@ -1464,20 +1500,16 @@ end
 
 function hbo_max_unlock_test()
 	status = 0
-	local url = "https://www.max.com/"
-	local data = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -w '_TAG_%%{http_code}_TAG_' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+	local url = "https://www.hbomax.com/"
+	local headers = SYS.exec(string.format("curl -s --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 -o /dev/null -D - -H 'Range: bytes=0-0' -H 'Accept-Language: en' -H 'User-Agent: %s' '%s'", UA, url))
 	local region = ""
-	local outofregion
+	local code = tonumber(string.match(headers or "", "^HTTP/%d%.?%d? (%d%d%d)"))
 	local regex, old_region, old_regex = probe_context()
-	if response_code(data) == 200 then
+	if code == 200 or code == 206 then
 		status = 1
-		if string.match(data, "\"isUserOutOfRegion\":%a+") then
-			outofregion = string.lower(string.sub(string.match(data, "\"isUserOutOfRegion\":%a+"), 21, -1))
-		end
-		if string.match(data, "\"userCountry\":\"%a+\"") then
-			region = string.upper(string.sub(string.match(data, "\"userCountry\":\"%a+\""), 16, -2))
-		end
-		if region ~= "" and outofregion == "false" then
+		local country = string.match(headers, "[Cc]ountry[Cc]ode=(%a%a)")
+		if country then
+			region = string.upper(country)
 			status = 2
 			finish_region_test(region, regex, old_region, old_regex)
 		end
@@ -1613,7 +1645,7 @@ function discovery_plus_unlock_test()
 	if token_info and token_info.data and token_info.data.attributes then
 		status = 1
 		local token = token_info.data.attributes.token
-		local cookie = string.format("-b \"_gcl_au=1.1.858579665.1632206782; _rdt_uuid=1632206782474.6a9ad4f2-8ef7-4a49-9d60-e071bce45e88; _scid=d154b864-8b7e-4f46-90e0-8b56cff67d05; _pin_unauth=dWlkPU1qWTRNR1ZoTlRBdE1tSXdNaTAwTW1Nd0xUbGxORFV0WWpZMU0yVXdPV1l6WldFeQ; _sctr=1|1632153600000; aam_fw=aam%%3D9354365%%3Baam%%3D9040990; aam_uuid=24382050115125439381416006538140778858; st=%s; gi_ls=0; _uetvid=a25161a01aa711ec92d47775379d5e4d; AMCV_BC501253513148ED0A490D45%%40AdobeOrg=-1124106680%%7CMCIDTS%%7C18894%%7CMCMID%%7C24223296309793747161435877577673078228%%7CMCAAMLH-1633011393%%7C9%%7CMCAAMB-1633011393%%7CRKhpRz8krg2tLO6pguXWp5olkAcUniQYPHaMWWgdJ3xzPWQmdj0y%%7CMCOPTOUT-1632413793s%%7CNONE%%7CvVersion%%7C5.2.0; ass=19ef15da-95d6-4b1d-8fa2-e9e099c9cc38.1632408400.1632406594\"", token)
+		local cookie = "-b " .. shell_quote(string.format("_gcl_au=1.1.858579665.1632206782; _rdt_uuid=1632206782474.6a9ad4f2-8ef7-4a49-9d60-e071bce45e88; _scid=d154b864-8b7e-4f46-90e0-8b56cff67d05; _pin_unauth=dWlkPU1qWTRNR1ZoTlRBdE1tSXdNaTAwTW1Nd0xUbGxORFV0WWpZMU0yVXdPV1l6WldFeQ; _sctr=1|1632153600000; aam_fw=aam%%3D9354365%%3Baam%%3D9040990; aam_uuid=24382050115125439381416006538140778858; st=%s; gi_ls=0; _uetvid=a25161a01aa711ec92d47775379d5e4d; AMCV_BC501253513148ED0A490D45%%40AdobeOrg=-1124106680%%7CMCIDTS%%7C18894%%7CMCMID%%7C24223296309793747161435877577673078228%%7CMCAAMLH-1633011393%%7C9%%7CMCAAMB-1633011393%%7CRKhpRz8krg2tLO6pguXWp5olkAcUniQYPHaMWWgdJ3xzPWQmdj0y%%7CMCOPTOUT-1632413793s%%7CNONE%%7CvVersion%%7C5.2.0; ass=19ef15da-95d6-4b1d-8fa2-e9e099c9cc38.1632408400.1632406594", token))
 		local data = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s %s", UA, cookie, url1))
 		local body = data and JSON.parse(data)
 		if body and body.data and body.data.attributes and (body.data.attributes.currentLocationSovereignTerritory or body.data.attributes.currentLocationTerritory) then
@@ -1784,7 +1816,7 @@ function bahamut_unlock_test()
 		local device = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -c %s -H 'User-Agent: %s' 'https://ani.gamer.com.tw/ajax/getdeviceid.php'", jar, UA))
 		local deviceid = device and string.match(device, '"deviceid"%s*:%s*"([^"]+)"')
 		if deviceid then
-			local token = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -b %s -H 'User-Agent: %s' 'https://ani.gamer.com.tw/ajax/token.php?adID=89422&sn=37783&device=%s'", jar, UA, deviceid))
+			local token = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -b %s -H 'User-Agent: %s' %s", jar, UA, shell_quote("https://ani.gamer.com.tw/ajax/token.php?adID=89422&sn=37783&device=" .. deviceid)))
 			local home = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -b %s -H 'accept: */*;q=0.8,application/signed-exchange;v=b3;q=0.7' -H 'accept-language: zh-CN,zh;q=0.9' -H 'User-Agent: %s' 'https://ani.gamer.com.tw/'", jar, UA))
 			if token and home then
 				if string.find(token, "animeSn", 1, true) then

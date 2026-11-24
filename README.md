@@ -51,21 +51,30 @@ OpenClash 是一个面向 OpenWrt 的 LuCI 插件，用于管理 [Mihomo](https:
 2. 登录 OpenWrt 的 LuCI 后台，前往 **系统 → 软件包** 上传并安装；
 3. 刷新或者重新登录页面，在 **服务 → OpenClash** 中导入订阅或上传配置文件并启动。
 
-### 命令行安装
+### 一键安装
+
+在路由器上以 root 身份执行（需要 `curl` 与 `ca-bundle`）：
+
+```shell
+(curl -fsSL -o /tmp/install.sh https://raw.githubusercontent.com/vernesong/OpenClash/dev/install.sh || curl -fsSL -o /tmp/install.sh https://cdn.jsdelivr.net/gh/vernesong/OpenClash@dev/install.sh) && sh /tmp/install.sh
+```
+
+<details>
+<summary>手动安装（不使用脚本时）</summary>
 
 安装依赖并下载最新版（iptables 防火墙）：
 
 ```shell
 # opkg 系统（ipk）
 opkg update
-opkg install bash iptables dnsmasq-full curl ca-bundle ipset ip-full iptables-mod-tproxy iptables-mod-extra ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
+opkg install iptables dnsmasq-full curl ca-bundle ipset ip-full iptables-mod-tproxy iptables-mod-extra ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
 curl -L --retry 2 https://api.github.com/repos/vernesong/OpenClash/releases/latest -o /tmp/openclash_version
 [ -f "/tmp/openclash_version" ] && download_url=$(cat /tmp/openclash_version | jsonfilter -e '@.assets[*].browser_download_url' | grep '\.ipk$') && curl -L --retry 2 "$download_url" -o /tmp/openclash.ipk || echo "OpenClash last version get failed"
 [ -f "/tmp/openclash.ipk" ] && opkg install /tmp/openclash.ipk || echo "OpenClash download failed"
 
 # apk 系统（apk）
 apk update
-apk add bash iptables dnsmasq-full curl ca-bundle ipset ip-full iptables-mod-tproxy iptables-mod-extra ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
+apk add iptables dnsmasq-full curl ca-bundle ipset ip-full iptables-mod-tproxy iptables-mod-extra ruby ruby-yaml kmod-tun kmod-inet-diag unzip luci-compat luci luci-base
 curl -L --retry 2 https://api.github.com/repos/vernesong/OpenClash/releases/latest -o /tmp/openclash_version
 [ -f "/tmp/openclash_version" ] && download_url=$(cat /tmp/openclash_version | jsonfilter -e '@.assets[*].browser_download_url' | grep '\.apk$') && curl -L --retry 2 "$download_url" -o /tmp/openclash.apk || echo "OpenClash last version get failed"
 [ -f "/tmp/openclash.apk" ] && apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk || echo "OpenClash download failed"
@@ -76,20 +85,22 @@ curl -L --retry 2 https://api.github.com/repos/vernesong/OpenClash/releases/late
 ```shell
 # opkg 系统（ipk）
 opkg update
-opkg install bash dnsmasq-full curl ca-bundle ip-full ruby ruby-yaml kmod-tun kmod-inet-diag unzip kmod-nft-tproxy luci-compat luci luci-base
+opkg install dnsmasq-full curl ca-bundle ip-full ruby ruby-yaml kmod-tun kmod-inet-diag unzip kmod-nft-tproxy luci-compat luci luci-base
 curl -L --retry 2 https://api.github.com/repos/vernesong/OpenClash/releases/latest -o /tmp/openclash_version
 [ -f "/tmp/openclash_version" ] && download_url=$(cat /tmp/openclash_version | jsonfilter -e '@.assets[*].browser_download_url' | grep '\.ipk$') && curl -L --retry 2 "$download_url" -o /tmp/openclash.ipk || echo "OpenClash last version get failed"
 [ -f "/tmp/openclash.ipk" ] && opkg install /tmp/openclash.ipk || echo "OpenClash download failed"
 
 # apk 系统（apk）
 apk update
-apk add bash dnsmasq-full curl ca-bundle ip-full ruby ruby-yaml kmod-tun kmod-inet-diag unzip kmod-nft-tproxy luci-compat luci luci-base
+apk add dnsmasq-full curl ca-bundle ip-full ruby ruby-yaml kmod-tun kmod-inet-diag unzip kmod-nft-tproxy luci-compat luci luci-base
 curl -L --retry 2 https://api.github.com/repos/vernesong/OpenClash/releases/latest -o /tmp/openclash_version
 [ -f "/tmp/openclash_version" ] && download_url=$(cat /tmp/openclash_version | jsonfilter -e '@.assets[*].browser_download_url' | grep '\.apk$') && curl -L --retry 2 "$download_url" -o /tmp/openclash.apk || echo "OpenClash last version get failed"
 [ -f "/tmp/openclash.apk" ] && apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk || echo "OpenClash download failed"
 ```
 
-> 首次使用需要下载内核，请提前确认网络环境
+</details>
+
+> 插件安装失败时安装包会保留在 `/tmp/`，可按脚本输出的命令手动安装；内核下载失败时可在插件安装完成后，通过 LuCI 的「版本更新」页重新下载。
 
 ## 使用手册
 
@@ -104,14 +115,14 @@ curl -L --retry 2 https://api.github.com/repos/vernesong/OpenClash/releases/late
 | `luci-app-openclash_*.ipk` | opkg 安装包 |
 | `luci-app-openclash-*.apk` | apk 安装包 |
 
-> 历史版本请前往 [全部 Releases](https://github.com/vernesong/OpenClash/releases) 查看。
+> 命令行一键安装（含内核）见 [快速开始 → 一键安装](#一键安装)。历史版本请前往 [全部 Releases](https://github.com/vernesong/OpenClash/releases) 查看。
 
 ## 依赖
 
 | 类别 | 依赖 |
 |------|------|
 | 基础 | luci、luci-base、luci-compat（Luci ≥ 19.07） |
-| 运行时 | bash、curl、ca-bundle、ruby、ruby-yaml |
+| 运行时 | curl、ca-bundle、ruby、ruby-yaml |
 | 网络 | dnsmasq-full、ipset、ip-full、unzip |
 | 防火墙（iptables） | iptables、kmod-ipt-nat、iptables-mod-tproxy、iptables-mod-extra |
 | 防火墙（nftables） | kmod-nft-tproxy（Firewall4） |

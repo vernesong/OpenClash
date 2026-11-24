@@ -121,7 +121,7 @@ CONFIG_FILE="$1"
     #ruby_uniq "$CONFIG_FILE" "['dns']['nameserver']"
 
     #Unicode Demo(Chinese and emoji are supported in key names and values):
-    #ruby_edit "$CONFIG_FILE" "['secret']" "'中文😀密钥'"
+    #ruby_edit "$CONFIG_FILE" "['secret']" "'密钥😀'"
     #ruby_edit "$CONFIG_FILE" "['hosts']['例子.local']" "'1.2.3.4'"
 
     #Delete Key Demo:

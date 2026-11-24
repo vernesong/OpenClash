@@ -1,23 +1,52 @@
-#!/bin/bash
+#!/bin/sh
 . /lib/functions.sh
 . /usr/share/openclash/ruby.sh
 . /usr/share/openclash/openclash_ps.sh
 . /usr/share/openclash/log.sh
-. /lib/functions/procd.sh
 . /usr/share/openclash/openclash_curl.sh
 . /usr/share/openclash/uci.sh
 
+# One global lock: an update runs Ruby checks, core validation and the firewall/DNS
+# fallback, concurrent runs would multiply peak memory.
 set_lock() {
+   mkdir -p /tmp/lock
    exec 889>"/tmp/lock/openclash_subs.lock" 2>/dev/null
    flock -x 889 2>/dev/null
 }
 
 del_lock() {
    flock -u 889 2>/dev/null
-   rm -rf "/tmp/lock/openclash_subs.lock" 2>/dev/null
 }
 
-set_lock
+update_interval=0
+[ "$2" = "loop" ] && update_interval="$3"
+case "$update_interval" in
+   ''|*[!0-9]*) update_interval=0 ;;
+esac
+
+subscribe_update_due()
+{
+   local now last
+   now=$(date +%s)
+   last=$(cat "$update_state" 2>/dev/null)
+   case "$last" in
+      ''|*[!0-9]*) last=0 ;;
+   esac
+   [ $((now - last)) -ge $((update_interval * 60)) ]
+}
+if [ "$update_interval" -gt 0 ] && [ -n "$1" ]; then
+   update_state="/tmp/openclash_cfg_update_$(printf '%s' "$1" | md5sum | cut -c1-8)"
+   subscribe_update_due || exit 0
+   # loop jobs queue so a scheduled refresh is not dropped when another one runs
+   set_lock
+   # another job may have finished this subscription while this one was waiting
+   if ! subscribe_update_due; then
+      del_lock
+      exit 0
+   fi
+else
+   set_lock
+fi
 
 LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 LOG_FILE="/tmp/openclash.log"
@@ -52,54 +81,106 @@ config_test()
 {
    if [ -f "$CLASH" ]; then
       LOG_OUT "Config File Download Successful, Test If There is Any Errors..."
-      test_info=$($CLASH -t -d $CLASH_CONFIG -f "$CFG_FILE" -age-secret-key "$SECRET_KEY")
+      local test_status
+      test_info=$("$CLASH" -t -d "$CLASH_CONFIG" -f "$CFG_FILE" -age-secret-key "$SECRET_KEY" 2>&1)
+      test_status=$?
       local IFS=$'\n'
       for i in $test_info; do
          if [ -n "$(echo "$i" |grep "configuration file")" ]; then
             local info=$(echo "$i" |sed "s# ${CFG_FILE} #【${name}】#g")
-            LOG_OUT "$info"
+            LOG_OUT "$info..."
          else
             echo "$i" >> "$LOG_FILE"
          fi
       done
-      if [ -n "$(echo "$test_info" |grep "test failed")" ]; then
+      if [ "$test_status" -ne 0 ] || [ -n "$(echo "$test_info" |grep "test failed")" ]; then
+         LOG_ERROR "Subscription failed core validation; existing configuration was kept"
          return 1
       fi
-   else
-      return 0
    fi
+   return 0
 }
 
 yaml_sub_validate()
 {
-   rm -f /tmp/yaml_sub_status 2>/dev/null
-   ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-   begin
-     Value = YAML.load_file('$CFG_FILE')
-     unless Value.key?('proxies') || Value.key?('proxy-providers')
-       File.open('/tmp/yaml_sub_status', 'w') { |f| f.puts 'NO_CONTENT' }
-     end
-   rescue Exception => e
-     YAML.LOG_ERROR('Unable To Parse Config File,【' + e.message + '】')
-     system 'rm -rf ${CFG_FILE} 2>/dev/null'
-   end
-   " 2>/dev/null >> $LOG_FILE
-   YAML_SUB_STATUS=$(cat /tmp/yaml_sub_status 2>/dev/null)
-   rm -f /tmp/yaml_sub_status 2>/dev/null
+   local status
+   status=$(ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e 'puts YAML.subscription_status(ARGV[0])' "$CFG_FILE" 2>/dev/null)
+   if [ $? -ne 0 ]; then
+      status="UNAVAILABLE"
+   fi
+   case "$status" in
+      OK) return 0 ;;
+      EMPTY) LOG_ERROR "Subscription response is empty; existing configuration was kept" ;;
+      INVALID) LOG_ERROR "Subscription is not a valid Clash configuration; existing configuration was kept" ;;
+      NO_PROXIES) LOG_ERROR "Subscription has no proxies or proxy providers; existing configuration was kept" ;;
+      *)
+         # Ruby unavailable: install the download without custom overwrite instead of failing closed
+         LOG_ERROR "Ruby Works Abnormally, Please Check The Ruby Library Depends!"
+         only_download=1
+         return 0 ;;
+   esac
+   return 1
+}
+
+# Subscription addresses carry credentials, the log names only the host.
+url_host()
+{
+   printf '%s' "$1" | sed -E 's|^[A-Za-z][A-Za-z0-9+.-]*://||; s|^[^/?#]*@||; s|[/?#].*$||'
+}
+
+# The core downloads the account's subscription; the token goes over stdin.
+config_download_managed()
+{
+   local core reply
+   core="/etc/openclash/core/clash_meta"
+   [ "$(uci_get_config "small_flash_memory")" = "1" ] && core="/tmp/etc/openclash/core/clash_meta"
+   if ! "$core" -v 2>/dev/null | grep -q oix || ! "$core" oix managed-config --check >/dev/null 2>&1; then
+      OIX_INSTALL_ONLY=1 /usr/share/openclash/openclash_core.sh Oix >/dev/null 2>&1
+      if ! "$core" -v 2>/dev/null | grep -q oix || ! "$core" oix managed-config --check >/dev/null 2>&1; then
+         LOG_ERROR "Config File【$name】Needs The oixCloud Core, Please Install It First"
+         DOWNLOAD_RESULT=1
+         return
+      fi
+   fi
+   LOG_INFO "Config File【$name】Downloading Through The Core..."
+   reply=$(printf '{"token":"%s","output":"%s"}' "$oix_token" "$CFG_FILE" | lua -e '
+      local fs = require "luci.openclash"
+      local json = require "luci.jsonc"
+      local request = json.parse(io.read("*a"))
+      local reply = fs.oix_cli("managed-config", request)
+      if not reply then
+         print("error=The oixCloud core is not installed or too old; install it from the Core settings and try again")
+         os.exit(1)
+      end
+      if reply.error then
+         print("error=" .. tostring(reply.error):gsub("[\r\n]", " "))
+         os.exit(1)
+      end
+   ' 2>/dev/null)
+   DOWNLOAD_RESULT=$?
+   if [ "$DOWNLOAD_RESULT" -ne 0 ]; then
+      LOG_OUT "Config File【$name】Download Failed:【$(printf '%s\n' "$reply" | sed -n 's/^error=//p')】"
+      DOWNLOAD_RESULT=1
+   fi
 }
 
 config_download()
 {
+if [ -n "$oix_token" ]; then
+   config_download_managed
+   return
+fi
+local DEFER_ETAG_SAVE=1
 LOG_TIP "Config File【$name】Downloading User-Agent【$sub_ua】..."
 if [ -n "$sub_headers" ]; then
    LOG_TIP "Config File【$name】Custom Headers【$(echo "$sub_headers" | tr '\n' ',' | sed 's/,$//')】..."
 fi
 if [ -n "$subscribe_url_param" ] && [ -n "$c_address" ]; then
-   LOG_INFO "Config File【$name】Downloading URL【$c_address$subscribe_url_param】..."
+   LOG_INFO "Config File【$name】Downloading URL【$(url_host "$c_address")】..."
    DOWNLOAD_URL="${c_address}${subscribe_url_param}"
 fi
 if [ -z "$DOWNLOAD_URL" ]; then
-   LOG_INFO "Config File【$name】Downloading URL【$subscribe_url】..."
+   LOG_INFO "Config File【$name】Downloading URL【$(url_host "$subscribe_url")】..."
    DOWNLOAD_URL="${subscribe_url}"
 fi
 DOWNLOAD_PARAM="$sub_ua"
@@ -112,16 +193,16 @@ config_cus_up()
    if [ -z "$subscribe_url_param" ]; then
       if [ -n "$key_match_param" ] || [ -n "$key_ex_match_param" ]; then
          LOG_OUT "Config File【$name】Start Picking Nodes..."
-         ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+         OC_CFG_FILE="$CFG_FILE" OC_KEY_MATCH="$key_match_param" OC_KEY_EX_MATCH="$key_ex_match_param" ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
          begin
             threads = [];
-            Value = YAML.load_file('$CFG_FILE');
-            if Value.has_key?('proxies') and not Value['proxies'].to_a.empty? then
+            Value = YAML.load_file(ENV['OC_CFG_FILE']);
+            if Value.is_a?(Hash) and Value.has_key?('proxies') and not Value['proxies'].to_a.empty? then
                Value['proxies'].reverse.each{
                |x|
-                  if not '$key_match_param'.empty? then
+                  if not ENV['OC_KEY_MATCH'].empty? then
                      threads << YAML::Inline.new {
-                        if not /$key_match_param/i =~ x['name'] then
+                        if not Regexp.new(ENV['OC_KEY_MATCH'], Regexp::IGNORECASE) =~ x['name'] then
                            Value['proxies'].delete(x)
                            Value['proxy-groups'].each{
                               |g|
@@ -135,9 +216,9 @@ config_cus_up()
                         end;
                      };
                   end;
-                  if not '$key_ex_match_param'.empty? then
+                  if not ENV['OC_KEY_EX_MATCH'].empty? then
                      threads << YAML::Inline.new {
-                        if /$key_ex_match_param/i =~ x['name'] then
+                        if Regexp.new(ENV['OC_KEY_EX_MATCH'], Regexp::IGNORECASE) =~ x['name'] then
                            if Value['proxies'].include?(x) then
                               Value['proxies'].delete(x)
                               Value['proxy-groups'].each{
@@ -155,15 +236,15 @@ config_cus_up()
                   end;
                };
             end;
-            if Value.key?('proxy-providers') and not Value['proxy-providers'].nil? then
+            if Value.is_a?(Hash) and Value.key?('proxy-providers') and not Value['proxy-providers'].nil? then
                Value['proxy-providers'].values.each do
                   |i|
                   threads << YAML::Inline.new {
-                     if not '$key_match_param'.empty? then
-                        i['filter'] = '(?i)$key_match_param';
+                     if not ENV['OC_KEY_MATCH'].empty? then
+                        i['filter'] = '(?i)' + ENV['OC_KEY_MATCH'];
                      end;
-                     if not '$key_ex_match_param'.empty? then
-                        i['exclude-filter'] = '(?i)$key_ex_match_param';
+                     if not ENV['OC_KEY_EX_MATCH'].empty? then
+                        i['exclude-filter'] = '(?i)' + ENV['OC_KEY_EX_MATCH'];
                      end;
                   };
                end;
@@ -173,7 +254,7 @@ config_cus_up()
             YAML.LOG_ERROR('Filter Proxies Failed,【' + e.message + '】');
          ensure
             begin
-               YAML.dump(Value, '$CFG_FILE');
+               YAML.dump(Value, ENV['OC_CFG_FILE']);
             rescue Exception => e
                YAML.LOG_ERROR('Write file failed:【%s】' % [e.message])
             end
@@ -184,51 +265,72 @@ config_cus_up()
 
 config_su_check()
 {
-   LOG_OUT "Config File Test Successful, Check If There is Any Update..."
    sed -i 's/!<str> /!!str /g' "$CFG_FILE" >/dev/null 2>&1
-   if [ -f "$CONFIG_FILE" ]; then
-      if [ "$only_download" -eq 0 ]; then
-         config_cus_up
+   if [ "$only_download" -eq 0 ]; then
+      local before_cus_up
+      before_cus_up=$(md5sum "$CFG_FILE" | cut -d' ' -f1)
+      config_cus_up
+      # Re-validate the customized file only when config_cus_up changed it
+      if [ "$(md5sum "$CFG_FILE" | cut -d' ' -f1)" != "$before_cus_up" ] && ! yaml_sub_validate; then
+         config_error
+         return
       fi
+   fi
+   LOG_OUT "Config File Test Successful, Check If There is Any Update..."
+   if [ -f "$CONFIG_FILE" ]; then
       cmp -s "$CONFIG_FILE" "$CFG_FILE"
       if [ "$?" -ne 0 ]; then
          LOG_OUT "Config File【$name】Are Updates, Start Replacing..."
-         mv "$CFG_FILE" "$CONFIG_FILE" 2>/dev/null
-         LOG_OUT "Config File【$name】Update Successful!"
       else
          LOG_OUT "Config File【$name】No Change, Do Nothing!"
+         [ -n "$NEW_ETAG" ] && SAVE_ETAG_TO_CACHE "$DOWNLOAD_URL" "$NEW_ETAG" "$CONFIG_FILE"
          rm -rf "$CFG_FILE"
          return
       fi
    else
       LOG_OUT "Config File【$name】Download Successful, Start To Create..."
-      if [ "$only_download" -eq 0 ]; then
-         config_cus_up
-      fi
-      mv "$CFG_FILE" "$CONFIG_FILE" 2>/dev/null
-      LOG_OUT "Config File【$name】Update Successful!"
    fi
+   # Same-directory temp keeps the replacement atomic and preserves the file mode
+   local temporary="${CONFIG_FILE}.tmp.$$"
+   if ! cp "$CFG_FILE" "$temporary" || ! mv -f "$temporary" "$CONFIG_FILE"; then
+      rm -f "$temporary"
+      LOG_ERROR "Unable to save subscription; existing configuration was kept"
+      config_error
+      return
+   fi
+   rm -f "$CFG_FILE"
+   [ -n "$NEW_ETAG" ] && SAVE_ETAG_TO_CACHE "$DOWNLOAD_URL" "$NEW_ETAG" "$CONFIG_FILE"
+   LOG_OUT "Config File【$name】Update Successful!"
    if [ -z "$CONFIG_PATH" ]; then
       uci -q set openclash.config.config_path="$CONFIG_FILE"
       uci commit openclash
    fi
-   if [ "$CONFIG_FILE" == "$CONFIG_PATH" ] && [ "$norestart" -eq 0 ]; then
+   if [ "$CONFIG_FILE" = "$CONFIG_PATH" ] && [ "$norestart" -eq 0 ]; then
       restart=1
    fi
 }
 
 config_error()
 {
-   LOG_ERROR "【$name】Update Error, Please Try Again Later..."
+   LOG_ERROR "【$name】Subscription update failed; existing configuration was kept"
    rm -rf "$CFG_FILE" 2>/dev/null
    exit_code=1
+}
+
+# procd.sh takes its own service lock when sourced, which breaks outside an init
+# script, so the watchdog is signalled through ubus directly.
+signal_watchdog()
+{
+   local signal
+   signal=$(kill -l "$1" 2>/dev/null) || return 1
+   ubus call service signal "{\"name\":\"openclash-watchdog\",\"signal\":$signal}" >/dev/null 2>&1
 }
 
 change_dns()
 {
    if pidof clash >/dev/null; then
       /etc/init.d/openclash reload "restore" >/dev/null 2>&1
-      procd_send_signal "openclash-watchdog" "" CONT
+      signal_watchdog CONT
    fi
 }
 
@@ -236,33 +338,14 @@ config_download_direct()
 {
    if pidof clash >/dev/null && [ "$router_self_proxy" = 1 ]; then
       kill_streaming_unlock
-      procd_send_signal "openclash-watchdog" "" STOP
+      signal_watchdog STOP
       /etc/init.d/openclash reload "revert" >/dev/null 2>&1
       sleep 3
 
       config_download
 
-      if [ "$DOWNLOAD_RESULT" -eq 0 ] && [ -s "$CFG_FILE" ]; then
-         #prevent ruby unexpected error
-         config_test
-         if [ $? -ne 0 ]; then
-            LOG_ERROR "Config File Tested Failed, Please Check The Log Infos!"
-            change_dns
-            config_error
-            return
-         fi
-         yaml_sub_validate
-         if [ $? -ne 0 ]; then
-            LOG_ERROR "Ruby Works Abnormally, Please Check The Ruby Library Depends!"
-            only_download=1
-            change_dns
-            config_su_check
-         elif [ ! -f "$CFG_FILE" ]; then
-            LOG_OUT "Config File Format Validation Failed..."
-            change_dns
-            config_error
-         elif [ "$YAML_SUB_STATUS" = "NO_CONTENT" ]; then
-            LOG_ERROR "Updated Config【$name】Has No Proxy Field, Update Exit..."
+      if [ "$DOWNLOAD_RESULT" -eq 0 ]; then
+         if ! yaml_sub_validate || ! config_test; then
             change_dns
             config_error
          else
@@ -279,6 +362,17 @@ config_download_direct()
    else
       config_error
    fi
+}
+
+# The account config has no address of its own, a direct download cannot work.
+config_download_fallback()
+{
+   if [ "$address" = "oixcloud://managed" ]; then
+      config_error
+      return
+   fi
+   LOG_ERROR "Config File【$name】Subscribed Failed, Trying to Download Without Agent..."
+   config_download_direct
 }
 
 server_key_match()
@@ -346,10 +440,9 @@ $1"
 
 sub_info_get()
 {
-   local section="$1" subscribe_url template_path subscribe_url_param template_path_encode key_match_param key_ex_match_param c_address de_ex_keyword sub_ua sub_headers append_custom_params SECRET_KEY DOWNLOAD_URL DOWNLOAD_PARAM
-   config_get_bool "enabled" "$section" "enabled" "1"
+   local section="$1" subscribe_url template_path subscribe_url_param template_path_encode key_match_param key_ex_match_param c_address de_ex_keyword sub_ua sub_headers append_custom_params SECRET_KEY DOWNLOAD_URL DOWNLOAD_PARAM oix_token
    config_get "name" "$section" "name" "config"
-   config_get "sub_convert" "$section" "sub_convert" ""
+   config_get "sub_convert" "$section" "sub_convert" "0"
    config_get "address" "$section" "address" ""
    config_get "keyword" "$section" "keyword" ""
    config_get "ex_keyword" "$section" "ex_keyword" ""
@@ -366,19 +459,28 @@ sub_info_get()
    config_get "tls13" "$section" "tls13" ""
    config_get "custom_template_url" "$section" "custom_template_url" ""
    config_get "de_ex_keyword" "$section" "de_ex_keyword" ""
-   config_get "sub_ua" "$section" "sub_ua" "clash-verge/v2.4.5"
+   config_get "sub_ua" "$section" "sub_ua" "clash-verge/v2.5.10"
    config_list_foreach "$section" "sub_headers" build_sub_headers
    SECRET_KEY=$(uci_get_age_secret_keys "$name")
 
    CONFIG_FILE="/etc/openclash/config/$name.yaml"
    CFG_FILE="/tmp/$name.yaml"
 
-   if [ "$enabled" -eq 0 ]; then
-      if [ -n "$2" ]; then
-         if [ "$2" != "$CONFIG_FILE" ] && [ "$2" != "$name" ]; then
-            return
+   # the account's entry follows the sign-in; an address it still holds is dropped
+   if [ "$name" = "oixCloud" ]; then
+      oix_token=$(uci_get_config "oix_token")
+      case "$oix_token" in
+         *[!0-9a-f]*) oix_token="" ;;
+      esac
+      if [ -n "$oix_token" ] && [ "$address" != "oixcloud://managed" ]; then
+         address="oixcloud://managed"
+         uci -q set openclash."$section".address="$address"
+         uci -q commit openclash
+      elif [ -z "$oix_token" ] && { [ -z "$address" ] || [ "$address" = "oixcloud://managed" ]; }; then
+         if [ "$2" = "$name" ] || [ "$2" = "$CONFIG_FILE" ]; then
+            LOG_ERROR "Config File【$name】Needs An oixCloud Sign-In, Nothing Was Updated"
+            exit_code=1
          fi
-      else
          return
       fi
    fi
@@ -387,25 +489,25 @@ sub_info_get()
       return
    fi
 
-   if [ "$udp" == "true" ]; then
+   if [ "$udp" = "true" ]; then
       udp="&udp=true"
    else
       udp=""
    fi
 
-   if [ "$rule_provider" == "true" ]; then
+   if [ "$rule_provider" = "true" ]; then
       rule_provider="&expand=false&classic=true"
    else
       rule_provider=""
    fi
 
-   if [ "$tfo" == "true" ]; then
+   if [ "$tfo" = "true" ]; then
       tfo="&tfo=true"
    else
       tfo=""
    fi
 
-   if [ "$tls13" == "true" ]; then
+   if [ "$tls13" = "true" ]; then
       tls13="&tls13=true"
    else
       tls13=""
@@ -432,17 +534,18 @@ sub_info_get()
          done
       fi
    fi
-
-   if [ "$sub_convert" -eq 0 ]; then
+   if [ "${sub_convert:-0}" -eq 0 ]; then
       subscribe_url=$address
-   elif [ "$sub_convert" -eq 1 ]; then
+   elif [ "${sub_convert:-0}" -eq 1 ]; then
       while IFS= read -r line; do
          line=$(echo "$line" | tr -d '\r')
          subscribe_url=$([ -n "$subscribe_url" ] && echo "$subscribe_url|")$(urlencode "$line")
-      done < <(echo "$address")
-      if [ -n "$template" ]; then
+      done <<EOF
+$address
+EOF
+      if [ -n "${template:-}" ]; then
          if [ "$template" != "0" ]; then
-            template_path=$(grep "^$template," /usr/share/openclash/res/sub_ini.list |awk -F ',' '{print $3}' 2>/dev/null)
+            template_path=$(grep "^$template," /usr/share/openclash/res/sub_ini.list | awk -F ',' '{print $3}' 2>/dev/null)
          else
             template_path=$custom_template_url
          fi
@@ -464,34 +567,16 @@ sub_info_get()
    LOG_OUT "Start Updating Config File【$name】..."
 
    config_download
-   if [ "$DOWNLOAD_RESULT" -eq 0 ] && [ -s "$CFG_FILE" ]; then
-      #prevent ruby unexpected error
-      config_test
-      if [ $? -ne 0 ]; then
-         LOG_ERROR "Config File Tested Failed, Please Check The Log Infos!"
-         LOG_ERROR "Config File【$name】Subscribed Failed, Trying to Download Without Agent..."
-         config_download_direct
-         return
-      fi
-      yaml_sub_validate
-      if [ $? -ne 0 ]; then
-         LOG_ERROR "Ruby Works Abnormally, Please Check The Ruby Library Depends!"
-         only_download=1
-         config_su_check
-      elif [ ! -f "$CFG_FILE" ]; then
-         LOG_OUT "Config File Format Validation Failed, Trying To Download Without Agent..."
-         config_download_direct
-      elif [ "$YAML_SUB_STATUS" = "NO_CONTENT" ]; then
-         LOG_ERROR "Updated Config【$name】Has No Proxy Field, Trying To Download Without Agent..."
-         config_download_direct
+   if [ "$DOWNLOAD_RESULT" -eq 0 ]; then
+      if ! yaml_sub_validate || ! config_test; then
+         config_download_fallback
       else
          config_su_check
       fi
    elif [ "$DOWNLOAD_RESULT" -eq 2 ]; then
       LOG_OUT "Config File【$name】No Change, Do Nothing!"
    else
-      LOG_ERROR "Config File【$name】Subscribed Failed, Trying to Download Without Agent..."
-      config_download_direct
+      config_download_fallback
    fi
 }
 
@@ -499,6 +584,8 @@ sub_info_get()
 config_load "openclash"
 config_foreach sub_info_get "config_subscribe" "$1"
 dec_job_counter_and_restart "$restart"
+# the interval counts from the end of this update
+[ "$update_interval" -gt 0 ] && [ -n "$1" ] && date +%s > "$update_state"
 del_lock
 
 # the caller (luci) judges the update result by this exit code

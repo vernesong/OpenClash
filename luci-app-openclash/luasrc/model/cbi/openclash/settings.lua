@@ -126,6 +126,10 @@ o = s:taboption("op_mode", Flag, "disable_quic_go_gso", translate("Disable quic-
 o.description = font_red..bold_on..translate("Suggestion: If Encountering Issues With QUIC UDP on The Linux Kernel Version Above 6.6, Please Try to Enable.")..bold_off..font_off
 o.default = 0
 
+o = s:taboption("op_mode", Flag, "disable_tun_gso", translate("Disable TUN GSO Support"))
+o.description = font_red..bold_on..translate("Suggestion: If Encountering Speed Drops or Connection Issues With TUN Mode, Please Try to Enable.")..bold_off..font_off
+o.default = 0
+
 o = s:taboption("op_mode", Flag, "small_flash_memory", translate("Small Flash Memory"))
 o.description = translate("Move Core And GEOIP Data File To /tmp/etc/openclash For Small Flash Memory Device")
 o.default = 0
@@ -224,11 +228,12 @@ end
 
 ---- Access Control
 o = s:taboption("lan_ac", ListValue, "lan_ac_mode", translate("LAN Access Control Mode"))
-o.description = font_red..bold_on..translate("To Use in Fake-IP Mode, Please Switch The Dns Redirect Mode To Firewall Forwarding")..bold_off..font_off
+o.description = font_red..bold_on..translate("In Fake-IP Mode, DNS Queries of Direct Devices Must Bypass The Core And Proxied Devices Must Go Through It")..bold_off..font_off
 o:value("0", translate("Black List Mode"))
 o:value("1", translate("White List Mode"))
 o.default = "0"
 o:depends("enable_redirect_dns", "2")
+o:depends("enable_redirect_dns", "0")
 o:depends("en_mode", "redir-host")
 o:depends("en_mode", "redir-host-tun")
 o:depends("en_mode", "redir-host-mix")
@@ -236,6 +241,7 @@ o:depends("en_mode", "redir-host-mix")
 ip_b = s:taboption("lan_ac", DynamicList, "lan_ac_black_ips", translate("LAN Bypassed Host List"))
 ip_b.datatype = "ipmask"
 ip_b:depends({lan_ac_mode = "0", enable_redirect_dns = "2"})
+ip_b:depends({lan_ac_mode = "0", enable_redirect_dns = "0"})
 ip_b:depends({lan_ac_mode = "0", en_mode = "redir-host"})
 ip_b:depends({lan_ac_mode = "0", en_mode = "redir-host-tun"})
 ip_b:depends({lan_ac_mode = "0", en_mode = "redir-host-mix"})
@@ -248,6 +254,7 @@ mac_b:depends("lan_ac_mode", "0")
 ip_w = s:taboption("lan_ac", DynamicList, "lan_ac_white_ips", translate("LAN Proxied Host List"))
 ip_w.datatype = "ipmask"
 ip_w:depends({lan_ac_mode = "1", enable_redirect_dns = "2"})
+ip_w:depends({lan_ac_mode = "1", enable_redirect_dns = "0"})
 ip_w:depends({lan_ac_mode = "1", en_mode = "redir-host"})
 ip_w:depends({lan_ac_mode = "1", en_mode = "redir-host-tun"})
 ip_w:depends({lan_ac_mode = "1", en_mode = "redir-host-mix"})

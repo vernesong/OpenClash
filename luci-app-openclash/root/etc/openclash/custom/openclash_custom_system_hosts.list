@@ -1,0 +1,5 @@
+# Entries written to the system /etc/hosts while OpenClash is running
+#
+# Format: <IP Address> <Domain> [Domain ...]
+# One entry per line, lines without a leading IP address are ignored
+# e.g. 192.168.1.10 nas.lan router.lan

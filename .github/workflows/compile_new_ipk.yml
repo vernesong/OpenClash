@@ -80,10 +80,8 @@ jobs:
               curl -SLfk --connect-timeout 30 --retry 2 "$BASE_URL2/$SDK_NAME" -o "./tmp/${{ matrix.target.sdk_tar }}"
             fi
             cd tmp
-            zstd -d ${{ matrix.target.sdk_tar }}
-            tar xf SNAPSDK.tar
-            SDK_DIR=$(tar tf SNAPSDK.tar | head -n 1 | cut -d/ -f1)
-            mv "$SDK_DIR" "${{ matrix.target.sdk_dir }}"
+            mkdir "${{ matrix.target.sdk_dir }}"
+            tar --zstd -xf "${{ matrix.target.sdk_tar }}" --strip-components=1 -C "${{ matrix.target.sdk_dir }}"
           fi
 
       - name: Copy OpenClash Source Codes

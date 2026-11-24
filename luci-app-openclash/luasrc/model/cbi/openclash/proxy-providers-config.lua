@@ -36,14 +36,9 @@ s.addremove = false
 o = s:option(ListValue, "config", translate("Config File"))
 o:value("all", translate("Use For All Config File"))
 local e,a={}
-for t,f in ipairs(fs.glob("/etc/openclash/config/*"))do
-	a=fs.stat(f)
-	if a then
-		e[t]={}
-		e[t].name=fs.basename(f)
-		if fs.IsYamlExt(e[t].name) then
-			o:value(e[t].name)
-		end
+for _,name in ipairs(fs.listdir("/etc/openclash/config/")) do
+	if fs.IsYamlExt(name) and fs.isfile("/etc/openclash/config/" .. name) then
+		o:value(name)
 	end
 end
 
@@ -61,14 +56,9 @@ o.default = "Proxy-provider - "..sid
 o = s:option(ListValue, "path", translate("Provider Path"))
 o.description = translate("Update Your Proxy Provider File From Config Luci Page")
 local p,h={}
-for t,f in ipairs(fs.glob("/etc/openclash/proxy_provider/*"))do
-	h=fs.stat(f)
-	if h then
-		p[t]={}
-		p[t].name=fs.basename(f)
-		if fs.IsYamlExt(p[t].name) then
-			o:value("./proxy_provider/"..p[t].name)
-		end
+for _,name in ipairs(fs.listdir("/etc/openclash/proxy_provider/")) do
+	if fs.IsYamlExt(name) and fs.isfile("/etc/openclash/proxy_provider/" .. name) then
+		o:value("./proxy_provider/"..name)
 	end
 end
 o.rmempty = false

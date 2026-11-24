@@ -12,9 +12,19 @@ urltest_interval_mod=$(uci_get_config "urltest_interval_mod" || echo 0)
 
 yml_other_set()
 {
+   # The program below takes its values from the environment.
+   local oc_arg=0 oc_value
+   for oc_value in "$@"; do
+      oc_arg=$((oc_arg + 1))
+      export "OC_ARG_$oc_arg=$oc_value"
+   done
+   export OC_github_address_mod="$github_address_mod"
+   export OC_tolerance="$tolerance"
+   export OC_urltest_address_mod="$urltest_address_mod"
+   export OC_urltest_interval_mod="$urltest_interval_mod"
    ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    begin
-      Value = YAML.load_file_cached('$2', '/tmp/yaml_change_marshal');
+      Value = YAML.load_file_cached(ENV['OC_ARG_2'].to_s, '/tmp/yaml_change_marshal');
    rescue Exception => e
       YAML.LOG_ERROR('Load File Failed,【' + e.message + '】');
    end;
@@ -27,7 +37,7 @@ yml_other_set()
       thread_pool << YAML::Inline.new{
          #BT/P2P DIRECT Rules
          begin
-            if $3 == 1 then
+            if ENV['OC_ARG_3'].to_s == '1' then
                if system('grep -qai category-public-tracker /etc/openclash/GeoSite.dat >/dev/null 2>&1') then
                   bt_rules = ['GEOSITE,category-public-tracker,DIRECT'];
                else
@@ -64,11 +74,11 @@ yml_other_set()
 
                Value['rules'] = bt_rules + Value['rules'].to_a;
 
-               match_group=Value['rules'].grep(/(MATCH|FINAL)/)[0];
+               match_group=Value['rules'].grep(match_pattern)[0];
                if not match_group.nil? then
                   common_port_group = (match_group.split(',')[-1] =~ /^no-resolve$|^src$/) ? match_group.split(',')[-2] : match_group.split(',')[-1];
                   if not common_port_group.nil? then
-                     ruby_add_index = Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first);
+                     ruby_add_index = Value['rules'].index(Value['rules'].grep(match_pattern).first);
                      ruby_add_index ||= -1;
 
                      process_rules = [
@@ -130,7 +140,7 @@ yml_other_set()
 
          #Custom Rules
          begin
-            if $1 == 1 then
+            if ENV['OC_ARG_1'].to_s == '1' then
                custom_files = [
                   { file: '/etc/openclash/custom/openclash_custom_rules.list', position: 'top' },
                   { file: '/etc/openclash/custom/openclash_custom_rules_2.list', position: 'bottom' }
@@ -152,13 +162,16 @@ yml_other_set()
                custom_files.each{|file_info|
                   if File::exist?(file_info[:file]) then
                      custom_data = custom_data_cache.fetch(file_info[:file]){ custom_data_cache[file_info[:file]] = YAML.load_file(file_info[:file]); };
-                     next if custom_data == false;
+                     next unless custom_data;
 
                      rules_array = case custom_data.class.to_s
                         when 'Hash'
                            custom_data['rules'].to_a if custom_data['rules'].class.to_s == 'Array'
                         when 'Array'
                            custom_data
+                        when 'String'
+                           YAML.LOG_WARN(file_info[:position] == 'top' ? 'Skiped The Priority Custom Rules File Because The Content Is Not YAML' : 'Skiped The Extended Custom Rules File Because The Content Is Not YAML');
+                           []
                         else
                            []
                      end;
@@ -170,7 +183,12 @@ yml_other_set()
                            []
                      end;
 
-                     next unless rules_array;
+                     if rule_providers_array and not rule_providers_array.empty? then
+                        Value['rule-providers'] ||= {};
+                        Value['rule-providers'] = Value['rule-providers'].merge!(custom_data['rule-providers']);
+                     end;
+
+                     next unless rules_array and not rules_array.empty?;
 
                      ipv4_regex = /^(\d{1,3}\.){3}\d{1,3}$/;
                      ipv6_regex = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]+|::(ffff(:0{1,4})?:)?((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9]))$/;
@@ -179,6 +197,7 @@ yml_other_set()
 
                      ip_rule_types = ['IP-CIDR', 'IP-CIDR6', 'SRC-IP-CIDR', 'SRC-IP-CIDR6', 'IP-SUFFIX', 'SRC-IP-SUFFIX'];
                      transformed_rules = rules_array.map{|x|
+                        x = x.to_s;
                         parts = x.split(',');
                         if parts.length >= 2 && ip_rule_types.include?(parts[0].strip.upcase) then
                            ip_part = parts[1].strip;
@@ -202,6 +221,7 @@ yml_other_set()
                      };
 
                      valid_rules = transformed_rules.select{|x|
+                        next false if x.strip.empty?;
                         RULE_GROUP = ((x.split(',')[-1] =~ rule_suffix_regex) ? x.split(',')[-2] : x.split(',')[-1]).strip;
                         if CONFIG_GROUP_HASH[RULE_GROUP] then
                            true;
@@ -237,11 +257,6 @@ yml_other_set()
                      else
                         Value['rules'] = valid_rules.uniq;
                      end;
-
-                     if rule_providers_array and not rule_providers_array.empty? then
-                        Value['rule-providers'] ||= {};
-                        Value['rule-providers'] = Value['rule-providers'].merge!(custom_data['rule-providers']);
-                     end;
                   end;
                };
 
@@ -250,7 +265,7 @@ yml_other_set()
                   custom_files.each{|file_info|
                      if File::exist?(file_info[:file]) then
                         custom_data = custom_data_cache.fetch(file_info[:file]){ custom_data_cache[file_info[:file]] = YAML.load_file(file_info[:file]); };
-                        if custom_data != false and custom_data.class.to_s == 'Hash' then
+                        if custom_data.is_a?(Hash) then
                            if not custom_data[key].to_a.empty? and custom_data[key].class.to_s == 'Hash' then
                               if Value.has_key?(key) and not Value[key].to_a.empty? then
                                  Value[key] = Value[key].merge!(custom_data[key]);
@@ -269,17 +284,17 @@ yml_other_set()
 
          #Router Self Proxy Rule
          begin
-            if $4 == 0 and $6 != 2 and '$7' == 'fake-ip' then
-               router_rule = 'SRC-IP-CIDR,$5/32,DIRECT';
+            if ENV['OC_ARG_4'].to_s == '0' and ENV['OC_ARG_6'].to_s != '2' and ENV['OC_ARG_7'].to_s == 'fake-ip' and not ENV['OC_ARG_5'].to_s.empty? then
+               router_rule = 'SRC-IP-CIDR,' + ENV['OC_ARG_5'].to_s + '/32,DIRECT';
                if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-                  if Value['rules'].to_a.grep(/(?=.*SRC-IP-CIDR,'$5')/).empty? and not '$5'.empty? then
+                  if not Value['rules'].to_a.include?(router_rule) then
                      Value['rules']=Value['rules'].to_a.insert(0, router_rule);
                   end;
                else
                   Value['rules']=[router_rule];
                end;
             elsif Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-               Value['rules'].delete('SRC-IP-CIDR,$5/32,DIRECT');
+               Value['rules'].delete('SRC-IP-CIDR,' + ENV['OC_ARG_5'].to_s + '/32,DIRECT');
             end;
          rescue Exception => e
             YAML.LOG_ERROR('Set Router Self Proxy Rule Failed,【' + e.message + '】');
@@ -297,22 +312,21 @@ yml_other_set()
                   Value[provider_type].each{|name, config|
                      threads << YAML::Inline.new {
                         # CDN
-                        if '$github_address_mod' != '0' and config['url'] then
+                        if ENV['OC_github_address_mod'].to_s != '0' and config['url'] then
                            if config['url'] =~ /^https:\/\/raw.githubusercontent.com/ then
-                              if '$github_address_mod' == 'https://cdn.jsdelivr.net/' or
-                                 '$github_address_mod' == 'https://fastly.jsdelivr.net/' or
-                                 '$github_address_mod' == 'https://testingcf.jsdelivr.net/' then
+                              if ENV['OC_github_address_mod'].to_s == 'https://cdn.jsdelivr.net/' or
+                                 ENV['OC_github_address_mod'].to_s == 'https://fastly.jsdelivr.net/' or
+                                 ENV['OC_github_address_mod'].to_s == 'https://testingcf.jsdelivr.net/' then
                                  url_parts = config['url'].split('/');
-                                 if url_parts.length >= 5 then
-                                    config['url'] = '$github_address_mod' + 'gh/' + url_parts[3] + '/' +
-                                                   url_parts[4] + '@' + config['url'].split(url_parts[2] +
-                                                   '/' + url_parts[3] + '/' + url_parts[4] + '/')[1];
+                                 url_suffix = (url_parts[3] and url_parts[4]) ? config['url'].split(url_parts[2] + '/' + url_parts[3] + '/' + url_parts[4] + '/')[1] : nil;
+                                 if url_suffix then
+                                    config['url'] = ENV['OC_github_address_mod'].to_s + 'gh/' + url_parts[3] + '/' + url_parts[4] + '@' + url_suffix;
                                  end;
                               else
-                                 config['url'] = '$github_address_mod' + config['url'];
+                                 config['url'] = ENV['OC_github_address_mod'].to_s + config['url'];
                               end;
                            elsif config['url'] =~ /^https:\/\/(raw.|gist.)(githubusercontent.com|github.com)/ then
-                              config['url'] = '$github_address_mod' + config['url'];
+                              config['url'] = ENV['OC_github_address_mod'].to_s + config['url'];
                            end;
                         end;
                      };
@@ -325,11 +339,11 @@ yml_other_set()
 
          # tolerance
          begin
-            if '$tolerance' != '0' and Value.key?('proxy-groups') and Value['proxy-groups'].is_a?(Array) then
+            if ENV['OC_tolerance'].to_s.to_i > 0 and Value.key?('proxy-groups') and Value['proxy-groups'].is_a?(Array) then
                Value['proxy-groups'].each{|group|
                   threads << YAML::Inline.new {
                      if group['type'] == 'url-test' then
-                        group['tolerance'] = ${tolerance};
+                        group['tolerance'] = ENV['OC_tolerance'].to_s.to_i;
                      end;
                   };
                };
@@ -340,12 +354,12 @@ yml_other_set()
 
          # URL-Test interval
          begin
-            if '$urltest_interval_mod' != '0' then
+            if ENV['OC_urltest_interval_mod'].to_s.to_i > 0 then
                if Value.key?('proxy-groups') and Value['proxy-groups'].is_a?(Array) then
                   Value['proxy-groups'].each{|group|
                      threads << YAML::Inline.new {
                         if ['url-test', 'fallback', 'load-balance', 'smart'].include?(group['type']) then
-                           group['interval'] = ${urltest_interval_mod};
+                           group['interval'] = ENV['OC_urltest_interval_mod'].to_s.to_i;
                         end;
                      };
                   };
@@ -354,7 +368,7 @@ yml_other_set()
                   Value['proxy-providers'].each{|name, provider|
                      threads << YAML::Inline.new {
                         if provider['health-check'] and provider['health-check']['enable'] then
-                           provider['health-check']['interval'] = ${urltest_interval_mod};
+                           provider['health-check']['interval'] = ENV['OC_urltest_interval_mod'].to_s.to_i;
                         end;
                      };
                   };
@@ -366,12 +380,12 @@ yml_other_set()
 
          # health-check url
          begin
-            if '$urltest_address_mod' != '0' then
+            if ENV['OC_urltest_address_mod'].to_s != '0' and not ENV['OC_urltest_address_mod'].to_s.empty? then
                if Value.key?('proxy-providers') then
                   Value['proxy-providers'].each{|name, provider|
                      threads << YAML::Inline.new {
                         if provider['health-check'] and provider['health-check']['enable'] then
-                           provider['health-check']['url'] = '$urltest_address_mod';
+                           provider['health-check']['url'] = ENV['OC_urltest_address_mod'].to_s;
                         end;
                      };
                   };
@@ -380,7 +394,7 @@ yml_other_set()
                   Value['proxy-groups'].each{|group|
                      threads << YAML::Inline.new {
                         if ['url-test', 'fallback', 'load-balance', 'smart'].include?(group['type']) then
-                           group['url'] = '$urltest_address_mod';
+                           group['url'] = ENV['OC_urltest_address_mod'].to_s;
                         end;
                      };
                   };
@@ -392,28 +406,28 @@ yml_other_set()
 
          # smart auto switch
          begin
-            if ('${8}' == '1' or '${9}' == '1' or '${11}' != '0' or '${12}' != '0' or '${12}' == '1' or '${13}' == '1' or '${14}' != '0') and Value.key?('proxy-groups') and Value['proxy-groups'].is_a?(Array) then
+            if (ENV['OC_ARG_8'].to_s == '1' or ENV['OC_ARG_9'].to_s == '1' or ENV['OC_ARG_11'].to_s != '0' or ENV['OC_ARG_12'].to_s != '0' or ENV['OC_ARG_12'].to_s == '1' or ENV['OC_ARG_13'].to_s == '1' or ENV['OC_ARG_14'].to_s != '0') and Value.key?('proxy-groups') and Value['proxy-groups'].is_a?(Array) then
                Value['proxy-groups'].each{|group|
                   threads << YAML::Inline.new {
-                     if '${8}' == '1' and ['url-test', 'load-balance'].include?(group['type']) then
+                     if ENV['OC_ARG_8'].to_s == '1' and ['url-test', 'load-balance'].include?(group['type']) then
                         group['type'] = 'smart';
                      end;
                      if group['type'] == 'smart' then
-                        if '${9}' == '1' then
+                        if ENV['OC_ARG_9'].to_s == '1' then
                            group['collectdata'] = true;
-                           group['sample-rate'] = '${10}'.to_f;
+                           group['sample-rate'] = ENV['OC_ARG_10'].to_s.to_f;
                         end;
-                        if '${11}' != '0'then
-                           group['policy-priority'] = '${11}';
+                        if ENV['OC_ARG_11'].to_s != '0'then
+                           group['policy-priority'] = ENV['OC_ARG_11'].to_s;
                         end;
-                        if '${12}' == '1' then
+                        if ENV['OC_ARG_12'].to_s == '1' then
                            group['uselightgbm'] = true;
                         end;
-                        if '${13}' == '1' then
+                        if ENV['OC_ARG_13'].to_s == '1' then
                            group['prefer-asn'] = true;
                         end;
-                        if '${14}' != '0' then
-                           group['tolerance'] = '${14}'.to_i;
+                        if ENV['OC_ARG_14'].to_s != '0' then
+                           group['tolerance'] = ENV['OC_ARG_14'].to_s.to_i;
                         end;
                      end;
                   };
@@ -432,7 +446,7 @@ yml_other_set()
       YAML.LOG_ERROR('Config File Overwrite Failed,【%s】' % [e.message])
    ensure
       begin
-         YAML.dump(Value, '$2');
+         YAML.dump(Value, ENV['OC_ARG_2'].to_s);
       rescue Exception => e
          YAML.LOG_ERROR('Write file failed:【%s】' % [e.message])
       end

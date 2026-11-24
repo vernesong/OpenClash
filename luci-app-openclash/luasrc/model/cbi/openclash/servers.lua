@@ -4,6 +4,7 @@ local openclash = "openclash"
 local uci = luci.model.uci.cursor()
 local fs = require "luci.openclash"
 local HTTP = require "luci.http"
+local UTIL = require "luci.util"
 local DISP = require "luci.dispatcher"
 local file_path = fs.get_file_path_from_request()
 
@@ -234,7 +235,7 @@ o.inputtitle = translate("Read Config")
 o.inputstyle = "apply"
 o.write = function()
 	commit_all()
-	luci.sys.call("/usr/share/openclash/yml_groups_get.sh \"%s\" 2>/dev/null" % file_path)
+	luci.sys.call("/usr/share/openclash/yml_groups_get.sh %s 2>/dev/null" % UTIL.shellquote(file_path))
 	HTTP.redirect(m.redirect)
 end
 
@@ -251,7 +252,7 @@ o.inputtitle = translate("Apply Settings")
 o.inputstyle = "apply"
 o.write = function()
 	commit_all()
-	luci.sys.call("/usr/share/openclash/yml_groups_set.sh \"%s\" >/dev/null 2>&1 &" % file_path)
+	luci.sys.call("/usr/share/openclash/yml_groups_set.sh %s >/dev/null 2>&1 &" % UTIL.shellquote(file_path))
 	HTTP.redirect(m.redirect)
 end
 

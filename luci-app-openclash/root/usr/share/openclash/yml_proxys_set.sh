@@ -53,8 +53,8 @@ export RUBY_GC_HEAP_GROWTH_FACTOR RUBY_GC_HEAP_GROWTH_MAX_SLOTS RUBY_GC_MALLOC_L
 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    require 'uci';
    begin
-      UCI.write_proxies('$CONFIG_FILE', '${CONFIG_NAME}');
+      UCI.write_proxies(ARGV[0], ARGV[1]);
    rescue ::Exception => e
-      YAML.LOG_ERROR('Resolve Proxies Failed,【${CONFIG_NAME} - ' + e.message + '】');
+      YAML.LOG_ERROR('Resolve Proxies Failed,【' + ARGV[1] + ' - ' + e.message + '】');
    end;
-" 2>/dev/null >> $LOG_FILE
+" "$CONFIG_FILE" "$CONFIG_NAME" 2>/dev/null >> $LOG_FILE

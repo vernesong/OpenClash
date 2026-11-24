@@ -1,3 +1,6 @@
+#!NAME = Google_Play
+#!DESC = Google Play fix: resolve Google China domains with overseas DNS so proxy IPs can reach them
+
 # Google Play download/update fix: these domains are resolved to Google's China CDN IPs
 # by China DNS servers, and those CDN IPs refuse connections from proxy (overseas) IPs.
 [YAML]

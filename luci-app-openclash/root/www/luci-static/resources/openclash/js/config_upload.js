@@ -49,7 +49,7 @@ var UrlValidator = {
     },
 
     validateUrl: function(url, allowNonHttp) {
-        var urlPart = url.replace(/#name=.*$/, '');
+        var urlPart = url.replace(/#.*$/, '');
         if (!urlPart) return { valid: false, reason: '<%:Empty URL%>' };
 
         var re = allowNonHttp ? this.anyProtocolRe : this.httpRe;
@@ -170,7 +170,7 @@ var SubscriptionUrlSetter = {
         });
     },
 
-    // strip any existing #name= marker before appending, or the chain grows on save
+    // strip any existing # markers before appending, or the chain grows on save
     handleSubURL: function(urlresult) {
         var textarea = document.getElementById('subscription-url-textarea');
         if (!textarea) return;
@@ -178,12 +178,17 @@ var SubscriptionUrlSetter = {
         var urls = '';
         if (urlresult.type && urlresult.type === "multiple") {
             for (var data in urlresult.providers) {
-                var providerUrl = String(urlresult.providers[data].url || '').split('#name=')[0];
-                urls += providerUrl + '#name=' + urlresult.providers[data].name + '\n';
+                var provider = urlresult.providers[data] || {};
+                var providerUrl = String(provider.url || '').split('#')[0];
+                var line = providerUrl + '#name=' + provider.name;
+                if (provider.ua) {
+                    line += '&ua=' + provider.ua;
+                }
+                urls += line + '\n';
             }
         }
         if (urlresult.type && urlresult.type === "single") {
-            urls = urlresult.url;
+            urls = urlresult.url ? urlresult.url + (urlresult.ua ? '#ua=' + urlresult.ua : '') : '';
         }
         textarea.value = urls;
     },
@@ -213,18 +218,6 @@ var SubscriptionUrlSetter = {
         });
     }
 };
-
-function ocFormatSize(bytes) {
-    var value = parseFloat(bytes);
-    if (isNaN(value) || value < 0) return '—';
-    var units = ['B', 'KB', 'MB', 'GB'];
-    var i = 0;
-    while (value >= 1024 && i < units.length - 1) {
-        value = value / 1024;
-        i++;
-    }
-    return (i === 0 ? String(Math.round(value)) : value.toFixed(1)) + ' ' + units[i];
-}
 
 function ocStatBox(value, label, unit) {
     var box = document.createElement('div');
@@ -311,6 +304,7 @@ var CHART_PROTO = {
     tuic: { name: 'TUIC', color: '#25b5b8' },
     anytls: { name: 'AnyTLS', color: '#ec4899' },
     snell: { name: 'Snell', color: '#8b5cf6' },
+    hollow: { name: 'Hollow', color: '#a855f7' },
     wireguard: { name: 'WireGuard', color: '#64748b' },
     socks5: { name: 'SOCKS5', color: '#0ea5e9' },
     http: { name: 'HTTP', color: '#14b8a6' },
@@ -711,6 +705,8 @@ var SubPanel = {
     swStage: 0,
     seconds: 0,
     timer: null,
+    timerStart: 0,
+    streamEndAt: 0,
     logLineCount: null,
     lastParams: null,
     resultSize: null,
@@ -856,15 +852,25 @@ var SubPanel = {
         var self = this;
         var label = this.el(labelId);
         this.stopTimer();
+        this.timerStart = Date.now();
+        this.streamEndAt = 0;
         this.seconds = 0;
         if (label) label.textContent = '00:00';
         this.timer = setInterval(function() {
-            self.seconds += 1;
+            self.seconds = self.elapsedSeconds();
             var m = Math.floor(self.seconds / 60);
             var s = self.seconds % 60;
             if (label) label.textContent = (m < 10 ? '0' + m : m) + ':' + (s < 10 ? '0' + s : s);
             if (max && self.seconds >= max) self.stopTimer();
         }, 1000);
+    },
+
+    // wall clock instead of tick counting: a throttled background tab must not stall the
+    // clock, and the script exit stamp must win over the later runtime poll
+    elapsedSeconds: function() {
+        if (!this.timerStart) return this.seconds || 0;
+        var until = this.streamEndAt > this.timerStart ? this.streamEndAt : Date.now();
+        return Math.max(0, Math.round((until - this.timerStart) / 1000));
     },
 
     stopTimer: function() {
@@ -880,13 +886,17 @@ var SubPanel = {
         if (typeof LogManager === 'undefined') return;
         if (LogManager.stream && LogManager.stream !== stream) {
             LogManager.stream.abort();
+            // the status box kept the aborted run's lines; leave them out of later dialogs
+            if (LogManager.resetLogBox) LogManager.resetLogBox();
         }
         LogManager.stream = stream;
+        LogManager.scriptDone = false;
     },
 
     releaseLogStream: function(stream) {
         if (typeof LogManager !== 'undefined' && LogManager.stream === stream) {
             LogManager.stream = null;
+            LogManager.scriptDone = true;
         }
     },
 
@@ -929,9 +939,27 @@ var SubPanel = {
             });
             host.appendChild(view.dom);
             host.ocFollow = true;
+            host.ocDragging = false;
+            host.ocPending = '';
             view.scrollDOM.addEventListener('scroll', function() {
                 host.ocFollow = view.scrollDOM.scrollTop + view.scrollDOM.clientHeight >= view.scrollDOM.scrollHeight - 24;
             });
+            // appended lines resize the thumb under the pointer, which breaks the drag; hold
+            // the text while the native bar is grabbed (pointerdown lands on the scroller itself)
+            view.scrollDOM.addEventListener('pointerdown', function(e) {
+                if (e.button === 0 && e.target === view.scrollDOM) host.ocDragging = true;
+            });
+            var releaseDrag = function() {
+                if (!host.ocDragging) return;
+                host.ocDragging = false;
+                var pending = host.ocPending;
+                host.ocPending = '';
+                if (pending) SubPanel.appendLog(hostId, pending);
+            };
+            window.addEventListener('pointerup', releaseDrag);
+            window.addEventListener('pointercancel', releaseDrag);
+            // a release outside the window never reaches the page: unblock the console
+            window.addEventListener('blur', releaseDrag);
             host.ocLogView = view;
             if (CM6.dispatchTheme) CM6.dispatchTheme(view, isDark);
             cb(host);
@@ -942,6 +970,7 @@ var SubPanel = {
         var host = this.el(hostId);
         if (host && host.ocLogView) {
             host.ocFollow = true;
+            host.ocPending = '';
             host.ocLogView.dispatch({ changes: { from: 0, to: host.ocLogView.state.doc.length, insert: '' } });
         }
     },
@@ -949,6 +978,12 @@ var SubPanel = {
     appendLog: function(hostId, text) {
         var host = this.el(hostId);
         if (!host || !host.ocLogView) return;
+        if (host.ocDragging) {
+            host.ocPending = host.ocPending ? host.ocPending + '\n' + text : text;
+            return;
+        }
+        text = (host.ocPending ? host.ocPending + '\n' : '') + text;
+        host.ocPending = '';
         var view = host.ocLogView;
         // Every stream response starts with an 8KB space line that flushes the proxy buffer.
         var body = text.replace(/ {4096,}/g, '').replace(/^\n+/, '');
@@ -999,6 +1034,7 @@ var SubPanel = {
             },
             onFinish: function() {
                 self.releaseLogStream(stream);
+                self.streamEndAt = stream.endTime ? stream.endTime() : Date.now();
                 self.stream = null;
                 self.streamDone = true;
             },
@@ -1015,13 +1051,15 @@ var SubPanel = {
     },
 
     // Stream lines arrive translated, so every match lists the shipped languages.
+    // Subscription steps: 1 request, 2 download, 3 validation, 4 write config.
     stageFromLog: function(text) {
-        if (/测试成功|Test Successful|configuración válido/i.test(text)) this.kernelResult = 'ok';
-        else if (/测试失败|Tested Failed|configuración ha fallado/i.test(text)) this.kernelResult = 'fail';
+        if (/测试成功|Test Successful|configuración válido|prueba exitosa/i.test(text)) this.kernelResult = 'ok';
+        else if (/测试失败|Tested Failed|configuración ha fallado|prueba fallida/i.test(text)) this.kernelResult = 'fail';
         if (this.view !== 'progress') return;
-        if (/更新成功|Update Successful|Actualización realizada/i.test(text)) this.setStage(4);
-        else if (/开始创建|开始替换|Start To Create|Start Replacing|creando nuevo/i.test(text)) this.setStage(3);
-        else if (/下载成功|Download Successful|Descarga completada/i.test(text)) this.setStage(2);
+        if (/更新成功|Update Successful|Actualización completada/i.test(text)) this.setStage(4);
+        else if (/开始创建|开始替换|Start To Create|Start Replacing|creando nuevo|iniciando reemplazo/i.test(text)) this.setStage(4);
+        else if (/测试成功|Test Successful|configuración válido|prueba exitosa/i.test(text)) this.setStage(3);
+        else if (/下载成功|Download Successful|descargado correctamente|Descarga completada/i.test(text)) this.setStage(2);
         else if (/开始更新配置文件|Start Updating|Iniciando actualización/i.test(text)) this.setStage(1);
     },
 
@@ -1120,7 +1158,7 @@ var SubPanel = {
         }
         var structTabs = document.querySelectorAll('#sub-struct-tabs .oc-tpl-tab');
         for (var st = 0; st < structTabs.length; st++) {
-            structTabs[st].classList.toggle('active', structTabs[st].getAttribute('data-tab') === 'groups');
+            structTabs[st].classList.toggle('active', (structTabs[st].getAttribute('data-tpl-tab') || structTabs[st].getAttribute('data-tab')) === 'groups');
         }
         var providerNote = this.el('sub-provider-note');
         if (providerNote) {
@@ -1523,15 +1561,11 @@ var SubPanel = {
             this.chartSource = source;
             if (this.chartsFailed || this.chartsPending) return;
             var self = this;
-            var url = window.ocChartUrl || ('/luci-static/resources/openclash/js/chart.umd.min.js?v=' + (window.ocPluginVer || ''));
             this.chartsPending = true;
-            ocRequireScript(url, function() {
+            ocRequireChart(function(ok) {
                 self.chartsPending = false;
-                if (typeof Chart !== 'undefined') {
-                    if (self.view === 'result') self.renderCharts(self.chartSource);
-                    return;
-                }
-                self.chartsFailed = true;
+                if (!ok) { self.chartsFailed = true; return; }
+                if (self.view === 'result') self.renderCharts(self.chartSource);
             });
             return;
         }
@@ -1716,7 +1750,7 @@ var SubPanel = {
     jumpToRuleTarget: function(name) {
         var tabs = document.querySelectorAll('#sub-struct-tabs .oc-tpl-tab');
         for (var i = 0; i < tabs.length; i++) {
-            if (tabs[i].getAttribute('data-tab') === 'rules') tabs[i].click();
+            if ((tabs[i].getAttribute('data-tpl-tab') || tabs[i].getAttribute('data-tab')) === 'rules') tabs[i].click();
         }
         var pane = this.el('sub-pane-rules');
         if (!pane) return;
@@ -1748,7 +1782,7 @@ var SubPanel = {
         CoreStartFlow.beginRun();
         this.resetSwitchStage();
         this.stopPoll();
-        this.startTimer('sw-elapsed', 0);
+        this.streamEndAt = 0;
         this.startStream('sw-log-host', 'init');
         XHR.get('<%=url("admin", "services", "openclash", "switch_config")%>', {
             config_file: '/etc/openclash/config/' + name + '.yaml'
@@ -1824,10 +1858,8 @@ var SubPanel = {
     },
 
     finishSwitchFail: function(message) {
-        this.stopTimer();
         this.stopPoll();
-        CoreStartFlow.lastElapsed = this.seconds || 0;
-        CoreStartFlow.dropSession();
+        CoreStartFlow.freezeElapsed();
         this.failed = true;
         var retry = this.el('sw-retry-btn');
         if (retry) retry.classList.remove('oc-hidden');
@@ -1846,10 +1878,8 @@ var SubPanel = {
     },
 
     finishSwitch: function() {
-        this.stopTimer();
         this.stopPoll();
-        CoreStartFlow.lastElapsed = this.seconds || 0;
-        CoreStartFlow.dropSession();
+        CoreStartFlow.freezeElapsed();
         var retry = this.el('sw-retry-btn');
         if (retry) retry.classList.add('oc-hidden');
         this.markStatusDone();
@@ -1898,7 +1928,7 @@ var TemplatePreview = {
         var tabs = document.querySelectorAll('#tpl-tabs .oc-tpl-tab');
         for (var i = 0; i < tabs.length; i++) {
             tabs[i].addEventListener('click', function() {
-                self.switchTab(this.getAttribute('data-tab'));
+                self.switchTab((this.getAttribute('data-tpl-tab') || this.getAttribute('data-tab')));
             });
         }
         this.overlay.addEventListener('click', function(e) {
@@ -2028,7 +2058,7 @@ var TemplatePreview = {
     switchTab: function(tab) {
         var tabs = document.querySelectorAll('#tpl-tabs .oc-tpl-tab');
         for (var i = 0; i < tabs.length; i++) {
-            tabs[i].classList.toggle('active', tabs[i].getAttribute('data-tab') === tab);
+            tabs[i].classList.toggle('active', (tabs[i].getAttribute('data-tpl-tab') || tabs[i].getAttribute('data-tab')) === tab);
         }
         var panes = ['groups', 'rules', 'extra'];
         for (var j = 0; j < panes.length; j++) {
@@ -2358,12 +2388,11 @@ var TemplatePreview = {
             var self = this;
             this.chartData = data;
             if (this.chartsPending || this.chartsFailed) return;
-            var url = window.ocChartUrl || ('/luci-static/resources/openclash/js/chart.umd.min.js?v=' + (window.ocPluginVer || ''));
             this.chartsPending = true;
-            ocRequireScript(url, function() {
+            ocRequireChart(function(ok) {
                 self.chartsPending = false;
-                if (typeof Chart !== 'undefined') self.renderCharts(self.chartData);
-                else self.chartsFailed = true;
+                if (!ok) { self.chartsFailed = true; return; }
+                self.renderCharts(self.chartData);
             });
             return;
         }
@@ -2476,7 +2505,6 @@ var ConfigUploader = {
     currentMode: 'file',
     onSuccess: '',
     subconverterVersionChecker: null,
-    linkRe: null,
 
     init: function() {
         this.overlay = document.getElementById('config-upload-overlay');
@@ -2487,6 +2515,11 @@ var ConfigUploader = {
         }
 
         this.bindEvents();
+        this.progressBar = ocCreateProgressBar(
+            document.getElementById('upload-progress'),
+            document.getElementById('upload-progress-fill'),
+            document.getElementById('upload-progress-text')
+        );
     },
 
     bindEvents: function() {
@@ -2502,37 +2535,9 @@ var ConfigUploader = {
             self.switchMode('subscribe');
         });
 
-        uploadZone.addEventListener('click', function() {
-            if (!self.isProcessing && self.currentMode === 'file') {
-                fileInput.click();
-            }
-        });
-
-        fileInput.addEventListener('change', function(e) {
-            if (e.target.files.length > 0) {
-                self.handleFileSelect(e.target.files[0]);
-            }
-        });
-
-        uploadZone.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            if (!self.isProcessing && self.currentMode === 'file') {
-                uploadZone.classList.add('dragover');
-            }
-        });
-
-        uploadZone.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-            uploadZone.classList.remove('dragover');
-        });
-
-        uploadZone.addEventListener('drop', function(e) {
-            e.preventDefault();
-            uploadZone.classList.remove('dragover');
-
-            if (!self.isProcessing && self.currentMode === 'file' && e.dataTransfer.files.length > 0) {
-                self.handleFileSelect(e.dataTransfer.files[0]);
-            }
+        ocBindUploadZone(uploadZone, fileInput, {
+            canPick: function() { return !self.isProcessing && self.currentMode === 'file'; },
+            onSelect: function(file) { self.handleFileSelect(file); }
         });
 
         var subscribeUrlInput = document.getElementById('subscribe-url-input');
@@ -2646,6 +2651,24 @@ var ConfigUploader = {
         keywordOptionsEnable.addEventListener('change', function() {
             keywordOptionsContainer.classList.toggle('oc-hidden', !this.checked);
         });
+
+        var autoUpdateEnable = document.getElementById('auto-update-enable');
+        var autoUpdateOptions = document.getElementById('auto-update-options');
+        var autoUpdateMode = document.getElementById('auto-update-mode');
+        var autoUpdateAppointment = document.getElementById('auto-update-appointment');
+        var autoUpdateLoop = document.getElementById('auto-update-loop');
+        if (autoUpdateEnable) {
+            autoUpdateEnable.addEventListener('change', function() {
+                autoUpdateOptions.classList.toggle('oc-hidden', !this.checked);
+            });
+        }
+        if (autoUpdateMode) {
+            autoUpdateMode.addEventListener('change', function() {
+                var loop = this.value === '1';
+                autoUpdateAppointment.classList.toggle('oc-hidden', loop);
+                autoUpdateLoop.classList.toggle('oc-hidden', !loop);
+            });
+        }
 
         convertAddressSelect.addEventListener('change', function() {
             convertAddressCustom.classList.toggle('oc-hidden', this.value !== 'custom');
@@ -2827,10 +2850,10 @@ var ConfigUploader = {
         var structTabs = document.querySelectorAll('#sub-struct-tabs .oc-tpl-tab');
         for (var st = 0; st < structTabs.length; st++) {
             structTabs[st].addEventListener('click', function() {
-                var tab = this.getAttribute('data-tab');
+                var tab = (this.getAttribute('data-tpl-tab') || this.getAttribute('data-tab'));
                 var tabs = document.querySelectorAll('#sub-struct-tabs .oc-tpl-tab');
                 for (var i = 0; i < tabs.length; i++) {
-                    tabs[i].classList.toggle('active', tabs[i].getAttribute('data-tab') === tab);
+                    tabs[i].classList.toggle('active', (tabs[i].getAttribute('data-tpl-tab') || tabs[i].getAttribute('data-tab')) === tab);
                 }
                 SubPanel.el('sub-pane-groups').classList.toggle('oc-hidden', tab !== 'groups');
                 SubPanel.el('sub-pane-rules').classList.toggle('oc-hidden', tab !== 'rules');
@@ -3046,6 +3069,24 @@ var ConfigUploader = {
         if (advFileEnable) advFileEnable.checked = false;
         var advFileContainer = document.getElementById('advanced-options-container-file');
         if (advFileContainer) advFileContainer.classList.add('oc-hidden');
+
+        var autoUpdateEnable = document.getElementById('auto-update-enable');
+        if (autoUpdateEnable) autoUpdateEnable.checked = false;
+        var autoUpdateOptions = document.getElementById('auto-update-options');
+        if (autoUpdateOptions) autoUpdateOptions.classList.add('oc-hidden');
+        var autoUpdateMode = document.getElementById('auto-update-mode');
+        if (autoUpdateMode) autoUpdateMode.value = '0';
+        var autoUpdateWeek = document.getElementById('auto-update-week');
+        if (autoUpdateWeek) autoUpdateWeek.value = '1';
+        var autoUpdateHour = document.getElementById('auto-update-hour');
+        if (autoUpdateHour) autoUpdateHour.value = '0';
+        var autoUpdateInterval = document.getElementById('auto-update-interval');
+        if (autoUpdateInterval) autoUpdateInterval.value = '60';
+        var autoUpdateAppointment = document.getElementById('auto-update-appointment');
+        if (autoUpdateAppointment) autoUpdateAppointment.classList.remove('oc-hidden');
+        var autoUpdateLoop = document.getElementById('auto-update-loop');
+        if (autoUpdateLoop) autoUpdateLoop.classList.add('oc-hidden');
+
         if (this.subconverterVersionChecker) this.subconverterVersionChecker.hide();
     },
 
@@ -3062,7 +3103,7 @@ var ConfigUploader = {
         this.switchMode('file');
         document.getElementById('config-filename-input').value = '';
         document.getElementById('subscribe-url-input').value = '';
-        document.getElementById('subscribe-ua-input').value = 'clash-verge/v2.4.5';
+        document.getElementById('subscribe-ua-input').value = 'clash-verge/v2.5.10';
         document.getElementById('subscribe-ua-custom').classList.add('oc-hidden');
         var hdrContainer = document.getElementById('subscribe-headers-container');
         hdrContainer.innerHTML = '';
@@ -3084,9 +3125,8 @@ var ConfigUploader = {
             templateSelect.selectedIndex = 0;
         }
 
-        document.getElementById('upload-progress').classList.add('oc-hidden');
-        var resetStatus = document.getElementById('config-upload-status-text');
-        resetStatus.textContent = '<%:Ready to add config%>';
+        if (this.progressBar) this.progressBar.hide();
+        var resetStatus = document.getElementById('config-upload-status-text');        resetStatus.textContent = '<%:Ready to add config%>';
         resetStatus.classList.remove('is-error');
         document.getElementById('config-upload-submit').textContent = '<%:Add Config%>';
         this.setFilenameError('');
@@ -3106,7 +3146,7 @@ var ConfigUploader = {
             document.getElementById('subscribe-url-input').value = data.address;
         }
         if (data.sub_ua) {
-            if (data.sub_ua === 'clash.meta/1.19.20' || data.sub_ua === 'clash-verge/v2.4.5' || data.sub_ua === 'Clash' || data.sub_ua === 'custom') {
+            if (data.sub_ua === 'clash.meta/1.19.33' || data.sub_ua === 'clash-verge/v2.5.10' || data.sub_ua === 'Clash' || data.sub_ua === 'custom') {
                 document.getElementById('subscribe-ua-input').value = data.sub_ua;
                 if (data.sub_ua === 'custom') {
                     document.getElementById('subscribe-ua-custom').classList.remove('oc-hidden');
@@ -3235,6 +3275,35 @@ var ConfigUploader = {
             }
         }
 
+        var autoUpdateEnableEl = document.getElementById('auto-update-enable');
+        var autoUpdateOptionsEl = document.getElementById('auto-update-options');
+        var autoUpdateModeEl = document.getElementById('auto-update-mode');
+        var autoUpdateWeekEl = document.getElementById('auto-update-week');
+        var autoUpdateHourEl = document.getElementById('auto-update-hour');
+        var autoUpdateIntervalEl = document.getElementById('auto-update-interval');
+        var autoUpdateAppointmentEl = document.getElementById('auto-update-appointment');
+        var autoUpdateLoopEl = document.getElementById('auto-update-loop');
+        if (autoUpdateEnableEl) {
+            var autoUpdateEnabled = data.auto_update === '1';
+            autoUpdateEnableEl.checked = autoUpdateEnabled;
+            if (autoUpdateOptionsEl) autoUpdateOptionsEl.classList.toggle('oc-hidden', !autoUpdateEnabled);
+        }
+        if (autoUpdateModeEl) {
+            var loopMode = data.config_auto_update_mode === '1';
+            autoUpdateModeEl.value = loopMode ? '1' : '0';
+            if (autoUpdateAppointmentEl) autoUpdateAppointmentEl.classList.toggle('oc-hidden', loopMode);
+            if (autoUpdateLoopEl) autoUpdateLoopEl.classList.toggle('oc-hidden', !loopMode);
+        }
+        if (autoUpdateWeekEl && data.config_update_week_time) {
+            autoUpdateWeekEl.value = data.config_update_week_time;
+        }
+        if (autoUpdateHourEl && data.auto_update_time !== undefined && data.auto_update_time !== '') {
+            autoUpdateHourEl.value = data.auto_update_time;
+        }
+        if (autoUpdateIntervalEl) {
+            autoUpdateIntervalEl.value = data.config_update_interval || '60';
+        }
+
         this.updateSubconverterVersionStatus();
         this.updateFoldSummaries();
         this.updateUrlFeedback();
@@ -3291,9 +3360,7 @@ var ConfigUploader = {
         }
 
         this.selectedFile = null;
-        uploadZone.classList.remove('has-file');
-        uploadZone.querySelector('.upload-primary').textContent = '<%:Click to select file or drag and drop%>';
-        uploadZone.querySelector('.upload-secondary').textContent = '<%:Support YAML file%>';
+        ocSetUploadZoneFile(uploadZone, null, { empty: '<%:Support YAML file%>' });
 
         this.updateSubmitButton();
         this.updateFoldSummaries();
@@ -3308,7 +3375,7 @@ var ConfigUploader = {
         this.setFilenameError('');
 
         if (!file) {
-            uploadZone.classList.remove('has-file');
+            ocSetUploadZoneFile(uploadZone, null, { empty: '<%:Support YAML file%>' });
             this.updateSubmitButton();
             statusText.classList.remove('is-error');
             statusText.textContent = '<%:Ready to upload file%>';
@@ -3317,18 +3384,14 @@ var ConfigUploader = {
 
         if (!file.name.match(/\.(yaml|yml)$/i)) {
             this.selectedFile = null;
-            uploadZone.classList.remove('has-file');
-            uploadZone.querySelector('.upload-primary').textContent = '<%:Click to select file or drag and drop%>';
-            uploadZone.querySelector('.upload-secondary').textContent = '<%:Support YAML file%>';
+            ocSetUploadZoneFile(uploadZone, null, { empty: '<%:Support YAML file%>' });
             statusText.classList.add('is-error');
             statusText.textContent = '<%:Please select a YAML file%>';
             this.updateSubmitButton();
             return;
         }
 
-        uploadZone.classList.add('has-file');
-        uploadZone.querySelector('.upload-primary').textContent = '<%:File selected:%> ' + file.name;
-        uploadZone.querySelector('.upload-secondary').textContent = '<%:Size:%> ' + ocFormatSize(file.size);
+        ocSetUploadZoneFile(uploadZone, file);
 
         var defaultName = file.name.replace(/\.(yaml|yml)$/i, '');
         filenameInput.value = defaultName;
@@ -3467,6 +3530,22 @@ var ConfigUploader = {
             }
         }
 
+        var sumUpdate = document.getElementById('sum-update');
+        if (sumUpdate) {
+            if (!document.getElementById('auto-update-enable').checked) {
+                sumUpdate.textContent = '<%:Disabled%>';
+            } else if (document.getElementById('auto-update-mode').value === '1') {
+                var intervalMinutes = document.getElementById('auto-update-interval').value || '60';
+                sumUpdate.textContent = '<%:Loop Mode%>' + ' · ' + intervalMinutes + ' ' + '<%:Minutes%>';
+            } else {
+                var weekSelect = document.getElementById('auto-update-week');
+                var weekText = weekSelect.options[weekSelect.selectedIndex] ? weekSelect.options[weekSelect.selectedIndex].textContent : weekSelect.value;
+                var hourValue = document.getElementById('auto-update-hour').value || '0';
+                if (hourValue.length === 1) hourValue = '0' + hourValue;
+                sumUpdate.textContent = '<%:Appointment Mode%>' + ' · ' + weekText + ' ' + hourValue + ':00';
+            }
+        }
+
         var sumAdvanced = document.getElementById('sum-advanced');
         if (sumAdvanced) {
             var headerRows = document.querySelectorAll('#subscribe-headers-container .header-row');
@@ -3557,9 +3636,6 @@ var ConfigUploader = {
         var submitBtn = document.getElementById('config-upload-submit');
         var cancelBtn = document.getElementById('config-upload-cancel');
         var statusText = document.getElementById('config-upload-status-text');
-        var progressContainer = document.getElementById('upload-progress');
-        var progressFill = document.getElementById('upload-progress-fill');
-        var progressText = document.getElementById('upload-progress-text');
 
         submitBtn.disabled = true;
         cancelBtn.disabled = true;
@@ -3585,16 +3661,7 @@ var ConfigUploader = {
             return;
         }
 
-        progressContainer.classList.remove('oc-hidden');
-
-        var progress = 0;
-        var progressInterval = setInterval(function() {
-            if (progress < 90) {
-                progress += Math.random() * 15;
-                progressFill.style.width = Math.min(progress, 90) + '%';
-                progressText.textContent = '<%:Uploading...%> ' + Math.floor(Math.min(progress, 90)) + '%';
-            }
-        }, 100);
+        self.progressBar.start('<%:Uploading...%>');
 
         var formData = new FormData();
         formData.append('config_file', this.selectedFile, filename);
@@ -3604,16 +3671,13 @@ var ConfigUploader = {
             body: formData
         })
         .then(function(response) {
-            clearInterval(progressInterval);
-
             if (!response.ok) {
                 throw new Error('HTTP error! status: ' + response.status);
             }
             return response.json();
         })
         .then(function(data) {
-            progressFill.style.width = '100%';
-            progressText.textContent = '<%:Upload completed%> 100%';
+            self.progressBar.done('<%:Upload completed%>');
 
             if (data.status === 'success') {
                 self.finishUpload(filename);
@@ -3686,6 +3750,13 @@ var ConfigUploader = {
             if (document.getElementById('exclude-plan').checked) excludeDefaults.push(document.getElementById('exclude-plan').value);
             if (document.getElementById('exclude-website').checked) excludeDefaults.push(document.getElementById('exclude-website').value);
         }
+
+        var autoUpdateEl = document.getElementById('auto-update-enable');
+        var autoUpdateModeEl = document.getElementById('auto-update-mode');
+        var autoUpdateWeekEl = document.getElementById('auto-update-week');
+        var autoUpdateHourEl = document.getElementById('auto-update-hour');
+        var autoUpdateIntervalEl = document.getElementById('auto-update-interval');
+        var autoUpdate = !!(autoUpdateEl && autoUpdateEl.checked);
 
         if (userAgent === 'custom') {
             userAgent = subscribeUaCustom.value.trim();
@@ -3783,6 +3854,11 @@ var ConfigUploader = {
             ex_keyword: excludeKeywords,
             de_ex_keyword: excludeDefaults.join(' '),
             sub_headers: customHeaders,
+            auto_update: autoUpdate ? '1' : '0',
+            config_auto_update_mode: autoUpdateModeEl ? autoUpdateModeEl.value : '0',
+            config_update_week_time: autoUpdateWeekEl ? autoUpdateWeekEl.value : '0',
+            auto_update_time: autoUpdateHourEl ? autoUpdateHourEl.value : '0',
+            config_update_interval: autoUpdateIntervalEl ? autoUpdateIntervalEl.value : '60',
             template_label: templateLabel,
             age_secret: (ageSecret || agePublic) ? '1' : ''
         };
@@ -3958,43 +4034,14 @@ var ConfigUploader = {
 
     addHeaderRow: function(name, value) {
         var container = document.getElementById('subscribe-headers-container');
-        var row = document.createElement('div');
-        row.className = 'form-row header-row';
-        row.style.cssText = 'align-items: center; gap: 6px; margin-bottom: 6px;';
-
-        var nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.className = 'form-input';
-        nameInput.placeholder = 'Header-Name';
-        nameInput.value = name || '';
-        nameInput.style.cssText = 'flex: 1; height: 32px;';
-
-        var valueInput = document.createElement('input');
-        valueInput.type = 'text';
-        valueInput.className = 'form-input';
-        valueInput.placeholder = 'value';
-        valueInput.value = value || '';
-        valueInput.style.cssText = 'flex: 1.5; height: 32px;';
-
-        var removeBtn = document.createElement('button');
-        removeBtn.type = 'button';
-        removeBtn.className = 'icon-btn';
-        removeBtn.title = '<%:Remove%>';
-        removeBtn.style.cssText = 'flex-shrink: 0;';
-        removeBtn.innerHTML = '<svg width="14" height="14"><use href="#oc-icon-close"/></svg>';
-        removeBtn.addEventListener('click', function() {
-            row.parentNode.removeChild(row);
-            if (container.children.length === 0) {
-                container.classList.add('oc-hidden');
-            }
-            ConfigUploader.updateFoldSummaries();
+        ocKeyValueRow(container, {
+            rowClass: 'header-row',
+            keyPlaceholder: 'Header-Name',
+            valuePlaceholder: 'value',
+            key: name,
+            value: value,
+            onRemove: function() { ConfigUploader.updateFoldSummaries(); }
         });
-
-        row.appendChild(nameInput);
-        row.appendChild(valueInput);
-        row.appendChild(removeBtn);
-        container.appendChild(row);
-        container.classList.remove('oc-hidden');
         this.updateFoldSummaries();
     },
 
@@ -4014,21 +4061,16 @@ var ConfigUploader = {
 
     handleError: function(message) {
         var statusText = document.getElementById('config-upload-status-text');
-        var progressText = document.getElementById('upload-progress-text');
-        var progressFill = document.getElementById('upload-progress-fill');
         var submitBtn = document.getElementById('config-upload-submit');
         var cancelBtn = document.getElementById('config-upload-cancel');
-        var progressContainer = document.getElementById('upload-progress');
 
         statusText.textContent = message || '<%:Process failed%>';
         statusText.classList.add('is-error');
-        progressText.textContent = '<%:Process failed%>';
-        progressFill.style.width = '0%';
+        if (this.progressBar) this.progressBar.hide();
 
         this.isProcessing = false;
         submitBtn.disabled = false;
         cancelBtn.disabled = false;
-        progressContainer.classList.add('oc-hidden');
     }
 };
 
@@ -4037,12 +4079,12 @@ var ConfigUploader = {
 var CoreStartFlow = {
     overlay: null,
     mode: '',
-    mirrorTimer: null,
+    logListener: null,
     shownLines: 0,
     lastMirrored: null,
     lastElapsed: 0,
     sessionStart: 0,
-    viewTimer: null,
+    clockTimer: null,
     viewPollTimer: null,
     viewPollXhr: null,
     viewRestartSeen: false,
@@ -4065,16 +4107,19 @@ var CoreStartFlow = {
     },
 
     beginRun: function() {
-        if (this.mirrorTimer) {
-            clearInterval(this.mirrorTimer);
-            this.mirrorTimer = null;
-        }
+        this.stopLogMirror();
         this.mode = 'run';
-        // keep the start time: a later log dialog resumes the session with a live clock
-        try { sessionStorage.setItem('ocCoreStartAt', String(Date.now())); } catch (e) {}
+        // one start stamp feeds the dialog clock and the session the log viewer resumes
+        var started = Date.now();
+        try { sessionStorage.setItem('ocCoreStartAt', String(started)); } catch (e) {}
+        this.startClock(started);
         if (typeof window.ocStatusMarkCoreStart === 'function') window.ocStatusMarkCoreStart();
         var title = document.getElementById('core-start-title');
         if (title) title.textContent = '<%:Program starting...%>';
+        var stepper = SubPanel.el('sw-stepper');
+        if (stepper) stepper.classList.remove('oc-hidden');
+        var statusBox = SubPanel.el('sw-status-box');
+        if (statusBox) statusBox.classList.remove('oc-hidden');
         this.showOverlay();
     },
 
@@ -4099,23 +4144,27 @@ var CoreStartFlow = {
         this.shownLines = 0;
         this.lastMirrored = null;
         this.viewRestartSeen = false;
-        this.viewDone = false;
         this.downPolls = 0;
-        this.sessionStart = 0;
-        try {
-            var started = parseInt(sessionStorage.getItem('ocCoreStartAt') || '0', 10);
-            if (started && Date.now() - started < 600000) this.sessionStart = started;
-            else if (started) sessionStorage.removeItem('ocCoreStartAt');
-        } catch (e) {}
+        // only a running operation owns the mirrored lines; a finished one would be
+        // replayed together with its stale clock
+        if (!(window.ocStatusLogLive && window.ocStatusLogLive()) && window.ocStatusResetLog) {
+            window.ocStatusResetLog();
+        }
+        this.adoptSession();
         this.showOverlay();
+        var stepper = SubPanel.el('sw-stepper');
+        if (stepper) stepper.classList.add('oc-hidden');
+        var statusBox = SubPanel.el('sw-status-box');
+        if (statusBox) statusBox.classList.add('oc-hidden');
         var self = this;
         var title = document.getElementById('core-start-title');
         if (title) title.textContent = '<%:Running Log%>';
         SubPanel.resetSwitchStage(true);
         SubPanel.stopTimer();
-        this.updateViewElapsed();
-        if (this.sessionStart) {
-            this.viewTimer = setInterval(function() { self.updateViewElapsed(); }, 1000);
+        this.stopLogMirror();
+        if (window.ocStatusWatchLog) {
+            this.logListener = function(lines, reset) { self.onLogUpdate(lines, reset); };
+            window.ocStatusWatchLog(this.logListener);
         }
         var status = SubPanel.el('sw-status');
         if (status) status.textContent = '';
@@ -4125,13 +4174,94 @@ var CoreStartFlow = {
             self.syncLog();
         });
         this.viewPoll(0);
-        this.mirrorTimer = setInterval(function() { self.syncLog(); }, 1500);
+    },
+
+    // the shared stream pushes every new line, so the dialog mirrors it without a timer;
+    // open/reset replay the buffer, steady-state appends only touch the new lines
+    onLogUpdate: function(lines, reset) {
+        if (this.mode !== 'view') return;
+        if (reset) {
+            this.shownLines = 0;
+            this.lastMirrored = null;
+            SubPanel.clearLog('sw-log-host');
+            this.adoptSession();
+            this.syncLog();
+            return;
+        }
+        var host = SubPanel.el('sw-log-host');
+        if (!host || !host.ocLogView) return;
+        if (!lines || !lines.length) return;
+        SubPanel.appendLog('sw-log-host', lines.join('\n'));
+        this.shownLines += lines.length;
+        this.lastMirrored = lines[lines.length - 1];
+    },
+
+    stopLogMirror: function() {
+        if (!this.logListener) return;
+        if (window.ocStatusUnwatchLog) window.ocStatusUnwatchLog(this.logListener);
+        this.logListener = null;
+    },
+
+    adoptSession: function() {
+        this.sessionStart = 0;
+        if (window.ocStatusLogLive && window.ocStatusLogLive()) {
+            try {
+                var started = parseInt(sessionStorage.getItem('ocCoreStartAt') || '0', 10);
+                if (started && Date.now() - started < 600000) this.sessionStart = started;
+                else if (started) sessionStorage.removeItem('ocCoreStartAt');
+            } catch (e) {}
+        }
+        if (!this.sessionStart) this.lastElapsed = 0;
+        if (this.sessionStart) {
+            this.startClock(this.sessionStart);
+        } else {
+            this.stopClock();
+            this.updateViewElapsed();
+        }
+    },
+
+    // one clock for both entry points (summary switch and log viewer): wall clock from
+    // the start stamp, so a throttled tab cannot stall it
+    startClock: function(startedAt) {
+        var self = this;
+        this.stopClock();
+        this.sessionStart = startedAt || Date.now();
+        this.updateViewElapsed();
+        this.clockTimer = setInterval(function() { self.updateViewElapsed(); }, 1000);
+    },
+
+    stopClock: function() {
+        if (this.clockTimer) {
+            clearInterval(this.clockTimer);
+            this.clockTimer = null;
+        }
+    },
+
+    // ##FINISHED## stamps the real end; the runtime poll notices it seconds later
+    sessionEndAt: function() {
+        var page = window.ocStatusCoreEndAt ? window.ocStatusCoreEndAt() : 0;
+        var run = SubPanel.streamEndAt || 0;
+        return page > run ? page : run;
+    },
+
+    sessionElapsed: function() {
+        if (!this.sessionStart) return this.lastElapsed || 0;
+        var end = this.sessionEndAt();
+        var until = end > this.sessionStart ? end : Date.now();
+        return Math.max(0, Math.round((until - this.sessionStart) / 1000));
+    },
+
+    freezeElapsed: function() {
+        this.lastElapsed = this.sessionElapsed();
+        this.stopClock();
+        this.dropSession();
+        this.updateViewElapsed();
     },
 
     updateViewElapsed: function() {
         var elapsed = SubPanel.el('sw-elapsed');
         if (!elapsed) return;
-        var s = this.sessionStart ? Math.max(0, Math.round((Date.now() - this.sessionStart) / 1000)) : (this.lastElapsed || 0);
+        var s = this.sessionElapsed();
         var m = Math.floor(s / 60);
         elapsed.textContent = (m < 10 ? '0' + m : m) + ':' + ((s % 60) < 10 ? '0' + (s % 60) : (s % 60));
     },
@@ -4181,52 +4311,32 @@ var CoreStartFlow = {
                 if (SubPanel.swStage !== -1 || SubPanel.failed) SubPanel.resetSwitchStage(true);
                 if (status) status.textContent = '<%:Kernel service is not running%>';
             }
-            this.viewDone = false;
             this.downPolls = (this.downPolls || 0) + 1;
             if (this.sessionStart && scriptDone && this.downPolls >= 10) {
                 // the script is gone and the service stays down: end the session so the clock freezes
-                CoreStartFlow.lastElapsed = Math.max(0, Math.round((Date.now() - this.sessionStart) / 1000));
-                this.dropSession();
-                if (this.viewTimer) {
-                    clearInterval(this.viewTimer);
-                    this.viewTimer = null;
-                }
-                this.updateViewElapsed();
+                this.freezeElapsed();
             }
             return;
         }
         this.downPolls = 0;
         if (!online) {
             SubPanel.setSwitchStage(2);
-            this.viewDone = false;
             return;
         }
         if (!fresh) {
             // the old core still answers: only the starting phase is certain
             SubPanel.setSwitchStage(1);
-            this.viewDone = false;
             return;
         }
         if (!scriptDone) {
             // the script still runs: done only comes with its exit, same rule as the run flow
             SubPanel.setSwitchStage(3);
-            this.viewDone = false;
             return;
         }
         SubPanel.setSwitchStage(4);
-        if (status && !this.viewDone) {
-            this.viewDone = true;
-            SubPanel.markStatusDone();
-        }
         if (this.sessionStart) {
             // the session carried over from another page ends here: freeze the elapsed time
-            CoreStartFlow.lastElapsed = Math.max(0, Math.round((Date.now() - this.sessionStart) / 1000));
-            this.dropSession();
-            if (this.viewTimer) {
-                clearInterval(this.viewTimer);
-                this.viewTimer = null;
-            }
-            this.updateViewElapsed();
+            this.freezeElapsed();
         }
     },
 
@@ -4237,6 +4347,9 @@ var CoreStartFlow = {
 
     syncLog: function() {
         if (this.mode !== 'view') return;
+        // advancing the cursor without a view would swallow the first lines on a cold CM6 load
+        var host = SubPanel.el('sw-log-host');
+        if (!host || !host.ocLogView) return;
         var lines = (window.ocStatusLogLines && window.ocStatusLogLines()) || [];
         // realign when another operation emptied the status log array: a stale cursor
         // would freeze the mirror forever
@@ -4253,14 +4366,8 @@ var CoreStartFlow = {
     },
 
     close: function() {
-        if (this.mirrorTimer) {
-            clearInterval(this.mirrorTimer);
-            this.mirrorTimer = null;
-        }
-        if (this.viewTimer) {
-            clearInterval(this.viewTimer);
-            this.viewTimer = null;
-        }
+        this.stopLogMirror();
+        this.stopClock();
         if (this.viewPollTimer) {
             clearTimeout(this.viewPollTimer);
             this.viewPollTimer = null;

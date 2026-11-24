@@ -1258,14 +1258,7 @@
                 var disposition = xhr.getResponseHeader('Content-Disposition') || '';
                 var match = disposition.match(/filename="?([^";]+)"?/);
                 var filename = match ? match[1] : endpoint + '.tar.gz';
-                var blobUrl = URL.createObjectURL(xhr.response);
-                var a = document.createElement('a');
-                a.href = blobUrl;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 1000);
+                ocDownloadBlob(xhr.response, filename, 1000);
             } else {
                 showHint('<%:Backup failed!%>');
             }
@@ -1393,12 +1386,7 @@
         var hint = document.getElementById('version-hint');
         if (!hint) return;
 
-        var lines = logContent.split('\n');
-        var allLines = [];
-        for (var i = 0; i < lines.length; i++) {
-            var t = lines[i].replace(/##FINISHED##|##CONTINUE##|##FINISH##/g, '').trim().replace(/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\s*/, '');
-            if (t) allLines.push(t);
-        }
+        var allLines = ocCleanLogLines(logContent);
         if (allLines.length === 0) return;
 
         var newRows = Math.min(10, allLines.length);

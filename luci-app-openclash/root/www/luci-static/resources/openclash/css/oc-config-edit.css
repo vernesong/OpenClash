@@ -50,7 +50,7 @@ html[data-darkmode="true"] .oc .overwrite-banner svg circle {
     overflow: hidden;
     border: 1px solid var(--border-light);
     position: relative;
-    transition: all 0.3s ease;
+    transition: var(--transition-ui);
 }
 
 .oc .config-editor-model.maximized {
@@ -64,24 +64,11 @@ html[data-darkmode="true"] .oc .overwrite-banner svg circle {
     height: 70vh !important;
 }
 
-.oc .size-btn {
-    width: 24px !important;
-    height: 24px !important;
-    min-width: 24px !important;
-    padding: 0 !important;
-}
-
-.oc .size-btn svg {
-    width: 12px !important;
-    height: 12px !important;
-}
-
 .oc .config-editor-body {
     display: flex;
     flex: 1;
     min-width: 0;
     min-height: 0;
-    container-type: inline-size;
 }
 
 .oc .config-editor-content {
@@ -284,7 +271,7 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
     color: transparent;
     background: var(--bg-white);
     font-size: 12px;
-    line-height: 1;
+    line-height: normal;
 }
 
 .oc .overwrite-config-option.selected .overwrite-config-option-state {
@@ -296,6 +283,41 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
 .oc .overwrite-config-dropdown.disabled .overwrite-config-dropdown-btn {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+.oc #overwrite-upload-status-text.is-error {
+    color: var(--error-color);
+}
+
+.oc #overwrite-upload-status-text.is-error::before {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 6px;
+    border-radius: 50%;
+    vertical-align: 1px;
+    background: var(--error-color);
+}
+
+.oc #overwrite-add-step-info {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.oc #overwrite-add-step-info .form-group label {
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.oc .oc-sub-stepper.overwrite-add-stepper {
+    max-width: 440px;
+    margin: 0 auto 14px;
+}
+
+.oc #overwrite-add-model .config-upload-content {
+    padding-top: 14px;
 }
 
 .oc .overwrite-side {
@@ -315,22 +337,16 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
     width: 46px;
 }
 
-@container (max-width: 1040px) {
-    .oc .overwrite-side {
-        width: 208px;
-    }
+.oc .config-editor-body.oc-ce-w1 .overwrite-side {
+    width: 208px;
 }
 
-@container (max-width: 860px) {
-    .oc .overwrite-side {
-        width: 184px;
-    }
+.oc .config-editor-body.oc-ce-w2 .overwrite-side {
+    width: 184px;
 }
 
-@container (max-width: 700px) {
-    .oc .overwrite-side {
-        width: 164px;
-    }
+.oc .config-editor-body.oc-ce-w3 .overwrite-side {
+    width: 164px;
 }
 
 .oc .overwrite-side-head,
@@ -441,7 +457,7 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
     display: flex;
     align-items: center;
     gap: var(--tight-gap);
-    padding: 5px 6px;
+    padding: 4px 6px;
     border-radius: var(--radius-sm);
     cursor: pointer;
     transition: background var(--transition-fast);
@@ -506,7 +522,7 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
     background: var(--bg-gray);
     color: var(--text-secondary);
     font-size: 12px;
-    line-height: 1;
+    line-height: normal;
     font-weight: 600;
     text-transform: uppercase;
 }
@@ -636,7 +652,7 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
 
 .oc .overwrite-side.rail .overwrite-item {
     justify-content: center;
-    padding: 5px 0;
+    padding: 4px 0;
 }
 
 .oc .overwrite-side.rail .overwrite-item-grip {
@@ -690,7 +706,7 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
     top: 0; left: 0; right: 0; bottom: 0;
     background-color: var(--switch-off-bg);
     border-radius: 20px;
-    transition: .2s;
+    transition: background-color 160ms var(--ease-standard), border-color 160ms var(--ease-standard);
 }
 
 .oc .oc-switch-slider:before {
@@ -700,7 +716,7 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
     left: 2px; bottom: 2px;
     background-color: var(--switch-knob-bg);
     border-radius: 50%;
-    transition: .2s;
+    transition: transform 160ms var(--ease-standard);
 }
 
 .oc .oc-switch input:checked + .oc-switch-slider {

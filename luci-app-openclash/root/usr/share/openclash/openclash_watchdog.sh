@@ -6,7 +6,6 @@
 
 LOG_FILE="/tmp/openclash.log"
 CLASH="/etc/openclash/clash"
-CFG_UPDATE_INT=0
 SKIP_PROXY_ADDRESS=1
 SKIP_PROXY_ADDRESS_INTERVAL=30
 UPNP_INT=1
@@ -20,46 +19,45 @@ PROXY_FWMARK="0x162"
 ## Skip Proxies Address
 skip_proxies_address()
 {
-ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-REG4 = /^((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$/
-REG6 = /^(?:(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))|\[(?:(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))\]$/i
-REG_DOMAIN = /([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/
+OC_FW4="$FW4" OC_CONFIG_FILE="$CONFIG_FILE" ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+REG4 = /\A((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\z/
+REG6 = /\A(?:(?:(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))(?:%[0-9A-Za-z._-]+)?|\[(?:(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))\])\z/i
+REG_DOMAIN = /\A([\p{L}\p{M}\p{N}_-]+\.)+\p{L}[\p{L}\p{M}\p{N}-]*[\p{L}\p{M}\p{N}]\.?\z/
 
 def write_ips_set(ips)
    return if ips.nil? or ips.empty?
-   firewall_v = '$FW4'.empty? ? 'ipt' : 'nft'
-   set_commands = []
+   firewall_v = ENV['OC_FW4'].to_s.empty? ? 'ipt' : 'nft'
    ips.each do |ip|
       next if ip.nil? or ip.empty?
       if ip.match(REG4) then
          if firewall_v == 'nft' then
-            set_commands << 'nft add element inet fw4 localnetwork { \"' + ip + '\" } 2>/dev/null'
+            system('nft', 'add', 'element', 'inet', 'fw4', 'localnetwork', '{', ip, '}', err: File::NULL)
          else
-            set_commands << 'ipset add localnetwork \"' + ip + '\" 2>/dev/null'
+            system('ipset', 'add', 'localnetwork', ip, err: File::NULL)
          end
       elsif ip.match(REG6) then
          if firewall_v == 'nft' then
-            set_commands << 'nft add element inet fw4 localnetwork6 { \"' + ip + '\" } 2>/dev/null'
+            system('nft', 'add', 'element', 'inet', 'fw4', 'localnetwork6', '{', ip, '}', err: File::NULL)
          else
-            set_commands << 'ipset add localnetwork6 \"' + ip + '\" 2>/dev/null'
+            system('ipset', 'add', 'localnetwork6', ip, err: File::NULL)
          end
       end
    end
-   system(set_commands.join('; ')) if not set_commands.empty?
 end
 
 begin
-   Value = YAML.load_file('$CONFIG_FILE');
+   Value = YAML.load_file(ENV['OC_CONFIG_FILE']);
 rescue Exception => e
    YAML.LOG_ERROR('Load File Failed,【' + e.message + '】');
    exit;
 end;
 
-begin
-   if not (Value.key?('proxies') or Value.key?('proxy-providers')) then
-      exit;
-   end
+# outside the rescue above, an exit inside a rescued block reports itself as an error
+if not Value.is_a?(Hash) or not (Value.key?('proxies') or Value.key?('proxy-providers')) then
+   exit;
+end;
 
+begin
    servers_to_process = Array.new
 
    # Servers from proxies
@@ -75,7 +73,12 @@ begin
          if provider.key?('path') and not provider['path'].empty?
             path = provider['path'].start_with?('./') ? '/etc/openclash/' + provider['path'][2..-1] : provider['path']
             if File.exist?(path)
-               file_is_age_encrypted = File.read(path, 512).include?('BEGIN AGE ENCRYPTED FILE') rescue false
+               if name == 'oixCloud'
+                  YAML.LOG('Set Proxies Address Skip: Bypass【oixCloud】')
+                  next
+               end
+               age_header = '-----BEGIN AGE ENCRYPTED FILE-----'.b
+               file_is_age_encrypted = File.binread(path, age_header.bytesize) == age_header rescue false
                begin
                   if provider.key?('age-secret-key') and not provider['age-secret-key'].to_s.empty?
                      begin
@@ -86,11 +89,7 @@ begin
                      end
                   else
                      if file_is_age_encrypted
-                        if name == 'oixCloud'
-                           YAML.LOG('Set Proxies Address Skip: Bypass【oixCloud】')
-                        else
-                           YAML.LOG_WARN('Set Proxies Address Skip: Failed【' + path + '】File is AGE encrypted but no secret key provided')
-                        end
+                        YAML.LOG_WARN('Set Proxies Address Skip: Failed【' + path + '】File is AGE encrypted but no secret key provided')
                         next
                      end
                      provider_config = YAML.load_file(path)
@@ -108,8 +107,7 @@ begin
                         next
                      end
                      begin
-                        syscall = \"lua /usr/share/openclash/openclash_sub_parser.lua \\\"#{path}\\\"\"
-                        sub_servers = IO.popen(syscall).read.split(/\n+/)
+                        sub_servers = IO.popen(['lua', '/usr/share/openclash/openclash_sub_parser.lua', path], &:read).split(/\n+/)
                         servers_to_process.concat(sub_servers) if sub_servers
                      rescue Exception => e
                         YAML.LOG_WARN('Failed to parse config file with Lua helper【' + path + ': ' + e.message+'】')
@@ -145,8 +143,8 @@ begin
 
    if not domains_to_resolve.empty?
       host = '127.0.0.1'
-      port = IO.popen('uci -q get openclash.config.cn_port').read.strip
-      pw = IO.popen('uci -q get openclash.config.dashboard_password').read.strip
+      port = IO.popen(['uci', '-q', 'get', 'openclash.config.cn_port'], &:read).strip
+      pw = IO.popen(['uci', '-q', 'get', 'openclash.config.dashboard_password'], &:read).strip
 
       ips_mutex = Mutex.new
       queue = Queue.new
@@ -159,8 +157,13 @@ begin
          Thread.new do
             while task = (queue.pop(true) rescue nil)
                domain, qtype = task
-               syscall = 'curl -s -m 3 -H \"Authorization: Bearer ' + pw + '\" \"http://' + host + ':' + port + '/dns/query?name=' + domain + '&type=' + qtype + '\" | jsonfilter -e \"@.Answer[*].data\" 2>/dev/null'
-               result = IO.popen(syscall).read.split(/\n+/)
+               begin
+                  reply = IO.popen(['curl', '-s', '-m', '3', '-H', 'Authorization: Bearer ' + pw, 'http://' + host + ':' + port + '/dns/query?name=' + domain + '&type=' + qtype], &:read)
+                  result = IO.popen(['jsonfilter', '-e', '@.Answer[*].data'], 'r+', err: File::NULL) { |io| io.write(reply); io.close_write; io.read }.split(/\n+/)
+               rescue SystemCallError
+                  # only this answer is missing, the addresses in the config still go in
+                  next
+               end
                if result
                   ips_mutex.synchronize do
                      result.each do |ip|
@@ -198,10 +201,8 @@ do
    log_size=$(uci_get_config "log_size" || echo 1024)
    router_self_proxy=$(uci_get_config "router_self_proxy" || echo 1)
    skip_proxy_address=$(uci_get_config "skip_proxy_address" || echo 0)
+   en_mode=$(uci_get_config "en_mode")
 
-   cfg_update=$(uci_get_config "auto_update")
-   cfg_update_mode=$(uci_get_config "config_auto_update_mode")
-   cfg_update_interval=$(uci_get_config "config_update_interval" || echo 60)
    stream_auto_select=$(uci_get_config "stream_auto_select" || echo 0)
    stream_auto_select_interval=$(uci_get_config "stream_auto_select_interval" || echo 30)
    stream_auto_select_netflix=$(uci_get_config "stream_auto_select_netflix" || echo 0)
@@ -240,8 +241,6 @@ if [ -n "$CORE_JSON" ]; then
    # procd drops the respawn table once it gave up on the core (crash loop)
    if [ "$(echo "$CORE_JSON" | jsonfilter -e '@.openclash.instances.openclash.running')" != "true" ] \
       && [ -z "$(echo "$CORE_JSON" | jsonfilter -e '@.openclash.instances.openclash.respawn.retry')" ]; then
-      uci -q set openclash.config.enable=0
-      uci -q commit openclash
       /etc/init.d/openclash stop >/dev/null 2>&1
       exit 0
    fi
@@ -259,19 +258,75 @@ fi
 
 ## 防火墙检查
    if [ "$FIREWALL_RELOAD" -le "$MAX_FIREWALL_RELOAD" ]; then
+      # dnsmasq restarts re-append their port-53 redirect at the tail (a platform
+      # init rule), DNS lines never carry the proxy jump order and are ignored here;
+      nat_rules=""
+      man_rules=""
+      man_chain=""
+      nat_jump=""
+      man_jump=""
+      case "$en_mode" in
+         *-tun)
+            if [ -z "$FW4" ]; then
+               man_save=$(iptables-save -t mangle 2>/dev/null)
+               man_rules=$(echo "$man_save" | grep '^-A PREROUTING')
+               man_chain=$(echo "$man_save" | grep -E '^:openclash |^-A openclash ')
+               man_jump=$(echo "$man_rules" | grep -E -- '-j openclash( |$)')
+            else
+               man_rules=$(nft -a list chain inet fw4 mangle_prerouting 2>/dev/null)
+               man_chain=$(nft list chain inet fw4 openclash_mangle 2>/dev/null)
+               man_jump=$(echo "$man_rules" | grep -E 'jump openclash_mangle( |$)')
+            fi
+            ;;
+         *)
+            if [ -z "$FW4" ]; then
+               nat_save=$(iptables-save -t nat 2>/dev/null)
+               man_save=$(iptables-save -t mangle 2>/dev/null)
+               nat_rules=$(echo "$nat_save" | grep '^-A PREROUTING')
+               man_rules=$(echo "$man_save" | grep '^-A PREROUTING')
+               man_chain=$(echo "$man_save" | grep -E '^:openclash |^-A openclash ')
+               nat_jump=$(echo "$nat_rules" | grep -E -- '-j openclash( |$)')
+               man_jump=$(echo "$man_rules" | grep -E -- '-j openclash( |$)')
+            else
+               nat_rules=$(nft -a list chain inet fw4 dstnat 2>/dev/null)
+               man_rules=$(nft -a list chain inet fw4 mangle_prerouting 2>/dev/null)
+               man_chain=$(nft list chain inet fw4 openclash_mangle 2>/dev/null)
+               nat_jump=$(echo "$nat_rules" | grep -E 'jump openclash( |$)')
+               man_jump=$(echo "$man_rules" | grep -E 'jump openclash_mangle( |$)')
+            fi
+            ;;
+      esac
+
       if [ -z "$FW4" ]; then
-         nat_last_line=$(iptables -t nat -nL PREROUTING --line-number 2>/dev/null | awk 'END {print $1}')
-         man_last_line=$(iptables -t mangle -nL PREROUTING --line-number 2>/dev/null | awk 'END {print $1}')
-         nat_op_line=$(iptables -t nat -nL PREROUTING --line-number 2>/dev/null | grep -E "openclash|OpenClash" | grep -Ev "DNS|dns" | awk '{print $1}' | tail -1)
-         man_op_line=$(iptables -t mangle -nL PREROUTING --line-number 2>/dev/null | grep -E "openclash|OpenClash" | grep -Ev "DNS|dns" | awk '{print $1}' | tail -1)
+         nat_last_line=$(echo "$nat_rules" | grep -Ev "DNS|dns" | awk 'END {print NR}')
+         man_last_line=$(echo "$man_rules" | grep -Ev "DNS|dns" | awk 'END {print NR}')
+         nat_op_line=$(echo "$nat_rules" | grep -Ev "DNS|dns" | grep -nE "openclash|OpenClash" | awk -F: 'END {print $1}')
+         man_op_line=$(echo "$man_rules" | grep -Ev "DNS|dns" | grep -nE "openclash|OpenClash" | awk -F: 'END {print $1}')
       else
-         nat_last_line=$(nft -a list chain inet fw4 dstnat 2>/dev/null | grep "# handle" | awk -F '# handle ' '{print $2}' | tail -1)
-         man_last_line=$(nft -a list chain inet fw4 mangle_prerouting 2>/dev/null | grep "# handle" | awk -F '# handle ' '{print $2}' | tail -1)
-         nat_op_line=$(nft -a list chain inet fw4 dstnat 2>/dev/null | grep -E "openclash|OpenClash" | grep -Ev "DNS|dns" | grep "# handle" | awk -F '# handle ' '{print $2}' | tail -1)
-         man_op_line=$(nft -a list chain inet fw4 mangle_prerouting 2>/dev/null | grep -E "openclash|OpenClash" | grep -Ev "DNS|dns" | grep "# handle" | awk -F '# handle ' '{print $2}' | tail -1)
+         nat_last_line=$(echo "$nat_rules" | grep "# handle" | grep -Ev "DNS|dns" | awk -F '# handle ' '{print $2}' | tail -1)
+         man_last_line=$(echo "$man_rules" | grep "# handle" | grep -Ev "DNS|dns" | awk -F '# handle ' '{print $2}' | tail -1)
+         nat_op_line=$(echo "$nat_rules" | grep -Ev "DNS|dns" | grep -E "openclash|OpenClash" | grep "# handle" | awk -F '# handle ' '{print $2}' | tail -1)
+         man_op_line=$(echo "$man_rules" | grep -Ev "DNS|dns" | grep -E "openclash|OpenClash" | grep "# handle" | awk -F '# handle ' '{print $2}' | tail -1)
       fi
 
-      if ([ "$nat_last_line" != "$nat_op_line" ] && [ -n "$nat_op_line" ]) || ([ "$man_last_line" != "$man_op_line" ] && [ -n "$man_op_line" ]); then
+      firewall_missing=0
+      case "$en_mode" in
+         *-tun) [ -n "$man_jump" ] || firewall_missing=1 ;;
+         "") [ -n "$nat_jump" ] || [ -n "$man_jump" ] || firewall_missing=1 ;;
+         *) [ -n "$nat_jump" ] || firewall_missing=1 ;;
+      esac
+      if [ -n "$man_chain" ]; then
+         if [ -n "$FW4" ]; then
+            [ -n "$(echo "$man_chain" | grep -E 'tproxy|mark set')" ] || firewall_missing=1
+         else
+            [ -n "$(echo "$man_chain" | grep -E 'TPROXY|MARK')" ] || firewall_missing=1
+         fi
+      fi
+      if [ "$firewall_missing" -eq 1 ]; then
+         LOG_WATCHDOG "Setting Firewall For Missing Rules..."
+         /etc/init.d/openclash reload "firewall"
+         let FIREWALL_RELOAD++
+      elif ([ "$nat_last_line" != "$nat_op_line" ] && [ -n "$nat_op_line" ]) || ([ "$man_last_line" != "$man_op_line" ] && [ -n "$man_op_line" ]); then
          ## 转发顺序检查
          LOG_WATCHDOG "Setting Firewall For Rules Order..."
          /etc/init.d/openclash reload "firewall"
@@ -426,14 +481,6 @@ fi
 
 ##Dler Cloud Checkin
    /usr/share/openclash/openclash_oix_checkin.lua >/dev/null 2>&1
-
-## 配置文件循环更新
-   if [ "$cfg_update" -eq 1 ] && [ "$cfg_update_mode" -eq 1 ]; then
-      if [ "$CFG_UPDATE_INT" -ne 0 ]; then
-         [ "$(expr "$CFG_UPDATE_INT" % "$cfg_update_interval")" -eq 0 ] && /usr/share/openclash/openclash.sh
-      fi
-      CFG_UPDATE_INT=$(expr "$CFG_UPDATE_INT" + 1)
-   fi
 
 ##STREAMING_UNLOCK_CHECK
    if [ "$stream_auto_select" -eq 1 ] && [ "$router_self_proxy" -eq 1 ]; then

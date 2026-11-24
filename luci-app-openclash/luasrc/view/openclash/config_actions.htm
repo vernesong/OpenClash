@@ -1,0 +1,26 @@
+<%+cbi/valueheader%>
+<% local action_id = self:cbid(section) .. ".action" %>
+<div style="white-space: nowrap">
+    <input type="hidden" id="<%=pcdata(action_id)%>" name="cbid.<%=self.map.config%>.<%=section%>.actions" />
+    <button type="submit" hidden name="<%=self:cbid(section)%>" value="1" tabindex="-1" aria-hidden="true"></button>
+    <% if is_yaml then %>
+    <input type="submit" class="btn cbi-button cbi-input-apply" name="<%=self:cbid(section)%>" value="<%:SwiTch%>" onclick="document.getElementById('<%=action_id%>').value='switch'" />
+    <% end %>
+    <input type="submit" class="btn cbi-button cbi-input-apply" name="<%=self:cbid(section)%>" value="<%:Edit%>" onclick="document.getElementById('<%=action_id%>').value='edit'" />
+    <input type="submit" class="btn cbi-button cbi-input-apply" name="<%=self:cbid(section)%>" value="<%:Download%>" onclick="document.getElementById('<%=action_id%>').value='download'" />
+    <span class="oc-actions-menu">
+        <button type="button" class="btn cbi-button oc-actions-menu-btn" title="<%:Other%>" aria-label="<%:Other%>" aria-haspopup="true" onclick="return configRowMenu(this)">&#8943;</button>
+        <select class="cbi-input-select" tabindex="-1" aria-hidden="true" title="<%:Other%>" data-file="<%=pcdata(config_name)%>" onchange="return configRowAction(this, '<%=action_id%>')">
+            <option value="" selected disabled hidden></option>
+            <option value="servers_manage"><%:Servers Manage%></option>
+            <option value="rename"><%:Rename%></option>
+            <% if is_yaml then %><option value="copy"><%:Copy Config%></option><% end %>
+            <% if has_running then %><option value="download_run"><%:Download Running Config%></option><% end %>
+            <option value="remove"><%:Remove%></option>
+        </select>
+    </span>
+</div>
+<% if config_script then %>
+<script type="text/javascript" src="/cgi-bin/luci/admin/services/openclash/translate_js?f=config_actions&v=@OPENCLASH_VERSION@&l=<%=luci.i18n.context.lang%>"></script>
+<% end %>
+<%+cbi/valuefooter%>

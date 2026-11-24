@@ -59,13 +59,59 @@ html[data-darkmode="true"] .oc .cm-editor {
     width: 100% !important; height: 100% !important;
     z-index: 999999 !important;
     background: var(--editor-bg, #f5f5f5) !important;
-    overflow-y: auto !important;
+    overflow: hidden !important;
 }
 
 /* ---- Cursor gap (visual spacing between cursor and text) ---- */
 .oc .cm-editor.cm-focused { outline: none; }
 
 .oc .cm-editor.cm-focused .cm-cursor { transform: translateX(2px); }
+
+/* ---- Search highlights ---- */
+.oc .cm-editor .cm-searchMatch {
+    background-color: var(--primary-a20);
+    color: inherit;
+    outline: 1px solid var(--primary-a40);
+    border-radius: 2px;
+}
+
+.oc .cm-editor .cm-searchMatch.cm-searchMatch-selected {
+    background-color: var(--primary-a40);
+    color: var(--text-primary);
+    outline: 2px solid var(--primary-color);
+}
+
+.oc .cm-editor .cm-selectionMatch {
+    background-color: var(--primary-a10);
+    color: inherit;
+    outline: 1px solid var(--primary-a30);
+    border-radius: 2px;
+}
+
+/* Each pane scrolls on its own (mirrored by CM6.mergeScrollSync). Scrolling inside the
+ * editor keeps CodeMirror's scroll anchor working, otherwise a row-height correction
+ * during scrolling visibly shifts the rows that are about to enter the viewport. */
+.oc .cm-mergeView .cm-editor,
+.oc .cm-mergeView .cm-mergeViewEditor {
+    overflow: hidden !important;
+    height: 100% !important;
+    min-height: 0 !important;
+}
+
+.oc .cm-mergeView .cm-mergeViewEditors {
+    height: 100% !important;
+    min-height: 0 !important;
+}
+
+.oc .cm-mergeView .cm-scroller {
+    height: 100% !important;
+}
+
+.oc .cm-mergeView .cm-panels-top {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 5;
+}
 
 /* ---- Hide diff highlights when F10 toggles differences off ---- */
 .oc-diff-hidden .cm-insertedLine,
@@ -105,7 +151,7 @@ html[data-darkmode="true"] .oc .cm-editor {
 .oc #config-mergeview-container .cm-mergeView,
 .oc .cm-mergeView {
     height: 100% !important;
-    overflow: auto;
+    overflow: hidden;
 }
 
 .oc #config-mergeview-container .cm-mergeViewEditor,
@@ -140,7 +186,7 @@ html[data-darkmode="true"] .oc .cm-editor {
 
 .cmt-log-bracket { color: var(--success-color) !important; font-weight: 600; }
 
-.cmt-log-string { color: var(--black) !important; font-weight: 500; }
+.cmt-log-string { color: var(--cm-log-text) !important; font-weight: 500; }
 
 .cmt-log-category { color: var(--orange) !important; font-weight: 500; background-color: var(--orange-a15); padding: 0 5px; margin: 2px 0; border-radius: 5px; display: inline-block; text-align: center; }
 

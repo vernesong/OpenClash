@@ -21,13 +21,16 @@ function default_config_set(f)
 		if CHIF == "1" and cf == "/etc/openclash/config/"..f then
 			return
 		end
-		local fis = fs.glob("/etc/openclash/config/*")[1]
-		if fis ~= nil then
-			fcf = fs.basename(fis)
-			if fcf then
-				uci:set("openclash", "config", "config_path", "/etc/openclash/config/"..fcf)
-				uci:commit("openclash")
+		local fis
+		for _, name in ipairs(fs.listdir("/etc/openclash/config/")) do
+			if fs.IsYamlExt(name) and fs.isfile("/etc/openclash/config/" .. name) then
+				fis = name
+				break
 			end
+		end
+		if fis ~= nil then
+			uci:set("openclash", "config", "config_path", "/etc/openclash/config/" .. fis)
+			uci:commit("openclash")
 		else
 			uci:set("openclash", "config", "config_path", "/etc/openclash/config/config.yaml")
 			uci:commit("openclash")
@@ -120,33 +123,33 @@ HTTP.setfilehandler(
 				local archive_path = core_dir .. meta.file
 				if string.lower(string.sub(meta.file, -7, -1)) == ".tar.gz" then
 					-- tar.gz
-					os.execute(string.format("tar -C '/etc/openclash/core/core' -xzf '%s' >/dev/null 2>&1", archive_path))
-					os.execute(string.format("rm -f '%s' >/dev/null 2>&1", archive_path))
+					os.execute(string.format("tar -C '/etc/openclash/core/core' -xzf %s >/dev/null 2>&1", UTIL.shellquote(archive_path)))
+					os.execute(string.format("rm -f %s >/dev/null 2>&1", UTIL.shellquote(archive_path)))
 					local first_file_cmd = "find /etc/openclash/core/core -type f ! -name '*.tar.gz' ! -name '*.tar' ! -name '*.gz' 2>/dev/null | head -1"
 					local first_file = io.popen(first_file_cmd):read("*line")
 					if first_file and first_file ~= "" then
-						os.execute(string.format("mv '%s' '/etc/openclash/core/%s' >/dev/null 2>&1", first_file, fp))
+						os.execute(string.format("mv %s '/etc/openclash/core/%s' >/dev/null 2>&1", UTIL.shellquote(first_file), fp))
 					end
 				elseif string.lower(string.sub(meta.file, -4, -1)) == ".tar" then
 					-- tar
-					os.execute(string.format("tar -C '/etc/openclash/core/core' -xf '%s' >/dev/null 2>&1", archive_path))
-					os.execute(string.format("rm -f '%s' >/dev/null 2>&1", archive_path))
+					os.execute(string.format("tar -C '/etc/openclash/core/core' -xf %s >/dev/null 2>&1", UTIL.shellquote(archive_path)))
+					os.execute(string.format("rm -f %s >/dev/null 2>&1", UTIL.shellquote(archive_path)))
 					local first_file_cmd = "find /etc/openclash/core/core -type f ! -name '*.tar' ! -name '*.gz' 2>/dev/null | head -1"
 					local first_file = io.popen(first_file_cmd):read("*line")
 					if first_file and first_file ~= "" then
-						os.execute(string.format("mv '%s' '/etc/openclash/core/%s' >/dev/null 2>&1", first_file, fp))
+						os.execute(string.format("mv %s '/etc/openclash/core/%s' >/dev/null 2>&1", UTIL.shellquote(first_file), fp))
 					end
 				elseif string.lower(string.sub(meta.file, -3, -1)) == ".gz" then
 					-- gz
-					os.execute(string.format("gzip -fd '%s' >/dev/null 2>&1", archive_path))
-					os.execute(string.format("rm -f '%s' >/dev/null 2>&1", archive_path))
+					os.execute(string.format("gzip -fd %s >/dev/null 2>&1", UTIL.shellquote(archive_path)))
+					os.execute(string.format("rm -f %s >/dev/null 2>&1", UTIL.shellquote(archive_path)))
 					local first_file_cmd = "find /etc/openclash/core/core -type f ! -name '*.gz' 2>/dev/null | head -1"
 					local first_file = io.popen(first_file_cmd):read("*line")
 					if first_file and first_file ~= "" then
-						os.execute(string.format("mv '%s' '/etc/openclash/core/%s' >/dev/null 2>&1", first_file, fp))
+						os.execute(string.format("mv %s '/etc/openclash/core/%s' >/dev/null 2>&1", UTIL.shellquote(first_file), fp))
 					end
 				else
-					os.execute(string.format("mv '%s' '/etc/openclash/core/%s' >/dev/null 2>&1", (core_dir .. meta.file), fp))
+					os.execute(string.format("mv %s '/etc/openclash/core/%s' >/dev/null 2>&1", UTIL.shellquote(core_dir .. meta.file), fp))
 				end
 
 				os.execute(string.format("chmod 4755 '/etc/openclash/core/%s' >/dev/null 2>&1", fp))
@@ -171,20 +174,24 @@ if HTTP.formvalue("upload") then
 	end
 end
 
+-- listdir sorts the visible names and never returns nil; a failing stat only skips that row
 local e,a={}
-for t,o in ipairs(fs.glob("/etc/openclash/config/*"))do
-a=fs.stat(o)
+local current_config_path = fs.uci_get_config("config", "config_path")
+local row = 0
+for _,name in ipairs(fs.listdir("/etc/openclash/config/")) do
+a=fs.stat("/etc/openclash/config/"..name)
 if a then
-e[t]={}
-e[t].name=fs.basename(o)
-e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",a.mtime)
-if fs.uci_get_config("config", "config_path") and string.sub(fs.uci_get_config("config", "config_path"), 23, -1) == e[t].name then
-	e[t].state="Enabled"
+row = row + 1
+e[row]={}
+e[row].name=name
+e[row].mtime=os.date("%Y-%m-%d %H:%M:%S",a.mtime)
+if current_config_path and string.sub(current_config_path, 23, -1) == name then
+	e[row].state="Enabled"
 else
-	e[t].state="Disabled"
+	e[row].state="Disabled"
 end
-e[t].size=fs.filesize(a.size)
-e[t].remove=0
+e[row].size=fs.filesize(a.size)
+e[row].remove=0
 end
 end
 
@@ -200,78 +207,31 @@ sz=tb:option(DummyValue,"size",translate("Size"))
 st.template="openclash/cfg_check"
 sb.template="openclash/sub_info_show"
 
-btnis=tb:option(Button,"switch",translate("SwiTch"))
-btnis.render=function(o,t,a)
-	if not e[t] then return false end
-	if fs.IsYamlExt(e[t].name) then
-		a.display=""
-	else
-		a.display="none"
-	end
-	o.inputstyle="apply"
-	Button.render(o,t,a)
+local btnapply = tb:option(Button, "apply", translate("Actions"))
+btnapply.template = "openclash/config_actions"
+btnapply.render = function(self, section, scope)
+	if not e[section] then return end
+	scope = scope or {}
+	scope.config_name = e[section].name
+	scope.is_yaml = fs.IsYamlExt(e[section].name)
+	scope.has_running = NXFS.access("/etc/openclash/" .. e[section].name)
+	scope.config_script = not self.script_rendered
+	self.script_rendered = true
+	Button.render(self, section, scope)
 end
-btnis.write=function(a,t)
-	uci:set("openclash", "config", "config_path", "/etc/openclash/config/"..e[t].name)
-	uci:commit("openclash")
-	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "config"))
-end
-
-btned=tb:option(Button,"edit",translate("Edit"))
-btned.inputstyle="apply"
-btned.write=function(a,t)
-	local file_path = "/etc/openclash/config/" .. fs.basename(e[t].name)
-	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "other-file-edit", "config") .. "?file=" .. HTTP.urlencode(file_path))
-end
-
-btnrn=tb:option(DummyValue,"/etc/openclash/config/",translate("Rename"))
-btnrn.template="openclash/input_rename"
-btnrn.rawhtml = true
-btnrn.render=function(c,t,a)
-	if not e[t] then return end
-	c.value = e[t].name
-	DummyValue.render(c,t,a)
-end
-
-local actions = tb:option(ListValue, "actions", translate("Other"))
-actions.render = function(self, t, a)
-	if not e[t] then return end
-	self.keylist = {}
-	self.vallist = {}
-	-- Servers manage
-	table.insert(self.keylist, "servers_manage")
-	table.insert(self.vallist, translate("Servers Manage"))
-
-	-- Copy
-	if fs.IsYamlExt(e[t].name) then
-		table.insert(self.keylist, "copy")
-		table.insert(self.vallist, translate("Copy Config"))
-	end
-
-	-- Download
-	table.insert(self.keylist, "download")
-	table.insert(self.vallist, translate("Download Config"))
-
-	-- Download Running
-	if NXFS.access("/etc/openclash/"..e[t].name) then
-		table.insert(self.keylist, "download_run")
-		table.insert(self.vallist, translate("Download Running Config"))
-	end
-
-	-- Remove
-	table.insert(self.keylist, "remove")
-	table.insert(self.vallist, translate("Remove"))
-
-	ListValue.render(self, t, a)
-end
-
-local btnapply = tb:option(Button, "apply", translate("Apply"))
 btnapply.inputstyle = "apply"
 btnapply.write = function(self, t)
 	if not e[t] then return end
 	local action = self.map:formvalue("cbid." .. self.map.config .. "." .. t .. ".actions")
 
-	if action == "servers_manage" then
+	if action == "switch" and fs.IsYamlExt(e[t].name) then
+		uci:set("openclash", "config", "config_path", "/etc/openclash/config/" .. e[t].name)
+		uci:commit("openclash")
+		HTTP.redirect(DISP.build_url("admin", "services", "openclash", "config"))
+	elseif action == "edit" then
+		local file_path = "/etc/openclash/config/" .. fs.basename(e[t].name)
+		HTTP.redirect(DISP.build_url("admin", "services", "openclash", "other-file-edit", "config") .. "?file=" .. HTTP.urlencode(file_path))
+	elseif action == "servers_manage" then
 		local file_path = "/etc/openclash/config/" .. fs.basename(e[t].name)
 		HTTP.redirect(DISP.build_url("admin", "services", "openclash", "servers") .. "?file=" .. HTTP.urlencode(file_path))
 	elseif action == "copy" then
@@ -289,7 +249,7 @@ btnapply.write = function(self, t)
 		sPath = "/etc/openclash/config/"..e[t].name
 		sFile = NXFS.basename(sPath)
 		if fs.isdirectory(sPath) then
-			fd = io.popen('tar -C "%s" -cz .' % {sPath}, "r")
+			fd = io.popen('tar -C %s -cz .' % {UTIL.shellquote(sPath)}, "r")
 			sFile = sFile .. ".tar.gz"
 		else
 			fd = nixio.open(sPath, "r")
@@ -309,7 +269,7 @@ btnapply.write = function(self, t)
 		sPath = "/etc/openclash/"..e[t].name
 		sFile = NXFS.basename(sPath)
 		if fs.isdirectory(sPath) then
-			fd = io.popen('tar -C "%s" -cz .' % {sPath}, "r")
+			fd = io.popen('tar -C %s -cz .' % {UTIL.shellquote(sPath)}, "r")
 			sFile = sFile .. ".tar.gz"
 		else
 			fd = nixio.open(sPath, "r")
@@ -327,6 +287,7 @@ btnapply.write = function(self, t)
 	elseif action == "remove" then
 		local file_name = fs.basename(e[t].name)
 		fs.config_refs(file_name)
+		SYS.call("/etc/init.d/openclash reload cron >/dev/null 2>&1")
 		fs.unlink("/etc/openclash/history/"..fs.filename(e[t].name)..".db")
 		fs.unlink("/etc/openclash/"..file_name)
 		local a=fs.unlink("/etc/openclash/config/"..file_name)

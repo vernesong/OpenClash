@@ -22,6 +22,7 @@ ACL4SSR 规则 Online Full Netflix,ACL4SSR_Online_Full_Netflix.ini,https://raw.g
 ACL4SSR 规则 Online Full NoAuto,ACL4SSR_Online_Full_NoAuto.ini,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/config/ACL4SSR_Online_Full_NoAuto.ini
 ACL4SSR 规则 Online Mini,ACL4SSR_Online_Mini.ini,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/config/ACL4SSR_Online_Mini.ini
 ACL4SSR 规则 Online Mini AdblockPlus,ACL4SSR_Online_Mini_AdblockPlus.ini,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/config/ACL4SSR_Online_Mini_AdblockPlus.ini
+ACL4SSR 规则 Online Mini Ai,ACL4SSR_Online_Mini_Ai.ini,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/config/ACL4SSR_Online_Mini_Ai.ini
 ACL4SSR 规则 Online Mini Fallback,ACL4SSR_Online_Mini_Fallback.ini,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/config/ACL4SSR_Online_Mini_Fallback.ini
 ACL4SSR 规则 Online Mini MultiCountry,ACL4SSR_Online_Mini_MultiCountry.ini,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/config/ACL4SSR_Online_Mini_MultiCountry.ini
 ACL4SSR 规则 Online Mini MultiMode,ACL4SSR_Online_Mini_MultiMode.ini,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/config/ACL4SSR_Online_Mini_MultiMode.ini
@@ -32,7 +33,6 @@ ACL4SSR 规则 Online NoReject,ACL4SSR_Online_NoReject.ini,https://raw.githubuse
 ACL4SSR 规则 WithChinaIp,ACL4SSR_WithChinaIp.ini,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/config/ACL4SSR_WithChinaIp.ini
 ACL4SSR 规则 WithChinaIp WithGFW,ACL4SSR_WithChinaIp_WithGFW.ini,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/config/ACL4SSR_WithChinaIp_WithGFW.ini
 ACL4SSR 规则 WithGFW,ACL4SSR_WithGFW.ini,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/config/ACL4SSR_WithGFW.ini
-eHpo1 规则,ehpo1_main.ini,https://gist.githubusercontent.com/tindy2013/1fa08640a9088ac8652dbd40c5d2715b/raw/ehpo1_main.ini
 Aethersailor 规则 标准版 Custom_Clash,Custom_Clash.ini,https://raw.githubusercontent.com/Aethersailor/Custom_OpenClash_Rules/refs/heads/main/cfg/Custom_Clash.ini
 Aethersailor 规则 标准版 故障转移,Custom_Clash_Fallback.ini,https://raw.githubusercontent.com/Aethersailor/Custom_OpenClash_Rules/refs/heads/main/cfg/Custom_Clash_Fallback.ini
 Aethersailor 规则 轻量版 Custom_Clash_Lite,Custom_Clash_Lite.ini,https://raw.githubusercontent.com/Aethersailor/Custom_OpenClash_Rules/refs/heads/main/cfg/Custom_Clash_Lite.ini

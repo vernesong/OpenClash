@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 . /usr/share/openclash/openclash_ps.sh
 . /usr/share/openclash/log.sh
 . /usr/share/openclash/openclash_curl.sh
@@ -27,8 +27,8 @@ update_one() {
    local tmpfile="$3"
    local path="$4"
    local name="$5"
-   local min_size=10240
    local download_url=""
+   local required_rules=""
 
    local custom_url=$(uci_get_config "$custom_key")
 
@@ -42,7 +42,7 @@ update_one() {
       geoip)
          if [ -z "$custom_url" ]; then
             if [ "$github_address_mod" != "0" ]; then
-               if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
+               if [ "$github_address_mod" = "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" = "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" = "https://testingcf.jsdelivr.net/" ]; then
                   download_url="${github_address_mod}gh/Loyalsoldier/v2ray-rules-dat@release/geoip.dat"
                else
                   download_url="${github_address_mod}https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat"
@@ -57,7 +57,7 @@ update_one() {
       geosite)
          if [ -z "$custom_url" ]; then
             if [ "$github_address_mod" != "0" ]; then
-               if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
+               if [ "$github_address_mod" = "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" = "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" = "https://testingcf.jsdelivr.net/" ]; then
                   download_url="${github_address_mod}gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat"
                else
                   download_url="${github_address_mod}https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat"
@@ -72,7 +72,7 @@ update_one() {
       geoasn)
          if [ -z "$custom_url" ]; then
             if [ "$github_address_mod" != "0" ]; then
-               if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
+               if [ "$github_address_mod" = "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" = "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" = "https://testingcf.jsdelivr.net/" ]; then
                   download_url="${github_address_mod}gh/xishang0128/geoip@release/GeoLite2-ASN.mmdb"
                else
                   download_url="${github_address_mod}https://github.com/xishang0128/geoip/releases/latest/download/GeoLite2-ASN.mmdb"
@@ -87,7 +87,7 @@ update_one() {
       ipdb)
          if [ -z "$custom_url" ]; then
             if [ "$github_address_mod" != "0" ]; then
-               if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
+               if [ "$github_address_mod" = "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" = "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" = "https://testingcf.jsdelivr.net/" ]; then
                   download_url="${github_address_mod}gh/alecthw/mmdb_china_ip_list@release/lite/Country.mmdb"
                else
                   download_url="${github_address_mod}https://raw.githubusercontent.com/alecthw/mmdb_china_ip_list/release/lite/Country.mmdb"
@@ -104,6 +104,26 @@ update_one() {
          ;;
    esac
 
+   case "$type" in
+      geoip)
+         required_rules='CLOUDFLARE|CLOUDFRONT|FACEBOOK|TELEGRAM|TWITTER|NETFLIX|GOOGLE|PRIVATE'
+         ;;
+      geosite)
+         required_rules='CATEGORY-'
+         ;;
+      geoasn|ipdb)
+         required_rules='MaxMind.com'
+         ;;
+   esac
+
+   # Delete damaged local file, otherwise its update may be skipped by the ETag cache
+   if [ -f "$path" ]; then
+      if head -c 512 "$path" | grep -qiE "<!doctype|<html|<head|<body" || ! grep -qaE "$required_rules" "$path"; then
+         LOG_OUT "【$name】Local Database File Damaged, Delete And Re-Download..."
+         rm -rf "$path"
+      fi
+   fi
+
    LOG_OUT "【$name】Start Downloading Database..."
 
    DOWNLOAD_FILE_CURL "$download_url" "/tmp/$tmpfile" "$path"
@@ -112,8 +132,8 @@ update_one() {
       if head -c 512 "/tmp/$tmpfile" | grep -qiE "<!doctype|<html|<head|<body"; then
          LOG_OUT "【$name】Download Failed: HTML Response Detected, Abort Update..."
          rm -rf "/tmp/$tmpfile"
-      elif [ $(du -b "/tmp/$tmpfile" 2>/dev/null | awk '{print $1}' || echo "$min_size") -lt "$min_size" ]; then
-         LOG_OUT "【$name】Download Failed: File Size Too Small, Abort Update..."
+      elif ! grep -qaE "$required_rules" "/tmp/$tmpfile"; then
+         LOG_OUT "【$name】Download Failed: Database Content Invalid, Abort Update..."
          rm -rf "/tmp/$tmpfile"
       else
          LOG_OUT "【$name】Download Success, Check Updated..."

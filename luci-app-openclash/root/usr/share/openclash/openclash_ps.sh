@@ -48,6 +48,7 @@ inc_job_counter() {
 
 dec_job_counter_and_restart() {
    local restart_flag="$1"
+   local suppress_restart="${2:-0}"
    exec 999>"/tmp/lock/openclash_jobs.lock"
    flock -x 999
    local cnt=0
@@ -62,7 +63,7 @@ dec_job_counter_and_restart() {
 
    echo "$cnt $restart" > "$JOB_COUNTER_FILE"
 
-   if [ $cnt -eq 0 ] && [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
+   if [ "$suppress_restart" != "1" ] && [ $cnt -eq 0 ] && [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
       /etc/init.d/openclash restart >/dev/null 2>&1 &
       rm -rf "$JOB_COUNTER_FILE" >/dev/null 2>&1
    fi

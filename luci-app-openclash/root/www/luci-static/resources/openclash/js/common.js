@@ -43,6 +43,114 @@ function ocRequireCM6(cb) {
     document.head.appendChild(s);
 }
 
+// Chart.js loader shared by stats, access-control sparklines and the config dialogs:
+// concurrent callers share one script tag, callbacks get true/false, failure stays retryable
+function ocRequireChart(cb) {
+    if (typeof Chart !== 'undefined') { if (cb) cb(true); return; }
+    if (window.ocChartLoadState === 1) {
+        if (cb) window.ocChartWaiters.push(cb);
+        return;
+    }
+    window.ocChartLoadState = 1;
+    window.ocChartWaiters = cb ? [cb] : [];
+    var url = window.ocChartUrl || ('/luci-static/resources/openclash/js/chart.umd.min.js?v=' + (window.ocPluginVer || ''));
+    ocRequireScript(url, function() {
+        var ok = typeof Chart !== 'undefined';
+        window.ocChartLoadState = 0;
+        var waiters = window.ocChartWaiters || [];
+        window.ocChartWaiters = [];
+        for (var i = 0; i < waiters.length; i++) {
+            try { waiters[i](ok); } catch (e) {}
+        }
+    });
+}
+
+// YAML extension stack shared by the editor factory and the merge editor; callers append
+// their own read-only/update compartments after these.
+function ocYamlEditorExtensions(isDark) {
+    var exts = [CM6.baseExtensions(), CM6.themeExtension(isDark), CM6.placeholderExtension('<%:Enter YAML configuration...%>')];
+    var topSearch = (CM6 && CM6.topSearchExtension) ? CM6.topSearchExtension() : null;
+    if (topSearch) exts.push(topSearch);
+    exts.push(CM6.yaml());
+    exts.push(CM6.yamlLinter());
+    exts.push(CM6.lintGutter());
+    exts.push(CM6.autocompletion({ override: [CM6.mihomoCompletion] }));
+    exts.push(CM6.indentUnit.of('  '));
+    exts.push(CM6.indentMarkerExtension());
+    return exts;
+}
+
+// Drops stream markers, the leading log timestamp and blank lines (both log viewers).
+function ocCleanLogLines(text) {
+    var lines = String(text || '').split('\n');
+    var all = [];
+    for (var i = 0; i < lines.length; i++) {
+        var t = lines[i].replace(/##FINISHED##|##CONTINUE##|##FINISH##/g, '').trim().replace(/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\s*/, '');
+        if (t) all.push(t);
+    }
+    return all;
+}
+
+// Key/value editor row shared by the subscribe headers and the overwrite parameters.
+function ocKeyValueRow(container, opts) {
+    opts = opts || {};
+    var row = document.createElement('div');
+    row.className = 'form-row ' + (opts.rowClass || '');
+    row.style.cssText = 'align-items: center; gap: 6px; margin-bottom: 6px;';
+
+    var keyInput = document.createElement('input');
+    keyInput.type = 'text';
+    keyInput.className = 'form-input';
+    keyInput.placeholder = opts.keyPlaceholder || '';
+    keyInput.value = opts.key || '';
+    keyInput.style.cssText = 'flex: 1; height: 32px;';
+
+    var valueInput = document.createElement('input');
+    valueInput.type = 'text';
+    valueInput.className = 'form-input';
+    valueInput.placeholder = opts.valuePlaceholder || '';
+    valueInput.value = opts.value || '';
+    valueInput.style.cssText = 'flex: 1.5; height: 32px;';
+
+    var removeBtn = ocIconButton('close', '<%:Remove%>', function() {
+        row.parentNode.removeChild(row);
+        if (container.children.length === 0) container.classList.add('oc-hidden');
+        if (opts.onRemove) opts.onRemove(row);
+    });
+    removeBtn.style.cssText = 'flex-shrink: 0;';
+
+    row.appendChild(keyInput);
+    row.appendChild(valueInput);
+    row.appendChild(removeBtn);
+    container.appendChild(row);
+    container.classList.remove('oc-hidden');
+    return row;
+}
+
+// The sprite reference and the 14px size are the component contract: keep them in one place so
+// icon-only buttons built in JS match the ones written in templates.
+function ocIconSvg(icon) {
+    return '<svg width="14" height="14"><use href="#oc-icon-' + icon + '"/></svg>';
+}
+
+function ocIconButton(icon, title, onClick) {
+    var btn = document.createElement('button');
+    btn.className = 'icon-btn';
+    btn.type = 'button';
+    btn.title = title;
+    btn.innerHTML = ocIconSvg(icon);
+    if (onClick) btn.onclick = onClick;
+    return btn;
+}
+
+function ocIconButtonHtml(icon, title, attrs) {
+    return '<button type="button" class="icon-btn"' + (attrs ? ' ' + attrs : '') + ' title="' + title + '">' + ocIconSvg(icon) + '</button>';
+}
+
+function ocAddRowButtonHtml(id, label) {
+    return '<button type="button" id="' + id + '" class="add-row-btn"><svg><use href="#oc-icon-add"/></svg><span>' + label + '</span></button>';
+}
+
 function luminanceFromColor(color) {
     var r, g, b;
 
@@ -373,20 +481,6 @@ function imgerrorfuns(imgobj, imgSrc) {
         imgobj.src = imgSrc;
         imgobj.loading = "lazy";
     }, 1000 * 10);
-}
-
-function ocMaxScroll(element) {
-    var computed = window.getComputedStyle(element);
-    var contentHeight = (parseFloat(computed.paddingTop) || 0) + (parseFloat(computed.paddingBottom) || 0);
-    var children = element.children;
-    for (var i = 0; i < children.length; i++) {
-        contentHeight += children[i].offsetHeight || 0;
-    }
-    var rowGap = parseFloat(computed.rowGap) || 0;
-    if (rowGap && children.length > 1) {
-        contentHeight += rowGap * (children.length - 1);
-    }
-    return Math.max(0, contentHeight - element.clientHeight);
 }
 
 // Scroll to the bottom, centring the last line (upstream behaviour). A new call cancels the
@@ -860,6 +954,44 @@ function ocWrapCbiActions() {
     }
 }
 
+// The add/remove tables are built as map-level CBI sections (tabs cannot hold a section),
+// so they render below every tab; move each into the tab it belongs to. CBI keeps the
+// active tab across add/remove/sort submits, so nothing else is needed to stay on it.
+var ocTabSections = [
+    ['lan_ac_traffic', 'lan_ac'],
+    ['dns_servers', 'dns'],
+    ['authentication', 'settings']
+];
+
+function ocMoveTabSections() {
+    for (var i = 0; i < ocTabSections.length; i++) {
+        var sec = document.getElementById('cbi-openclash-' + ocTabSections[i][0]);
+        if (!sec || !sec.parentNode) continue;
+        var scope = sec.closest('.cbi-map') || document;
+        var tab = ocTabSections[i][1];
+        var pane = document.getElementById('container.openclash.config.' + tab)
+            || scope.querySelector('.cbi-tabcontainer[data-tab="' + tab + '"]');
+        if (!pane || sec.parentNode === pane) continue;
+        pane.appendChild(sec);
+        // a pane whose only content was hidden options is dropped from the tab menu
+        var item = scope.querySelector('.cbi-tabmenu li[data-tab="' + tab + '"]');
+        if (item && item.style.display === 'none') item.style.display = '';
+    }
+}
+
+function ocInitTabSections() {
+    // other pages keep the stock behaviour: no DOM moves
+    var found = false;
+    for (var i = 0; i < ocTabSections.length; i++) {
+        if (document.getElementById('cbi-openclash-' + ocTabSections[i][0])) { found = true; break; }
+    }
+    if (!found) return;
+
+    ocMoveTabSections();
+    // CBI builds the tab menu after this script runs, so repeat once it is in place
+    setTimeout(ocMoveTabSections, 0);
+}
+
 var ocLoadingMap = typeof WeakMap !== 'undefined' ? new WeakMap() : (function(){
     var m = {};
     return {
@@ -957,6 +1089,205 @@ function ocRequireScript(url, cb) {
         }
     };
     document.head.appendChild(s);
+}
+
+// The theme wraps page content in a z-index stacking context, so every fixed overlay rendered
+// inside it stays below the sidebar; re-host them directly under body (same host the AC dialogs use).
+// Re-portalizing always moves the node to the end: equal z-index means the dialog opened last wins.
+function ocPortalize(target) {
+    var host = document.getElementById('oc-portal');
+    if (!host) {
+        host = document.createElement('div');
+        host.id = 'oc-portal';
+        host.className = 'oc';
+        document.body.appendChild(host);
+    }
+    var list = target ? [target] : document.querySelectorAll('.config-upload-model-overlay, .select-popup:not(.select-popup-tab)');
+    for (var i = 0; i < list.length; i++) {
+        if (list[i]) host.appendChild(list[i]);
+    }
+    return host;
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { ocPortalize(); });
+} else {
+    ocPortalize();
+}
+
+// Helpers shared by the config upload dialog and the overwrite module wizard.
+
+function ocFormatSize(bytes) {
+    var value = parseFloat(bytes);
+    if (isNaN(value) || value < 0) return '—';
+    var units = ['B', 'KB', 'MB', 'GB'];
+    var i = 0;
+    while (value >= 1024 && i < units.length - 1) {
+        value = value / 1024;
+        i++;
+    }
+    return (i === 0 ? String(Math.round(value)) : value.toFixed(1)) + ' ' + units[i];
+}
+
+// Single http(s) link: no whitespace and no "|" (multiple subscription links are joined with it).
+function ocIsHttpUrl(url) {
+    return /^https?:\/\/[^ \n|]+$/.test(String(url || '').trim());
+}
+
+// ocIsHttpUrl plus a dotted hostname, so half-typed hosts like "https://exa" do not pass.
+function ocIsCompleteHttpUrl(url) {
+    var value = String(url || '').trim();
+    if (!ocIsHttpUrl(value)) return false;
+    var host = value.slice(value.indexOf('//') + 2).split(/[/?#]/)[0];
+    return host.indexOf('.') > 0;
+}
+
+// Wires a .upload-zone: click opens the picker, drag&drop selects, both hand the file to onSelect.
+// canPick blocks picking while busy or on the other tab and also gates the dragover highlight.
+function ocBindUploadZone(zone, input, options) {
+    if (!zone || !input) return;
+    var opts = options || {};
+    function canPick() {
+        return !opts.canPick || opts.canPick();
+    }
+    function pick(file) {
+        if (opts.onSelect) opts.onSelect(file);
+    }
+    zone.addEventListener('click', function() {
+        if (canPick()) input.click();
+    });
+    input.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) pick(e.target.files[0]);
+    });
+    zone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        if (canPick()) zone.classList.add('dragover');
+    });
+    zone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        zone.classList.remove('dragover');
+    });
+    zone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        zone.classList.remove('dragover');
+        if (canPick() && e.dataTransfer && e.dataTransfer.files.length > 0) pick(e.dataTransfer.files[0]);
+    });
+}
+
+// Shows the chosen file on a .upload-zone or resets it to the idle state; opts.empty is the
+// idle secondary text (the zone itself is styled per source kind).
+function ocSetUploadZoneFile(zone, file, opts) {
+    if (!zone) return;
+    var options = opts || {};
+    var primary = zone.querySelector('.upload-primary');
+    var secondary = zone.querySelector('.upload-secondary');
+    if (file) {
+        zone.classList.add('has-file');
+        if (primary) primary.textContent = '<%:File selected:%> ' + file.name;
+        if (secondary) secondary.textContent = '<%:Size:%> ' + ocFormatSize(file.size);
+    } else {
+        zone.classList.remove('has-file');
+        if (primary) primary.textContent = options.pick || '<%:Click to select file or drag and drop%>';
+        if (secondary && options.empty) secondary.textContent = options.empty;
+    }
+}
+
+function ocCreateProgressBar(container, fill, text) {
+    var timer = null;
+    var value = 0;
+    function stop() {
+        if (timer) {
+            clearInterval(timer);
+            timer = null;
+        }
+    }
+    function render(label, percent) {
+        if (fill) fill.style.width = percent + '%';
+        if (text) text.textContent = label + ' ' + percent + '%';
+    }
+    return {
+        start: function(label) {
+            stop();
+            value = 0;
+            if (container) container.classList.remove('oc-hidden');
+            render(label, 0);
+            timer = setInterval(function() {
+                if (value < 90) {
+                    value += Math.random() * 15;
+                    render(label, Math.floor(Math.min(value, 90)));
+                }
+            }, 100);
+        },
+        done: function(label) {
+            stop();
+            render(label, 100);
+        },
+        fail: function(label) {
+            stop();
+            render(label, 0);
+        },
+        set: function(label, percent) {
+            stop();
+            value = Math.max(0, Math.min(100, percent));
+            render(label, Math.floor(value));
+        },
+        bytes: function(label, received) {
+            if (text) text.textContent = label + ' ' + ocFormatSize(received);
+        },
+        hide: function() {
+            stop();
+            if (container) container.classList.add('oc-hidden');
+            if (fill) fill.style.width = '0%';
+        }
+    };
+}
+
+// Posts a form and reads the NDJSON reply: progress lines feed onProgress, the first other
+// object resolves the promise (a plain JSON reply resolves the same way).
+function ocPostNdjson(url, formData, onProgress) {
+    return new Promise(function(resolve) {
+        var req = new XMLHttpRequest();
+        var settled = false;
+        var processed = 0;
+        var pending = '';
+        function finish(data) {
+            if (settled) return;
+            settled = true;
+            resolve(data);
+        }
+        function consume(flush) {
+            var text = req.responseText || '';
+            if (text.length < processed) {
+                processed = 0;
+                pending = '';
+            }
+            pending += text.substring(processed);
+            processed = text.length;
+            var parts = pending.split('\n');
+            pending = flush ? '' : (parts.pop() || '');
+            for (var i = 0; i < parts.length; i++) {
+                var line = parts[i].trim();
+                if (line.charAt(0) !== '{') continue;
+                var data;
+                try {
+                    data = JSON.parse(line);
+                } catch (e) {
+                    continue;
+                }
+                if (data.type === 'progress') {
+                    if (onProgress) onProgress(data.received || 0, data.total || 0);
+                } else {
+                    finish(data);
+                }
+            }
+        }
+        req.open('POST', url, true);
+        req.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        req.onprogress = function() { consume(false); };
+        req.onload = function() { consume(true); finish(null); };
+        req.onerror = function() { finish(null); };
+        req.send(formData);
+    });
 }
 
 // Contract: never-visible containers are never created and repeated queue
@@ -1076,7 +1407,7 @@ function ocLazyScriptOnView(el, url, cssUrl) {
 // it is still running). A watch stream that ended without ##FINISHED## reconnects
 // after a second; the lines that were already shown are skipped by counting them
 // in skipLines / onSkipLines.
-// opts: { url, script, initialMessage, skipLines, onSkipLines, maxWaitMs,
+// opts: { url, script, probe, initialMessage, skipLines, onSkipLines, maxWaitMs,
 //         display(text), onFinish(), onTimeout() }
 function ocCreateLogStream(opts) {
     var xhr = null;
@@ -1084,9 +1415,14 @@ function ocCreateLogStream(opts) {
     var maxWaitTimer = null;
     var stopped = false;
     var initialShown = false;
+    // when ##FINISHED## arrived: the watches notice the exit seconds later, the elapsed clocks must stop at it
+    var endStamp = 0;
     var lastLineCount = opts.skipLines != null ? opts.skipLines : null;
     var watchMode = !!opts.script && opts.script !== 'view';
-    var streamUrl = opts.url + (watchMode ? '?script=' + encodeURIComponent(opts.script) : '');
+    var params = [];
+    if (watchMode) params.push('script=' + encodeURIComponent(opts.script));
+    if (opts.probe) params.push('probe=1');
+    var streamUrl = opts.url + (params.length ? '?' + params.join('&') : '');
 
     function openStream() {
         if (stopped) return;
@@ -1148,6 +1484,7 @@ function ocCreateLogStream(opts) {
 
         function scheduleFinish() {
             if (finishTimer) return;
+            if (!endStamp) endStamp = Date.now();
             finishTimer = setTimeout(function() {
                 streamEnded = true;
                 if (xhr !== req) return;
@@ -1221,7 +1558,8 @@ function ocCreateLogStream(opts) {
             openStream();
         },
         abort: abort,
-        isRunning: function() { return !!xhr; }
+        isRunning: function() { return !!xhr; },
+        endTime: function() { return endStamp; }
     };
 }
 
@@ -1262,6 +1600,24 @@ function ocFallbackCopy(text, btnElement, failMessage) {
     } else if (failMessage) {
         prompt(failMessage, text);
     }
+}
+
+// Saves a blob through a throwaway anchor; callers that hand the browser a large file
+// pass revokeDelayMs so the URL outlives the click.
+function ocDownloadBlob(blob, filename, revokeDelayMs) {
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    if (revokeDelayMs) {
+        setTimeout(function() { URL.revokeObjectURL(url); }, revokeDelayMs);
+        return;
+    }
+    URL.revokeObjectURL(url);
 }
 
 function ocSetBtnLoading(btn, loading) {
@@ -1465,3 +1821,9 @@ function ocConfirm(options) {
 }
 
 ocInitTheme();
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', ocInitTabSections);
+} else {
+    ocInitTabSections();
+}

@@ -54,7 +54,7 @@
     border: 1px solid var(--border-light, #e2e8f0);
     border-radius: 8px;
     cursor: pointer;
-    transition: all .18s;
+    transition: var(--transition-ui);
     margin: 0;
     user-select: none;
     position: relative;
@@ -187,7 +187,7 @@
     border: 1px solid var(--border-light, #e2e8f0);
     border-radius: 4px;
     cursor: pointer;
-    transition: all .2s;
+    transition: var(--transition-ui);
     font-weight: 500;
     min-width: 60px;
     user-select: none;
@@ -394,7 +394,7 @@ html[data-darkmode=true] .oc .radio-button input[type=radio]:checked + label {
     background: rgba(0,0,0,0.06);
     color: var(--text-secondary, #6b7280);
     cursor: pointer;
-    transition: opacity 0.15s;
+    transition: opacity 160ms;
     z-index: 5;
     -webkit-tap-highlight-color: transparent;
     opacity: 1;

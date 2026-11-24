@@ -1,0 +1,55 @@
+#!NAME = BT_PT_Download
+#!DESC = BT/PT downloads: redir-host mode, only proxy common ports, keep trackers and peers direct
+#!ENV = PT_SITE=your-pt-site.invalid
+
+[General]
+EN_MODE = redir-host
+COMMON_PORTS = 21 22 23 53 80 123 143 194 443 465 587 853 993 995 998 2052 2053 2082 2083 2086 2095 2096 2197 5222 5223 5228 5229 5230 8080 8443 8880 8888 8889
+
+[YAML]
++rules:
+  - GEOSITE,category-public-tracker,DIRECT
+  - GEOSITE,category-pt,DIRECT
+  # public trackers announcing on 80/443 that GeoSite does not list yet, exact host names
+  - DOMAIN,004430.xyz,DIRECT
+  - DOMAIN,1.tracker.eu.org,DIRECT
+  - DOMAIN,gargoyleperch.de,DIRECT
+  - DOMAIN,ht.therarbg.to,DIRECT
+  - DOMAIN,open.ftorrent.com,DIRECT
+  - DOMAIN,tr.abiir.top,DIRECT
+  - DOMAIN,tracker.7471.top,DIRECT
+  - DOMAIN,tracker.kuroy.me,DIRECT
+  - DOMAIN,tracker.midnightprogrammer.net,DIRECT
+  - DOMAIN,tracker.nekomi.cn,DIRECT
+  - DOMAIN,tracker.openwebtorrent.com,DIRECT
+  - DOMAIN,tracker.qingwapt.org,DIRECT
+  - DOMAIN,tracker.torrents.observer,DIRECT
+  - DOMAIN,tracker.xn--djrq4gl4hvoi.top,DIRECT
+  - DOMAIN,tracker.yume-hatsuyuki.moe,DIRECT
+  - DOMAIN,tracker.zhuqiy.dgj055.icu,DIRECT
+  - DOMAIN,www.wareztorrent.com,DIRECT
+  # private trackers missing from category-pt: PT_SITE takes one bare domain (no scheme, no
+  # comma) and extra sites need one more line each; the .invalid default keeps the rule valid
+  - DOMAIN-SUFFIX,${PT_SITE:-your-pt-site.invalid},DIRECT
+  # DHT bootstrap routers, one lookup per start, so they are easy to miss
+  - DOMAIN-SUFFIX,dht.libtorrent.org,DIRECT
+  - DOMAIN-SUFFIX,dht.transmissionbt.com,DIRECT
+  - DOMAIN-SUFFIX,router.bittorrent.com,DIRECT
+  - DOMAIN-SUFFIX,router.utorrent.com,DIRECT
+  - DOMAIN-SUFFIX,router.bt.ouinet.work,DIRECT
+  - DOMAIN-SUFFIX,dht.aelitis.com,DIRECT
+  # downloaders running on the router itself, LAN clients never match a process name
+  - PROCESS-NAME,transmission-daemon,DIRECT
+  - PROCESS-NAME,qbittorrent-nox,DIRECT
+  - PROCESS-NAME,aria2c,DIRECT
+  - PROCESS-NAME,deluged,DIRECT
+  - PROCESS-NAME,rtorrent,DIRECT
+
+rules*:
+  where:
+    value: '/^(MATCH|FINAL)(,|$)/'
+  set:
+    value:
+
+rules+:
+  - MATCH,DIRECT

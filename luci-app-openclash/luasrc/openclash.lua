@@ -29,17 +29,15 @@ local os    = require "os"
 local ltn12 = require "luci.ltn12"
 local fs	= require "nixio.fs"
 local nutil = require "nixio.util"
--- The section types used to be written with a hyphen, convert the stored package once.
-do
-	local sys = require "luci.sys"
-	if sys.call("grep -q '^config proxy-groups\\|^config proxy-providers' /etc/config/openclash /tmp/.uci/openclash 2>/dev/null") == 0 then
-		sys.call("sed -i 's/^config proxy-groups/config proxy_groups/;s/^config proxy-providers/config proxy_providers/' /etc/config/openclash /tmp/.uci/openclash 2>/dev/null")
-	end
-end
 
 local uci = require "luci.model.uci".cursor()
-local dynamic_uci = require "luci.model.uci".cursor()
 local SYS  = require "luci.sys"
+-- The section types used to be written with a hyphen, convert the stored package once.
+do
+	if SYS.call("grep -q '^config proxy-groups\\|^config proxy-providers' /etc/config/openclash /tmp/.uci/openclash 2>/dev/null") == 0 then
+		SYS.call("sed -i 's/^config proxy-groups/config proxy_groups/;s/^config proxy-providers/config proxy_providers/' /etc/config/openclash /tmp/.uci/openclash 2>/dev/null")
+	end
+end
 local HTTP = require "luci.http"
 local json = require "luci.jsonc"
 local UTIL = require "luci.util"
@@ -47,10 +45,12 @@ local i18n = require "luci.i18n"
 
 local type  = type
 local string  = string
+local tonumber = tonumber
 local tostring = tostring
 local table = table
 local math = math
 local pcall = pcall
+local ipairs = ipairs
 local b64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 
 --- LuCI filesystem library.
@@ -204,6 +204,22 @@ function dir(...)
 	end
 end
 
+--- Entry names of the given directory, sorted case-insensitively and never nil.
+--- glob() returns nil for an empty directory, which broke callers that iterated the
+--- result with ipairs; hidden entries (leading dot) are skipped like a shell glob.
+--- @param path String containing the path of the directory to scan
+--- @return Table containing the entry names
+function listdir(path)
+	local names = {}
+	for _, name in ipairs(dir(path) or {}) do
+		if name:sub(1, 1) ~= "." then
+			names[#names + 1] = name
+		end
+	end
+	table.sort(names, function(a, b) return string.lower(a) < string.lower(b) end)
+	return names
+end
+
 --- Create a new directory, recursively on demand.
 -- @param path		String with the name or path of the directory to create
 -- @param recursive	Create multiple directory levels (optional, default is true)
@@ -302,6 +318,16 @@ function filename(str)
 	end
 end
 
+--- Every name a directory entry may use is accepted, so configs created by older versions
+--- or by the shell stay usable; only path separators, control bytes (they break crontab
+--- lines and shell arguments) and hidden names (leading dot, never listed) are rejected.
+function is_safe_filename(name)
+	if type(name) ~= "string" or name == "" or #name > 255 or name:sub(1, 1) == "." then
+		return false
+	end
+	return name:find("[/%z\1-\31\127]") == nil
+end
+
 function filesize(e)
 	local t=0
 	local a={' KB',' MB',' GB',' TB',' PB'}
@@ -324,7 +350,7 @@ function lanip(loopback)
 	if lan_int_name == "0" then
 		lan_ip = SYS.exec("uci -q get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n'")
 	else
-		lan_ip = SYS.exec(string.format("ip address show %s 2>/dev/null | grep -w 'inet' 2>/dev/null | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -1 | tr -d '\n'", lan_int_name))
+		lan_ip = SYS.exec(string.format("ip address show %s 2>/dev/null | grep -w 'inet' 2>/dev/null | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -1 | tr -d '\n'", UTIL.shellquote(lan_int_name)))
 	end
 	if not lan_ip or lan_ip == "" then
 		lan_ip = SYS.exec("ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w 'inet'  2>/dev/null | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -1 | tr -d '\n'")
@@ -370,7 +396,7 @@ function get_resourse_mtime(path)
 		end
 	end
 	local file = fs.readlink(real_path) or real_path
-	local resourse_etag_version = SYS.exec(string.format("source /usr/share/openclash/openclash_etag.sh && GET_ETAG_TIMESTAMP_BY_PATH '%s'", file))
+	local resourse_etag_version = SYS.exec(string.format("source /usr/share/openclash/openclash_etag.sh && GET_ETAG_TIMESTAMP_BY_PATH %s", UTIL.shellquote(file)))
 	if resourse_etag_version and resourse_etag_version ~= "" then
 		return resourse_etag_version
 	end
@@ -390,6 +416,102 @@ function uci_get_config(section, key)
 		val = uci:get("openclash", section, key)
 	end
 	return val
+end
+
+--- Runs an account command of the core. The request goes over stdin, which keeps its
+-- contents out of the process list; the reply is one JSON object.
+-- @param command	Command name
+-- @param request	Table with the request fields
+-- @return			Decoded reply, or nil when the core gave none
+function oix_cli(command, request)
+	local core = "/etc/openclash/core/clash_meta"
+	if uci_get_config("config", "small_flash_memory") == "1" then
+		core = "/tmp/etc/openclash/core/clash_meta"
+	end
+	if not fs.access(core) then
+		return nil
+	end
+	-- A core without the oix dispatcher treats the subcommand as a config path and
+	-- starts a server, so the version has to be checked before anything is run.
+	if not string.find(SYS.exec(UTIL.shellquote(core) .. " -v 2>/dev/null") or "", "oix", 1, true) then
+		return nil
+	end
+	local temporary = (SYS.exec("mktemp /tmp/.oix_cli.XXXXXX 2>/dev/null") or ""):match("^(%S+)")
+	if not temporary then
+		return nil
+	end
+	request = request or {}
+	-- Only an already running local core may supply the fallback route.
+	if SYS.call("pidof clash >/dev/null 2>&1") == 0 then
+		local port = tonumber(uci_get_config("config", "mixed_port") or "7893")
+		if port and port > 0 and port <= 65535 and port == math.floor(port) then
+			local credentials = ""
+			uci:foreach("openclash", "authentication", function(section)
+				if (section.enabled == nil or section.enabled == "1") and section.username and section.username ~= ""
+					and section.password and section.password ~= "" then
+					credentials = HTTP.urlencode(section.username) .. ":" .. HTTP.urlencode(section.password) .. "@"
+					return false
+				end
+			end)
+			request.proxy = "http://" .. credentials .. "127.0.0.1:" .. port
+		end
+	end
+	local payload = json.stringify(request)
+	if payload == "[]" then
+		payload = "{}"
+	end
+	local out
+	if fs.writefile(temporary, payload) then
+		out = SYS.exec(string.format("OIX_CLIENT=openclash CLASH_HOME_DIR=/etc/openclash %s oix %s < %s 2>/dev/null",
+			UTIL.shellquote(core), command, UTIL.shellquote(temporary)))
+	end
+	fs.remove(temporary)
+	local ok, reply = pcall(json.parse, out or "")
+	if not ok or type(reply) ~= "table" then
+		return nil
+	end
+	if reply.code == "usage" then
+		return nil
+	end
+	return reply
+end
+
+--- Appends one line to the plugin log without going through a shell.
+function append_log(line, path)
+	local file = io.open(path or "/tmp/openclash.log", "a")
+	if file then
+		file:write((tostring(line):gsub("%c", " ")), "\n")
+		file:close()
+	end
+end
+
+--- A curl command for the core's controller.
+function core_api_command(timing, method, secret, host, port, path, body)
+	return string.format("curl -sL %s -H 'Content-Type: application/json' -H %s -X%s %s -d %s", timing,
+		UTIL.shellquote("Authorization: Bearer " .. tostring(secret or "")), method,
+		UTIL.shellquote("http://" .. tostring(host) .. ":" .. tostring(port) .. path), UTIL.shellquote(body))
+end
+
+--- Files rebuilt at the next start, and what an interrupted write of them left behind.
+-- Archives store member names with "./", and BusyBox matches the whole name.
+local function rebuilt_files(extra)
+	local patterns = {}
+	for _, name in ipairs({".oix_age_key*", "..oix_age_key*", ".oix_device_id*", "..oix_device_id*",
+		"proxy_provider/oixCloud", "proxy_provider/.oixCloud.tmp-*"}) do
+		patterns[#patterns + 1] = UTIL.shellquote(name)
+		patterns[#patterns + 1] = UTIL.shellquote("./" .. name)
+	end
+	if extra then
+		patterns[#patterns + 1] = UTIL.shellquote(extra)
+	end
+	return table.concat(patterns, " ")
+end
+
+--- Writes an archive of the plugin directory to stdout, without the rebuilt files.
+function backup_command(target, extra)
+	local root, list = "/etc/openclash/", "/tmp/oc_exclude.txt"
+	return string.format("printf '%%s\\n' %s > %s && exec tar -C %s -X %s -cz %s 2>/dev/null",
+		rebuilt_files(extra), UTIL.shellquote(list), UTIL.shellquote(root), UTIL.shellquote(list), target)
 end
 
 function get_file_path_from_request()
@@ -413,8 +535,10 @@ function get_file_path_from_request()
 end
 
 function restore_backup(archive)
+	local root, config_path = "/etc/openclash/", "/etc/config/openclash"
 	local quoted = UTIL.shellquote(archive)
 	local listfile = "/tmp/oc_restore.list"
+	local excludefile = "/tmp/oc_restore.exclude"
 	-- list the archive before touching /etc/openclash: a broken upload used to report
 	-- success because every tar/mv error was discarded, and members with absolute or
 	-- parent-relative paths must not be extracted
@@ -424,11 +548,12 @@ function restore_backup(archive)
 	local unsafe = SYS.call("grep -qE '(^|/)\\.\\./|^/' " .. listfile) == 0
 	local restored = false
 	if tarok and has_members and has_config and not unsafe then
-		if SYS.call("tar -C '/etc/openclash/' -xzf " .. quoted .. " >/dev/null 2>&1") == 0 then
-			restored = SYS.call("mv -f /etc/openclash/openclash /etc/config/openclash >/dev/null 2>&1") == 0
+		SYS.call(string.format("printf '%%s\\n' %s > %s", rebuilt_files(), excludefile))
+		if SYS.call(string.format("tar -C %s -X %s -xzf %s >/dev/null 2>&1", UTIL.shellquote(root), excludefile, quoted)) == 0 then
+			restored = SYS.call(string.format("mv -f %s %s >/dev/null 2>&1", UTIL.shellquote(root .. "openclash"), UTIL.shellquote(config_path))) == 0
 		end
 	end
-	SYS.call("rm -f " .. listfile)
+	SYS.call("rm -f " .. listfile .. " " .. excludefile)
 	return restored
 end
 
@@ -459,7 +584,7 @@ function age_encrypt(public, content)
 
 	local cmd = string.format(
 		"/etc/openclash/core/clash_meta age encrypt %s %s %s 2>/dev/null",
-		public, tmp_in, tmp_out
+		UTIL.shellquote(public), UTIL.shellquote(tmp_in), UTIL.shellquote(tmp_out)
 	)
 	os.execute(cmd)
 
@@ -488,7 +613,7 @@ function age_decrypt(secret, content)
 
 	local cmd = string.format(
 		"/etc/openclash/core/clash_meta age decrypt %s %s %s 2>/dev/null",
-		secret, tmp_in, tmp_out
+		UTIL.shellquote(secret), UTIL.shellquote(tmp_in), UTIL.shellquote(tmp_out)
 	)
 	os.execute(cmd)
 
@@ -558,7 +683,6 @@ function config_refs(old_file_name, new_file_name)
 				else
 					uci:delete("openclash", s[".name"])
 				end
-				return false
 			end
 		end
 	)
@@ -571,42 +695,41 @@ function config_refs(old_file_name, new_file_name)
 				else
 					uci:delete("openclash", s[".name"])
 				end
-				return false
 			end
 		end
 	)
 
-	dynamic_uci:foreach("openclash", "proxy_groups",
+	uci:foreach("openclash", "proxy_groups",
 		function(s)
 			if s.config == old_file_full then
 				if is_rename and new_name_no_ext ~= new_file_name then
-					dynamic_uci:set("openclash", s[".name"], "config", new_file_full)
+					uci:set("openclash", s[".name"], "config", new_file_full)
 				else
-					dynamic_uci:delete("openclash", s[".name"])
+					uci:delete("openclash", s[".name"])
 				end
 			end
 		end
 	)
 
-	dynamic_uci:foreach("openclash", "proxy_providers",
+	uci:foreach("openclash", "proxy_providers",
 		function(s)
 			if s.config == old_file_full then
 				if is_rename and new_name_no_ext ~= new_file_name then
-					dynamic_uci:set("openclash", s[".name"], "config", new_file_full)
+					uci:set("openclash", s[".name"], "config", new_file_full)
 				else
-					dynamic_uci:delete("openclash", s[".name"])
+					uci:delete("openclash", s[".name"])
 				end
 			end
 		end
 	)
 
-	dynamic_uci:foreach("openclash", "proxies",
+	uci:foreach("openclash", "proxies",
 		function(s)
 			if s.config == old_file_full then
 				if is_rename and new_name_no_ext ~= new_file_name then
-					dynamic_uci:set("openclash", s[".name"], "config", new_file_full)
+					uci:set("openclash", s[".name"], "config", new_file_full)
 				else
-					dynamic_uci:delete("openclash", s[".name"])
+					uci:delete("openclash", s[".name"])
 				end
 			end
 		end
@@ -620,13 +743,46 @@ function config_refs(old_file_name, new_file_name)
 				else
 					uci:delete("openclash", s[".name"])
 				end
-				return false
 			end
 		end
 	)
 
+	if is_rename then
+		-- Traffic history is stored per config name, keep it with the renamed config
+		local old_history = "/etc/openclash/history/" .. old_name_no_ext .. ".db"
+		local new_history = "/etc/openclash/history/" .. new_name_no_ext .. ".db"
+		if isfile(old_history) and not isfile(new_history) then
+			fs.rename(old_history, new_history)
+		end
+	end
+
 	uci:commit("openclash")
-	dynamic_uci:commit("openclash")
+end
+
+--- Effective auto update settings of a config_subscribe section; entries written
+-- by older versions inherit the former global options until they are saved once.
+-- @param section String config_subscribe section id
+-- @param cursor Optional uci cursor, pass the map cursor to see uncommitted values
+-- @return Table with the effective schedule
+function config_subscribe_schedule(section, cursor)
+	cursor = cursor or uci
+	local function read(option, default)
+		local value = cursor:get("openclash", section, option)
+		if value == nil or value == "" then
+			value = cursor:get("openclash", "config", option)
+		end
+		if value == nil or value == "" then
+			value = default
+		end
+		return tostring(value)
+	end
+	return {
+		auto_update = read("auto_update", "0"),
+		mode = read("config_auto_update_mode", "0"),
+		week = read("config_update_week_time", "0"),
+		hour = read("auto_update_time", "0"),
+		interval = read("config_update_interval", "60"),
+	}
 end
 
 --- Returns the appropriate ps command string for the system's ps implementation.

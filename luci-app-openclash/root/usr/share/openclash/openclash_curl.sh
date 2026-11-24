@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 . /usr/share/openclash/log.sh
 . /usr/share/openclash/openclash_etag.sh
 
@@ -31,6 +31,8 @@ DOWNLOAD_FILE_CURL() {
     [ -z "$DOWNLOAD_UA" ] && DOWNLOAD_UA="$DEFAULT_UA"
     HEADER_TMP="/tmp/openclash_curl_header_$$"
     DOWNLOAD_TMP="${DOWNLOAD_PATH}.download.$$"
+    DOWNLOAD_NAME="${DOWNLOAD_PATH##*/}"
+    [ -n "$DOWNLOAD_NAME" ] || DOWNLOAD_NAME="$DOWNLOAD_PATH"
     CACHED_ETAG=$(GET_ETAG_BY_PATH "$FILE_PATH")
     ETAG_HEADER=""
 
@@ -56,7 +58,7 @@ EOF
     if [ "$SHOW_DOWNLOAD_PROGRESS" = "1" ] || [ "$SHOW_DOWNLOAD_PROGRESS" = "true" ]; then
         TEMP_LOG="/tmp/curl_log_$$"
 
-        LOG_OUT "Downloading:【$(basename "$DOWNLOAD_PATH") - 0%】..."
+        LOG_OUT "Downloading:【${DOWNLOAD_NAME} - 0%】..."
 
         (
             if [ -n "$SECRET_KEY" ] && [ -n "$ETAG_HEADER" ]; then
@@ -103,7 +105,7 @@ EOF
 
                 if [ -n "$PROGRESS" ] && [ "$PROGRESS" -ne "$LAST_PROGRESS" ]; then
                     if [ "$PROGRESS" -gt "$LAST_PROGRESS" ]; then
-                        LOG_OUT "Downloading:【$(basename "$DOWNLOAD_PATH") - ${PROGRESS}%】..."
+                        LOG_OUT "Downloading:【${DOWNLOAD_NAME} - ${PROGRESS}%】..."
                         LAST_PROGRESS="$PROGRESS"
                     fi
                 fi
@@ -116,7 +118,7 @@ EOF
         HTTP_CODE=$(grep -i "^HTTP" "$HEADER_TMP" 2>/dev/null | tail -1 | cut -d' ' -f2)
 
         if [ "$EXIR_CODE" -eq 0 ] && [ "$LAST_PROGRESS" -ne 100 ]; then
-            LOG_OUT "Downloading:【$(basename "$DOWNLOAD_PATH") - 100%】..."
+            LOG_OUT "Downloading:【${DOWNLOAD_NAME} - 100%】..."
         fi
 
         if [ "$EXIR_CODE" -ne 0 ]; then
@@ -208,7 +210,7 @@ EOF
     fi
     NEW_ETAG=$(grep -i "^etag:" "$HEADER_TMP" 2>/dev/null | tail -1 | cut -d' ' -f2- | tr -d '\r\n' | sed 's/^"//;s/"$//')
 
-    if [ -n "$NEW_ETAG" ] && [ "$HTTP_CODE" = "200" ]; then
+    if [ -n "$NEW_ETAG" ] && [ "$HTTP_CODE" = "200" ] && [ "${DEFER_ETAG_SAVE:-0}" != "1" ]; then
         SAVE_ETAG_TO_CACHE "$DOWNLOAD_URL" "$NEW_ETAG" "$FILE_PATH"
     fi
 
@@ -270,14 +272,19 @@ verify_sha256_checksum() {
     local checksum_url="$3"
     local ua="${4:-$DEFAULT_UA}"
 
-    [ -z "$file" ] || [ -z "$checksum_url" ] && return 0
+    [ -z "$file" ] || [ -z "$checksum_url" ] || [ -z "$expected_name" ] && return 0
     [ -s "$file" ] || return 0
 
     local expected_hash
     expected_hash=$(curl -sL -m 15 --connect-timeout 5 -H "User-Agent: $ua" "$checksum_url" 2>/dev/null \
-        | awk -v n="$expected_name" '$2 ~ n {print $1; exit} $0 ~ n {print $1; exit}')
+        | tr -d '\r' \
+        | awk -v n="$expected_name" '{ f = $2; sub(/^\*/, "", f); sub(/^.*\//, "", f); if (f == n) { print tolower($1); exit } }')
 
-    if [ -z "$expected_hash" ]; then
+    case "$expected_hash" in
+        *[!0-9a-fA-F]*) expected_hash="" ;;
+    esac
+
+    if [ "${#expected_hash}" -ne 64 ]; then
         LOG_WARN "Checksum file unavailable or entry not found, skip verification for【$expected_name】"
         return 0
     fi
@@ -293,6 +300,6 @@ verify_sha256_checksum() {
         return 0
     fi
 
-    LOG_ERROR "Checksum mismatch for【$expected_name】(expected【$expected_hash】,got【$actual_hash】)"
+    LOG_ERROR "Checksum mismatch for【$expected_name】, expected【$expected_hash】, got【$actual_hash】"
     return 1
 }

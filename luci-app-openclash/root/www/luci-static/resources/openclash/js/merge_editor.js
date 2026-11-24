@@ -76,8 +76,7 @@ function config_merge_editor(id, id2, target, target2, readOnly, readOnly2, wid,
         if (idx > 0) {
             var label = text.substring(0, idx + 1);
             var fname = text.substring(idx + 1).trim();
-            sectionDescr.innerHTML = '<span id="editTitle">' + label + '</span> ' +
-                '<span id="config-file-name" class="config-file-name">' + fname + '</span>';
+            sectionDescr.innerHTML = '<span id="config-file-name" class="config-file-name">' + fname + '</span>';
         }
         wrapper.insertBefore(sectionDescr, descr);
     }
@@ -201,15 +200,7 @@ function createSingleMergeEditor(content, readOnly) {
     ocShowLoading(state.target, '<%:Loading...%>');
 
     var isDark = isDarkBackground(document.body);
-    var exts = [CM6.baseExtensions(), CM6.themeExtension(isDark), CM6.placeholderExtension('<%:Enter YAML configuration...%>')];
-    var topSearch = (CM6 && CM6.topSearchExtension) ? CM6.topSearchExtension() : null;
-    if (topSearch) exts.push(topSearch);
-    exts.push(CM6.yaml());
-    exts.push(CM6.yamlLinter());
-    exts.push(CM6.lintGutter());
-    exts.push(CM6.autocompletion({ override: [CM6.mihomoCompletion] }));
-    exts.push(CM6.indentUnit.of("  "));
-    exts.push(CM6.indentMarkerExtension());
+    var exts = ocYamlEditorExtensions(isDark);
     var readOnlyComp = new CM6.Compartment();
     exts.push(readOnlyComp.of(readOnly ? CM6.EditorState.readOnly.of(true) : []));
     state.readOnlyCompartment = readOnlyComp;
@@ -234,6 +225,7 @@ function createSingleMergeEditor(content, readOnly) {
         view.dom.style.width = state.wid;
         view.dom.style.height = state.height;
     }
+    if (CM6.primeEditorLayout) CM6.primeEditorLayout(view);
     state.instance = view;
     state.isMerge = false;
 
@@ -291,6 +283,8 @@ function renderMergeView() {
         mv.b.dom.style.height = state.height;
     }
 
+    if (CM6.primeMergeLayout) CM6.primeMergeLayout(mv);
+    if (CM6.mergeScrollSync) CM6.mergeScrollSync(mv);
     if (CM6.mirrorThemeScrollbar) CM6.mirrorThemeScrollbar();
 
     var btn = document.getElementById('oc-merge-toggle-btn');

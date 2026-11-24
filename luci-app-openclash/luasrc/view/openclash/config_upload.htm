@@ -65,13 +65,67 @@
                             <label for="subscribe-ua-input"><%:User-Agent%>:<span class="guide-tag opt"><%:Optional%></span></label>
                             <div class="form-select-wrapper">
                                 <select id="subscribe-ua-input" class="form-select">
-                                    <option value="clash-verge/v2.4.5">clash-verge/v2.4.5</option>
-                                    <option value="clash.meta/1.19.20">clash.meta/1.19.20</option>
+                                    <option value="clash-verge/v2.5.10">clash-verge/v2.5.10</option>
+                                    <option value="clash.meta/1.19.33">clash.meta/1.19.33</option>
                                     <option value="Clash">clash</option>
                                     <option value="custom"><%:Custom%></option>
                                 </select>
                             </div>
                             <input type="text" id="subscribe-ua-custom" placeholder="<%:Enter custom User-Agent%>" class="form-input oc-hidden" style="margin-top: 8px;" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-checkbox">
+                                <input type="checkbox" id="auto-update-enable">
+                                <span class="checkmark"></span>
+                                <%:Auto Update%>
+                            </label>
+                            <div class="oc-fold-sum" id="sum-update"></div>
+                        </div>
+
+                        <div class="advanced-options-container oc-hidden" id="auto-update-options">
+                            <div class="sub-convert-options">
+                                <div class="form-group">
+                                    <label for="auto-update-mode"><%:Update Mode%>:</label>
+                                    <div class="form-select-wrapper">
+                                        <select id="auto-update-mode" class="form-select">
+                                            <option value="0"><%:Appointment Mode%></option>
+                                            <option value="1"><%:Loop Mode%></option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row" id="auto-update-appointment">
+                                    <div class="form-group form-half">
+                                        <label for="auto-update-week"><%:Update Time (Every Week)%>:</label>
+                                        <div class="form-select-wrapper">
+                                            <select id="auto-update-week" class="form-select">
+                                                <option value="*"><%:Every Day%></option>
+                                                <option value="1" selected><%:Every Monday%></option>
+                                                <option value="2"><%:Every Tuesday%></option>
+                                                <option value="3"><%:Every Wednesday%></option>
+                                                <option value="4"><%:Every Thursday%></option>
+                                                <option value="5"><%:Every Friday%></option>
+                                                <option value="6"><%:Every Saturday%></option>
+                                                <option value="0"><%:Every Sunday%></option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-half">
+                                        <label for="auto-update-hour"><%:Update time (every day)%>:</label>
+                                        <div class="form-select-wrapper">
+                                            <select id="auto-update-hour" class="form-select">
+                                                <% for t = 0, 23 do %>
+                                                <option value="<%=t%>"><%=t%>:00</option>
+                                                <% end %>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group oc-hidden" id="auto-update-loop">
+                                    <label for="auto-update-interval"><%:Update Interval(min)%>:</label>
+                                    <input type="number" id="auto-update-interval" class="form-input" min="1" max="525600" step="1" value="60" placeholder="60">
+                                </div>
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -409,8 +463,8 @@
                 <div class="oc-sub-box" id="sub-groups-box">
                     <div class="oc-sub-sec" id="sub-groups-title"><%:Strategy Groups%></div>
                     <div class="oc-tpl-tabs" id="sub-struct-tabs">
-                        <button type="button" class="oc-tpl-tab active" data-tab="groups"><%:Group Structure%></button>
-                        <button type="button" class="oc-tpl-tab" data-tab="rules"><%:Rule Flow%></button>
+                        <button type="button" class="oc-tpl-tab active" data-tpl-tab="groups"><%:Group Structure%></button>
+                        <button type="button" class="oc-tpl-tab" data-tpl-tab="rules"><%:Rule Flow%></button>
                     </div>
                     <div class="oc-tpl-pane" id="sub-pane-groups"></div>
                     <div class="oc-tpl-pane oc-hidden" id="sub-pane-rules"></div>
@@ -454,7 +508,7 @@
                 </div>
             </div>
             <div class="config-upload-footer" id="core-start-footer">
-                <div class="config-upload-status"><span id="sw-status"></span></div>
+                <div class="config-upload-status" id="sw-status-box"><span id="sw-status"></span></div>
                 <div class="config-upload-buttons">
                     <button type="button" class="btn upload-btn oc-hidden" id="sw-retry-btn"><%:Retry%></button>
                     <button type="button" class="btn cancel-btn" id="sw-close-btn"><%:Close%></button>
@@ -473,7 +527,7 @@
             <div class="config-upload-content">
                 <div class="form-group">
                     <label class="highlight-label"><%:Paste the new url of subscribe infos sources here:%></label>
-                    <textarea id="subscription-url-textarea" class="form-textarea" placeholder="<%:Enter URLs, one per line, use #name=example end for specifing display name%> (https://example.com#name=example)" rows="5"></textarea>
+                    <textarea id="subscription-url-textarea" class="form-textarea" placeholder="<%:Enter URLs, one per line, use #name=example and &ua=example at the end to set the display name and User-Agent%> (https://example.com#name=example&ua=clash-verge/v2.5.10)" rows="5"></textarea>
                 </div>
             </div>
             <div class="config-upload-footer">
@@ -506,9 +560,9 @@
                 <div class="oc-sub-box">
                     <div class="oc-sub-sec"><%:Template structure%></div>
                     <div class="oc-tpl-tabs" id="tpl-tabs">
-                        <button type="button" class="oc-tpl-tab active" data-tab="groups"><%:Group Structure%></button>
-                        <button type="button" class="oc-tpl-tab" data-tab="rules"><%:Rule Flow%></button>
-                        <button type="button" class="oc-tpl-tab" data-tab="extra"><%:Extra Settings%></button>
+                        <button type="button" class="oc-tpl-tab active" data-tpl-tab="groups"><%:Group Structure%></button>
+                        <button type="button" class="oc-tpl-tab" data-tpl-tab="rules"><%:Rule Flow%></button>
+                        <button type="button" class="oc-tpl-tab" data-tpl-tab="extra"><%:Extra Settings%></button>
                     </div>
                     <div class="oc-tpl-pane" id="tpl-pane-groups"></div>
                     <div class="oc-tpl-pane oc-hidden" id="tpl-pane-rules"></div>

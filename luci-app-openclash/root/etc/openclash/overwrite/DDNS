@@ -1,0 +1,59 @@
+#!NAME = DDNS
+#!DESC = Keep DDNS IP-detection endpoints and DNS provider APIs off the proxy so records never get a proxy exit IP
+#!ENV = DDNS_DOMAIN
+
+# Use exact endpoint hosts only; widening to provider root domains sends whole websites direct.
+# DDNS_DOMAIN excludes your own DDNS hostname from Fake-IP so LAN clients can reach the router by name.
+[General]
+# STUN/TURN must stay direct, otherwise the proxy replaces the router's own UDP mapping.
+WAN_AC_BLACK_PORTS=3478,5349
+[YAML]
++rules:
+  # Sources: Lucky 2.19.5 config/ddns.go, Lucky 3.5.0 default list, ddns-go. No guessed endpoints.
+  - DOMAIN,4.ipw.cn,DIRECT
+  - DOMAIN,6.ipw.cn,DIRECT
+  - DOMAIN,myip.ipip.net,DIRECT
+  - DOMAIN,myip4.ipip.net,DIRECT
+  - DOMAIN,ddns.oray.com,DIRECT
+  - DOMAIN,ip.3322.net,DIRECT
+  - DOMAIN,v4.myip.la,DIRECT
+  - DOMAIN,v6.myip.la,DIRECT
+  - DOMAIN,v4.ip.zxinc.org,DIRECT
+  - DOMAIN,v6.ip.zxinc.org,DIRECT
+  - DOMAIN,ipv6.ddnspod.com,DIRECT
+  - DOMAIN,speed.neu6.edu.cn,DIRECT
+  - DOMAIN,v6.ident.me,DIRECT
+  - DOMAIN,api.ipify.org,DIRECT
+  - DOMAIN,v4.66666.host,DIRECT
+  - DOMAIN,v4.666666.host,DIRECT
+  - DOMAIN-SUFFIX,aliyuncs.com,DIRECT
+  - DOMAIN,dns.myhuaweicloud.com,DIRECT
+  - DOMAIN,dnsapi.cn,DIRECT
+  - DOMAIN,dnspod.tencentcloudapi.com,DIRECT
+  - DOMAIN,dns.jdcloud-api.com,DIRECT
+  - DOMAIN,dns.baidubce.com,DIRECT
+  - DOMAIN,open.volcengineapi.com,DIRECT
+  - DOMAIN,api.west.cn,DIRECT
+  - DOMAIN,api.dns.la,DIRECT
+  # Overseas APIs are opt-in; hosts shared with their website stay commented.
+  # - DOMAIN,api.cloudflare.com,DIRECT
+  # - DOMAIN,api.godaddy.com,DIRECT
+  # - DOMAIN,api.name.com,DIRECT
+  # - DOMAIN,api.porkbun.com,DIRECT
+  # - DOMAIN,api.dynadot.com,DIRECT
+  # - DOMAIN,spaceship.dev,DIRECT
+  # - DOMAIN,api.vercel.com,DIRECT
+  # - DOMAIN,www.namesilo.com,DIRECT
+  # - DOMAIN,desec.io,DIRECT
+  # - DOMAIN,www.duckdns.org,DIRECT
+  # - DOMAIN,dynv6.com,DIRECT
+  # - DOMAIN,freemyip.com,DIRECT
+  - DOMAIN,checkip.synology.com,DIRECT
+  - DOMAIN,checkip.dyndns.org,DIRECT
+  - DOMAIN,checkip.dyndns.com,DIRECT
+  - DOMAIN,checkip.amazonaws.com,DIRECT
+  - DOMAIN,acme-v02.api.letsencrypt.org,DIRECT
+  - DOMAIN,acme.zerossl.com,DIRECT
+dns:
+  fake-ip-filter+:
+    - "+.${DDNS_DOMAIN:-example.invalid}"

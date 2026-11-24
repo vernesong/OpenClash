@@ -37,14 +37,9 @@ s.addremove = false
 o = s:option(ListValue, "config", translate("Config File"))
 o:value("all", translate("Use For All Config File"))
 local e,a={}
-for t,f in ipairs(fs.glob("/etc/openclash/config/*"))do
-	a=fs.stat(f)
-	if a then
-		e[t]={}
-		e[t].name=fs.basename(f)
-		if fs.IsYamlExt(e[t].name) then
-			o:value(e[t].name)
-		end
+for _,name in ipairs(fs.listdir("/etc/openclash/config/")) do
+	if fs.IsYamlExt(name) and fs.isfile("/etc/openclash/config/" .. name) then
+		o:value(name)
 	end
 end
 
@@ -213,6 +208,7 @@ local function sync_group_name(section, old_name, new_name)
 	uci:foreach("openclash", "proxies", function(s)
 		local groups = uci:get("openclash", s[".name"], "groups")
 		if groups then
+			if type(groups) ~= "table" then groups = {groups} end
 			local new_groups = {}
 			local changed = false
 			for _, item in ipairs(groups) do
@@ -233,6 +229,7 @@ local function sync_group_name(section, old_name, new_name)
 	uci:foreach("openclash", "proxy_providers", function(s)
 		local groups = uci:get("openclash", s[".name"], "groups")
 		if groups then
+			if type(groups) ~= "table" then groups = {groups} end
 			local new_groups = {}
 			local changed = false
 			for _, item in ipairs(groups) do
@@ -254,6 +251,7 @@ local function sync_group_name(section, old_name, new_name)
 		if s[".name"] ~= section then
 			local other_group = uci:get("openclash", s[".name"], "other_group")
 			if other_group then
+				if type(other_group) ~= "table" then other_group = {other_group} end
 				local new_other = {}
 				local changed = false
 				for _, item in ipairs(other_group) do
@@ -285,6 +283,29 @@ local function sync_group_name(section, old_name, new_name)
 			uci:set("openclash", s[".name"], "dialer_proxy", new_name)
 		end
 	end)
+
+	-- Keep rule updates pending until Apply writes the new groups to the YAML file.
+	local config = uci:get(openclash, section, "config") or ""
+	if config == "" or config == "all" then
+		config = "all"
+	end
+	local files = {}
+	if config == "all" then
+		for _, name in ipairs(fs.listdir("/etc/openclash/config/")) do
+			files[#files + 1] = "/etc/openclash/config/" .. name
+		end
+	else
+		files[1] = "/etc/openclash/config/" .. config
+	end
+	for _, path in ipairs(files) do
+		local name = fs.basename(path)
+		if fs.IsYamlExt(name) then
+			local rename = uci:add(openclash, "group_rename")
+			uci:set(openclash, rename, "config", name)
+			uci:set(openclash, rename, "old_name", old_name)
+			uci:set(openclash, rename, "new_name", new_name)
+		end
+	end
 
 	main_uci:commit("openclash")
 	uci:commit("openclash")

@@ -107,7 +107,7 @@
     gap: 4px;
     font-size: 13px;
     font-weight: 600;
-    line-height: 1;
+    line-height: normal;
     color: var(--text-secondary);
     white-space: nowrap;
     min-width: 0;
@@ -157,7 +157,7 @@
     font-size: 13px;
     appearance: none;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
     box-sizing: border-box;
     min-width: 0;
     overflow: hidden;
@@ -299,7 +299,7 @@
     padding: 12px 16px;
     cursor: pointer;
     border-bottom: 1px solid var(--border-light);
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
     font-size: 14px;
     color: var(--text-primary);
     display: flex;
@@ -343,7 +343,7 @@
     background: var(--bg-white);
     color: var(--text-primary);
     font-size: 14px;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
 }
 
 .oc .custom-option-input:focus {
@@ -490,12 +490,7 @@ html[data-darkmode="true"] .oc .ver-hint {
 }
 
 /* Neutral note/log style for the hint area (update_tip merged) */
-.oc .ver-hint.note {
-    border: 1px solid var(--primary-a20);
-    color: var(--primary-color);
-    background: var(--primary-a10);
-}
-
+.oc .ver-hint.note,
 html[data-darkmode=true] .oc .ver-hint.note {
     border: 1px solid var(--primary-a20);
     color: var(--primary-color);
@@ -543,10 +538,7 @@ html[data-darkmode=true] .oc .ver-hint.note {
     align-items: center;
 }
 
-.oc #custom-addr-option {
-    min-width: var(--addr-cols, 508px);
-}
-
+.oc #custom-addr-option,
 .oc .custom-option-input,
 .oc #addCustomOption {
     min-width: var(--addr-cols, 508px);
@@ -588,8 +580,8 @@ html[data-darkmode=true] .oc .ver-hint.note {
     text-align: center;
     font-size: 12px;
     line-height: 1.3;
-    padding: 2px 7px 2px 5px;
-    border-radius: 999px;
+    padding: 2px 8px 2px 4px;
+    border-radius: var(--radius-xs);
     font-variant-numeric: tabular-nums;
     box-sizing: border-box;
     border: 1px solid transparent;
@@ -612,7 +604,7 @@ html[data-darkmode=true] .oc .ver-hint.note {
     font-size: 12px;
     line-height: 1.3;
     padding: 2px 6px;
-    border-radius: 999px;
+    border-radius: var(--radius-xs);
     box-sizing: border-box;
     border: 1px solid transparent;
     font-variant-numeric: tabular-nums;
@@ -620,7 +612,7 @@ html[data-darkmode=true] .oc .ver-hint.note {
     white-space: nowrap;
     cursor: pointer;
     user-select: none;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
 }
 
 .oc .addr-proxy.on { color: var(--success-color); background: var(--success-a10); }
@@ -637,7 +629,7 @@ html[data-darkmode=true] .oc .ver-hint.note {
     font-size: 12px;
     line-height: 1.3;
     padding: 2px 6px;
-    border-radius: 999px;
+    border-radius: var(--radius-xs);
     box-sizing: border-box;
     font-variant-numeric: tabular-nums;
     justify-self: center;
@@ -724,7 +716,7 @@ html[data-darkmode=true] .oc .ver-hint.note {
     padding: 3px 6px;
     border: 1px solid transparent;
     border-radius: 4px;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
 }
 
 .oc .addr-row .ver-link:hover {
@@ -752,7 +744,7 @@ html[data-darkmode=true] .oc .ver-hint.note {
     background: var(--bg-white);
     color: var(--text-secondary);
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
     text-decoration: none;
     box-sizing: border-box;
 }
@@ -774,10 +766,8 @@ html[data-darkmode=true] .oc .ver-hint.note {
 
 .oc .addr-header {
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
     padding: 6px 16px;
     border-bottom: 2px solid var(--border-light);
     cursor: default;
@@ -827,11 +817,7 @@ html[data-darkmode=true] .oc .ver-hint.note {
     background: var(--addr-row-alt, var(--bg-light));
 }
 
-.oc .select-option.addr-row:has(.addr-proxy.on) {
-    background: var(--primary-a5);
-    box-shadow: inset 3px 0 0 var(--primary-color);
-}
-
+.oc .select-option.addr-row:has(.addr-proxy.on),
 .oc .select-option.addr-row:hover {
     background: var(--primary-a5);
     box-shadow: inset 3px 0 0 var(--primary-color);
@@ -873,7 +859,7 @@ html[data-darkmode=true] .oc .ver-hint.note {
     border-radius: 50%;
     color: #fff;
     font-size: .68em;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.5em;
     text-align: center;
 }
@@ -917,7 +903,7 @@ html[data-darkmode=true] .oc .ver-hint.note {
     flex-direction: column;
     align-items: center;
     gap: 6px;
-    padding: 22px 16px;
+    padding: 24px 16px;
     text-align: center;
 }
 
@@ -938,7 +924,7 @@ html[data-darkmode=true] .oc .ver-hint.note {
 
 .oc .addr-empty-title {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--text-primary);
 }
 
@@ -952,17 +938,17 @@ html[data-darkmode=true] .oc .ver-hint.note {
 .oc .addr-empty-btn {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     height: 30px;
     margin-top: 4px;
-    padding: 0 14px;
+    padding: 0 16px;
     border: 1px solid var(--primary-color);
-    border-radius: 999px;
+    border-radius: var(--radius-sm);
     background: var(--primary-color);
     color: var(--text-on-primary, #fff);
     font-size: 12px;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: var(--transition-ui);
 }
 
 .oc .addr-empty-btn:hover {
@@ -1017,11 +1003,7 @@ html[data-darkmode=true] .oc .ver-hint.note {
     background: var(--warning-a10);
 }
 
-[data-darkmode=true] .oc .addr-status.slow {
-    color: var(--error-color);
-    background: var(--error-a10);
-}
-
+[data-darkmode=true] .oc .addr-status.slow,
 [data-darkmode=true] .oc .addr-status.err {
     color: var(--error-color);
     background: var(--error-a10);
