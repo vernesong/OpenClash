@@ -5983,3 +5983,9 @@ msgstr "设备验证失败"
 
 msgid "Invalid device approval request"
 msgstr "设备批准请求无效"
+
+msgid "Request approval again"
+msgstr "重新申请"
+
+msgid "This request was denied. With an older server, wait for the original code to expire before requesting again"
+msgstr "本次申请已被拒绝。使用旧版服务时，请等原确认码过期后重新申请"

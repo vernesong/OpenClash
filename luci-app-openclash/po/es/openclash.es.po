@@ -5975,3 +5975,9 @@ msgstr "No se pudo verificar el dispositivo"
 
 msgid "Invalid device approval request"
 msgstr "La solicitud de autorización del dispositivo no es válida"
+
+msgid "Request approval again"
+msgstr "Volver a solicitar aprobación"
+
+msgid "This request was denied. With an older server, wait for the original code to expire before requesting again"
+msgstr "Esta solicitud fue rechazada. Si usas un servidor anterior, espera a que caduque el código original antes de volver a solicitarla"

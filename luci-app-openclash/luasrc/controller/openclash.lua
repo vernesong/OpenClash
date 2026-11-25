@@ -7068,11 +7068,22 @@ local function oix_device_approval(token, approval)
 	if type(approval) ~= "table" or type(approval.approved) ~= "boolean" then
 		local reply = fs.oix_cli("device-approval", {token = token})
 		approval = reply and reply.approval
+		if reply and reply.code == "device_approval_denied" and not approval then
+			approval = {approved = false, denied = true}
+		end
 		if type(approval) ~= "table" or type(approval.approved) ~= "boolean" then
 			return nil, oix_cli_error(reply, OIX_CORE_MISSING), reply and reply.code
 		end
 	end
 	if approval.approved then return {approved = true} end
+	if approval.denied == true then
+		local id, fp = approval.request_id, approval.fingerprint
+		local denied = {approved = false, denied = true}
+		if type(id) == "string" and #id == 32 and id:match("^[a-f0-9]+$") and type(fp) == "string" and #fp == 64 and fp:match("^[a-f0-9]+$") then
+			denied.request_id, denied.device_fingerprint = id, fp
+		end
+		return denied
+	end
 	local code, fingerprint, page = approval.user_code, approval.fingerprint, approval.verification_url
 	if type(code) ~= "string" or not code:match("^%x+$") or #code ~= 10
 		or type(fingerprint) ~= "string" or not fingerprint:match("^%x+$") or #fingerprint ~= 64 then
@@ -7595,15 +7606,17 @@ local function oix_device_code(token)
 	local fingerprint = HTTP.formvalue("fingerprint")
 	local code = HTTP.formvalue("code")
 	if HTTP.getenv("HTTP_X_REQUESTED_WITH") ~= "XMLHttpRequest"
-		or (mode ~= "email" and mode ~= "verify")
+		or (mode ~= "email" and mode ~= "verify" and mode ~= "retry")
 		or type(request_id) ~= "string" or #request_id ~= 32 or not request_id:match("^[a-f0-9]+$")
 		or type(fingerprint) ~= "string" or #fingerprint ~= 64 or not fingerprint:match("^[a-f0-9]+$")
 		or (mode == "verify" and (type(code) ~= "string" or (#code ~= 6 and #code ~= 8) or not code:match("^%d+$"))) then
 		return nil, "Invalid device approval request"
 	end
-	local reply = fs.oix_cli(mode == "email" and "device-email-code" or "device-verify",
+	local command = ({email = "device-email-code", verify = "device-verify", retry = "device-retry"})[mode]
+	local reply = fs.oix_cli(command,
 		{token = token, request_id = request_id, fingerprint = fingerprint, code = mode == "verify" and code or nil})
 	if reply and type(reply.approval) == "table" and type(reply.approval.approved) == "boolean" then
+		if mode == "retry" or reply.approval.denied then return oix_device_approval(token, reply.approval) end
 		return {approved = reply.approval.approved}
 	end
 	return nil, oix_cli_error(reply, "Device verification failed"), reply and reply.code

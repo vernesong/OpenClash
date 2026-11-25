@@ -324,9 +324,31 @@ var OixCloud = {
         alternatives.appendChild(addRow('fingerprint', '<%:Device fingerprint%>', document.createElement('code')));
         var status = addText('oix-approval-status', '<%:Waiting for approval...%>');
         status.setAttribute('role', 'status');
+        var retry = document.createElement('button');
+        retry.type = 'button';
+        retry.className = 'cbi-button cbi-button-action';
+        retry.textContent = '<%:Request approval again%>';
+        box.appendChild(retry);
+        var bound = function(a) {
+            return /^[0-9a-f]{32}$/.test(a.request_id || '') && /^[0-9a-f]{64}$/.test(a.device_fingerprint || '');
+        };
         var render = function(a) {
-            var supported = (a.approval_method === 'email' || a.approval_method === 'totp') &&
-                /^[0-9a-f]{32}$/.test(a.request_id || '') && /^[0-9a-f]{64}$/.test(a.device_fingerprint || '');
+            retry.style.display = a.denied ? '' : 'none';
+            alternatives.style.display = a.denied ? 'none' : '';
+            if (a.denied) {
+                clearTimeout(timer);
+                clearTimeout(deadlineTimer);
+                var inflight = operation;
+                operation = null;
+                if (inflight) inflight.abort();
+                pending = a;
+                input.value = '';
+                shown = '';
+                form.style.display = 'none';
+                status.textContent = bound(a) ? '<%:This device approval request was denied%>' : '<%:This request was denied. With an older server, wait for the original code to expire before requesting again%>';
+                return;
+            }
+            var supported = (a.approval_method === 'email' || a.approval_method === 'totp') && bound(a);
             if (a.request_id !== pending.request_id || a.approval_method !== pending.approval_method || a.code !== shown) {
                 var previous = operation;
                 operation = null;
@@ -359,6 +381,42 @@ var OixCloud = {
             clearTimeout(deadlineTimer);
             if (closeDialog) closeDialog(result);
         };
+        var startPolling = function() {
+            deadlineTimer = setTimeout(function() { finish('timeout'); }, 600000);
+            poll();
+        };
+        var reapply = function() {
+            if (stopped || operation || session !== self.accountSession || !self.loggedIn || !pending.denied) return;
+            var hasTarget = bound(pending), xhr = new XMLHttpRequest();
+            operation = xhr;
+            retry.disabled = true;
+            xhr.open(hasTarget ? 'POST' : 'GET', OIX_URLS.deviceStatus, true);
+            xhr.timeout = 65000;
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            if (hasTarget) xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onloadend = function() {
+                if (stopped || operation !== xhr || session !== self.accountSession || !self.loggedIn) return;
+                operation = null;
+                retry.disabled = false;
+                var reply;
+                try { reply = JSON.parse(xhr.responseText); } catch(e) {}
+                if (reply && reply.code === 'session_changed') { finish(false); window.location.reload(); return; }
+                var a = reply && reply.approval;
+                if (a && a.approved === true) { finish(true); return; }
+                if (a && a.denied) {
+                    render(a);
+                    if (!hasTarget && bound(a)) reapply();
+                } else if (a && typeof a.code === 'string') {
+                    render(a);
+                    status.textContent = '<%:Waiting for approval...%>';
+                    startPolling();
+                } else {
+                    status.textContent = reply && reply.error || '<%:Device verification failed%>';
+                }
+            };
+            xhr.send(hasTarget ? 'action=retry&request_id=' + pending.request_id + '&fingerprint=' + pending.device_fingerprint : null);
+        };
+        retry.onclick = reapply;
         var poll = function() {
             timer = setTimeout(function() {
                 if (stopped) return;
@@ -373,7 +431,11 @@ var OixCloud = {
                         OixMsg.show(reply.error || '<%:Sign-in token is invalid or expired, please sign in again%>', 'error');
                         return;
                     }
-                    if (reply && (reply.code === 'device_approval_denied' || reply.code === 'device_limit' || reply.code === 'invalid_enrollment')) {
+                    if (reply && (reply.code === 'device_approval_denied' || (reply.approval && reply.approval.denied))) {
+                        render(reply.approval || {denied: true});
+                        return;
+                    }
+                    if (reply && (reply.code === 'device_limit' || reply.code === 'invalid_enrollment')) {
                         finish(false);
                         OixMsg.show(reply.error || '<%:Server response error, please try again later%>', 'error');
                         return;
@@ -402,8 +464,7 @@ var OixCloud = {
             if (result === true) onApproved();
             else if (result === 'timeout') OixMsg.show('<%:Device approval timed out; update the subscription to get a new code%>', 'info', 0);
         });
-        deadlineTimer = setTimeout(function() { finish('timeout'); }, 600000);
-        poll();
+        if (!pending.denied) startPolling();
     },
 
     doLogout: function() {
