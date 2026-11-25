@@ -515,9 +515,35 @@ function oix_cli(command, request)
 		return nil
 	end
 	if reply.code == "usage" then
+		-- Older cores list their commands when the requested command is unknown.
+		if type(reply.error) == "string" and reply.error:match("^usage: mihomo oix login")
+			and not reply.error:find(command, 1, true) then
+			return nil, "unsupported"
+		end
 		return nil
 	end
 	return reply
+end
+
+-- Downloading the template only requires an account. Check that this router can
+-- also read its nodes before replacing the saved configuration.
+function oix_download_config(request, approval)
+	if type(approval) ~= "table" or type(approval.approved) ~= "boolean" then
+		local reply, reason = oix_cli("device-approval", {token = request.token})
+		if reason == "unsupported" then return oix_cli("managed-config", request) end
+		if not reply or reply.error then return reply end
+		approval = reply.approval
+		if type(approval) ~= "table" or type(approval.approved) ~= "boolean" then return nil end
+	end
+	if not approval.approved then
+		if approval.denied then
+			return {code = "device_approval_denied", error = "This device approval request was denied", approval = approval}
+		end
+		return {code = "approval_required", error = "Approve this device", approval = approval}
+	end
+	local config = oix_cli("managed-config", request)
+	if config and not config.error then config.approval = approval end
+	return config
 end
 
 --- Appends one line to the plugin log without going through a shell.
@@ -680,91 +706,40 @@ function decode64(data)
 	return table.concat(out)
 end
 
-function config_refs(old_file_name, new_file_name)
+function config_refs(old_file_name, new_file_name, cursor)
 	if not old_file_name or old_file_name == "" then return end
-	local old_name_no_ext = filename(basename(old_file_name))
+	local writer = cursor or uci
 	local old_file_full = basename(old_file_name)
-	local is_rename = new_file_name and new_file_name ~= ""
-	local new_name_no_ext, new_file_full
-
-	if is_rename then
-		new_name_no_ext = filename(basename(new_file_name))
+	local old_name_no_ext = filename(old_file_full)
+	local new_file_full, new_name_no_ext
+	if new_file_name and new_file_name ~= "" then
 		new_file_full = basename(new_file_name)
+		new_name_no_ext = filename(new_file_full)
 	end
 
-	uci:foreach("openclash", "config_subscribe",
-		function(s)
-			if s.name == old_name_no_ext then
-				if is_rename and new_name_no_ext ~= new_file_name then
-					uci:set("openclash", s[".name"], "name", new_name_no_ext)
+	local ok = true
+	local function update(section_type, option, old_value, new_value)
+		if not ok then return end
+		local _, read_error = writer:foreach("openclash", section_type, function(s)
+			if ok and s[option] == old_value then
+				if new_file_full and new_name_no_ext ~= new_file_name then
+					ok = writer:set("openclash", s[".name"], option, new_value)
 				else
-					uci:delete("openclash", s[".name"])
+					ok = writer:delete("openclash", s[".name"])
 				end
 			end
-		end
-	)
+		end)
+		if read_error then ok = false end
+	end
+	for _, section_type in ipairs({"config_subscribe", "subscribe_info", "config_age_secret"}) do
+		update(section_type, "name", old_name_no_ext, new_name_no_ext)
+	end
+	for _, section_type in ipairs({"proxy_groups", "proxy_providers", "proxies"}) do
+		update(section_type, "config", old_file_full, new_file_full)
+	end
+	if not ok then return false end
 
-	uci:foreach("openclash", "subscribe_info",
-		function(s)
-			if s.name == old_name_no_ext then
-				if is_rename and new_name_no_ext ~= new_file_name then
-					uci:set("openclash", s[".name"], "name", new_name_no_ext)
-				else
-					uci:delete("openclash", s[".name"])
-				end
-			end
-		end
-	)
-
-	uci:foreach("openclash", "proxy_groups",
-		function(s)
-			if s.config == old_file_full then
-				if is_rename and new_name_no_ext ~= new_file_name then
-					uci:set("openclash", s[".name"], "config", new_file_full)
-				else
-					uci:delete("openclash", s[".name"])
-				end
-			end
-		end
-	)
-
-	uci:foreach("openclash", "proxy_providers",
-		function(s)
-			if s.config == old_file_full then
-				if is_rename and new_name_no_ext ~= new_file_name then
-					uci:set("openclash", s[".name"], "config", new_file_full)
-				else
-					uci:delete("openclash", s[".name"])
-				end
-			end
-		end
-	)
-
-	uci:foreach("openclash", "proxies",
-		function(s)
-			if s.config == old_file_full then
-				if is_rename and new_name_no_ext ~= new_file_name then
-					uci:set("openclash", s[".name"], "config", new_file_full)
-				else
-					uci:delete("openclash", s[".name"])
-				end
-			end
-		end
-	)
-
-	uci:foreach("openclash", "config_age_secret",
-		function(s)
-			if s.name == old_name_no_ext then
-				if is_rename and new_name_no_ext ~= new_file_name then
-					uci:set("openclash", s[".name"], "name", new_name_no_ext)
-				else
-					uci:delete("openclash", s[".name"])
-				end
-			end
-		end
-	)
-
-	if is_rename then
+	if new_file_full then
 		-- Traffic history is stored per config name, keep it with the renamed config
 		local old_history = "/etc/openclash/history/" .. old_name_no_ext .. ".db"
 		local new_history = "/etc/openclash/history/" .. new_name_no_ext .. ".db"
@@ -773,7 +748,30 @@ function config_refs(old_file_name, new_file_name)
 		end
 	end
 
-	uci:commit("openclash")
+	-- Account migration commits its selection, references and subscription together.
+	return cursor ~= nil or writer:commit("openclash")
+end
+
+-- Stage the references to the managed config on the same cursor as the subscription.
+function oix_migrate_config(cursor, old_path, new_path, select_profile)
+	local config = cursor:get_all("openclash", "config")
+	if not config then return false end
+	if (select_profile or config.config_path == old_path)
+		and not cursor:set("openclash", "config", "config_path", new_path) then return false end
+	if not config_refs(old_path, new_path, cursor) then return false end
+
+	local ok = true
+	local _, read_error = cursor:foreach("openclash", "config_overwrite", function(s)
+		local paths = s.config
+		if type(paths) == "string" then paths = {paths} end
+		if type(paths) ~= "table" then return end
+		local changed = false
+		for i, path in ipairs(paths) do
+			if path == old_path then paths[i], changed = new_path, true end
+		end
+		if changed and not cursor:set_list("openclash", s[".name"], "config", paths) then ok = false end
+	end)
+	return ok and not read_error
 end
 
 --- Effective auto update settings of a config_subscribe section; entries written

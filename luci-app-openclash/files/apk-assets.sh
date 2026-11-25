@@ -433,6 +433,8 @@ RUBY
 				for tree in "$legacy" "$saved"; do
 					[ -n "$tree" ] && present "$tree" || continue
 					if [ "$(readlink -f "${live%/*}")" != "${live%/*}" ]; then exit 1; fi
+					# APK can remove these package directories before a later reinstall.
+					[ -d "${live%/*}" ] || mkdir -m 0755 "${live%/*}" || exit 1
 					if [ -L "$tree" ] || [ -L "$live" ]; then
 						[ -L "$tree" ] && [ -L "$live" ] && [ "$(readlink "$tree")" = "$(readlink "$live")" ] || exit 1
 					elif [ "$preserve" = 1 ]; then

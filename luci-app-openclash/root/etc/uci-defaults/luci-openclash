@@ -245,6 +245,34 @@ if [ -f /tmp/openclash.bak ] || [ -f "$package_backup/ready" ] || [ -f "$package
 	rm -rf "/etc/openclash/backup" >/dev/null 2>&1
 fi
 
+# A previous refresh could remove the legacy file without updating its selection.
+old_oix_config="/etc/openclash/config/oixCloud - smart.yaml"
+new_oix_config="/etc/openclash/config/oixCloud.yaml"
+if [ "$(uci -q get openclash.config.config_path)" = "$old_oix_config" ] &&
+	[ ! -e "$old_oix_config" ] && [ -f "$new_oix_config" ] && [ -s "$new_oix_config" ]; then
+	# First-boot defaults can run before rpcd. Migrate the saved module matches with uci.
+	match_oix_path() {
+		case "$1" in
+			"$old_oix_config") has_old=1 ;;
+			"$new_oix_config") has_new=1 ;;
+		esac
+	}
+	repair_oix_overwrite() {
+		local section="$1" paths has_old=0 has_new=0
+		config_get paths "$section" config
+		[ "$paths" != "$old_oix_config" ] || has_old=1
+		config_list_foreach "$section" config match_oix_path
+		[ "$has_old" = 1 ] || return 0
+		if [ "$has_new" = 0 ]; then
+			uci -q add_list "openclash.$section.config=$new_oix_config" || exit 1
+		fi
+		uci -q del_list "openclash.$section.config=$old_oix_config" || exit 1
+	}
+	config_load openclash || exit 1
+	config_foreach repair_oix_overwrite config_overwrite
+	uci -q set openclash.config.config_path="$new_oix_config" && uci -q commit openclash || exit 1
+fi
+
 #oixCloud keeps no saved credentials or optional parameters
 uci -q delete openclash.config.oix_email
 uci -q delete openclash.config.oix_passwd

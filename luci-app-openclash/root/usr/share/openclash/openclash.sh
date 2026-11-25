@@ -147,7 +147,7 @@ config_download_managed()
       local fs = require "luci.openclash"
       local json = require "luci.jsonc"
       local request = json.parse(io.read("*a"))
-      local reply = fs.oix_cli("managed-config", request)
+      local reply = fs.oix_download_config(request)
       if not reply then
          print("error=The oixCloud core is not installed or too old; install it from the Core settings and try again")
          os.exit(1)
@@ -269,16 +269,28 @@ replace_subscription()
       mv -f "$1" "$CONFIG_FILE"
       return
    fi
-   printf '%s\n' "$oix_token" | OIX_PENDING="$1" OIX_TARGET="$CONFIG_FILE" lua -e '
+   printf '%s\n' "$oix_token" | OIX_PENDING="$1" OIX_TARGET="$CONFIG_FILE" OIX_SECTION="$section" OIX_NAME="$name" lua -e '
       local fs = require "luci.openclash"
       local token = io.read("*l")
       local saved = fs.oix_with_session_lock(function()
          local uci = require "luci.model.uci".cursor()
-         return uci:get("openclash", "config", "oix_token") == token
-            and os.rename(os.getenv("OIX_PENDING"), os.getenv("OIX_TARGET"))
+         local section, pending = os.getenv("OIX_SECTION"), os.getenv("OIX_PENDING")
+         if uci:get("openclash", "config", "oix_token") ~= token
+            or uci:get("openclash", section, "name") ~= os.getenv("OIX_NAME") then return false end
+         if pending ~= "" and not os.rename(pending, os.getenv("OIX_TARGET")) then return false end
+         if uci:get("openclash", section, "address") ~= "oixcloud://managed" then
+            if not uci:set("openclash", section, "address", "oixcloud://managed")
+               or not uci:commit("openclash") then return "settings" end
+         end
+         return true
       end)
-      os.exit(saved and 0 or 1)
+      os.exit(saved == "settings" and 2 or saved and 0 or 1)
    '
+   case $? in
+      0) return 0 ;;
+      2) LOG_WARN "Configuration was saved, but settings could not be saved; check router storage and try again"; return 0 ;;
+      *) return 1 ;;
+   esac
 }
 
 config_su_check()
@@ -300,6 +312,10 @@ config_su_check()
       if [ "$?" -ne 0 ]; then
          LOG_OUT "Config File【$name】Are Updates, Start Replacing..."
       else
+         if [ -n "$oix_token" ] && ! replace_subscription ""; then
+            config_error
+            return
+         fi
          LOG_OUT "Config File【$name】No Change, Do Nothing!"
          [ -n "$NEW_ETAG" ] && SAVE_ETAG_TO_CACHE "$DOWNLOAD_URL" "$NEW_ETAG" "$CONFIG_FILE"
          rm -rf "$CFG_FILE"
@@ -495,17 +511,19 @@ sub_info_get()
    CONFIG_FILE="/etc/openclash/config/$name.yaml"
    CFG_FILE="/tmp/$name.yaml"
 
-   # the account's entry follows the sign-in; an address it still holds is dropped
-   if [ "$name" = "oixCloud" ]; then
+   if [ -n "$2" ] && [ "$2" != "$CONFIG_FILE" ] && [ "$2" != "$name" ]; then
+      return
+   fi
+
+   # Older sign-ins used the smart suffix. Keep that file usable until the account page migrates it.
+   if [ "$name" = "oixCloud" ] || [ "$name" = "oixCloud - smart" ]; then
       oix_token=$(uci_get_config "oix_token")
       case "$oix_token" in
          *[!0-9a-f]*) oix_token="" ;;
       esac
-      if [ -n "$oix_token" ] && [ "$address" != "oixcloud://managed" ]; then
+      if [ -n "$oix_token" ]; then
          address="oixcloud://managed"
-         uci -q set openclash."$section".address="$address"
-         uci -q commit openclash
-      elif [ -z "$oix_token" ] && { [ -z "$address" ] || [ "$address" = "oixcloud://managed" ]; }; then
+      elif [ -z "$address" ] || [ "$address" = "oixcloud://managed" ]; then
          if [ "$2" = "$name" ] || [ "$2" = "$CONFIG_FILE" ]; then
             LOG_ERROR "Config File【$name】Needs An oixCloud Sign-In, Nothing Was Updated"
             exit_code=1
@@ -542,9 +560,6 @@ sub_info_get()
       tls13=""
    fi
 
-   if [ -n "$2" ] && [ "$2" != "$CONFIG_FILE" ] && [ "$2" != "$name" ]; then
-      return
-   fi
 
    if [ "$keyword_option" -eq 1 ]; then
       if [ ! -z "$keyword" ] || [ ! -z "$ex_keyword" ]; then

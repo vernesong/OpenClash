@@ -15,7 +15,7 @@ window.configRowAction = function(select, id) {
             }
             XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "rename_file")%>', {new_file_name: value, file_path: '/etc/openclash/config/', file_name: file}, function(x) {
                 if (x && x.status === 200) { close(); location.reload(); }
-                else setError('<%:Rename Failed%>');
+                else setError(x && x.status === 409 ? '<%:A file with this name already exists%>' : '<%:Rename Failed%>');
             });
         });
         return false;

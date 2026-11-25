@@ -13,7 +13,7 @@ function import_file_name(btn, option, file_path) {
 			}
 			else
 			{
-				setError('<%:Create File Failed%>');
+				setError(x && x.status === 409 ? '<%:A file with this name already exists%>' : '<%:Create File Failed%>');
 			}
 		});
 	});

@@ -122,10 +122,16 @@ var OixCloud = {
             });
         };
 
-        var onLoginSuccess = function(suggestNodeFilter, warning) {
+        var onLoginSuccess = function(suggestNodeFilter, warning, approval) {
             btns.forEach(function(b){ ocSetBtnBusy(b, false); });
             if (session !== self.accountSession) return;
             if (!data.refresh) session = ++self.accountSession;
+            var manage = document.getElementById('oix-temporary-device');
+            var temporary = approval && approval.approval_status === 'temporary' && /^[0-9a-f]{64}$/.test(approval.fingerprint);
+            if (manage) {
+                manage.hidden = !temporary;
+                if (temporary) manage.href = 'https://oixcloud.com/user/managed-device#device-' + approval.fingerprint;
+            }
             var info = warning || '<%:oixCloud configuration is active and a node passed the connectivity check%>';
             OixMsg.show(info, warning ? 'info' : 'success', 20000);
             self.loggedIn = true; self.showLoggedIn(); self.loadAccountInfo(); self.startPolling();
@@ -174,7 +180,7 @@ var OixCloud = {
                         var obj = JSON.parse(line);
                         if (obj.stage === 'done' && obj.result === 200) {
                             finished = true;
-                            onLoginSuccess(suggestAfterApproval || obj.suggest_node_filter === true, obj.warning);
+                            onLoginSuccess(suggestAfterApproval || obj.suggest_node_filter === true, obj.warning, obj.approval);
                         } else if (obj.stage === 'approval') {
                             finished = true;
                             btns.forEach(function(b){ ocSetBtnBusy(b, false); });
@@ -321,7 +327,7 @@ var OixCloud = {
         alternatives.appendChild(linkRow);
         alternatives.appendChild(addRow('code', '<%:Confirmation code%>', document.createElement('code')));
         alternatives.appendChild(addRow('telegram', '<%:Telegram command%>', document.createElement('code')));
-        alternatives.appendChild(addRow('fingerprint', '<%:Device fingerprint%>', document.createElement('code')));
+        var fingerprintRow = addRow('fingerprint', '<%:Device fingerprint%>', document.createElement('code'));
         var status = addText('oix-approval-status', '<%:Waiting for approval...%>');
         status.setAttribute('role', 'status');
         var retry = document.createElement('button');
@@ -333,6 +339,7 @@ var OixCloud = {
             return /^[0-9a-f]{32}$/.test(a.request_id || '') && /^[0-9a-f]{64}$/.test(a.device_fingerprint || '');
         };
         var render = function(a) {
+            fingerprintRow.style.display = a.denied ? 'none' : '';
             retry.style.display = a.denied ? '' : 'none';
             if (a.denied) {
                 alternatives.style.display = 'none';
@@ -495,6 +502,8 @@ var OixCloud = {
     },
 
     showLoggedOut: function() {
+        var manage = document.getElementById('oix-temporary-device');
+        if (manage) manage.hidden = true;
         ++this.accountSession;
         ++this.infoRequest;
         document.getElementById('oix-login-section').classList.remove('oc-hidden');
