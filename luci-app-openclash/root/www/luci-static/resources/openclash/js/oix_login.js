@@ -334,8 +334,8 @@ var OixCloud = {
         };
         var render = function(a) {
             retry.style.display = a.denied ? '' : 'none';
-            alternatives.style.display = a.denied ? 'none' : '';
             if (a.denied) {
+                alternatives.style.display = 'none';
                 clearTimeout(timer);
                 clearTimeout(deadlineTimer);
                 var inflight = operation;
@@ -349,6 +349,7 @@ var OixCloud = {
                 return;
             }
             var supported = (a.approval_method === 'email' || a.approval_method === 'totp') && bound(a);
+            alternatives.style.display = supported && !a.url ? 'none' : '';
             if (a.request_id !== pending.request_id || a.approval_method !== pending.approval_method || a.code !== shown) {
                 var previous = operation;
                 operation = null;
