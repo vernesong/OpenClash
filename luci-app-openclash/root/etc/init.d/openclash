@@ -3454,27 +3454,37 @@ strip_quotes()
 lookup_uci_name()
 {
    #Map an allowed key to its uci option name, $1 must be an upper case allowed key
+   local table=" $allowed_names_map "
+
    OVERWRITE_UCI_NAME=""
-   case " $allowed_names_map " in
+   case "$table" in
       *" $1:"*)
-         OVERWRITE_UCI_NAME="${allowed_names_map#*" $1:"}"
+         OVERWRITE_UCI_NAME="${table#*" $1:"}"
          OVERWRITE_UCI_NAME="${OVERWRITE_UCI_NAME%% *}"
+         ;;
+   esac
+}
+
+#overwrite_key_type sets OVERWRITE_KEY_TYPE from allowed_keys_types, empty when the key is unknown.
+overwrite_key_type()
+{
+   local table=" $allowed_types_map "
+
+   OVERWRITE_KEY_TYPE=""
+   case "$table" in
+      *" $1:"*)
+         OVERWRITE_KEY_TYPE="${table#*" $1:"}"
+         OVERWRITE_KEY_TYPE="${OVERWRITE_KEY_TYPE%% *}"
          ;;
    esac
 }
 
 check_type()
 {
-   local key="$1"
    local value="$2"
-   local type=""
-   case " $allowed_types_map " in
-      *" ${key}:"*)
-         type="${allowed_types_map#*" ${key}:"}"
-         type="${type%% *}"
-         ;;
-   esac
-   case "$type" in
+
+   overwrite_key_type "$1"
+   case "$OVERWRITE_KEY_TYPE" in
       int)
          case "$value" in
             ""|*[!0-9]*) return 1;;
@@ -3489,7 +3499,7 @@ check_type()
          [ "$value" = "true" ] || [ "$value" = "false" ]
          return $?
          ;;
-      string|*)
+      *)
          return 0
          ;;
    esac
@@ -3602,15 +3612,15 @@ overwrite_file()
       BYPASS_GATEWAY_COMPATIBLE:int_bool \
       CHINA_IP_ROUTE:int \
       CHINA_IP_ROUTE_DOMAIN_SOURCE:string \
-      CHINA_IP_ROUTE_PASS:string \
+      CHINA_IP_ROUTE_PASS:list \
       CHINA_IP6_ROUTE:int \
-      CHINA_IP6_ROUTE_PASS:string \
+      CHINA_IP6_ROUTE_PASS:list \
       CHNR_AUTO_UPDATE:int_bool \
       CHNR_CUSTOM_URL:string \
       CHNR6_CUSTOM_URL:string \
       CHNR_UPDATE_DAY_TIME:string \
       CHNR_UPDATE_WEEK_TIME:string \
-      COMMON_PORTS:string \
+      COMMON_PORTS:list \
       CONFIG_FILE:string \
       CORE_TYPE:string \
       CN_PORT:int \
@@ -3664,16 +3674,16 @@ overwrite_file()
       GLOBAL_UA:string \
       HTTP_PORT:int \
       INTRANET_ALLOWED:int_bool \
-      INTRANET_ALLOWED_WAN_NAME:string \
+      INTRANET_ALLOWED_WAN_NAME:list \
       INTERFACE_NAME:string \
       IPV6_DNS:int_bool \
       IPV6_ENABLE:int_bool \
       IPV6_MODE:int \
-      LAN_AC_BLACK_IPS:string \
-      LAN_AC_BLACK_MACS:string \
+      LAN_AC_BLACK_IPS:list \
+      LAN_AC_BLACK_MACS:list \
       LAN_AC_MODE:int_bool \
-      LAN_AC_WHITE_IPS:string \
-      LAN_AC_WHITE_MACS:string \
+      LAN_AC_WHITE_IPS:list \
+      LAN_AC_WHITE_MACS:list \
       LAN_INTERFACE_NAME:string \
       LGBM_AUTO_UPDATE:int_bool \
       LGBM_CUSTOM_URL:string \
@@ -3700,8 +3710,8 @@ overwrite_file()
       TPROXY_PORT:int \
       URLTEST_ADDRESS_MOD:string \
       URLTEST_INTERVAL_MOD:int \
-      WAN_AC_BLACK_IPS:string \
-      WAN_AC_BLACK_PORTS:string \
+      WAN_AC_BLACK_IPS:list \
+      WAN_AC_BLACK_PORTS:list \
       RESTART:bool \
    "
 
@@ -3968,8 +3978,7 @@ overwrite_file()
                strip_quotes "$val"
                val_key=$(expand_env_vars "$OVERWRITE_STRIPPED")
                [ -z "$val_key" ] && continue
-               system_host="${system_host}${val_key}
-"
+               system_host="${system_host}${val_key}"
             elif [ "$key_u" = "RESTART" ]; then
                strip_quotes "$val"
                val_key=$(expand_env_vars "$OVERWRITE_STRIPPED")
@@ -3983,6 +3992,11 @@ overwrite_file()
                      val_key=$(expand_env_vars "$OVERWRITE_STRIPPED")
                      if check_type "$key_u" "$OVERWRITE_STRIPPED"; then
                         lookup_uci_name "$key_u"
+                        if [ "$OVERWRITE_KEY_TYPE" = "list" ]; then
+                           val_key=$(printf '%s' "$val_key" | tr ',' ' ' | tr -s ' ')
+                           val_key="${val_key# }"
+                           val_key="${val_key% }"
+                        fi
                         uci -q set openclash.@overwrite[0]."$OVERWRITE_UCI_NAME"="$val_key"
                      fi
                      ;;

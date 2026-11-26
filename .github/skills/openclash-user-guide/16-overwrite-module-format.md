@@ -69,8 +69,8 @@ INI 风格分段，支持三段：
 | DNS | `ENABLE_CUSTOM_DNS`、`ENABLE_RESPECT_RULES`、`APPEND_WAN_DNS`、`APPEND_DEFAULT_DNS` | int_bool |
 | Fake-IP | `FAKEIP_RANGE`、`FAKEIP_RANGE6`、`STORE_FAKEIP`、`CUSTOM_FAKEIP_FILTER`、`CUSTOM_FAKEIP_FILTER_MODE` | string/int_bool |
 | Meta | `ENABLE_TCP_CONCURRENT`、`ENABLE_UNIFIED_DELAY`、`ENABLE_META_SNIFFER`、`ENABLE_META_SNIFFER_PURE_IP`、`ENABLE_GEOIP_DAT` | int_bool |
-| 流量 | `ROUTER_SELF_PROXY`、`DISABLE_UDP_QUIC`、`SKIP_PROXY_ADDRESS`、`COMMON_PORTS`、`CHINA_IP_ROUTE`、`CHINA_IP_ROUTE_DOMAIN_SOURCE` | int_bool/int/string |
-| 访问控制 | `LAN_AC_MODE`、`LAN_AC_BLACK_IPS`、`LAN_AC_BLACK_MACS`、`LAN_AC_WHITE_IPS`、`LAN_AC_WHITE_MACS`、`WAN_AC_BLACK_IPS`、`WAN_AC_BLACK_PORTS` | int_bool/string |
+| 流量 | `ROUTER_SELF_PROXY`、`DISABLE_UDP_QUIC`、`SKIP_PROXY_ADDRESS`、`COMMON_PORTS`、`CHINA_IP_ROUTE`、`CHINA_IP_ROUTE_DOMAIN_SOURCE` | int_bool/int/string/list |
+| 访问控制 | `LAN_AC_MODE`、`LAN_AC_BLACK_IPS`、`LAN_AC_BLACK_MACS`、`LAN_AC_WHITE_IPS`、`LAN_AC_WHITE_MACS`、`WAN_AC_BLACK_IPS`、`WAN_AC_BLACK_PORTS` | int_bool/list |
 | IPv6 | `IPV6_ENABLE`、`IPV6_MODE`、`IPV6_DNS` | int_bool/int |
 | GEO | `GEO_AUTO_UPDATE`、`GEOIP_AUTO_UPDATE`、`GEOSITE_AUTO_UPDATE`、`GEOASN_AUTO_UPDATE` | int_bool |
 | 规则 | `ENABLE_CUSTOM_CLASH_RULES`、`ENABLE_RULE_PROXY` | int_bool |
@@ -82,10 +82,10 @@ INI 风格分段，支持三段：
 | 特殊 | `DOWNLOAD_FILE` | 下载外部文件（§16.2.4） |
 | 特殊 | `DASHBOARD_PASSWORD`、`GLOBAL_UA`、`RESTART` | 密码 / UA / 覆写后是否重启 |
 
-类型：`int` 整数、`int_bool` 0/1、`bool` true/false、`string` 任意字符串。完整 Key 与对应 UCI 见 `17-overwrite-module-examples.md` §17.5.2。
+类型：`int` 整数、`int_bool` 0/1、`bool` true/false、`string` 任意字符串、`list` 多值列表（逗号或空格分隔，写入 UCI 时归一化为空格分隔；重复写同一键时最后一行为准）。完整 Key 与对应 UCI 见 `17-overwrite-module-examples.md` §17.5.2。
 
 - **`[General]` 是唯一能改「插件设置」（UCI 层）的途径**：重启时写入 UCI（`openclash.@overwrite[0]`）供 `yml_change.sh`/`yml_rules_change.sh` 读取；`[YAML]`/`[Overwrite]` 只能改运行 YAML。凡修复涉及插件设置（模式/端口/DNS/Fake-IP/Meta/流量/IPv6/GEO/Smart 等）都要用 `[General]` 段，示例见 `17-overwrite-module-examples.md` §17.3（`EN_MODE = fake-ip-tun`）
-- **访问控制类取并集**: `LAN_AC_*`/`WAN_AC_*` 写进模块是**追加**而非替换（`ac_combined_values()` 对 `openclash.config.<key>` 与 `openclash.@overwrite[0].<key>` 取并集，逗号或空格分隔均可）。`LAN_AC_*` 只作用于转发流量，路由器自身出站需 `WAN_AC_BLACK_PORTS`（output 链也生成）或 `ROUTER_SELF_PROXY`
+- **访问控制类取并集**: `LAN_AC_*`/`WAN_AC_*` 写进模块是**追加**而非替换（`ac_combined_values()` 对 `openclash.config.<key>` 与 `openclash.@overwrite[0].<key>` 取并集）。`list` 类型参数（`COMMON_PORTS`、`CHINA_IP_ROUTE_PASS`、`CHINA_IP6_ROUTE_PASS`、`INTRANET_ALLOWED_WAN_NAME`、`LAN_AC_*`、`WAN_AC_*`）均可用逗号或空格分隔，其余语义由读取端决定（`COMMON_PORTS` 整体覆盖界面值、`CHINA_*_ROUTE_PASS` 与 custom 列表文件合并、`INTRANET_ALLOWED_WAN_NAME` 界面 list 优先）。`LAN_AC_*` 只作用于转发流量，路由器自身出站需 `WAN_AC_BLACK_PORTS`（output 链也生成）或 `ROUTER_SELF_PROXY`
 - **`CONFIG_FILE` 路径限制**: 只接受 `/etc/openclash/` 下的普通文件；含 `..`、以 `/` 结尾、文件名以 `.` 开头或落在该目录外都会被跳过，记录 `skip config file outside /etc/openclash` / `skip config file with unsafe path` / `skip hidden config file`。合法示例 `/etc/openclash/config/Custom_Clash.yaml`
 - **值支持变量展开**: `$NAME` / `${NAME}` / `${NAME:-默认值}`（`NAME` 匹配 `[A-Za-z_][A-Za-z0-9_]*`；`:-` 在未设置或为空时取默认，默认值内可再引用变量）；其余 `$` 写法（`$1`、`$(cmd)`）原样保留、不执行命令替换。变量来源见 `17-overwrite-module-examples.md` §17.5.1
 
