@@ -331,8 +331,11 @@ revert_dnsmasq()
    uci -q commit dhcp
    uci -q commit openclash
 
+   /etc/init.d/dnsmasq restart
+
    masq_port=$(uci -q get dhcp.@dnsmasq[0].port)
-   if [ "$(nslookup www.apple.com 127.0.0.1:${masq_port} >/dev/null 2>&1 || echo $?)" = "1" ]; then
+   [ -z "$masq_port" ] && masq_port="53"
+   if [ "$masq_port" != "0" ] && ! nslookup www.apple.com "127.0.0.1:${masq_port}" >/dev/null 2>&1; then
       resolv_file=$(uci -q get dhcp.@dnsmasq[0].resolvfile)
       [ -z "$resolv_file" ] && resolv_file="/tmp/resolv.conf.d/resolv.conf.auto"
       wan_dns=$(/usr/share/openclash/openclash_get_network.lua "dns")
@@ -359,9 +362,8 @@ nameserver 119.29.29.29
 nameserver 8.8.8.8
 EOF
       fi
+      /etc/init.d/dnsmasq reload
    fi
-
-   /etc/init.d/dnsmasq restart
 
 } >/dev/null 2>&1
 
