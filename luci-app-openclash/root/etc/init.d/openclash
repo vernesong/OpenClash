@@ -365,11 +365,29 @@ change_dnsmasq() {
       return
    fi
 
+   local dnsmasq_changed=0
+   local openclash_changed=0
+   local conf_file
+
+   for conf_file in \
+      "${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf" \
+      "${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf" \
+      "${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf"; do
+      [ -e "$conf_file" ] && dnsmasq_changed=1
+   done
+
    # 区域绕过黑名单
    load_ip_route_pass
 
    # 第二 DNS 服务
    /usr/share/openclash/openclash_custom_domain_dns.sh
+
+   for conf_file in \
+      "${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf" \
+      "${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf" \
+      "${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf"; do
+      [ -e "$conf_file" ] && dnsmasq_changed=1
+   done
 
    if [ "$1" -eq 1 ]; then
       if [ "$(uci_get_config "redirect_dns")" != "1" ]; then
@@ -388,11 +406,22 @@ change_dnsmasq() {
       uci -q set openclash.config.dnsmasq_cachesize="$(uci -q get dhcp.@dnsmasq[0].cachesize)"
       uci -q set dhcp.@dnsmasq[0].cachesize=0
       uci -q set openclash.config.cachesize_dns=1
+      dnsmasq_changed=1
+      openclash_changed=1
    else
       # Remove residual Dnsmasq redirect left
-      uci -q del_list dhcp.@dnsmasq[0].server="127.0.0.1#$dns_port"
-      uci -q set openclash.config.redirect_dns=0
-      uci -q set openclash.config.cachesize_dns=0
+      if uci -q get dhcp.@dnsmasq[0].server | tr ' ' '\n' | grep -Fxq "127.0.0.1#$dns_port"; then
+         uci -q del_list dhcp.@dnsmasq[0].server="127.0.0.1#$dns_port"
+         dnsmasq_changed=1
+      fi
+      if [ "$(uci_get_config "redirect_dns")" != "0" ]; then
+         uci -q set openclash.config.redirect_dns=0
+         openclash_changed=1
+      fi
+      if [ "$(uci_get_config "cachesize_dns")" != "0" ]; then
+         uci -q set openclash.config.cachesize_dns=0
+         openclash_changed=1
+      fi
    fi
 
    if [ "$1" -eq 1 ] && [ "$ipv6_dns" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Chain')" ]; then
@@ -400,13 +429,20 @@ change_dnsmasq() {
       uci -q set openclash.config.dnsmasq_filter_aaaa="$(uci -q get dhcp.@dnsmasq[0].filter_aaaa)"
       uci -q set dhcp.@dnsmasq[0].filter_aaaa=0
       uci -q set openclash.config.filter_aaaa_dns=1
+      dnsmasq_changed=1
+      openclash_changed=1
    else
-      uci -q set openclash.config.filter_aaaa_dns=0
+      if [ "$(uci_get_config "filter_aaaa_dns")" != "0" ]; then
+         uci -q set openclash.config.filter_aaaa_dns=0
+         openclash_changed=1
+      fi
    fi
 
-   uci -q commit openclash
-   uci -q commit dhcp
-   /etc/init.d/dnsmasq restart
+   [ "$openclash_changed" -eq 1 ] && uci -q commit openclash
+   if [ "$dnsmasq_changed" -eq 1 ]; then
+      uci -q commit dhcp
+      /etc/init.d/dnsmasq restart
+   fi
 } >/dev/null 2>&1
 
 # release the dnsmasq settings written by change_dnsmasq 1 (server pin, noresolv,
@@ -450,23 +486,30 @@ restore_dnsmasq()
          fi
          uci -q set dhcp.@dnsmasq[0].localuse=1
       fi
+      dnsmasq_changed=1
+      openclash_changed=1
    }
 
    [ "$cachesize_dns" -eq 1 ] && {
       uci -q set dhcp.@dnsmasq[0].cachesize="$dnsmasq_cachesize"
       uci -q set openclash.config.cachesize_dns=0
       uci -q delete openclash.config.dnsmasq_cachesize
+      dnsmasq_changed=1
+      openclash_changed=1
    }
 
    [ "$filter_aaaa_dns" -eq 1 ] && {
       uci -q set dhcp.@dnsmasq[0].filter_aaaa="$dnsmasq_filter_aaaa"
       uci -q set openclash.config.filter_aaaa_dns=0
       uci -q delete openclash.config.dnsmasq_filter_aaaa
+      dnsmasq_changed=1
+      openclash_changed=1
    }
 
    [ "$redirect_dns" -eq 1 ] && {
       uci -q set openclash.config.redirect_dns=0
       uci -q del openclash.config.dnsmasq_server
+      openclash_changed=1
    }
 }
 
@@ -476,47 +519,58 @@ revert_dnsmasq()
       return
    fi
 
-   rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf
-   rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf
-   rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf
+   local dnsmasq_changed=0
+   local openclash_changed=0
+   local conf_file
+
+   for conf_file in \
+      "${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf" \
+      "${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf" \
+      "${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf"; do
+      if [ -e "$conf_file" ]; then
+         rm -rf "$conf_file"
+         dnsmasq_changed=1
+      fi
+   done
 
    restore_dnsmasq
 
-   uci -q commit dhcp
-   uci -q commit openclash
+   [ "$openclash_changed" -eq 1 ] && uci -q commit openclash
+   if [ "$dnsmasq_changed" -eq 1 ]; then
+      uci -q commit dhcp
+      /etc/init.d/dnsmasq restart
 
-   /etc/init.d/dnsmasq restart
+      masq_port=$(uci -q get dhcp.@dnsmasq[0].port)
+      [ -z "$masq_port" ] && masq_port="53"
+      if [ "$masq_port" != "0" ] && ! nslookup www.apple.com "127.0.0.1:${masq_port}" >/dev/null 2>&1; then
+         resolv_file=$(uci -q get dhcp.@dnsmasq[0].resolvfile)
+         [ -z "$resolv_file" ] && resolv_file="/tmp/resolv.conf.d/resolv.conf.auto"
+         wan_dns=$(/usr/share/openclash/openclash_get_network.lua "dns")
+         wan6_dns=$(/usr/share/openclash/openclash_get_network.lua "dns6")
+         mkdir -p "$(dirname "$resolv_file")"
+         touch "$resolv_file"
 
-   masq_port=$(uci -q get dhcp.@dnsmasq[0].port)
-   [ -z "$masq_port" ] && masq_port="53"
-   if [ "$masq_port" != "0" ] && ! nslookup www.apple.com "127.0.0.1:${masq_port}" >/dev/null 2>&1; then
-      resolv_file=$(uci -q get dhcp.@dnsmasq[0].resolvfile)
-      [ -z "$resolv_file" ] && resolv_file="/tmp/resolv.conf.d/resolv.conf.auto"
-      wan_dns=$(/usr/share/openclash/openclash_get_network.lua "dns")
-      wan6_dns=$(/usr/share/openclash/openclash_get_network.lua "dns6")
-      mkdir -p "$(dirname "$resolv_file")"
-      touch "$resolv_file"
-
-      if [ -n "$wan_dns" ]; then
-         echo "# Interface lan" > "$resolv_file"
-         for dns in $wan_dns; do
-            echo "nameserver $dns" >> "$resolv_file"
-         done
-      fi
-      if [ -n "$wan6_dns" ]; then
-         echo "# Interface LAN6" >> "$resolv_file"
-         for dns6 in $wan6_dns; do
-            echo "nameserver $dns6" >> "$resolv_file"
-         done
-      fi
-      if [ -z "$wan_dns" ] && [ -z "$wan6_dns" ]; then
-         cat > "$resolv_file" <<-EOF
+         if [ -n "$wan_dns" ]; then
+            echo "# Interface lan" > "$resolv_file"
+            for dns in $wan_dns; do
+               echo "nameserver $dns" >> "$resolv_file"
+            done
+         fi
+         if [ -n "$wan6_dns" ]; then
+            echo "# Interface LAN6" >> "$resolv_file"
+            for dns6 in $wan6_dns; do
+               echo "nameserver $dns6" >> "$resolv_file"
+            done
+         fi
+         if [ -z "$wan_dns" ] && [ -z "$wan6_dns" ]; then
+            cat > "$resolv_file" <<-EOF
 # Interface lan
 nameserver 119.29.29.29
 nameserver 8.8.8.8
 EOF
+         fi
+         /etc/init.d/dnsmasq reload
       fi
-      /etc/init.d/dnsmasq reload
    fi
 
 } >/dev/null 2>&1
