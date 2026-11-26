@@ -1016,6 +1016,12 @@ msgstr "URL de plantilla personalizada"
 msgid "Custom Template"
 msgstr "Plantilla personalizada"
 
+msgid "Default Template"
+msgstr "Plantilla predeterminada"
+
+msgid "Leave this field blank to use subconverter's default configuration"
+msgstr "Déjelo vacío para usar la configuración predeterminada de subconverter"
+
 msgid "Emoji"
 msgstr "Añadir Emoji"
 

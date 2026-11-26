@@ -501,8 +501,11 @@ revert_dnsmasq()
    uci -q commit dhcp
    uci -q commit openclash
 
+   /etc/init.d/dnsmasq restart
+
    masq_port=$(uci -q get dhcp.@dnsmasq[0].port)
-   if [ "$(nslookup www.apple.com 127.0.0.1:${masq_port} >/dev/null 2>&1 || echo $?)" = "1" ]; then
+   [ -z "$masq_port" ] && masq_port="53"
+   if [ "$masq_port" != "0" ] && ! nslookup www.apple.com "127.0.0.1:${masq_port}" >/dev/null 2>&1; then
       resolv_file=$(uci -q get dhcp.@dnsmasq[0].resolvfile)
       [ -z "$resolv_file" ] && resolv_file="/tmp/resolv.conf.d/resolv.conf.auto"
       wan_dns=$(/usr/share/openclash/openclash_get_network.lua "dns")
@@ -529,9 +532,8 @@ nameserver 119.29.29.29
 nameserver 8.8.8.8
 EOF
       fi
+      /etc/init.d/dnsmasq reload
    fi
-
-   /etc/init.d/dnsmasq restart
 
 } >/dev/null 2>&1
 
@@ -3533,66 +3535,72 @@ overwrite_config_match_item()
 
 expand_env_vars()
 {
-   #Expand $VAR / ${VAR} and ${VAR:-default}, keep all other characters as-is
-   local rest="$1"
-   local out="" head name val c word op
+   #Expand $VAR / ${VAR} and ${VAR:-default}, \$ keeps a literal $, keep all other characters as-is
+   local _env_rest="$1"
+   local _env_out _env_head _env_name _env_val _env_c _env_word _env_op
 
    while :; do
-      case "$rest" in
+      case "$_env_rest" in
          *'$'*) ;;
-         *) out="$out$rest"; break;;
+         *) _env_out="$_env_out$_env_rest"; break;;
       esac
-      head="${rest%%\$*}"
-      out="$out$head"
-      rest="${rest#*\$}"
-      name=""
-      case "$rest" in
+      _env_head="${_env_rest%%\$*}"
+      _env_rest="${_env_rest#*\$}"
+      case "$_env_head" in
+         *'\')
+            _env_out="$_env_out${_env_head%?}\$"
+            continue
+            ;;
+      esac
+      _env_out="$_env_out$_env_head"
+      _env_name=""
+      case "$_env_rest" in
          '{'*)
-            case "${rest#\{}" in
+            case "${_env_rest#\{}" in
                *'}'*)
-                  name="${rest#\{}"; name="${name%%\}*}"
-                  op=""
-                  word=""
-                  case "$name" in
-                     *:-*) op=":-"; word="${name#*:-}"; name="${name%%:-*}";;
+                  _env_name="${_env_rest#\{}"; _env_name="${_env_name%%\}*}"
+                  _env_op=""
+                  _env_word=""
+                  case "$_env_name" in
+                     *:-*) _env_op=":-"; _env_word="${_env_name#*:-}"; _env_name="${_env_name%%:-*}";;
                   esac
-                  case "$name" in
-                     ""|*[!A-Za-z0-9_]*|[0-9]*) out="$out\${$name$op$word}";;
+                  case "$_env_name" in
+                     ""|*[!A-Za-z0-9_]*|[0-9]*) _env_out="$_env_out\${$_env_name$_env_op$_env_word}";;
                      *)
-                        eval "val=\${$name-}"
-                        if [ -n "$op" ] && [ -z "$val" ]; then
-                           out="$out$(expand_env_vars "$word")"
+                        eval "_env_val=\${$_env_name-}"
+                        if [ -n "$_env_op" ] && [ -z "$_env_val" ]; then
+                           _env_out="$_env_out$(expand_env_vars "$_env_word")"
                         else
-                           out="$out$val"
+                           _env_out="$_env_out$_env_val"
                         fi
                         ;;
                   esac
-                  rest="${rest#*\}}"
+                  _env_rest="${_env_rest#*\}}"
                   ;;
-               *) out="$out\$";;
+               *) _env_out="$_env_out\$";;
             esac
             continue
             ;;
          '$'*)
-            out="$out\$\$"
-            rest="${rest#?}"
+            _env_out="$_env_out\$\$"
+            _env_rest="${_env_rest#?}"
             continue
             ;;
       esac
       while :; do
-         c="${rest%"${rest#?}"}"
-         case "$c" in
-            [A-Za-z0-9_]) name="$name$c"; rest="${rest#?}";;
+         _env_c="${_env_rest%"${_env_rest#?}"}"
+         case "$_env_c" in
+            [A-Za-z0-9_]) _env_name="$_env_name$_env_c"; _env_rest="${_env_rest#?}";;
             *) break;;
          esac
       done
-      case "$name" in
-         ""|[0-9]*) out="$out\$$name";;
-         *) eval "val=\${$name-}"; out="$out$val";;
+      case "$_env_name" in
+         ""|[0-9]*) _env_out="$_env_out\$$_env_name";;
+         *) eval "_env_val=\${$_env_name-}"; _env_out="$_env_out$_env_val";;
       esac
    done
 
-   printf '%s' "$out"
+   printf '%s' "$_env_out"
 }
 
 overwrite_file()

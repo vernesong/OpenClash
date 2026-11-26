@@ -168,12 +168,14 @@ for l in file:lines() do
 	end
 end
 file:close()
+o:value("", translate("Default Template"))
 o:value("0", translate("Custom Template"))
 
 ---- Custom Template
 o = s:option(Value, "custom_template_url", translate("Custom Template URL"))
 o.rmempty = true
-o.placeholder = translate("Not Null")
+o.placeholder = translate("Optional")
+o.description = translate("Leave this field blank to use subconverter's default configuration")
 o.datatype = "or(host, string)"
 o:depends("template", "0")
 

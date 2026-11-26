@@ -1351,8 +1351,8 @@ module YAML
 	end
 
 	# Only a single call to an allowed helper with quoted arguments is accepted; in double quoted
-	# arguments $NAME and ${NAME} expand from the environment and every other character stays
-	# literal, in single quoted arguments nothing is expanded
+	# arguments $NAME and ${NAME} expand from the environment, \$ keeps a literal $, $$ is kept
+	# as-is and every other character stays literal, in single quoted arguments nothing is expanded
 	def self.overwrite_parse_line(line)
 		length = line.length
 		position = 0
@@ -1385,7 +1385,9 @@ module YAML
 	end
 
 	def self.overwrite_expand_env(text)
-		text.gsub(/\$\{([A-Za-z_][A-Za-z0-9_]*)\}|\$([A-Za-z_][A-Za-z0-9_]*)/) do
+		text.gsub(/\\\$|\$\$|\$\{([A-Za-z_][A-Za-z0-9_]*)\}|\$([A-Za-z_][A-Za-z0-9_]*)/) do |match|
+			next '$' if match == '\$'
+			next match if match == '$$'
 			ENV[Regexp.last_match(1) || Regexp.last_match(2)].to_s
 		end
 	end

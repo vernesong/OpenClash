@@ -578,31 +578,32 @@ sub_info_get()
          done
       fi
    fi
-
    if [ "${sub_convert:-0}" -eq 0 ]; then
       subscribe_url=$address
-   elif [ "${sub_convert:-0}" -eq 1 ] && [ -n "$template" ]; then
+   elif [ "${sub_convert:-0}" -eq 1 ]; then
       while IFS= read -r line; do
          line=$(echo "$line" | tr -d '\r')
          subscribe_url=$([ -n "$subscribe_url" ] && echo "$subscribe_url|")$(urlencode "$line")
       done <<EOF
 $address
 EOF
-      if [ "$template" != "0" ]; then
-         template_path=$(grep "^$template," /usr/share/openclash/res/sub_ini.list |awk -F ',' '{print $3}' 2>/dev/null)
-      else
-         template_path=$custom_template_url
+      if [ -n "${template:-}" ]; then
+         if [ "$template" != "0" ]; then
+            template_path=$(grep "^$template," /usr/share/openclash/res/sub_ini.list | awk -F ',' '{print $3}' 2>/dev/null)
+         else
+            template_path=$custom_template_url
+         fi
       fi
+      config_list_foreach "$section" "custom_params" convert_custom_param
+      [ -n "$key_match_param" ] && key_match_param="$(urlencode "(?i)$key_match_param")"
+      [ -n "$key_ex_match_param" ] && key_ex_match_param="$(urlencode "(?i)$key_ex_match_param")"
+      template_param=""
       if [ -n "$template_path" ]; then
-         config_list_foreach "$section" "custom_params" convert_custom_param
          template_path_encode=$(urlencode "$template_path")
-         [ -n "$key_match_param" ] && key_match_param="$(urlencode "(?i)$key_match_param")"
-         [ -n "$key_ex_match_param" ] && key_ex_match_param="$(urlencode "(?i)$key_ex_match_param")"
-         subscribe_url_param="?target=clash&new_name=true&url=$subscribe_url&config=$template_path_encode&include=$key_match_param&exclude=$key_ex_match_param&emoji=$emoji&list=false&sort=$sort$udp&scv=$skip_cert_verify&append_type=$node_type&fdn=true$rule_provider$tfo$tls13$append_custom_params"
-         c_address="$convert_address"
-      else
-         subscribe_url=$address
+         template_param="&config=$template_path_encode"
       fi
+      subscribe_url_param="?target=clash&new_name=true&url=$subscribe_url$template_param&include=$key_match_param&exclude=$key_ex_match_param&emoji=$emoji&list=false&sort=$sort$udp&scv=$skip_cert_verify&append_type=$node_type&fdn=true$rule_provider$tfo$tls13$append_custom_params"
+      c_address="$convert_address"
    else
       subscribe_url=$address
    fi

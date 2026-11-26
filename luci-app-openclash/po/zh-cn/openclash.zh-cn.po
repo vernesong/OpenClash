@@ -1022,6 +1022,12 @@ msgstr "自定义模板地址"
 msgid "Custom Template"
 msgstr "自定义模板"
 
+msgid "Default Template"
+msgstr "默认模板"
+
+msgid "Leave this field blank to use subconverter's default configuration"
+msgstr "留空则使用默认配置"
+
 msgid "Emoji"
 msgstr "添加 Emoji"
 
