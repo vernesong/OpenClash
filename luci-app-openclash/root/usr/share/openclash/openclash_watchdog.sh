@@ -309,11 +309,6 @@ fi
          man_op_line=$(echo "$man_rules" | grep -Ev "DNS|dns" | grep -E "openclash|OpenClash" | grep "# handle" | awk -F '# handle ' '{print $2}' | tail -1)
       fi
 
-      tun_route_missing=0
-      case "$en_mode" in
-         *-tun) ip route list table 354 2>/dev/null | grep -q "^default dev utun" || tun_route_missing=1 ;;
-      esac
-
       firewall_missing=0
       case "$en_mode" in
          *-tun) [ -n "$man_jump" ] || firewall_missing=1 ;;
@@ -336,17 +331,11 @@ fi
          LOG_WATCHDOG "Setting Firewall For Rules Order..."
          /etc/init.d/openclash reload "firewall"
          let FIREWALL_RELOAD++
-      elif [ -n "$(ip link show utun 2>/dev/null)" ] && [ -n "$(ip rule show 2>/dev/null | grep "fwmark $PROXY_FWMARK")" ] && [ -z "$(ip route list table 354)" ]; then
-         ## 路由表检查
+      elif [ -n "$(ip link show utun 2>/dev/null)" ] && [ -n "$(ip rule show 2>/dev/null | grep "fwmark $PROXY_FWMARK")" ] && [ -z "$(ip route list table 354 | grep '^default dev utun')" ]; then
+         ## 路由表检查（throw 条目不随 utun 删除，表非空也可能缺默认路由）
          LOG_WATCHDOG "Setting Firewall For IP Rules Table Recreate..."
          /etc/init.d/openclash reload "firewall"
          let FIREWALL_RELOAD++
-      elif [ -n "$(ip link show utun 2>/dev/null)" ] && [ -n "$(ip rule show 2>/dev/null | grep "fwmark $PROXY_FWMARK")" ] && [ "$tun_route_missing" -eq 1 ]; then
-         ## TUN 默认路由检查：表里仍留有 throw 条目，表非空但 default dev utun 已随旧 utun 一起被内核删除
-         ## （core 被 procd respawn 或配置重载后，utun 重建不会重跑 check_core_status）
-         LOG_WATCHDOG "Setting Firewall For TUN Default Route..."
-         ip route replace default dev utun table 354 2>/dev/null
-         FIREWALL_RELOAD=0
       else
          FIREWALL_RELOAD=0
       fi

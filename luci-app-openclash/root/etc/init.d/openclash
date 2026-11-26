@@ -955,7 +955,7 @@ check_core_status()
             fi
          fi
          if [ -n "$en_mode_tun" ]; then
-            ip route replace default dev utun table "$PROXY_ROUTE_TABLE"
+            ip route add default dev utun table "$PROXY_ROUTE_TABLE"
             ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 999
             proxy_throw_route_add "$fakeip_range"
          fi
