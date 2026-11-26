@@ -3696,13 +3696,13 @@ html[data-darkmode="true"] .oc .oix-announcement {
     .oc .ac-card { gap: 4px; }
     .oc .ac-head { padding: 4px 2px 8px; }
 }
-.oc .ac-sum { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); white-space: nowrap; min-width: 0; }
+.oc .ac-sum { display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: normal; color: var(--text-secondary); white-space: nowrap; min-width: 0; }
 .oc .ac-sum > span:not(.ac-def-pill) { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .oc .ac-sum > svg { width: 12px; height: 12px; color: var(--primary-color); flex: 0 0 auto; }
 .oc .ac-sum b { color: var(--text-primary); font-weight: 600; font-variant-numeric: tabular-nums; }
 .oc .ac-def-pill {
     display: inline-flex; align-items: center; flex: 0 0 auto;
-    height: 16px; padding: 0 8px; border-radius: var(--radius-xs);
+    height: 16px; padding: 0 6px; border-radius: var(--radius-xs);
     font-size: 10px; font-weight: 600; line-height: normal; color: var(--text-secondary);
     background: var(--bg-light); border: 1px solid var(--border-light);
 }
@@ -3889,8 +3889,8 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
 .oc .ac-off-tag {
     flex: 0 0 auto; display: inline-flex; align-items: center;
     height: 17px; box-sizing: border-box; padding: 0 6px;
-    font-size: 10.5px; font-weight: 600; line-height: normal;
-    border-radius: 4px;
+    font-size: 10px; font-weight: 500; line-height: normal;
+    border-radius: var(--radius-xs);
     color: var(--text-secondary); background: var(--bg-gray);
     border: 1px solid var(--border-light);
 }
@@ -3898,7 +3898,7 @@ html[data-darkmode="true"] .oc .ac-warn .ac-warn-btn { color: #fbbf24; }
     flex: 0 0 auto; display: inline-flex; align-items: center;
     height: 17px; box-sizing: border-box; padding: 0 6px;
     font-size: 10px; font-weight: 500; line-height: normal;
-    border-radius: 4px; max-width: 104px; overflow: hidden; white-space: nowrap;
+    border-radius: var(--radius-xs); max-width: 104px; overflow: hidden; white-space: nowrap;
     color: var(--text-secondary); background: transparent;
     border: 1px solid var(--border-light);
 }
