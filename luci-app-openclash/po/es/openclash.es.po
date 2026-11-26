@@ -5772,14 +5772,14 @@ msgstr "Buscar dispositivos"
 msgid "Minutes"
 msgstr "minutos"
 
-msgid "For a manually created Access Token, bind the current token to a non-primary subscription URL in Access Token Management on the website, then edit the node filter for that URL"
-msgstr "Si usa un Access Token creado manualmente, vincule el token actual a una URL de suscripción no principal en Access Token Management del sitio web y edite el filtro de nodos de esa URL"
-
 msgid "Sign in with Google"
 msgstr "Iniciar sesión con Google"
 
 msgid "Only accounts already registered with oixCloud can sign in with Google"
 msgstr "Solo las cuentas ya registradas en oixCloud pueden iniciar sesión con Google"
+
+msgid "After you sign in, OpenClash sends oixCloud a randomly generated identifier for this router so the website can list it separately and let you sign it out on its own. It cannot be used to sign in."
+msgstr "Al iniciar sesión, OpenClash envía a oixCloud un identificador generado al azar para este router, de modo que el sitio web lo muestre por separado y permita cerrar su sesión de forma individual. El identificador no sirve para iniciar sesión."
 
 msgid "Complete Google sign-in in the pop-up window"
 msgstr "Completa el inicio de sesión con Google en la ventana emergente"
@@ -5913,77 +5913,14 @@ msgstr "Se guardó la configuración, pero no los ajustes; revisa el almacenamie
 msgid "Subscription was saved; the active configuration was kept"
 msgstr "La suscripción se guardó; se mantuvo la configuración activa"
 
-msgid "Approve this device"
-msgstr "Aprobar este dispositivo"
+msgid "the oixCloud panel did not accept this device for this sign-in; sign in again"
+msgstr "oixCloud no aceptó este router para este inicio de sesión; vuelve a iniciar sesión"
 
-msgid "Approve this router on the oixCloud website or with your linked Telegram bot, after checking that the fingerprint matches. This window closes by itself once approved"
-msgstr "Comprueba que la huella coincide y aprueba este router en la web de oixCloud o con tu bot de Telegram vinculado. Esta ventana se cierra sola tras la aprobación"
-
-msgid "Approval page"
-msgstr "Página de aprobación"
-
-msgid "Confirmation code"
-msgstr "Código de confirmación"
-
-msgid "Telegram command"
-msgstr "Comando de Telegram"
-
-msgid "Device fingerprint"
-msgstr "Huella del dispositivo"
-
-msgid "Waiting for approval..."
-msgstr "Esperando la aprobación..."
-
-msgid "A new confirmation code was issued"
-msgstr "Se emitió un nuevo código de confirmación"
-
-msgid "Unable to check the approval, retrying..."
-msgstr "No se pudo comprobar la aprobación, reintentando..."
-
-msgid "This device approval request was denied"
-msgstr "Se ha denegado la solicitud de aprobación de este dispositivo"
-
-msgid "Device approval timed out; update the subscription to get a new code"
-msgstr "Se agotó el tiempo de aprobación; actualiza la suscripción para obtener un código nuevo"
-
-msgid "this device is not approved yet; approve it on the oixCloud website or with the Telegram bot"
-msgstr "Este router aún no está aprobado; apruébalo en la web de oixCloud o con el bot de Telegram"
-
-msgid "too many devices are waiting for approval; approve them first or try again in 10 minutes"
-msgstr "Hay demasiados dispositivos esperando aprobación; apruébalos primero o vuelve a intentarlo en 10 minutos"
+msgid "the oixCloud panel did not accept this device; try again later"
+msgstr "oixCloud no aceptó este router; inténtalo de nuevo más tarde"
 
 msgid "the device enrollment was refused; update the client and try again"
 msgstr "Se rechazó el registro del dispositivo; actualiza el plugin y el núcleo e inténtalo de nuevo"
-
-msgid "Send email code"
-msgstr "Enviar código por correo"
-
-msgid "Other approval methods"
-msgstr "Otros métodos de autorización"
-
-msgid "8-digit email code"
-msgstr "Código de 8 dígitos del correo"
-
-msgid "6-digit authenticator code"
-msgstr "Código de 6 dígitos de la aplicación de autenticación"
-
-msgid "Check your account email for the code"
-msgstr "Revisa el correo de tu cuenta para ver el código"
-
-msgid "Device verification failed"
-msgstr "No se pudo verificar el dispositivo"
-
-msgid "Invalid device approval request"
-msgstr "La solicitud de autorización del dispositivo no es válida"
-
-msgid "Request approval again"
-msgstr "Volver a solicitar aprobación"
-
-msgid "This request was denied. With an older server, wait for the original code to expire before requesting again"
-msgstr "Esta solicitud fue rechazada. Si usas un servidor anterior, espera a que caduque el código original antes de volver a solicitarla"
-
-msgid "Temporary access - approve this router"
-msgstr "Acceso temporal: aprobar este router"
 
 msgid "A file with this name already exists"
 msgstr "Ya existe un archivo con este nombre"

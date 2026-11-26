@@ -1765,8 +1765,7 @@ function ocPrompt(title, value, onSubmit) {
 }
 
 // confirm modal: resolves the chosen button value, null when dismissed (Esc/backdrop);
-// options.buttons: {label, value, kind: 'primary' | 'danger'}; options.content: a node
-// shown in place of the body text; options.onOpen(close): lets the caller close it with a value
+// options.buttons: {label, value, kind: 'primary' | 'danger'}
 function ocConfirm(options) {
     options = options || {};
     return new Promise(function(resolve) {
@@ -1792,11 +1791,7 @@ function ocConfirm(options) {
         } else {
             win.querySelector('.oc-confirm-title').remove();
         }
-        if (options.content) {
-            win.querySelector('.oc-confirm-body').appendChild(options.content);
-        } else {
-            win.querySelector('.oc-confirm-body').textContent = options.body || '';
-        }
+        win.querySelector('.oc-confirm-body').textContent = options.body || '';
         var nodes = win.querySelectorAll('.oc-confirm-btn');
         var i;
         for (i = 0; i < nodes.length; i++) {
@@ -1806,8 +1801,7 @@ function ocConfirm(options) {
             })(i));
         }
         function close(value) {
-            if (!overlay.parentNode) return;
-            overlay.parentNode.removeChild(overlay);
+            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
             document.removeEventListener('keydown', onKey, true);
             if (prevFocus && prevFocus.focus) prevFocus.focus();
             resolve(value);
@@ -1823,7 +1817,6 @@ function ocConfirm(options) {
         document.addEventListener('keydown', onKey, true);
         document.body.appendChild(overlay);
         if (nodes.length) nodes[0].focus();
-        if (options.onOpen) options.onOpen(close);
     });
 }
 

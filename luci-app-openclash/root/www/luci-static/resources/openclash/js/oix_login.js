@@ -8,8 +8,7 @@ var OIX_URLS = {
     logout: '<%=url("admin", "services", "openclash", "oix_logout")%>',
     save: '<%=url("admin", "services", "openclash", "oix_login_info_save")%>',
     checkin: '<%=url("admin", "services", "openclash", "oix_checkin")%>',
-    webLink: '<%=url("admin", "services", "openclash", "oix_web_link")%>',
-    deviceStatus: '<%=url("admin", "services", "openclash", "oix_device_status")%>'
+    webLink: '<%=url("admin", "services", "openclash", "oix_web_link")%>'
 };
 
 var OixCloud = {
@@ -108,7 +107,7 @@ var OixCloud = {
         this.googleTimer = null;
     },
 
-    streamLogin: function(data, btns, suggestAfterApproval) {
+    streamLogin: function(data, btns) {
         var self = this;
         var session = this.accountSession;
         OixMsg.hide();
@@ -122,16 +121,10 @@ var OixCloud = {
             });
         };
 
-        var onLoginSuccess = function(suggestNodeFilter, warning, approval) {
+        var onLoginSuccess = function(suggestNodeFilter, warning) {
             btns.forEach(function(b){ ocSetBtnBusy(b, false); });
             if (session !== self.accountSession) return;
             if (!data.refresh) session = ++self.accountSession;
-            var manage = document.getElementById('oix-temporary-device');
-            var temporary = approval && approval.approval_status === 'temporary' && /^[0-9a-f]{64}$/.test(approval.fingerprint);
-            if (manage) {
-                manage.hidden = !temporary;
-                if (temporary) manage.href = 'https://oixcloud.com/user/managed-device#device-' + approval.fingerprint;
-            }
             var info = warning || '<%:oixCloud configuration is active and a node passed the connectivity check%>';
             OixMsg.show(info, warning ? 'info' : 'success', 20000);
             self.loggedIn = true; self.showLoggedIn(); self.loadAccountInfo(); self.startPolling();
@@ -180,20 +173,7 @@ var OixCloud = {
                         var obj = JSON.parse(line);
                         if (obj.stage === 'done' && obj.result === 200) {
                             finished = true;
-                            onLoginSuccess(suggestAfterApproval || obj.suggest_node_filter === true, obj.warning, obj.approval);
-                        } else if (obj.stage === 'approval') {
-                            finished = true;
-                            btns.forEach(function(b){ ocSetBtnBusy(b, false); });
-                            if (session !== self.accountSession) return;
-                            if (!data.refresh) session = ++self.accountSession;
-                            self.loggedIn = true;
-                            self.showLoggedIn();
-                            if (!data.refresh) { self.loadAccountInfo(); self.startPolling(); }
-                            // once approved, carry on with the download this sign-in or update started
-                            self.showDeviceApproval(obj.approval, function() {
-                                self.streamLogin({refresh: '1', activate: data.activate || (data.refresh ? '0' : '1')}, btns,
-                                    suggestAfterApproval || obj.suggest_node_filter === true);
-                            });
+                            onLoginSuccess(obj.suggest_node_filter === true, obj.warning);
                         } else if (obj.stage === 'error') {
                             finished = true;
                             onLoginError(obj.result || '<%:oixCloud Login Failed%>', obj.code);
@@ -234,247 +214,6 @@ var OixCloud = {
         doStreamLogin(data);
     },
 
-    // Shows the approval code until the router is approved on the website or with the
-    // Telegram bot: enrolling again every 5 seconds answers the same request, so the
-    // dialog closes by itself; it also shows a new code if the old one expired
-    showDeviceApproval: function(approval, onApproved) {
-        var self = this, session = this.accountSession;
-        var box = document.createElement('div'), fields = {}, timer = null, closeDialog = null, stopped = false;
-        var deadlineTimer, shown = '', pending = {}, operation = null;
-        box.className = 'oix-approval';
-        var addText = function(className, text) {
-            var p = document.createElement('p');
-            p.className = className;
-            p.textContent = text;
-            box.appendChild(p);
-            return p;
-        };
-        var addRow = function(name, label, node) {
-            var row = document.createElement('div'), title = document.createElement('span');
-            row.className = 'oix-approval-row';
-            title.className = 'oix-approval-label';
-            title.textContent = label;
-            node.className = 'oix-approval-value';
-            row.appendChild(title);
-            row.appendChild(node);
-            box.appendChild(row);
-            fields[name] = node;
-            return row;
-        };
-        var form = document.createElement('div'), caption = document.createElement('label'), input = document.createElement('input');
-        var send = document.createElement('button'), verify = document.createElement('button'), message = document.createElement('p');
-        input.type = 'text';
-        input.inputMode = 'numeric';
-        input.autocomplete = 'one-time-code';
-        caption.appendChild(document.createTextNode(''));
-        caption.appendChild(input);
-        form.appendChild(caption);
-        send.type = verify.type = 'button';
-        send.className = verify.className = 'cbi-button cbi-button-action';
-        send.textContent = '<%:Send email code%>';
-        verify.textContent = '<%:Approve this device%>';
-        form.appendChild(send);
-        form.appendChild(verify);
-        message.setAttribute('role', 'status');
-        form.appendChild(message);
-        box.appendChild(form);
-        var enableActions = function() {
-            send.disabled = operation !== null;
-            verify.disabled = operation !== null || !(pending.approval_method === 'email' ? /^[0-9]{8}$/ : /^[0-9]{6}$/).test(input.value);
-        };
-        input.oninput = enableActions;
-        var submit = function(action) {
-            if (stopped || operation || session !== self.accountSession || !self.loggedIn) return;
-            var xhr = new XMLHttpRequest(), body = 'action=' + action + '&request_id=' + pending.request_id + '&fingerprint=' + pending.device_fingerprint;
-            if (action === 'verify') {
-                if (verify.disabled) return;
-                body += '&code=' + encodeURIComponent(input.value);
-            }
-            operation = xhr;
-            enableActions();
-            message.textContent = '';
-            xhr.open('POST', OIX_URLS.deviceStatus, true);
-            xhr.timeout = 65000;
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-            xhr.onloadend = function() {
-                if (stopped || operation !== xhr || session !== self.accountSession || !self.loggedIn) return;
-                operation = null;
-                enableActions();
-                var reply;
-                try { reply = JSON.parse(xhr.responseText); } catch(e) {}
-                if (reply && reply.code === 'session_changed') { finish(false); window.location.reload(); return; }
-                if (reply && reply.approval && reply.approval.approved === true) { finish(true); return; }
-                if (action === 'email' && reply && reply.approval && reply.approval.approved === false) {
-                    message.textContent = '<%:Check your account email for the code%>';
-                } else {
-                    message.textContent = reply && reply.error || '<%:Device verification failed%>';
-                }
-            };
-            xhr.send(body);
-        };
-        send.onclick = function() { submit('email'); };
-        verify.onclick = function() { submit('verify'); };
-        var alternatives = document.createElement('details'), summary = document.createElement('summary');
-        summary.textContent = '<%:Other approval methods%>';
-        alternatives.appendChild(summary);
-        box.appendChild(alternatives);
-        alternatives.appendChild(addText('oix-approval-intro', '<%:Approve this router on the oixCloud website or with your linked Telegram bot, after checking that the fingerprint matches. This window closes by itself once approved%>'));
-        var link = document.createElement('a');
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        var linkRow = addRow('url', '<%:Approval page%>', link);
-        alternatives.appendChild(linkRow);
-        alternatives.appendChild(addRow('code', '<%:Confirmation code%>', document.createElement('code')));
-        alternatives.appendChild(addRow('telegram', '<%:Telegram command%>', document.createElement('code')));
-        var fingerprintRow = addRow('fingerprint', '<%:Device fingerprint%>', document.createElement('code'));
-        var status = addText('oix-approval-status', '<%:Waiting for approval...%>');
-        status.setAttribute('role', 'status');
-        var retry = document.createElement('button');
-        retry.type = 'button';
-        retry.className = 'cbi-button cbi-button-action';
-        retry.textContent = '<%:Request approval again%>';
-        box.appendChild(retry);
-        var bound = function(a) {
-            return /^[0-9a-f]{32}$/.test(a.request_id || '') && /^[0-9a-f]{64}$/.test(a.device_fingerprint || '');
-        };
-        var render = function(a) {
-            fingerprintRow.style.display = a.denied ? 'none' : '';
-            retry.style.display = a.denied ? '' : 'none';
-            if (a.denied) {
-                alternatives.style.display = 'none';
-                clearTimeout(timer);
-                clearTimeout(deadlineTimer);
-                var inflight = operation;
-                operation = null;
-                if (inflight) inflight.abort();
-                pending = a;
-                input.value = '';
-                shown = '';
-                form.style.display = 'none';
-                status.textContent = bound(a) ? '<%:This device approval request was denied%>' : '<%:This request was denied. With an older server, wait for the original code to expire before requesting again%>';
-                return;
-            }
-            var supported = (a.approval_method === 'email' || a.approval_method === 'totp') && bound(a);
-            alternatives.style.display = supported && !a.url ? 'none' : '';
-            if (a.request_id !== pending.request_id || a.approval_method !== pending.approval_method || a.code !== shown) {
-                var previous = operation;
-                operation = null;
-                if (previous) previous.abort();
-                input.value = '';
-                message.textContent = '';
-                alternatives.open = !supported;
-            }
-            pending = a;
-            form.style.display = supported ? '' : 'none';
-            summary.style.display = supported ? '' : 'none';
-            send.style.display = a.approval_method === 'email' ? '' : 'none';
-            input.maxLength = a.approval_method === 'email' ? 8 : 6;
-            caption.firstChild.nodeValue = a.approval_method === 'email' ? '<%:8-digit email code%>' : '<%:6-digit authenticator code%>';
-            enableActions();
-            // the core checks the page; link only to the website, as the other website links do
-            var page = typeof a.url === 'string' && a.url.indexOf('https://oixcloud.com/') === 0 && !/[\s"'<>]/.test(a.url) ? a.url : '';
-            link.href = page || '#';
-            link.textContent = page;
-            linkRow.style.display = page ? '' : 'none';
-            fields.code.textContent = a.code || '';
-            fields.telegram.textContent = a.telegram || '';
-            fields.fingerprint.textContent = a.fingerprint || '';
-            shown = a.code;
-        };
-        var finish = function(result) {
-            stopped = true;
-            if (operation) { operation.abort(); operation = null; }
-            clearTimeout(timer);
-            clearTimeout(deadlineTimer);
-            if (closeDialog) closeDialog(result);
-        };
-        var startPolling = function() {
-            deadlineTimer = setTimeout(function() { finish('timeout'); }, 600000);
-            poll();
-        };
-        var reapply = function() {
-            if (stopped || operation || session !== self.accountSession || !self.loggedIn || !pending.denied) return;
-            var hasTarget = bound(pending), xhr = new XMLHttpRequest();
-            operation = xhr;
-            retry.disabled = true;
-            xhr.open(hasTarget ? 'POST' : 'GET', OIX_URLS.deviceStatus, true);
-            xhr.timeout = 65000;
-            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-            if (hasTarget) xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            xhr.onloadend = function() {
-                if (stopped || operation !== xhr || session !== self.accountSession || !self.loggedIn) return;
-                operation = null;
-                retry.disabled = false;
-                var reply;
-                try { reply = JSON.parse(xhr.responseText); } catch(e) {}
-                if (reply && reply.code === 'session_changed') { finish(false); window.location.reload(); return; }
-                var a = reply && reply.approval;
-                if (a && a.approved === true) { finish(true); return; }
-                if (a && a.denied) {
-                    render(a);
-                    if (!hasTarget && bound(a)) reapply();
-                } else if (a && typeof a.code === 'string') {
-                    render(a);
-                    status.textContent = '<%:Waiting for approval...%>';
-                    startPolling();
-                } else {
-                    status.textContent = reply && reply.error || '<%:Device verification failed%>';
-                }
-            };
-            xhr.send(hasTarget ? 'action=retry&request_id=' + pending.request_id + '&fingerprint=' + pending.device_fingerprint : null);
-        };
-        retry.onclick = reapply;
-        var poll = function() {
-            timer = setTimeout(function() {
-                if (stopped) return;
-                if (session !== self.accountSession || !self.loggedIn) { finish(false); return; }
-                XHR.get(OIX_URLS.deviceStatus, null, function(x, reply) {
-                    if (stopped) return;
-                    if (session !== self.accountSession) { finish(false); return; }
-                    if (reply && reply.code === 'session_changed') { finish(false); window.location.reload(); return; }
-                    if (reply && reply.code === 'auth') {
-                        finish(false);
-                        self.loggedIn = false; self.stopPolling(); self.showLoggedOut();
-                        OixMsg.show(reply.error || '<%:Sign-in token is invalid or expired, please sign in again%>', 'error');
-                        return;
-                    }
-                    if (reply && (reply.code === 'device_approval_denied' || (reply.approval && reply.approval.denied))) {
-                        render(reply.approval || {denied: true});
-                        return;
-                    }
-                    if (reply && (reply.code === 'device_limit' || reply.code === 'invalid_enrollment')) {
-                        finish(false);
-                        OixMsg.show(reply.error || '<%:Server response error, please try again later%>', 'error');
-                        return;
-                    }
-                    var a = x && x.status == 200 && reply && reply.approval;
-                    if (a && a.approved === true) { finish(true); return; }
-                    if (a && typeof a.code === 'string') {
-                        status.textContent = a.code !== shown ? '<%:A new confirmation code was issued%>' : '<%:Waiting for approval...%>';
-                        render(a);
-                    } else {
-                        status.textContent = (reply && reply.error) || '<%:Unable to check the approval, retrying...%>';
-                    }
-                    poll();
-                });
-            }, 5000);
-        };
-        render(approval || {});
-        ocConfirm({
-            title: '<%:Approve this device%>',
-            content: box,
-            buttons: [{label: '<%:Cancel%>', value: false}],
-            onOpen: function(close) { closeDialog = close; }
-        }).then(function(result) {
-            finish(result);
-            if (session !== self.accountSession || !self.loggedIn) return;
-            if (result === true) onApproved();
-            else if (result === 'timeout') OixMsg.show('<%:Device approval timed out; update the subscription to get a new code%>', 'info', 0);
-        });
-        if (!pending.denied) startPolling();
-    },
-
     doLogout: function() {
         var self = this;
         var session = this.accountSession;
@@ -502,8 +241,6 @@ var OixCloud = {
     },
 
     showLoggedOut: function() {
-        var manage = document.getElementById('oix-temporary-device');
-        if (manage) manage.hidden = true;
         ++this.accountSession;
         ++this.infoRequest;
         document.getElementById('oix-login-section').classList.remove('oc-hidden');
@@ -642,11 +379,8 @@ var OixCloud = {
     },
 
     showNodeFilter: function(rank) {
-        var hidden = !(this.loggedIn && Number(rank) > 0);
-        ['oix-node-filter', 'oix-node-filter-help'].forEach(function(id) {
-            var element = document.getElementById(id);
-            if (element) element.classList.toggle('oc-hidden', hidden);
-        });
+        var btn = document.getElementById('oix-node-filter');
+        if (btn) btn.classList.toggle('oc-hidden', !(this.loggedIn && Number(rank) > 0));
     },
 
     openNodeFilter: function() {

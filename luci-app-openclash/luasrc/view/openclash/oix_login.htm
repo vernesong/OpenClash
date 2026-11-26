@@ -92,6 +92,7 @@ end
 							</button>
 						</div>
 					</div>
+					<p class="oix-login-notice"><%:After you sign in, OpenClash sends oixCloud a randomly generated identifier for this router so the website can list it separately and let you sign it out on its own. It cannot be used to sign in.%></p>
 					<div class="oix-footer">
 						<span>Powered by <a href="javascript:void(0);" onclick="OixCloud.openWebsite();return false;">oixcloud.com</a></span>
 					</div>
@@ -99,7 +100,6 @@ end
 			</div>
 
 			<div id="oix-logged-section" class="oix-canvas<%= logged_in and '' or ' oc-hidden' %>">
-				<a id="oix-temporary-device" hidden target="_blank" rel="noopener noreferrer"><%:Temporary access - approve this router%></a>
 				<div class="oix-header">
 					<div class="oix-header-left">
 						<span class="oix-status-badge">
@@ -130,8 +130,6 @@ end
 						</button>
 					</div>
 				</div>
-
-				<div id="oix-node-filter-help" class="oix-field-hint oix-field-help oix-hint-block oc-hidden"><svg class="oc-icon" width="11" height="11"><use href="#oc-icon-help"/></svg><span><%:For a manually created Access Token, bind the current token to a non-primary subscription URL in Access Token Management on the website, then edit the node filter for that URL%></span></div>
 
 				<div class="oix-announce oc-hidden" id="oix-announce">
 					<div class="oix-announce-header">

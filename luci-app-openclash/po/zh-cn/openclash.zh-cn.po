@@ -5771,14 +5771,14 @@ msgstr "搜索设备"
 msgid "Minutes"
 msgstr "分钟"
 
-msgid "For a manually created Access Token, bind the current token to a non-primary subscription URL in Access Token Management on the website, then edit the node filter for that URL"
-msgstr "使用手动创建的 Access Token 时，请先到网页「Access Token 管理」将当前 Token 绑定到非主订阅地址，再编辑该地址的节点筛选"
-
 msgid "Sign in with Google"
 msgstr "使用 Google 登录"
 
 msgid "Only accounts already registered with oixCloud can sign in with Google"
 msgstr "仅限已注册 oixCloud 的账号使用 Google 登录"
+
+msgid "After you sign in, OpenClash sends oixCloud a randomly generated identifier for this router so the website can list it separately and let you sign it out on its own. It cannot be used to sign in."
+msgstr "登录后，OpenClash 会向 oixCloud 发送为这台路由器随机生成的标识，用于在网站上单独列出这台路由器、单独让它下线。这个标识不能用来登录"
 
 msgid "Complete Google sign-in in the pop-up window"
 msgstr "请在弹出窗口中完成 Google 登录"
@@ -5921,77 +5921,14 @@ msgstr "配置文件已保存，但设置保存失败，请检查路由器存储
 msgid "Subscription was saved; the active configuration was kept"
 msgstr "订阅已保存，当前使用的配置保持不变"
 
-msgid "Approve this device"
-msgstr "批准这台设备"
+msgid "the oixCloud panel did not accept this device for this sign-in; sign in again"
+msgstr "oixCloud 没有接受这台路由器的本次登录，请重新登录"
 
-msgid "Approve this router on the oixCloud website or with your linked Telegram bot, after checking that the fingerprint matches. This window closes by itself once approved"
-msgstr "核对指纹一致后，在 oixCloud 网页或已绑定的 Telegram 机器人中批准这台路由器，批准后本窗口自动关闭"
-
-msgid "Approval page"
-msgstr "批准页面"
-
-msgid "Confirmation code"
-msgstr "确认码"
-
-msgid "Telegram command"
-msgstr "Telegram 命令"
-
-msgid "Device fingerprint"
-msgstr "设备指纹"
-
-msgid "Waiting for approval..."
-msgstr "正在等待批准..."
-
-msgid "A new confirmation code was issued"
-msgstr "确认码已更新，请使用新的确认码"
-
-msgid "Unable to check the approval, retrying..."
-msgstr "暂时无法查询批准状态，正在重试..."
-
-msgid "This device approval request was denied"
-msgstr "此设备的批准请求已被拒绝"
-
-msgid "Device approval timed out; update the subscription to get a new code"
-msgstr "等待批准超时，请重新更新订阅获取新的确认码"
-
-msgid "this device is not approved yet; approve it on the oixCloud website or with the Telegram bot"
-msgstr "这台路由器还没有批准，请在 oixCloud 网页或 Telegram 机器人中批准"
-
-msgid "too many devices are waiting for approval; approve them first or try again in 10 minutes"
-msgstr "待批准的设备太多，请先批准或等 10 分钟后重试"
+msgid "the oixCloud panel did not accept this device; try again later"
+msgstr "oixCloud 没有接受这台路由器，请稍后重试"
 
 msgid "the device enrollment was refused; update the client and try again"
 msgstr "设备登记被拒绝，请更新插件和内核后重试"
-
-msgid "Send email code"
-msgstr "获取邮箱验证码"
-
-msgid "Other approval methods"
-msgstr "其他批准方式"
-
-msgid "8-digit email code"
-msgstr "8 位邮箱验证码"
-
-msgid "6-digit authenticator code"
-msgstr "验证器的 6 位动态码"
-
-msgid "Check your account email for the code"
-msgstr "请到账号邮箱查收验证码"
-
-msgid "Device verification failed"
-msgstr "设备验证失败"
-
-msgid "Invalid device approval request"
-msgstr "设备批准请求无效"
-
-msgid "Request approval again"
-msgstr "重新申请"
-
-msgid "This request was denied. With an older server, wait for the original code to expire before requesting again"
-msgstr "本次申请已被拒绝。使用旧版服务时，请等原确认码过期后重新申请"
-
-msgid "Temporary access - approve this router"
-msgstr "已临时联网 · 批准这台路由器"
 
 msgid "A file with this name already exists"
 msgstr "已存在同名文件"

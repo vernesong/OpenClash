@@ -147,7 +147,7 @@ config_download_managed()
       local fs = require "luci.openclash"
       local json = require "luci.jsonc"
       local request = json.parse(io.read("*a"))
-      local reply = fs.oix_download_config(request)
+      local reply = fs.oix_cli("managed-config", request)
       if not reply then
          print("error=The oixCloud core is not installed or too old; install it from the Core settings and try again")
          os.exit(1)

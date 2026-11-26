@@ -126,7 +126,6 @@ function index()
 	entry({"admin", "services", "openclash", "oix_checkin"}, call("oix_checkin"))
 	entry({"admin", "services", "openclash", "oix_logout"}, call("oix_logout"))
 	entry({"admin", "services", "openclash", "oix_login"}, call("oix_login"))
-	entry({"admin", "services", "openclash", "oix_device_status"}, call("oix_device_status"))
 	entry({"admin", "services", "openclash", "oix_google_begin"}, call("oix_google_begin"))
 	entry({"admin", "services", "openclash", "oix_web_link"}, call("oix_web_link"))
 	entry({"admin", "services", "openclash", "oix_login_info_save"}, call("oix_login_info_save"))
@@ -6849,7 +6848,6 @@ end
 
 local function oix_cli_error(reply, fallback)
 	if not reply then return OIX_CORE_MISSING end
-	if reply.code == "device_approval_denied" then return "This device approval request was denied" end
 	return reply.error or fallback
 end
 
@@ -6859,53 +6857,7 @@ local function oix_account_token(token)
 	if not reply or reply.error or not oix_valid_token(reply.token) then
 		return nil, oix_cli_error(reply, "login failed")
 	end
-	return reply.token, nil, reply.approval
-end
-
--- Enrolls this router under token, or takes the answer the sign-in already brought.
--- Gives {approved = true}, or what the approval dialog shows: the code and the
--- fingerprint grouped as the website shows them; on failure nil, message, code.
-local function oix_device_approval(token, approval)
-	if type(approval) ~= "table" or type(approval.approved) ~= "boolean" then
-		local reply = fs.oix_cli("device-approval", {token = token})
-		approval = reply and reply.approval
-		if reply and reply.code == "device_approval_denied" and not approval then
-			approval = {approved = false, denied = true}
-		end
-		if type(approval) ~= "table" or type(approval.approved) ~= "boolean" then
-			return nil, oix_cli_error(reply, OIX_CORE_MISSING), reply and reply.code
-		end
-	end
-	if approval.approved then
-	    return {approved = true, approval_status = approval.approval_status, fingerprint = approval.fingerprint}
-	end
-	if approval.denied == true then
-		local id, fp = approval.request_id, approval.fingerprint
-		local denied = {approved = false, denied = true}
-		if type(id) == "string" and #id == 32 and id:match("^[a-f0-9]+$") and type(fp) == "string" and #fp == 64 and fp:match("^[a-f0-9]+$") then
-			denied.request_id, denied.device_fingerprint = id, fp
-		end
-		return denied
-	end
-	local code, fingerprint, page = approval.user_code, approval.fingerprint, approval.verification_url
-	if type(code) ~= "string" or not code:match("^%x+$") or #code ~= 10
-		or type(fingerprint) ~= "string" or not fingerprint:match("^%x+$") or #fingerprint ~= 64 then
-		return nil, "Server response error, please try again later"
-	end
-	-- the core checks the page and names the plain one when the panel gave none
-	if type(page) ~= "string" or not page:match("^https://[^%s\"'<>]+$") then page = nil end
-	code = code:sub(1, 5) .. "-" .. code:sub(6)
-	return {
-		approved = false,
-		code = code,
-		telegram = "/device " .. code,
-		request_id = approval.request_id,
-		approval_method = approval.approval_method,
-		device_fingerprint = fingerprint,
-		fingerprint = fingerprint:sub(1, 4) .. " " .. fingerprint:sub(5, 8) .. " " .. fingerprint:sub(9, 12) .. " " .. fingerprint:sub(13, 16),
-		url = page,
-		expires_in = tonumber(approval.expires_in)
-	}
+	return reply.token
 end
 
 local OIX_GOOGLE_FLOW = "/tmp/oix_google_login"
@@ -7030,16 +6982,16 @@ local function oix_google_token(code, verifier)
 	if not oix_valid_token(reply.token) then
 		return nil, "Google sign-in expired or could not be verified, please try again"
 	end
-	return reply.token, nil, type(reply.account) == "table" and reply.account.suggest_node_filter == true, reply.approval
+	return reply.token, nil, type(reply.account) == "table" and reply.account.suggest_node_filter == true
 end
 
-local function oix_core_api(method, path, timeout)
-	local cmd = string.format("curl -s -m %d --noproxy '*' -o - -w '\\n%%{http_code}' -H 'Content-Type: application/json'", timeout or 5)
+local function oix_core_get(path, timeout)
+	local cmd = string.format("curl -s -m %d --noproxy '*' -w '\\n%%{http_code}'", timeout or 5)
 	local secret = dase()
 	if secret and secret ~= "" then
 		cmd = cmd .. " -H " .. oix_quote("Authorization: Bearer " .. secret)
 	end
-	cmd = cmd .. " -X " .. method .. " " .. oix_quote("http://127.0.0.1:" .. cn_port() .. path)
+	cmd = cmd .. " " .. oix_quote("http://127.0.0.1:" .. cn_port() .. path)
 	local out = SYS.exec(cmd)
 	if not out then return nil end
 	local response, status = out:match("^(.*)\n(%d%d%d)%s*$")
@@ -7050,12 +7002,12 @@ local function oix_wait_loaded()
 	oix_progress("loading", "Loading managed nodes...")
 	local ready = false
 	for _ = 1, 15 do
-		local _, status = oix_core_api("GET", "/version", 2)
+		local _, status = oix_core_get("/version", 2)
 		if status == 200 then ready = true; break end
 		nixio.nanosleep(1, 0)
 	end
 	if not ready then return nil, "The oixCloud core did not start" end
-	local body, status = oix_core_api("GET", "/providers/proxies/oixCloud", 5)
+	local body, status = oix_core_get("/providers/proxies/oixCloud", 5)
 	if status ~= 200 then return nil, "Unable to load managed nodes" end
 	local ok, provider = pcall(json.parse, body or "")
 	if not ok or type(provider) ~= "table" or type(provider.proxies) ~= "table" or #provider.proxies == 0 then
@@ -7065,7 +7017,7 @@ local function oix_wait_loaded()
 	for _, proxy in ipairs(provider.proxies) do
 		if type(proxy) == "table" and type(proxy.name) == "string" then names[proxy.name] = true end
 	end
-	local groups_body, groups_status = oix_core_api("GET", "/proxies", 5)
+	local groups_body, groups_status = oix_core_get("/proxies", 5)
 	local referenced = false
 	if groups_status == 200 then
 		local parsed, groups = pcall(json.parse, groups_body or "")
@@ -7073,8 +7025,9 @@ local function oix_wait_loaded()
 			for name, group in pairs(groups.proxies) do
 				if name ~= "GLOBAL" and type(group) == "table" and type(group.all) == "table" then
 					for _, member in ipairs(group.all) do
-						if names[member] then referenced = true end
+						if names[member] then referenced = true; break end
 					end
+					if referenced then break end
 				end
 			end
 			-- Check the selected main route's node first when it resolves to this provider.
@@ -7088,16 +7041,19 @@ local function oix_wait_loaded()
 		end
 	end
 	if not referenced then return nil, "Managed nodes are not referenced by any proxy group" end
+	if selected_node then names[selected_node] = nil end
 	for _, proxy in ipairs(provider.proxies) do
-		if type(proxy) == "table" and names[proxy.name] and proxy.name ~= candidates[1] and #candidates < 3 then
+		if type(proxy) == "table" and names[proxy.name] then
 			candidates[#candidates + 1] = proxy.name
+			names[proxy.name] = nil
+			if #candidates == 3 then break end
 		end
 	end
 	oix_progress("checking_connection", "Checking node connectivity...")
 	for _, name in ipairs(candidates) do
 		local path = "/providers/proxies/oixCloud/" .. HTTP.urlencode(name)
 			.. "/healthcheck?timeout=3000&url=" .. HTTP.urlencode("http://cp.cloudflare.com/generate_204") .. "&expected=204"
-		local result, code = oix_core_api("GET", path, 4)
+		local result, code = oix_core_get(path, 4)
 		local parsed, delay = pcall(json.parse, result or "")
 		if code == 200 and parsed and type(delay) == "table" and type(delay.delay) == "number" and delay.delay > 0 then
 			if selected_node and name ~= selected_node then
@@ -7109,7 +7065,7 @@ local function oix_wait_loaded()
 	return true, "Configuration is active, but node connectivity checks did not pass; check network diagnostics or select another node"
 end
 
-local function fetch_oix_sub(token, select_profile, approval)
+local function fetch_oix_sub(token, select_profile)
 	if not oix_valid_token(token) then
 		return nil, "invalid token"
 	end
@@ -7119,11 +7075,11 @@ local function fetch_oix_sub(token, select_profile, approval)
 	if not temporary then
 		return nil, "Unable to save subscription; existing configuration was kept"
 	end
-	local function fail(message, code, device)
+	local function fail(message, code)
 		fs.unlink(temporary)
-		return nil, message, code, device
+		return nil, message, code
 	end
-	local reply = fs.oix_download_config({token = token, output = temporary}, approval)
+	local reply = fs.oix_cli("managed-config", {token = token, output = temporary})
 	if not reply then
 		return fail(OIX_CORE_MISSING)
 	elseif reply.code == "timeout" then
@@ -7131,7 +7087,7 @@ local function fetch_oix_sub(token, select_profile, approval)
 	elseif reply.code == "invalid_config" then
 		return fail("Subscription is not a valid Clash configuration; existing configuration was kept")
 	elseif reply.error then
-		return fail(oix_cli_error(reply, "Subscription update failed; existing configuration was kept"), reply.code, reply.approval)
+		return fail(oix_cli_error(reply, "Subscription update failed; existing configuration was kept"), reply.code)
 	end
 	local validation_result = SYS.exec("ruby -ryaml -rYAML -I /usr/share/openclash -E UTF-8 -e 'puts YAML.subscription_status(ARGV[0], ARGV.drop(1))' " .. oix_quote(temporary) .. " oixCloud 'oixCloud - smart' 2>/dev/null; printf ':%s' \"$?\"")
 	local validation, validation_code = (validation_result or ""):match("^%s*([%u_]+)%s*:(%d+)$")
@@ -7192,23 +7148,22 @@ local function fetch_oix_sub(token, select_profile, approval)
 	end)
 	if not saved then return fail("Unable to save subscription; existing configuration was kept") end
 	if saved.error then return fail(saved.error, saved.code) end
-	local device = reply.approval
-	if not saved.activate then return true, saved.warning, nil, device end
+	if not saved.activate then return true, saved.warning end
 	oix_progress("restarting", "Restarting...")
 	if SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1") ~= 0 then
-		return true, "Configuration was saved, but OpenClash could not start", nil, device
+		return true, "Configuration was saved, but OpenClash could not start"
 	end
 	local loaded, warning = oix_wait_loaded()
 	if not loaded then
-		return true, string.format(luci.i18n.translate("Configuration was saved, but activation failed: %s"), luci.i18n.translate(warning)), nil, device
+		return true, string.format(luci.i18n.translate("Configuration was saved, but activation failed: %s"), luci.i18n.translate(warning))
 	end
-	return true, warning, nil, device
+	return true, warning
 end
 
 function oix_login()
 	HTTP.prepare_content("text/plain; charset=utf-8")
 	HTTP.header("Cache-Control", "no-store")
-	local token, err, approval
+	local token, err
 	local suggest_node_filter = false
 	local google_code = HTTP.formvalue("google_code")
 	local input_token = HTTP.formvalue("token")
@@ -7242,14 +7197,14 @@ function oix_login()
 		end
 	elseif google_code and google_code ~= "" then
 		write_padded('{"stage":"logging_in","text":"' .. luci.i18n.translate("Logging in...") .. '"}')
-		token, err, suggest_node_filter, approval = oix_google_token(google_code, attempt.verifier)
+		token, err, suggest_node_filter = oix_google_token(google_code, attempt.verifier)
 		if not token then
 			write_padded('{"stage":"error","result":' .. json.stringify(luci.i18n.translate(err)) .. '}')
 			return
 		end
 	elseif input_token and input_token ~= "" then
 		write_padded('{"stage":"logging_in","text":"' .. luci.i18n.translate("Logging in...") .. '"}')
-		token, err, approval = oix_account_token(input_token)
+		token, err = oix_account_token(input_token)
 		if not token then
 			write_padded('{"stage":"error","result":' .. json.stringify(luci.i18n.translate(err)) .. '}')
 			return
@@ -7264,7 +7219,6 @@ function oix_login()
 		end
 		token = reply.token
 		suggest_node_filter = type(reply.account) == "table" and reply.account.suggest_node_filter == true
-		approval = reply.approval
 	end
 	-- Authentication succeeds independently of downloading or activating a profile.
 	if not refresh then
@@ -7291,24 +7245,7 @@ function oix_login()
 			return
 		end
 	end
-	local select_profile = not refresh or HTTP.formvalue("activate") == "1"
-	local ok, warning, code, device = fetch_oix_sub(token, select_profile, approval)
-	if code == "approval_required" or code == "device_approval_denied" then
-		if code == "device_approval_denied" and not device then device = {approved = false, denied = true} end
-		device, warning, code = oix_device_approval(token, device)
-		if device and device.approved then
-			ok, warning, code, device = fetch_oix_sub(token, select_profile, device)
-		end
-	end
-	if device and not device.approved then
-		uci:load("openclash")
-		if uci:get("openclash", "config", "oix_token") ~= token then
-			write_padded(json.stringify({stage = "error", code = "session_changed", result = luci.i18n.translate("Sign-in changed; please retry the subscription update")}))
-			return
-		end
-		write_padded(json.stringify({stage = "approval", approval = device, suggest_node_filter = suggest_node_filter}))
-		return
-	end
+	local ok, warning, code = fetch_oix_sub(token, not refresh)
 	uci:load("openclash")
 	if uci:get("openclash", "config", "oix_token") ~= token then
 		code = "session_changed"
@@ -7328,7 +7265,7 @@ function oix_login()
 	elseif warning then
 		warning = luci.i18n.translate(warning)
 	end
-	write_padded(json.stringify({stage = "done", result = 200, suggest_node_filter = suggest_node_filter, warning = warning, approval = device}))
+	write_padded(json.stringify({stage = "done", result = 200, suggest_node_filter = suggest_node_filter, warning = warning}))
 end
 
 function oix_google_begin()
@@ -7378,62 +7315,6 @@ function oix_web_link()
 	else
 		HTTP.write_json({error = luci.i18n.translate(oix_cli_error(reply, "Unable to open the page"))})
 	end
-end
-
-local function oix_device_code(token)
-	local mode = HTTP.formvalue("action")
-	local request_id = HTTP.formvalue("request_id")
-	local fingerprint = HTTP.formvalue("fingerprint")
-	local code = HTTP.formvalue("code")
-	if HTTP.getenv("HTTP_X_REQUESTED_WITH") ~= "XMLHttpRequest"
-		or (mode ~= "email" and mode ~= "verify" and mode ~= "retry")
-		or type(request_id) ~= "string" or #request_id ~= 32 or not request_id:match("^[a-f0-9]+$")
-		or type(fingerprint) ~= "string" or #fingerprint ~= 64 or not fingerprint:match("^[a-f0-9]+$")
-		or (mode == "verify" and (type(code) ~= "string" or (#code ~= 6 and #code ~= 8) or not code:match("^%d+$"))) then
-		return nil, "Invalid device approval request"
-	end
-	local command = ({email = "device-email-code", verify = "device-verify", retry = "device-retry"})[mode]
-	local reply = fs.oix_cli(command,
-		{token = token, request_id = request_id, fingerprint = fingerprint, code = mode == "verify" and code or nil})
-	if reply and type(reply.approval) == "table" and type(reply.approval.approved) == "boolean" then
-		if mode == "retry" or reply.approval.denied then return oix_device_approval(token, reply.approval) end
-		return {approved = reply.approval.approved}
-	end
-	return nil, oix_cli_error(reply, "Device verification failed"), reply and reply.code
-end
-
--- polled by the approval dialog: enrolling again with the same keys and token
--- answers the same request, and brings a new code once the old one expires
-function oix_device_status()
-	HTTP.prepare_content("application/json")
-	HTTP.header("Cache-Control", "no-store")
-	local token = fs.uci_get_config("config", "oix_token")
-	if not oix_valid_token(token) then
-		HTTP.write_json({code = "auth", error = luci.i18n.translate("Sign-in token is invalid or expired, please sign in again")})
-		return
-	end
-	local ready, core_err = oix_ensure_core(false, true)
-	if not ready then
-		HTTP.write_json({error = luci.i18n.translate(core_err)})
-		return
-	end
-	local device, message, code
-	if HTTP.getenv("REQUEST_METHOD") == "POST" then
-		device, message, code = oix_device_code(token)
-	else
-		device, message, code = oix_device_approval(token)
-	end
-	uci:load("openclash")
-	if uci:get("openclash", "config", "oix_token") ~= token then
-		HTTP.write_json({code = "session_changed"})
-		return
-	end
-	if not device then
-		if code == "auth" and not oix_clear_account(token) then code = nil end
-		HTTP.write_json({code = code, error = luci.i18n.translate(message)})
-		return
-	end
-	HTTP.write_json({approval = device})
 end
 
 function oix_logout()

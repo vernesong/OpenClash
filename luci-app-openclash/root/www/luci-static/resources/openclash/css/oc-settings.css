@@ -334,34 +334,6 @@ html[data-darkmode=true] .oc .oix-panel::after {
 
 .oix-field-hint { font-size: 11px; display: block; margin-top: 2px; line-height: 1.3; }
 
-.oix-hint-block {
-    display: flex; align-items: flex-start; gap: 5px;
-    margin: 0 0 10px; padding: 6px 10px;
-    background: var(--primary-a5); border: 1px solid var(--primary-a20);
-    border-radius: var(--radius-sm); line-height: 1.5;
-}
-
-.oix-hint-block svg { flex-shrink: 0; margin-top: 2px; opacity: 0.8; }
-
-.oix-approval { display: flex; flex-direction: column; gap: 6px; }
-
-.oix-approval p { margin: 0; }
-
-.oix-approval-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
-
-.oix-approval-label { flex: 0 0 auto; min-width: 72px; color: var(--text-secondary); }
-
-.oix-approval-value {
-    flex: 1 1 160px; min-width: 0; overflow-wrap: anywhere;
-    font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 13px;
-    color: var(--text-primary); background: none; padding: 0;
-    user-select: all; -webkit-user-select: all;
-}
-
-a.oix-approval-value { color: var(--primary-color); font-size: 12px; user-select: text; -webkit-user-select: text; }
-
-.oix-approval-status { color: var(--text-secondary); }
-
 .oix-field-error { color: var(--error-color); }
 
 .oix-field-help { color: var(--text-secondary); }
@@ -549,6 +521,8 @@ a.oix-approval-value { color: var(--primary-color); font-size: 12px; user-select
 .oix-footer {
     margin-top: 12px; text-align: right; font-size: 14px; color: var(--text-secondary);
 }
+
+.oix-login-notice { margin: 14px 0 0; font-size: 12px; line-height: 1.5; color: var(--text-secondary); }
 
 .oix-footer a { color: var(--primary-color); text-decoration: none; opacity: 0.8; font-weight: 500; }
 

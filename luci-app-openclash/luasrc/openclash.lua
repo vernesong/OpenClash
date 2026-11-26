@@ -515,35 +515,9 @@ function oix_cli(command, request)
 		return nil
 	end
 	if reply.code == "usage" then
-		-- Older cores list their commands when the requested command is unknown.
-		if type(reply.error) == "string" and reply.error:match("^usage: mihomo oix login")
-			and not reply.error:find(command, 1, true) then
-			return nil, "unsupported"
-		end
 		return nil
 	end
 	return reply
-end
-
--- Downloading the template only requires an account. Check that this router can
--- also read its nodes before replacing the saved configuration.
-function oix_download_config(request, approval)
-	if type(approval) ~= "table" or type(approval.approved) ~= "boolean" then
-		local reply, reason = oix_cli("device-approval", {token = request.token})
-		if reason == "unsupported" then return oix_cli("managed-config", request) end
-		if not reply or reply.error then return reply end
-		approval = reply.approval
-		if type(approval) ~= "table" or type(approval.approved) ~= "boolean" then return nil end
-	end
-	if not approval.approved then
-		if approval.denied then
-			return {code = "device_approval_denied", error = "This device approval request was denied", approval = approval}
-		end
-		return {code = "approval_required", error = "Approve this device", approval = approval}
-	end
-	local config = oix_cli("managed-config", request)
-	if config and not config.error then config.approval = approval end
-	return config
 end
 
 --- Appends one line to the plugin log without going through a shell.
