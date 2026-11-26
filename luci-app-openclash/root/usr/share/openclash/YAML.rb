@@ -1385,7 +1385,8 @@ module YAML
 	end
 
 	def self.overwrite_expand_env(text)
-		text.gsub(/\$\{([A-Za-z_][A-Za-z0-9_]*)\}|\$([A-Za-z_][A-Za-z0-9_]*)/) do
+		text.gsub(/\$\$|\$\{([A-Za-z_][A-Za-z0-9_]*)\}|\$([A-Za-z_][A-Za-z0-9_]*)/) do |match|
+			next match if match == '$$'
 			ENV[Regexp.last_match(1) || Regexp.last_match(2)].to_s
 		end
 	end
