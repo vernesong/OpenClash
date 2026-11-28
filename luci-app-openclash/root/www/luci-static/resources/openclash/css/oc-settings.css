@@ -527,6 +527,12 @@ html[data-darkmode=true] .oc .oix-panel::after {
 
 .oix-card-help a:hover { opacity: 1; }
 
+.oc .oix-login-notice {
+    margin: 14px 0 0; padding: 0; font-size: 12px; line-height: 1.5; color: var(--text-secondary);
+}
+
+.oc .oix-login-notice svg { vertical-align: -1px; margin-right: 2px; opacity: 0.7; }
+
 .oix-footer {
     margin-top: 12px; text-align: right; font-size: 14px; color: var(--text-secondary);
 }

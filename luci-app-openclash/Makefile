@@ -145,9 +145,9 @@ endef
 
 define Package/$(PKG_NAME)/postrm
 #!/bin/sh
-	DEFAULT_DNSMASQ_CFGID="$$(uci -q show "dhcp.@dnsmasq[0]" | awk 'NR==1 {split($0, conf, /[.=]/); print conf[2]}' 2>/dev/null)"
-	if [ -f "/tmp/etc/dnsmasq.conf.$DEFAULT_DNSMASQ_CFGID" ]; then
-	   DNSMASQ_CONF_DIR="$$(awk -F '=' '/^conf-dir=/ {print $2}' "/tmp/etc/dnsmasq.conf.$DEFAULT_DNSMASQ_CFGID" 2>/dev/null)"
+    DEFAULT_DNSMASQ_CFGID="$$(uci -q show "dhcp.@dnsmasq[0]" | awk 'NR==1 {split($$0, conf, /[.=]/); print conf[2]}' 2>/dev/null)"
+    if [ -f "/tmp/etc/dnsmasq.conf.$$DEFAULT_DNSMASQ_CFGID" ]; then
+	   DNSMASQ_CONF_DIR="$$(awk -F '=' '/^conf-dir=/ {print $$2}' "/tmp/etc/dnsmasq.conf.$$DEFAULT_DNSMASQ_CFGID" 2>/dev/null)"
 	else
 	   DNSMASQ_CONF_DIR="/tmp/dnsmasq.d"
 	fi
@@ -161,9 +161,9 @@ define Package/$(PKG_NAME)/postrm
 	rm -rf /tmp/openclash_version_history.json >/dev/null 2>&1
 	rm -rf /tmp/openclash_cdn_info.json >/dev/null 2>&1
 	rm -rf /tmp/openclash_tpl_cache >/dev/null 2>&1
-	rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
-	rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf >/dev/null 2>&1
-	rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf >/dev/null 2>&1
+	rm -rf "$${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf" >/dev/null 2>&1
+	rm -rf "$${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf" >/dev/null 2>&1
+	rm -rf "$${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf" >/dev/null 2>&1
 	rm -rf /tmp/etc/openclash >/dev/null 2>&1
 	rm -rf /tmp/openclash_announcement >/dev/null 2>&1
 	rm -f /tmp/openclash_clients.json >/dev/null 2>&1

@@ -462,7 +462,7 @@ function oix_cli(command, request)
 	end
 	local out
 	if fs.writefile(temporary, payload) then
-		out = SYS.exec(string.format("OIX_CLIENT=openclash CLASH_HOME_DIR=/etc/openclash %s oix %s < %s 2>/dev/null",
+		out = SYS.exec(string.format("OIX_CLIENT=openclash OIX_DEVICE_KEY_DIR=/etc/openclash CLASH_HOME_DIR=/etc/openclash %s oix %s < %s 2>/dev/null",
 			UTIL.shellquote(core), command, UTIL.shellquote(temporary)))
 	end
 	fs.remove(temporary)

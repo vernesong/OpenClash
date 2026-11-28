@@ -79,6 +79,11 @@ HTTP.setfilehandler(
 		if not fd then
 			if not meta then return end
 
+			if not fs.is_safe_filename(meta.file) then
+				o.value = translate("upload file error.")
+				return
+			end
+
 			if fp == "config" then
 				if meta and chunk then fd = nixio.open(dir .. meta.file, "w") end
 			elseif fp == "proxy-provider" then

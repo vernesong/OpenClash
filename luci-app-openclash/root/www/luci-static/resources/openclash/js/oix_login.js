@@ -476,7 +476,7 @@ var OixCloud = {
         inp.type = isPwd ? 'text' : 'password';
         var btn = inp.parentNode.querySelector('.oix-pwd-toggle');
         if (btn) {
-            btn.title = isPwd ? btn.getAttribute('data-show') : btn.getAttribute('data-hide');
+            btn.title = isPwd ? btn.getAttribute('data-hide') : btn.getAttribute('data-show');
         }
         var icon = inp.parentNode.querySelector('svg');
         if (icon) {

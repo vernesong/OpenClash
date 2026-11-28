@@ -5918,3 +5918,18 @@ msgstr "Se guardó la configuración, pero no los ajustes; revisa el almacenamie
 
 msgid "Subscription was saved; the active configuration was kept"
 msgstr "La suscripción se guardó; se mantuvo la configuración activa"
+
+msgid "A file with this name already exists"
+msgstr "Ya existe un archivo con este nombre"
+
+msgid "After you sign in, OpenClash sends oixCloud a randomly generated identity for this device so the website can list it separately and manage it."
+msgstr "Al iniciar sesión, OpenClash envía a oixCloud una identidad generada al azar para este dispositivo, de modo que el sitio web lo muestre por separado y lo gestione."
+
+msgid "the oixCloud panel did not accept this device for this sign-in; sign in again"
+msgstr "oixCloud no aceptó este router para este inicio de sesión; vuelve a iniciar sesión"
+
+msgid "the oixCloud panel did not accept this device; try again later"
+msgstr "oixCloud no aceptó este router; inténtalo de nuevo más tarde"
+
+msgid "the device enrollment was refused; update the client and try again"
+msgstr "Se rechazó el registro del dispositivo; actualiza el plugin y el núcleo e inténtalo de nuevo"

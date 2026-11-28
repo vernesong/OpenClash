@@ -77,7 +77,7 @@ function index()
 	entry({"admin", "services", "openclash", "config-overwrite"},cbi("openclash/config-overwrite"),_("Overwrite Settings"), 40).leaf = true
 	entry({"admin", "services", "openclash", "config-subscribe"},cbi("openclash/config-subscribe"),_("Config Subscribe"), 60).leaf = true
 	entry({"admin", "services", "openclash", "servers"},cbi("openclash/servers"),nil).leaf = true
-	entry({"admin", "services", "openclash", "other-rules-edit"},cbi("openclash/other-rules-edit"), nil).leaf = true
+	entry({"admin", "services", "openclash", "other-rules-edit"},alias("admin", "services", "openclash", "config-overwrite"), nil).leaf = true
 	entry({"admin", "services", "openclash", "custom-dns-edit"},cbi("openclash/custom-dns-edit"), nil).leaf = true
 	entry({"admin", "services", "openclash", "other-file-edit"},cbi("openclash/other-file-edit"), nil).leaf = true
 	entry({"admin", "services", "openclash", "proxy-providers-file-manage"},form("openclash/proxy-providers-file-manage"), nil).leaf = true
@@ -659,7 +659,14 @@ function action_switch_config()
 
 	uci:set("openclash", "config", "config_path", config_file)
 	uci:set("openclash", "config", "enable", "1")
-	uci:commit("openclash")
+	if not uci:commit("openclash") then
+		HTTP.prepare_content("application/json")
+		HTTP.write_json({
+			status = "error",
+			message = "Failed to save settings, check router storage and try again"
+		})
+		return
+	end
 
 	SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
 
@@ -1040,7 +1047,7 @@ function sub_info_get()
 				if s.sub_ua then
 					sub_ua = s.sub_ua
 				end
-				managed = s.name == "oixCloud"
+				managed = s.name == "oixCloud" or s.name == "oixCloud - smart"
 				local raw = uci:get_list("openclash", s['.name'], "sub_headers")
 				if raw then
 					sub_headers = table.concat(raw, "\n")
@@ -2319,7 +2326,8 @@ function action_get_debug_logs()
 end
 
 function action_backup()
-	local config = SYS.call("cp /etc/config/openclash /etc/openclash/openclash >/dev/null 2>&1")
+	-- a hard link keeps the archive member current even when an earlier attempt was interrupted
+	local config = SYS.call("ln -f /etc/config/openclash /etc/openclash/openclash >/dev/null 2>&1")
 	local reader = ltn12_popen(fs.backup_command("."))
 
 	HTTP.header(
@@ -2330,11 +2338,11 @@ function action_backup()
 	HTTP.prepare_content("application/x-targz")
 	luci.ltn12.pump.all(reader, HTTP.write)
 	reader.kill()
-	SYS.call("rm -rf /etc/openclash/openclash >/dev/null 2>&1")
+	SYS.call("rm -f /etc/openclash/openclash >/dev/null 2>&1")
 end
 
 function action_backup_ex_core()
-	local config = SYS.call("cp /etc/config/openclash /etc/openclash/openclash >/dev/null 2>&1")
+	local config = SYS.call("ln -f /etc/config/openclash /etc/openclash/openclash >/dev/null 2>&1")
 	local reader = ltn12_popen(fs.backup_command(".", "core"))
 
 	HTTP.header(
@@ -2345,7 +2353,7 @@ function action_backup_ex_core()
 	HTTP.prepare_content("application/x-targz")
 	luci.ltn12.pump.all(reader, HTTP.write)
 	reader.kill()
-	SYS.call("rm -rf /etc/openclash/openclash >/dev/null 2>&1")
+	SYS.call("rm -f /etc/openclash/openclash >/dev/null 2>&1")
 end
 
 function action_backup_only_config()
@@ -2473,6 +2481,33 @@ local plugin_file_dirs = {
 	["/etc/openclash/rule_provider/"] = true,
 }
 
+-- Creates the file only when the name is still free; an existing config must not be truncated.
+local function create_new_file(file_path)
+	if fs.access(file_path) then
+		HTTP.status(409, "A file with this name already exists")
+		return false
+	end
+	local file = nixio.open(file_path, nixio.open_flags("wronly", "creat", "excl"))
+	if file then
+		file:close()
+		return true
+	end
+	HTTP.status(500, "Create File Failed")
+	return false
+end
+
+-- Uploads are staged beside the destination so readers only see complete files.
+local function open_upload_stage(dir)
+	local stage = (SYS.exec("mktemp " .. UTIL.shellquote(dir .. "/.openclash-upload.XXXXXX") .. " 2>/dev/null") or ""):match("^(%S+)")
+	if not stage then return nil end
+	local file = io.open(stage, "wb")
+	if not file then
+		fs.unlink(stage)
+		return nil
+	end
+	return file, stage
+end
+
 function create_file()
 	local file_name = HTTP.formvalue("filename")
 	local file_dir = HTTP.formvalue("filepath")
@@ -2480,11 +2515,7 @@ function create_file()
 		HTTP.status(400, "Invalid file path")
 		return
 	end
-	local file_path = file_dir..file_name
-	fs.writefile(file_path, "")
-	if not fs.isfile(file_path) then
-		HTTP.status(500, "Create File Failed")
-	end
+	create_new_file(file_dir .. file_name)
 	return
 end
 
@@ -2498,6 +2529,14 @@ function rename_file()
 	end
 	local old_file_path = file_path .. old_file_name
 	local new_file_path = file_path .. new_file_name
+	if not fs.isfile(old_file_path) then
+		HTTP.status(404, "File not found")
+		return
+	end
+	if old_file_path == new_file_path then
+		return
+	end
+	if not create_new_file(new_file_path) then return end
 	local old_run_file_path = "/etc/openclash/" .. old_file_name
 	local new_run_file_path = "/etc/openclash/" .. new_file_name
 	if fs.rename(old_file_path, new_file_path) then
@@ -2515,6 +2554,7 @@ function rename_file()
 		end
 		HTTP.status(200, "Rename File Successful")
 	else
+		fs.unlink(new_file_path)
 		HTTP.status(500, "Rename File Failed")
 	end
 	return
@@ -4917,7 +4957,7 @@ end
 
 function action_upload_config()
 	local config_dir = "/etc/openclash/config/"
-	local started, fp, filename, target_path, file_size, stream_err = false, nil, nil, nil, 0, nil
+	local started, fp, stage_path, filename, target_path, file_size, stream_err = false, nil, nil, nil, nil, 0, nil
 
 	HTTP.setfilehandler(function(meta, chunk, eof)
 		if stream_err then
@@ -4946,7 +4986,7 @@ function action_upload_config()
 
 			SYS.call("mkdir -p " .. config_dir)
 
-			fp = io.open(target_path, "w")
+			fp, stage_path = open_upload_stage(config_dir)
 			if not fp then
 				stream_err = "Failed to save config file to disk"
 				return
@@ -4972,8 +5012,8 @@ function action_upload_config()
 	HTTP.prepare_content("application/json")
 
 	if stream_err then
-		if target_path then
-			fs.unlink(target_path)
+		if stage_path then
+			fs.unlink(stage_path)
 		end
 
 		HTTP.write_json({
@@ -4992,7 +5032,7 @@ function action_upload_config()
 	end
 
 	if file_size == 0 then
-		fs.unlink(target_path)
+		fs.unlink(stage_path)
 		HTTP.write_json({
 			status = "error",
 			message = "Uploaded file is empty"
@@ -5002,7 +5042,7 @@ function action_upload_config()
 
 	local yaml_valid = false
 	local content_start = ""
-	local rfp = io.open(target_path, "r")
+	local rfp = io.open(stage_path, "r")
 	if rfp then
 		content_start = rfp:read(5000) or ""
 		rfp:close()
@@ -5017,6 +5057,7 @@ function action_upload_config()
 	end
 
 	if not yaml_valid then
+		fs.unlink(stage_path)
 		HTTP.write_json({
 			status = "error",
 			message = "Invalid config file format - missing required YAML sections"
@@ -5024,8 +5065,16 @@ function action_upload_config()
 		return
 	end
 
-	SYS.call(string.format("chmod 644 %s", UTIL.shellquote(target_path)))
-	SYS.call(string.format("chown root:root %s", UTIL.shellquote(target_path)))
+	SYS.call(string.format("chmod 644 %s", UTIL.shellquote(stage_path)))
+	SYS.call(string.format("chown root:root %s", UTIL.shellquote(stage_path)))
+	if not os.rename(stage_path, target_path) then
+		fs.unlink(stage_path)
+		HTTP.write_json({
+			status = "error",
+			message = "Failed to save config file to disk"
+		})
+		return
+	end
 
 	HTTP.write_json({
 		status = "success",
@@ -5170,7 +5219,7 @@ function action_config_file_read()
 end
 
 function action_config_file_save()
-	local config_file, fp, file_size, backup_file, stream_err, started, opened = nil, nil, 0, nil, nil, false, false
+	local config_file, fp, stage_path, file_size, backup_file, stream_err, started = nil, nil, nil, 0, nil, nil, false
 
 	HTTP.setfilehandler(function(meta, chunk, eof)
 		if stream_err then
@@ -5202,26 +5251,15 @@ function action_config_file_save()
 					return
 				end
 			end
-
-			if fs.access(config_file) then
-				backup_file = config_file .. ".backup." .. os.time()
-				if SYS.call(string.format("cp %s %s", UTIL.shellquote(config_file), UTIL.shellquote(backup_file))) ~= 0 then
-					backup_file = nil
-					stream_err = "Failed to create backup file"
-					return
-				end
-			end
 		end
 
 		if #chunk > 0 then
 			if not fp then
-				fp = io.open(config_file, "w")
+				fp, stage_path = open_upload_stage(config_file:match("^(.+)/[^/]+$") or "/etc/openclash")
 				if not fp then
 					stream_err = "Failed to write config file"
 					return
 				end
-
-				opened = true
 			end
 
 			if not fp:write(chunk) then
@@ -5250,19 +5288,15 @@ function action_config_file_save()
 	end
 
 	if not stream_err then
-		local saved = fs.stat(config_file)
+		local saved = fs.stat(stage_path)
 		if not saved or saved.size ~= file_size then
 			stream_err = "File write verification failed"
 		end
 	end
 
 	if stream_err then
-		if opened then
-			if backup_file then
-				SYS.call(string.format("mv %s %s", UTIL.shellquote(backup_file), UTIL.shellquote(config_file)))
-			else
-				fs.unlink(config_file)
-			end
+		if stage_path then
+			fs.unlink(stage_path)
 		end
 
 		HTTP.write_json({
@@ -5275,9 +5309,27 @@ function action_config_file_save()
 	local is_overwrite = (config_file == "/etc/openclash/custom/openclash_custom_overwrite.sh" or config_file:match("^/etc/openclash/overwrite/[^/]+$"))
 
 	if not is_overwrite then
-		SYS.call(string.format("chmod 644 %s", UTIL.shellquote(config_file)))
+		SYS.call(string.format("chmod 644 %s", UTIL.shellquote(stage_path)))
 	end
-	SYS.call(string.format("chown root:root %s", UTIL.shellquote(config_file)))
+	SYS.call(string.format("chown root:root %s", UTIL.shellquote(stage_path)))
+
+	if fs.access(config_file) then
+		backup_file = config_file .. ".backup." .. os.time()
+		if SYS.call(string.format("cp %s %s", UTIL.shellquote(config_file), UTIL.shellquote(backup_file))) ~= 0 then
+			backup_file = nil
+		end
+	end
+	if not os.rename(stage_path, config_file) then
+		if backup_file then
+			fs.unlink(backup_file)
+			backup_file = nil
+		end
+		HTTP.write_json({
+			status = "error",
+			message = "Failed to write config file"
+		})
+		return
+	end
 
 	if backup_file then
 		SYS.call(string.format([[
@@ -5561,7 +5613,10 @@ function action_add_subscription()
 			uci:set("openclash", section_id, "config_update_interval", tostring(tonumber(update_interval)))
 		end
 
-		uci:commit("openclash")
+		if not uci:commit("openclash") then
+			HTTP.write_json({ status = "error", message = luci.i18n.translate("Failed to save subscription") })
+			return
+		end
 		SYS.call("/etc/init.d/openclash reload cron >/dev/null 2>&1")
 
 		local action_msg = existing_section_id and "Subscription updated successfully" or "Subscription added successfully"
@@ -6056,7 +6111,7 @@ end
 
 function action_upload_overwrite()
 	local overwrite_dir = "/etc/openclash/overwrite/"
-	local started, fp, filename, target_path, file_size, stream_err = false, nil, nil, nil, 0, nil
+	local started, fp, stage_path, filename, target_path, file_size, stream_err = false, nil, nil, nil, nil, 0, nil
 
 	HTTP.setfilehandler(function(meta, chunk, eof)
 		if stream_err then
@@ -6081,7 +6136,7 @@ function action_upload_overwrite()
 
 			SYS.call("mkdir -p " .. overwrite_dir)
 
-			fp = io.open(target_path, "w")
+			fp, stage_path = open_upload_stage(overwrite_dir)
 			if not fp then
 				stream_err = "Failed to save file to disk"
 				return
@@ -6107,8 +6162,8 @@ function action_upload_overwrite()
 	HTTP.prepare_content("application/json")
 
 	if stream_err then
-		if target_path then
-			fs.unlink(target_path)
+		if stage_path then
+			fs.unlink(stage_path)
 		end
 
 		HTTP.write_json({status = "error", message = stream_err})
@@ -6121,8 +6176,14 @@ function action_upload_overwrite()
 	end
 
 	if file_size == 0 then
-		fs.unlink(target_path)
+		fs.unlink(stage_path)
 		HTTP.write_json({status = "error", message = "Uploaded file is empty"})
+		return
+	end
+
+	if not os.rename(stage_path, target_path) then
+		fs.unlink(stage_path)
+		HTTP.write_json({status = "error", message = "Failed to save file to disk"})
 		return
 	end
 
@@ -7055,7 +7116,7 @@ local OIX_MANAGED_ADDRESS = "oixcloud://managed"
 -- A delayed response from an old session must not clear a newer sign-in.
 local function oix_clear_account(token)
 	uci:load("openclash")
-	if uci:get("openclash", "config", "oix_token") ~= token then return false end
+	if uci:get("openclash", "config", "oix_token") ~= token then return false, "changed" end
 	uci:delete("openclash", "config", "oix_token")
 	uci:delete("openclash", "config", "oix_email")
 	uci:delete("openclash", "config", "oix_passwd")
@@ -7071,7 +7132,7 @@ local function oix_clear_account(token)
 			uci:delete("openclash", s['.name'], "address")
 		end
 	end)
-	uci:commit("openclash")
+	if not uci:commit("openclash") then return false, "storage" end
 	fs.unlink("/tmp/oix_checkin")
 	fs.unlink("/tmp/oix_info")
 	return true
@@ -7110,7 +7171,7 @@ end
 
 local function oix_account_token(token)
 	if not oix_valid_token(token) then return nil, "invalid token" end
-	local reply = fs.oix_cli("account", {token = token})
+	local reply = fs.oix_cli("account", {token = token, token_login = true})
 	if not reply or reply.error or not oix_valid_token(reply.token) then
 		return nil, oix_cli_error(reply, "login failed")
 	end
@@ -7276,8 +7337,17 @@ local function fetch_oix_sub(token, select_profile)
 		return fail("Subscription validation could not run; check Ruby dependencies. Existing configuration was kept")
 	end
 	local age_secret = SYS.exec("(. /usr/share/openclash/uci.sh; uci_get_age_secret_keys oixCloud; uci_get_age_secret_keys 'oixCloud - smart') 2>/dev/null") or ""
-	if SYS.call("OIX_TOKEN=" .. oix_quote(token) .. " OIX_CLIENT=openclash " .. oix_quote(meta_core_path) .. " -t -d /etc/openclash -f " .. oix_quote(temporary) .. " -age-secret-key " .. oix_quote(age_secret) .. " >/dev/null 2>&1") ~= 0 then
+	-- A missing geodata file makes the test download it first and fail on cold boot,
+	-- so the test only runs when the database is present; a timeout only warns.
+	local test_rc = 0
+	if fs.access("/etc/openclash/Country.mmdb") then
+		test_rc = SYS.call("OIX_TOKEN=" .. oix_quote(token) .. " OIX_CLIENT=openclash timeout 30 " .. oix_quote(meta_core_path) .. " -t -d /etc/openclash -f " .. oix_quote(temporary) .. " -age-secret-key " .. oix_quote(age_secret) .. " >/dev/null 2>&1")
+	end
+	if test_rc ~= 0 and test_rc ~= 124 and test_rc ~= 137 and test_rc ~= 143 then
 		return fail("Subscription failed core validation; existing configuration was kept")
+	end
+	if test_rc ~= 0 then
+		fs.append_log(string.format("%s [Warning] oixCloud config test timed out, activating the downloaded configuration", os.date("%Y-%m-%d %H:%M:%S")))
 	end
 	uci:load("openclash")
 	if uci:get("openclash", "config", "oix_token") ~= token then
@@ -7351,6 +7421,11 @@ function oix_login()
 	local email = HTTP.formvalue("email")
 	local passwd = HTTP.formvalue("passwd")
 	local refresh = HTTP.formvalue("refresh") == "1"
+	if not refresh and (not google_code or google_code == "") and (not input_token or input_token == "")
+		and (not email or email == "" or not passwd or passwd == "") then
+		write_padded('{"stage":"error","result":' .. json.stringify(luci.i18n.translate("email or passwd is wrong")) .. '}')
+		return
+	end
 	local ready, core_err = oix_ensure_core(true)
 	if not ready then
 		write_padded('{"stage":"error","result":' .. json.stringify(luci.i18n.translate(core_err)) .. '}')
@@ -7377,10 +7452,6 @@ function oix_login()
 			return
 		end
 	else
-		if not email or email == "" or not passwd or passwd == "" then
-			write_padded('{"stage":"error","result":' .. json.stringify(luci.i18n.translate("email or passwd is wrong")) .. '}')
-			return
-		end
 		write_padded('{"stage":"logging_in","text":"' .. luci.i18n.translate("Logging in...") .. '"}')
 		local reply = fs.oix_cli("login", {email = email, password = passwd})
 		if not reply or reply.error or not oix_valid_token(reply.token) then
@@ -7474,8 +7545,12 @@ function oix_logout()
 			warning = luci.i18n.translate(core_err)
 		end
 	end
-	oix_clear_account(token)
+	local cleared, failure = oix_clear_account(token)
 	HTTP.prepare_content("application/json")
+	if not cleared and failure ~= "changed" then
+		HTTP.write_json({code = "storage", result = luci.i18n.translate("oixCloud Logout Failed")})
+		return
+	end
 	HTTP.write_json({result = 200, warning = warning})
 end
 
@@ -7532,7 +7607,7 @@ function oix_checkin()
 		if not ready then
 			info = {msg = luci.i18n.translate(core_err)}
 			fs.append_log(string.format("%s [Info] oixCloud Checkin Failed, Result:【%s】", os.date("%Y-%m-%d %H:%M:%S"), core_err))
-		elseif reply and not reply.error then
+		elseif reply and not reply.error and reply.checkin then
 			info = {ret = 200, data = {checkin = reply.checkin}}
 			fs.unlink("/tmp/oix_info")
 			fs.writefile(path, json.stringify(info))

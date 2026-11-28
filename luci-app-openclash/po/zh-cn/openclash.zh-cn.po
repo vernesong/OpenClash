@@ -5926,3 +5926,18 @@ msgstr "配置文件已保存，但设置保存失败，请检查路由器存储
 
 msgid "Subscription was saved; the active configuration was kept"
 msgstr "订阅已保存，当前使用的配置保持不变"
+
+msgid "A file with this name already exists"
+msgstr "已存在同名文件"
+
+msgid "After you sign in, OpenClash sends oixCloud a randomly generated identity for this device so the website can list it separately and manage it."
+msgstr "登录后，OpenClash 会向 oixCloud 发送为这台设备随机生成的身份标识，用于在网站上单独列出这台设备并进行管理。"
+
+msgid "the oixCloud panel did not accept this device for this sign-in; sign in again"
+msgstr "oixCloud 没有接受这台路由器的本次登录，请重新登录"
+
+msgid "the oixCloud panel did not accept this device; try again later"
+msgstr "oixCloud 没有接受这台路由器，请稍后重试"
+
+msgid "the device enrollment was refused; update the client and try again"
+msgstr "设备登记被拒绝，请更新插件和内核后重试"

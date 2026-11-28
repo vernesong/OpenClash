@@ -3655,7 +3655,7 @@ var ConfigUploader = {
                 if (x && x.status == 200) {
                     self.finishUpload(targetName);
                 } else {
-                    self.handleError('<%:Upload failed%>');
+                    self.handleError(x && x.status === 409 ? '<%:A file with this name already exists%>' : '<%:Upload failed%>');
                 }
             });
             return;
