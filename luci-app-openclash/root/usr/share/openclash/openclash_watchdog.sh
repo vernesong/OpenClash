@@ -16,6 +16,19 @@ MAX_FIREWALL_RELOAD=3
 FW4=$(command -v fw4)
 PROXY_FWMARK="0x162"
 
+proxy_tun_route_missing()
+{
+   # TUN owns IPv4 only for *-tun/*-mix and IPv6 only for ipv6_mode 2/3; a mixed
+   # setup keeps utun for IPv6 alone, so probing the idle family reloads forever.
+   case "$en_mode" in
+      *-tun|*-mix) [ -z "$(ip route list table 354 | grep '^default dev utun')" ] && return 0 ;;
+   esac
+   case "$ipv6_mode" in
+      2|3) [ -z "$(ip -6 route list table 354 | grep '^default dev utun')" ] && return 0 ;;
+   esac
+   return 1
+}
+
 ## Skip Proxies Address
 skip_proxies_address()
 {
@@ -195,6 +208,7 @@ while :;
 do
    CONFIG_FILE="/etc/openclash/$(uci_get_config "config_path" |awk -F '/' '{print $5}' 2>/dev/null)"
    ipv6_enable=$(uci_get_config "ipv6_enable" || echo 0)
+   ipv6_mode=$(uci_get_config "ipv6_mode" || echo 0)
    enable_redirect_dns=$(uci_get_config "enable_redirect_dns")
    dns_port=$(uci_get_config "dns_port")
    disable_masq_cache=$(uci_get_config "disable_masq_cache")
@@ -331,7 +345,7 @@ fi
          LOG_WATCHDOG "Setting Firewall For Rules Order..."
          /etc/init.d/openclash reload "firewall"
          let FIREWALL_RELOAD++
-      elif [ -n "$(ip link show utun 2>/dev/null)" ] && [ -n "$(ip rule show 2>/dev/null | grep "fwmark $PROXY_FWMARK")" ] && [ -z "$(ip route list table 354 | grep '^default dev utun')" ]; then
+      elif [ -n "$(ip link show utun 2>/dev/null)" ] && [ -n "$(ip rule show 2>/dev/null | grep "fwmark $PROXY_FWMARK")" ] && proxy_tun_route_missing; then
          ## 路由表检查（throw 条目不随 utun 删除，表非空也可能缺默认路由）
          LOG_WATCHDOG "Setting Firewall For IP Rules Table Recreate..."
          /etc/init.d/openclash reload "firewall"
